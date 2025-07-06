@@ -33,7 +33,7 @@ template<typename T>
 ve::fp_vector ve_artisan_min_wage(sys::state& state, T markets) {
 	auto life = state.world.market_get_life_needs_costs(markets, state.culture_definitions.artisans);
 	auto everyday = state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.artisans);
-	return (life + everyday) * artisans_greed;
+	return (life + everyday) * 0.001f;
 }
 template<typename T>
 auto artisan_output_multiplier(
@@ -800,10 +800,7 @@ void update_artisan_consumption(
 		state.world.province_set_artisan_actual_production(provinces, cid, 0.0f);
 		auto valid_mask = ve_valid_artisan_good(state, nations, cid);
 		ve::fp_vector target_workers = state.world.province_get_artisan_score(provinces, cid);
-		auto actual_workers =
-			target_workers
-			* state.world.province_get_labor_demand_satisfaction(provinces, labor::guild_education)
-			* mobilization_impact;
+		auto actual_workers = target_workers * mobilization_impact;
 		auto employment_units = ve::select(valid_mask, consume_labor_guild(state, provinces, actual_workers), 0.f);
 
 		ve_preconsumption_data_guild prepared_data = prepare_data_for_consumption(
@@ -820,9 +817,10 @@ void update_artisan_consumption(
 			cid,
 			consumption_data.output
 		);
-		total_profit = total_profit + ve::max(0.f,
-			consumption_data.output * prepared_data.output_price - consumption_data.direct_inputs_cost
-		);
+		total_profit =
+			total_profit
+			+ consumption_data.output * prepared_data.output_price
+			- consumption_data.direct_inputs_cost;
 	}
 	state.world.province_set_artisan_profit(provinces, total_profit);
 }
@@ -1022,12 +1020,7 @@ guild_update_data imitate_artisan_consumption(
 	auto const& inputs = state.world.commodity_get_artisan_inputs(cid);
 	auto output_amount = state.world.commodity_get_artisan_output_amount(cid);
 	float target_workers = state.world.province_get_artisan_score(p, cid);
-
-	float actual_workers =
-		target_workers
-		* state.world.province_get_labor_demand_satisfaction(p, labor::guild_education)
-		* mobilization_impact;
-
+	float actual_workers = target_workers * mobilization_impact;
 	float employment_units = employment_units_guild(state, p, actual_workers);
 
 	preconsumption_data_guild prepared_data = prepare_data_for_consumption(
@@ -1583,8 +1576,10 @@ void update_employment(sys::state& state) {
 		// no available workers at all?
 		// reduce and set to zero if it's low enough
 		// TODO: more complicated logic would be nice
-		// when we implement migration dependent on wages because high wage would attract people
-		// and hiring people when they are not there yet would be intended behaviour
+		// when we implement migration dependent on wages
+		// because high wage would attract people
+		// and hiring people when they are not there yet
+		// would be intended behaviour
 
 		unqualified_next = ve::select(
 			state.world.province_get_labor_supply(pid, economy::labor::no_education) == 0.f,
@@ -1672,7 +1667,7 @@ void update_employment(sys::state& state) {
 				auto demand = state.world.market_get_demand(markets, cid);
 				auto predicted_price = price_today + price_properties::change(price_today, supply, demand) * 10.f;
 
-				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price);
+				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price / (1.f + artisans_greed));
 				auto base_profit_per_worker = base_profit / artisans_per_employment_unit;
 				auto current_employment_target = state.world.province_get_artisan_score(ids, cid);
 				auto current_employment_actual = current_employment_target
@@ -1692,7 +1687,11 @@ void update_employment(sys::state& state) {
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
 				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.f, inputs_data.min_available - 0.5f), gradient);
 
-				ve::fp_vector decay = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
+				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
+				ve::fp_vector decay_lack = 0.999f + inputs_data.min_available * 0.001f;
+
+				auto decay = decay_lack * decay_profit;
+
 				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient / state.world.commodity_get_artisan_output_amount(cid), 0.0f), 0.f);
 				state.world.province_set_artisan_score(ids, cid, ve::min(local_population, new_employment));
 				ve::apply(

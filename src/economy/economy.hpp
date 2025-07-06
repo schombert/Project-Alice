@@ -140,7 +140,7 @@ inline constexpr float trade_transaction_soft_limit = 1'000.f;
 // while making life worse on average
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.2f;
-inline constexpr float artisans_greed = 0.001f;
+inline constexpr float artisans_greed = 0.3f;
 inline constexpr float labor_greed_life = 0.05f;
 inline constexpr float labor_greed_everyday = 0.f;
 inline constexpr float capitalists_greed = 0.3f;

@@ -1666,6 +1666,11 @@ object {
 		name{ artisan_profit }
 		type{ float }
 		
+	}	
+	property {
+		name{ artisan_bank }
+		type{ float }
+		tag{ save }
 	}
 
 	property{
@@ -4057,15 +4062,6 @@ object {
 		name{ private_investment_effective_fraction }
 		type{ float }
 		
-	}
-	property {
-		name{ private_investment_education }
-		type{ float }
-		
-	}
-	property {
-		name{ private_investment_administration }
-		type{ float }
 	}
 	property {
 		name{ total_rich_income }

@@ -14,6 +14,9 @@
 
 namespace alice_ui {
 
+bool state_is_rtl(sys::state& state) {
+	return state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
+}
 
 ogl::animation::type to_ogl_type(animation_type type, bool forwards) {
 	switch(type) {
@@ -1847,6 +1850,53 @@ void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_
 			text::variable_type::val, text::format_float(pop_demographics::pop_u16_scaling, 10)
 		);
 	}
+}
+
+void describe_money(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
+	auto savings = state.world.pop_get_savings(ids);
+	auto pop_budget = economy::pops::prepare_pop_budget(state, ids);
+
+	auto box = text::open_layout_box(contents);
+
+	text::add_line(state, contents, "pop_budget_explanation_header",
+		text::variable_type::val, text::format_money(savings)
+	);
+
+	// needs
+
+	text::add_line(state, contents, "pop_budget_explanation_life_needs",
+		text::variable_type::x, text::format_money(pop_budget.life_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.life_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.life_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_subsistence",
+		text::variable_type::x, text::format_percentage(pop_budget.life_needs.satisfied_for_free_ratio),
+		text::variable_type::y, text::format_percentage(pop_budget.life_needs.satisfied_with_money_ratio + pop_budget.life_needs.satisfied_for_free_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_everyday_needs",
+		text::variable_type::x, text::format_money(pop_budget.everyday_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.everyday_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.everyday_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_luxury_needs",
+		text::variable_type::x, text::format_money(pop_budget.luxury_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.luxury_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.luxury_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_education",
+		text::variable_type::x, text::format_money(pop_budget.education.spent)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_investments",
+		text::variable_type::x, text::format_money(pop_budget.investments.spent)
+	);
+	text::add_line(state, contents, "pop_budget_explanation_banks",
+		text::variable_type::x, text::format_money(pop_budget.bank_savings.spent)
+	);
 }
 
 void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {

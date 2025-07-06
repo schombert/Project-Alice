@@ -10,6 +10,8 @@
 
 namespace alice_ui {
 
+bool state_is_rtl(sys::state& state);
+
 struct measure_result {
 	int32_t x_space;
 	int32_t y_space;
@@ -253,5 +255,6 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_money(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 
 }
