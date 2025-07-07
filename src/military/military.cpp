@@ -5548,7 +5548,11 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 	assert(location);
 
-	auto make_leaderless = [&](dcon::army_id a) {
+	auto stackwipe = [&](dcon::army_id a) {
+		// disband regiment with pop death when they are being stackwiped, and set the army to be ready for garbage collection
+		while(state.world.army_get_army_membership(a).begin() != state.world.army_get_army_membership(a).end()) {
+			disband_regiment_w_pop_death(state, (*state.world.army_get_army_membership(a).begin()).get_regiment());
+		}
 		state.world.army_set_controller_from_army_control(a, dcon::nation_id{});
 		state.world.army_set_controller_from_army_rebel_control(a, dcon::rebel_faction_id{});
 		state.world.army_set_is_retreating(a, true);
@@ -5569,17 +5573,17 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 		if(battle_attacker && result == battle_result::defender_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				make_leaderless(n.get_army());
+				stackwipe(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
-					make_leaderless(n.get_army());
+					stackwipe(n.get_army());
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!can_retreat_from_battle(state, b)) {
-				make_leaderless(n.get_army());
+				stackwipe(n.get_army());
 			} else {
 				if(!retreat(state, n.get_army()))
-					make_leaderless(n.get_army());
+					stackwipe(n.get_army());
 			}
 		} else {
 			auto path = n.get_army().get_path();
@@ -6178,26 +6182,26 @@ void apply_regiment_damage(sys::state& state) {
 				}
 				state.world.regiment_set_pending_damage(s, 0.0f);
 			}
-			if(current_strength <= 0.0f) {
-				// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
-				auto army = state.world.regiment_get_army_from_army_membership(s);
-				auto controller = state.world.army_get_controller_from_army_control(army);
-				auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
+			//if(current_strength <= 0.0f) {
+			//	// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
+			//	auto army = state.world.regiment_get_army_from_army_membership(s);
+			//	auto controller = state.world.army_get_controller_from_army_control(army);
+			//	auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
 
-				if(!controller) {
-					if(pop_backer) {
-						auto mil = pop_demographics::get_militancy(state, pop_backer) / state.defines.reduction_after_defeat;
-						pop_demographics::set_militancy(state, pop_backer, mil);
-					}
-				} else {
-					auto maxr = state.world.nation_get_recruitable_regiments(controller);
-					if(maxr > 0 && pop_backer) {
-						auto& wex = state.world.nation_get_war_exhaustion(controller);
-						state.world.nation_set_war_exhaustion(controller, std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion)));
-					}
-				}
+			//	if(!controller) {
+			//		if(pop_backer) {
+			//			auto mil = pop_demographics::get_militancy(state, pop_backer) / state.defines.reduction_after_defeat;
+			//			pop_demographics::set_militancy(state, pop_backer, mil);
+			//		}
+			//	} else {
+			//		auto maxr = state.world.nation_get_recruitable_regiments(controller);
+			//		if(maxr > 0 && pop_backer) {
+			//			auto& wex = state.world.nation_get_war_exhaustion(controller);
+			//			state.world.nation_set_war_exhaustion(controller, std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion)));
+			//		}
+			//	}
 
-			}
+			//}
 			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
 			auto psize = state.world.pop_get_size(backing_pop);
 			if(psize <= 1.0f) {
@@ -9342,6 +9346,13 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
+	auto army = state.world.regiment_get_army_from_army_membership(reg_id);
+	auto controller = state.world.army_get_controller_from_army_control(army);
+	if(!controller && base_pop) {
+		// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
+		auto mil = pop_demographics::get_militancy(state, base_pop) / state.defines.reduction_after_defeat;
+		pop_demographics::set_militancy(state, base_pop, mil);
+	}
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
 	military::delete_regiment_safe_wrapper(state, reg_id);
 }
