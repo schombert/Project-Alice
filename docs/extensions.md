@@ -543,8 +543,8 @@ These relate to the added ability for reserve regiments to reinforce while in ba
 
 
 These relate to naval battles:
-`alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
-`alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
+- `alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
+- `alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
 
 
 These relate to army attrition
