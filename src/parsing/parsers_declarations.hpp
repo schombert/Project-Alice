@@ -144,6 +144,7 @@ struct button : public gui_element_common {
 	void buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void clicksound(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
+	void toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 struct nation_script_button : public button {
@@ -252,6 +253,7 @@ struct window : public gui_element_common {
 	window();
 	void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
+	void visible_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void icontype(image const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void eu3dialogtype(window const& v, error_handler& err, int32_t line, building_gfx_context& context);

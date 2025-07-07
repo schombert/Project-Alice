@@ -1439,6 +1439,32 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	container_base::render(state, x, y);
 }
 
+class ui_variable_toggle_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto var = base_data.data.button.toggle_ui_key;
+		state.world.ui_variable_set_value(var, !state.world.ui_variable_get_value(var));
+		state.ui_state.root->impl_on_update(state);
+	};
+};
+
+class ui_variable_toggleable_window : public window_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
+	}
+	void on_update(sys::state& state) noexcept override {
+		window_element_base::on_update(state);
+
+		auto var = base_data.data.window.visible_ui_key;
+
+		if(is_visible() != state.world.ui_variable_get_value(var)) {
+			set_visible(state, state.world.ui_variable_get_value(var));
+		}
+	};
+};
+
 
 template<class RowConT>
 message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {

@@ -2055,6 +2055,7 @@ message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, i
 	return message_result::consumed;
 }
 
+// Create elements w/o hardcoded logic based on GUI definitions
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
 	auto& def = state.ui_defs.gui[id];
 	if(def.get_element_type() == ui::element_type::image) {
@@ -2078,6 +2079,12 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
 			return res;
+		} else if(def.data.button.toggle_ui_key) {
+			auto res = std::make_unique<ui_variable_toggle_button>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
 		} else {
 			auto res = std::make_unique<button_element_base>();
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
@@ -2086,10 +2093,18 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 			return res;
 		}
 	} else if(def.get_element_type() == ui::element_type::window) {
-		auto res = std::make_unique<window_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		res->on_create(state);
-		return res;
+		if(def.data.window.visible_ui_key) {
+			auto res = std::make_unique<ui_variable_toggleable_window>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			res->on_create(state);
+			return res;
+		}
+		else {
+			auto res = std::make_unique<window_element_base>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			res->on_create(state);
+			return res;
+		}
 	} else if(def.get_element_type() == ui::element_type::scrollbar) {
 		auto res = std::make_unique<scrollbar>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));

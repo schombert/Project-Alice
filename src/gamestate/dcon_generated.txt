@@ -5879,6 +5879,25 @@ object {
 	}
 }
 
+object {
+	name{ ui_variable }
+	storage_type{ contiguous }
+	size{ 127 }
+	tag{ scenario }
+
+	property{
+		name{ name }
+		type{ dcon::text_key }
+		tag{ scenario }
+	}
+
+	property{
+		name{ value }
+		type{ bitfield }
+		tag{ scenario }
+	}
+}
+
 load_save{
 	name{store_scenario}
 	only_objects{scenario}

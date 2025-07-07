@@ -69,6 +69,7 @@ button
 	buttonfont            value     text     member_fn
 	format                value     text     member_fn
 	clicksound            value     text     member_fn
+	toggle_ui_key         value       text       member_fn
 	parent                value     none     discard
 
 province_script_button
@@ -152,6 +153,7 @@ window
 	horizontalborder           value       none               discard
 	verticalborder             value       none               discard
 	moveable                   value       bool               member_fn
+	visible_ui_key             value       text               member_fn
 	guibuttontype              group       button             member_fn
 	eu3dialogtype              group       window             member_fn
 	icontype                   group       image              member_fn

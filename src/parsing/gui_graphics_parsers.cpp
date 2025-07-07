@@ -452,6 +452,28 @@ void button::clicksound(association_type, std::string_view t, error_handler& err
 	}
 }
 
+void button::toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
+	auto key = context.full_state.lookup_key(txt);
+	if(!key) {
+		key = context.full_state.add_key_win1252(txt);
+	}
+
+	auto uv = dcon::ui_variable_id{};
+	for(auto uvk : context.full_state.world.in_ui_variable) {
+		if(uvk.get_name() == key) {
+			uv = uvk;
+			break;
+		}
+	}
+
+	if(!uv) {
+		uv = context.full_state.world.create_ui_variable();
+		context.full_state.world.ui_variable_set_name(uv, key);
+	}
+
+	target.data.button.toggle_ui_key = uv;
+}
+
 void nation_script_button::visible(bool, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(added_visible != -1) {
 		err.accumulated_errors += "multiple visible conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
@@ -801,6 +823,27 @@ void window::fullscreen(association_type, bool v, error_handler& err, int32_t li
 void window::moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(v)
 		target.data.window.flags |= ui::window_data::is_moveable_mask;
+}
+void window::visible_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
+	auto key = context.full_state.lookup_key(txt);
+	if(!key) {
+		key = context.full_state.add_key_win1252(txt);
+	}
+
+	auto uv = dcon::ui_variable_id{};
+	for(auto uvk : context.full_state.world.in_ui_variable) {
+		if(uvk.get_name() == key) {
+			uv = uvk;
+			break;
+		}
+	}
+
+	if(!uv) {
+		uv = context.full_state.world.create_ui_variable();
+		context.full_state.world.ui_variable_set_name(uv, key);
+	}
+
+	target.data.window.visible_ui_key = uv;
 }
 
 void window::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {

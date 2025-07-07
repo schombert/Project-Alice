@@ -117,11 +117,13 @@ struct text_base_data {
 	uint16_t font_handle = 0; // 6bytes
 	uint16_t flags = 0; // 8bytes
 
+	dcon::ui_variable_id toggle_ui_key;
+
 	alignment get_alignment() const {
 		return alignment(flags & alignment_mask);
 	}
 };
-static_assert(sizeof(text_base_data) == 8);
+static_assert(sizeof(text_base_data) == 12);
 
 inline constexpr int32_t clicksound_bit_offset = 2;
 enum class clicksound : uint16_t { // 2 bits
@@ -264,6 +266,7 @@ struct window_data {
 	dcon::gui_def_id first_child; // 2bytes
 	uint8_t num_children = 0; // 3bytes
 	uint8_t flags = 0; // 4bytes
+	dcon::ui_variable_id visible_ui_key;
 
 	bool is_dialog() const {
 		return (flags & is_dialog_mask) != 0;
@@ -305,7 +308,7 @@ struct element_data {
 			position = position_data{};
 		}
 	} data; // +16 = 28
-	static_assert(sizeof(internal_data) == 12);
+	static_assert(sizeof(internal_data) == 16);
 
 	uint8_t flags = 0; // 29
 	uint8_t ex_flags = 0; // 30
@@ -328,7 +331,7 @@ struct element_data {
 		return (ex_flags & ex_is_top_level) != 0;
 	}
 };
-static_assert(sizeof(element_data) == 28);
+static_assert(sizeof(element_data) == 32);
 
 struct window_extension {
 	dcon::text_key window;
