@@ -550,6 +550,7 @@ These relate to naval battles:
 These relate to army attrition
 - `alice_army_sea_transport_attrition = 2.5f`: The monthly attrition (in percent) for armies on the sea in transports to take. Can be reduced by national "land_attrition" modifiers
 - `alice_fort_siege_attrition_per_level = 0.35f`: Additional attrition (in percent) per fort level for armies sieging the province, stacking with the base siege attrition.
+- `alice_attrition_war_exhaustion = 1.5`: Multiplier to the war exhaustion gained from taking attrition losses. Works similar to the "COMBATLOSS_WAR_EXHAUSTION" define, but for attrition losses instead. Set to 0 to disable all attrition war exhaustion.
 
 
 ### Support for reforms based on party issues

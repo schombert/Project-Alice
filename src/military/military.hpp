@@ -267,6 +267,9 @@ constexpr inline int32_t days_before_retreat = 11;
 enum class battle_result {
 	indecisive, attacker_won, defender_won
 };
+enum class regiment_dmg_source {
+	combat, attrition
+};
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
@@ -475,6 +478,8 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
 void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
 void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+
+template<regiment_dmg_source damage_source>
 void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
@@ -567,6 +572,7 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
+template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 
 } // namespace military

@@ -1030,6 +1030,19 @@ bool joining_as_attacker_would_break_truce(sys::state& state, dcon::nation_id a,
 	return false;
 }
 
+template<regiment_dmg_source damage_source>
+float get_war_exhaustion_from_land_losses(sys::state& state, float strength_losses, dcon::nation_id controller) {
+	switch(damage_source) {
+		case regiment_dmg_source::combat:
+			return state.defines.combatloss_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller));
+		case regiment_dmg_source::attrition:
+			return state.defines.alice_attrition_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller));
+		default:
+			assert(false);
+			std::abort();
+	}
+}
+
 int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::province_id p) {
 	/*
 	(province-supply-limit-modifier + 1) x (2.5 if it is owned an controlled or 2 if it is just controlled, you are allied to the
@@ -5551,7 +5564,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	auto stackwipe = [&](dcon::army_id a) {
 		// disband regiment with pop death when they are being stackwiped, and set the army to be ready for garbage collection
 		while(state.world.army_get_army_membership(a).begin() != state.world.army_get_army_membership(a).end()) {
-			disband_regiment_w_pop_death(state, (*state.world.army_get_army_membership(a).begin()).get_regiment());
+			disband_regiment_w_pop_death<regiment_dmg_source::combat>(state, (*state.world.army_get_army_membership(a).begin()).get_regiment());
 		}
 		state.world.army_set_controller_from_army_control(a, dcon::nation_id{});
 		state.world.army_set_controller_from_army_rebel_control(a, dcon::rebel_faction_id{});
@@ -5781,7 +5794,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				auto em_regs = em.get_army().get_army_membership();
 				while(em_regs.begin() != em_regs.end() && transport_cap < 0) {
 					auto reg_id = (*em_regs.begin()).get_regiment();
-					disband_regiment_w_pop_death(state, reg_id);
+					disband_regiment_w_pop_death<regiment_dmg_source::combat>(state, reg_id);
 					++transport_cap;
 				}
 				if(transport_cap >= 0)
@@ -5969,9 +5982,16 @@ inline constexpr float combat_modifier_table[] = { 0.0f, 0.02f, 0.04f, 0.06f, 0.
 		0.35f, 0.40f, 0.45f, 0.50f, 0.60f, 0.70f, 0.80f, 0.90f };
 
 
-
+template<regiment_dmg_source damage_source>
 void regiment_add_pending_damage_safe(sys::state& state, dcon::regiment_id reg, float value) {
 	float new_pending_dmg = std::min(state.world.regiment_get_strength(reg), value);
+	auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg));
+	if(bool(in_nation)) {
+		// give war exhaustion for the losses
+		auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
+		auto extra_war_ex = get_war_exhaustion_from_land_losses<damage_source>(state, new_pending_dmg, in_nation);
+		state.world.nation_set_war_exhaustion(in_nation,std::min( current_war_ex + extra_war_ex, state.world.nation_get_modifier_values(in_nation, sys::national_mod_offsets::max_war_exhaustion)));
+	}
 	state.world.regiment_set_pending_damage(reg, state.world.regiment_get_pending_damage(reg) + new_pending_dmg);
 }
 
@@ -5991,9 +6011,9 @@ void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value
 	}
 }
 
-
+template<regiment_dmg_source damage_source>
 void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value) {
-	regiment_add_pending_damage_safe(state, reg, value);
+	regiment_add_pending_damage_safe<damage_source>(state, reg, value);
 	reduce_regiment_strength_safe(state, reg, value);
 }
 
@@ -6149,7 +6169,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		return;
 	}
 	for(auto rg : state.world.army_get_army_membership(army)) {
-		military::regiment_take_damage(state, rg.get_regiment(), attrition_value);
+		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value);
 	}
 }
 
@@ -6174,7 +6194,6 @@ void apply_regiment_damage(sys::state& state) {
 
 			if(pending_damage > 0) {
 				auto tech_nation = tech_nation_for_regiment(state, s);
-
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
 					float damage_modifier = std::max(state.defines.soldier_to_pop_damage - state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss), 0.0f);
@@ -6770,7 +6789,7 @@ void update_land_battles(sys::state& state) {
 					auto org_damage = get_reg_org_damage(state, att_back[i], att_back_target, attacker_mod, true, true, defender_fort);
 
 
-					military::regiment_take_damage(state, att_back_target, str_damage);
+					military::regiment_take_damage<regiment_dmg_source::combat>(state, att_back_target, str_damage);
 
 					defender_casualties += str_damage;
 
@@ -6817,7 +6836,7 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, def_back[i], def_back_target, defender_mod, true, false);
 					auto org_damage = get_reg_org_damage(state, def_back[i], def_back_target, defender_mod, true, false);
 
-					military::regiment_take_damage(state, def_back_target, str_damage);
+					military::regiment_take_damage<regiment_dmg_source::combat>(state, def_back_target, str_damage);
 
 					attacker_casualties += str_damage;
 
@@ -6866,7 +6885,7 @@ void update_land_battles(sys::state& state) {
 					auto org_damage = get_reg_org_damage(state, att_front[i], att_front_target, attacker_mod, false, true, defender_fort);
 
 
-					military::regiment_take_damage(state, att_front_target, str_damage);
+					military::regiment_take_damage<regiment_dmg_source::combat>(state, att_front_target, str_damage);
 					defender_casualties += str_damage;
 
 					adjust_regiment_experience(state, attacking_nation, att_front[i], str_damage * 5.f * state.defines.exp_gain_div * atk_leader_exp_mod);
@@ -6915,7 +6934,7 @@ void update_land_battles(sys::state& state) {
 					auto str_damage = get_reg_str_damage(state, def_front[i], def_front_target, defender_mod, false, false);
 					auto org_damage = get_reg_org_damage(state, def_front[i], def_front_target, defender_mod, false, false);
 
-					military::regiment_take_damage(state, def_front_target, str_damage);
+					military::regiment_take_damage<regiment_dmg_source::combat>(state, def_front_target, str_damage);
 					attacker_casualties += str_damage;
 
 					adjust_regiment_experience(state, defending_nation, def_front[i], str_damage * 5.f * state.defines.exp_gain_div * def_leader_exp_mod);
@@ -9343,7 +9362,7 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p) {
 		&& pop.get_is_primary_or_accepted_culture()
 		&& pop.get_poptype().get_strata() == uint8_t(culture::pop_strata::poor);
 }
-
+template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	auto base_pop = state.world.regiment_get_pop_from_regiment_source(reg_id);
 	auto army = state.world.regiment_get_army_from_army_membership(reg_id);
@@ -9352,6 +9371,13 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 		// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
 		auto mil = pop_demographics::get_militancy(state, base_pop) / state.defines.reduction_after_defeat;
 		pop_demographics::set_militancy(state, base_pop, mil);
+	}
+	else if(controller) {
+		// give war exhaustion for the losses
+		auto& current_war_ex = state.world.nation_get_war_exhaustion(controller);
+		float extra_war_ex = get_war_exhaustion_from_land_losses<damage_source>(state, state.world.regiment_get_strength(reg_id), controller);
+		state.world.nation_set_war_exhaustion(controller, std::min(current_war_ex + extra_war_ex, state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion)));
+
 	}
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
 	military::delete_regiment_safe_wrapper(state, reg_id);
