@@ -64,7 +64,8 @@ void set_militancy(sys::state& state, dcon::pop_id p, float v);
 float get_consciousness(sys::state const& state, dcon::pop_id p);
 void set_consciousness(sys::state& state, dcon::pop_id p, float v);
 float get_literacy(sys::state const& state, dcon::pop_id p);
-void set_literacy(sys::state& state, dcon::pop_id p, float v);
+template<typename P, typename V>
+void set_literacy(sys::state& state, P p, V v);
 float get_employment(sys::state const& state, dcon::pop_id p);
 float get_raw_employment(sys::state const& state, dcon::pop_id p);
 void set_employment(sys::state& state, dcon::pop_id p, float v);
@@ -167,8 +168,8 @@ constexpr inline dcon::demographics_key middle_total(21);
 constexpr inline dcon::demographics_key rich_total(22);
 constexpr inline dcon::demographics_key non_colonial_literacy(23);
 constexpr inline dcon::demographics_key non_colonial_total(24);
-
-constexpr inline uint32_t count_special_keys = 25;
+constexpr inline dcon::demographics_key primary_or_accepted(25);
+constexpr inline uint32_t count_special_keys = 26;
 
 dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
@@ -274,7 +275,6 @@ struct migration_buffer {
 	}
 };
 
-void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf);

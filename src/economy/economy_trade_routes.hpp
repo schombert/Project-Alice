@@ -17,8 +17,8 @@ inline constexpr float invalid_trade_route_distance = 999999.f;
 inline constexpr float trade_loss_per_distance_unit = 0.0001f;
 inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
 inline constexpr float trade_base_decay = 0.05f;
-inline constexpr float min_trade_expansion_multiplier = 0.0000001f;
-inline constexpr float trade_route_min_shift = 0.05f;
+inline constexpr float min_trade_expansion_multiplier = 0.05f;
+inline constexpr float trade_route_min_shift = 0.001f;
 // if exporter has demand satisfaction lower than this value,
 // the trade will effectively stop
 inline constexpr float trade_demand_satisfaction_cutoff = 0.7f;

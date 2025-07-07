@@ -217,10 +217,6 @@ void checked_pop_update(sys::state& ws) {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(ws, o, days_in_month);
 			break;
 		}
 		case 5:
@@ -817,11 +813,6 @@ void checked_single_tick_advanced(sys::state& state1, sys::state& state2) {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(state1, o, days_in_month);
-			demographics::update_literacy(state2, o, days_in_month);
 			break;
 		}
 		case 5:
