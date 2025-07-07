@@ -1543,21 +1543,26 @@ void update_employment(sys::state& state) {
 			primary_employment
 		);
 
+		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education),
-				ve::max(-0.04f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * (unqualified_now + 100.f),
+				ve::max(-0.04f * (unqualified_now + 100.f),
 					gradient.primary[0] / wage_no_education
 				)
 			);
+
+		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education),
-				ve::max(-0.04f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * (primary_now + 100.f),
+				ve::max(-0.04f * (primary_now + 100.f),
 					gradient.primary[1] / wage_basic_education
 				)
 			);
+
+		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ ve::min(0.01f * state.world.factory_get_size(facids) * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
-				ve::max(-0.04f * state.world.factory_get_size(facids),
+			+ ve::min(0.01f * (secondary_now + 100.f),
+				ve::max(-0.04f * (secondary_now + 100.f),
 					gradient.secondary / wage_high_education
 				)
 			);
