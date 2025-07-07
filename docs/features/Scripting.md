@@ -1,5 +1,7 @@
 # Scripting
 
+## US7. Scriptable buttons
+
 Adding new buttons wouldn't mean much if you couldn't make them do things. To allow you to add custom button effects to the game, we have introduced two new ui element types: `provinceScriptButtonType` and `nationScriptButtonType`. These buttons are defined in the same way as a `guiButtonType`, except that they can be given additional `allow` and `effect` parameters. For example:
 
 ```
@@ -48,10 +50,6 @@ How does it work:
 - AI evaluates national scripted interactions once a month in a similar way to decisions.
 - AI doesn't use province scripted interactions.
 
-## Technical side
-
-### US7. Scriptable buttons
-
 Recent changes:
 
 - SneakBug8: Moved links to triggers & effects away from UI element definition into a special `scripted_interaction` DCON table. This reduces memory usage (there is over 8k UI elements in the basegame each having 6 bytes for these links) and increases calculations during UI update (find the interaction ID from GUI element ID).
@@ -67,6 +65,43 @@ Recent changes:
 | AC3 | Effect is parsed |
 | AC4 | Ai_will_do block is parsed |
 | AC5 | AI takes national interactions |
+
+**Definition of Done:**
+- [X] All acceptance criteria are met.
+- [X] Code is reviewed and approved.
+- [ ] Necessary tests are written and pass.
+- [X] Documentation is updated, if applicable.
+- [x] Feature is available in release versions of PA.
+
+## US8. Toggleable windows
+
+**As a Modder,**
+**I want to mod buttons that toggle windows visibility,**
+**So that I add extra windows to the game.**
+
+**Acceptance Criteria:**
+| AC1 | `guiButtonType` elements can have `toggle_ui_key` with a name of UI variable |
+| AC2 | when clicking button with toggle_ui_key the associated UI variable is toggled True/False |
+| AC3 | `windowType` elements can have `visible_ui_key` with a name of UI variable |
+| AC4 | Window is shown only when UI variable in `visible_ui_key` is set to True |
+
+**Definition of Done:**
+- [X] All acceptance criteria are met.
+- [X] Code is reviewed and approved.
+- [ ] Necessary tests are written and pass.
+- [X] Documentation is updated, if applicable.
+- [x] Feature is available in release versions of PA.
+
+## US9. Scriptable images with dynamic frames through datamodels
+
+**As a Modder,**
+**I want to mod in icons that have dynamic frames,**
+**So that I add extra consistency to the UI.**
+
+**Acceptance Criteria:**
+| AC1 | GUI elements can have `datamodel` with one of the datamodel options |
+| AC2 | Datamodel can be `state_religion` |
+| AC3 | When an icon has `datamodel="state_religion"`, it always displays the state religion of the player |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

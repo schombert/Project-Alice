@@ -167,6 +167,7 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 	}
 }
 
+//US9AC1 GUI elements can have `datamodel` with one of the datamodel options
 void gui_element_common::datamodel(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "state_religion")) {
@@ -463,6 +464,7 @@ void button::clicksound(association_type, std::string_view t, error_handler& err
 	}
 }
 
+// US8AC1
 void button::toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	auto key = context.full_state.lookup_key(txt);
 	if(!key) {
@@ -835,6 +837,8 @@ void window::moveable(association_type, bool v, error_handler& err, int32_t line
 	if(v)
 		target.data.window.flags |= ui::window_data::is_moveable_mask;
 }
+
+// US8AC3
 void window::visible_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	auto key = context.full_state.lookup_key(txt);
 	if(!key) {

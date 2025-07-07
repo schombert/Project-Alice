@@ -1439,6 +1439,7 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	container_base::render(state, x, y);
 }
 
+// US8AC2 When clicking button with toggle_ui_key the associated UI variable is toggled True/False
 class ui_variable_toggle_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -1448,6 +1449,7 @@ public:
 	};
 };
 
+// US8AC4 Window is shown only when UI variable in `visible_ui_key` is set to True
 class ui_variable_toggleable_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1465,6 +1467,7 @@ public:
 	};
 };
 
+// US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
 class state_religion_icon : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
