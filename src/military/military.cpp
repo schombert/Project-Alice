@@ -7878,6 +7878,7 @@ void update_movement(sys::state& state) {
 		else if(path.size() == 0 && a.get_special_order() == military::special_army_order::strategic_redeployment) {
 			a.set_special_order(military::special_army_order::none);
 		}
+
 		// US5AC1 Army arrives to province
 		if(arrival == state.current_date) {
 			assert(path.size() > 0);
@@ -7937,10 +7938,8 @@ void update_movement(sys::state& state) {
 				}
 			}
 
-			if(a.get_battle_from_army_battle_participation()) {
-				// nothing -- movement paused
-			}
-			else if(a.get_special_order() == military::special_army_order::pursue_to_engage && a.get_pursuit_target()) {
+			
+			if(!a.get_battle_from_army_battle_participation() && a.get_special_order() == military::special_army_order::pursue_to_engage && a.get_pursuit_target()) {
 				auto reg = a.get_pursuit_target();
 				dcon::army_id target_army;
 				// Find the current army of the target regiment
@@ -7951,14 +7950,21 @@ void update_movement(sys::state& state) {
 				}
 				// Update the path
 				auto npath = command::can_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true);
-				// Has valid path
-				if(npath.size() > 0) {
+				auto new_next_dest = npath.at(npath.size() - 1);
+				auto cur_next_dest = path.at(path.size() - 1);
+
+				// Has valid path and has to change direction
+				if(npath.size() > 0 && cur_next_dest != new_next_dest) {
 					command::execute_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true, military::special_army_order::pursue_to_engage);
 				}
 				else {
 					// Continue moving to the last known location
 					state.world.army_set_special_order(a, military::special_army_order::none);
 				}
+			}
+
+			if(a.get_battle_from_army_battle_participation()) {
+				// nothing -- movement paused
 			}
 			else if(path.size() > 0) {
 				// Army was ordered chain move
