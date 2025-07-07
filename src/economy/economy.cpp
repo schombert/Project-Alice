@@ -2331,31 +2331,31 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		// handle loans
 		bool is_bankrupt = false;
 		{
-			auto MONEY = state.world.nation_get_stockpiles(n, economy::money);
+			auto current_money = state.world.nation_get_stockpiles(n, economy::money);
 			if(state.world.nation_get_is_player_controlled(n)) {
-				auto MAX_LOAN = max_loan(state, n);
-				auto LOAN = state.world.nation_get_local_loan(n);
-				auto INTEREST = interest_payment(state, n);
-				auto REQUIRED_ADDITIONAL_LOAN = 0.f;
-				auto BANK_MONEY = state.world.nation_get_national_bank(n);
+				auto max_loan_amount = max_loan(state, n);
+				auto current_loan = state.world.nation_get_local_loan(n);
+				auto current_interest = interest_payment(state, n);
+				auto required_additional_loan = 0.f;
+				auto current_bank_money = state.world.nation_get_national_bank(n);
 
-				if(MONEY < INTEREST) {
-					REQUIRED_ADDITIONAL_LOAN = INTEREST - MONEY;
+				if(current_money < current_interest) {
+					required_additional_loan = required_additional_loan - current_money;
 				}
 
-				if(MONEY < INTEREST && LOAN + REQUIRED_ADDITIONAL_LOAN > MAX_LOAN) {
+				if(current_money < current_interest && current_loan + required_additional_loan > max_loan_amount) {
 					is_bankrupt = true;
-				} else if(MONEY > INTEREST) {
+				} else if(current_money > current_interest) {
 					// can pay interest without new loans
-					state.world.nation_set_stockpiles(n, economy::money, MONEY - INTEREST);
-					state.world.nation_set_national_bank(n, BANK_MONEY + INTEREST);
+					state.world.nation_set_stockpiles(n, economy::money, current_money - current_interest);
+					state.world.nation_set_national_bank(n, current_bank_money + current_interest);
 				} else {
 					// we have to take additional loan to pay interest and we are able to do it
-					state.world.nation_set_local_loan(n, LOAN + REQUIRED_ADDITIONAL_LOAN);
+					state.world.nation_set_local_loan(n, current_loan + required_additional_loan);
 					state.world.nation_set_stockpiles(n, economy::money, 0);
 				}
 			} else {
-				if(MONEY < 0) {
+				if(current_money < 0) {
 					is_bankrupt = true;
 				}
 			}
@@ -2372,29 +2372,29 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// interest is paid and we are not bankrupt,
 			// now we can assume that money stockpile is equal to BASE_BUDGET
-			auto BASE_BUDGET = state.world.nation_get_stockpiles(n, economy::money);
-			auto ADDITIONAL_FUNDING = 0.f;
-			auto costs = full_spending_cost(state, n, BASE_BUDGET);
-			auto ADMIN = costs.administration;
-			auto REQUIRED_ADDITIONAL_FUNDING = std::max(0.f, costs.total - BASE_BUDGET);
-			auto CURRENT_LOAN = state.world.nation_get_local_loan(n);
+			auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
+			auto additional_funding = 0.f;
+			auto costs = full_spending_cost(state, n, base_budget);
+			auto admin = costs.administration;
+			auto required_additional_funding = std::max(0.f, costs.total - base_budget);
+			auto current_loan = state.world.nation_get_local_loan(n);
 
 			// if loan is required, then take as much as you can
 
 			if(can_take_loans(state, n)) {
-				auto AVAILABLE_LOAN = max_loan(state, n) - CURRENT_LOAN;
-				ADDITIONAL_FUNDING = std::min(REQUIRED_ADDITIONAL_FUNDING, AVAILABLE_LOAN);
+				auto available_loan = max_loan(state, n) - current_loan;
+				additional_funding = std::min(required_additional_funding, available_loan);
 			}
 
 			// by definition, ADMIN must be lower or equal than BASE_BUDGET, so we can always pay for admin budget
 
-			if(BASE_BUDGET + ADDITIONAL_FUNDING >= costs.total) {
+			if(base_budget + additional_funding >= costs.total) {
 				spending_scale = 1.f;
 			} else {
 				spending_scale =
-					(costs.total - ADMIN < 0.001f)
+					(costs.total - admin < 0.001f)
 					? 1.f
-					: (BASE_BUDGET + ADDITIONAL_FUNDING - ADMIN) / (costs.total - ADMIN);
+					: (base_budget + additional_funding - admin) / (costs.total - admin);
 			}
 
 			assert(spending_scale >= 0);
@@ -2402,25 +2402,24 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// spend money
 			state.world.nation_set_stockpiles(
-				n, economy::money, BASE_BUDGET - std::min(BASE_BUDGET, costs.total * spending_scale)
+				n, economy::money, base_budget - std::min(base_budget, costs.total * spending_scale)
 			);
 			state.world.nation_set_spending_level(n, spending_scale);
-			state.world.nation_set_last_base_budget(n, BASE_BUDGET);
+			state.world.nation_set_last_base_budget(n, base_budget);
 
-			if (ADDITIONAL_FUNDING > 0.f) {
+			if (additional_funding > 0.f) {
 				// take the loan
-				state.world.nation_set_local_loan(n, CURRENT_LOAN + ADDITIONAL_FUNDING);
+				state.world.nation_set_local_loan(n, current_loan + additional_funding);
 				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else {
 				// repay the loan
-				auto REMAINDER = state.world.nation_get_stockpiles(n, economy::money);
-				auto PAID_LOAN = std::min(REMAINDER, CURRENT_LOAN);
-				auto LOAN_LEFT = std::max(0.f, CURRENT_LOAN - PAID_LOAN);
-				auto MONEY_LEFT = std::max(0.f, REMAINDER - PAID_LOAN);
-				auto BANK = state.world.nation_get_national_bank(n);
+				auto remaining_loan_before = state.world.nation_get_stockpiles(n, economy::money);
+				auto paid_loan = std::min(remaining_loan_before, current_loan);
+				auto remaining_loan_after = std::max(0.f, current_loan - paid_loan);
+				auto money_after = std::max(0.f, remaining_loan_before - paid_loan);
 
-				state.world.nation_set_local_loan(n, LOAN_LEFT);
-				state.world.nation_set_stockpiles(n, economy::money, MONEY_LEFT);
+				state.world.nation_set_local_loan(n, remaining_loan_after);
+				state.world.nation_set_stockpiles(n, economy::money, money_after);
 				// we do not increase national bank
 				// because it stores the sum of loaned money and money available for a loan
 			}
@@ -2428,8 +2427,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
 
 			// use calculated values to perform actual consumption
-			update_national_consumption(state, n, spending_scale, BASE_BUDGET);
-			update_consumption_administration(state, n, BASE_BUDGET);
+			update_national_consumption(state, n, spending_scale, base_budget);
+			update_consumption_administration(state, n, base_budget);
 		}
 
 		// private budget
