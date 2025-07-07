@@ -193,13 +193,7 @@ auto inline prepare_pop_budget(
 	);
 
 
-	// cultural stuff
-	auto culture = state.world.pop_get_culture(ids);
-	auto accepted = ve::apply(
-		[&](auto n, auto c) { return state.world.nation_get_accepted_cultures(n, c); }, nations, culture
-	);
-	result.can_use_free_services = ve::select((culture == state.world.nation_get_primary_culture(nations)) || accepted, 1.f, 0.f);
-	
+	result.can_use_free_services = state.world.pop_get_is_primary_or_accepted_culture(ids);
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
@@ -224,7 +218,12 @@ auto inline prepare_pop_budget(
 		+ education_spending_ratio
 		+ investment_ratio
 		+ banking_ratio;
-	total_spending_ratio = ve::select(total_spending_ratio < 1.f, 1.f, total_spending_ratio);
+
+	if constexpr(std::same_as<POPS, dcon::pop_id>) {
+		total_spending_ratio = total_spending_ratio < 1.f ? 1.f : total_spending_ratio;
+	} else {
+		total_spending_ratio = ve::select(total_spending_ratio < 1.f, ve::fp_vector{ 1.f }, total_spending_ratio);
+	}
 
 	// normalize:
 
