@@ -2059,11 +2059,20 @@ message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, i
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
 	auto& def = state.ui_defs.gui[id];
 	if(def.get_element_type() == ui::element_type::image) {
-		auto res = std::make_unique<image_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
+		if(def.datamodel == ui::datamodel::state_religion) {
+			auto res = std::make_unique<state_religion_icon>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
+		else {
+			auto res = std::make_unique<image_element_base>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
 	} else if(def.get_element_type() == ui::element_type::button) {
 		if(def.data.button.get_button_scripting() == ui::button_scripting::province) {
 			auto res = std::make_unique<province_script_button>(id);

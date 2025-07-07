@@ -1465,6 +1465,14 @@ public:
 	};
 };
 
+class state_religion_icon : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto country = state.local_player_nation;
+		auto fat_id = dcon::fatten(state.world, state.world.nation_get_religion(country));
+		frame = int32_t(fat_id.get_icon() - 1);
+	}
+};
 
 template<class RowConT>
 message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {

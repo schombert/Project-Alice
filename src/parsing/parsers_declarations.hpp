@@ -133,6 +133,7 @@ struct gui_element_common {
 	void add_size(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void add_position(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
 	void table_layout(gfx_xy_pair const& pr, error_handler& err, int32_t line, building_gfx_context& context);
+	void datamodel(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context) { }
 };
 

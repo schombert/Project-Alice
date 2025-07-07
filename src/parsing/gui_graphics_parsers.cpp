@@ -166,6 +166,17 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 															" of file " + err.file_name + "\n";
 	}
 }
+
+void gui_element_common::datamodel(association_type, std::string_view txt, error_handler& err, int32_t line,
+		building_gfx_context& context) {
+	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "state_religion")) {
+		target.datamodel = ui::datamodel::state_religion;
+	} else {
+		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as datamodel on line " + std::to_string(line) +
+			" of file " + err.file_name + "\n";
+	}
+}
+
 void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
 	target.name = context.full_state.add_key_win1252(txt);

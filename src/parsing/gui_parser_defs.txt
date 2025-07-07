@@ -56,6 +56,7 @@ gui_element_common
 	add_size			group		gfx_xy_pair		member_fn
 	add_position		group		gfx_xy_pair		member_fn
 	table_layout		group		gfx_xy_pair		member_fn
+	datamodel       value    text    member_fn
 
 button
 	#base                 gui_element_common

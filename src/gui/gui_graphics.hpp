@@ -110,6 +110,11 @@ enum class orientation : uint8_t { // 3 bits
 	center = (0x06 << orientation_bit_offset)
 };
 
+enum class datamodel : uint8_t { // 3 bits
+	none = 0,
+	state_religion = 1
+};
+
 struct text_base_data {
 	static constexpr uint16_t alignment_mask = 0x03;
 
@@ -313,6 +318,7 @@ struct element_data {
 	uint8_t flags = 0; // 29
 	uint8_t ex_flags = 0; // 30
 	uint8_t padding[2] = { 0, 0 }; // 32
+	ui::datamodel datamodel = ui::datamodel::none;
 
 	element_data() {
 		std::memset(this, 0, sizeof(element_data));
@@ -331,7 +337,7 @@ struct element_data {
 		return (ex_flags & ex_is_top_level) != 0;
 	}
 };
-static_assert(sizeof(element_data) == 32);
+static_assert(sizeof(element_data) == 36);
 
 struct window_extension {
 	dcon::text_key window;
