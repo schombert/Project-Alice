@@ -2413,10 +2413,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.nation_set_stockpiles(n, economy::money, 0);
 			} else {
 				// repay the loan
-				auto remaining_loan_before = state.world.nation_get_stockpiles(n, economy::money);
-				auto paid_loan = std::min(remaining_loan_before, current_loan);
+				auto money_before = state.world.nation_get_stockpiles(n, economy::money);
+				auto paid_loan = std::min(money_before, current_loan);
 				auto remaining_loan_after = std::max(0.f, current_loan - paid_loan);
-				auto money_after = std::max(0.f, remaining_loan_before - paid_loan);
+				auto money_after = std::max(0.f, money_before - paid_loan);
 
 				state.world.nation_set_local_loan(n, remaining_loan_after);
 				state.world.nation_set_stockpiles(n, economy::money, money_after);
