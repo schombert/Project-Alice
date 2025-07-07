@@ -2421,7 +2421,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				state.world.nation_set_local_loan(n, LOAN_LEFT);
 				state.world.nation_set_stockpiles(n, economy::money, MONEY_LEFT);
-				state.world.nation_set_national_bank(n, BANK + PAID_LOAN);
+				// we do not increase national bank
+				// because it stores the sum of loaned money and money available for a loan
 			}
 
 			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
