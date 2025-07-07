@@ -4054,6 +4054,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ last_base_budget }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ private_investment }
 		type{ float }
 		tag{ save }

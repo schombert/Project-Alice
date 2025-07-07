@@ -411,7 +411,7 @@ void update_income_national_subsidy(sys::state& state){
 		auto pop_of_type = state.world.pop_get_size(ids);
 		auto adj_pop_of_type = pop_of_type / state.defines.alice_needs_scaling_factor;
 
-		auto budget = state.world.nation_get_stockpiles(owners, economy::money);
+		auto budget = state.world.nation_get_last_base_budget(owners);
 
 		auto social_budget =
 			owner_spending

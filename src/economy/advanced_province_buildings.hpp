@@ -4,7 +4,7 @@
 // They can hire people, expand and produce services (or, in future, local modifiers)
 // They could be owned by government at expense of national budget
 // They could produce "free services"
-// They hase current size which depends on national funding and profitability
+// They have current size which depends on national funding and profitability
 // National funding sets size to funding / cost of worker * province weight
 // Private funding increases size when operation is profitable and shrinks when it is not
 // Currently they are hardcoded as "enums with properties"
@@ -42,7 +42,7 @@ const extern advanced_building_definition definitions[services::list::total];
 void initialize_size_of_dcon_arrays(sys::state& state);
 void update_consumption(sys::state& state);
 void update_private_size(sys::state& state);
-void update_national_size(sys::state& state, float national_budget, float spending_scale);
+void update_national_size(sys::state& state);
 void update_production(sys::state& state);
 
 }

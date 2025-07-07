@@ -141,7 +141,7 @@ void update_private_size(sys::state& state) {
 	}
 }
 
-void update_national_size(sys::state& state, float national_budget, float spending_scale) {
+void update_national_size(sys::state& state) {
 	{
 		auto bid = list::schools_and_universities;
 		auto& def = definitions[bid];
@@ -154,6 +154,8 @@ void update_national_size(sys::state& state, float national_budget, float spendi
 			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * tmod * nmod * def.output_amount;
 
+			auto spending_scale = state.world.nation_get_spending_level(owner);
+			auto national_budget = state.world.nation_get_last_base_budget(owner);
 			auto education_priority = ve::to_float(state.world.nation_get_education_spending(owner)) / 100.f;
 			auto education_budget = national_budget * education_priority * spending_scale;
 			auto total_population = state.world.nation_get_demographics(owner, demographics::primary_or_accepted);

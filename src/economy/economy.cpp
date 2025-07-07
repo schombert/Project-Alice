@@ -159,7 +159,7 @@ struct spending_cost {
 	float total;
 };
 
-spending_cost full_spending_cost(sys::state& state, dcon::nation_id n);
+spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float budget);
 void populate_army_consumption(sys::state& state);
 void populate_navy_consumption(sys::state& state);
 void populate_construction_consumption(sys::state& state);
@@ -1122,7 +1122,7 @@ void populate_navy_consumption(sys::state& state) {
 }
 
 
-spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
+spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float base_budget) {
 	spending_cost costs = {
 		.administration = 0.f,
 		.construction = 0.f,
@@ -1134,7 +1134,6 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
 	float military_total = 0.f;
 	uint32_t total_commodities = state.world.commodity_size();
 
-	float base_budget = state.world.nation_get_stockpiles(n, economy::money);
 	float construction_budget =
 		std::max(
 			0.f,
@@ -1212,7 +1211,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n) {
 
 
 	// wages to employed:
-	auto const admin_spending = full_spendings_administration(state, n);
+	auto const admin_spending = full_spendings_administration(state, n, base_budget);
 	costs.administration = admin_spending;
 	total += admin_spending;
 
@@ -1362,8 +1361,6 @@ void update_private_consumption(sys::state& state, dcon::nation_id n, float priv
 				* private_investment_scale, economy_reason::construction);
 		}
 	});
-
-	advanced_province_buildings::update_private_size(state);
 }
 
 void update_national_consumption(sys::state& state, dcon::nation_id n, float spending_scale, float base_budget) {
@@ -1460,9 +1457,6 @@ void update_national_consumption(sys::state& state, dcon::nation_id n, float spe
 			}
 		}
 	}
-
-	update_consumption_administration(state, n, base_budget);
-	advanced_province_buildings::update_national_size(state, base_budget, spending_scale);
 }
 
 // ### Private Investment ###
@@ -2333,13 +2327,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			continue;
 		}
 		spent_on_construction_buffer.set(n, 0.f);
-
-		float spending_scale = 1.0f;
-		bool is_bankrupt = false;
-
+		
 		// handle loans
-
-
+		bool is_bankrupt = false;
 		{
 			auto MONEY = state.world.nation_get_stockpiles(n, economy::money);
 			if(state.world.nation_get_is_player_controlled(n)) {
@@ -2371,16 +2361,20 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			}
 		}
 
-
 		if(is_bankrupt) {
 			go_bankrupt(state, n);
-			spending_scale = 0.f;
+			state.world.nation_set_spending_level(n, 0.f);
+			state.world.nation_set_last_base_budget(n, 0.f);
+			update_national_consumption(state, n, 0.f, 0.f);
+			update_consumption_administration(state, n, 0.f);
 		} else {
+			float spending_scale = 1.0f;
+
 			// interest is paid and we are not bankrupt,
 			// now we can assume that money stockpile is equal to BASE_BUDGET
 			auto BASE_BUDGET = state.world.nation_get_stockpiles(n, economy::money);
 			auto ADDITIONAL_FUNDING = 0.f;
-			auto costs = full_spending_cost(state, n);
+			auto costs = full_spending_cost(state, n, BASE_BUDGET);
 			auto ADMIN = costs.administration;
 			auto REQUIRED_ADDITIONAL_FUNDING = std::max(0.f, costs.total - BASE_BUDGET);
 			auto CURRENT_LOAN = state.world.nation_get_local_loan(n);
@@ -2403,11 +2397,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					: (BASE_BUDGET + ADDITIONAL_FUNDING - ADMIN) / (costs.total - ADMIN);
 			}
 
+			assert(spending_scale >= 0);
+			assert(std::isfinite(spending_scale));
+
 			// spend money
 			state.world.nation_set_stockpiles(
 				n, economy::money, BASE_BUDGET - std::min(BASE_BUDGET, costs.total * spending_scale)
 			);
 			state.world.nation_set_spending_level(n, spending_scale);
+			state.world.nation_set_last_base_budget(n, BASE_BUDGET);
 
 			if (ADDITIONAL_FUNDING > 0.f) {
 				// take the loan
@@ -2430,11 +2428,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// use calculated values to perform actual consumption
 			update_national_consumption(state, n, spending_scale, BASE_BUDGET);
+			update_consumption_administration(state, n, BASE_BUDGET);
 		}
-
-		assert(spending_scale >= 0);
-		assert(std::isfinite(spending_scale));
-
 
 		// private budget
 		{
@@ -2455,8 +2450,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
-	// school sizes were updated, we can move to actual consumption
-
+	advanced_province_buildings::update_national_size(state);
+	advanced_province_buildings::update_private_size(state);
 	advanced_province_buildings::update_consumption(state);
 
 	sanity_check(state);
