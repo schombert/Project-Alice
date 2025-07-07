@@ -192,8 +192,11 @@ auto inline prepare_pop_budget(
 		}, markets, pop_type
 	);
 
-
-	result.can_use_free_services = state.world.pop_get_is_primary_or_accepted_culture(ids);
+	if constexpr(std::same_as<POPS, dcon::pop_id>) {
+		result.can_use_free_services = state.world.pop_get_is_primary_or_accepted_culture(ids) ? 1.f : 0.f;
+	} else {
+		result.can_use_free_services = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), ve::fp_vector { 1.f }, ve::fp_vector { 0.f });
+	}	
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
