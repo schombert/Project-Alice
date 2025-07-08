@@ -260,6 +260,8 @@ struct employment_record {
 	float satisfaction;
 	float actual_employment;
 };
+// descides the divisor for the army demand from reinforcements. It is set to 28 to spread out the reinforcement demand over 28 days, as reinforce ticks only happen once a month
+constexpr inline float unit_reinforcement_demand_divisor = 28.0f;
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);

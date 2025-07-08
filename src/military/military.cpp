@@ -8709,7 +8709,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto in_nation = ar.get_controller_from_army_control();
 	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
-	auto reinf_fufillment = (in_nation ? std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / 28.0f, 0.f, 1.f) : 1.0f);
+	auto reinf_fufillment = (in_nation ? std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) : 1.0f);
 
 	float location_modifier;
 	if(ar.get_battle_from_army_battle_participation()) {
@@ -8717,9 +8717,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	} else {
 		location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
 	}
-	auto combined = state.defines.reinforce_speed * reinf_fufillment * location_modifier *
-		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
-		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
+	auto combined = state.defines.reinforce_speed * reinf_fufillment * location_modifier * (1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
 
 	assert(std::isfinite(combined));
 	return std::clamp(combined, 0.f, 1.f);
@@ -8890,7 +8888,7 @@ float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id
 		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
 		: 1.75f;
 	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
-	auto reinf_fufillment = std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / 28.0f, 0.f, 1.f) * over_size_penalty;
+	auto reinf_fufillment = std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) * over_size_penalty;
 
 	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
 	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;

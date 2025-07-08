@@ -1057,7 +1057,7 @@ void populate_army_consumption(sys::state& state) {
 					if(reinforcement > 0) {
 						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost. Divide by 28 to spread the demand out over the month
 						auto& curr_demand = state.world.market_get_army_demand(market, build_cost.commodity_type[i]);
-						state.world.market_set_army_demand(market, build_cost.commodity_type[i], curr_demand + (build_cost.commodity_amounts[i] * reinforcement) / 28.0f);
+						state.world.market_set_army_demand(market, build_cost.commodity_type[i], curr_demand + (build_cost.commodity_amounts[i] * reinforcement) / unit_reinforcement_demand_divisor);
 					}
 				} else {
 					break;
@@ -1109,9 +1109,9 @@ void populate_navy_consumption(sys::state& state) {
 					auto reinforcement = military::unit_calculate_reinforcement(state, shp);
 					if(reinforcement > 0) {
 						// Ship needs repair - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
-
+						// add only a fraction of the build cost per day, to spread it out over the month
 						auto& curr_demand = state.world.market_get_navy_demand(market, build_cost.commodity_type[i]);
-						state.world.market_set_navy_demand(market, build_cost.commodity_type[i], curr_demand + build_cost.commodity_amounts[i] * reinforcement);
+						state.world.market_set_navy_demand(market, build_cost.commodity_type[i], curr_demand + (build_cost.commodity_amounts[i] * reinforcement) / unit_reinforcement_demand_divisor);
 					}
 				} else {
 					break;
