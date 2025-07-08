@@ -8709,7 +8709,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto in_nation = ar.get_controller_from_army_control();
 	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
-	auto spending_level = (in_nation ? std::clamp(in_nation.get_effective_land_spending(), 0.f, 1.f) : 1.0f);
+	auto reinf_fufillment = (in_nation ? std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / 28.0f, 0.f, 1.f) : 1.0f);
 
 	float location_modifier;
 	if(ar.get_battle_from_army_battle_participation()) {
@@ -8717,7 +8717,7 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	} else {
 		location_modifier = calculate_location_reinforce_modifier_no_battle(state, ar.get_location_from_army_location(), in_nation);
 	}
-	auto combined = state.defines.reinforce_speed * spending_level * location_modifier *
+	auto combined = state.defines.reinforce_speed * reinf_fufillment * location_modifier *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed)) *
 		(1.0f + tech_nation.get_modifier_values(sys::national_mod_offsets::reinforce_rate));
 
@@ -8871,6 +8871,12 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
 		}
 	}
+	// reset all reinforcement buffers
+	for(auto nation : state.world.in_nation) {
+		if(bool(nation)) {
+			state.world.nation_set_land_reinforcement_buffer(nation, 0.0f);
+		}
+	}
 }
 
 /* === Navy reinforcement === */
@@ -8884,11 +8890,11 @@ float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id
 		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
 		: 1.75f;
 	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
-	auto spending_level = in_nation.get_effective_naval_spending() * over_size_penalty;
+	auto reinf_fufillment = std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / 28.0f, 0.f, 1.f) * over_size_penalty;
 
 	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
 	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
-	auto combined = rr_mod * reinf_mod * spending_level;
+	auto combined = rr_mod * reinf_mod * reinf_fufillment;
 
 	return combined;
 }
@@ -8926,6 +8932,12 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 				ship.set_strength(ship.get_strength() + reinforcement);
 				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, reinforcement * 5.f * state.defines.exp_gain_div));
 			}
+		}
+	}
+	// reset all reinforcement buffers
+	for(auto nation : state.world.in_nation) {
+		if(bool(nation)) {
+			state.world.nation_set_naval_reinforcement_buffer(nation, 0.0f);
 		}
 	}
 }

@@ -4024,6 +4024,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ land_reinforcement_buffer }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_reinforcement_buffer }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ effective_land_spending }
 		type{ float }
 		tag{ save }
