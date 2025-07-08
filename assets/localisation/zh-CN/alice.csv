@@ -1,91 +1,91 @@
-support_for_blank;支持$text$
-uh_support_for_blank;上议院支持$text$
+support_for_blank;支持 $text$
+uh_support_for_blank;上议院支持 $text$
 up_to;达到
-scaled_support;支持率$text$
+scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备金率$text$
+stockpile_of;储备金率 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
-add_war_goal;添加$text$战争目标针对$nation$
-blank_loyalty;$text$忠诚度
-in_blank;在$text$
+add_war_goal;添加 $text$ 战争目标针对 $nation$
+blank_loyalty;$text$ 忠诚度
+in_blank;在 $text$
 no_effect;没有效果
 move_capital_to;迁都至
-add_x_core;增加$adj$核心
+add_x_core;增加 $adj$ 核心
 add_core_to;添加核心到
-remove_x_core;移除$adj$核心
+remove_x_core;移除 $adj$ 核心
 remove_core_from;移出势力范围
-change_name_to;名称变为$text$
-change_terrain_to;地形变为$text$
-change_rgo_production_to;原材料改为$text$
+change_name_to;名称变成 $text$
+change_terrain_to;地形变成 $text$
+change_rgo_production_to;原材料变成$text$
 make_accepted_culture;$text$成为可接受民族
-primary_culture_changes_to;主体民族变为$text$
+primary_culture_changes_to;主体民族变成$text$
 union_culture_accepted;接受主体民族文化圈中的所有民族
 remove_accepted_culture;$text$不再为可接受民族
-increase_national_variable_by;国家变量$text$提高$value$
-decrease_national_variable_by;国家变量$text$降低$value$
+increase_national_variable_by;国家变量 $text$ 提高 $value$
+decrease_national_variable_by;国家变量 $text$ 降低 $value$
 life_rating;生活条件
-make_national_religion;$text$成为国教
+make_national_religion;$text$ 成为国教
 make_slave_state;成为蓄奴区
 make_slave_pop;成为奴隶
 research_points;研究点数
-change_tech_school;科研学派变为$text$
-change_government_to;政体变为$text$
+change_tech_school;科研学派变成 $text$
+change_government_to;政体变成 $text$
 add_to_treasury;添加到国库
 war_exhaustion;厌战度
-become_blank;成为$text$
-player_control_change;玩家操作国家变为$text$
-set_national_flag;设置国家变量$text$
-remove_national_flag;移除国家变量$text$
+become_blank;成为 $text$
+player_control_change;玩家操作国家变成 $text$
+set_national_flag;设置国家变量 $text$
+remove_national_flag;移除国家变量 $text$
 infamy;恶名
-change_province_owner;省份拥有者变为$text$
-annex_effect;吞并$text$
-annexed_by_effect;被$text$吞并
-core_return;向$text$归还$adj$核心
-core_return_short;$adj$核心已收回
-change_province_controller;省份控制者变为$text$
-change_state_controller;地区控制者变为$text$
+change_province_owner;省份拥有者变成 $text$
+annex_effect;吞并 $text$
+annexed_by_effect;被 $text$ 吞并
+core_return;向 $text$ 归还 $adj$ 核心
+core_return_short;$adj$ 核心已收回
+change_province_controller;省份控制者变成 $text$
+change_state_controller;地区控制者变成 $text$
 pop_savings;人群储蓄
 leadership_points;领导力点数
-release_as_vassal;释放$text$为附庸
-end_alliance;断绝与$text$的同盟
-end_war_with;与$text$停战
-enable_ideology;启用意识形态?Y$text$?!
-enable_technology;给予科技?Y$text$?!
-enable_invention;给予发明?Y$text$?!
-change_ruling_party;执政党变为$text$
-remove_prov_mod;移除省份修正效果$text$
-remove_nat_mod;移除国家修正效果$text$
-make_alliance;与$text$结盟
-becomes_independent;$text$成为独立国家
-release_as_independent;释放独立国家$text$
-set_global_flag;设置全球变量$text$
-remove_global_flag;移除全球变量$text$
-change_national_value;国家价值变为$text$
+release_as_vassal;释放 $text$ 为附庸
+end_alliance;断绝与 $text$ 的同盟
+end_war_with;与 $text$ 停战
+enable_ideology;启用意识形态 ?Y$text$?!
+enable_technology;给予科技 ?Y$text$?!
+enable_invention;给予发明 ?Y$text$?!
+change_ruling_party;执政党变成 $text$
+remove_prov_mod;移除省份修正效果 $text$
+remove_nat_mod;移除国家修正效果 $text$
+make_alliance;与 $text$ 结盟
+becomes_independent;$text$ 成为独立国家
+release_as_independent;释放独立国家 $text$
+set_global_flag;设置全球变量 $text$
+remove_global_flag;移除全球变量 $text$
+change_national_value;国家价值变成 $text$
 become_civ;成为开化国家
 become_unciv;成为未开化国家
 free_slave_state;成为自由区
 free_slave_pop;解放奴隶
 hold_election;举行选举
-issue_change;$issue$变为$text$
+issue_change;$issue$ 变成 $text$
 add_relative_income;最后收入到国库
 make_neutral;解除所有同盟，释放所有附庸
 pop_size;人群规模
-move_pop_to;人群移动到$text$
-change_pop_type;人群类型转变为$text$
+move_pop_to;人群移动到 $text$
+change_pop_type;人群类型变成 $text$
 years_of_research;研究年数
-remove_mil_reforms;移除$value$个军事改革
-remove_econ_reforms;移除$value$个经济改革
-add_crime;添加犯罪$text$
+remove_mil_reforms;移除 $value$ 个军事改革
+remove_econ_reforms;移除 $value$ 个经济改革
+add_crime;添加犯罪 $text$
 remove_crime;移除激活犯罪
 perform_nationalization;实施国有化
-build_factory_in_capital;在首都州建设$text$
+build_factory_in_capital;在首都州建设 $text$
 enable_great_wars;超级大战已启用
 enable_world_wars;世界大战已启用
 disable_great_wars;超级大战不再可用
 disable_world_wars;世界大战不再可用
-assimilate_pop;民族变为$text$
-assimilate_province;所有人群民族变为$text$
+assimilate_pop;民族变成 $text$
+assimilate_province;所有民族变成 $text$
 owner_primary_culture;其拥有者的主体民族
 literacy;识字率
 add_crisis_interest;对当前危机感兴趣
@@ -95,20 +95,20 @@ consciousness;觉醒度
 rgo_size;原料产地规模
 trigger_every_revolt;引发所有叛乱
 call_allies;召集盟友进入当前战争
-truce_with;与$text$签订和约，持续到?Y$y$?!。
-diplomatic_influence_with;对$text$的外交影响力
-relations_with;与$text$的关系
-add_modifier_until;获得$text$直到$date$
-add_modifier;获得$text$
-add_cb_months;获得对$text$的$name$宣战理由直到$date$
-add_cb_no_months;获得$name$宣战理由针对$text$
-add_cb_reversed_months;$text$在$date$之前对此国有$name$宣战理由
-add_cb_reversed_no_months;$text$获得$name$宣战理由针对此国
-remove_cb_reversed;失去所有$name$宣战理由针对$text$
-remove_cb;$text$失去$name$宣战理由针对此国
-set_national_variable_to;设置国家变量$text$为$value$
-event_fires;已触发事件$text$
-event_fires_in_days;事件$text$在$value$天内触发
+truce_with;与$text$签订和约，持续到 ?Y$y$?!。
+diplomatic_influence_with;对 $text$ 的外交影响力
+relations_with;与 $text$ 的关系
+add_modifier_until;获得 $text$ 直到 $date$
+add_modifier;获得 $text$
+add_cb_months;获得对 $text$ 的 $name$ 宣战理由直到 $date$
+add_cb_no_months;获得 $name$ 宣战理由针对 $text$
+add_cb_reversed_months;$text$在 $date$ 之前对此国有 $name$ 宣战理由
+add_cb_reversed_no_months;$text$ 获得 $name$ 宣战理由针对此国
+remove_cb_reversed;失去所有 $name$ 宣战理由针对 $text$
+remove_cb;$text$ 失去 $name$ 宣战理由针对此国
+set_national_variable_to;国家变量 $text$ 设为 $value$
+event_fires;已触发事件 $text$
+event_fires_in_days;事件 $text$ 在 $value$ 天内触发
 railroad_in_capital;首都铁路等级?G+1?!
 railroad_in_capital_state;首府铁路等级?G+1?!
 fort_in_capital;首都要塞等级?G+1?!
@@ -164,7 +164,7 @@ from_nation_culture;来自此国主流文化
 cultural_union_nation;主体民族的文化联盟国家
 core_of;核心
 state_of;地区
-chance_of;改为：
+chance_of;变成：
 owner_of;所有者
 controller_of;控制者
 location_of_pop;人群位置
@@ -181,17 +181,17 @@ flashpoint_nation;当事国
 rebel;叛军
 flashpoint_tension_label;热点紧张
 for_text;为$text$
-where_ideology_is;意识形态$text$
-where_culture_is;其民族为$text$
-where_religion_is;宗教$text$
-of_type;类型$text$
+where_ideology_is;意识形态 $text$
+where_culture_is;民族是 $text$
+where_religion_is;宗教 $text$
+of_type;类型 $text$
 no_nation;无国家
-declare_war_on;向$text$宣战
+declare_war_on;向 $text$ 宣战
 attacker_wg_label;进攻方战争目标：$text$
 defender_wg_label;防御方战争目标：$text$
 attacker_no_allies;攻击方盟友不被召唤
 attacker_yes_allies;攻击方盟友将被召唤
-war_start_date_desc;战争从?Y$date$?!开始
+war_start_date_desc;战争从 ?Y$date$?! 开始
 cmp_ge;至少
 cmp_le;最多
 cmp_gt;大于
@@ -222,10 +222,10 @@ poor;贫困
 middle;中产
 minimum_state_life_raing;地区最低生活条件
 an_empy_adj_prov;无接壤省份
-belongs_to_same_state;统一$text$地区
-does_not_belong_to_same_state;分别$text$地区
-contains_blank;有$text$
-does_not_contain_blank;没有$text$
+belongs_to_same_state;统一 $text$ 地区
+does_not_belong_to_same_state;分别 $text$ 地区
+contains_blank;有 $text$
+does_not_contain_blank;没有 $text$
 times_target_needs_spending;时间支出
 unemployment;失业率
 slavery;奴隶制
@@ -414,7 +414,7 @@ gw_not_enabled;超级大战未启用
 ww_enabled;世界大战已启用
 ww_not_enabled;世界大战未启用
 can_perform_nationalization;可以国有化
-cannot_perform_nationalization;不可以国有化
+cannot_perform_nationalization;不可国有化
 in_sphere;处于势力范围中
 num_states;地区数量
 a_releasable_vassal;可释放附庸国
@@ -515,7 +515,7 @@ special_rules;特殊规则：
 voting_rules;投票规则：
 hide_decision;隐藏此决议通知
 sup_point_gain;每月镇压点增加：?G+$val$
-sup_point_explain;来自：基础比例 $x$×来自官僚的 $y$×来自镇压点数修正的 $val$
+sup_point_explain;来自：基础比例 $x$× 来自官僚的 $y$× 来自镇压点数修正的 $val$
 pop_size_1;下月人群预估变化：
 pop_size_2;来自增长：
 pop_size_3;来自升降职：
@@ -589,8 +589,8 @@ pop_lit_5;国内教育效率修正：$x$
 pop_lit_6;国内教育效率修正：$x$
 pop_lit_7;基础识字率变化率：$x$
 pop_lit_8;和 0.01
-pop_growth_topbar;预计下月增长速度将达到?G$x$?W
-pop_growth_topbar_2;人口变化幅度为?G$x$?W 在最后?Y30?W 天。
+pop_growth_topbar;预计下月增长速度将达到 ?G$x$?W
+pop_growth_topbar_2;人口变化幅度 ?G$x$?W 在最后 ?Y30?W 天。
 pop_growth_topbar_3;我国成年男性人口：?Y$curr$?W。我们男人
 pop_growth_topbar_4;我国总人口：?Y$val$?W。
 pop_growth_1;每月人群增长：
@@ -655,33 +655,33 @@ influence_explain_7;修正来自科技：$x$
 influence_explain_8;这在我们影响的国家之间分配，造成每日获得的基础收益为：$x$
 influence_explain_9;它将进一步乘以1，加上下列因子的和：
 influence_explain_10;$x$来自败坏名誉
-influence_explain_11;$x$来自接壤
+influence_explain_11;$x$ 来自接壤
 influence_explain_12;$x$ 来自一个或多个作为我们成员的邻居
-influence_explain_13;$x$来自首都非同一大陆
-influence_explain_14;$x$来自作为我们的附庸
-influence_explain_15;$x$来自我们的关系
-influence_explain_16;$x$来自我们在此国的投资
-influence_explain_17;$x$来自目标国规模
-influence_explain_18;$x$来自我们的相关分数
-until_date;直到$x$
+influence_explain_13;$x$ 来自首都非同一大陆
+influence_explain_14;$x$ 来自作为我们的附庸
+influence_explain_15;$x$ 来自我们的关系
+influence_explain_16;$x$ 来自我们在此国的投资
+influence_explain_17;$x$ 来自目标国规模
+influence_explain_18;$x$ 来自我们的相关分数
+until_date;直到 $x$
 add_wg_1;你不能增加针对自己的战争目标
 add_wg_2;你处在战时
-add_wg_3;你至少有$x$外交点
+add_wg_3;你至少有 $x$ 外交点
 add_wg_4;当前沙文主义支持率（$x$）达到添加战争目标的阈值（$y$）
 add_wg_5;维持现状的战争目标还没有被添加到你的一方
 intervene_1;干涉战争
 intervene_2;干涉大战
 intervene_3;是列强
 intervene_4;未涉入一场危机
-intervene_5;战争爆发后至少过去$x$月
+intervene_5;战争爆发后至少过去 $x$ 月
 intervene_6;加入此战争不会将你置于对抗同一国家两次或同时与同一国家作战的境地
 intervene_7;不是一场危机战争
 intervene_8;参战会破坏停战
 intervene_9;正在支持防守方
 intervene_10;防御方除了维持现状之外没有别的战争目标
-intervene_11;攻击方战争分数至少为$x$
-intervene_12;厌战度低于$x$
-intervene_13;与战争领袖关系至少为$x$
+intervene_11;攻击方战争分数至少为 $x$
+intervene_12;厌战度低于 $x$
+intervene_13;与战争领袖关系至少为 $x$
 intervene_14;你的势力范围成员都没有站在对立面
 intervene_15;你的盟友没有站在对立方
 intervene_16;你的军队没有位于与你对立的国家所拥有的省份
@@ -711,12 +711,12 @@ war_score_1;来自占领：$x$
 war_score_2;来自战斗：$x$
 war_score_3;来自战争目标：$x$
 war_score_4;来自封锁：$x$
-dp_inf_tooltip_ban;封锁使馆持续到$x$
-dp_inf_tooltip_discredit;诽谤效果持续到$x$
+dp_inf_tooltip_ban;封锁使馆持续到 $x$
+dp_inf_tooltip_discredit;诽谤效果持续到 $x$
 discredit_explain_1;你不能败坏你自己的名誉
 discredit_explain_2;目标对你的评价高于反感
 discredit_explain_3;列强未被封锁
-iaction_explain_1;对于此目标，你至少有$x$的影响力
+iaction_explain_1;对于此目标，你至少有 $x$ 的影响力
 iaction_explain_2;你的使馆未被封锁
 iaction_explain_3;你不能是战争目标
 iaction_explain_4;目标对列强的评价最高于他们对你的评价
@@ -741,12 +741,12 @@ state_transfer_explain_4;他们不是附庸
 state_transfer_explain_5;我们处于和平
 state_transfer_explain_6;我们至少有1地区
 cancel_ally_explain_1;你不能取消自己盟约
-cancel_ally_explain_2;拥有至少$x$外交点
+cancel_ally_explain_2;拥有至少 $x$ 外交点
 cancel_ally_explain_3;你已结盟
 cancel_ally_explain_4;你不能再加入一场战争
 cancel_ally_explain_5;你不能是目标国傀儡
 ally_explain_1;你不能与自己结盟
-ally_explain_2;你至少有$x$外交点
+ally_explain_2;你至少有 $x$ 外交点
 ally_explain_3;你目前不可能结盟
 ally_explain_4;你不能同列强当危机中时
 ally_explain_5;你不能是附属国
@@ -754,16 +754,16 @@ ally_explain_6;你目前不能是战时目标
 ally_explain_7;AI会接受
 ally_explain_8;目标不能是附属国
 call_ally_explain_1;你有此国盟约
-call_ally_explain_2;你至少有$x$外交点
+call_ally_explain_2;你至少有 $x$ 外交点
 call_ally_explain_3;你处于战时
 call_ally_explain_4;现在有一场战争而这个国家可以被呼叫参与
 call_ally_explain_5;AI会接受
-cancel_access_explain_1;你至少有$x$外交点
+cancel_access_explain_1;你至少有 $x$ 外交点
 ask_access_explain_1;你无法从你自己得到军事通行权
-ask_access_explain_2;你至少有$x$外交点
+ask_access_explain_2;你至少有 $x$ 外交点
 ask_access_explain_3;AI会接受
 ask_access_explain_4;你现在没和目标处于战争中
-cancel_given_access_explain_1;你至少有$x$外交点
+cancel_given_access_explain_1;你至少有 $x$ 外交点
 give_access_explain_1;你不能给你自己军事通行权
 give_access_explain_2;你至少有$x$外交点
 give_access_explain_3;你现在没和目标处于战争中
@@ -778,9 +778,9 @@ decrease_rel_explain_3;你至少有$x$外交点
 decrease_rel_explain_4;当前关系大于-200
 decrease_rel_explain_5;你现在没和目标处于战争中
 cancel_w_sub_explain_1;我们现在每天资助此国 ?Y$x$?!
-cancel_w_sub_explain_2;你至少有$x$外交点
+cancel_w_sub_explain_2;你至少有 $x$ 外交点
 w_sub_explain_1;你不能给你自己提供战争资助
-w_sub_explain_2;你至少有$x$外交点
+w_sub_explain_2;你至少有 $x$ 外交点
 w_sub_explain_3;你现在没和目标处于战争中
 w_sub_explain_4;目标正处于战争
 invention_bulb_1;这个发明现在不能被发现
@@ -793,8 +793,8 @@ add_sphere_explain_2;此国目前不能被纳入其他列强的势力范围
 rem_sphere_explain_1;此国正处于一个列强的势力范围内
 rem_sphere_explain_2;这个国家对你有一个友好的评价
 rem_sphere_explain_3;此国正处于你的势力范围内
-rem_sphere_explain_4;从你的势力范围内移除一个国家会增加 ?R$x$的恶名
-rem_sphere_explain_5;从你的势力范围内移除一个国家会减少?R$x$?!声望
+rem_sphere_explain_4;从你的势力范围内移除一个国家会增加 ?R$x$ 恶名
+rem_sphere_explain_5;从你的势力范围内移除一个国家会减少 ?R$x$?! 声望
 fab_explain_1;你不能对你自己合理化战争
 fab_explain_2;你至少有$x$外交点数
 fab_explain_3;你现在没有正当化一个战争借口
@@ -831,7 +831,7 @@ crisis_offer_button;向这个国家提议在危机中加入你的阵营
 crisis_offer_button_ex_1;你是一方危机阵营的领袖
 crisis_offer_button_ex_2;此危机已吸引到最初支持者
 crisis_offer_button_ex_3;你至少有1外交点
-multiunit_header;已选择$x$单位
+multiunit_header;已选择 $x$ 单位
 ai_alliance_1;AI正在寻求盟友
 ai_alliance_2;你的国家已经足够接近去协助一场战争
 ai_alliance_3;没有相互冲突的野心
@@ -840,38 +840,38 @@ ai_alliance_5;有着共同的战略利益
 ai_access_1;AI认为你的某一场战争对他们有利
 col_start_title;开始殖民此地区
 col_start_1;没有殖民者存在或殖民仍处于初始阶段
-col_start_2;你的国家等级至少为$x$
+col_start_2;你的国家等级至少为 $x$
 col_start_3;此地区不是殖民危机目标
 col_start_4;你未参与进一场危机战争
 col_start_5;最低可殖民的生活条件（$x$）至少达到此地区生活条件（$y$）
 col_start_6;基础：?Y$x$
 col_start_7;当前至多只能有三个殖民者
 col_start_8;你接壤此地区，或者它在海军范围内
-col_start_9;至少拥有$x$点可用的殖民力点数
+col_start_9;至少拥有 $x$ 点可用的殖民力点数
 col_invest_title;投资你的殖民地
-col_invest_1;你的国家等级至少为$x$
+col_invest_1;你的国家等级至少为 $x$
 col_invest_2;此地区不是殖民危机目标
 col_invest_3;你没有参与一场危机战争
-col_invest_4;无人与你竞争，你将在$x$能够将此地区变为殖民地
-col_invest_5;自你上次投资后已过去$x$天（下一次投资将在$y$可用）
+col_invest_4;无人与你竞争，你将在 $x$ 能够将此地区变成殖民地
+col_invest_5;自你上次投资后已过去 $x$ 天（下一次投资将在$y$可用）
 col_invest_6;至少拥有$x$点可用的殖民力点数
 activated_by_with_a_chance_of;被 ?Y$x$?! 激活，具有以下效果：
-unit_max_speed;最高速度?G$x$?! KPH
-unit_attack;攻击?G$x$
-unit_hull;船体?G$x$
-unit_fire_range;射程?G$x$
-unit_supply_consumption;补给消耗?R$x$
-unit_supply_load;补给量?R$x$
-unit_defence;防御?G$x$
-unit_discipline;训练度?G$x$
-unit_maneuver;机动?G$x$
-unit_recon;侦察?G$x$
-unit_support;支援?G$x$
-unit_evasion;闪避?G$x$
-unit_siege;围城?G$x$
-unit_torpedo_attack;鱼雷攻击?G$x$
-unit_build_time;$x$天
-unit_build_unit_pop_size;$x$k
+unit_max_speed;最高速度 ?G$x$?! KPH
+unit_attack;攻击 ?G$x$
+unit_hull;船体 ?G$x$
+unit_fire_range;射程 ?G$x$
+unit_supply_consumption;补给消耗 ?R$x$
+unit_supply_load;补给量 ?R$x$
+unit_defence;防御 ?G$x$
+unit_discipline;训练度 ?G$x$
+unit_maneuver;机动 ?G$x$
+unit_recon;侦察 ?G$x$
+unit_support;支援 ?G$x$
+unit_evasion;闪避 ?G$x$
+unit_siege;围城 ?G$x$
+unit_torpedo_attack;鱼雷攻击 ?G$x$
+unit_build_time;$x$ 天
+unit_build_unit_pop_size;$x$ k
 unit_build_unit_brigades;$x$/$y$
 uv_sort_a;攻击
 uv_sort_b;防御
@@ -881,9 +881,9 @@ uv_sort_e;速度
 uv_sort_f;侦察
 uv_sort_g;可靠
 uv_sort_h;经验
-alice_condition_diplo_points;他至少$x$外交点
+alice_condition_diplo_points;他至少 $x$ 外交点
 alice_retreat;撤退来自战斗
-alice_retreat_1;战斗开始后已过去$x$天
+alice_retreat_1;战斗开始后已过去 $x$ 天
 alice_retreat_2;你是攻击方或防御方的领袖
 alice_province_select;选择省
 alice_province_deselect;取消选择省
@@ -903,23 +903,23 @@ modifier_province_selector;省选区
 modifier_province_immigrator;省移民
 modifier_conversion_rate;传教率
 modifier_attrition;损耗
-chat_player_joins;$playername$加入
-chat_player_leaves;$playername$离开
-chat_player_ban;$playername$被封禁
-chat_player_kick;$playername$被踢除
-chat_player_switch;$playername$选择了$country$
-chat_player_oos;$playername$已断开连接！
+chat_player_joins;$playername$ 加入
+chat_player_leaves;$playername$ 离开
+chat_player_ban;$playername$ 被封禁
+chat_player_kick;$playername$ 被踢除
+chat_player_switch;$playername$ 选择了 $country$
+chat_player_oos;$playername$ 已断开连接！
 alice_status_stream;存档处理进度：$value$
-alice_play_pending_client;$playername$未准备好
-alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在?G绿色?W 线看到价格上涨，and ?Rred?W 红线下降，像往常一样 我 ?Y不是?W 一个折线图所以不总是被注意到：）
+alice_play_pending_client;$playername$ 未准备
+alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
-alice_stockpile_button_1_1;我明白了，好吧，现在我不会说任何话，因为我知道你会一直点击，直到我说些?Y不同?W的话，不过那也太无聊了
+alice_stockpile_button_1_1;我明白了，好吧，现在我不会说任何话，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
 alice_stockpile_button_2_0;我是没用按钮，继续吧
 alice_stockpile_button_3_0;和朋友玩不是嘛? ?Remmm，祝你好运，你会需要它的对不对？?W
 a_alert_reb;叛军已经起而反抗我们的势力范围成员：
 event_auto;在事件的剩余时间内自动选择这个选项
-event_taken_auto;此选项会在?Y$date$?W自动选择。
+event_taken_auto;此选项会在 ?Y$date$?W 自动选择。
 alice_load_unload_1;停靠在此地的海军有足够的容量
 alice_load_unload_2;军队运输中
 alice_load_unload_3;运输舰队停靠
@@ -944,19 +944,19 @@ cancel_fac_upgrade;取消工厂升级
 kierkegaard_1;要么
 kierkegaard_2;或者
 open_and_sub;资助并重开工厂
-o_set_national_flag;对拥有者设置国家变量$text$
-o_add_modifier_until;省份拥有者获得$text$直到$date$
-o_add_modifier;省份拥有者获得$text$
-o_relations_with;省份拥有者与$text$的关系
+o_set_national_flag;对拥有者设置国家变量 $text$
+o_add_modifier_until;省份拥有者获得 $text$ 直到 $date$
+o_add_modifier;省份拥有者获得 $text$
+o_relations_with;省份拥有者与 $text$ 的关系
 o_add_to_treasury;为了省份拥有者
 w_rgo_prod;全球原材料生产：$x$
 w_artisan_prod;全球工匠生产
 w_artisan_profit;国内工匠利润
 w_artisan_distribution;国内工匠分布
 w_fac_prod;全球工厂生产：$x$
-alice_lose_gp;我们正失去?Y列强?!地位！
+alice_lose_gp;我们正失去 ?Y列强?! 地位！
 alice_state_select_title;选择地区
-press_esc_to_cancel;按下?YESC?!以取消
+press_esc_to_cancel;按下 ?YESC?! 以取消
 fort_build_tt_1;当地正在你控制下
 fort_build_tt_2;当地未受围攻
 fort_build_tt_3;目前等级 $x$，+当地建造困难修正 $n$，低于最高等级 $y$
@@ -973,7 +973,7 @@ ai_will_not_accept_po;他们不会接受这个提议
 close_and_del;关闭并移除工厂
 cb_conditions_header;使用条件：
 as_a_vassal;作为附庸
-change_state_name_to;地区名将变为$text$
+change_state_name_to;地区名将变成 $text$
 alice_join_crisis_offer;$ACTOR$会给予我们如下好处如果我们在本场危机中加入他们
 alice_unit_disable_rebel_hunt;停止围剿叛军
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?W\n兵力： ?Y$strength$?W
@@ -995,7 +995,7 @@ kill_leader;杀死将领
 annex_null;成为无主省份
 meets_the_conditions_of;满足条件：
 does_not_meet_the_conditions_of;不满足条件：
-fab_finish_date;伪造宣战理由将在$date$完成
+fab_finish_date;伪造宣战理由将在 $date$ 完成
 fab_is_paused;伪造宣战理由暂停中
 macro_builder;部队模板
 macro_total_desc;单位总计：
@@ -1028,19 +1028,19 @@ alice_currently_bankrupt;我国正处于破产状态（直到$x$）
 alice_no_loans_possible;我们现在无法贷款
 alice_rf_demands_enforced_trigger;如果以下为真，叛军将只强迫服从他们的要求：
 alice_rf_demands_enforced_effect;如果叛军强迫实施了他们的要求那么会产生以下影响：
-alice_rf_siege_won_trigger;如果叛军赢得了一场围城战，以下会被检查是否生效，比如在你的首都$x$：
-alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响会产生，比如你首都$x$：
+alice_rf_siege_won_trigger;如果叛军赢得了一场围城战，以下会被检查是否生效，比如在你的首都 $x$：
+alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响会产生，比如你首都 $x$：
 may_month_name;5月
 alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
-alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去?Y列强?W地位！
+alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去 ?Y列强?W 地位！
 alice_mil_decay_description;自然衰减?G-$x$
 alice_con_decay_description;自然衰减?R-$x$
 x_from_y;?Y$culture$?W $x$ 来自 ?Y$y$?W
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
 alice_domestic_investment_button;不推荐投资单个项目，请改用预算屏幕上的国内投资滑块
-alice_domestic_investment_pops;我们有$x$名投资者以让我们间接资助
-alice_domestic_investment_needs;他们每天需要$x$去满足奢侈的生活方式
+alice_domestic_investment_pops;我们有 $x$ 名投资者以让我们间接资助
+alice_domestic_investment_needs;他们每天需要 $x$ 满足奢侈的生活方式
 alice_budget_scaled_inc;收入：?G$value$
 alice_budget_scaled_1;贫困阶层税：?G$value$
 alice_budget_scaled_2;中产阶层税：?G$value$
@@ -1083,7 +1083,7 @@ explain_colonial_points;列强和次强会积累殖民点。
 alice_lobby_back;返回大厅
 alice_lobby_back_tt_1;你早就在他妈的大厅
 alice_lobby_back_tt_2;只有主机才能回大厅
-reopen_with_tab;你可用?YTAB?W切回窗口
+reopen_with_tab;你可用 ?YTAB?W 切回窗口
 alice_topbar_tab_1;开关标签
 alice_topbar_tab_2;开关人口标签
 colonial_points_from_technology;来自技术：
@@ -1130,17 +1130,17 @@ alice_crisis_inactive;当前没有可用危机
 alice_crisis_finding_attacker;为当前危机寻找进攻者
 alice_crisis_finding_defender;为当前危机寻找防御者
 alice_crisis_heating_up;危机升温中，目前处于?R$temperature$?W
-alice_last_crisis;上次危机发生于$date$（危机之间有$time$月冷静期）
+alice_last_crisis;上次危机发生于 $date$（危机之间有$time$月冷静期）
 alice_crisis_par_1;?R进攻者们?W：
 alice_crisis_par_2;?B防守方?W：
 alice_crisis_par_3;?Y非常感兴趣（没有阵营）?W：
 alice_commodity_cprice;现在价格：$x$
 alice_commodity_cost;花费：$x$
 alice_commodity_eprice;有效价格：$x$
-alice_trade_top_producers;最多?Y$value$?W 生产国：
+alice_trade_top_producers;最多 ?Y$value$?W 生产国：
 alice_trade_no_producers;?R没有人群生产此商品?W
-alice_political_party_trigger;只在?Y$date_long_0$?W到?Y$date_long_1$?W期间有效，并满足以下条件：
-alice_political_party_no_trigger;只在?Y$date_long_0$?W到?Y$date_long_1$?W期间有效
+alice_political_party_trigger;只在 ?Y$date_long_0$?W 到 ?Y$date_long_1$?W 期间有效，并满足以下条件：
+alice_political_party_no_trigger;只在 ?Y$date_long_0$?W 到 ?Y$date_long_1$?W 期间有效
 alice_ai_decision;AI选择这一决定的可能性将取决于：
 alice_mobilized_is_ai_controlled;无论动员的单位如何，都将自动被AI控制
 alice_ai_controlled_unit;启用/禁用此单位的AI控制，此单位会：\n- 自动增援前线\n- 情况安全时自动围城\n- 猎杀叛军\n- 对我们可能攻击的国家形成防御姿态（由AI自由裁定，且只在和平时期生效）\n如果你想让此单位专注于一个特定的国家或地区，首先将其移动到此地区或国家附近，然后打开AI控制。因为AI会覆盖你的所有命令，直到你再次关闭它
@@ -1151,7 +1151,7 @@ alice_wg_condition_2;与我们交战
 alice_wg_condition_3;特殊的战争目标（不是另一个战争目标的复制品）
 alice_wg_condition_4;与我们不在同一阵营
 alice_wg_condition_5;满足战争目标
-alice_wg_condition_6;足够沙文主义（需要$need$，已有$value$）
+alice_wg_condition_6;足够沙文主义（需要 $need$，已有 $value$）
 alice_wg_condition_7;是可正当化的战争目标
 alice_tt_wg_infamy_limit;?R此战争目标会超过恶名限制?W
 alice_wg_usage_trigger;满足以下触发条件时才能使用：
@@ -1187,25 +1187,25 @@ alice_pnt_dominant_religion;?Y主要宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;购买力平价GDP
 ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
-make_province_religion;省份人群变为$text$
-make_pop_religion;变为$text$
-make_pop_culture;变为$text$
+make_province_religion;省份人群变成 $text$
+make_pop_religion;变成 $text$
+make_pop_culture;变成 $text$
 an_assigned_leader;已分配的将领
 leader_prestige;领袖威望
-chat_player_reload;$playername$已重新载入
+chat_player_reload;$playername$ 已重新载入
 alice_receiving_savegame;从主机读取存档
-unit_arrival_time_text;（于$date$到达）
+unit_arrival_time_text;（于 $date$ 到达）
 macro_new_template;新建
-x_in_y;$x$来自$y$
+x_in_y;$x$ 来自 $y$
 WARSUBSIDIES_BUTTON;战争援助
 CANCEL_WARSUBSIDIES_BUTTON;取消援助
-CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与$RECIPIENT$战争援助
-CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$已停止给与我们战争援助
-CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$已停止给与$RECIPIENT$战争援助
+CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与 $RECIPIENT$ 战争援助
+CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ 已停止给与我们战争援助
+CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ 已停止给与 $RECIPIENT$ 战争援助
 CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
 ledger_standard_of_living;生活条件
 alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
-alice_countryalert_colonialgood_start;我们可以在$region$开始殖民
+alice_countryalert_colonialgood_start;我们可以在 $region$ 开始殖民
 alice_overseas_mil_description;海外部队
 alice_armygroup_go_to_selection;添加/删除单位
 alice_battleplanner_travel_destination_order;切换运输终点
@@ -1252,13 +1252,13 @@ method_profit;期望利润
 method_margin;利润率
 method_cost;建造成本
 method_payback;投资回收
-change_pname_to;$x$党派名称变为$text$
-change_rpname_to;执政党名称变为$text$
-change_pposition_to;移动$x$政党位置至$text$
-change_rpposition_to;移动执政党位置至$text$
-pname_is;$x$党派名称
+change_pname_to;$x$党派名称变成 $text$
+change_rpname_to;执政党名称变成 $text$
+change_pposition_to;移动 $x$ 政党位置至 $text$
+change_rpposition_to;移动执政党位置至 $text$
+pname_is;$x$ 党派名称
 rpname_is;执政党名称
-pposition_is;$x$政党位置
+pposition_is;$x$ 政党位置
 rpposition_is;执政党位置
 topbar_budget_warning;你无法完全负担昨天的目标预算支出
 rgo_output;输出
@@ -1287,11 +1287,11 @@ unit_upgrade_explain_3;小船不能变成大船
 unit_upgrade_explain_4;军队在战斗或运输船上时不会撤退
 unit_upgrade_explain_5;海军在战斗或运输陆军时不会撤退
 unit_upgrade_explain_6;海军停靠在有足够等级的海军基地里
-alice_cb_creation_detail_state;我们会捏造战争理由针对 $country$（$state$）理由是 ?Y$type$?W。这过程大约需要 ?Y$days$ 天?W，如被发现时会得到 ?R$badboy$?W 恶名。
+alice_cb_creation_detail_state;我们将伪造战争理由针对 $country$（$state$）理由是 ?Y$type$?W。这过程大约需要 ?Y$days$ 天?W，如被发现时会得到 ?R$badboy$?W 恶名。
 alice_take_province_1;从其中获取目标省份
-alice_take_province_2;当地民族主义者将得到?R$val$?W年
-alice_take_province_3;其中人群将得到?R$val$?W斗争性
-alice_take_province_4;其他人群将得到?R$val$?W斗争性
+alice_take_province_2;当地民族主义者将得到 ?R$val$?W 年
+alice_take_province_3;其中人群将得到 ?R$val$?W 斗争性
+alice_take_province_4;其他人群将得到 ?R$val$?W 斗争性
 alice_take_province_5;是 玩家国的
 alice_take_province_6;它不在战时
 alice_take_province_7;它受控
@@ -1508,7 +1508,7 @@ state_definition_id;国家定义 ID
 nation_id;爱丽丝 国家 ID
 province_colonisation_temperature;地区移民热度：?R$val$?W
 alice_unit_target;===> $x$
-change_factory_limit_by;将 $good$ 工厂 潜力 改为 $value$
+change_factory_limit_by;将 $good$ 工厂 潜力 变成 $value$
 build_factory;建造工厂
 upgrade_factory;升级工厂
 build_province_building;建造省份工厂
@@ -1609,17 +1609,17 @@ alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字
 employment_type_guild_education;雇佣类型：?Y行会教育?W
 employment_type_basic_education;雇佣类型：?Y基本教育?W
 employment_type_no_education;雇佣类型：?Y无教育?W
-pop_literacy_spending; 人群打算支出 ?Y$val$?W 在教育上。
+pop_literacy_spending; 人群教育预算 ?Y$val$?W。
 pop_literacy_spending_required;最高教育支出：?Y$val$?W。
-pop_literacy_spending_public;?Y$val$?W 部分由公共教育预算支付。
+pop_literacy_spending_public;?Y$val$?W 由公共教育预算支付。
 pop_literacy_spending_ratio;满足度：?Y$x$?W。
 pop_literacy_spending_result_success;如 ?Y$x$?W 高于 ?Y$y$?W，识字率会提高 ?Y$val$?W
 pop_literacy_spending_result_failure;如 ?Y$x$?W 低于 ?Y$y$?W，识字率会降低 ?Y$val$?W
 pop_budget_explanation_header;人群积累了 ?Y$val$?W 私人财富。
-pop_budget_explanation_life_needs;人群会花 ?Y$x$?W（超出预计 ?Y$y$?W）在必需品上。比例：?Y$val$?W
+pop_budget_explanation_life_needs;人群必需品预算 ?Y$x$?W（超出预计 ?Y$y$?W）。比例：?Y$val$?W
 pop_budget_explanation_subsistence;另外，人群寻找 ?Y$x$?W 额外商品。总满足：?Y$y$?W
-pop_budget_explanation_everyday_needs;人群会花 ?Y$x$?W（超出预计 ?Y$y$?W）在日用品上。比例：?Y$val$?W
-pop_budget_explanation_luxury_needs;人群会花 ?Y$x$?W（超出预计 ?Y$y$?W）在奢侈品上。比例：?Y$val$?W
-pop_budget_explanation_education;人群会花 ?Y$x$?W 在教育需求上。参考教育提示。
-pop_budget_explanation_investments;人群会花 ?Y$x$?W 在投资上。
-pop_budget_explanation_banks;人群会花 ?Y$x$?W 到国家银行。
+pop_budget_explanation_everyday_needs;人群日用品预算 ?Y$x$?W（超出预计 ?Y$y$?W）。比例：?Y$val$?W
+pop_budget_explanation_luxury_needs;人群奢侈品预算 ?Y$x$?W（超出预计 ?Y$y$?W）。比例：?Y$val$?W
+pop_budget_explanation_education;人群教育需求预算 ?Y$x$?W。参考教育提示。
+pop_budget_explanation_investments;人群投资预算 ?Y$x$?W 。
+pop_budget_explanation_banks;人群向国家银行存款 ?Y$x$?W 。
