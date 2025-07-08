@@ -6191,6 +6191,8 @@ void apply_regiment_damage(sys::state& state) {
 			auto& pending_damage = state.world.regiment_get_pending_damage(s);
 			auto& current_strength = state.world.regiment_get_strength(s);
 			auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
+			// the regiment must always have a backing pop
+			assert(backing_pop);
 
 			if(pending_damage > 0) {
 				auto tech_nation = tech_nation_for_regiment(state, s);
@@ -9021,14 +9023,17 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 	auto schedule_array = state.world.nation_get_mobilization_schedule(n);
 	schedule_array.clear();
 
+	std::vector<dcon::regiment_id> mobs_to_be_deleted;
 	for(auto ar : state.world.nation_get_army_control(n)) {
 		for(auto rg : ar.get_army().get_army_membership()) {
 			auto pop = rg.get_regiment().get_pop_from_regiment_source();
 			if(!pop || pop.get_poptype() != state.culture_definitions.soldiers) {
-				rg.get_regiment().set_strength(0.0f);
-				rg.get_regiment().set_pop_from_regiment_source(dcon::pop_id{});
+				mobs_to_be_deleted.push_back(rg.get_regiment().id);
 			}
 		}
+	}
+	for(auto regiment : mobs_to_be_deleted) {
+		delete_regiment_safe_wrapper(state, regiment);
 	}
 
 	notification::post(state, notification::message{ [n = n](sys::state& state, text::layout_base& contents) {

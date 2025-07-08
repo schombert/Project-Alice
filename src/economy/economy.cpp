@@ -2696,7 +2696,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_set_effective_naval_spending(
 				n, nations_commodity_spending * max_sp * spending_level);
 			auto& current_buf = state.world.nation_get_naval_reinforcement_buffer(n);
-			state.world.nation_set_naval_reinforcement_buffer(n, current_buf + nations_commodity_spending * max_sp * spending_level);
+			state.world.nation_set_naval_reinforcement_buffer(n, current_buf + state.world.nation_get_effective_naval_spending(n));
 			assert(current_buf >= 0.0f);
 		}
 		{
@@ -2730,7 +2730,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_set_effective_land_spending(
 				n, nations_commodity_spending * max_sp * spending_level);
 			auto& current_buf = state.world.nation_get_land_reinforcement_buffer(n);
-			state.world.nation_set_land_reinforcement_buffer(n, current_buf + nations_commodity_spending * max_sp * spending_level);
+			state.world.nation_set_land_reinforcement_buffer(n, current_buf + state.world.nation_get_effective_land_spending(n));
 			assert(current_buf >= 0.0f);
 		}
 		{
