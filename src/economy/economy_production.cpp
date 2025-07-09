@@ -1332,8 +1332,8 @@ void update_rgo_production(sys::state& state) {
 			auto amount = state.world.province_get_rgo_output(province, c);
 			register_domestic_supply(state, local_market, c, amount, economy_reason::rgo);
 
-
-			if(state.world.commodity_get_money_rgo(c)) {
+			// if the rgo is a money RGO and it is not rebel controlled, give the controller the cash from it
+			if(state.world.commodity_get_money_rgo(c) && bool(controller)) {
 				assert(
 					std::isfinite(
 						amount

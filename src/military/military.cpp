@@ -6174,8 +6174,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 }
 
 void apply_attrition(sys::state& state) {
-	concurrency::parallel_for(uint32_t(0), state.world.province_size(), [&](int32_t i) {
-		dcon::province_id prov{ dcon::province_id::value_base_t(i) };
+	state.world.for_each_province([&](dcon::province_id prov) {
 		assert(state.world.province_is_valid(prov));
 
 		for(auto ar : state.world.province_get_army_location(prov)) {

@@ -112,14 +112,17 @@ void update_consumption(
 			float potentially_free,
 			float paid_only
 			) {
-				{
-					auto old_value = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
-					state.world.province_set_service_demand_allowed_public_supply(pid, services::list::education, old_value + potentially_free);
+				if(state.world.province_is_valid(pid)) {
+					{
+						auto old_value = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
+						state.world.province_set_service_demand_allowed_public_supply(pid, services::list::education, old_value + potentially_free);
+					}
+					{
+						auto old_value = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::education);
+						state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::education, old_value + paid_only);
+					}
 				}
-				{
-					auto old_value = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::education);
-					state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::education, old_value + paid_only);
-				}
+				
 		},
 			provs, final_demand_scale_education_free_allowed, final_demand_scale_education_free_not_allowed
 		);
@@ -171,7 +174,9 @@ void update_consumption(
 #endif
 		ve::apply(
 			[&](float transfer, dcon::nation_id n) {
-				state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + transfer);
+				if(state.world.nation_is_valid(n)) {
+					state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + transfer);
+				}
 				return 0;
 			}, bank_deposits, nations
 		);
