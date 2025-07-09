@@ -107,6 +107,23 @@ float factory_unqualified_employment(sys::state const& state, dcon::factory_id f
 float factory_primary_employment(sys::state const& state, dcon::factory_id f);
 float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
 
+struct factory_employment_vector {
+	float unqualified;
+	float primary;
+	float secondary;
+};
+
+struct factory_operation_explanation {
+	dcon::commodity_id output;
+	float output_base_amount;
+	float output_current_amount;
+	factory_employment_vector employment;
+	factory_employment_vector employment_target;
+	factory_employment_vector wages_paid;
+	factory_employment_vector expected_profit_gradient;
+	factory_employment_vector expected_change;
+};
+
 // RGO:
 struct rgo_workers_breakdown {
 	float paid_workers;
