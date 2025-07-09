@@ -8706,6 +8706,7 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 
 
 // Calculates max reinforcement for units in the army
+template<reinforcement_estimation_type reinf_est_type>
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto ar = fatten(state.world, a);
 	if(ar.get_navy_from_army_transport() || ar.get_is_retreating() || ar.get_black_flag())
@@ -8714,7 +8715,20 @@ float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a) {
 	auto in_nation = ar.get_controller_from_army_control();
 	auto tech_nation = in_nation ? in_nation : ar.get_controller_from_army_rebel_control().get_ruler_from_rebellion_within();
 
-	auto reinf_fufillment = (in_nation ? std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) : 1.0f);
+	float reinf_fufillment = 0.0f;
+
+	switch(reinf_est_type) {
+		case reinforcement_estimation_type::today:
+			reinf_fufillment = (in_nation ? std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) : 1.0f);
+			break;
+		case reinforcement_estimation_type::monthly:
+			reinf_fufillment = (in_nation ? state.world.nation_get_effective_land_spending(in_nation) : 1.0f);
+			break;
+		case reinforcement_estimation_type::full_supplies:
+			reinf_fufillment = 1.0f;
+			break;
+	}
+
 
 	float location_modifier;
 	if(ar.get_battle_from_army_battle_participation()) {
@@ -8831,7 +8845,7 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 	for(auto army : state.world.land_battle_get_army_battle_participation(b)) {
 		bool battle_attacker = is_attacker_in_battle(state, army.get_army());
 		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
-			float combined = calculate_army_combined_reinforce(state, army.get_army());
+			float combined = calculate_army_combined_reinforce<reinforcement_estimation_type::monthly>(state, army.get_army());
 			for(auto reg : state.world.army_get_army_membership(army.get_army())) {
 				total += regiment_calculate_reinforcement(state, reg.get_regiment(), combined, true) * state.defines.pop_size_per_regiment;
 			}
@@ -8844,13 +8858,19 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 
 // Calculates reinforcement for a particular unit from scratch, unit type is unknown
 // potential_reinf = if true, will not cap max reinforcement to max unit strength, aka it will ignore current unit strength when returning reinforcement rate!
-float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg_id, bool potential_reinf) {
-	auto reg = dcon::fatten(state.world, reg_id);
-	auto ar = reg.get_army_from_army_membership();
-	auto combined = calculate_army_combined_reinforce(state, ar);
+// reinforcement estimation decides if it will return the reinforcement at this specific day, average it over the month, or estimate with always full supplies
+template<reinforcement_estimation_type reinf_estimation>
+float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg, bool potential_reinf) {
+	auto fat_reg = dcon::fatten(state.world, reg);
+	auto ar = fat_reg.get_army_from_army_membership();
+	auto combined = calculate_army_combined_reinforce<reinf_estimation>(state, ar);
 
-	return regiment_calculate_reinforcement(state, reg, combined, potential_reinf);
+	return regiment_calculate_reinforcement(state, fat_reg, combined, potential_reinf);
 }
+
+template float unit_calculate_reinforcement<reinforcement_estimation_type::today>(sys::state& state, dcon::regiment_id reg, bool potential_reinf);
+template float unit_calculate_reinforcement<reinforcement_estimation_type::monthly>(sys::state& state, dcon::regiment_id reg, bool potential_reinf);
+template float unit_calculate_reinforcement<reinforcement_estimation_type::full_supplies>(sys::state& state, dcon::regiment_id reg, bool potential_reinf);
 
 void reinforce_regiments(sys::state& state) {
 	/*
@@ -8866,7 +8886,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			continue;
 
 		auto in_nation = ar.get_controller_from_army_control();
-		auto combined = calculate_army_combined_reinforce(state, ar);
+		auto combined = calculate_army_combined_reinforce<reinforcement_estimation_type::today>(state, ar);
 		for(auto reg : ar.get_army_membership()) {
 			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
 			assert(std::isfinite(reinforcement));
@@ -8884,6 +8904,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 
 /* === Navy reinforcement === */
 // Calculates max reinforcement for units in the navy
+template<reinforcement_estimation_type reinf_estimation>
 float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id) {
 	auto n = dcon::fatten(state.world, navy_id);
 	auto in_nation = n.get_controller_from_navy_control();
@@ -8893,21 +8914,38 @@ float calculate_navy_combined_reinforce(sys::state& state, dcon::navy_id navy_id
 		? std::min(float(in_nation.get_used_naval_supply_points()) / float(in_nation.get_naval_supply_points()), 1.75f)
 		: 1.75f;
 	float over_size_penalty = oversize_amount > 1.0f ? 2.0f - oversize_amount : 1.0f;
-	auto reinf_fufillment = std::clamp(state.world.nation_get_land_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) * over_size_penalty;
+	auto reinf_fufillment = 0.0f;
+	switch(reinf_estimation) {
+		case reinforcement_estimation_type::today:
+			reinf_fufillment = std::clamp(state.world.nation_get_naval_reinforcement_buffer(in_nation) / economy::unit_reinforcement_demand_divisor, 0.f, 1.f) * over_size_penalty;
+			break;
+		case reinforcement_estimation_type::monthly:
+			reinf_fufillment = state.world.nation_get_effective_naval_spending(in_nation) * over_size_penalty;
+			break;
+		case reinforcement_estimation_type::full_supplies:
+			reinf_fufillment = over_size_penalty;
+
+
+	}
 
 	auto rr_mod = n.get_location_from_navy_location().get_modifier_values(sys::provincial_mod_offsets::local_repair) + 1.0f;
 	auto reinf_mod = in_nation.get_modifier_values(sys::national_mod_offsets::reinforce_speed) + 1.0f;
-	auto combined = rr_mod * reinf_mod * reinf_fufillment;
+	auto combined = state.defines.reinforce_speed * rr_mod * reinf_mod * reinf_fufillment;
 
 	return combined;
 }
 // Calculates reinforcement for a particular unit from scratch, unit type is unknown
+template<reinforcement_estimation_type reinf_estimation>
 float unit_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id) {
-	auto combined = calculate_navy_combined_reinforce(state, state.world.ship_get_navy_from_navy_membership(ship_id));
+	auto combined = calculate_navy_combined_reinforce<reinf_estimation>(state, state.world.ship_get_navy_from_navy_membership(ship_id));
 	auto curstr = state.world.ship_get_strength(ship_id);
 	auto newstr = std::min(curstr + combined, 1.0f);
 	return newstr - curstr;
 }
+
+template float unit_calculate_reinforcement<reinforcement_estimation_type::today>(sys::state& state, dcon::ship_id ship_id);
+template float unit_calculate_reinforcement<reinforcement_estimation_type::monthly>(sys::state& state, dcon::ship_id ship_id);
+template float unit_calculate_reinforcement<reinforcement_estimation_type::full_supplies>(sys::state& state, dcon::ship_id ship_id);
 
 // Calculates reinforcement for a particular ship
 // Combined = max reinforcement for units in the navy from calculate_navy_combined_reinforce
@@ -8920,14 +8958,13 @@ float ship_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id, flo
 void repair_ships(sys::state& state) {
 	/*
 	A ship that is docked at a naval base is repaired (has its strength increase) by:
-maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x ship-supplies x
-(national-reinforce-speed-modifier + 1) x navy-supplies
+maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x (national-reinforce-speed-modifier + 1) x navy-supplies x DEFINE:REINFORCE_SPEED
 	*/
 	for(auto n : state.world.in_navy) {
 		auto nb_level = n.get_location_from_navy_location().get_building_level(uint8_t(economy::province_building_type::naval_base));
 		if(!n.get_arrival_time() && nb_level > 0) {
 			auto in_nation = n.get_controller_from_navy_control();
-			auto combined = calculate_navy_combined_reinforce(state, n);
+			auto combined = calculate_navy_combined_reinforce<reinforcement_estimation_type::today>(state, n);
 
 			for(auto reg : n.get_navy_membership()) {
 				auto ship = reg.get_ship();
