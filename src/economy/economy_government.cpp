@@ -89,7 +89,10 @@ float full_spendings_administration(sys::state& state, dcon::nation_id n, float 
 	if(admin_count == 0.f) {
 		return 0.f;
 	}
+
 	auto admin_budget = budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	// prevent floating point errors
+	admin_budget = std::min(budget, admin_budget);
 
 	return admin_budget;
 }
