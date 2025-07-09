@@ -7555,6 +7555,7 @@ void update_naval_battles(sys::state& state) {
 			case ship_in_battle::mode_approaching:
 			{
 				assert(naval_slot_index_valid(slots[j].target_slot));
+				assert(state.world.ship_is_valid(slots[j].ship));
 
 				auto target_mode = slots[slots[j].target_slot].flags & ship_in_battle::mode_mask;
 				if(target_mode == ship_in_battle::mode_retreated || target_mode == ship_in_battle::mode_sunk) {
@@ -7594,6 +7595,7 @@ void update_naval_battles(sys::state& state) {
 			case ship_in_battle::mode_engaged:
 			{
 				assert(naval_slot_index_valid(slots[j].target_slot));
+				assert(state.world.ship_is_valid(slots[j].ship));
 				auto target_mode = slots[slots[j].target_slot].flags & ship_in_battle::mode_mask;
 				if(target_mode == ship_in_battle::mode_retreated || target_mode == ship_in_battle::mode_sunk) {
 					slots[j].flags &= ~ship_in_battle::mode_mask;
@@ -7615,7 +7617,7 @@ void update_naval_battles(sys::state& state) {
 				A retreating ship will increase its distance by define:NAVAL_COMBAT_RETREAT_SPEED_MOD x
 				define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR x (random value in the range \[0.0 - 0.5) + 0.5) x ship-max-speed.
 				*/
-
+				assert(state.world.ship_is_valid(slots[j].ship));
 				float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_retreat_speed_mod *
 					state.defines.naval_combat_speed_to_distance_factor *
 					(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
@@ -7647,6 +7649,7 @@ void update_naval_battles(sys::state& state) {
 				NAVAL_COMBAT_SHIFT_BACK_ON_NEXT_TARGET to a maximum of 1000, and the ship switches to approaching.
 				*/
 				int16_t target_index = get_naval_battle_target(state, slots[j], b, defender_ships, attacker_ships);
+				assert(state.world.ship_is_valid(slots[j].ship));
 				// get ship target, put into target_index variable
 				if(naval_slot_index_valid(target_index)) {
 
@@ -7666,11 +7669,11 @@ void update_naval_battles(sys::state& state) {
 					slots[j].flags &= ~ship_in_battle::distance_mask;
 					slots[j].flags |= ship_in_battle::distance_mask & new_distance;
 
-					break;
 				}
-				
+				break;
 			}
 			default:
+				// if the ship is sunk, make sure no ships are still targeting it
 				break;
 			}
 		}
