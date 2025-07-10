@@ -2576,7 +2576,7 @@ void budgetwindow_main_expenses_amount_t::on_update(sys::state& state) noexcept 
 	total += economy::estimate_diplomatic_expenses(state, state.local_player_nation); 
 	total += economy::estimate_social_spending(state, state.local_player_nation);
 	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::military) * float(state.world.nation_get_military_spending(state.local_player_nation)) * float(state.world.nation_get_military_spending(state.local_player_nation)) / 10000.0f;
-	total += economy::estimate_pop_payouts_by_income_type(state, state.local_player_nation, culture::income_type::education) * float(state.world.nation_get_education_spending(state.local_player_nation)) * float(state.world.nation_get_education_spending(state.local_player_nation)) / 10000.0f;
+	total += economy::estimate_education_spending(state, state.local_player_nation);
 	total += economy::estimate_spendings_administration(state, state.local_player_nation, float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f);
 	total += economy::estimate_max_domestic_investment(state, state.local_player_nation) * float(state.world.nation_get_domestic_investment_spending(state.local_player_nation)) / 100.0f;
 	total += economy::estimate_overseas_penalty_spending(state, state.local_player_nation) * float(state.world.nation_get_overseas_spending(state.local_player_nation)) / 100.0f;
