@@ -2436,6 +2436,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
+		assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
@@ -3140,45 +3141,103 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	//
 	// make ui scripts
 	//
-	for(auto& s : context.gfx_context.nation_buttons_allow) {
-		if(s.button_element) {
+	for(auto& s : context.gfx_context.nation_buttons_visible) {
+		if(s.scripted_element) {
 			err.file_name = s.original_file;
 			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
-			ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
-			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+			auto trigger = make_trigger(s.generator_state, err, t_context);
+			context.state.world.scripted_interaction_set_visible(s.scripted_element, trigger);
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.nation_buttons_allow) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			auto trigger = make_trigger(s.generator_state, err, t_context);
+			context.state.world.scripted_interaction_set_allow(s.scripted_element, trigger);
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
 		}
 	}
 	for(auto& s : context.gfx_context.nation_buttons_effect) {
-		if(s.button_element) {
+		if(s.scripted_element) {
 			err.file_name = s.original_file;
 			parsers::effect_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
-			ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
-			ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::nation);
+			auto effect = make_effect(s.generator_state, err, t_context);
+			context.state.world.scripted_interaction_set_effect(s.scripted_element, effect);
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.nation_buttons_ai_will_do) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			parsers::trigger_building_context t_context{ context, trigger::slot_contents::nation, trigger::slot_contents::nation, trigger::slot_contents::nation };
+			auto trigger = make_value_modifier(s.generator_state, err, t_context);
+			context.state.world.scripted_interaction_set_ai_will_do(s.scripted_element, trigger);
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::nation);
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_visible) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				auto trigger = make_trigger(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_visible(s.scripted_element, trigger);
+				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
 		}
 	}
 	for(auto& s : context.gfx_context.province_buttons_allow) {
-		if(s.button_element) {
+		if(s.scripted_element) {
 			err.file_name = s.original_file;
-			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
 			if(existing_scripting == ui::button_scripting::nation) {
-				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
 			} else {
 				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
-				ui_defs.gui[s.button_element].data.button.scriptable_enable = make_trigger(s.generator_state, err, t_context);
-				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+				auto trigger = make_trigger(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_allow(s.scripted_element, trigger);
+				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
 			}
 		}
 	}
 	for(auto& s : context.gfx_context.province_buttons_effect) {
-		if(s.button_element) {
+		if(s.scripted_element) {
 			err.file_name = s.original_file;
-			auto existing_scripting = ui_defs.gui[s.button_element].data.button.get_button_scripting();
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
 			if(existing_scripting == ui::button_scripting::nation) {
-				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[s.button_element].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
 			} else {
 				parsers::effect_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
-				ui_defs.gui[s.button_element].data.button.scriptable_effect = make_effect(s.generator_state, err, t_context);
-				ui_defs.gui[s.button_element].data.button.flags |= uint16_t(ui::button_scripting::province);
+				auto effect = make_effect(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_effect(s.scripted_element, effect);
+				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
+			}
+		}
+	}
+	for(auto& s : context.gfx_context.province_buttons_ai_will_do) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
+			if(existing_scripting == ui::button_scripting::nation) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both province and nation scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				auto trigger = make_value_modifier(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_ai_will_do(s.scripted_element, trigger);
+				ui_defs.gui[gid].data.button.flags |= uint16_t(ui::button_scripting::province);
 			}
 		}
 	}
@@ -4345,6 +4404,7 @@ void state::single_game_tick() {
 			break;
 		case 10:
 			province::update_crimes(*this);
+			ai::take_ai_scripted_interactions(*this);
 			break;
 		case 11:
 			province::update_nationalism(*this);
