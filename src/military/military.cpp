@@ -44,7 +44,7 @@ float share_province_score_for_war_occupation(sys::state& state, dcon::war_id w,
 					return 0.f;
 				}
 				else {
-					return 0.5f;
+					return 1.f;
 				}
 			}
 		}
