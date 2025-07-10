@@ -112,7 +112,7 @@ void update_consumption(
 			float potentially_free,
 			float paid_only
 			) {
-				if(state.world.province_is_valid(pid)) {
+				if(bool(pid)) {
 					{
 						auto old_value = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
 						state.world.province_set_service_demand_allowed_public_supply(pid, services::list::education, old_value + potentially_free);
