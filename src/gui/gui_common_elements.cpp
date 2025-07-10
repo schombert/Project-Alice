@@ -282,7 +282,7 @@ void labor_tooltip(sys::state& state, text::columnar_layout& contents, int32_t l
 }
 
 void commodity_set_tooltip(sys::state& state, text::columnar_layout& contents, economy::detailed_commodity_set& set, bool is_inputs) {
-	for(int i = 0; i < set.set_size; i++) {
+	for(uint32_t i = 0; i < set.set_size; i++) {
 		if(!set.commodity_type[i]) {
 			break;
 		}
