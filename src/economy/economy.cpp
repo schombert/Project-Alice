@@ -2402,7 +2402,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			// spend money
 			state.world.nation_set_stockpiles(
-				n, economy::money, base_budget - std::min(base_budget, costs.total * spending_scale)
+				n, economy::money, base_budget - std::min(base_budget, (costs.total - admin) * spending_scale + admin)
 			);
 			state.world.nation_set_spending_level(n, spending_scale);
 			state.world.nation_set_last_base_budget(n, base_budget);
