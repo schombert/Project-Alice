@@ -414,7 +414,6 @@ void update_ships(sys::state& state) {
 				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
 					for(auto shp : v.get_navy().get_navy_membership()) {
 						to_delete.push_back(shp.get_ship().id);
-						state.world.delete_ship(shp.get_ship());
 					}
 				}
 			}

@@ -1927,10 +1927,12 @@ object {
 		tag{ save }
 	}
 	property{	
-		name{ pending_damage }
+		name{ pending_combat_damage }
 		type{ float }
-		
-		
+	}
+	property{	
+		name{ pending_attrition_damage }
+		type{ float }
 	}
 	property{	
 		name{ org }
@@ -4021,6 +4023,16 @@ object {
 	property {
 		name{ construction_spending }
 		type{ int8_t }
+		tag{ save }
+	}
+	property {
+		name{ land_reinforcement_buffer }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_reinforcement_buffer }
+		type{ float }
 		tag{ save }
 	}
 	property {
