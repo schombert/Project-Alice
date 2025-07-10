@@ -125,7 +125,7 @@ inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
-inline constexpr float production_throughput_multiplier = 2.5f; // for the sake of machine tools
+inline constexpr float production_throughput_multiplier = 1.15f; // for the sake of machine tools
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
