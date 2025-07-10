@@ -5985,14 +5985,12 @@ inline constexpr float combat_modifier_table[] = { 0.0f, 0.02f, 0.04f, 0.06f, 0.
 template<regiment_dmg_source damage_source>
 void regiment_add_pending_damage_safe(sys::state& state, dcon::regiment_id reg, float value) {
 	float new_pending_dmg = std::min(state.world.regiment_get_strength(reg), value);
-	auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(reg));
-	if(bool(in_nation)) {
-		// give war exhaustion for the losses
-		auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
-		auto extra_war_ex = get_war_exhaustion_from_land_losses<damage_source>(state, new_pending_dmg, in_nation);
-		state.world.nation_set_war_exhaustion(in_nation,std::min( current_war_ex + extra_war_ex, state.world.nation_get_modifier_values(in_nation, sys::national_mod_offsets::max_war_exhaustion)));
+	if constexpr(damage_source == regiment_dmg_source::combat) {
+		state.world.regiment_set_pending_combat_damage(reg, state.world.regiment_get_pending_combat_damage(reg) + new_pending_dmg);
 	}
-	state.world.regiment_set_pending_damage(reg, state.world.regiment_get_pending_damage(reg) + new_pending_dmg);
+	else if constexpr(damage_source == regiment_dmg_source::attrition) {
+		state.world.regiment_set_pending_attrition_damage(reg, state.world.regiment_get_pending_attrition_damage(reg) + new_pending_dmg);
+	}
 }
 
 
@@ -6174,7 +6172,9 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 }
 
 void apply_attrition(sys::state& state) {
-	state.world.for_each_province([&](dcon::province_id prov) {
+
+	concurrency::parallel_for(uint32_t(0), state.world.province_size(), [&](int32_t i) {
+		dcon::province_id prov{ dcon::province_id::value_base_t(i) };
 		assert(state.world.province_is_valid(prov));
 
 		for(auto ar : state.world.province_get_army_location(prov)) {
@@ -6187,41 +6187,45 @@ void apply_regiment_damage(sys::state& state) {
 	for(uint32_t i = state.world.regiment_size(); i-- > 0;) {
 		dcon::regiment_id s{ dcon::regiment_id::value_base_t(i) };
 		if(state.world.regiment_is_valid(s)) {
-			auto& pending_damage = state.world.regiment_get_pending_damage(s);
+			auto& pending_combat_damage = state.world.regiment_get_pending_combat_damage(s);
+			auto& pending_attrition_damage = state.world.regiment_get_pending_attrition_damage(s);
 			auto& current_strength = state.world.regiment_get_strength(s);
 			auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
 			// the regiment must always have a backing pop
 			assert(backing_pop);
-
-			if(pending_damage > 0) {
+		
+			if(pending_combat_damage > 0) {
 				auto tech_nation = tech_nation_for_regiment(state, s);
+				auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(s));
+				if(bool(in_nation)) {
+					// give war exhaustion for the losses
+					auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
+					auto extra_war_ex = get_war_exhaustion_from_land_losses<regiment_dmg_source::combat>(state, pending_combat_damage, in_nation);
+					state.world.nation_set_war_exhaustion(in_nation, std::min(current_war_ex + extra_war_ex, state.world.nation_get_modifier_values(in_nation, sys::national_mod_offsets::max_war_exhaustion)));
+				}
 				if(backing_pop) {
 					auto& psize = state.world.pop_get_size(backing_pop);
 					float damage_modifier = std::max(state.defines.soldier_to_pop_damage - state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss), 0.0f);
-					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_damage * damage_modifier);
+					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_combat_damage * damage_modifier);
 				}
-				state.world.regiment_set_pending_damage(s, 0.0f);
+				state.world.regiment_set_pending_combat_damage(s, 0.0f);
 			}
-			//if(current_strength <= 0.0f) {
-			//	// When a rebel regiment is destroyed, divide the militancy of the backing pop by define:REDUCTION_AFTER_DEFEAT.
-			//	auto army = state.world.regiment_get_army_from_army_membership(s);
-			//	auto controller = state.world.army_get_controller_from_army_control(army);
-			//	auto pop_backer = state.world.regiment_get_pop_from_regiment_source(s);
-
-			//	if(!controller) {
-			//		if(pop_backer) {
-			//			auto mil = pop_demographics::get_militancy(state, pop_backer) / state.defines.reduction_after_defeat;
-			//			pop_demographics::set_militancy(state, pop_backer, mil);
-			//		}
-			//	} else {
-			//		auto maxr = state.world.nation_get_recruitable_regiments(controller);
-			//		if(maxr > 0 && pop_backer) {
-			//			auto& wex = state.world.nation_get_war_exhaustion(controller);
-			//			state.world.nation_set_war_exhaustion(controller, std::min(wex + 0.5f / float(maxr), state.world.nation_get_modifier_values(controller, sys::national_mod_offsets::max_war_exhaustion)));
-			//		}
-			//	}
-
-			//}
+			if(pending_attrition_damage > 0) {
+				auto tech_nation = tech_nation_for_regiment(state, s);
+				auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(s));
+				if(bool(in_nation)) {
+					// give war exhaustion for the losses
+					auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
+					auto extra_war_ex = get_war_exhaustion_from_land_losses<regiment_dmg_source::attrition>(state, pending_attrition_damage, in_nation);
+					state.world.nation_set_war_exhaustion(in_nation, std::min(current_war_ex + extra_war_ex, state.world.nation_get_modifier_values(in_nation, sys::national_mod_offsets::max_war_exhaustion)));
+				}
+				if(backing_pop) {
+					auto& psize = state.world.pop_get_size(backing_pop);
+					float damage_modifier = std::max(state.defines.soldier_to_pop_damage - state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::soldier_to_pop_loss), 0.0f);
+					state.world.pop_set_size(backing_pop, psize - state.defines.pop_size_per_regiment * pending_attrition_damage * damage_modifier);
+				}
+				state.world.regiment_set_pending_attrition_damage(s, 0.0f);
+			}
 			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
 			auto psize = state.world.pop_get_size(backing_pop);
 			if(psize <= 1.0f) {

@@ -1927,10 +1927,12 @@ object {
 		tag{ save }
 	}
 	property{	
-		name{ pending_damage }
+		name{ pending_combat_damage }
 		type{ float }
-		
-		
+	}
+	property{	
+		name{ pending_attrition_damage }
+		type{ float }
 	}
 	property{	
 		name{ org }
