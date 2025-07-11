@@ -3268,7 +3268,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, ve::min(costs * 10.f, state.world.commodity_get_cost(c) * 0.1f));
+			state.world.market_set_price(ids, c, ve::min(costs * 10.f, state.world.commodity_get_cost(c)));
 		});
 	});
 

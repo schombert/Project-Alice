@@ -2255,6 +2255,9 @@ float rgo_income(sys::state& state, dcon::province_id id) {
 float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	auto sid = state.world.province_get_state_membership(id);
 	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+	if(state.world.commodity_get_money_rgo(c)) {
+		return rgo_output(state, c, id)	* price(state, mid, c);
+	}
 	return rgo_output(state, c, id)
 		* price(state, mid, c)
 		* state.world.market_get_supply_sold_ratio(mid, c);

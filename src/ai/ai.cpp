@@ -2437,8 +2437,12 @@ float estimate_rebel_strength(sys::state& state, dcon::province_id p) {
 }
 
 bool ai_will_issue_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
+	if(from == to) {
+		return false;
+	}
+
 	// Embargo countries with high infamy
-	if(state.world.nation_get_infamy(to) > state.defines.badboy_limit / 1.2f) {
+	if(state.world.nation_get_infamy(to) > state.defines.badboy_limit * 1.2f) {
 		return true;
 	}
 
