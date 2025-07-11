@@ -416,17 +416,17 @@ void update_ai_econ_construction(sys::state& state) {
 			continue;
 		*/
 
+		// treasury is out budget
 		float treasury = n.get_stockpiles(economy::money);
-		float base_income = economy::estimate_daily_income(state, n);
 		float estimated_construction_costs = economy::estimate_construction_spending_from_budget(state, n, std::max(treasury, 1'000'000'000'000.f));
 
 		//if our army is too small, ignore buildings:
 		if(calculate_desired_army_size(state, n) * 0.4f > n.get_active_regiments())
 			continue;
 
-		float budget = treasury * 0.5f + base_income - estimated_construction_costs * 2.f;
+		float budget = treasury * (float)state.world.nation_get_construction_spending(n) / 100.f - estimated_construction_costs * 0.7f;
 		float additional_expenses = 0.f;
-		float days_prepaid = 10.f;
+		float days_prepaid = 0.5f;
 		auto rules = n.get_combined_issue_rules();
 
 		if(budget < 0.f) {
@@ -966,7 +966,7 @@ void update_budget(sys::state& state) {
 		float land_budget_ratio = 0.15f;
 		float sea_budget_ratio = 0.05f;
 		float education_budget_ratio = 0.25f;
-		float investments_budget_ratio = 0.05f;
+		float investments_budget_ratio = 0.20f;
 		float soldiers_budget_ratio = 0.30f;
 		float construction_budget_ratio = 0.45f;
 		float overseas_maintenance_budget_ratio = 0.10f;
@@ -1016,9 +1016,17 @@ void update_budget(sys::state& state) {
 		n.set_construction_spending(int8_t(construction_budget_ratio * 100.f));
 
 		// If State can build factories - why subsidize capitalists
+		// answer: because nation has different priorities
+		// and investments of capitalists are easy way
+		// to build consumer-oriented industry
+		// without writing additional layer of logic for national ai
 		auto rules = n.get_combined_issue_rules();
-		if(n.get_is_civilized() && (rules & issue_rule::build_factory) == 0) {
-			n.set_domestic_investment_spending(int8_t(investments_budget_ratio * 100.f));
+		if(n.get_is_civilized()) {
+			if((rules & issue_rule::build_factory) == 0) {
+				n.set_domestic_investment_spending(int8_t(investments_budget_ratio * 100.f));
+			} else {
+				n.set_domestic_investment_spending(int8_t(investments_budget_ratio * 50.f));
+			}
 		} else {
 			n.set_domestic_investment_spending(int8_t(0));
 		}
