@@ -475,7 +475,7 @@ value_mod_sum;$val$ 总计：
 value_mod_sum_factor;影响力 $val$ 是 $x$（乘积）：
 admin_explain_1;行政效率修正：$val$
 admin_explain_2;应用于本土官僚比例：$val$
-admin_explain_3;对于需要的官僚人口比例为：$val$（基础$x$ 加上来自改革的$y$）
+admin_explain_3;对于需要的官僚人口比例为：$val$（基础 $x$ 加上来自改革的 $y$）
 factory_condition_1;此国已开化
 factory_condition_2;此地区不是一个殖民地区
 factory_condition_3;执政党允许修建工厂
@@ -495,7 +495,7 @@ factory_upgrade_condition_9;工厂未处于升级过程
 factory_upgrade_condition_10;工厂不处于最大等级
 factory_delete_header;移除工厂
 factory_delete_not_allowed;执政党不允许我们移除工厂
-factory_stats_4;它在昨天获利$val$
+factory_stats_4;它在昨天获利 $val$
 factory_stats_5;投入有效性
 factory_stats_6;修正后的可用投入：
 factory_stats_wage;工资：
@@ -548,8 +548,8 @@ pop_prom_1;?Y升职系数：?!
 pop_prom_2;来自国家焦点：?G$val$
 pop_prom_3;0（由于国家焦点）
 pop_prom_4;?Y降职系数：?!
-pop_prom_5;这个人群正在升职因为升职系数大于降职系数
-pop_prom_6;这个人群正在降职因为降职系数大于升职系数
+pop_prom_5;这个人群正在升职，因为升职系数大于降职系数
+pop_prom_6;这个人群正在降职，因为降职系数大于升职系数
 pop_prom_7;由于这两个因子都是负数，此人群将维持现状
 pop_prom_8;可能升职人数=人群规模*升职规模（$x$）*升职系数（$val$）*行政效率（$y$）
 pop_prom_9;可能降职人数=人群规模*降职规模（$x$）*降职系数（$val$）
@@ -599,7 +599,7 @@ pop_growth_3;人群增长与人口规模成正比（乘积）：
 pop_growth_4;生活条件系数 $x$（乘积）：
 pop_growth_5;当地因子 $x$（总和）：
 pop_growth_6;当地生活条件 $x$ 减去 最低生活条件 $y$，总乘数为 $val$
-pop_growth_7;和 基础人群增长值$x$
+pop_growth_7;和 基础人群增长值 $x$
 pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 最低饱腹 $val$）
 pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
 pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
@@ -654,7 +654,7 @@ influence_explain_6;国家影响力修正：$x$
 influence_explain_7;修正来自科技：$x$
 influence_explain_8;这在我们影响的国家之间分配，造成每日获得的基础收益为：$x$
 influence_explain_9;它将进一步乘以1，加上下列因子的和：
-influence_explain_10;$x$来自败坏名誉
+influence_explain_10;$x$ 来自败坏名誉
 influence_explain_11;$x$ 来自接壤
 influence_explain_12;$x$ 来自一个或多个作为我们成员的邻居
 influence_explain_13;$x$ 来自首都非同一大陆
@@ -700,9 +700,9 @@ war_goal_2;目标：$x$
 war_goal_3;要求地区：$x$
 war_goal_4;第二目标：$x$
 war_goal_5;现有战争分：$x$
-war_goal_6;如果我们占领 ?Y$x$?! 的各个省份，我们将获得?Y$y$?!战争分（相对于被占领省份的比例）
+war_goal_6;如果我们占领 ?Y$x$?! 的各个省份，我们将获得 ?Y$y$?! 战争分（相对于被占领省份的比例）
 war_goal_7;我们有 ?Y$x$?! 天的宽限期去占领，否则我们每天会输掉 ?Y$y$?! 的战争分数
-war_goal_8;战争开始于 ?Y$x$?!，我们应该在 ?R耗尽?!宽限期之前履行 ?Y$y$?!的战争目标
+war_goal_8;战争开始于 ?Y$x$?!，我们应该在 ?R耗尽?!宽限期之前履行 ?Y$y$?! 的战争目标
 war_goal_9;宽限期 ?R已耗尽?!（宽限期是从 ?Y$x$?! 到 ?Y$y$?!）
 war_goal_10;第二目标：$x$
 utt_unit;（$country$）-$unit$（$leader$）\n（$infantry$/$cavalry$/$special$）
@@ -979,7 +979,7 @@ alice_unit_disable_rebel_hunt;停止围剿叛军
 alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?W\n兵力： ?Y$strength$?W
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
-alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个 ?G国家?W。
+alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
 commodity_shortage;?R此商品短缺
 commodity_surplus;?G此商品过剩
 alice_trade_flow_produced;?Y国内生产
@@ -1033,8 +1033,8 @@ alice_rf_siege_won_effect;如果上述所有情况为真，那么以下影响会
 may_month_name;5月
 alice_ca_cant_influence;我们目前无法增加或减少其他国家的评价
 alice_gp_status_regain_expiration;如果我们不能成为第 ?Y$x$?W 名或更高排名的国家，到 ?Y$date$?W!，我们将失去 ?Y列强?W 地位！
-alice_mil_decay_description;自然衰减?G-$x$
-alice_con_decay_description;自然衰减?R-$x$
+alice_mil_decay_description;自然衰减 ?G-$x$
+alice_con_decay_description;自然衰减 ?R-$x$
 x_from_y;?Y$culture$?W $x$ 来自 ?Y$y$?W
 reinforce_rate;这支军队每月能支援$x$名士兵
 reinforce_rate_none;无法增援部队
@@ -1073,7 +1073,7 @@ alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$（以 $val$ 为单位相乘）。进度：$x$/$y$
 alice_recommended_build;?G建议建造此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
-alice_factory_inputs;输入所需：
+alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
 alice_factory_base_workforce;基础劳力?Y$x$?W
 alice_factory_total_bonus;总和大约为?Y$x$?W
@@ -1123,9 +1123,9 @@ alice_mw_controls_1;?Y右键点击?W以提拔?G所有?W可能的陆军将领
 alice_mw_controls_2;?Y右键点击?W以提拔?G所有?W可能的海军将领
 alice_daily_leadership_tt;$poptype$给予?G$value$?W领导力点数（占人口的?Y$fraction$?W，最佳为?Y$optimal$%?W）。溢出的领导力点数会自动消耗以产生新的将领。
 unit_current_supply;最近一天本部队接收到所需补给的?Y$val$%?W。\n我们可以从当前的补给消耗中获得的数量是：
-unit_current_supply_high;$what$：?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l需求满足度）
-unit_current_supply_mid;$what$：?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l需求满足度）
-unit_current_supply_low;$what$：?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l需求满足度）
+unit_current_supply_high;$what$：?Y$val$?W/?Y$value$?! ?l（?W?G$total$%?W?l 需求满足度）
+unit_current_supply_mid;$what$：?Y$val$?!/?Y$value$?! ?l（?O$total$%?W?l 需求满足度）
+unit_current_supply_low;$what$：?Y$val$?!/?Y$value$?! ?l（?R$total$%?W?l 需求满足度）
 alice_crisis_inactive;当前没有可用危机
 alice_crisis_finding_attacker;为当前危机寻找进攻者
 alice_crisis_finding_defender;为当前危机寻找防御者
@@ -1202,7 +1202,7 @@ CANCEL_WARSUBSIDIES_BUTTON;取消援助
 CANCEL_WARSUBSIDIES_THEY_ACCEPT_LOG;我们现在已停止给与 $RECIPIENT$ 战争援助
 CANCEL_WARSUBSIDIES_WE_ACCEPT_LOG;$ACTOR$ 已停止给与我们战争援助
 CANCEL_WARSUBSIDIES_OTHER_ACCEPT_LOG;$ACTOR$ 已停止给与 $RECIPIENT$ 战争援助
-CANCEL_WARSUBSIDIES_DESC;取消对该国的资金援助
+CANCEL_WARSUBSIDIES_DESC;取消对此国的资金援助
 ledger_standard_of_living;生活条件
 alice_ledger_header_gdp_history;购买力（通胀调整）GDP 历史
 alice_countryalert_colonialgood_start;我们可以在 $region$ 开始殖民
@@ -1220,7 +1220,7 @@ alice_battleplanner_remove_selected;删除选中
 alice_battleplanner_new_army_group;创建集团军群
 alice_battleplanner_delete_army_group;删除集团军群
 fab_explain_8;没有休战
-alice_reform_support_header;该改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
+alice_reform_support_header;此改革的政治支持率（总支持率达到或超过 50% 才能进行改革）
 alice_no_current_support;目前这项改革尚未得到政治支持
 alice_unciv_reform_cost;改革花费：$x$
 trade_global_data;世界
@@ -1235,19 +1235,19 @@ balance;结余
 market_stockpiles;库存
 national_stockpile;政府储备
 government_need;政府采购
-factory_need;工厂输入
+factory_need;工厂投入
 pop_need;需求缺口
-rgo_production;RGO输出
-artisan_production;工匠输出
-factory_production;工厂输出
+rgo_production;RGO产出
+artisan_production;工匠产出
+factory_production;工厂产出
 artisan_distribution;工匠优先级
 produced_nation;生产
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
 method_name;名字
-method_input;输入成本
-method_output;输出成本
+method_input;投入成本
+method_output;产出成本
 method_profit;期望利润
 method_margin;利润率
 method_cost;建造成本
@@ -1261,7 +1261,7 @@ rpname_is;执政党名称
 pposition_is;$x$ 政党位置
 rpposition_is;执政党位置
 topbar_budget_warning;你无法完全负担昨天的目标预算支出
-rgo_output;输出
+rgo_output;产出
 rgo_profit;总量
 rgo_expected_profit;当前
 rgo_desired_profit;最小
@@ -1288,7 +1288,7 @@ unit_upgrade_explain_4;军队在战斗或运输船上时不会撤退
 unit_upgrade_explain_5;海军在战斗或运输陆军时不会撤退
 unit_upgrade_explain_6;海军停靠在有足够等级的海军基地里
 alice_cb_creation_detail_state;我们将伪造战争理由针对 $country$（$state$）理由是 ?Y$type$?W。这过程大约需要 ?Y$days$ 天?W，如被发现时会得到 ?R$badboy$?W 恶名。
-alice_take_province_1;从其中获取目标省份
+alice_take_province_1;从其中获得目标省份
 alice_take_province_2;当地民族主义者将得到 ?R$val$?W 年
 alice_take_province_3;其中人群将得到 ?R$val$?W 斗争性
 alice_take_province_4;其他人群将得到 ?R$val$?W 斗争性
@@ -1314,7 +1314,7 @@ unit_macro_template_tooltip;部队模板
 alice_factory_type_viewer_priority;专精重点
 alice_factory_type_viewer_priority_national;国内专精重点：
 alice_factory_type_viewer_priority_private;私人专精重点：
-alice_factory_type_viewer_priority_bonus;输入（乘积）：
+alice_factory_type_viewer_priority_bonus;投入（乘积）：
 alice_commodity_tab;产品
 alice_factory_type_tab;工厂类型
 alice_player_date_sync;玩家 $name$（$country$），最后指令：$date$
@@ -1379,7 +1379,7 @@ landowners_investment_ratio;地主投资率：?G$x$?!
 production_refit_factory_tooltip_1;改装 ?Y$what$?! 到不同生产线
 production_refit_factory_tooltip_2;改装 ?Y$what$?! 到 ?Y$name$?!
 production_refit_factory_tooltip_3;执政党允许修建工厂
-production_refit_factory_tooltip_4;更换类型需要相同输入或输出
+production_refit_factory_tooltip_4;更换类型需要相同投入或产出
 factory_refit_cost;$what$：?Y$val$?!（?Y$value$?!）
 factory_refit_cost_total;总计：?Y$value$?!
 tb_suppression_points;镇压点数：
@@ -1513,11 +1513,11 @@ build_factory;建造工厂
 upgrade_factory;升级工厂
 build_province_building;建造省份工厂
 resource_potential;潜在资源
-available_potential;本地资源允许 ?Y$val$?W 生产等级于 $what$ 建筑
+available_potential;当地资源允许 ?Y$val$?W 生产等级于 $what$ 建筑
 factory_level;工厂等级 ?Y$val$
 provinceview_goodsprofit;利润：?Y$value$
 provinceview_max_employment;可能最多雇工数：?Y$value$
-province_rgo_efficiency_inputs;效率输入：
+province_rgo_efficiency_inputs;投入效率：
 province_rgo_efficiency_input;?Y$good$?W ：?Y$value$
 factory_condition_8;殖民地允许的工厂类型
 alice_has_possible_units;可以建造一些单位。
@@ -1542,7 +1542,7 @@ per_nation;每个国家
 labour_price;工资
 labour_price_10k;一万人平均工资
 supply_demand_ratio;供需比
-alice_labor_no_education;新手
+alice_labor_no_education;非熟练
 alice_labor_basic_education;熟练
 alice_labor_high_education;专家
 alice_labor_guild;行会
@@ -1571,7 +1571,7 @@ trade_center;贸易中心
 trade_center_desc;贸易中心管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
 trade_center_employment;贸易中心雇员：?Y$value$?W
 trade_centre_max_throughput;最大量：?Y$value$?W
-local_admin;本地行政
+local_admin;当地行政
 capital_admin;首都行政
 local_admin_spending;预计成本：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
@@ -1601,8 +1601,8 @@ trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
 trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
 trade_centre_money;资金储备：?Y$val$
-administration_tile;本地行政
-market_tile;本地市场
+administration_tile;当地行政
+market_tile;当地市场
 alice_sort_pops;种族
 alice_sort_states;地区
 alice_topbar_avg_literacy_in_states;非殖民地人口 ?Y$x$?W 是平均?Y识字率?W
@@ -1623,33 +1623,33 @@ pop_budget_explanation_luxury_needs;人群奢侈品预算 ?Y$x$?W（超出预计
 pop_budget_explanation_education;人群教育需求预算 ?Y$x$?W。参考教育提示。
 pop_budget_explanation_investments;人群投资预算 ?Y$x$?W 。
 pop_budget_explanation_banks;人群向国家银行存款 ?Y$x$?W 。
-factory_money_flow_sum;?Y$value$?W is predicted profit (income minus expenses)
-factory_money_flow_sales;?G$value$?W is predicted income from sales
-factory_money_flow_primary_inputs;?R$value$?W is predicted spending on inputs
-factory_money_flow_secondary_inputs;?R$value$?W is predicted spending on efficiency inputs
-factory_money_flow_expansion;?R$value$?W is predicted spending on factory expansion
-factory_money_flow_maintenance;?R$value$?W is predicted spending on factory maintenance
-factory_money_flow_wages;?R$value$?W is predicted spending on workers wages
-factory_expansion_rate;We predict that factory will be expanded to accomodate ?Y$value$?W additional workers
-factory_hiring_rate_unqualified;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Yunskilled workers?W. (Current target: ?Y$x$?W)
-factory_hiring_rate_primary;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Ycraftsmen?W. (Current target: ?Y$x$?W)
-factory_hiring_rate_secondary;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Ymanagers and engineers?W. (Current target: ?Y$x$?W)
-factory_firing_rate_unqualified;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Yunskilled workers?W. (Current target: ?Y$x$?W)
-factory_firing_rate_primary;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Ycraftsmen?W. (Current target: ?Y$x$?W)
-factory_firing_rate_secondary;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Ymanagers and engineers?W. (Current target: ?Y$x$?W)
-factory_hired_unqualified;Factory hired ?Y$value$?W ?Yunskilled workers?W to do simple manual tasks. An ?Yunskilled worker?W provides only ?R$x$?W of a ?Ycraftsman?W output.
-factory_hired_primary;Factory hired ?Y$value$?W ?Ycraftsmen?W.
-factory_hired_secondary;Factory hired ?Y$value$?W ?Ymanagers and engineers?W. They multiply factory output by ?G$x$?W.
-factory_throughput_explanation;Throughput is a measure of raw power of a factory. It's measured in ?Gproduction units?W. Throughput drives both consumption of inputs and production of output. The only source of throughput are ?Gemployment units?W generated by ?Yunskilled workers?W and ?Ycraftsmen?W. Technology advancements can increase amount of ?Gproduction units?W generated per worker. Current throughput modifier is ?G$val$?W. Thus, current ?Y$y$?W employment units generate ?Y$x$?W (?G$val$?W of ?Y$y$?W) production units. Essentially, increase of throughput allows capitalists to employ less workers for the same total wage.
-factory_throughput_base;In Project Alice factories can access goods only from the local market. It means that in early game some goods are very hard to obtain. To partly compensate for it, there is a ?G$val$?W base multiplier to throughput.
-factory_throughput_modifiers;Current technologies and other modifiers provide a throughput multiplier equal to ?G$val$?W
-factory_input_multiplier_explanation;Inputs multiplier is the strongest industry-related multiplier as it doesn't suffer from diminishing returns. On the opposite, the more you stack a source of this multiplier, the stronger it becomes. Current multiplier is equal to ?G$val$?W.
-factory_input_multiplier_competition;Local competition between capitalists encourages factories to be more efficient and consume only ?G$val$?W of required inputs.
-factory_input_multiplier_scale;Smaller factories have to be lean and avoid waste to survive, current factory has ?G$val$?W multiplier due to this reason.
-factory_input_multiplier_specialisation;Scientific, political and legal priorities of private and national agents aligned to provide this industry with ?G$val$?W input multiplier.
-factory_input_multiplier_modifiers;Various technologies and inventions allow this factory to enjoy additional ?G$val$?W input multiplier.
-factory_output_multiplier_explanation;Output multiplier is a strong multiplier but suffers from diminishing returns. Currently this factory has ?G$val$?W output multiplier.
-factory_output_multiplier_lack_of_inputs;Due to lack of inputs, output of this factory is multiplied by ?R$val$?W.
-factory_output_multiplier_efficiency_inputs;To achieve full output, factory has to consume special efficiency inputs. Currently it suffers ?R$val$?W multiplier due to inability to do so.
-factory_output_multiplier_secondary_workers;Employed ?Ymanagers and engineers?W provide factory with ?G$val$?W output multiplier.
-factory_output_multiplier_modifiers;Various technologies and inventions provide additional ?G$val$?W multiplier.
+factory_money_flow_sum;利润（收入减去支出）预计 ?Y$value$?W
+factory_money_flow_sales;销售收入预计 ?G$value$?W
+factory_money_flow_primary_inputs;投入成本预计 ?R$value$?W
+factory_money_flow_secondary_inputs;投入效率成本预计 ?R$value$?W
+factory_money_flow_expansion;工厂扩张成本预计 ?R$value$?W
+factory_money_flow_maintenance;工厂维护成本预计 ?R$value$?W
+factory_money_flow_wages;工资预计 ?R$value$?W
+factory_expansion_rate;我们预计工厂会扩容 ?Y$value$?W 额外工人
+factory_hiring_rate_unqualified;我们预计工厂会尝试更多?G雇佣?W ?Y$value$?W ?Y非熟练工人?W。（当前目标：?Y$x$?W）
+factory_hiring_rate_primary;我们预计工厂会尝试?G雇佣更多?W ?Y$value$?W ?Y技工?W。（当前目标：?Y$x$?W）
+factory_hiring_rate_secondary;我们预计工厂会尝试?G雇佣更多?W ?Y$value$?W ?Y经理和职员?W。（当前目标：?Y$x$?W）
+factory_firing_rate_unqualified;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y非熟练工人?W。（当前目标：?Y$x$?W）
+factory_firing_rate_primary;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y技工?W。（当前目标：?Y$x$?W）
+factory_firing_rate_secondary;我们预计工厂会尝试?R解雇?W ?Y$value$?W ?Y经理和职员?W。（当前目标：?Y$x$?W）
+factory_hired_unqualified;工厂雇佣了 ?Y$value$?W ?Y非熟练工人?W来处理简单的手工任务。一位?Y非熟练工人?W仅提供?Y技工?W产出的 ?R$x$?W。
+factory_hired_primary;工厂雇佣了 ?Y$value$?W ?Y技工?W。
+factory_hired_secondary;工厂雇佣了 ?Y$value$?W ?Y经理和职员?W。他们使工厂产出乘以 ?G$x$?W。
+factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，被?Y非熟练工人?W和?Y技工?W。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
+factory_throughput_base;在 Project Alice 中，工厂只能从当地市场获得商品。这意味着，在游戏早期，有些商品难以获得。为部分补偿它，有一个?G$val$?W 基础乘数到吞吐量。
+factory_throughput_modifiers;当前技术和其他修正提供的吞吐量乘数：?G$val$?W。
+factory_input_multiplier_explanation;投入乘数是最强的行业相关乘数，因为它不受回报递减。相反，你越多推积它，它就越强。当前乘数：?G$val$?W。
+factory_input_multiplier_competition;当地资本家之间的竞争，鼓励工厂提高效率，只消耗所需投入：?G$val$?W。
+factory_input_multiplier_scale; 较小工厂需要精益生产（lean）和避免浪费才能生存。因此，当前工厂乘数：?G$val$?W。
+factory_input_multiplier_specialisation;私人和国家机构的科学、政治和法律优先事项（legal priorities）一致，为此行业提供投入乘数：?G$val$?W。
+factory_input_multiplier_modifiers;各种技术和发明使这家工厂享受额外投入乘数：?G$val$?W。
+factory_output_multiplier_explanation;产出乘数是一个强大的乘数，但受到回报递减。当前工厂输出乘数：?G$val$?W。
+factory_output_multiplier_lack_of_inputs;由于投入缺乏，这家工厂产出乘以 ?R$val$?W。
+factory_output_multiplier_efficiency_inputs;为实现全功率输出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
+factory_output_multiplier_secondary_workers;雇佣的 ?Y经理和职员?W 为工厂提供 ?G$val$?W 产出乘数。
+factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$?W 产出乘数。
