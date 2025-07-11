@@ -372,64 +372,47 @@ public:
 		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 
 		auto prov = retrieve<dcon::province_id>(state, parent);
-		for(auto b : state.world.province_get_land_battle_location(prov)) {
-			auto w = b.get_battle().get_war_from_land_battle_in_war();
-			if(!w) {
-				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.army_combat_window->is_visible()) {
-					state.ui_state.army_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.army_combat_window->set_visible(state, true);
-					if(state.ui_state.province_window) {
-						state.ui_state.province_window->set_visible(state, false);
-						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.naval_combat_window) {
-						state.ui_state.naval_combat_window->set_visible(state, false);
-					}
-				}
-				return message_result::consumed;
-			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
-				land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.army_combat_window->is_visible()) {
-					state.ui_state.army_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.army_combat_window->set_visible(state, true);
-					if(state.ui_state.province_window) {
-						state.ui_state.province_window->set_visible(state, false);
-						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.naval_combat_window) {
-						state.ui_state.naval_combat_window->set_visible(state, false);
-					}
-				}
-				return message_result::consumed;
-			}
-		}
-		for(auto b : state.world.province_get_naval_battle_location(prov)) {
-			auto w = b.get_battle().get_war_from_naval_battle_in_war();
+		if(state.world.province_get_land_battle_location(prov).begin() != state.world.province_get_land_battle_location(prov).end()) {
+			auto b = *state.world.province_get_land_battle_location(prov).begin();
 
-			 if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
-				naval_combat_window* win = static_cast<naval_combat_window*>(state.ui_state.naval_combat_window);
-				win->battle = b.get_battle();
-				if(state.ui_state.naval_combat_window->is_visible()) {
-					state.ui_state.naval_combat_window->impl_on_update(state);
-				} else {
-					state.ui_state.naval_combat_window->set_visible(state, true);
-					if(state.ui_state.province_window) {
-						state.ui_state.province_window->set_visible(state, false);
-						state.map_state.set_selected_province(dcon::province_id{});
-					}
-					if(state.ui_state.army_combat_window) {
-						state.ui_state.army_combat_window->set_visible(state, false);
-					}
+			auto w = b.get_battle().get_war_from_land_battle_in_war();
+			land_combat_window* win = static_cast<land_combat_window*>(state.ui_state.army_combat_window);
+			win->battle = b.get_battle();
+			if(state.ui_state.army_combat_window->is_visible()) {
+				state.ui_state.army_combat_window->impl_on_update(state);
+			} else {
+				state.ui_state.army_combat_window->set_visible(state, true);
+				if(state.ui_state.province_window) {
+					state.ui_state.province_window->set_visible(state, false);
+					state.map_state.set_selected_province(dcon::province_id{});
 				}
-				return message_result::consumed;
+				if(state.ui_state.naval_combat_window) {
+					state.ui_state.naval_combat_window->set_visible(state, false);
+				}
 			}
+			return message_result::consumed;
 		}
 		
+		if(state.world.province_get_naval_battle_location(prov).begin() != state.world.province_get_naval_battle_location(prov).end()) {
+			auto b = *state.world.province_get_naval_battle_location(prov).begin();
+			auto w = b.get_battle().get_war_from_naval_battle_in_war();
+
+			naval_combat_window* win = static_cast<naval_combat_window*>(state.ui_state.naval_combat_window);
+			win->battle = b.get_battle();
+			if(state.ui_state.naval_combat_window->is_visible()) {
+				state.ui_state.naval_combat_window->impl_on_update(state);
+			} else {
+				state.ui_state.naval_combat_window->set_visible(state, true);
+				if(state.ui_state.province_window) {
+					state.ui_state.province_window->set_visible(state, false);
+					state.map_state.set_selected_province(dcon::province_id{});
+				}
+				if(state.ui_state.army_combat_window) {
+					state.ui_state.army_combat_window->set_visible(state, false);
+				}
+			}
+			return message_result::consumed;
+		}
 		return message_result::consumed;
 	}
 };
@@ -549,7 +532,7 @@ class tr_frame_bg : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
-		frame = int32_t(outline_color::red);
+		frame = int32_t(outline_color::blue);
 	}
 };
 
@@ -1236,29 +1219,40 @@ public:
 		bool player_involved_battle = false;
 		dcon::land_battle_id lbattle;
 		dcon::naval_battle_id nbattle;
-		for(auto b : state.world.province_get_land_battle_location(prov)) {
+		if(state.world.province_get_land_battle_location(prov).begin() != state.world.province_get_land_battle_location(prov).end()) {
+			auto b = *state.world.province_get_land_battle_location(prov).begin();
 			auto w = b.get_battle().get_war_from_land_battle_in_war();
 			if(!w) { //rebels
 				player_involved_battle = true;
 				lbattle = b.get_battle();
 				display.player_involved_battle = true;
-				break;
 			} else if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { //in a war
 				player_involved_battle = true;
 				display.player_involved_battle = true;
 				lbattle = b.get_battle();
-				break;
+			} else { // player is not involved
+				player_involved_battle = false;
+				display.player_involved_battle = false;
+				lbattle = b.get_battle();
 			}
 		}
-		if(!player_involved_battle) {
-			for(auto b : state.world.province_get_naval_battle_location(prov)) {
+			
+		
+		// if a land battle was not found, try to find a naval battle
+		if(!lbattle) {
+			if(state.world.province_get_naval_battle_location(prov).begin() != state.world.province_get_naval_battle_location(prov).end()) {
+				auto b = *state.world.province_get_naval_battle_location(prov).begin();
 				auto w = b.get_battle().get_war_from_naval_battle_in_war();
-				if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) {
+				if(military::get_role(state, w, state.local_player_nation) != military::war_role::none) { // in a war
 					player_involved_battle = true;
 					nbattle = b.get_battle();
-					break;
+				} else { // player not involved
+					player_involved_battle = false;
+					nbattle = b.get_battle();
 				}
+
 			}
+			
 		}
 
 		display.colors_used = 0;
@@ -1334,8 +1328,8 @@ public:
 
 			for(auto ar : state.world.land_battle_get_army_battle_participation(lbattle)) {
 				auto controller = ar.get_army().get_controller_from_army_control();
-
-				if(!controller || military::is_attacker(state, w, controller) != player_is_attacker) { // opposed
+				// either armies opposed to the player while the player is involved, or armies which are part of the attacking side of the war while the player is not involved
+				if((player_involved_battle && !controller || military::is_attacker(state, w, controller) != player_is_attacker) || (!player_involved_battle && military::is_attacker(state, w, controller))) { 
 					++display.right_frames;
 					float str = 0.0f;
 					for(auto m : state.world.army_get_army_membership(ar.get_army())) {
@@ -1450,7 +1444,8 @@ public:
 
 			for(auto ar : state.world.naval_battle_get_navy_battle_participation(nbattle)) {
 				auto controller = ar.get_navy().get_controller_from_navy_control();
-				if(!controller || military::is_attacker(state, w, controller) != player_is_attacker) { // opposed
+				// either navies opposed to the player while the player is involved, or navies which are part of the attacking side of the war while the player is not involved
+				if((player_involved_battle && !controller || military::is_attacker(state, w, controller) != player_is_attacker) || (!player_involved_battle && military::is_attacker(state, w, controller))) {
 					++display.right_frames;
 
 					float str = 0.0f;
