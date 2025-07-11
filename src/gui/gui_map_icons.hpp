@@ -1166,8 +1166,6 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 
-		//populated = !(state.world.province_get_navy_location(prov).begin() == state.world.province_get_navy_location(prov).end() && state.world.province_get_army_location(prov).begin() == state.world.province_get_army_location(prov).end());
-
 		if(prov.index() < state.province_definitions.first_sea_province.index()) {
 			populated = false;
 			for(auto a : state.world.province_get_army_location(prov)) {
