@@ -194,7 +194,8 @@ float global_factory_construction_time_modifier(sys::state& state) {
 
 float build_cost_multiplier(sys::state& state, dcon::province_id location, bool is_pop_project) {
 	float admin_eff = state.world.province_get_control_ratio(location);
-	return is_pop_project ? 1.f : 2.0f - admin_eff;
+	// make factories cheaper to make it a bit easier to get into industry and compensate for low control
+	return (is_pop_project ? 1.f : 2.0f - admin_eff) * 0.5f;
 }
 
 float factory_build_cost_multiplier(sys::state& state, dcon::nation_id n, dcon::province_id location, bool is_pop_project) {
