@@ -1386,13 +1386,13 @@ TRIGGER_BYTECODE_ELEMENT(0x02E2, party_name, 3) \
 TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2) \
 TRIGGER_BYTECODE_ELEMENT(0x02E4, diplo_points, 2) \
 TRIGGER_BYTECODE_ELEMENT(0x02E5, suppression_points, 2) \
-
+TRIGGER_BYTECODE_ELEMENT(0x02E6, check_global_variable, 3) \
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02E6;
+constexpr inline uint16_t first_scope_code = 0x02E7;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2

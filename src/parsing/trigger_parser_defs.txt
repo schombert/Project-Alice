@@ -19,6 +19,10 @@ tr_check_variable
 	value            value           float              member_fn
 	which            value           text               member
 
+tr_check_global_variable
+	value            value           float              member_fn
+	which            value           text               member
+
 tr_relation
 	who              value           text               member
 	value            value           int                member_fn
@@ -283,6 +287,7 @@ trigger_body
 	pop_unemployment             group  tr_pop_unemployment             member_fn
 	relation                     group  tr_relation                     member_fn
 	check_variable               group  tr_check_variable               member_fn
+	check_global_variable        group  tr_check_global_variable        member_fn
 	upper_house                  group  tr_upper_house                  member_fn
 	unemployment_by_type         group  tr_unemployment_by_type         member_fn
 	party_loyalty                group  tr_party_loyalty                member_fn

@@ -232,6 +232,16 @@ struct tr_check_variable {
 	}
 	void finish(trigger_building_context&) { }
 };
+struct tr_check_global_variable {
+	std::string_view which;
+	float value_ = 0.0f;
+	association_type a;
+	void value(association_type t, float v, error_handler& err, int32_t line, trigger_building_context& context) {
+		a = t;
+		value_ = v;
+	}
+	void finish(trigger_building_context&) { }
+};
 
 struct tr_relation {
 	std::string_view who;
@@ -5568,6 +5578,12 @@ struct trigger_body {
 	}
 	void check_variable(tr_check_variable const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		context.compiled_trigger.push_back(uint16_t(trigger::check_variable | association_to_trigger_code(value.a)));
+		context.add_float_to_payload(value.value_);
+		context.compiled_trigger.push_back(
+				trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
+	}
+	void check_global_variable(tr_check_global_variable const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+		context.compiled_trigger.push_back(uint16_t(trigger::check_global_variable | association_to_trigger_code(value.a)));
 		context.add_float_to_payload(value.value_);
 		context.compiled_trigger.push_back(
 				trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
