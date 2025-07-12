@@ -1117,7 +1117,12 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
 		auto rel = state.world.nation_get_religion(content);
+		auto dr = state.world.nation_get_dominant_religion(content);
+
 		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "when");
+		text::add_line_with_condition(state, contents, "religion_nation_modifier", dr == rel, text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "giving_modifier");
 		auto mod_id = state.world.religion_get_nation_modifier(rel);
 		if(bool(mod_id)) {
 			modifier_description(state, contents, mod_id, 15);

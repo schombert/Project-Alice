@@ -1982,9 +1982,13 @@ uint32_t ef_religion(EFFECT_DISPLAY_PARAMS) {
 		text::localised_format_box(ws, layout, box, "make_national_religion", m);
 		text::close_layout_box(layout, box);
 		auto mod_id = ws.world.religion_get_nation_modifier(rel);
+		auto n = trigger::to_nation(primary_slot);
+		auto dr = ws.world.nation_get_dominant_religion(n);
 		if(bool(mod_id)) {
-			text::add_line(ws, layout, "giving_modifier");
-			modifier_description(ws, layout, mod_id, 15);
+			text::add_line(ws, layout, "when", 15);
+			text::add_line_with_condition(ws, layout, "religion_nation_modifier", dr == rel, text::variable_type::name, ws.world.religion_get_name(rel), 30);
+			text::add_line(ws, layout, "giving_modifier",15);
+			modifier_description(ws, layout, mod_id, 30);
 		}
 	}
 	return 0;
