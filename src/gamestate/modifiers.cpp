@@ -253,8 +253,6 @@ void bulk_apply_scaled_modifier_to_provinces(sys::state& state, dcon::modifier_i
 }
 
 void recreate_national_modifiers(sys::state& state) {
-
-
 	concurrency::parallel_for(uint32_t(0), sys::national_mod_offsets::count, [&](uint32_t i) {
 		dcon::national_modifier_value mid{dcon::national_modifier_value::value_base_t(i)};
 		state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_modifier_values(ids, mid, ve::fp_vector{}); });
@@ -267,6 +265,14 @@ void recreate_national_modifiers(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(auto nv = n.get_national_value(); nv)
 			apply_modifier_values_to_nation(state, n, nv);
+	}
+	for(auto n : state.world.in_nation) {
+		if(auto rgmd = n.get_religion().get_nation_modifier(); rgmd) {
+			// Apply only when state religion is majority religion. The function is called once per month
+			if(state.world.nation_get_dominant_religion(n) == state.world.nation_get_religion(n)) {
+				apply_modifier_values_to_nation(state, n, rgmd);
+			}
+		}
 	}
 	for(auto n : state.world.in_nation) {
 		for(auto mpr : state.world.nation_get_current_modifiers(n)) {

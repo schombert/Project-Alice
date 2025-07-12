@@ -787,3 +787,19 @@ change_factory_limit = {
     value = 15
 }
 ```
+
+
+## Religion
+
+State Religion can give a national modifier like this:
+
+```
+shinto = {
+		color = { 0.8 0 0 }
+		icon = 12
+
+		nation_modifier = {
+			education_efficiency = 0.05
+		}
+	}
+```
