@@ -26,6 +26,7 @@
 | AC19 | Local and precious goods cannot be traded. |
 | AC20 | Not yet unlocked commodities aren't traded. |
 | AC21 | Increase of volume reduces the transport cost. |
+| AC22 | National `trade_routes_attraction` modifier changes appeal of its states for trade routes |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

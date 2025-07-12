@@ -904,6 +904,8 @@ public:
 	MOD_NAT_FUNCTION(disallow_naval_trade)
 	MOD_NAT_FUNCTION(disallow_land_trade)
 
+	MOD_NAT_FUNCTION(trade_routes_attraction)
+
 	template<typename T>
 	void finish(T& context) { }
 
