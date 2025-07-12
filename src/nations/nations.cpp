@@ -448,7 +448,7 @@ void generate_sea_trade_routes(sys::state& state) {
 			// US3AC5 Trade Route Attraction from naval bases
 			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness +
 				// US3AC22 Trade Route attraction modifier
-				std::min(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::trade_routes_attraction), state.world.nation_get_modifier_values(target_owner, ))
+				std::min(state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::trade_routes_attraction), state.world.nation_get_modifier_values(target_owner, sys::national_mod_offsets::trade_routes_attraction));
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
 			
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;

@@ -23,8 +23,12 @@ make_accepted_culture;$text$ becomes an accepted culture
 primary_culture_changes_to;Primary culture changes to $text$
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
+set_national_variable_to;Set national variable $text$ to $value$
 increase_national_variable_by;Increase national variable $text$ by $value$
 decrease_national_variable_by;Decrease national variable $text$ by $value$
+set_global_variable_to;Set global ?Y$text$?! to ?Y$value$?!
+increase_global_variable_by;Increase global ?Y$text$?! by ?Y$value$?!
+decrease_global_variable_by;Decrease global ?Y$text$?! by ?Y$value$?!
 life_rating;Life rating
 make_national_religion;$text$ becomes the national religion
 make_province_religion;province population converts to $text$
@@ -110,7 +114,6 @@ add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in sc
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
 remove_cb_reversed;Loses any $name$ casus bellis against $text$
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
-set_national_variable_to;Set national variable $text$ to $value$
 event_fires;Event $text$ is triggered
 event_fires_in_days;Event $text$ is triggered in $value$ days
 railroad_in_capital;?G+1?! railroad level in capital

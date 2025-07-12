@@ -5697,6 +5697,41 @@ uint32_t ef_change_variable(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+
+uint32_t ef_set_global_variable(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text,
+				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ trigger::read_float_from_payload(tval + 2) });
+		text::localised_format_box(ws, layout, box, "set_global_variable_to", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+uint32_t ef_change_global_variable(EFFECT_DISPLAY_PARAMS) {
+	auto amount = trigger::read_float_from_payload(tval + 2);
+	if(amount >= 0) {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text,
+				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ amount });
+		text::localised_format_box(ws, layout, box, "increase_global_variable_by", m);
+		text::close_layout_box(layout, box);
+	} else {
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text,
+				ws.national_definitions.variable_names[trigger::payload(tval[1]).natv_id]);
+		text::add_to_substitution_map(m, text::variable_type::value, text::fp_one_place{ -amount });
+		text::localised_format_box(ws, layout, box, "decrease_global_variable_by", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
+
 uint32_t ef_ideology(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -7328,6 +7363,8 @@ ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_positio
 ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
 ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)
 ef_change_factory_limit, // EFFECT_BYTECODE_ELEMENT(0x01C2, change_factory_limit, 2)
+ef_set_global_variable,  // EFFECT_BYTECODE_ELEMENT(0x01C3, set_global_varible, 3) 
+ef_change_global_variable,// EFFECT_BYTECODE_ELEMENT(0x01C4, change_global_variable, 3)
 
 //
 // SCOPES

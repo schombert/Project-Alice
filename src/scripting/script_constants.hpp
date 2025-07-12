@@ -472,6 +472,8 @@ EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2) \
 EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2) \
 EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2) \
 EFFECT_BYTECODE_ELEMENT(0x01C2, change_factory_limit, 2) \
+EFFECT_BYTECODE_ELEMENT(0x01C3, set_global_variable, 3) \
+EFFECT_BYTECODE_ELEMENT(0x01C4, change_global_variable, 3) \
 
 
 #define EFFECT_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
@@ -480,7 +482,7 @@ EFFECT_BYTECODE_ELEMENT(0x01C2, change_factory_limit, 2) \
 
 // invalid
 /* This value must be changed if more effects are added. */
-constexpr inline uint16_t first_scope_code = 0x01C3;
+constexpr inline uint16_t first_scope_code = 0x01C5;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)

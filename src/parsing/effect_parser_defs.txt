@@ -275,6 +275,8 @@ effect_body
 	sub_unit                        group       ef_sub_unit                 member_fn
 	set_variable                    group       ef_set_variable             member_fn
 	change_variable                 group       ef_change_variable          member_fn
+	set_global_variable             group       ef_set_variable      member_fn
+	change_global_variable          group       ef_change_variable   member_fn
 	ideology                        group       ef_ideology                 member_fn
 	dominant_issue                  group       ef_dominant_issue           member_fn
 	upper_house                     group       ef_upper_house              member_fn

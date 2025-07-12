@@ -288,6 +288,22 @@ struct ef_change_variable {
 	}
 	void finish(effect_building_context&) { }
 };
+struct ef_set_global_variable {
+	float value = 0.0f;
+	dcon::national_variable_id which_;
+	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		which_ = context.outer_context.get_national_variable(std::string(v));
+	}
+	void finish(effect_building_context&) { }
+};
+struct ef_change_global_variable {
+	float value = 0.0f;
+	dcon::national_variable_id which_;
+	void which(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
+		which_ = context.outer_context.get_national_variable(std::string(v));
+	}
+	void finish(effect_building_context&) { }
+};
 struct ef_ideology {
 	float factor = 0.0f;
 	dcon::ideology_id value_;
@@ -3431,6 +3447,16 @@ struct effect_body {
 			return;
 		}
 		context.compiled_effect.push_back(effect::change_variable);
+		context.compiled_effect.push_back(trigger::payload(value.which_).value);
+		context.add_float_to_payload(value.value);
+	}
+	void set_global_variable(ef_set_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		context.compiled_effect.push_back(effect::set_global_variable);
+		context.compiled_effect.push_back(trigger::payload(value.which_).value);
+		context.add_float_to_payload(value.value);
+	}
+	void change_global_variable(ef_change_variable const& value, error_handler& err, int32_t line, effect_building_context& context) {
+		context.compiled_effect.push_back(effect::change_global_variable);
 		context.compiled_effect.push_back(trigger::payload(value.which_).value);
 		context.add_float_to_payload(value.value);
 	}

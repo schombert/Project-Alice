@@ -41,6 +41,8 @@ Additionally, triggers such as technology triggers no longer suffer from having 
 - `increment_variable = ...`: Shorthand to increment by 1
 - `decrement_variable = ...`: Shorthand to decrement by 1
 - `set_variable_to_zero = ...`: Shorthand to set a variable to 0
+- `set_global_variable = ...`: Change global variable
+- `change_global_varible = ...`: Change global variable
 - `ruling_party_ideology = THIS/FROM`: Appoints the ruling party with an ideology of `THIS` or `FROM`
 - `add_accepted_culture = THIS/FROM`: Now with `THIS/FROM` adds the PRIMARY culture of `THIS/FROM` to the nation in scope
 - `add_accepted_culture = this_union/from_union`: Adds the culture union of the primary culture of `THIS/FROM` as accepted to the nation in scope
