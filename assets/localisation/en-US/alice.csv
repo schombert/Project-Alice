@@ -23,8 +23,8 @@ make_accepted_culture;$text$ becomes an accepted culture
 primary_culture_changes_to;Primary culture changes to ?Y$text$?W
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
-increase_national_variable_by;Increase nation ?Y$text$?W by ?Y$value$?W
-decrease_national_variable_by;Decrease nation ?Y$text$?W by ?Y$value$?W
+increase_national_variable_by;Increase nation's ?Y$text$?W by ?Y$value$?W
+decrease_national_variable_by;Decrease nation's ?Y$text$?W by ?Y$value$?W
 life_rating;Life rating
 make_national_religion;?Y$text$?W becomes the national religion
 giving_modifier;This will give the following modifier:
