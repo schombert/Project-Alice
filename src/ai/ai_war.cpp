@@ -1951,7 +1951,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	int32_t potential_peace_score_against = 0;
 	int32_t my_side_against_target = 0;
 	int32_t my_side_peace_cost =
-		!military::is_attacker(state, w, state.local_player_nation)
+		!military::is_attacker(state, w, from)
 		? military::attacker_peace_cost(state, w)
 		: military::defender_peace_cost(state, w);
 
@@ -1965,7 +1965,7 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 		if(wg.get_target_nation() == n) {
 			target_personal_po_value += wg_value;
 		}
-		if(wg.get_target_nation() == state.local_player_nation) {
+		if(wg.get_target_nation() == from) {
 			my_side_against_target += wg_value;
 		}
 		if((wg.get_type().get_type_bits() & military::cb_flag::po_status_quo) != 0)
@@ -1974,9 +1974,9 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			if(
 				wg.get_target_nation() == n
 				&& (
-					wg.get_added_by() == state.local_player_nation
-					|| state.local_player_nation == prime_attacker
-					|| state.local_player_nation == prime_defender
+					wg.get_added_by() == from
+					|| from == prime_attacker
+					|| from == prime_defender
 				)
 			) {
 				potential_peace_score_against += wg_value;
@@ -1985,9 +1985,9 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 			if(
 				wg.get_added_by() == n
 				&& (
-					wg.get_target_nation() == state.local_player_nation
-					|| state.local_player_nation == prime_attacker
-					|| state.local_player_nation == prime_defender)
+					wg.get_target_nation() == from
+					|| from == prime_attacker
+					|| from == prime_defender)
 			) {
 				my_po_target += wg_value;
 			}
@@ -1996,12 +1996,12 @@ bool will_accept_peace_offer(sys::state& state, dcon::nation_id n, dcon::nation_
 	return will_accept_peace_offer_value(
 		state,
 		n,
-		state.local_player_nation,
+		from,
 		prime_attacker,
 		prime_defender,
 		military::primary_warscore(state, w),
-		military::directed_warscore(state, w, state.local_player_nation, n),
-		military::is_attacker(state, w, state.local_player_nation),
+		military::directed_warscore(state, w, from, n),
+		military::is_attacker(state, w, from),
 		is_concession,
 		overall_po_value,
 		my_po_target,
