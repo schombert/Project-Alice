@@ -123,7 +123,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
-		text::add_line(state, contents, commodity_name);
+		text::add_line(state, contents, "rgo_tile_header", text::variable_type::good, commodity_name);
 		text::add_line_break_to_layout(state, contents);
 
 		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.rgo_commodity);

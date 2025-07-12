@@ -1600,6 +1600,7 @@ pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
 administration_tile;Local administration
 market_tile;Local market
+rgo_tile_header;Natural source of ?Y$good$?W
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
