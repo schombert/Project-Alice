@@ -27,7 +27,7 @@ std::string lowercase_str(std::string_view sv);
 struct pending_button_script {
 	std::string original_file;
 	token_generator generator_state;
-	dcon::gui_def_id button_element;
+	dcon::scripted_interaction_id scripted_element;
 };
 
 struct building_gfx_context {
@@ -36,10 +36,14 @@ struct building_gfx_context {
 	std::vector<simple_fs::file> gui_files;
 	ankerl::unordered_dense::map<std::string, dcon::gfx_object_id> map_of_names;
 	ankerl::unordered_dense::map<std::string, dcon::texture_id> map_of_texture_names;
+	std::vector<pending_button_script> province_buttons_visible;
+	std::vector<pending_button_script> nation_buttons_visible;
 	std::vector<pending_button_script> province_buttons_allow;
 	std::vector<pending_button_script> nation_buttons_allow;
 	std::vector<pending_button_script> province_buttons_effect;
+	std::vector<pending_button_script> province_buttons_ai_will_do;
 	std::vector<pending_button_script> nation_buttons_effect;
+	std::vector<pending_button_script> nation_buttons_ai_will_do;
 	bool on_second_pair_y = false;
 	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
@@ -143,23 +147,37 @@ struct button : public gui_element_common {
 };
 
 struct nation_script_button : public button {
+	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	int32_t added_ai_will_do = -1;
+	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 struct province_script_button : public button {
+	int32_t added_visible = -1;
 	int32_t added_allow = -1;
 	int32_t added_effect = -1;
+	int32_t added_ai_will_do = -1;
+
+	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context);
+
 };
 
+bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool province_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context);
 
 struct image : public gui_element_common {
 	image();
@@ -222,13 +240,15 @@ struct scrollbar : public gui_element_common {
 struct window : public gui_element_common {
 	struct scripted_children {
 		uint32_t child_number;
+		int32_t pvisible = -1;
 		int32_t pallow = -1;
 		int32_t peffect = -1;
+		int32_t nvisible = -1;
 		int32_t nallow = -1;
 		int32_t neffect = -1;
 	};
 	std::vector<ui::element_data> children;
-	std::vector<scripted_children> sc;
+	std::vector<scripted_children> window_scripted_children;
 	window();
 	void fullscreen(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
 	void moveable(association_type, bool v, error_handler& err, int32_t line, building_gfx_context& context);
