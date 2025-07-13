@@ -81,11 +81,16 @@ public:
 		send(state, parent, current_sort);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return std::holds_alternative<dcon::pop_type_id>(type) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+		return tooltip_behavior::tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		if(std::holds_alternative<dcon::pop_type_id>(type))
+		if(std::holds_alternative<dcon::pop_type_id>(type)) {
 			text::add_line(state, contents, state.world.pop_type_get_name(std::get<dcon::pop_type_id>(type)));
+		}
+		else {
+			// Text on ledger column heads often doesn't fit entirely
+			text::add_line(state, contents, cached_text);
+		}
 	}
 };
 

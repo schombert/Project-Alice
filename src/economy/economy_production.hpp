@@ -29,21 +29,10 @@ struct inputs_data {
 };
 
 template<typename SET>
-inputs_data get_inputs_data(sys::state& state, dcon::market_id markets, SET const& inputs);
+inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SET const& inputs);
 
-void update_single_factory_production(
-	sys::state& state,
-	dcon::factory_id f,
-	dcon::market_id m,
-	dcon::nation_id n
-);
-
-void update_province_rgo_production(
-	sys::state& state,
-	dcon::province_id p,
-	dcon::market_id m,
-	dcon::nation_id n
-);
+void update_factories_production(sys::state& state);
+void update_rgo_production(sys::state& state);
 
 float base_artisan_profit(
 	sys::state& state,
@@ -111,6 +100,109 @@ float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instan
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float factory_output(sys::state& state, dcon::commodity_id c);
 
+float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
+float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
+float factory_total_employment(sys::state const& state, dcon::factory_id f);
+float factory_unqualified_employment(sys::state const& state, dcon::factory_id f);
+float factory_primary_employment(sys::state const& state, dcon::factory_id f);
+float factory_secondary_employment(sys::state const& state, dcon::factory_id f);
+
+struct factory_employment_vector {
+	float unqualified;
+	float primary;
+	float secondary;
+};
+
+struct detailed_commodity_set {
+	static constexpr uint32_t set_size = 8;
+
+	float commodity_base_amount[set_size] = { 0.0f };
+	float commodity_price[set_size] = { 0.0f };
+	float commodity_actual_amount[set_size] = { 0.0f };
+	float efficient_ratio[set_size] = { 0.0f };
+	dcon::commodity_id commodity_type[set_size] = { dcon::commodity_id{} };
+};
+
+namespace factory_operation {
+
+struct input_multipliers_explanation {
+	float total = 1.f;
+	float from_modifiers = 1.f;
+	float from_triggered_modifiers = 1.f;
+	float from_scale = 1.f;
+	float from_competition = 1.f;
+	float from_specialisation = 1.f;
+};
+
+struct output_multipliers_explanation {
+	float total = 1.f;
+	float total_ignore_inputs = 1.f;
+	float from_modifiers = 1.f;
+	float from_efficiency_goods = 1.f;
+	float from_secondary_workers = 1.f;
+	float from_inputs_lack = 1.f;
+};
+
+struct throughput_multipliers_explanation {
+	float total = 1.f;
+	float base = 1.f;
+	float from_modifiers = 1.f;
+	float from_scale = 1.f;
+};
+
+struct detailed_explanation {
+	dcon::factory_type_id base_type = dcon::factory_type_id{ };
+
+	float profit = 0.f;
+	float income_from_sales = 0.f;
+	float spending_from_primary_inputs = 0.f;
+	float spending_from_efficiency_inputs = 0.f;
+	float spending_from_wages = 0.f;
+	float spending_from_expansion = 0.f;
+	float spending_from_maintenance = 0.f;
+
+	dcon::commodity_id output = dcon::commodity_id{};
+	float output_price = 0.f;
+	float output_amount_per_production_unit = 0.f;
+	float output_amount_per_employment_unit = 0.f;
+	float output_amount_per_production_unit_ignore_inputs = 0.f;
+	float output_amount_per_employment_unit_ignore_inputs = 0.f;
+	float output_base_amount = 0.f;
+	float output_actual_amount = 0.f;
+	float output_actually_sold_ratio = 0.f;
+
+	detailed_commodity_set efficiency_inputs{};
+	float required_efficiency_inputs_multiplier = 1.f;
+	bool efficiency_inputs_worth_it = false;
+
+	detailed_commodity_set expansion_inputs{};
+	float expansion_scale = 0.f;
+	float expansion_size = 0.f;
+
+	detailed_commodity_set maintenance_inputs{};
+	float maintenance_multiplier = 1.f;
+
+	float employment_units = 0.f;
+	float production_units = 0.f;
+	factory_employment_vector employment{};
+	factory_employment_vector employment_target{};
+	factory_employment_vector employment_wages_paid{};
+	factory_employment_vector employment_wages_per_person{};
+	factory_employment_vector employment_available_ratio{};
+	factory_employment_vector expected_profit_gradient{};
+	factory_employment_vector employment_expected_change{};
+
+	detailed_commodity_set primary_inputs{};
+	input_multipliers_explanation input_multipliers{};
+	output_multipliers_explanation output_multipliers{};
+	throughput_multipliers_explanation throughput_multipliers{};
+
+	float employment_mobilisation_impact;
+};
+
+detailed_explanation explain_everything(sys::state const& state, dcon::factory_id f);
+
+}
 // RGO:
 struct rgo_workers_breakdown {
 	float paid_workers;
@@ -137,7 +229,7 @@ float rgo_employment(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float rgo_employment(sys::state& state, dcon::province_id p);
 
 float rgo_wage(sys::state& state, dcon::commodity_id c, dcon::province_id p);
-float rgo_efficiency_spendings(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float rgo_efficiency_spending(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 
 commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::nation_id n, dcon::market_id m, dcon::province_id p, dcon::commodity_id c, float mobilization_impact);
 

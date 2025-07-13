@@ -126,17 +126,191 @@ public:
 	}
 };
 
+
+class disband_units_title : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto count = retrieve<size_t>(state, parent);
+		if(count == 1) {
+			set_text(state, text::produce_simple_string(state, "CONFIRM_DISBAND_TITLE"));
+		}
+		else if(count > 1) {
+			set_text(state, text::produce_simple_string(state, "DISBAND_ALL_TITLE"));
+		}
+	}
+};
+
+class disband_units_desc : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto count = retrieve<size_t>(state, parent);
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white, true });
+		auto box = text::open_layout_box(contents);
+		if(count == 1) {
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "CONFIRM_DISBAND_DESC"), text::text_color::white);
+		}
+		else if(count > 1) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::num, int64_t(count));
+			text::add_to_layout_box(state, contents, box, text::resolve_string_substitution(state, "DISBAND_ALL_DESC", m), text::text_color::white);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
+template<typename T>
+struct disband_unit_wrapper {
+	std::vector<T> to_be_deleted;
+};
+
+class disband_agree_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			if(!command::can_delete_army(state, state.local_player_nation, unit)) {
+				disabled = true;
+			}
+		}
+		disabled = false;
+
+		for(auto unit : navies) {
+			if(!command::can_delete_navy(state, state.local_player_nation, unit)) {
+				disabled = true;
+			}
+		}
+		disabled = false;
+		
+	}
+
+	void button_action(sys::state& state) noexcept override {
+
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			command::delete_army(state, state.local_player_nation, unit);
+		}
+		for(auto unit : navies) {
+			command::delete_navy(state, state.local_player_nation, unit);
+		}
+		
+		parent->set_visible(state, false); // Close parent window automatically
+		//send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
+
+	}
+};
+
+
+
+
+
+
+class disband_unit_confirmation : public window_element_base {
+
+	std::vector<dcon::army_id> armies;
+	std::vector<dcon::navy_id> navies;
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+		base_data.position.x = base_data.position.y = 0;
+	}
+
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::army_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
+		for(auto unit : units_to_be_deleted) {
+			armies.push_back(unit);
+		}
+	}
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::navy_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
+		for(auto unit : units_to_be_deleted) {
+			navies.push_back(unit);
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge
+			return ptr;
+		} else if(name == "default_popup_banner")
+			return make_element_by_type<image_element_base>(state, id); // Not used in Vic2?
+		else if(name == "title")
+			return make_element_by_type<disband_units_title>(state, id);
+		else if(name == "description")
+			return make_element_by_type<disband_units_desc>(state, id);
+		else if(name == "agreebutton")
+			return make_element_by_type<disband_agree_button>(state, id);
+		else if(name == "declinebutton")
+			return make_element_by_type<generic_close_button>(state, id);
+		else
+			return nullptr;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<std::vector<dcon::army_id>>()) {
+			payload = armies;
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<std::vector<dcon::navy_id>>()) {
+			payload = navies;
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<size_t>()) {
+			payload = armies.size() + navies.size();
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::army_id>>()) {
+			disband_unit_wrapper<dcon::army_id> item = any_cast<disband_unit_wrapper<dcon::army_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::navy_id>>()) {
+			disband_unit_wrapper<dcon::navy_id> item = any_cast<disband_unit_wrapper<dcon::navy_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+
+
+
+		return message_result::unseen;
+	}
+
+};
+
+
+
 template<class T>
 class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			command::delete_army(state, state.local_player_nation, content);
-		} else {
-			command::delete_navy(state, state.local_player_nation, content);
+		if(state.user_settings.unit_disband_confirmation) {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				std::vector<dcon::army_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else {
+				std::vector<dcon::navy_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
-		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
+		else {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				command::delete_army(state, state.local_player_nation, content);
+			} else {
+				command::delete_navy(state, state.local_player_nation, content);
+			}
+		}
+		
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -584,15 +758,18 @@ public:
 };
 
 template<class T>
-class unit_selection_attrition_amount : public simple_text_element_base {
+class unit_selection_attrition_amount : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		auto amount = military::attrition_amount(state, content);
-		if(amount > 0)
+		if(amount > 0) {
 			set_text(state, text::format_percentage(amount, 1));
-		else
+			color = text::text_color::red;
+		}
+		else {
 			set_text(state, "");
+		}
 	}
 };
 
@@ -746,26 +923,26 @@ public:
 		if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
 			auto action = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
 			switch(action) {
-			case unitpanel_action::close: {
-				// Bucket Carry, we dont handle this, but the parent does
-				parent->impl_get(state, payload);
-				// Tell reorg window to clean up after itself
-				Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
-				reorg_window->impl_get(state, cpayload);
-				break;
-			} case unitpanel_action::reorg: {
-				reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
-				reorg_window->impl_on_update(state);
-				break;
-			} case unitpanel_action::changeleader: {
-				break;
-			} case unitpanel_action::upgrade:
-			{
-				return message_result::unseen;
-			}
-			default: {
-				break;
-			}
+				case unitpanel_action::close: {
+					// Bucket Carry, we dont handle this, but the parent does
+					parent->impl_get(state, payload);
+					// Tell reorg window to clean up after itself
+					Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
+					reorg_window->impl_get(state, cpayload);
+					break;
+				} case unitpanel_action::reorg: {
+					reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
+					reorg_window->impl_on_update(state);
+					break;
+				} case unitpanel_action::changeleader: {
+					break;
+				} case unitpanel_action::upgrade:
+				{
+					return message_result::unseen;
+				}
+				default: {
+					break;
+				}
 			}
 			return message_result::consumed;
 		}
@@ -2480,12 +2657,24 @@ public:
 class disband_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		for(auto a : state.selected_armies) {
-			command::delete_army(state, state.local_player_nation, a);
+		if(state.user_settings.unit_disband_confirmation) {
+			if(!state.selected_armies.empty()) {
+				std::vector<dcon::army_id> units = state.selected_armies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(!state.selected_navies.empty()) {
+				std::vector<dcon::navy_id> units = state.selected_navies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
-		for(auto a : state.selected_navies) {
-			command::delete_navy(state, state.local_player_nation, a);
-		}	
+		else {
+			for(auto army : state.selected_armies) {
+				command::delete_army(state, state.local_player_nation, army);
+			}
+			for(auto navy : state.selected_navies) {
+				command::delete_navy(state, state.local_player_nation, navy);
+			}
+		}
+
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -2537,6 +2726,25 @@ public:
 				total += r.get_ship().get_strength();
 			}
 			set_text(state, text::format_float(total, 1));
+		}
+	}
+};
+class u_row_attrition_text : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<unit_var>(state, parent);
+		float amount = 0.0;
+		if(std::holds_alternative<dcon::army_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::army_id>(content));
+		}
+		else if(std::holds_alternative<dcon::navy_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::navy_id>(content));
+		}
+		if(amount > 0.0f) {
+			set_text(state, text::format_percentage(amount, 1));
+			color = text::text_color::red;
+		} else {
+			set_text(state, "");
 		}
 	}
 };
@@ -2625,6 +2833,7 @@ class u_row_str_bar : public vertical_progress_bar {
 
 class u_row_disband : public button_element_base {
 public:
+
 	void on_update(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
@@ -2635,11 +2844,25 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		if(std::holds_alternative<dcon::army_id>(foru)) {
-			command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
-		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		if(state.user_settings.unit_disband_confirmation) {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				std::vector<dcon::army_id> units;
+				units.push_back(std::get<dcon::army_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				std::vector<dcon::navy_id> units;
+				units.push_back(std::get<dcon::navy_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
+		else {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+			}
+		}
+		
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -2928,6 +3151,8 @@ public:
 			return make_element_by_type <u_row_strength> (state, id);
 		} else if(name == "unitattrition_icon") {
 			return make_element_by_type<u_row_attrit_icon>(state, id);
+		} else if(name == "unitattrition") {
+			return make_element_by_type<u_row_attrition_text>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<u_row_org_bar>(state, id);
 		} else if(name == "str_bar") {
@@ -3020,11 +3245,16 @@ public:
 };
 
 class mulit_unit_selection_panel : public window_element_base {
+
+
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
 		add_child_to_front(std::move(ptr));
+
+
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -3042,6 +3272,8 @@ public:
 			return nullptr;
 		}
 	}
+
+
 };
 
 struct army_group_unit_type_info {

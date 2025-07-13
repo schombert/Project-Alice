@@ -2383,6 +2383,18 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 	return false;
 }
 
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
+	auto total_pop = state.world.nation_get_demographics(n, demographics::non_colonial_total);
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
 void update_influence(sys::state& state) {
 	for(auto rel : state.world.in_gp_relationship) {
 		if(rel.get_penalty_expires_date() == state.current_date) {
@@ -3477,6 +3489,8 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
 			auto affected_gp = state.world.nation_get_in_sphere_of(target);
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			// if the target was in a previous GP's sphere, update their state
+			if(bool(affected_gp))
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto& l = state.world.gp_relationship_get_status(orel);

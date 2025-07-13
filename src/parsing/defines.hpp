@@ -750,6 +750,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_stacking_damage_penalty, 0.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_globe_mean_radius_km, 6371.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_max_starvation_degrowth, 0.0012) \
+	LUA_DEFINES_LIST_ELEMENT(alice_army_sea_transport_attrition, 2.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_attrition_per_level, 0.35) \
+	LUA_DEFINES_LIST_ELEMENT(alice_attrition_war_exhaustion, 1.5) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

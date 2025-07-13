@@ -6,6 +6,7 @@
 #include "economy_trade_routes.hpp"
 #include "military.hpp"
 #include "ai.hpp"
+#include "labour_details.hpp"
 
 namespace ui {
 
@@ -184,7 +185,7 @@ public:
 			);
 
 			auto a = state.world.regiment_get_army_from_army_membership(target.regiment);
-			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce(state, a);
+			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce<military::reinforcement_estimation_type::monthly>(state, a);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
@@ -335,7 +336,7 @@ public:
 		auto records = economy::explain_local_administration_employment(state, target.province);
 		for(auto record : records) {
 			text::add_line(state, contents, "admin_employment", text::variable_type::value, text::fp_one_place{ record.actual_employment });
-			text::add_line(state, contents, labour_type_to_text_key(record.employment_type), 15);
+			text::add_line(state, contents, labour_type_to_employment_type_text_key(record.employment_type), 15);
 			text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ record.target_employment }, 15);
 			text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ record.satisfaction }, 15);
 
@@ -389,7 +390,7 @@ public:
 		auto records = economy::explain_capital_administration_employment(state, n);
 		for(auto record : records) {
 			text::add_line(state, contents, "admin_employment", text::variable_type::value, text::fp_one_place{ record.actual_employment });
-			text::add_line(state, contents, labour_type_to_text_key(record.employment_type), 15);
+			text::add_line(state, contents, labour_type_to_employment_type_text_key(record.employment_type), 15);
 			text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ record.target_employment }, 15);
 			text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ record.satisfaction }, 15);
 
@@ -486,7 +487,7 @@ public:
 		auto satisfaction = state.world.province_get_labor_demand_satisfaction(target.province, economy::labor::no_education);
 		auto employment = target_employment * satisfaction;
 		text::add_line(state, contents, "trade_center_employment", text::variable_type::value, text::fp_one_place{ employment });
-		text::add_line(state, contents, labour_type_to_text_key(economy::labor::no_education), 15);
+		text::add_line(state, contents, labour_type_to_employment_type_text_key(economy::labor::no_education), 15);
 		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
 		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
 
