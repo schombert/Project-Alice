@@ -8587,8 +8587,7 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 void recover_org(sys::state& state) {
 	/*
 	- Units that are not on the frontline of a battle, and not embarked recover organization daily at: (national-organization-regeneration-modifier
-	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible
-	for the unit times (0.25 + 0.75 x effective land or naval spending).
+	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization of 100%
 	- Additionally, the prestige of the leader factors in morale as unit-morale
 	+ (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR).
 	- Similarly, unit-max-org + (leader-prestige x defines:LEADER_PRESTIGE_TO_MAX_ORG_FACTOR) allows for maximum org.
@@ -8621,10 +8620,10 @@ void recover_org(sys::state& state) {
 			auto max_org_divisor = unit_get_effective_default_org(state, reg.get_regiment()) / 30;
 			auto reg_regen = army_regen / max_org_divisor;
 
-
 			auto c_org = reg.get_regiment().get_org();
 			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
-			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
+			// Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
+			auto max_org = 1.f;
 			reg.get_regiment().set_org(std::min(c_org + reg_regen, max_org));
 		}
 	}
