@@ -1638,9 +1638,9 @@ TEST_CASE("sim_game_solo", "[determinism]") {
 }
 
 
+//All of the following tests from first to tenth is running the entire game in 10 year intervals with a save for each to test for desync's.
 
-
-TEST_CASE("sim_game", "[determinism]") {
+TEST_CASE("sim_game_first", "[determinism]") {
 	// Test that the game states are equal after playing
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
 	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
@@ -1649,13 +1649,307 @@ TEST_CASE("sim_game", "[determinism]") {
 	game_state_2->game_seed = game_state_1->game_seed = 808080;
 
 	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3650; i++) {
+	for(int i = 0; i <= 3653; i++) {
 		game_state_1->console_log(std::to_string(i));
 		game_state_1->single_game_tick();
 		game_state_2->single_game_tick();
 		compare_game_states(*game_state_1, *game_state_2);
 	}
 }
+
+TEST_CASE("sim_game_second", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1846_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1846_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+
+TEST_CASE("sim_game_third", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1856_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1856_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_fourth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1866_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1866_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_fifth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1876_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1876_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_sixth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1886_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1886_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_seventh", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1896_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1896_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_eigth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1906_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1906_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_ninth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1916_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1916_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+TEST_CASE("sim_game_tenth", "[determinism]") {
+	// Test that the game states are equal after playing
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
+
+
+	if(!sys::try_read_save_file(*game_state_1, NATIVE("1926_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_save_file(*game_state_2, NATIVE("1926_TEST_SAVE.bin"))) {
+		assert(false);
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = 808080;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+
+
+
+
 // this one uses the slower, but more accurate checked tick
 TEST_CASE("sim_game_advanced", "[determinism]") {
 	// Test that the game states are equal after playing
