@@ -8602,11 +8602,12 @@ void recover_org(sys::state& state) {
 
 		auto leader = ar.get_general_from_army_leadership();
 
-		// Morale (Organization Regain): increases a unit's organization by 0.01 * discipline for each % of morale.
+		// US13AC3 US13AC4 US13AC5 Morale (Organization Regain): increases a unit's organization by 0.01 * discipline for each % of morale.
 		// Max org is applied in battle
 		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain)
 			+ leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
 			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
+		// US13AC2
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 		auto army_regen = regen_mod * spending_level / 150.f;
 		for(auto reg : ar.get_army_membership()) {
@@ -8621,13 +8622,15 @@ void recover_org(sys::state& state) {
 			auto reg_regen = army_regen / max_org_divisor;
 
 			auto c_org = reg.get_regiment().get_org();
-			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
-			// Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
+			// US13AC7 Unfulfilled supply doesn't lower max org as it makes half the game unplayable
+			// US13AC8 Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
+			// US13AC6 Max organization of the regiment is 100% (1.0)
 			auto max_org = 1.f;
 			reg.get_regiment().set_org(std::min(c_org + reg_regen, max_org));
 		}
 	}
 
+	// US17
 	for(auto ar : state.world.in_navy) {
 		if(ar.get_navy_battle_participation().get_battle())
 			continue;
@@ -8924,7 +8927,7 @@ float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_
 	return total / count;
 }
 
-// Calculates reinforcement for a particular regiment
+// US14 Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 // potential_reinf = if true, will not cap max reinforcement to max unit strength, aka it will ignore current unit strength when returning reinforcement rate!
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined, bool potential_reinf = false) {
@@ -9039,7 +9042,7 @@ float ship_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id, flo
 
 void repair_ships(sys::state& state) {
 	/*
-	A ship that is docked at a naval base is repaired (has its strength increase) by:
+	US18. A ship that is docked at a naval base is repaired (has its strength increase) by:
 maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x ship-supplies x
 (national-reinforce-speed-modifier + 1) x navy-supplies
 	*/
