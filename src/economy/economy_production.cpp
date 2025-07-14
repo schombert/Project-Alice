@@ -1953,7 +1953,7 @@ void update_production_consumption(sys::state& state) {
 		update_artisan_consumption(state, ids, mobilization_impact);
 	});
 
-	state.world.execute_parallel_over_market([&](auto markets) {
+	state.world.execute_serial_over_market([&](auto markets) {
 		auto states = state.world.market_get_zone_from_local_market(markets);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
 		auto mobilization_impact =

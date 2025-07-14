@@ -2261,7 +2261,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// rgo/factories/artisans consumption
 	update_production_consumption(state);
-	
+
 	state.world.for_each_commodity([&](auto cid) {
 		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
 		bool already_known_to_exist = state.world.commodity_get_actually_exists_in_nature(cid);
@@ -2321,7 +2321,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// we have to recalculate loan related variables every new round, because they depend on themselves
 
 	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
-	
+
 	for(auto n : state.nations_by_rank) {
 		if(!n) {
 			continue;
