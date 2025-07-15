@@ -323,6 +323,7 @@ effect_body
 	location                        extern      ef_scope_location           discard
 	country                         extern      ef_scope_country            discard
 	capital_scope                   extern      ef_capital_scope            discard
+	capital                         extern      ef_capital_scope            discard
 	this                            extern      ef_scope_this               discard
 	from                            extern      ef_scope_from               discard
 	sea_zone                        extern      ef_scope_sea_zone           discard
