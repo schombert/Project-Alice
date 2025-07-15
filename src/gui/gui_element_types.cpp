@@ -2045,6 +2045,33 @@ void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t 
 	}
 }
 
+void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
+	disabled = false;
+	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
+
+	if(def.get_element_type() != ui::element_type::button) {
+		disabled = true;
+		return;
+	}
+	if(def.data.button.get_button_scripting() != ui::button_scripting::none) {
+		disabled = true;
+		return;
+	}
+	auto n = retrieve<dcon::nation_id>(state, parent);
+	if(!state.local_player_nation) {
+		disabled = true;
+		return;
+	}
+	disabled = !command::can_use_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+	auto new_visible = command::can_see_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+
+	if(visible != new_visible) {
+		visible = new_visible;
+		set_visible(state, visible);
+	}
+}
+
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
 		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
@@ -2090,7 +2117,7 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 			res->on_create(state);
 			return res;
 		} else if(def.data.button.toggle_ui_key) {
-			auto res = std::make_unique<ui_variable_toggle_button>();
+			auto res = std::make_unique<ui_variable_toggle_button>(id);
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);

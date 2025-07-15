@@ -44,6 +44,9 @@ struct building_gfx_context {
 	std::vector<pending_button_script> province_buttons_ai_will_do;
 	std::vector<pending_button_script> nation_buttons_effect;
 	std::vector<pending_button_script> nation_buttons_ai_will_do;
+	std::vector<pending_button_script> ui_script_buttons_allow;
+	std::vector<pending_button_script> ui_script_buttons_visible;
+
 	bool on_second_pair_y = false;
 	building_gfx_context(sys::state& full_state, ui::definitions& ui_defs) : full_state(full_state), ui_defs(ui_defs) { }
 };
@@ -145,7 +148,6 @@ struct button : public gui_element_common {
 	void buttonfont(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void format(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 	void clicksound(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
-	void toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 struct nation_script_button : public button {
@@ -170,6 +172,16 @@ struct province_script_button : public button {
 	void effect(bool, error_handler& err, int32_t line, building_gfx_context& context);
 	void ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context);
 
+};
+
+struct ui_script_button : public button {
+	int32_t added_visible = -1;
+	int32_t added_allow = -1;
+	int32_t added_effect = -1;
+	int32_t added_ai_will_do = -1;
+	void visible(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void allow(bool, error_handler& err, int32_t line, building_gfx_context& context);
+	void toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context);
 };
 
 bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
@@ -270,6 +282,7 @@ struct window : public gui_element_common {
 	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void uiscriptbuttontype(ui_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void finish(building_gfx_context& context);
 };
 
@@ -290,6 +303,7 @@ struct guitypes {
 	void textboxtype(textbox const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 	void nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
+	void uiscriptbuttontype(ui_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context);
 };
 struct gui_files {
 	void finish(building_gfx_context& context) { }

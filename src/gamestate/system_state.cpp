@@ -3226,6 +3226,39 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
+	for(auto& s : context.gfx_context.ui_script_buttons_visible) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
+			if(existing_scripting != ui::button_scripting::none) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both UI and province/nation scripting set\n";
+			} else if(ui_defs.gui[gid].data.button.toggle_ui_key) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has two sets UI of scripting set\n";
+			}
+			else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				auto trigger = make_trigger(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_visible(s.scripted_element, trigger);
+			}
+		}
+	}
+	for(auto& s : context.gfx_context.ui_script_buttons_allow) {
+		if(s.scripted_element) {
+			err.file_name = s.original_file;
+			auto gid = context.state.world.scripted_interaction_get_gui_element(s.scripted_element);
+			auto existing_scripting = ui_defs.gui[gid].data.button.get_button_scripting();
+			if(existing_scripting != ui::button_scripting::none) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has both UI and province/nation scripting set\n";
+			} else if(ui_defs.gui[gid].data.button.toggle_ui_key) {
+				err.accumulated_errors += std::string("Button ") + std::string(to_string_view(ui_defs.gui[gid].name)) + "in " + err.file_name + " has two sets UI of scripting set\n";
+			} else {
+				parsers::trigger_building_context t_context{ context, trigger::slot_contents::province, trigger::slot_contents::province, trigger::slot_contents::nation };
+				auto trigger = make_trigger(s.generator_state, err, t_context);
+				context.state.world.scripted_interaction_set_allow(s.scripted_element, trigger);
+			}
+		}
+	}
 
 	// Sanity checking navies & armies
 	for(auto n : world.in_navy) {

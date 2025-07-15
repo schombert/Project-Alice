@@ -61,7 +61,7 @@ Recent changes:
 
 **Acceptance Criteria:**
 | AC1 | Allow trigger is parsed |
-| AC2 | Visibility trigger is parsed |
+| AC2 | `Visible` trigger is parsed |
 | AC3 | Effect is parsed |
 | AC4 | Ai_will_do block is parsed |
 | AC5 | AI takes national interactions |
@@ -84,6 +84,8 @@ Recent changes:
 | AC2 | when clicking button with toggle_ui_key the associated UI variable is toggled True/False |
 | AC3 | `windowType` elements can have `visible_ui_key` with a name of UI variable |
 | AC4 | Window is shown only when UI variable in `visible_ui_key` is set to True |
+| AC5 | UI scripted buttons can have `visible` triggers |
+| AC6 | UI scripted buttons can have `allow` triggers |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

@@ -70,7 +70,6 @@ button
 	buttonfont            value     text     member_fn
 	format                value     text     member_fn
 	clicksound            value     text     member_fn
-	toggle_ui_key         value       text       member_fn
 	parent                value     none     discard
 
 province_script_button
@@ -87,6 +86,12 @@ nation_script_button
 	allow         extern          nation_button_allow       member_fn
 	effect         extern          nation_button_effect       member_fn
 	ai_will_do         extern      nation_button_ai_will_do       member_fn
+
+ui_script_button
+	#base          button
+	visible         extern          ui_script_button_visible       member_fn
+	allow         extern          ui_script_button_allow       member_fn
+	toggle_ui_key         value       text       member_fn
 
 image
 	#base           gui_element_common
@@ -170,6 +175,7 @@ window
 	textboxtype                group       textbox            member_fn
 	provincescriptbuttontype    group   province_script_button   member_fn
 	nationscriptbuttontype    group   nation_script_button   member_fn
+	uiscriptbuttontype        group   ui_script_button   member_fn
 
 guitypes
 	guibuttontype              group       button             member_fn
@@ -187,6 +193,7 @@ guitypes
 	textboxtype                group       textbox            member_fn
 	provincescriptbuttontype    group   province_script_button   member_fn
 	nationscriptbuttontype    group   nation_script_button   member_fn
+	uiscriptbuttontype        group   ui_script_button   member_fn
 
 gui_files
 	guitypes     extern     parse_guitypes     discard

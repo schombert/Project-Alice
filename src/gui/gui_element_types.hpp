@@ -1439,14 +1439,33 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	container_base::render(state, x, y);
 }
 
+
 // US8AC2 When clicking button with toggle_ui_key the associated UI variable is toggled True/False
+// We treat UI variable toggle buttons as nation buttons but with toggle_ui_key instead of the effect
 class ui_variable_toggle_button : public button_element_base {
 public:
+	dcon::gui_def_id base_definition;
+	bool visible = true;
+
+	ui_variable_toggle_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
+
 	void button_action(sys::state& state) noexcept override {
 		auto var = base_data.data.button.toggle_ui_key;
 		state.world.ui_variable_set_value(var, !state.world.ui_variable_get_value(var));
 		state.ui_state.root->impl_on_update(state);
 	};
+
+	void on_update(sys::state& state) noexcept;
+
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible) {
+			button_element_base::render(state, x, y);
+		}
+	}
 };
 
 // US8AC4 Window is shown only when UI variable in `visible_ui_key` is set to True
