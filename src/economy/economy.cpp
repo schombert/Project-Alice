@@ -5014,26 +5014,7 @@ void resolve_constructions(sys::state& state) {
 		}
 
 		if(ready_for_deployment) {
-			auto pop_location = c.get_pop().get_province_from_pop_location();
-
-			auto new_reg = military::create_new_regiment(state, c.get_nation(), c.get_type());
-			auto a = fatten(state.world, state.world.create_army());
-
-			a.set_controller_from_army_control(c.get_nation());
-			state.world.try_create_army_membership(new_reg, a);
-			state.world.try_create_regiment_source(new_reg, c.get_pop());
-			military::army_arrives_in_province(state, a, pop_location, military::crossing_type::none);
-			military::move_land_to_merge(state, c.get_nation(), a, pop_location, c.get_template_province());
-
-			if(c.get_nation() == state.local_player_nation) {
-				notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
-						text::add_line(state, contents, "amsg_army_built");
-					},
-					"amsg_army_built",
-					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::army_built
-				});
-			}
+			military::spawn_regiment(state, c.get_nation(), c.get_type(), c.get_pop(), c.get_template_province());
 
 			state.world.delete_province_land_construction(c);
 		}
@@ -5075,22 +5056,7 @@ void resolve_constructions(sys::state& state) {
 			}
 
 			if(ready_for_deployment) {
-				auto new_ship = military::create_new_ship(state, c.get_nation(), c.get_type());
-				auto a = fatten(state.world, state.world.create_navy());
-				a.set_controller_from_navy_control(c.get_nation());
-				a.set_location_from_navy_location(p);
-				state.world.try_create_navy_membership(new_ship, a);
-				military::move_navy_to_merge(state, c.get_nation(), a, c.get_province(), c.get_template_province());
-
-				if(c.get_nation() == state.local_player_nation) {
-					notification::post(state, notification::message{ [](sys::state& state, text::layout_base& contents) {
-							text::add_line(state, contents, "amsg_navy_built");
-						},
-						"amsg_navy_built",
-						state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::navy_built
-					});
-				}
+				military::spawn_ship(state, c.get_nation(), c.get_type(), c.get_province(), c.get_template_province());
 
 				state.world.delete_province_naval_construction(c);
 			}

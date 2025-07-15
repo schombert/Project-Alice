@@ -5631,8 +5631,13 @@ uint32_t ef_country_event_immediate_province_this_pop(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_sub_unit_int(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
+		auto unit_type_name = ws.military_definitions.unit_base_definitions[trigger::payload(tval[1]).unit_id].name;
+
 		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "no_effect", m);
+		text::add_to_substitution_map(m, text::variable_type::unit,
+				unit_type_name);
+		text::add_to_substitution_map(m, text::variable_type::where, ws.world.province_get_name(trigger::to_prov(primary_slot)));
+		text::localised_format_box(ws, layout, box, "ADD_SUB_UNIT_EFFECT", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;
@@ -5658,8 +5663,13 @@ uint32_t ef_sub_unit_from(EFFECT_DISPLAY_PARAMS) {
 uint32_t ef_sub_unit_current(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
+		auto unit_type_name = ws.military_definitions.unit_base_definitions[trigger::payload(tval[1]).unit_id].name;
+
 		text::substitution_map m;
-		text::localised_format_box(ws, layout, box, "no_effect", m);
+		text::add_to_substitution_map(m, text::variable_type::unit,
+				unit_type_name);
+		text::add_to_substitution_map(m, text::variable_type::where, ws.world.province_get_name(trigger::to_prov(primary_slot)));
+		text::localised_format_box(ws, layout, box, "ADD_SUB_UNIT_EFFECT", m);
 		text::close_layout_box(layout, box);
 	}
 	return 0;

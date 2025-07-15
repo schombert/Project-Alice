@@ -556,5 +556,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
+void spawn_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id type, dcon::pop_id pop, dcon::province_id dest = dcon::province_id {});
+void spawn_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id type, dcon::province_id p, dcon::province_id dest = dcon::province_id{});
 
 } // namespace military

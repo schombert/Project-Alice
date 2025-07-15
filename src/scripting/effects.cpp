@@ -4347,7 +4347,20 @@ uint32_t ef_country_event_immediate_province_this_pop(EFFECT_PARAMTERS) {
 }
 
 uint32_t ef_sub_unit_int(EFFECT_PARAMTERS) {
-	// do nothing
+	auto type = trigger::payload(tval[1]).unit_id;
+	auto prov = trigger::to_prov(primary_slot);
+	auto owner = ws.world.province_get_nation_from_province_ownership(prov);
+
+	// Spawn the regiment from random soldier pop
+	for(auto pop : ws.world.province_get_pop_location(prov)) {
+		if(pop.get_pop().get_poptype() == ws.culture_definitions.soldiers) {
+			// Compensate new unit spawning with increased pop
+			pop.get_pop().set_size(pop.get_pop().get_size() + ws.defines.pop_size_per_regiment);
+			military::spawn_regiment(ws, owner, type, pop.get_pop());
+			break;
+		}
+	}
+
 	return 0;
 }
 uint32_t ef_sub_unit_this(EFFECT_PARAMTERS) {
@@ -4359,7 +4372,29 @@ uint32_t ef_sub_unit_from(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_sub_unit_current(EFFECT_PARAMTERS) {
-	// do nothing
+	auto type = trigger::payload(tval[1]).unit_id;
+	auto prov = trigger::to_prov(primary_slot);
+	auto owner = ws.world.province_get_nation_from_province_ownership(prov);
+
+	if(ws.military_definitions.unit_base_definitions[type].is_land) {
+		// Spawn the regiment from random soldier pop
+		for(auto pop : ws.world.province_get_pop_location(prov)) {
+			if(pop.get_pop().get_poptype() == ws.culture_definitions.soldiers) {
+				// Compensate new unit spawning with increased pop
+				pop.get_pop().set_size(pop.get_pop().get_size() + ws.defines.pop_size_per_regiment);
+				military::spawn_regiment(ws, owner, type, pop.get_pop());
+				break;
+			}
+		}
+	}
+	else {
+		// Spawn the ship
+		if(!ws.world.province_get_is_coast(prov)) {
+			return 0;
+		}
+
+		military::spawn_ship(ws, owner, type, prov);
+	}
 	return 0;
 }
 uint32_t ef_set_variable(EFFECT_PARAMTERS) {
