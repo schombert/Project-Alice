@@ -63,6 +63,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_leader_select.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
 	"src/gui/gui_modifier_tooltips.cpp"
+	"src/gui/gui_scripted_elements.cpp"
 	"src/gui/province_tiles/province_tiles.cpp"
 	"src/gui/gui_province_window.cpp"
 	"src/gui/gui_trigger_tooltips.cpp"
