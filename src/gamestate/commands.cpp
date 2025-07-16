@@ -5309,14 +5309,12 @@ bool can_see_province_button(sys::state& state, dcon::nation_id source, dcon::sc
 }
 bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
 	auto allow = state.world.scripted_interaction_get_allow(sel);
-	auto visible = state.world.scripted_interaction_get_visible(sel);
+	auto visible = can_see_province_button(state, source, sel, p);
 
-	if(!allow)
+	if(!allow && visible)
 		return true;
 	// Button must be visible and enabled
-
-	return (!visible || trigger::evaluate(state, visible, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source))) &&
-	trigger::evaluate(state, allow, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
+	return visible && trigger::evaluate(state, allow, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(source));
 }
 void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::province_id p) {
 	auto effect = state.world.scripted_interaction_get_effect(sel);
@@ -5336,18 +5334,17 @@ void use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted
 bool can_see_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
 	auto visible = state.world.scripted_interaction_get_visible(sel);
 	if(!visible)
-		return true;
+		return true; // Visible by default
 	return trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
 	auto allow = state.world.scripted_interaction_get_allow(sel);
-	auto visible = state.world.scripted_interaction_get_visible(sel);
+	auto visible = can_see_nation_button(state, source, sel, n);
 
-	if(!allow)
-		return true;
+	if(!allow && visible)
+		return true; // Allowed by default
 	// Button must be visible and enabled
-	return (!visible || trigger::evaluate(state, visible, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source))) &&
-	trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
+	return visible && trigger::evaluate(state, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(source));
 }
 void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::scripted_interaction_id sel, dcon::nation_id n) {
 	auto effect = state.world.scripted_interaction_get_effect(sel);

@@ -2048,13 +2048,8 @@ void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t 
 void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 	disabled = false;
 	auto& def = state.ui_defs.gui[base_definition];
-	auto sel = get_scripted_element_by_gui_def(state, base_definition);
 
 	if(def.get_element_type() != ui::element_type::button) {
-		disabled = true;
-		return;
-	}
-	if(def.data.button.get_button_scripting() != ui::button_scripting::none) {
 		disabled = true;
 		return;
 	}
@@ -2063,12 +2058,17 @@ void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 		disabled = true;
 		return;
 	}
-	disabled = !command::can_use_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
-	auto new_visible = command::can_see_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+	// US8AC5 US8AC6 UI variable toggle buttons can have nation-level scripting (visible, allow)
+	if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
+		auto sel = get_scripted_element_by_gui_def(state, base_definition);
 
-	if(visible != new_visible) {
-		visible = new_visible;
-		set_visible(state, visible);
+		disabled = !command::can_use_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+		auto new_visible = command::can_see_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+
+		if(visible != new_visible) {
+			visible = new_visible;
+			set_visible(state, visible);
+		}
 	}
 }
 
@@ -2110,14 +2110,16 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
 			return res;
-		} else if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
-			auto res = std::make_unique<nation_script_button>(id);
+		} else if(def.data.button.toggle_ui_key != dcon::ui_variable_id{}) {
+			// First resolve ui_variable_toggle_button buttons since they have get_button_scripting() == ui::button_scripting::nation
+			auto res = std::make_unique<ui_variable_toggle_button>(id);
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
 			return res;
-		} else if(def.data.button.toggle_ui_key) {
-			auto res = std::make_unique<ui_variable_toggle_button>(id);
+		} else if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
+			// Only after - nation_script_button
+			auto res = std::make_unique<nation_script_button>(id);
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
