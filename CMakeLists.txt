@@ -473,8 +473,8 @@ endif()
 add_subdirectory(SaveEditor)
 if(WIN32)
 	add_subdirectory(DbgAlice)
-	add_subdirectory(Launcher)
 endif()
+add_subdirectory(Launcher)
 
 # Installation
 if(NOT WIN32)

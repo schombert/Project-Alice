@@ -310,7 +310,8 @@ int main (int argc, char *argv[]) {
 		if (selected_scenario_file == NATIVE("development_test_file.bin")){
 		} else {
 			//Checking the scenario folder
-			find_scenario_file();
+			// find_scenario_file();
+			selected_scenario_file = argv[1];
 			//If any file fits the criteria, then don't build
 			if (!selected_scenario_file.empty()) {
 				window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
