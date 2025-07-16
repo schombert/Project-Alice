@@ -80,12 +80,12 @@ Recent changes:
 **So that I add extra windows to the game.**
 
 **Acceptance Criteria:**
-| AC1 | `guiButtonType` elements can have `toggle_ui_key` with a name of UI variable |
-| AC2 | when clicking button with toggle_ui_key the associated UI variable is toggled True/False |
+| AC1 | `uiscriptbuttontype` elements can have `toggle_ui_key` with a name of UI variable |
+| AC2 | when clicking `uiscriptbuttontype` the associated UI variable is toggled True/False |
 | AC3 | `windowType` elements can have `visible_ui_key` with a name of UI variable |
 | AC4 | Window is shown only when UI variable in `visible_ui_key` is set to True |
-| AC5 | UI scripted buttons can have `visible` triggers |
-| AC6 | UI scripted buttons can have `allow` triggers |
+| AC5 | `uiscriptbuttontype` can have `visible` triggers |
+| AC6 | `uiscriptbuttontype` can have `allow` triggers |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.
@@ -104,6 +104,7 @@ Recent changes:
 | AC1 | GUI elements can have `datamodel` with one of the datamodel options |
 | AC2 | Datamodel can be `state_religion` |
 | AC3 | When an icon has `datamodel="state_religion"`, it always displays the state religion of the player |
+| AC4 | `uiscriptbuttontype` can have a datamodel |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

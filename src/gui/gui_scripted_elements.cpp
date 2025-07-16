@@ -174,6 +174,11 @@ void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 			set_visible(state, visible);
 		}
 	}
+
+	// US9AC4
+	if(base_data.datamodel != ui::datamodel::none) {
+		frame = frame_from_datamodel(state, base_data.datamodel);
+	}
 }
 
 
