@@ -103,8 +103,9 @@ Recent changes:
 **Acceptance Criteria:**
 | AC1 | GUI elements can have `datamodel` with one of the datamodel options |
 | AC2 | Datamodel can be `state_religion` |
-| AC3 | When an icon has `datamodel="state_religion"`, it always displays the state religion of the player |
+| AC3 | When a supper element has `datamodel="state_religion"`, it always displays the state religion of the player |
 | AC4 | `uiscriptbuttontype` can have a datamodel |
+| AC5 | `iconType` can have a datamodel |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

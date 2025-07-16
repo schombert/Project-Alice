@@ -3,7 +3,7 @@
 namespace ui {
 
 int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel) {
-	// US9AC3
+	// US9AC3 US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
 	if(datamodel == ui::datamodel::state_religion) {
 		auto country = state.local_player_nation;
 		auto fat_id = dcon::fatten(state.world, state.world.nation_get_religion(country));
@@ -14,7 +14,7 @@ int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel) {
 }
 
 
-// US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
+// US9AC5
 class icon_w_datamodel : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
