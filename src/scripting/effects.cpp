@@ -4422,8 +4422,10 @@ uint32_t ef_change_global_variable(EFFECT_PARAMTERS) {
 	auto amount = trigger::read_float_from_payload(tval + 2);
 	assert(std::isfinite(amount));
 
-	auto& current = ws.world.nation_get_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natv_id);
-	ws.world.nation_set_variables(dcon::nation_id{}, trigger::payload(tval[1]).natv_id, current + amount);
+	auto n = ws.world.national_identity_get_nation_from_identity_holder(ws.national_definitions.rebel_id);
+
+	auto& current = ws.world.nation_get_variables(n, trigger::payload(tval[1]).natv_id);
+	ws.world.nation_set_variables(n, trigger::payload(tval[1]).natv_id, current + amount);
 	return 0;
 }
 uint32_t ef_ideology(EFFECT_PARAMTERS) {
