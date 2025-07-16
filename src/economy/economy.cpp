@@ -1053,11 +1053,11 @@ void populate_army_consumption(sys::state& state) {
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(build_cost.commodity_type[i]) {
-					auto reinforcement = military::unit_calculate_reinforcement(state, reg);
+					auto reinforcement = military::unit_calculate_reinforcement<military::reinforcement_estimation_type::full_supplies>(state, reg);
 					if(reinforcement > 0) {
-						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
+						// Regiment needs reinforcement - add extra consumption. Every 1% of reinforcement demands 1% of unit cost. Divide to spread the demand out over the month
 						auto& curr_demand = state.world.market_get_army_demand(market, build_cost.commodity_type[i]);
-						state.world.market_set_army_demand(market, build_cost.commodity_type[i], curr_demand + build_cost.commodity_amounts[i] * reinforcement);
+						state.world.market_set_army_demand(market, build_cost.commodity_type[i], curr_demand + (build_cost.commodity_amounts[i] * reinforcement) / unit_reinforcement_demand_divisor);
 					}
 				} else {
 					break;
@@ -1106,12 +1106,12 @@ void populate_navy_consumption(sys::state& state) {
 
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(build_cost.commodity_type[i]) {
-					auto reinforcement = military::unit_calculate_reinforcement(state, shp);
+					auto reinforcement = military::unit_calculate_reinforcement<military::reinforcement_estimation_type::full_supplies>(state, shp);
 					if(reinforcement > 0) {
 						// Ship needs repair - add extra consumption. Every 1% of reinforcement demands 1% of unit cost
-
+						// add only a fraction of the build cost per day, to spread it out over the month
 						auto& curr_demand = state.world.market_get_navy_demand(market, build_cost.commodity_type[i]);
-						state.world.market_set_navy_demand(market, build_cost.commodity_type[i], curr_demand + build_cost.commodity_amounts[i] * reinforcement);
+						state.world.market_set_navy_demand(market, build_cost.commodity_type[i], curr_demand + (build_cost.commodity_amounts[i] * reinforcement) / unit_reinforcement_demand_divisor);
 					}
 				} else {
 					break;
@@ -2695,6 +2695,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				max_sp /= total;
 			state.world.nation_set_effective_naval_spending(
 				n, nations_commodity_spending * max_sp * spending_level);
+			auto& current_buf = state.world.nation_get_naval_reinforcement_buffer(n);
+			state.world.nation_set_naval_reinforcement_buffer(n, current_buf + state.world.nation_get_effective_naval_spending(n));
+			assert(current_buf >= 0.0f);
 		}
 		{
 			float max_sp = 0.0f;
@@ -2726,6 +2729,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			assert(std::isfinite(nations_commodity_spending* max_sp* spending_level));
 			state.world.nation_set_effective_land_spending(
 				n, nations_commodity_spending * max_sp * spending_level);
+			auto& current_buf = state.world.nation_get_land_reinforcement_buffer(n);
+			state.world.nation_set_land_reinforcement_buffer(n, current_buf + state.world.nation_get_effective_land_spending(n));
+			assert(current_buf >= 0.0f);
 		}
 		{
 			state.world.nation_set_effective_construction_spending(
@@ -3262,7 +3268,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, ve::min(costs * 10.f, state.world.commodity_get_cost(c) * 0.1f));
+			state.world.market_set_price(ids, c, ve::min(costs * 10.f, state.world.commodity_get_cost(c)));
 		});
 	});
 

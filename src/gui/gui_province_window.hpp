@@ -2826,8 +2826,8 @@ inline table::column<dcon::commodity_id> rgo_inputs = {
 		auto si = retrieve<dcon::state_instance_id>(state, container);
 		auto m = state.world.state_instance_get_market_from_local_market(si);
 
-		auto av = economy::rgo_efficiency_spendings(state, a, p);
-		auto bv = economy::rgo_efficiency_spendings(state, b, p);
+		auto av = economy::rgo_efficiency_spending(state, a, p);
+		auto bv = economy::rgo_efficiency_spending(state, b, p);
 		if(av != bv)
 			return av > bv;
 		else
@@ -2835,7 +2835,7 @@ inline table::column<dcon::commodity_id> rgo_inputs = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::commodity_id id) {
 		auto p = retrieve<dcon::province_id>(state, container);
-		return text::format_money(-economy::rgo_efficiency_spendings(state, id, p));
+		return text::format_money(-economy::rgo_efficiency_spending(state, id, p));
 	}
 };
 

@@ -193,4 +193,299 @@ std::string get_status_text(sys::state& state, dcon::nation_id nation_id) {
 	}
 }
 
+namespace commodity_tooltip_settings {
+inline constexpr int position_cost = 20;
+inline constexpr int position_name = 70;
+inline constexpr int position_amount = 180;
+inline constexpr int position_ratio = 250;
+inline constexpr float green_threshold = 0.6f;
+}
+
+void commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::commodity_id cid, float amount, float price, float ratio, float direction) {
+	auto box = text::open_layout_box(contents);
+	text::layout_box name_entry = box;
+	text::layout_box ratio_box = box;
+	text::layout_box amount_box = box;
+	text::layout_box cost_box = box;
+
+	name_entry.x_position += commodity_tooltip_settings::position_name;
+	ratio_box.x_position += commodity_tooltip_settings::position_ratio;
+	amount_box.x_position += commodity_tooltip_settings::position_amount;
+	cost_box.x_position += commodity_tooltip_settings::position_cost;
+
+	name_entry.x_size /= 10;
+
+	std::string padding = cid.index() < 10 ? "0" : "";
+	std::string description = "@$" + padding + std::to_string(cid.index());
+	text::add_unparsed_text_to_layout_box(state, contents, name_entry, description);
+
+	text::add_to_layout_box(state, contents, name_entry, state.world.commodity_get_name(cid));
+
+	text::add_to_layout_box(state, contents,
+		ratio_box,
+		text::fp_percentage{ ratio },
+		ratio >= commodity_tooltip_settings::green_threshold
+		? text::text_color::green
+		: text::text_color::red
+	);
+
+	float money_flow = price * amount * direction;
+
+	text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
+
+	if(money_flow > 0) {
+		text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ money_flow }, text::text_color::green);
+	} else {
+		text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ money_flow }, text::text_color::red);
+	}
+
+	text::add_to_layout_box(state, contents, box, std::string(" "));
+	text::close_layout_box(contents, box);
+}
+
+void labor_tooltip(sys::state& state, text::columnar_layout& contents, int32_t labor_id, float amount, float price, float ratio, float direction) {
+	auto box = text::open_layout_box(contents);
+	text::layout_box name_entry = box;
+	text::layout_box ratio_box = box;
+	text::layout_box amount_box = box;
+	text::layout_box cost_box = box;
+
+	name_entry.x_position += commodity_tooltip_settings::position_name;
+	ratio_box.x_position += commodity_tooltip_settings::position_ratio;
+	amount_box.x_position += commodity_tooltip_settings::position_amount;
+	cost_box.x_position += commodity_tooltip_settings::position_cost;
+
+	name_entry.x_size /= 10;
+
+	text::add_to_layout_box(state, contents, name_entry, text::produce_simple_string(state, labour_type_to_employment_name_text_key(labor_id)));
+
+	text::add_to_layout_box(state, contents,
+		ratio_box,
+		text::fp_percentage{ ratio },
+		ratio >= commodity_tooltip_settings::green_threshold
+		? text::text_color::green
+		: text::text_color::red
+	);
+
+	float money_flow = price * amount * direction;
+
+	text::add_to_layout_box(state, contents, amount_box, text::fp_two_places{ amount });
+
+	if(money_flow > 0) {
+		text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ money_flow }, text::text_color::red);
+	} else {
+		text::add_to_layout_box(state, contents, cost_box, text::fp_currency{ money_flow }, text::text_color::red);
+	}
+
+	text::add_to_layout_box(state, contents, box, std::string(" "));
+	text::close_layout_box(contents, box);
+}
+
+void commodity_set_tooltip(sys::state& state, text::columnar_layout& contents, economy::detailed_commodity_set& set, bool is_inputs) {
+	for(uint32_t i = 0; i < set.set_size; i++) {
+		if(!set.commodity_type[i]) {
+			break;
+		}
+
+		commodity_tooltip(
+			state, contents, set.commodity_type[i],
+			set.commodity_actual_amount[i],
+			set.commodity_price[i],
+			set.efficient_ratio[i],
+			is_inputs ? -1.f : 1.f
+		);
+	}
+}
+
+void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_id fid) {
+
+	auto details = economy::factory_operation::explain_everything(state, fid);
+
+	int indent = 10;
+
+
+	text::add_line(state, contents, state.world.factory_type_get_name(details.base_type));
+
+	// description of money flows
+	{
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_money_flow_sum", text::variable_type::value, text::format_money(details.profit));
+
+		text::add_line(state, contents, "factory_money_flow_sales", text::variable_type::value, text::format_money(details.income_from_sales), indent);
+		commodity_tooltip(state, contents, details.output, details.output_actual_amount, details.output_price, details.output_actually_sold_ratio, 1.f);
+
+		text::add_line(state, contents, "factory_money_flow_primary_inputs", text::variable_type::value, text::format_money(-details.spending_from_primary_inputs), indent);
+		commodity_set_tooltip(state, contents, details.primary_inputs, true);
+
+		text::add_line(state, contents, "factory_money_flow_secondary_inputs", text::variable_type::value, text::format_money(-details.spending_from_efficiency_inputs), indent);
+		commodity_set_tooltip(state, contents, details.efficiency_inputs, true);
+
+		text::add_line(state, contents, "factory_money_flow_expansion", text::variable_type::value, text::format_money(-details.spending_from_expansion), indent);
+		commodity_set_tooltip(state, contents, details.expansion_inputs, true);
+
+		text::add_line(state, contents, "factory_money_flow_maintenance", text::variable_type::value, text::format_money(-details.spending_from_maintenance), indent);
+		commodity_set_tooltip(state, contents, details.maintenance_inputs, true);
+
+		text::add_line(state, contents, "factory_money_flow_wages", text::variable_type::value, text::format_money(-details.spending_from_wages), indent);
+		labor_tooltip(state, contents,
+			economy::labor::no_education,
+			details.employment.unqualified,
+			details.employment_wages_per_person.unqualified,
+			details.employment_available_ratio.unqualified,
+			-1.f
+		);
+		labor_tooltip(state, contents,
+			economy::labor::basic_education,
+			details.employment.primary,
+			details.employment_wages_per_person.primary,
+			details.employment_available_ratio.primary,
+			-1.f
+		);
+		labor_tooltip(state, contents,
+			economy::labor::high_education,
+			details.employment.secondary,
+			details.employment_wages_per_person.secondary,
+			details.employment_available_ratio.secondary,
+			-1.f
+		);
+	}
+
+	// description of target labor and estimated changes
+	{
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_hired_unqualified",
+			text::variable_type::value, text::format_float(details.employment.unqualified),
+			text::variable_type::x, text::format_percentage(economy::unqualified_throughput_multiplier)
+		);
+
+		if(details.employment_expected_change.unqualified >= 0) {
+			text::add_line(state, contents, "factory_hiring_rate_unqualified",
+				text::variable_type::value, text::format_float(details.employment_expected_change.unqualified),
+				text::variable_type::x, text::format_float(details.employment_target.unqualified)
+			);
+		} else {
+			text::add_line(state, contents, "factory_firing_rate_unqualified",
+				text::variable_type::value, text::format_float(-details.employment_expected_change.unqualified),
+				text::variable_type::x, text::format_float(details.employment_target.unqualified)
+			);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_hired_primary",
+			text::variable_type::value, text::format_float(details.employment.primary)
+		);
+
+		if(details.employment_expected_change.primary >= 0) {
+			text::add_line(state, contents, "factory_hiring_rate_primary",
+				text::variable_type::value, text::format_float(details.employment_expected_change.primary),
+				text::variable_type::x, text::format_float(details.employment_target.primary)
+			);
+		} else {
+			text::add_line(state, contents, "factory_firing_rate_primary",
+				text::variable_type::value, text::format_float(-details.employment_expected_change.primary),
+				text::variable_type::x, text::format_float(details.employment_target.primary)
+			);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_hired_secondary",
+			text::variable_type::value, text::format_float(details.employment.secondary),
+			text::variable_type::x, text::format_percentage(details.output_multipliers.from_secondary_workers)
+		);
+
+		if(details.employment_expected_change.secondary >= 0) {
+			text::add_line(state, contents, "factory_hiring_rate_secondary",
+				text::variable_type::value, text::format_float(details.employment_expected_change.secondary),
+				text::variable_type::x, text::format_float(details.employment_target.secondary)
+			);
+		} else {
+			text::add_line(state, contents, "factory_firing_rate_secondary",
+				text::variable_type::value, text::format_float(-details.employment_expected_change.secondary),
+				text::variable_type::x, text::format_float(details.employment_target.secondary)
+			);
+		}
+	}
+
+	// description of expansion
+	{
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "factory_expansion_rate", text::variable_type::value, text::format_float(details.expansion_size));
+	}
+
+	// description of multipliers
+	{
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_throughput_explanation",
+			text::variable_type::val, text::format_percentage(details.throughput_multipliers.total),
+			text::variable_type::x, text::format_float(details.production_units),
+			text::variable_type::y, text::format_float(details.employment_units)
+		);
+
+		text::add_line(state, contents, "factory_throughput_base",
+			text::variable_type::val, text::format_percentage(details.throughput_multipliers.base),
+			indent
+		);
+		text::add_line(state, contents, "factory_stats_7",
+			text::variable_type::val, text::format_percentage(details.throughput_multipliers.from_scale),
+			indent
+		);
+		text::add_line(state, contents, "factory_throughput_modifiers",
+			text::variable_type::val, text::format_percentage(details.throughput_multipliers.from_modifiers),
+			indent
+		);
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_input_multiplier_explanation",
+			text::variable_type::val, text::format_percentage(details.input_multipliers.total)
+		);
+
+		text::add_line(state, contents, "factory_input_multiplier_competition",
+			text::variable_type::val, text::format_percentage(details.input_multipliers.from_competition),
+			indent
+		);
+
+		text::add_line(state, contents, "factory_input_multiplier_scale",
+			text::variable_type::val, text::format_percentage(details.input_multipliers.from_scale),
+			indent
+		);
+
+		text::add_line(state, contents, "factory_input_multiplier_specialisation",
+			text::variable_type::val, text::format_percentage(details.input_multipliers.from_specialisation),
+			indent
+		);
+
+		text::add_line(state, contents, "factory_input_multiplier_modifiers",
+			text::variable_type::val, text::format_percentage(details.input_multipliers.from_modifiers * details.input_multipliers.from_triggered_modifiers),
+			indent
+		);
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "factory_output_multiplier_explanation",
+			text::variable_type::val, text::format_percentage(details.output_multipliers.total)
+		);
+
+		text::add_line(state, contents, "factory_output_multiplier_lack_of_inputs",
+			text::variable_type::val, text::format_percentage(details.output_multipliers.from_inputs_lack)
+		);
+		text::add_line(state, contents, "factory_output_multiplier_efficiency_inputs",
+			text::variable_type::val, text::format_percentage(details.output_multipliers.from_efficiency_goods)
+		);
+		text::add_line(state, contents, "factory_output_multiplier_secondary_workers",
+			text::variable_type::val, text::format_percentage(details.output_multipliers.from_secondary_workers)
+		);
+		text::add_line(state, contents, "factory_output_multiplier_modifiers",
+			text::variable_type::val, text::format_percentage(details.output_multipliers.from_modifiers)
+		);
+
+		text::add_line_break_to_layout(state, contents);
+	}
+};
+
 } // namespace ui
