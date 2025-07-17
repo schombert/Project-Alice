@@ -1,5 +1,11 @@
+#include <unistd.h>
+#include <sys/wait.h>
+#include <stdlib.h>
+#include <locale>
+#include <codecvt>
+
 #include <GLFW/glfw3.h>
-#include "launcher_main_nix.hpp"
+#include "launcher_main.hpp"
 
 namespace launcher {
 static GLFWwindow* m_window = nullptr;
