@@ -324,7 +324,7 @@ static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
 	"创建新方案",
 	"未找到方案",
 	"IP 地址",
-	"密码",
+	"主机密码",
 	"昵称",
 	"单人游戏",
 	"多人游戏",
@@ -332,7 +332,7 @@ static std::string_view zh_localised_strings[uint8_t(string_index::count)] = {
 	"主持",
 	"加入",
 	"模组列表",
-	"Player Password"
+	"玩家密码"
 
 };
 //arabic
