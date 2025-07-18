@@ -14,30 +14,31 @@ no_effect;No effect
 move_capital_to;Move capital to
 add_x_core;Add $adj$ core
 add_core_to;Add core to
-remove_x_core;Remove $adj$ core
+remove_x_core;Remove ?Y$adj$?W core
 remove_core_from;Remove core from
-change_name_to;Change name to $text$
-change_terrain_to;Change terrain to $text$
-change_rgo_production_to;Change RGO production to $text$
+change_name_to;Change name to ?Y$text$?W
+change_terrain_to;Change terrain to ?Y$text$?W
+change_rgo_production_to;Change RGO production to ?Y$text$??W
 make_accepted_culture;$text$ becomes an accepted culture
-primary_culture_changes_to;Primary culture changes to $text$
+primary_culture_changes_to;Primary culture changes to ?Y$text$?W
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
-increase_national_variable_by;Increase national variable $text$ by $value$
-decrease_national_variable_by;Decrease national variable $text$ by $value$
+increase_national_variable_by;Increase nation's ?Y$text$?W by ?Y$value$?W
+decrease_national_variable_by;Decrease nation's ?Y$text$?W by ?Y$value$?W
 life_rating;Life rating
-make_national_religion;$text$ becomes the national religion
-make_province_religion;province population converts to $text$
-make_pop_religion;Converts to $text$
-make_pop_culture;Converts to $text$
-make_slave_state;Becomes a slave state
-make_slave_pop;Becomes a slave
+make_national_religion;?Y$text$?W becomes the national religion
+giving_modifier;This will give the following modifier:
+make_province_religion;province population converts to ?Y$text$?W
+make_pop_religion;Converts to ?Y$text$?W
+make_pop_culture;Converts to ?Y$text$?W
+make_slave_state;Becomes a ?Yslave state?W
+make_slave_pop;Becomes a ?Yslave?W
 research_points;Research points
-change_tech_school;Technology school changes to $text$
-change_government_to;Government changes to $text$
+change_tech_school;Technology school changes to ?Y$text$?W
+change_government_to;Government changes to ?Y$text$?W
 add_to_treasury;Added to treasury
 war_exhaustion;War exhaustion
-become_blank;Becomes $text$
+become_blank;Becomes ?Y$text$?W
 player_control_change;Player control changes to $text$
 set_national_flag;$text$ is set for this nation
 remove_national_flag;$text$ is unset for this nation
@@ -110,7 +111,7 @@ add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in sc
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
 remove_cb_reversed;Loses any $name$ casus bellis against $text$
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
-set_national_variable_to;Set national variable $text$ to $value$
+set_national_variable_to;Set nation ?Y$text$?W to ?Y$value$?W
 event_fires;Event $text$ is triggered
 event_fires_in_days;Event $text$ is triggered in $value$ days
 railroad_in_capital;?G+1?! railroad level in capital
@@ -1164,6 +1165,8 @@ alice_warn_war_ends_for_us;?RThis will end the war for everyone on our side?!.
 alice_invention_chance;The chance of discovering this ?Yinvention?! are as follows:
 is_primary_culture;?Y$NAME$?! is the primary culture.
 is_primary_religion;?Y$NAME$?! is the primary religion.
+religion_nation_modifier;Majority of the population professes ?Y$NAME$?!
+when;When:
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
