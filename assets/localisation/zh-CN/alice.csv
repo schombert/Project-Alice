@@ -13,27 +13,27 @@ no_effect;没有效果
 move_capital_to;迁都至
 add_x_core;增加 $adj$ 核心
 add_core_to;添加核心到
-remove_x_core;移除 $adj$ 核心
+remove_x_core;移除 ?Y$adj$?W 核心
 remove_core_from;移出势力范围
-change_name_to;名称变成 $text$
-change_terrain_to;地形变成 $text$
-change_rgo_production_to;原材料变成$text$
-make_accepted_culture;$text$成为可接受民族
-primary_culture_changes_to;主体民族变成$text$
+change_name_to;名称变成 ?Y$text$?W
+change_terrain_to;地形变成 ?Y$text$?W
+change_rgo_production_to;原料变成 ?Y$text$?W
+make_accepted_culture;$text$ 成为可接受民族
+primary_culture_changes_to;主体民族变成 ?Y$text$?W
 union_culture_accepted;接受主体民族文化圈中的所有民族
-remove_accepted_culture;$text$不再为可接受民族
-increase_national_variable_by;国家变量 $text$ 提高 $value$
-decrease_national_variable_by;国家变量 $text$ 降低 $value$
+remove_accepted_culture;$text$ 不再为可接受民族
+increase_national_variable_by;国家变量 ?Y$text$?W 提高 ?Y$value$?W
+decrease_national_variable_by;国家变量 ?Y$text$?W 降低 ?Y$value$?W
 life_rating;生活条件
-make_national_religion;$text$ 成为国教
-make_slave_state;成为蓄奴区
-make_slave_pop;成为奴隶
+make_national_religion;?Y$text$?W 成为国教
+make_slave_state;成为?Y蓄奴区?W
+make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
-change_tech_school;科研学派变成 $text$
-change_government_to;政体变成 $text$
+change_tech_school;科研学派变成 ?Y$text$?W
+change_government_to;政体变成 ?Y$text$?W
 add_to_treasury;添加到国库
 war_exhaustion;厌战度
-become_blank;成为 $text$
+become_blank;成为 ?Y$text$?W
 player_control_change;玩家操作国家变成 $text$
 set_national_flag;设置国家变量 $text$
 remove_national_flag;移除国家变量 $text$
@@ -106,7 +106,7 @@ add_cb_reversed_months;$text$在 $date$ 之前对此国有 $name$ 宣战理由
 add_cb_reversed_no_months;$text$ 获得 $name$ 宣战理由针对此国
 remove_cb_reversed;失去所有 $name$ 宣战理由针对 $text$
 remove_cb;$text$ 失去 $name$ 宣战理由针对此国
-set_national_variable_to;国家变量 $text$ 设为 $value$
+set_national_variable_to;国家变量 ?Y$text$?W 设为 ?Y$value$?W
 event_fires;已触发事件 $text$
 event_fires_in_days;事件 $text$ 在 $value$ 天内触发
 railroad_in_capital;首都铁路等级?G+1?!
@@ -949,7 +949,7 @@ o_add_modifier_until;省份拥有者获得 $text$ 直到 $date$
 o_add_modifier;省份拥有者获得 $text$
 o_relations_with;省份拥有者与 $text$ 的关系
 o_add_to_treasury;为了省份拥有者
-w_rgo_prod;全球原材料生产：$x$
+w_rgo_prod;全球原料生产：$x$
 w_artisan_prod;全球工匠生产
 w_artisan_profit;国内工匠利润
 w_artisan_distribution;国内工匠分布
@@ -1187,9 +1187,9 @@ alice_pnt_dominant_religion;?Y主要宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;购买力平价GDP
 ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
-make_province_religion;省份人群变成 $text$
-make_pop_religion;变成 $text$
-make_pop_culture;变成 $text$
+make_province_religion;省份人群变成 ?Y$text$?W
+make_pop_religion;变成 ?Y$text$?W
+make_pop_culture;变成 ?Y$text$?W
 an_assigned_leader;已分配的将领
 leader_prestige;领袖威望
 chat_player_reload;$playername$ 已重新载入
@@ -1653,3 +1653,6 @@ factory_output_multiplier_lack_of_inputs;由于投入缺乏，这家工厂产出
 factory_output_multiplier_efficiency_inputs;为实现全功率输出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
 factory_output_multiplier_secondary_workers;雇佣的 ?Y经理和职员?W 为工厂提供 ?G$val$?W 产出乘数。
 factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$?W 产出乘数。
+giving_modifier;这会提供以下修正：
+religion_nation_modifier;多数人自称 ?Y$NAME$?!
+when;当时：
