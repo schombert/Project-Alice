@@ -6150,7 +6150,8 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 		siege_attrition = state.defines.siege_attrition + hostile_fort * state.defines.alice_fort_siege_attrition_per_level;
 	}
 
-	auto value = std::clamp(total_army_weight * attrition_mods - supply_limit, 0.0f, max_attrition) + siege_attrition;
+	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
+	auto value = std::clamp((total_army_weight - supply_limit) * attrition_mods, 0.0f, max_attrition) + siege_attrition;
 	return value * 0.01f;
 }
 float attrition_amount(sys::state& state, dcon::navy_id a) {
