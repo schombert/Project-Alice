@@ -834,6 +834,17 @@ std::string get_short_state_name(sys::state& state, dcon::state_instance_id stat
 	return get_name_as_string(state, fat_id.get_definition());
 }
 
+std::string get_short_state_name(sys::state& state, dcon::state_definition_id state_id) {
+	auto fat_id = dcon::fatten(state.world, state_id);
+
+	auto first_prov = (*fat_id.get_abstract_state_membership().begin());
+	if(!state.key_is_localized(fat_id.get_name())) {
+			return get_name_as_string(state, first_prov.get_province());
+	} else {
+		return get_name_as_string(state, fat_id);
+	}
+}
+
 std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id) {
 	auto fat_id = dcon::fatten(state.world, state_id);
 	for(auto st : fat_id.get_definition().get_abstract_state_membership()) {
