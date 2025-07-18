@@ -67,14 +67,14 @@ void check_scenario_folder() {
 }
 
 native_string to_hex(uint64_t v) {
-		native_string ret;
-		constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
-		do {
-		 ret += digits[v & 0x0F];
-		 v = v >> 4;
-		} while(v != 0);
-		 	return ret;
-	};
+	native_string ret;
+	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
+	do {
+		ret += digits[v & 0x0F];
+		v = v >> 4;
+	} while(v != 0);
+	return ret;
+};
 
 // Original is void make_mod_file(). This function can also be used to create
 // vanilla scenario, though when there are two bookmarks dates, it will also create
@@ -310,12 +310,15 @@ int main (int argc, char *argv[]) {
 		if (selected_scenario_file == NATIVE("development_test_file.bin")){
 		} else {
 			//Checking the scenario folder
-			// find_scenario_file();
-			selected_scenario_file = argv[1];
+			if (argc == 2) {
+				selected_scenario_file = argv[1];
+			} else {
+				find_scenario_file();
+			}
 			//If any file fits the criteria, then don't build
 			if (!selected_scenario_file.empty()) {
 				window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
-			//If no file fits the critertia, then build
+				//If no file fits the critertia, then build
 			} else {
 				window::emit_error_message("Scenario file with selected mods cannot be found. Proceeding to build.\nThis process may take a few minutes to finish.\n", false);
 				build_scenario_file();
@@ -333,10 +336,10 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
-			auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
-			window::emit_error_message(msg, false);
-			game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
-			game_state.fill_unsaved_data();
+		auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
+		window::emit_error_message(msg, false);
+		game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
+		game_state.fill_unsaved_data();
 	} else {
 		window::emit_error_message("Scenario file could not be read.", true);
 	}
