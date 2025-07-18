@@ -135,9 +135,15 @@ void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t 
 		text::add_line_break_to_layout(state, contents);
 	}
 
+	auto visibletrigger = state.world.scripted_interaction_get_visible(sel);
 	auto allow = state.world.scripted_interaction_get_allow(sel);
 	auto effect = state.world.scripted_interaction_get_effect(sel);
 
+	if(visibletrigger) {
+		text::add_line(state, contents, "visible_cond");
+		ui::trigger_description(state, contents, visibletrigger, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
+		text::add_line_break_to_layout(state, contents);
+	}
 	if(allow) {
 		text::add_line(state, contents, "allow_reform_cond");
 		ui::trigger_description(state, contents, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
@@ -181,5 +187,40 @@ void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 	}
 }
 
+void ui_variable_toggle_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
+
+	if(def.get_element_type() != ui::element_type::button)
+		return;
+	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
+		return;
+	auto n = retrieve<dcon::nation_id>(state, parent);
+	if(!n)
+		n = state.local_player_nation;
+	if(!state.local_player_nation)
+		return;
+
+	auto name = state.to_string_view(def.name);
+	auto tt_name = std::string{ name } + "_tooltip";
+	if(state.key_is_localized(tt_name)) {
+		text::add_line(state, contents, std::string_view{ tt_name }, text::variable_type::nation, n, text::variable_type::player, state.local_player_nation);
+		text::add_line_break_to_layout(state, contents);
+	}
+
+	auto visibletrigger = state.world.scripted_interaction_get_visible(sel);
+	auto allow = state.world.scripted_interaction_get_allow(sel);
+
+	if(visibletrigger) {
+		text::add_line(state, contents, "visible_cond");
+		ui::trigger_description(state, contents, visibletrigger, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
+		text::add_line_break_to_layout(state, contents);
+	}
+	if(allow) {
+		text::add_line(state, contents, "allow_reform_cond");
+		ui::trigger_description(state, contents, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
+		text::add_line_break_to_layout(state, contents);
+	}
+}
 
 } // namespace ui

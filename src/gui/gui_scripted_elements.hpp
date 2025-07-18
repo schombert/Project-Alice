@@ -95,6 +95,13 @@ public:
 			button_element_base::render(state, x, y);
 		}
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+
 };
 
 // US8AC4 Window is shown only when UI variable in `visible_ui_key` is set to True
