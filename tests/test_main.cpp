@@ -21,10 +21,11 @@
 #define NATIVE_SEP "/"
 #endif
 
-std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mode = sys::network_mode_type::single_player) {
+std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mode = sys::network_mode_type::single_player, dcon::nation_id selected_nation = dcon::nation_id{ }) {
 	std::unique_ptr<sys::state> game_state = std::make_unique<sys::state>(); // too big for the stack
 
 	game_state->network_mode = mode;
+	game_state->user_settings.autosaves = sys::autosave_frequency::yearly;
 
 	add_root(game_state->common_fs, NATIVE("."));        // for the moment this lets us find the shader files
 
@@ -36,6 +37,12 @@ std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mo
 		INFO("Wrote new scenario");
 		std::abort();
 	} else {
+		if(!selected_nation) {
+			auto observer_nation = game_state->world.national_identity_get_nation_from_identity_holder(game_state->national_definitions.rebel_id);
+			game_state->local_player_nation = observer_nation;
+		} else {
+			game_state->local_player_nation = selected_nation;
+		}
 		game_state->fill_unsaved_data();
 		INFO("Scenario loaded");
 	}
