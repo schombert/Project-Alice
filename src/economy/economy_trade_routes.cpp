@@ -517,7 +517,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.export_profit[1] = current_profit_B_to_A;
 
 	auto none_is_profiable = (current_profit_A_to_B <= 0.f) && (current_profit_B_to_A <= 0.f);
-	auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f;
+	auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f + trade_route_min_shift;
 	auto max_shrinking = -0.1f / (price_A_export + price_B_export) - absolute_volume * 0.005f;
 
 	result.max_expansion = max_expansion;
@@ -870,7 +870,7 @@ void update_trade_routes_volume(sys::state& state) {
 			// we make changes slow to ensure more or less smooth changes
 			// otherwise assumption of stable demand breaks
 			// constant term is there to allow moving away from 0
-			auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f;
+			auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f + trade_route_min_shift;
 			auto max_shrinking = -0.1f / (price_A_export + price_B_export) - absolute_volume * 0.005f;
 
 			auto profit_score = ve::select(

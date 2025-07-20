@@ -2726,9 +2726,9 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon
 		state.world.nation_set_diplomatic_points(from, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 	}
 
-	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(from, to);
 	if(!rel_1) {
-		rel_1 = state.world.force_create_unilateral_relationship(to, from);
+		rel_1 = state.world.force_create_unilateral_relationship(from, to);
 	}
 
 	auto new_status = !state.world.unilateral_relationship_get_embargo(rel_1);
@@ -4256,7 +4256,7 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 			regs.push_back(r.get_regiment());
 	}
 	for(auto r : regs)
-		state.world.delete_regiment(r);
+		military::delete_regiment_safe_wrapper(state, r);
 }
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {

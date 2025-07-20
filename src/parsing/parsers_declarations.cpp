@@ -20,6 +20,16 @@ void religion_def::pagan(association_type, bool v, error_handler& err, int32_t l
 	context.outer_context.state.world.religion_set_is_pagan(context.id, v);
 }
 
+void religion_def::nation_modifier(modifier_base v, error_handler& err, int32_t line, religion_context& context) {
+	if(v.next_to_add_n != 0) {
+		auto mod = context.outer_context.state.world.create_modifier();
+		context.outer_context.state.world.modifier_set_national_values(mod, v.peek_national_mod());
+		context.outer_context.state.world.modifier_set_icon(mod, uint8_t(v.icon_index));
+		context.outer_context.state.world.modifier_set_name(mod, context.outer_context.state.world.religion_get_name(context.id));
+		context.outer_context.state.world.religion_set_nation_modifier(context.id, mod);
+	}
+}
+
 void names_list::free_value(std::string_view text, error_handler& err, int32_t line, names_context& context) {
 	auto new_id = context.outer_context.state.add_unit_name(text);
 	if(context.first_names) {

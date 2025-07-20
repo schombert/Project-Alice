@@ -84,22 +84,23 @@ float estimate_spendings_administration(sys::state& state, dcon::nation_id n, fl
 	return admin_budget;
 }
 
-float full_spendings_administration(sys::state& state, dcon::nation_id n) {
+float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget) {
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;
 	}
 
-	auto total_budget = std::max(0.f, state.world.nation_get_stockpiles(n, economy::money));
-	auto admin_budget = total_budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	auto admin_budget = budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	// prevent floating point errors
+	admin_budget = std::min(budget, admin_budget);
 
 	return admin_budget;
 }
 
-void update_consumption_administration(sys::state& state, dcon::nation_id n) {
+void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget) {
+	// admin budget is not scaled down
 
-	auto total_budget = std::max(0.f, state.world.nation_get_stockpiles(n, economy::money));
-	auto admin_budget = total_budget * state.world.nation_get_spending_level(n) * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	auto admin_budget = total_budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
 
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
@@ -118,9 +119,11 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 			auto demand = budget_per_administration / wage;
 			auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			// capitals generate base amount of control to avoid death spirals
-			state.world.province_get_control_scale(capital) += demand * sat * population_per_admin(state, n) + 10'000.f;
+			auto& cur_control_scale = state.world.province_get_control_scale(capital);
+			state.world.province_set_control_scale(capital, cur_control_scale + demand * sat * population_per_admin(state, n) + 10'000.f);
 			state.world.nation_set_administration_employment_target_in_capital(n, demand);
-			state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted) += demand;
+			auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
+			state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
 		}
 	}
 
@@ -137,9 +140,11 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n) {
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = budget_per_administration / wage;
 		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		state.world.province_get_control_scale(capital) += std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency);
+		auto& cur_control_scale = state.world.province_get_control_scale(capital);
+		state.world.province_set_control_scale(capital, cur_control_scale + std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency));
 		state.world.province_set_administration_employment_target(capital_of_capital_state, demand);
-		state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted) += demand;
+		auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
 	});
 }
 
@@ -207,11 +212,11 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 				auto& pop_money = pl.get_pop().get_savings();
 				auto strata = culture::pop_strata(pl.get_pop().get_poptype().get_strata());
 				if(strata == culture::pop_strata::poor) {
-					pop_money *= poor_effect;
+					pl.get_pop().set_savings(pop_money * poor_effect);
 				} else if(strata == culture::pop_strata::middle) {
-					pop_money *= middle_effect;
+					pl.get_pop().set_savings(pop_money * middle_effect);
 				} else if(strata == culture::pop_strata::rich) {
-					pop_money *= rich_effect;
+					pl.get_pop().set_savings(pop_money * rich_effect);
 				}
 				assert(std::isfinite(pl.get_pop().get_savings()));
 			}
@@ -226,7 +231,8 @@ void collect_taxes(sys::state& state, dcon::nation_id n) {
 
 	assert(std::isfinite(collected_tax));
 	assert(collected_tax >= 0);
-	state.world.nation_get_stockpiles(n, money) += collected_tax;
+	auto& cur_money = state.world.nation_get_stockpiles(n, money);
+	state.world.nation_set_stockpiles(n, money, cur_money + collected_tax);
 }
 
 tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id province) {

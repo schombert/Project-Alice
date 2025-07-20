@@ -4,6 +4,8 @@
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
 #include "demographics.hpp"
+#include "economy_pops.hpp"
+#include "advanced_province_buildings.hpp"
 
 #include "macrobuilder2.cpp"
 #include "budgetwindow.cpp"
@@ -12,6 +14,9 @@
 
 namespace alice_ui {
 
+bool state_is_rtl(sys::state& state) {
+	return state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
+}
 
 ogl::animation::type to_ogl_type(animation_type type, bool forwards) {
 	switch(type) {
@@ -1808,44 +1813,90 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 }
 
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
-	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
+	auto pop_budget = economy::pops::prepare_pop_budget(state, ids);
 
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto owner = state.world.province_get_nation_from_province_ownership(loc);
-	auto cfrac =
-		state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
+	auto box = text::open_layout_box(contents);
 
-	auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-	auto espending =
-		(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
-		(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
+	text::add_line(state, contents, "pop_literacy_spending",
+		text::variable_type::val, text::format_money(pop_budget.education.spent)
+	);
 
-	float total = (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod));
 
-	{
-		auto box = text::open_layout_box(contents);
-		text::localised_format_box(state, contents, box, "pop_lit_1");
-		if(total >= 0) {
-			text::add_to_layout_box(state, contents, box, std::string_view{ "+" }, text::text_color::green);
-			text::add_to_layout_box(state, contents, box, text::fp_three_places{ total }, text::text_color::green);
-		} else {
-			text::add_to_layout_box(state, contents, box, text::fp_three_places{ total }, text::text_color::red);
-		}
-		text::close_layout_box(contents, box);
+	text::add_line(state, contents, "pop_literacy_spending_required",
+		text::variable_type::val, text::format_money(pop_budget.education.required)
+	);
+
+	text::add_line(state, contents, "pop_literacy_spending_public",
+		text::variable_type::val, text::format_percentage(pop_budget.education.satisfied_for_free_ratio)
+	);
+
+	auto result = pop_budget.education.satisfied_for_free_ratio + pop_budget.education.satisfied_with_money_ratio;
+
+	text::add_line(state, contents, "pop_literacy_spending_ratio",
+		text::variable_type::x, text::format_percentage(result)
+	);
+
+	if(result > 0.9f) {		
+		text::add_line(state, contents, "pop_literacy_spending_result_success",
+			text::variable_type::x, text::format_percentage(result),
+			text::variable_type::y, text::format_percentage(0.9f),
+			text::variable_type::val, text::format_float(pop_demographics::pop_u16_scaling, 10)
+		);
 	}
-	text::add_line_break_to_layout(state, contents);
-	text::add_line(state, contents, "pop_lit_2");
-	text::add_line(state, contents, "pop_lit_3", text::variable_type::val, text::fp_percentage{ cfrac }, text::variable_type::x,
-			text::fp_two_places{ cmod });
-	text::add_line(state, contents, "pop_lit_4", text::variable_type::x, text::fp_two_places{ espending });
-	text::add_line(state, contents, "pop_lit_5", text::variable_type::x, text::fp_percentage{ tmod });
-	ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::education_efficiency, false);
-	text::add_line(state, contents, "pop_lit_6", text::variable_type::x, text::fp_percentage{ nmod });
-	ui::active_modifiers_description(state, contents, owner, 15, sys::national_mod_offsets::education_efficiency_modifier, false);
-	text::add_line(state, contents, "pop_lit_7", text::variable_type::x, text::fp_two_places{ state.defines.literacy_change_speed });
-	text::add_line(state, contents, "pop_lit_8");
+	if(result < 0.7f) {
+		text::add_line(state, contents, "pop_literacy_spending_result_failure",
+			text::variable_type::x, text::format_percentage(result),
+			text::variable_type::y, text::format_percentage(0.7f),
+			text::variable_type::val, text::format_float(pop_demographics::pop_u16_scaling, 10)
+		);
+	}
+}
+
+void describe_money(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
+	auto savings = state.world.pop_get_savings(ids);
+	auto pop_budget = economy::pops::prepare_pop_budget(state, ids);
+
+	auto box = text::open_layout_box(contents);
+
+	text::add_line(state, contents, "pop_budget_explanation_header",
+		text::variable_type::val, text::format_money(savings)
+	);
+
+	// needs
+
+	text::add_line(state, contents, "pop_budget_explanation_life_needs",
+		text::variable_type::x, text::format_money(pop_budget.life_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.life_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.life_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_subsistence",
+		text::variable_type::x, text::format_percentage(pop_budget.life_needs.satisfied_for_free_ratio),
+		text::variable_type::y, text::format_percentage(pop_budget.life_needs.satisfied_with_money_ratio + pop_budget.life_needs.satisfied_for_free_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_everyday_needs",
+		text::variable_type::x, text::format_money(pop_budget.everyday_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.everyday_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.everyday_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_luxury_needs",
+		text::variable_type::x, text::format_money(pop_budget.luxury_needs.spent),
+		text::variable_type::y, text::format_money(pop_budget.luxury_needs.required),
+		text::variable_type::val, text::format_percentage(pop_budget.luxury_needs.satisfied_with_money_ratio)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_education",
+		text::variable_type::x, text::format_money(pop_budget.education.spent)
+	);
+
+	text::add_line(state, contents, "pop_budget_explanation_investments",
+		text::variable_type::x, text::format_money(pop_budget.investments.spent)
+	);
+	text::add_line(state, contents, "pop_budget_explanation_banks",
+		text::variable_type::x, text::format_money(pop_budget.bank_savings.spent)
+	);
 }
 
 void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {

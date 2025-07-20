@@ -45,10 +45,12 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/demographics.cpp"
 	"src/economy/economy_stats.cpp"
 	"src/economy/economy.cpp"
+	"src/economy/economy_pops.cpp"
 	"src/economy/economy_trade_routes.cpp"
 	"src/economy/economy_government.cpp"
 	"src/economy/economy_production.cpp"
 	"src/economy/construction.cpp"
+	"src/economy/advanced_province_buildings.cpp"
 	"src/gamestate/commands.cpp"
 	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"
@@ -76,6 +78,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/economy_viewer.cpp"
 	"src/gui/unit_tooltip.cpp"
 	"src/gui/gui_context_window.cpp"
+	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
@@ -191,7 +194,7 @@ else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20
+			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20 #-Werror
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
@@ -471,8 +474,8 @@ endif()
 add_subdirectory(SaveEditor)
 if(WIN32)
 	add_subdirectory(DbgAlice)
-	add_subdirectory(Launcher)
 endif()
+add_subdirectory(Launcher)
 
 # Installation
 if(NOT WIN32)

@@ -267,6 +267,9 @@ constexpr inline int32_t days_before_retreat = 11;
 enum class battle_result {
 	indecisive, attacker_won, defender_won
 };
+enum class regiment_dmg_source {
+	combat, attrition
+};
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
@@ -463,15 +466,28 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov);
-float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, float additional_army_weight = 0.0f);
+float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::province_id prov, const std::vector<dcon::army_id>& extra_armies);
 float local_army_weight(sys::state& state, dcon::province_id prov);
 float local_army_weight_max(sys::state& state, dcon::province_id prov);
 float local_enemy_army_weight_max(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 float attrition_amount(sys::state& state, dcon::navy_id a);
 float attrition_amount(sys::state& state, dcon::army_id a);
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov);
+
+enum class reinforcement_estimation_type {
+	today, monthly, full_supplies
+};
+
+
+template<reinforcement_estimation_type reinf_est_type>
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
 
+void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
+void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
+
+template<regiment_dmg_source damage_source>
+void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
@@ -483,6 +499,14 @@ float fractional_distance_covered(sys::state& state, dcon::navy_id a);
 enum class crossing_type {
 	none, river, sea
 };
+
+enum class apply_attrition_on_arrival {
+	no, yes
+
+};
+
+
+template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
@@ -510,6 +534,7 @@ float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
 dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
+void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
 economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id owner, dcon::army_id army);
@@ -523,7 +548,11 @@ float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, 
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_battle_id b, bool attacker);
+
+template<reinforcement_estimation_type reinf_estimation>
 float unit_calculate_reinforcement(sys::state& state, dcon::regiment_id reg, bool potential_reinf = false);
+
+template<reinforcement_estimation_type reinf_estimation>
 float unit_calculate_reinforcement(sys::state& state, dcon::ship_id reg);
 void reinforce_regiments(sys::state& state);
 void repair_ships(sys::state& state);
@@ -555,6 +584,7 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
+template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 void spawn_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id type, dcon::pop_id pop, dcon::province_id dest = dcon::province_id {});
 void spawn_ship(sys::state& state, dcon::nation_id n, dcon::unit_type_id type, dcon::province_id p, dcon::province_id dest = dcon::province_id{});

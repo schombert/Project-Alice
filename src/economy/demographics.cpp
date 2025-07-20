@@ -9,6 +9,7 @@
 #include "ve_scalar_extensions.hpp"
 #include "container_types.hpp"
 #include "economy_stats.hpp"
+#include "economy_pops.hpp"
 
 // #define CHECK_LLVM_RESULTS
 
@@ -77,13 +78,15 @@ float get_literacy(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uliteracy(p);
 	return from_pu16(ival);
 }
-template<typename T>
-void set_literacy(sys::state& state, T p, ve::fp_vector v) {
+template<typename P, typename V>
+void set_literacy(sys::state& state, P p, V v) {
 	state.world.pop_set_uliteracy(p, to_pu16(v));
 }
-void set_literacy(sys::state& state, dcon::pop_id p, float v) {
-	state.world.pop_set_uliteracy(p, to_pu16(v));
-}
+template void set_literacy<dcon::pop_id, float>(sys::state&, dcon::pop_id, float);
+template void set_literacy<dcon::pop_fat_id, float>(sys::state&, dcon::pop_fat_id, float);
+template void set_literacy<ve::contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::contiguous_tags<dcon::pop_id>, ve::fp_vector);
+template void set_literacy<ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector>(sys::state&, ve::partial_contiguous_tags<dcon::pop_id>, ve::fp_vector);
+
 float get_employment(sys::state const& state, dcon::pop_id p) {
 	auto ival = state.world.pop_get_uemployment(p);
 	return from_pu8(ival) * state.world.pop_get_size(p);
@@ -504,6 +507,20 @@ void regenerate_from_pop_data(sys::state& state) {
 				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
 						return state.world.pop_get_size(p);
 					}
 					return 0.0f;
@@ -1090,7 +1107,7 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 				});
 				break;
 			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
-				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
 						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
@@ -1099,9 +1116,23 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 				});
 				break;
 			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
-				sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
 					auto prov = state.world.pop_get_province_from_pop_location(p);
 					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
 						return state.world.pop_get_size(p);
 					}
 					return 0.0f;
@@ -1598,6 +1629,38 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 					return state.world.pop_type_get_strata(state.world.pop_get_poptype(p)) == uint8_t(culture::pop_strata::rich)
 						? state.world.pop_get_size(p)
 						: 0.0f;
+				});
+				break;
+			case 23: // constexpr inline dcon::demographics_key non_colonial_literacy(23);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return pop_demographics::get_literacy(state, p) * state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 24: //constexpr inline dcon::demographics_key non_colonial_total(24);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					if(!state.world.province_get_is_colonial(prov)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
+				});
+				break;
+			case 25: //constexpr inline dcon::demographics_key primary_or_accepted(25);
+				alt_sum_over_demographics(state, key, [](sys::state const& state, dcon::pop_id p) {
+					auto prov = state.world.pop_get_province_from_pop_location(p);
+					auto owner = state.world.province_get_nation_from_province_ownership(prov);
+					auto culture = state.world.pop_get_culture(p);
+					if(state.world.nation_get_primary_culture(owner) == culture) {
+						return state.world.pop_get_size(p);
+					}
+					if(state.world.nation_get_accepted_cultures(owner, culture)) {
+						return state.world.pop_get_size(p);
+					}
+					return 0.0f;
 				});
 				break;
 			}
@@ -2269,83 +2332,19 @@ float get_estimated_con_change(sys::state& state, dcon::nation_id n) {
 	return t != 0.f ? sum / t : 0.f;
 }
 
-
-void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions) {
-	/*
-	the literacy of each pop changes by:
-	0.01
-	x define:LITERACY_CHANGE_SPEED
-	x (0.5 + 0.5 * education-spending)
-	x ((total-province-clergy-population / total-province-population - define:BASE_CLERGY_FOR_LITERACY) /
-	(define:MAX_CLERGY_FOR_LITERACY
-	- define:BASE_CLERGY_FOR_LITERACY))^1 x (national-modifier-to-education-efficiency + 1.0) x (tech-education-efficiency + 1.0).
-
-	(by peter) additional multiplier to make getting/losing high literacy harder:
-	change = change * (1 - current-literacy)
-
-	Literacy cannot drop below 0.01.
-	*/
-
-	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
-
-	execute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		auto loc = state.world.pop_get_province_from_pop_location(ids);
-		auto owner = state.world.province_get_nation_from_province_ownership(loc);
-		auto cfrac =
-				state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
-
-		auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-		auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-		auto espending = 0.5f + 
-				(ve::to_float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner) * 0.5f;
-		auto cmod = ve::max(
-			0.0f,
-			ve::min(
-				1.0f,
-				(cfrac - state.defines.base_clergy_for_literacy)
-				/ (state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)
-			)
-		);
-
-		auto old_lit = pop_demographics::get_literacy(state, ids);
-		auto new_lit = ve::min(
-				ve::max(
-					old_lit
-					+ (0.01f * state.defines.literacy_change_speed)
-					* (
-						(
-							(espending * cmod)
-							* (tmod * nmod)
-						) *
-						(
-							1.f - old_lit
-						)
-					), 0.01f
-				), 1.0f);
-
-		pop_demographics::set_literacy(state, ids, ve::select(owner != dcon::nation_id{}, new_lit, old_lit));
-	});
-}
-
 float get_estimated_literacy_change(sys::state& state, dcon::pop_id ids) {
-	auto const clergy_key = demographics::to_key(state, state.culture_definitions.clergy);
-
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto owner = state.world.province_get_nation_from_province_ownership(loc);
-	auto cfrac =
-		state.world.province_get_demographics(loc, clergy_key) / state.world.province_get_demographics(loc, demographics::total);
-
-	auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
-	auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
-	auto espending =
-		(float(state.world.nation_get_education_spending(owner)) / 100.0f) * state.world.nation_get_spending_level(owner);
-	auto cmod = std::max(0.0f, std::min(1.0f, (cfrac - state.defines.base_clergy_for_literacy) /
-		(state.defines.max_clergy_for_literacy - state.defines.base_clergy_for_literacy)));
-
-	auto old_lit = pop_demographics::get_literacy(state, ids);
-	auto new_lit = std::min(std::max(old_lit + (0.01f * state.defines.literacy_change_speed) * ((espending * cmod) * (tmod * nmod)), 0.01f), 1.0f);
-
-	return new_lit - old_lit;
+	auto pop_budget = economy::pops::prepare_pop_budget(state, ids);
+	
+	auto shift_literacy = ve::select(
+		pop_budget.education.satisfied_with_money_ratio + pop_budget.education.satisfied_for_free_ratio > 0.9f,
+		pop_demographics::pop_u16_scaling,
+		ve::select(
+			pop_budget.education.satisfied_with_money_ratio + pop_budget.education.satisfied_for_free_ratio < 0.7f,
+			-pop_demographics::pop_u16_scaling,
+			0.f
+		)
+	);
+	return shift_literacy;
 }
 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n) {
@@ -4305,6 +4304,12 @@ void remove_size_zero_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
+			//safely delete any regiment which has this pop as its source
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
+				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
+			}
 			state.world.delete_pop(m);
 		}
 	}
@@ -4315,6 +4320,12 @@ void remove_small_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
 		if(state.world.pop_get_size(m) < 20.0f) {
+			//safely delete any regiment which has this pop as its source
+			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
+				auto reg = *(state.world.pop_get_regiment_source(m).begin());
+				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
+
+			}
 			state.world.delete_pop(m);
 		}
 	}

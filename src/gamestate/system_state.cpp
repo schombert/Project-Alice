@@ -45,6 +45,7 @@
 #include "blake2.h"
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace ui {
 
@@ -238,6 +239,15 @@ void create_in_game_windows(sys::state& state) {
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(state, "alice_land_combat");
 		new_elm->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
+		// set window to be movable
+		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
+		new_elem->set_visible(state, false);
+		state.ui_state.disband_unit_window = new_elem.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elem));
+
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
@@ -1573,6 +1583,7 @@ void state::save_user_settings() const {
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
+	US_SAVE(unit_disband_confirmation);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1642,6 +1653,7 @@ void state::load_user_settings() {
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
+			US_LOAD(unit_disband_confirmation);
 #undef US_LOAD
 		} while(false);
 
@@ -2928,6 +2940,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_supply_sold(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
 
+	services::initialize_size_of_dcon_arrays(*this);
+	advanced_province_buildings::initialize_size_of_dcon_arrays(*this);
+
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
 	world.commodity_resize_price_record(economy::price_history_length);
@@ -4176,7 +4191,7 @@ void state::single_game_tick() {
 	});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
 		case 0:
 		{
@@ -4212,25 +4227,17 @@ void state::single_game_tick() {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(*this, o, days_in_month);
-			break;
-		}
-		case 5:
-		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_growth(*this, o, days_in_month);
 			break;
 		}
-		case 6:
+		case 5:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
 			break;
-		case 7:
+		case 6:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 			break;

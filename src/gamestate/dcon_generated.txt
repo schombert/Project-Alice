@@ -219,6 +219,11 @@ object{
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ nation_modifier }
+		type{ modifier_id }
+		tag{ scenario }
+	}
 }
 
 object {
@@ -1666,6 +1671,11 @@ object {
 		name{ artisan_profit }
 		type{ float }
 		
+	}	
+	property {
+		name{ artisan_bank }
+		type{ float }
+		tag{ save }
 	}
 
 	property{
@@ -1736,6 +1746,58 @@ object {
 		
 	}
 
+	property {
+		name{ advanced_province_building_national_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ advanced_province_building_private_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+
+	property {
+		name{ service_price }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_supply_private }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_supply_public }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_demand_allowed_public_supply }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_demand_forbidden_public_supply }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_satisfaction }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_satisfaction_for_free }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ service_sold }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
 
 	property {
 		name{ labor_price }
@@ -1762,6 +1824,8 @@ object {
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
+
+
 	property {
 		name{ administration_employment_target }
 		type{ float }
@@ -1868,10 +1932,12 @@ object {
 		tag{ save }
 	}
 	property{	
-		name{ pending_damage }
+		name{ pending_combat_damage }
 		type{ float }
-		
-		
+	}
+	property{	
+		name{ pending_attrition_damage }
+		type{ float }
 	}
 	property{	
 		name{ org }
@@ -3965,6 +4031,16 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ land_reinforcement_buffer }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ naval_reinforcement_buffer }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ effective_land_spending }
 		type{ float }
 		tag{ save }
@@ -3995,6 +4071,11 @@ object {
 		tag{ save }
 	}
 	property {
+		name{ last_base_budget }
+		type{ float }
+		tag{ save }
+	}
+	property {
 		name{ private_investment }
 		type{ float }
 		tag{ save }
@@ -4003,15 +4084,6 @@ object {
 		name{ private_investment_effective_fraction }
 		type{ float }
 		
-	}
-	property {
-		name{ private_investment_education }
-		type{ float }
-		
-	}
-	property {
-		name{ private_investment_administration }
-		type{ float }
 	}
 	property {
 		name{ total_rich_income }

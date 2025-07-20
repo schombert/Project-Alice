@@ -3491,6 +3491,8 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
 			auto affected_gp = state.world.nation_get_in_sphere_of(target);
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			// if the target was in a previous GP's sphere, update their state
+			if(bool(affected_gp))
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto& l = state.world.gp_relationship_get_status(orel);

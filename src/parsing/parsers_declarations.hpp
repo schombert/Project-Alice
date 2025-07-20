@@ -502,28 +502,6 @@ struct color_from_3f {
 	void finish(T& context) { }
 };
 
-struct religion_context {
-	dcon::religion_id id;
-	scenario_building_context& outer_context;
-};
-struct religion_def {
-	void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context);
-	void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context);
-	void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context);
-	void finish(religion_context& context) { }
-};
-
-void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
-
-struct religion_group {
-	void finish(scenario_building_context& context) { }
-};
-
-struct religion_file {
-	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) { }
-	void finish(scenario_building_context& context) { }
-};
-
 struct color_from_3i {
 	uint32_t value = 0;
 	template<typename T>
@@ -1080,6 +1058,29 @@ public:
 
 #undef MOD_PROV_FUNCTION
 #undef MOD_NAT_FUNCTION
+
+struct religion_context {
+	dcon::religion_id id;
+	scenario_building_context& outer_context;
+};
+struct religion_def : public modifier_base {
+	void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context);
+	void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context);
+	void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context);
+	void nation_modifier(modifier_base v, error_handler& err, int32_t line, religion_context& context);
+	void finish(religion_context& context) { };
+};
+
+void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+struct religion_group {
+	void finish(scenario_building_context& context) { };
+};
+
+struct religion_file {
+	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) { };
+	void finish(scenario_building_context& context) { };
+};
 
 struct int_vector {
 	std::vector<int32_t> data;
