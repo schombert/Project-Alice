@@ -47,6 +47,8 @@ inline constexpr GLuint alpha_color = 20;
 inline constexpr GLuint subsprite_c = 21;
 inline constexpr GLuint linegraph_acolor = 22;
 inline constexpr GLuint stripchart = 23;
+inline constexpr GLuint frame_repeat = 24;
+
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -324,7 +326,9 @@ void render_barchart(sys::state const& state, color_modification enabled, float 
 		data_texture& t, ui::rotation r, bool flipped, bool rtl);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t);
-void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+void render_bordered_rect_stretch(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_bordered_rect_repeat(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);

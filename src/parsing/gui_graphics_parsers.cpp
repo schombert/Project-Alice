@@ -87,6 +87,12 @@ void gfx_object_outer::corneredtilespritetype(gfx_object const& obj, parsers::er
 		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::bordered_rect);
+	// Repeating the center segment produces the same result as stretching it even though uses a bit more GPU resources
+}
+void gfx_object_outer::corneredrepeatpritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
+		building_gfx_context& context) {
+	auto res = common_create_object(obj, context);
+	res.obj->flags |= uint8_t(ui::object_type::bordered_rect_repeat);
 }
 void gfx_object_outer::maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
 		building_gfx_context& context) {

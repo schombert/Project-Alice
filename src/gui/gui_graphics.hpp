@@ -28,7 +28,8 @@ enum class object_type : uint8_t {
 	text_sprite = 0x06,
 	barchart = 0x07,
 	piechart = 0x08,
-	linegraph = 0x09
+	linegraph = 0x09,
+	bordered_rect_repeat = 0x0A,
 };
 
 struct xy_pair {

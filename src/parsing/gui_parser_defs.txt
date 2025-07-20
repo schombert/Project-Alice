@@ -31,6 +31,7 @@ gfx_object_outer
 	scrollingsprite         group     none         discard
 	spritetype              group     gfx_object   member_fn
 	corneredtilespritetype  group     gfx_object   member_fn
+	corneredrepeatpritetype  group     gfx_object   member_fn
 	maskedshieldtype        group     gfx_object   member_fn
 	textspritetype          group     gfx_object   member_fn
 	tilespritetype          group     gfx_object   member_fn

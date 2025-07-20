@@ -98,6 +98,7 @@ struct gfx_object {
 struct gfx_object_outer {
 	void spritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 	void corneredtilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
+	void corneredrepeatpritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 	void maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 	void textspritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);
 	void tilespritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line, building_gfx_context& context);

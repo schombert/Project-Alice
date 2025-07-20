@@ -246,13 +246,20 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
-			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+			 if(gfx_def.get_object_type() == ui::object_type::bordered_rect_repeat) {
+				ogl::render_bordered_rect_repeat(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+				base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+				get_horizontal_flip(state));
+			}
+			else if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+				ogl::render_bordered_rect_stretch(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 					gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
 					get_horizontal_flip(state));
-			} else if(gfx_def.number_of_frames > 1) {
+			}  else if(gfx_def.number_of_frames > 1) {
 				ogl::render_subsprite(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), frame,
 					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
@@ -788,7 +795,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		// is-vertically-flipped is also ignored, also the border size **might** be
 		// variable/stored somewhere, but I don't know where?
 		if(bool(background_texture_id)) {
-			ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
+			ogl::render_bordered_rect_stretch(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
 				float(base_data.size.y), ogl::get_texture_handle(state, background_texture_id, true), base_data.get_rotation(), false,
 				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
@@ -804,7 +811,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 }
 
 void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
+	ogl::render_bordered_rect_stretch(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
 		float(base_data.size.y), ogl::get_texture_handle(state, definitions::tiles_dialog, true), ui::rotation::upright, false, false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
@@ -1569,7 +1576,7 @@ void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t 
 		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
+				ogl::render_bordered_rect_stretch(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
 					float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
