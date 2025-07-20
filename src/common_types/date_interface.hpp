@@ -10,12 +10,8 @@ struct year_month_day {
 	uint16_t month;
 	uint16_t day;
 
-	bool operator== (const year_month_day& other) {
-		return year == other.year && month == other.month && day == other.day;
-	}
-	bool operator!= (const year_month_day& other) {
-		return !(*this == other);
-	}
+	bool operator== (const year_month_day& other) const = default;
+	bool operator!= (const year_month_day& other) const = default;
 };
 
 class absolute_time_point {
