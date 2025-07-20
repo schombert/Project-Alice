@@ -996,7 +996,7 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state, save_type type, std::string const& name) {
+void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
 	//header.timestamp = state.scenario_time_stamp;
@@ -1042,9 +1042,15 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
-		auto ymd_date = state.current_date.to_ymd(state.start_date);
-		auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		if(!file_name.empty()) {
+			auto base_str = file_name + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
+		else {
+			auto ymd_date = state.current_date.to_ymd(state.start_date);
+			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
 	}
 	delete[] temp_buffer;
 
