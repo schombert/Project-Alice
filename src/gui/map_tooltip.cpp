@@ -237,7 +237,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			if(province::province_is_deep_waters(state, prov)) {
 				text::add_line(state, contents, "alice_supply_range_deep_waters");
 			}
-			else if(province::sea_province_is_adjacent_to_friendly_coast(state, prov, state.local_player_nation)) {
+			else if(province::sea_province_is_adjacent_to_accessible_coast(state, prov, state.local_player_nation)) {
 				text::add_line(state, contents, "alice_supply_range_friendly_port");
 			}
 			else {

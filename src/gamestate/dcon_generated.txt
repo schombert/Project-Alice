@@ -2229,6 +2229,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ months_outside_naval_range }
+		type{ uint8_t }
+		tag{ save }
+	}
+	property{
 		name{ is_retreating }
 		type{ bitfield }
 		tag{ save }

@@ -34,7 +34,7 @@ struct global_provincial_state {
 };
 
 bool province_is_deep_waters(sys::state& state, dcon::province_id prov);
-bool sea_province_is_adjacent_to_friendly_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
+bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void update_connected_regions(sys::state& state);

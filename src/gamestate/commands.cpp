@@ -4218,6 +4218,10 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 	state.world.navy_get_path(a).clear();
 	state.world.navy_set_arrival_time(a, sys::date{});
 
+	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
+
+	state.world.navy_set_months_outside_naval_range(a, highest_months_out_of_range);
+
 	auto regs = state.world.navy_get_navy_membership(b);
 	while(regs.begin() != regs.end()) {
 		auto reg = (*regs.begin()).get_ship();
@@ -4655,6 +4659,7 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 		auto new_u = fatten(state.world, state.world.create_navy());
 		new_u.set_controller_from_navy_control(source);
 		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
+		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(a));
 
 		for(auto t : to_transfer) {
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
@@ -4744,6 +4749,7 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 		auto new_u = fatten(state.world, state.world.create_navy());
 		new_u.set_controller_from_navy_control(source);
 		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
+		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(a));
 
 		for(auto t : to_transfer) {
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
