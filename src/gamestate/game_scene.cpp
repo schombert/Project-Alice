@@ -121,13 +121,14 @@ void selected_units_control(
 	bool army_play = false;
 	//as opposed to queueing
 	bool reset_orders = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_shift)) == 0;
+
 	float volume = get_effects_volume(state);
 
 	for(auto a : state.selected_armies) {
 		if(command::can_move_army(state, nation, a, target, reset_orders).empty()) {
 			fail = true;
 		} else {
-			command::move_army(state, nation, a, target, reset_orders);
+			command::move_army(state, nation, a, target, reset_orders, state.ui_state.selected_army_order);
 			army_play = true;
 		}
 	}
@@ -647,6 +648,7 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::TAB) {
 			ui::open_chat_window(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
+			// Battleplanner scene hotkey
 			switch_scene(state, scene_id::in_game_military);
 		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
 			// Economy scene hotkey
@@ -1047,6 +1049,7 @@ void update_army_group_selection_ui(sys::state& state) {
 }
 
 void update_unit_selection_ui(sys::state& state) {
+	// Change window visibility and pass unit ids down.
 	if(state.selected_armies.size() + state.selected_navies.size() > 1) {
 		state.ui_state.multi_unit_selection_window->set_visible(state, true);
 		state.ui_state.army_status_window->set_visible(state, false);

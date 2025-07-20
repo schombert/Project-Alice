@@ -3679,7 +3679,7 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	diplomatic_message::post(state, m);
 }
 
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::move_army;
@@ -3687,6 +3687,8 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 	p.data.army_movement.a = a;
 	p.data.army_movement.dest = dest;
 	p.data.army_movement.reset = reset;
+	p.data.army_movement.special_order = order;
+
 	add_to_command_queue(state, p);
 }
 
@@ -3842,7 +3844,7 @@ std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nati
 	}
 }
 
-void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return;
 	if(state.world.army_get_is_retreating(a))
@@ -3863,12 +3865,14 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 	auto existing_path = state.world.army_get_path(a);
 
+	// Invalid destination province: reset existing path
 	if(!dest) {
 		existing_path.clear();
 		state.world.army_set_arrival_time(a, sys::date{});
 		return;
 	}
 
+	// Reset existing path
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
@@ -3880,8 +3884,12 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
+	state.world.army_set_special_order(a, (uint8_t)special_order);
+
+	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
 
+	// Path is valid
 	if(path.size() > 0) {
 		auto append_size = uint32_t(path.size());
 		auto old_size = existing_path.size();
@@ -3900,11 +3908,36 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
+
+		// US9AC1 Command army to pursue the target
+		if(special_order == military::special_army_order::pursue_to_engage) {
+			auto found = false;
+
+			// Target the first regiment of the first army in the target province
+			// Targeting regiments allows more stable pursuit that can't be easily reset by nullifying army id
+			auto al = (*state.world.province_get_army_location(dest).begin());
+
+			if(al) {
+				auto army = al.get_army();
+				auto membership = (*army.get_army_membership().begin());
+
+				if(membership) {
+					state.world.army_set_pursuit_target(a, membership.get_regiment());
+				}
+				else {
+					state.world.army_set_pursuit_target(a, dcon::regiment_id{});
+				}
+			}
+			else {
+				state.world.army_set_pursuit_target(a, dcon::regiment_id{});
+			}
+		}
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
 	}
 	state.world.army_set_moving_to_merge(a, false);
 
+	// Move away FROM battle
 	if(battle) {
 		state.world.army_set_is_retreating(a, true);
 		state.world.army_set_battle_from_army_battle_participation(a, dcon::land_battle_id{});
@@ -6494,7 +6527,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_send_peace_offer(state, c.source);
 		break;
 	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset);
+		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.special_order);
 		break;
 	case command_type::move_navy:
 		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);

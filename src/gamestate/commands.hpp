@@ -133,7 +133,7 @@ enum class command_type : uint8_t {
 		network_inactivity_ping = 123,
 		notify_player_fully_loaded = 124, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
 		notify_player_is_loading = 125, // host sends this to all clients to notify that a specific client has begun loading
-		change_ai_nation_state = 126, // host sends this to new clients to inform them of no-ai nations, which arent players. 
+		change_ai_nation_state = 126, // host sends this to new clients to inform them of no-ai nations, which arent players.
 
 	// console cheats
 	network_populate = 254,
@@ -385,6 +385,7 @@ struct army_movement_data {
 	dcon::army_id a;
 	dcon::province_id dest;
 	bool reset;
+	military::special_army_order special_order;
 };
 
 struct navy_movement_data {
@@ -806,10 +807,11 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 // Thus, if you want to move the unit to a new location from its current location,
 //     first stop its current movement and then send the new destination as a second command
 // ALSO: can returns an empty vector if no path could be made
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset);
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order = military::special_army_order::none);
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest);
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset = true);
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order);
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
