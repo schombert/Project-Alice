@@ -233,6 +233,25 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				text::close_layout_box(contents, box);
 			}
 		}
+		if(prov.index() >= state.province_definitions.first_sea_province.index()) {
+			if(province::province_is_deep_waters(state, prov)) {
+				text::add_line(state, contents, "alice_supply_range_deep_waters");
+			}
+			else if(province::sea_province_is_adjacent_to_friendly_coast(state, prov, state.local_player_nation)) {
+				text::add_line(state, contents, "alice_supply_range_friendly_port");
+			}
+			else {
+				auto values = military::closest_naval_range_port_with_distance(state, prov, state.local_player_nation);
+				if(bool(values.first) && values.second <= state.defines.supply_range * ( 1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range))) {
+					text::add_line(state, contents, "alice_ship_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
+				}
+				else {
+					text::add_line(state, contents, "alice_ship_not_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
+				}
+				//auto used_distance = province::direct_distance(state, values.first, prov) * province::world_circumference;
+				text::add_line(state, contents, "alice_supply_range_distance", text::variable_type::x, text::fp_two_places{values.second }, text::variable_type::y, text::fp_two_places{ state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range)) });
+			}
+		}
 	}
 }
 

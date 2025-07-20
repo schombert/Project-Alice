@@ -28,6 +28,39 @@ bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id 
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
 }
+
+bool province_is_deep_waters(sys::state& state, dcon::province_id prov) {
+	assert(prov.index() >= state.province_definitions.first_sea_province.index());
+	
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
+		auto adj_prov = adj.get_connected_provinces(indx);
+		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
+			return false;
+		}
+	}
+	return true;
+
+}
+
+bool sea_province_is_adjacent_to_friendly_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	assert(prov.index() >= state.province_definitions.first_sea_province.index());
+
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
+		auto adj_prov = adj.get_connected_provinces(indx);
+		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
+			auto controller = state.world.province_get_nation_from_province_control(adj_prov);
+			if(nation == controller || nations::are_allied(state, nation, controller) || military::are_in_common_war(state, nation, controller)) {
+				return true;
+			}
+		}
+	}
+	return false;
+
+}
+
+
 void update_connected_regions(sys::state& state) {
 	if(!state.adjacency_data_out_of_date)
 		return;
@@ -2152,12 +2185,18 @@ float distance(sys::state& state, dcon::province_adjacency_id pair) {
 	return state.world.province_adjacency_get_distance(pair);
 }
 
+
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
 	return math::acos(dot) * (world_circumference / (2.0f * math::pi));
+}
+
+// naval range distance between two provinces
+float naval_range_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
+	return direct_distance(state, a, b) * naval_range_distance_mult;
 }
 
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {

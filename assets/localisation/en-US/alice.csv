@@ -1673,3 +1673,8 @@ alice_sort_pops;Sort Pops
 alice_sort_states;Sort States
 alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W
 open_economy_scene;Open economy viewer
+alice_ship_in_supply_range;Ship in supply range, closest port: $x$
+alice_ship_not_in_supply_range;Ship outside supply range, closest port: $x$
+alice_supply_range_distance;Using $x$/$y$ distance to the nearest port
+alice_supply_range_friendly_port;Adjacent to friendly port
+alice_supply_range_deep_waters;In deep waters

@@ -1531,6 +1531,27 @@ uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov,
 	}
 }
 
+std::pair<dcon::province_id, float> closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	if(state.world.nation_get_province_control(nation).begin() != state.world.nation_get_province_control(nation).end()) {
+		auto first_dist = province::naval_range_distance(state, (*state.world.nation_get_province_control(nation).begin()).get_province(), prov);
+		std::pair<dcon::province_id, float> closest{ dcon::province_id{ },  first_dist };
+		for(auto p : state.world.nation_get_province_control(nation)) {
+			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
+				auto dist = province::naval_range_distance(state, p.get_province(), prov);
+				if(dist < closest.second) {
+					closest.first = p.get_province();
+					closest.second = dist;
+				}
+			}
+		}
+		return closest;
+	}
+	else {
+		return std::pair<dcon::province_id, float>();
+	}
+	
+}
+
 void update_naval_supply_points(sys::state& state) {
 	/*
 	- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or
@@ -6057,7 +6078,45 @@ bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 }
 
 float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov) {
-	return 0.0f;
+
+
+	/*Sea attrition is always 0% if adjacent to a land province which is controlled by the navy controller or the navy controller is allied or in a common war with the land province controller.
+	If adjacent to a land province and the above isn't the case, the unit will only take attrition if it is outside the supply range decided by define:SUPPLY_RANGE * supply_range modifiers. Any port lvl 1 or higher counts as a supply origin point
+	If on the deep ocean (all adjacent provinces are sea), the unit will always take attrition.
+	Sea attrition only ticks monthly, and does not tick on province arrival.
+	ghh*/
+
+	if(bool(state.world.navy_get_battle_from_navy_battle_participation(a))) {
+		return 0.0f;
+	}
+
+	auto navy_controller = state.world.navy_get_controller_from_navy_control(a);
+	bool any_adj_land_prov = false;
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
+		auto adj_prov = adj.get_connected_provinces(indx);
+		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
+			any_adj_land_prov = true;
+			auto controller = state.world.province_get_nation_from_province_control(adj_prov);
+			if(navy_controller == controller || nations::are_allied(state, navy_controller, controller) || military::are_in_common_war(state, navy_controller, controller)) {
+				return 0.0f;
+			}
+		}
+	}
+	if(!any_adj_land_prov) {
+		return 1.0f;
+	}
+	else {
+		for(auto p : state.world.nation_get_province_control(navy_controller)) {
+			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
+				auto dist = province::naval_range_distance(state, p.get_province(), prov);
+				if(dist <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
+					return 0.0f;
+				}
+			}
+		}
+		return 1.0f;
+	}
 }
 
 float sum_army_weight(sys::state& state, const std::vector<dcon::army_id>& armies) {
