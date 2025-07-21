@@ -1,7 +1,20 @@
 #include "gui_scripted_elements.hpp"
 #include "dcon_generated.hpp"
+#include "triggers.hpp"
+#include "effects.hpp"
 
 namespace ui {
+
+int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel) {
+	// US9AC3 US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
+	if(datamodel == ui::datamodel::state_religion) {
+		auto country = state.local_player_nation;
+		auto fat_id = dcon::fatten(state.world, state.world.nation_get_religion(country));
+		return int32_t(fat_id.get_icon() - 1);
+	}
+
+	return 0;
+}
 
 dcon::scripted_interaction_id get_scripted_element_by_gui_def(sys::state& state, dcon::gui_def_id def) {
 	for(auto sel : state.world.in_scripted_interaction) {

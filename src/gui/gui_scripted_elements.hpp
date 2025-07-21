@@ -1,18 +1,16 @@
 #pragma once
 
+#include "dcon_generated.hpp"
+#include "gui_graphics.hpp"
+#include "gui_element_base.hpp"
+#include "system_state.hpp"
+#include "text.hpp"
+#include "color.hpp"
+#include "gui_element_types.hpp"
+
 namespace ui {
 
-int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel) {
-	// US9AC3 US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
-	if(datamodel == ui::datamodel::state_religion) {
-		auto country = state.local_player_nation;
-		auto fat_id = dcon::fatten(state.world, state.world.nation_get_religion(country));
-		return int32_t(fat_id.get_icon() - 1);
-	}
-
-	return 0;
-}
-
+int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel);
 
 // US9AC5
 class icon_w_datamodel : public image_element_base {
