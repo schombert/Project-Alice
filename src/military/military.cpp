@@ -4732,18 +4732,16 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	}
 
 	/*
-	 slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x
+	 slowest ship or regiment x
 	 (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait
 	 + 1)
+	 (Speed bonus from railroads & modifiers are handled by the movement_cost modifier, which is subtracted by the distance later)
 	*/
 	auto leader = state.world.army_get_general_from_army_leadership(a);
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
-		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
-								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
-		(leader_move + 1.0f);
+	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *  (leader_move + 1.0f) * state.defines.land_speed_modifier;
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -4758,17 +4756,17 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
+	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f) * state.defines.naval_speed_modifier;
 }
 
 int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance(state, adj);
-	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
-		state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost);
+	float sum_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) - 1.0f) +
+					 (state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) - 1.0f);
 	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
 
-	float effective_speed = effective_army_speed(state, a);
+	float effective_speed = effective_army_speed(state, a) / 2.0f;
 
 	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
 	assert(days > 0);
@@ -4777,11 +4775,9 @@ int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province
 int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance(state, adj);
-	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
-		state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost);
-	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+	float effective_distance = distance;
 
-	float effective_speed = effective_navy_speed(state, n);
+	float effective_speed = effective_navy_speed(state, n) / 2.0f;
 
 	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
 	return days;
