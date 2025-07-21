@@ -194,6 +194,9 @@ bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context);
 bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context);
 
+bool ui_script_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context);
+bool ui_script_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context);
+
 struct image : public gui_element_common {
 	image();
 	void frame(association_type, uint32_t v, error_handler& err, int32_t line, building_gfx_context& context);
