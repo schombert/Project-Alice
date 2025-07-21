@@ -1114,7 +1114,7 @@ int main(int argc, char* argv[]) {
 	load_playerpassw();
 
 	while(!glfwWindowShouldClose(m_window)) {
-		if(focused_object != -1 && (glfwGetTime() - last_cursor_blink_time > CURSOR_BLINK_INTERVAL)) {
+		if(active_textbox != -1 && (glfwGetTime() - last_cursor_blink_time > CURSOR_BLINK_INTERVAL)) {
 			is_cursor_visible = !is_cursor_visible;
 			last_cursor_blink_time = glfwGetTime();
 		}
