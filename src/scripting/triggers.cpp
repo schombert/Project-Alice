@@ -5321,6 +5321,12 @@ TRIGGER_FUNCTION(tf_check_variable) {
 	auto id = payload(tval[3]).natv_id;
 	return compare_values(tval[0], ws.world.nation_get_variables(to_nation(primary_slot), id), read_float_from_payload(tval + 1));
 }
+TRIGGER_FUNCTION(tf_check_global_variable) {
+	auto id = payload(tval[3]).natv_id;
+	auto n = ws.world.national_identity_get_nation_from_identity_holder(ws.national_definitions.rebel_id);
+
+	return compare_values(tval[0], ws.world.nation_get_variables(n, id), read_float_from_payload(tval + 1));
+}
 TRIGGER_FUNCTION(tf_upper_house) {
 	auto id = payload(tval[3]).ideo_id;
 	return compare_values(tval[0], ws.world.nation_get_upper_house(to_nation(primary_slot), id), 100.0f * read_float_from_payload(tval + 1));

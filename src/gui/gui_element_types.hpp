@@ -583,30 +583,6 @@ public:
 	}
 };
 
-class province_script_button : public button_element_base {
-public:
-	dcon::gui_def_id base_definition;
-
-	province_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
-	void button_action(sys::state& state) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-};
-class nation_script_button : public button_element_base {
-public:
-	dcon::gui_def_id base_definition;
-
-	nation_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
-	void button_action(sys::state& state) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-};
 
 class flag_button : public button_element_base {
 protected:
@@ -1400,7 +1376,7 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
+				ogl::render_bordered_rect_stretch(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
 					float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
@@ -1416,7 +1392,6 @@ void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x
 	}
 	container_base::render(state, x, y);
 }
-
 
 template<class RowConT>
 message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {

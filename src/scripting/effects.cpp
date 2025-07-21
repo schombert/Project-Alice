@@ -4347,7 +4347,20 @@ uint32_t ef_country_event_immediate_province_this_pop(EFFECT_PARAMTERS) {
 }
 
 uint32_t ef_sub_unit_int(EFFECT_PARAMTERS) {
-	// do nothing
+	auto type = trigger::payload(tval[1]).unit_id;
+	auto prov = trigger::to_prov(primary_slot);
+	auto owner = ws.world.province_get_nation_from_province_ownership(prov);
+
+	// Spawn the regiment from random soldier pop
+	for(auto pop : ws.world.province_get_pop_location(prov)) {
+		if(pop.get_pop().get_poptype() == ws.culture_definitions.soldiers) {
+			// Compensate new unit spawning with increased pop
+			pop.get_pop().set_size(pop.get_pop().get_size() + ws.defines.pop_size_per_regiment);
+			military::spawn_regiment(ws, owner, type, pop.get_pop());
+			break;
+		}
+	}
+
 	return 0;
 }
 uint32_t ef_sub_unit_this(EFFECT_PARAMTERS) {
@@ -4359,7 +4372,29 @@ uint32_t ef_sub_unit_from(EFFECT_PARAMTERS) {
 	return 0;
 }
 uint32_t ef_sub_unit_current(EFFECT_PARAMTERS) {
-	// do nothing
+	auto type = trigger::payload(tval[1]).unit_id;
+	auto prov = trigger::to_prov(primary_slot);
+	auto owner = ws.world.province_get_nation_from_province_ownership(prov);
+
+	if(ws.military_definitions.unit_base_definitions[type].is_land) {
+		// Spawn the regiment from random soldier pop
+		for(auto pop : ws.world.province_get_pop_location(prov)) {
+			if(pop.get_pop().get_poptype() == ws.culture_definitions.soldiers) {
+				// Compensate new unit spawning with increased pop
+				pop.get_pop().set_size(pop.get_pop().get_size() + ws.defines.pop_size_per_regiment);
+				military::spawn_regiment(ws, owner, type, pop.get_pop());
+				break;
+			}
+		}
+	}
+	else {
+		// Spawn the ship
+		if(!ws.world.province_get_is_coast(prov)) {
+			return 0;
+		}
+
+		military::spawn_ship(ws, owner, type, prov);
+	}
 	return 0;
 }
 uint32_t ef_set_variable(EFFECT_PARAMTERS) {
@@ -4374,6 +4409,23 @@ uint32_t ef_change_variable(EFFECT_PARAMTERS) {
 
 	auto& current = ws.world.nation_get_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natv_id);
 	ws.world.nation_set_variables(trigger::to_nation(primary_slot), trigger::payload(tval[1]).natv_id, current + amount);
+	return 0;
+}
+
+uint32_t ef_set_global_variable(EFFECT_PARAMTERS) {
+	auto amount = trigger::read_float_from_payload(tval + 2);
+	assert(std::isfinite(amount));
+	ws.world.nation_set_variables(dcon::nation_id{}, trigger::payload(tval[1]).natv_id, amount);
+	return 0;
+}
+uint32_t ef_change_global_variable(EFFECT_PARAMTERS) {
+	auto amount = trigger::read_float_from_payload(tval + 2);
+	assert(std::isfinite(amount));
+
+	auto n = ws.world.national_identity_get_nation_from_identity_holder(ws.national_definitions.rebel_id);
+
+	auto& current = ws.world.nation_get_variables(n, trigger::payload(tval[1]).natv_id);
+	ws.world.nation_set_variables(n, trigger::payload(tval[1]).natv_id, current + amount);
 	return 0;
 }
 uint32_t ef_ideology(EFFECT_PARAMTERS) {

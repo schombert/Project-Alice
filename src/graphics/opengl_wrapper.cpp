@@ -769,7 +769,9 @@ void render_stripchart(sys::state const& state, color_modification enabled, floa
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
-void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+
+// Render a rectangle with of a given size at given coordinates stretching up the texture
+void render_bordered_rect_stretch(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
@@ -782,6 +784,25 @@ void render_bordered_rect(sys::state const& state, color_modification enabled, f
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
 	GLuint subroutines[2] = {map_color_modification_to_index(enabled), parameters::frame_stretch};
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+// Render a rectangle of a given size at given coordinates filled up with a texture (repeat)
+void render_bordered_rect_repeat(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	bind_vertices_by_rotation(state, r, flipped, rtl);
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, border_size);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::frame_repeat };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
 	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 
