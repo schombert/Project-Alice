@@ -9,6 +9,9 @@ struct year_month_day {
 	int32_t year;
 	uint16_t month;
 	uint16_t day;
+
+	bool operator== (const year_month_day& other) const = default;
+	bool operator!= (const year_month_day& other) const = default;
 };
 
 class absolute_time_point {
