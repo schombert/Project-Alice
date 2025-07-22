@@ -4759,7 +4759,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f) * state.defines.naval_speed_modifier;
 }
 
-int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
+float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance(state, adj);
 	float sum_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) - 1.0f) +
@@ -4768,32 +4768,51 @@ int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province
 
 	float effective_speed = effective_army_speed(state, a) / 2.0f;
 
-	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
-	assert(days > 0);
+	float days = effective_speed > 0.0f ? effective_distance / effective_speed : 50;
+	assert(days > 0.0f);
 	return days;
 }
-int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
+float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance(state, adj);
 	float effective_distance = distance;
 
 	float effective_speed = effective_navy_speed(state, n) / 2.0f;
 
-	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	float days = effective_speed > 0.0f ? effective_distance / effective_speed : 50;
+	assert(days > 0.0f);
 	return days;
 }
 
-sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from) {
+	auto float_days = movement_time_from_to(state, a, from, to);
 
-	auto days = movement_time_from_to(state, a, state.world.army_get_location_from_army_location(a), p);
+	float travel_days = std::ceil(float_days);
+	float extra_days = travel_days - float_days;
 
-	return state.current_date + days;
+	return arrival_time_info_raw{ .travel_days = int32_t(travel_days), .unused_travel_days = extra_days };
 }
-sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::navy_id n, dcon::province_id to, dcon::province_id from) {
+	auto float_days = movement_time_from_to(state, n, from, to);
+
+	float travel_days = std::ceil(float_days);
+	float extra_days = travel_days - float_days;
+
+	return arrival_time_info_raw{ .travel_days = int32_t(travel_days), .unused_travel_days = extra_days };
+}
+
+arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
+
+	auto arrival_raw_data = arrival_time_to_in_days(state, a, p, state.world.army_get_location_from_army_location(a));
+
+	return arrival_time_info{ .arrival_time = state.current_date + arrival_raw_data.travel_days, .unused_travel_days = arrival_raw_data.unused_travel_days };
+}
+arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+	auto arrival_raw_data = arrival_time_to_in_days(state, n, p, state.world.navy_get_location_from_navy_location(n));
 
 
-	auto days = movement_time_from_to(state, n, state.world.navy_get_location_from_navy_location(n), p);
-	return state.current_date + days;
+	return arrival_time_info{ .arrival_time = state.current_date + arrival_raw_data.travel_days, .unused_travel_days = arrival_raw_data.unused_travel_days };
 }
 
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r) {
@@ -5112,7 +5131,9 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 		auto existing_path = state.world.navy_get_path(n);
 		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
 
-		state.world.navy_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+		auto arrival_info = arrival_time_to(state, n, retreat_path.back());
+		state.world.navy_set_arrival_time(n, arrival_info.arrival_time);
+		state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
 
 		for(auto em : state.world.navy_get_army_transport(n)) {
 			em.get_army().get_path().clear();
@@ -5136,7 +5157,9 @@ bool retreat(sys::state& state, dcon::army_id n) {
 		auto existing_path = state.world.army_get_path(n);
 		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
 
-		state.world.army_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+		auto arrival_info = arrival_time_to(state, n, retreat_path.back());
+		state.world.army_set_arrival_time(n, arrival_info.arrival_time);
+		state.world.army_set_unused_travel_days(n, arrival_info.unused_travel_days);
 		state.world.army_set_dig_in(n, 0);
 		return true;
 	} else {
@@ -5616,7 +5639,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		} else {
 			auto path = n.get_army().get_path();
 			if(path.size() > 0) {
-				state.world.army_set_arrival_time(n.get_army(), arrival_time_to(state, n.get_army(), path.at(path.size() - 1)));
+				// unused travel days is saved from when the army entered the battle
+				auto arrival_info = arrival_time_to(state, n.get_army(), path.at(path.size() - 1));
+				state.world.army_set_arrival_time(n.get_army(), arrival_info.arrival_time);
 			}
 		}
 	}
@@ -5840,13 +5865,16 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		} else {
 			auto path = n.get_navy().get_path();
 			if(path.size() > 0) {
-				state.world.navy_set_arrival_time(n.get_navy(), arrival_time_to(state, n.get_navy(), path.at(path.size() - 1)));
+				// unused travel days is saved from when the navy entered the battle
+				auto arrival_info = arrival_time_to(state, n.get_navy(), path.at(path.size() - 1));
+				state.world.navy_set_arrival_time(n.get_navy(), arrival_info.arrival_time);
 			}
 
 			for(auto em : n.get_navy().get_army_transport()) {
 				auto apath = em.get_army().get_path();
 				if(apath.size() > 0) {
-					state.world.army_set_arrival_time(em.get_army(), arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1)));
+					auto arrival_info = arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1));
+					state.world.army_set_arrival_time(em.get_army(), arrival_info.arrival_time);
 				}
 			}
 		}
@@ -7884,6 +7912,7 @@ void update_movement(sys::state& state) {
 				} else {
 					path.clear();
 				}
+				a.set_unused_travel_days(0.0f);
 			} else { // land province
 				if(a.get_black_flag()) {
 					auto n = state.world.province_get_nation_from_province_ownership(dest);
@@ -7930,9 +7959,20 @@ void update_movement(sys::state& state) {
 				// nothing -- movement paused
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
-				a.set_arrival_time(arrival_time_to(state, a, next_dest));
+				update_movement_arrival_days_on_unit(state, next_dest, a.get_location_from_army_location(), a.id);
+				/*auto arrival_data = arrival_time_to(state, a, next_dest);
+				auto unused_travel_days = a.get_unused_travel_days();
+				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
+					a.set_arrival_time(arrival_data.arrival_time - 1);
+					a.set_unused_travel_days(unused_travel_days - 1.0f);
+				}
+				else {
+					a.set_arrival_time(arrival_data.arrival_time);
+					a.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
+				}*/
 			} else {
 				a.set_arrival_time(sys::date{});
+				a.set_unused_travel_days(0.0f);
 				if(a.get_is_retreating()) {
 					a.set_is_retreating(false);
 					army_arrives_in_province(state, a, dest,
@@ -7988,6 +8028,7 @@ void update_movement(sys::state& state) {
 						a.set_navy_from_army_transport(dcon::navy_id{});
 						a.get_path().clear();
 						a.set_arrival_time(sys::date{});
+						a.set_unused_travel_days(0.0f);
 						auto acontroller = a.get_controller_from_army_control();
 
 						if(acontroller && !acontroller.get_is_player_controlled()) {
@@ -8003,7 +8044,9 @@ void update_movement(sys::state& state) {
 									for(uint32_t i = 0; i < new_size; ++i) {
 										existing_path[i] = apath[i];
 									}
-									a.set_arrival_time(military::arrival_time_to(state, a, apath.back()));
+									auto arrival_data = military::arrival_time_to(state, a, apath.back());
+									a.set_arrival_time(arrival_data.arrival_time);
+									a.set_unused_travel_days(arrival_data.unused_travel_days);
 									a.set_dig_in(0);
 									auto activity = ai::army_activity(a.get_ai_activity());
 									if(activity == ai::army_activity::transport_guard) {
@@ -8032,6 +8075,7 @@ void update_movement(sys::state& state) {
 					a.get_army().set_location_from_army_location(dest);
 					a.get_army().get_path().clear();
 					a.get_army().set_arrival_time(sys::date{});
+					a.get_army().set_unused_travel_days(0.0f);
 				}
 			}
 
@@ -8039,9 +8083,19 @@ void update_movement(sys::state& state) {
 				// nothing, movement paused
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
-				n.set_arrival_time(arrival_time_to(state, n, next_dest));
+				update_movement_arrival_days_on_unit(state, next_dest, n.get_location_from_navy_location(), n.id);
+				/*auto arrival_data = arrival_time_to(state, n, next_dest);
+				auto unused_travel_days = n.get_unused_travel_days();
+				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
+					n.set_arrival_time(arrival_data.arrival_time - 1);
+					n.set_unused_travel_days(unused_travel_days - 1.0f);
+				} else {
+					n.set_arrival_time(arrival_data.arrival_time);
+					n.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
+				}*/
 			} else {
 				n.set_arrival_time(sys::date{});
+				n.set_unused_travel_days(0.0f);
 				if(n.get_is_retreating()) {
 					if(dest.index() >= state.province_definitions.first_sea_province.index())
 						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
@@ -8070,6 +8124,50 @@ void update_movement(sys::state& state) {
 	}
 }
 
+template<typename T>
+void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army) {
+	auto arrival_data = military::arrival_time_to_in_days(state, army, to, from);
+	if constexpr(std::is_same<dcon::army_id, T>()) {
+		auto& unused_travel_days = state.world.army_get_unused_travel_days(army);
+		state.world.army_set_unused_travel_days(army, unused_travel_days + arrival_data.unused_travel_days);
+		if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+			state.world.army_set_arrival_time(army, state.current_date + (arrival_data.travel_days - 1));
+			state.world.army_set_unused_travel_days(army, unused_travel_days - 1.0f);
+		} else {
+			state.world.army_set_arrival_time(army, state.current_date + arrival_data.travel_days);
+		}
+	}
+	else {
+		auto& unused_travel_days = state.world.navy_get_unused_travel_days(army);
+		state.world.navy_set_unused_travel_days(army, unused_travel_days + arrival_data.unused_travel_days);
+		if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+			state.world.navy_set_arrival_time(army, state.current_date + (arrival_data.travel_days - 1));
+			state.world.navy_set_unused_travel_days(army, unused_travel_days - 1.0f);
+		} else {
+			state.world.navy_set_arrival_time(army, state.current_date + arrival_data.travel_days);
+		}
+	}
+	
+}
+template void update_movement_arrival_days_on_unit<dcon::army_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::army_id army);
+template void update_movement_arrival_days_on_unit<dcon::navy_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::navy_id army);
+
+
+template<typename T>
+void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon::province_id from, T army, float& unused_travel_days, sys::date& arrival_time) {
+	auto arrival_data = military::arrival_time_to_in_days(state, army, to, from);
+	unused_travel_days += arrival_data.unused_travel_days;
+	if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+		arrival_time += (arrival_data.travel_days - 1);
+		unused_travel_days -= 1.0f;
+	} else {
+		arrival_time += arrival_data.travel_days;
+	}
+}
+
+template void update_movement_arrival_days<dcon::navy_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::navy_id army, float& unused_travel_days, sys::date& arrival_time);
+template void update_movement_arrival_days<dcon::army_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::army_id army, float& unused_travel_days, sys::date& arrival_time);
+
 float fractional_distance_covered(sys::state& state, dcon::army_id a) {
 	auto date = state.world.army_get_arrival_time(a);
 	if(!date)
@@ -8083,7 +8181,7 @@ float fractional_distance_covered(sys::state& state, dcon::army_id a) {
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
-	auto difference = full_time.value - state.current_date.value;
+	auto difference = full_time.arrival_time.value - state.current_date.value;
 	auto covered = date.value - state.current_date.value;
 
 	if(difference <= 0)
@@ -8104,7 +8202,7 @@ float fractional_distance_covered(sys::state& state, dcon::navy_id a) {
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
-	auto difference = full_time.value - state.current_date.value;
+	auto difference = full_time.arrival_time.value - state.current_date.value;
 	auto covered = date.value - state.current_date.value;
 
 	if(difference <= 0)
@@ -8154,8 +8252,9 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			for(uint32_t i = new_size; i-- > 0; ) {
 				existing_path.at(i) = path[i];
 			}
-
-			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+			auto arrival_data = military::arrival_time_to(state, a, path.back());
+			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
+			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
 			state.world.army_set_dig_in(a, 0);
 
 			break;
@@ -8176,8 +8275,9 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			for(uint32_t i = new_size; i-- > 0; ) {
 				existing_path.at(i) = path[i];
 			}
-
-			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+			auto arrival_data = military::arrival_time_to(state, a, path.back());
+			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
+			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
 			state.world.army_set_dig_in(a, 0);
 		}
 	}
@@ -8461,6 +8561,7 @@ void eject_ships(sys::state& state, dcon::province_id p) {
 			a.get_army().set_location_from_army_location(sea_zone);
 			a.get_army().get_path().clear();
 			a.get_army().set_arrival_time(sys::date{});
+			a.get_army().set_unused_travel_days(0.0f);
 		}
 	}
 }
@@ -9454,7 +9555,9 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 			assert(path[k]);
 			existing_path[k] = path[k];
 		}
-		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		auto arrival_data = military::arrival_time_to(state, a, path.back());
+		state.world.army_set_arrival_time(a, arrival_data.arrival_time);
+		state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
 		state.world.army_set_moving_to_merge(a, true);
 	}
 }
@@ -9489,7 +9592,9 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 			assert(path[k]);
 			existing_path[k] = path[k];
 		}
-		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+		auto arrival_data = military::arrival_time_to(state, a, path.back());
+		state.world.navy_set_arrival_time(a, arrival_data.arrival_time);
+		state.world.navy_set_unused_travel_days(a, arrival_data.unused_travel_days);
 		state.world.navy_set_moving_to_merge(a, true);
 	}
 }

@@ -860,6 +860,7 @@ void rebel_hunting_check(sys::state& state) {
 					if(state.world.army_get_location_from_army_location(a) == closest_prov) {
 						state.world.army_get_path(a).clear();
 						state.world.army_set_arrival_time(a, sys::date{});
+						state.world.army_set_unused_travel_days(a, 0.0f);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
@@ -871,7 +872,9 @@ void rebel_hunting_check(sys::state& state) {
 						for(uint32_t j = 0; j < new_size; j++) {
 							existing_path.at(j) = path[j];
 						}
-						state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+						auto arrival_info = military::arrival_time_to(state, a, path.back());
+						state.world.army_set_arrival_time(a, arrival_info.arrival_time);
+						state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
 						state.world.army_set_dig_in(a, 0);
 
 						rebel_hunters[i] = rebel_hunters.back();
@@ -900,7 +903,9 @@ void rebel_hunting_check(sys::state& state) {
 				for(uint32_t j = 0; j < new_size; j++) {
 					existing_path.at(j) = path[j];
 				}
-				state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+				auto arrival_info = military::arrival_time_to(state, a, path.back());
+				state.world.army_set_arrival_time(a, arrival_info.arrival_time);
+				state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
 				state.world.army_set_dig_in(a, 0);
 			} else {
 				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
@@ -1389,7 +1394,9 @@ void update_armies(sys::state& state) {
 		if(best_prov != location) {
 			ar.get_path().resize(1);
 			ar.get_path()[0] = best_prov;
-			ar.set_arrival_time(military::arrival_time_to(state, ar.id, best_prov));
+			auto arrival_info = military::arrival_time_to(state, ar.id, best_prov);
+			ar.set_arrival_time(arrival_info.arrival_time);
+			ar.set_unused_travel_days(arrival_info.unused_travel_days);
 			ar.set_dig_in(0);
 			ar.set_is_rebel_hunter(false);
 		}

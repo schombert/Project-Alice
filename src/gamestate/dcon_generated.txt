@@ -2190,6 +2190,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ unused_travel_days }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ ai_activity }
 		type{ uint8_t }
 		tag{ save }
@@ -2226,6 +2231,11 @@ object {
 	property{
 		name{ arrival_time }
 		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ unused_travel_days }
+		type{ float }
 		tag{ save }
 	}
 	property{

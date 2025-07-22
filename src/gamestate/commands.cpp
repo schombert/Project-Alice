@@ -3866,6 +3866,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	if(!dest) {
 		existing_path.clear();
 		state.world.army_set_arrival_time(a, sys::date{});
+		state.world.army_set_unused_travel_days(a, 0.0f);
 		return;
 	}
 
@@ -3876,6 +3877,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		//we assume that the intention is to cancel the current move command. Cancel the existing path and return w/o assigning a new one
 		if(state.world.army_get_location_from_army_location(a) == dest) {
 			state.world.army_set_arrival_time(a, sys::date{});
+			state.world.army_set_unused_travel_days(a, 0.0f);
 			return;
 		}
 	}
@@ -3896,12 +3898,15 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 
 		if(existing_path.at(new_size - 1) != old_first_prov) {
-			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
+			auto arrival_info = military::arrival_time_to(state, a, path.back());
+			state.world.army_set_arrival_time(a, arrival_info.arrival_time);
+			state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
 		}
 		state.world.army_set_dig_in(a, 0);
 		state.world.army_set_is_rebel_hunter(a, false);
 	} else if(reset) {
 		state.world.army_set_arrival_time(a, sys::date{});
+		state.world.army_set_unused_travel_days(a, 0.0f);
 	}
 	state.world.army_set_moving_to_merge(a, false);
 
@@ -4016,6 +4021,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	if(!dest) {
 		existing_path.clear();
 		state.world.navy_set_arrival_time(n, sys::date{});
+		state.world.navy_set_unused_travel_days(n, 0.0f);
 		return;
 	}
 
@@ -4039,10 +4045,13 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 		}
 
 		if(existing_path.at(new_size - 1) != old_first_prov) {
-			state.world.navy_set_arrival_time(n, military::arrival_time_to(state, n, path.back()));
+			auto arrival_info = military::arrival_time_to(state, n, path.back());
+			state.world.navy_set_arrival_time(n, arrival_info.arrival_time);
+			state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
 		}
 	} else if(reset) {
 		state.world.navy_set_arrival_time(n, sys::date{});
+		state.world.navy_set_unused_travel_days(n, 0.0f);
 	}
 	state.world.navy_set_moving_to_merge(n, false);
 
@@ -4161,6 +4170,7 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	// stop movement
 	state.world.army_get_path(a).clear();
 	state.world.army_set_arrival_time(a, sys::date{});
+	state.world.army_set_unused_travel_days(a, 0.0f);
 
 	// set dig in to the lowest value of the two armies
 	state.world.army_set_dig_in(a,std::min(
@@ -4217,6 +4227,7 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 	// stop movement
 	state.world.navy_get_path(a).clear();
 	state.world.navy_set_arrival_time(a, sys::date{});
+	state.world.navy_set_unused_travel_days(a, 0.0f);
 
 	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
 

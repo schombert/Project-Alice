@@ -262,6 +262,15 @@ struct land_battle_report {
 	bool player_on_winning_side;
 };
 
+struct arrival_time_info {
+	sys::date arrival_time;
+	float unused_travel_days;
+};
+struct arrival_time_info_raw {
+	int32_t travel_days;
+	float unused_travel_days;
+};
+
 constexpr inline int32_t days_before_retreat = 11;
 
 enum class battle_result {
@@ -491,12 +500,20 @@ void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value
 template<regiment_dmg_source damage_source>
 void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
-int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
-int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
-sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
-sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
+float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
+arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
+arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::navy_id n, dcon::province_id to, dcon::province_id from);
 float fractional_distance_covered(sys::state& state, dcon::army_id a);
 float fractional_distance_covered(sys::state& state, dcon::navy_id a);
+
+template<typename T>
+void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon::province_id from, T army, float& unused_travel_days, sys::date& arrival_time);
+
+template<typename T>
+void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army);
 
 enum class crossing_type {
 	none, river, sea

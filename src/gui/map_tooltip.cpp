@@ -122,17 +122,20 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
 				if(army.get_path().size() > 0 && *(army.get_path().end() - 1) == path.back()) {
 					dt += (army.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
-
-					curprov = path.front();
-					for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
-						dt += military::movement_time_from_to(state, a, curprov, *provonpath);
-						curprov = *provonpath;;
+					float extra_days = army.get_unused_travel_days();
+					curprov = path.back();
+					for(auto iterator = path.rbegin() + 1; iterator != path.rend(); iterator++) {
+						auto provonpath = *iterator;
+						military::update_movement_arrival_days(state, provonpath, curprov, army.id, extra_days, dt);
+						curprov = provonpath;
 					}
 
 				}
 				else {
-					for(const auto provonpath : path) {
-						dt += military::movement_time_from_to(state, a, curprov, provonpath);
+					float extra_days = 0.0f;
+					for(auto iterator = path.rbegin(); iterator != path.rend(); iterator++) {
+						auto provonpath = *iterator;
+						military::update_movement_arrival_days(state, provonpath, curprov, army.id, extra_days, dt);
 						curprov = provonpath;
 					}
 				}
@@ -199,17 +202,21 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 					// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
 					if(navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == path.back()) {
 						dt += (navy.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
+						float extra_days = navy.get_unused_travel_days();
+						curprov = path.back();
+						for(auto iterator = path.rbegin() + 1; iterator != path.rend(); iterator++) {
+							auto provonpath = *iterator;
+							military::update_movement_arrival_days(state, provonpath, curprov, navy.id, extra_days, dt);
 
-						curprov = path.front();
-						for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
-							dt += military::movement_time_from_to(state, n, curprov, *provonpath);
-							curprov = *provonpath;;
+							curprov = provonpath;
 						}
 
 					}
 					else {
-						for(const auto provonpath : path) {
-							dt += military::movement_time_from_to(state, n, curprov, provonpath);
+						float extra_days = 0.0f;
+						for(auto iterator = path.rbegin(); iterator != path.rend(); iterator++) {
+							auto provonpath = *iterator;
+							military::update_movement_arrival_days(state, provonpath, curprov, navy.id, extra_days, dt);
 							curprov = provonpath;
 						}
 					}
