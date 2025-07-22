@@ -4358,6 +4358,10 @@ command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id
 		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_domestic_investment));
 		result.domestic_investment = int8_t(std::clamp(min_spend, 0, 100));
 	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_land_upkeep));
+		result.land_spending = int8_t(std::clamp(min_spend, 0, 100));
+	}
 	return result;
 }
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n) {
@@ -4488,6 +4492,15 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 
 		auto& v = state.world.nation_get_domestic_investment_spending(n);
 		state.world.nation_set_domestic_investment_spending(n, int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100)));
+	}
+	{
+		auto min_spend =
+			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_land_upkeep));
+		auto max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_land_spending(n);
+		state.world.nation_set_land_spending(n, int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100)));
 	}
 }
 
