@@ -2075,8 +2075,11 @@ public:
 
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
-		background_pic->base_data.position.y -= 1;
-		add_child_to_back(std::move(bg_pic));
+		// Some mods might remove the background image
+		if(background_pic) {
+			background_pic->base_data.position.y -= 1;
+			add_child_to_back(std::move(bg_pic));
+		}
 
 		auto dpi_win = make_element_by_type<ui::diplomatic_message_topbar_listbox>(state, "alice_diplomessageicons_window");
 		state.ui_state.request_topbar_listbox = dpi_win.get();
@@ -2387,10 +2390,12 @@ public:
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.ui_state.topbar_subwindow->is_visible()) {
-			background_pic->set_visible(state, true);
-		} else {
-			background_pic->set_visible(state, false);
+		if(background_pic) {
+			if(state.ui_state.topbar_subwindow->is_visible()) {
+				background_pic->set_visible(state, true);
+			} else {
+				background_pic->set_visible(state, false);
+			}
 		}
 		window_element_base::render(state, x, y);
 	}
