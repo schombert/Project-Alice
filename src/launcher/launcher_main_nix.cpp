@@ -157,7 +157,9 @@ void mouse_click() {
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
 			std::vector<native_string> args;
-			args.push_back(native_string("./Alice"));
+			const char* hereEnv = std::getenv("HERE");
+			std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
+			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
 			printf("Starting game with scenario %s\n", selected_scenario_file.c_str());
 

@@ -470,14 +470,18 @@ if (BUILD_TESTING)
 	add_subdirectory(tests)
 endif()
 
-add_subdirectory(SaveEditor)
 if(WIN32)
+	add_subdirectory(SaveEditor)
 	add_subdirectory(DbgAlice)
 endif()
 add_subdirectory(Launcher)
 
 # Installation
 if(NOT WIN32)
+	install(TARGETS Alice launch_alice
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.desktop DESTINATION /usr/share/applications)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.png DESTINATION /usr/share/icons/hicolor/128x128/apps)
 endif()
