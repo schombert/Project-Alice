@@ -4756,30 +4756,32 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f) * state.defines.naval_speed_modifier;
+	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
 }
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	float distance = province::distance(state, adj);
+	/*float distance = province::distance(state, adj);*/
+	float distance = province::direct_distance_km(state, from, to);
 	float sum_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) - 1.0f) +
 					 (state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) - 1.0f);
 	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
 
-	float effective_speed = effective_army_speed(state, a) / 2.0f;
+	float effective_speed = effective_army_speed(state, a);
 
-	float days = effective_speed > 0.0f ? effective_distance / effective_speed : 50;
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * 5.0f) : 50;
 	assert(days > 0.0f);
 	return days;
 }
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	float distance = province::distance(state, adj);
+	/*float distance = province::distance(state, adj);*/
+	float distance = province::direct_distance_km(state, from, to);
 	float effective_distance = distance;
 
-	float effective_speed = effective_navy_speed(state, n) / 2.0f;
+	float effective_speed = effective_navy_speed(state, n);
 
-	float days = effective_speed > 0.0f ? effective_distance / effective_speed : 50;
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * 20) : 50;
 	assert(days > 0.0f);
 	return days;
 }

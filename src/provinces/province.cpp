@@ -2194,6 +2194,15 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 	return math::acos(dot) * (world_circumference / (2.0f * math::pi));
 }
 
+
+float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_id b) {
+	auto apos = state.world.province_get_mid_point_b(a);
+	auto bpos = state.world.province_get_mid_point_b(b);
+	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
+	return math::acos(dot) * state.defines.alice_globe_mean_radius_km;
+	/*return (math::acos(dot) / math::pi) * ((state.defines.alice_globe_mean_radius_km * 2) * math::pi) / 2.0f;*/
+}
+
 // naval range distance between two provinces
 float naval_range_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
 	return direct_distance(state, a, b) * naval_range_distance_mult;

@@ -102,6 +102,8 @@ float distance(sys::state& state, dcon::province_adjacency_id pair);
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
 
+float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_id b);
+
 // naval range distance between two provinces
 float naval_range_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
 // sorting distance returns values such that a smaller sorting distance between two provinces

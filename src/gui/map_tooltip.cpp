@@ -240,7 +240,8 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				text::close_layout_box(contents, box);
 			}
 		}
-		if(prov.index() >= state.province_definitions.first_sea_province.index()) {
+		// only show ship supply range information if the province is sea, and the selected navies are controlled by the player
+		if(prov.index() >= state.province_definitions.first_sea_province.index() && state.world.navy_get_controller_from_navy_control( state.selected_navies.front()) == state.local_player_nation) {
 			if(province::province_is_deep_waters(state, prov)) {
 				text::add_line(state, contents, "alice_supply_range_deep_waters");
 			}
