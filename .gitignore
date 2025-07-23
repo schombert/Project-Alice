@@ -8,9 +8,11 @@ docs/out/
 .vscode/
 .idea/
 # Ignore all build* folders in top directory
+_deps/
 build*/
 cmake-build-debug/
 mod[s]/
+test_fs_support_case_sensitivity
 
 # Generated parsers
 *_generated.hpp
@@ -250,6 +252,7 @@ _pkginfo.txt
 
 # Others
 ClientBin/
+Cmakefiles/
 ~$*
 *~
 *.dbmdl

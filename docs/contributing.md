@@ -60,8 +60,13 @@ From here compiling is straightforward
 1. `cd Project-Alice`
 2. do something to make the debugger launch the program in your V2 directory so that it can find the game files (I don't know how this is done on linux)
 4. `cmake -B build . -DCMAKE_BUILD_TYPE=Debug`
-5. `cmake --build build -j$(nproc)`
+5. To build all targets: `cmake --build build -j8`, where -j8 = compile with 8 threads, you can specify any value. As of writing this page, SaveEditor is Windows-only, so you want to compile Launcher and Alice separately:
+6. To build Launcher: `cmake --build build --parallel --target launch_alice`
+7. To build Alice: `cmake --build build --parallel --target Alice`
+8. To run incremental build: `cmake --build build --parallel --target AliceIncremental`
 
+If you're experiencing issues with libraries in your Linux distro (e.g. Debian having outdated versions), it is recommended to enable static linking on compilation:
+`set(USE_STATIC_LIBS ON)` in CMakeLists.txt.
 
 #### Final touches
 
