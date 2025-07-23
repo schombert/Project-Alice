@@ -2211,9 +2211,22 @@ float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_
 	/*return (math::acos(dot) / math::pi) * ((state.defines.alice_globe_mean_radius_km * 2) * math::pi) / 2.0f;*/
 }
 
-// naval range distance between two provinces
-float naval_range_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
-	return direct_distance(state, a, b) * naval_range_distance_mult;
+// naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
+naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov) {
+	assert(port_prov.index() < state.province_definitions.first_sea_province.index());
+	assert(sea_prov.index() >= state.province_definitions.first_sea_province.index());
+	const std::vector<dcon::province_id> path = make_naval_path(state, port_prov, sea_prov);
+	naval_range_data range_data{.distance = 0.0f, .is_reachable = false };
+	if(path.empty()) {
+		return range_data;
+	}
+	auto cur_prov = port_prov;
+	for(auto iterator = path.rbegin(); iterator != path.rend(); iterator++) {
+		range_data.distance += distance(state, state.world.get_province_adjacency_by_province_pair(cur_prov, *iterator)) * naval_range_distance_mult;
+		cur_prov = *iterator;
+	}
+	range_data.is_reachable = true;
+	return range_data;
 }
 
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {

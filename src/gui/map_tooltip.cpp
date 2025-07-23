@@ -253,10 +253,12 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				if(bool(values.first) && values.second <= state.defines.supply_range * ( 1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range))) {
 					text::add_line(state, contents, "alice_ship_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
 				}
+				else if(!bool(values.first)) {
+					text::add_line(state, contents, "alice_ship_supply_range_unreachable");
+				}
 				else {
 					text::add_line(state, contents, "alice_ship_not_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
 				}
-				//auto used_distance = province::direct_distance(state, values.first, prov) * province::world_circumference;
 				text::add_line(state, contents, "alice_supply_range_distance", text::variable_type::x, text::fp_two_places{values.second }, text::variable_type::y, text::fp_two_places{ state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range)) });
 			}
 		}
