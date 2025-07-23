@@ -7,8 +7,6 @@ namespace province {
 
 inline constexpr float naval_range_distance_mult = 0.391f; // multiplier applied to regular direct distances to compute the naval range distance. This is so default naval range values match up with the expected values from vic2.
 
-inline constexpr float world_circumference = 40075.0f / 10.0f; // in arbitrary units
-
 inline constexpr uint16_t to_map_id(dcon::province_id id) {
 	return uint16_t(id.index() + 1);
 }
@@ -99,6 +97,10 @@ void upgrade_colonial_state(sys::state& state, dcon::nation_id owner, dcon::stat
 float state_distance(sys::state& state, dcon::state_instance_id state_id, dcon::province_id prov_id);
 // distance between to adjacent provinces
 float distance(sys::state& state, dcon::province_adjacency_id pair);
+
+// distance in kilometers between to adjacent provinces
+float distance_km(sys::state& state, dcon::province_adjacency_id pair);
+
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
 

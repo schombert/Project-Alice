@@ -4761,27 +4761,25 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	/*float distance = province::distance(state, adj);*/
-	float distance = province::direct_distance_km(state, from, to);
+	float distance = province::distance_km(state, adj);
 	float sum_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) - 1.0f) +
 					 (state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) - 1.0f);
 	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
 
 	float effective_speed = effective_army_speed(state, a);
 
-	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * 5.0f) : 50;
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * state.defines.alice_army_marching_hours_per_day) : 50;
 	assert(days > 0.0f);
 	return days;
 }
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	/*float distance = province::distance(state, adj);*/
-	float distance = province::direct_distance_km(state, from, to);
+	float distance = province::distance_km(state, adj);
 	float effective_distance = distance;
 
 	float effective_speed = effective_navy_speed(state, n);
 
-	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * 20) : 50;
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * state.defines.alice_navy_sailing_hours_per_day) : 50;
 	assert(days > 0.0f);
 	return days;
 }

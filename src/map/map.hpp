@@ -208,6 +208,7 @@ public:
 	uint32_t size_x;
 	uint32_t size_y;
 	uint32_t land_vertex_count = 0;
+	float world_circumference;
 
 	// Meshes
 	static constexpr uint32_t vo_land = 0;

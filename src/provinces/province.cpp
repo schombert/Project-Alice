@@ -1772,7 +1772,8 @@ bool can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_definiti
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
 				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
-				if(dist <= province::world_circumference * state.defines.alice_naval_base_to_colonial_distance_factor * nb_level) {
+				auto arbitrary_circumference = state.map_state.map_data.world_circumference / 10.0f;
+				if(dist <= arbitrary_circumference * state.defines.alice_naval_base_to_colonial_distance_factor * nb_level) {
 					reachable_by_sea = true;
 					break;
 				}
@@ -1877,7 +1878,8 @@ bool fast_can_start_colony(sys::state& state, dcon::nation_id n, dcon::state_def
 		for(auto p : state.world.nation_get_province_ownership(n)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0 && p.get_province().get_nation_from_province_control() == n) {
 				auto dist = province::direct_distance(state, p.get_province(), coastal_target);
-				if(dist <= province::world_circumference * 0.04f * nb_level) {
+				auto arbitrary_circumference = state.map_state.map_data.world_circumference / 10.0f;
+				if(dist <= arbitrary_circumference * 0.04f * nb_level) {
 					reachable_by_sea = true;
 					break;
 				}
@@ -2185,13 +2187,19 @@ float distance(sys::state& state, dcon::province_adjacency_id pair) {
 	return state.world.province_adjacency_get_distance(pair);
 }
 
+// distance in kilometers between to adjacent provinces
+float distance_km(sys::state& state, dcon::province_adjacency_id pair) {
+	return state.world.province_adjacency_get_distance_km(pair);
+}
+
 
 // direct distance between two provinces; does not pathfind
 float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id b) {
 	auto apos = state.world.province_get_mid_point_b(a);
 	auto bpos = state.world.province_get_mid_point_b(b);
 	auto dot = (apos.x * bpos.x + apos.y * bpos.y) + apos.z * bpos.z;
-	return math::acos(dot) * (world_circumference / (2.0f * math::pi));
+	auto arbitrary_circumference = state.map_state.map_data.world_circumference / 10.0f;
+	return math::acos(dot) * (arbitrary_circumference / (2.0f * math::pi));
 }
 
 
@@ -2858,7 +2866,9 @@ void restore_distances(sys::state& state) {
 	}
 	for(auto adj : state.world.in_province_adjacency) {
 		auto dist = direct_distance(state, adj.get_connected_provinces(0), adj.get_connected_provinces(1));
+		auto dist_km = direct_distance_km(state, adj.get_connected_provinces(0), adj.get_connected_provinces(1));
 		adj.set_distance(dist);
+		adj.set_distance_km(dist_km);
 	}
 }
 

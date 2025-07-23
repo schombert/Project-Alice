@@ -1875,6 +1875,11 @@ relationship{
 		type{ float }
 		
 	}
+	property{
+		name{ distance_km }
+		type{ float }
+		
+	}
 
 	property{
 		name{ sea_adj_prov }
