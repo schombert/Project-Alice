@@ -308,7 +308,7 @@ TEST_CASE("sim_none", "[determinism]") {
 // this test repopulates all the test saves which is used for the tests below. Each test uses a save and runs in a 10-year incremement from the start of that save-
 TEST_CASE("populate_test_saves", "[determinism]") {
 
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
 
 
 	game_state_1->game_seed = test_game_seed;

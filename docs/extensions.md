@@ -556,6 +556,7 @@ These relate to army attrition
 These relate to unit movement
 - `alice_army_marching_hours_per_day = 5.0f`: The amount of hours an army marches per day on average. Effectively this is a multiplier to the army's km/hour stat deciding how far an army can move in a single day
 - `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
+As the above defines implies, the distances between provinces are measured in kilometers now when it comes to unit-movement, and maps directly onto the km/hour stat.
 
 ### Support for reforms based on party issues
 
