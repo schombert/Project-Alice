@@ -22,6 +22,8 @@ if (WIN32)
 	target_link_libraries(tests_project PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 endif()
 
+target_link_libraries(tests_project PRIVATE fmt::fmt)
+
 # GENERATE test parsers
 
 # The command to build the generated testparsers file

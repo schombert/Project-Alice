@@ -43,6 +43,7 @@ if (WIN32)
 endif()
 
 target_link_libraries(launch_alice PRIVATE AliceCommon)
+target_link_libraries(launch_alice PRIVATE fmt::fmt)
 if (WIN32)
 	target_link_libraries(launch_alice PRIVATE dbghelp)
 endif()
