@@ -240,6 +240,8 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				text::close_layout_box(contents, box);
 			}
 		}
+		// use caching to avoid calling "closest_naval_range_port_with_distance" on every update as it could be computationally expensive
+		static ankerl::unordered_dense::map<dcon::province_id, military::naval_range_display_data, sys::province_hash> cached_naval_range_distances{};
 		// only show ship supply range information if the province is sea, and the selected navies are controlled by the player
 		if(prov.index() >= state.province_definitions.first_sea_province.index() && state.world.navy_get_controller_from_navy_control( state.selected_navies.front()) == state.local_player_nation) {
 			if(province::province_is_deep_waters(state, prov)) {
@@ -249,17 +251,27 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				text::add_line(state, contents, "alice_supply_range_friendly_port");
 			}
 			else {
-				auto values = military::closest_naval_range_port_with_distance(state, prov, state.local_player_nation);
-				if(bool(values.first) && values.second <= state.defines.supply_range * ( 1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range))) {
-					text::add_line(state, contents, "alice_ship_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
+
+				auto iterator = cached_naval_range_distances.find(prov);
+				military::naval_range_display_data values{};
+				// check if there is a cached value already, and if it is not out-of-date
+				if(iterator != cached_naval_range_distances.end() && iterator->second.timestamp == state.current_date) {
+					values = iterator->second;
 				}
-				else if(!bool(values.first)) {
+				else {
+					values = military::closest_naval_range_port_with_distance(state, prov, state.local_player_nation);
+					cached_naval_range_distances.insert_or_assign(prov, values);
+				}
+				if(bool(values.closest_port) && values.distance <= state.defines.supply_range * ( 1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range))) {
+					text::add_line(state, contents, "alice_ship_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.closest_port)));
+				}
+				else if(!bool(values.closest_port)) {
 					text::add_line(state, contents, "alice_ship_supply_range_unreachable");
 				}
 				else {
-					text::add_line(state, contents, "alice_ship_not_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.first)));
+					text::add_line(state, contents, "alice_ship_not_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.closest_port)));
 				}
-				text::add_line(state, contents, "alice_supply_range_distance", text::variable_type::x, text::fp_two_places{values.second }, text::variable_type::y, text::fp_two_places{ state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range)) });
+				text::add_line(state, contents, "alice_supply_range_distance", text::variable_type::x, text::fp_two_places{values.distance }, text::variable_type::y, text::fp_two_places{ state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range)) });
 			}
 		}
 	}

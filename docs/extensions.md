@@ -553,6 +553,10 @@ These relate to army attrition
 - `alice_attrition_war_exhaustion = 1.5`: Multiplier to the war exhaustion gained from taking attrition losses. Works similar to the "COMBATLOSS_WAR_EXHAUSTION" define, but for attrition losses instead. Set to 0 to disable all attrition war exhaustion.
 
 
+These relate to unit movement
+- `alice_army_marching_hours_per_day = 5.0f`: The amount of hours an army marches per day on average. Effectively this is a multiplier to the army's km/hour stat deciding how far an army can move in a single day
+- `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:

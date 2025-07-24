@@ -271,6 +271,13 @@ struct arrival_time_info_raw {
 	float unused_travel_days;
 };
 
+
+struct naval_range_display_data {
+	dcon::province_id closest_port;
+	float distance;
+	sys::date timestamp;
+};
+
 constexpr inline int32_t days_before_retreat = 11;
 
 enum class battle_result {
@@ -391,7 +398,7 @@ ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<
 
 float get_ship_combat_score(sys::state& state, dcon::ship_id ship);
 
-std::pair<dcon::province_id, float> closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
+naval_range_display_data closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity

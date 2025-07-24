@@ -1531,23 +1531,20 @@ uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov,
 	}
 }
 
-std::pair<dcon::province_id, float> closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+naval_range_display_data closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	naval_range_display_data closest{ .closest_port = dcon::province_id{ }, .distance = 9999999.0f, .timestamp = state.current_date };
 	if(state.world.nation_get_province_control(nation).begin() != state.world.nation_get_province_control(nation).end()) {
-		std::pair<dcon::province_id, float> closest{ dcon::province_id{ },  9999999.0f };
 		for(auto p : state.world.nation_get_province_control(nation)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
 				auto dist = province::naval_range_distance(state, p.get_province(), prov);
-				if(dist.is_reachable && dist.distance < closest.second) {
-					closest.first = p.get_province();
-					closest.second = dist.distance;
+				if(dist.is_reachable && dist.distance < closest.distance) {
+					closest.closest_port = p.get_province();
+					closest.distance = dist.distance;
 				}
 			}
 		}
-		return closest;
 	}
-	else {
-		return std::pair<dcon::province_id, float>();
-	}
+	return closest;
 	
 }
 
@@ -6108,14 +6105,20 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 	If on the deep ocean (all adjacent provinces are sea), the unit will always take attrition.
 	Sea attrition only ticks monthly, and does not tick on province arrival.
 	Each valid monthly attrition tick has a base of 1.0% added to (months_outside_naval_range * 2.0%)
-	ghh*/
-
-	if(bool(state.world.navy_get_battle_from_navy_battle_participation(a)) || prov.index() < state.province_definitions.first_sea_province.index()) {
-		return 0.0f;
-	}
+	Navies docked in a land province or in battles cannot take monthly attrition
+	*/
 
 	auto navy_controller = state.world.navy_get_controller_from_navy_control(a);
-	bool any_adj_land_prov = false;
+	if(bool(state.world.navy_get_battle_from_navy_battle_participation(a))
+		|| prov.index() < state.province_definitions.first_sea_province.index()
+		|| province::sea_province_is_adjacent_to_accessible_coast(state, prov, navy_controller)) {
+		return 0.0f;
+	}
+	if(province::province_is_deep_waters(state, prov)) {
+		return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
+	}
+
+	/*bool any_adj_land_prov = false;
 	for(auto adj : state.world.province_get_province_adjacency(prov)) {
 		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
 		auto adj_prov = adj.get_connected_provinces(indx);
@@ -6127,20 +6130,22 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 			}
 		}
 	}
+	if(province::sea_province_is_adjacent_to_accessible_coast(state, prov, navy_controller)) {
+		return 0.0f;
+	}
 	if(!any_adj_land_prov) {
 		return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
-	}
-	else {
-		for(auto p : state.world.nation_get_province_control(navy_controller)) {
-			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
-				auto dist = province::naval_range_distance(state, p.get_province(), prov);
-				if(dist.is_reachable && dist.distance <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
-					return 0.0f;
-				}
+	}*/
+	for(auto p : state.world.nation_get_province_control(navy_controller)) {
+		if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
+			auto dist = province::naval_range_distance(state, p.get_province(), prov);
+			if(dist.is_reachable && dist.distance <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
+				return 0.0f;
 			}
 		}
-		return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
 	}
+	return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
+	
 }
 
 float sum_army_weight(sys::state& state, const std::vector<dcon::army_id>& armies) {
