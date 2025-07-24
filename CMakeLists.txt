@@ -254,10 +254,10 @@ target_link_libraries(AliceIncremental PRIVATE AliceCommon)
 if (WIN32)
 	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+else()
+	target_link_libraries(Alice PRIVATE fmt::fmt)
+	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
 endif()
-
-target_link_libraries(Alice PRIVATE fmt::fmt)
-target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
 
 # System headers
 target_precompile_headers(Alice
