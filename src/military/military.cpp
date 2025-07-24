@@ -4758,9 +4758,9 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance_km(state, adj);
-	float sum_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) - 1.0f) +
-					 (state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) - 1.0f);
-	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+	// take the average of the modifiers in the two provinces
+	float avg_mods = (state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) + state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost)) / 2.0f;
+	float effective_distance = std::max(0.1f, distance * avg_mods);
 
 	float effective_speed = effective_army_speed(state, a);
 
