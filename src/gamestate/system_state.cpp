@@ -2436,7 +2436,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
-		assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
+		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
