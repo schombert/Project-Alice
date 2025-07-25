@@ -591,6 +591,10 @@ struct payload {
 	payload() { }
 };
 
+enum class execute_cmd_as {
+	player, ai
+};
+
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
@@ -721,9 +725,11 @@ bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::move
 
 void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
+void execute_civilize_nation(sys::state& state, dcon::nation_id source);
 
 void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+void execute_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
@@ -742,6 +748,7 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
+void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 
 void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id);
@@ -815,6 +822,8 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 
+void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
+
 
 // This command is used for getting armies in/out of transports while those transports are docked in port
 // If the army is already embarked, it will disembark; if it is not embarked it will embark
@@ -827,6 +836,8 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+template<execute_cmd_as execute_as = execute_cmd_as::player>
+void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);

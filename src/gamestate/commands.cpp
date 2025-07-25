@@ -2158,25 +2158,10 @@ bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision
 	return true;
 }
 void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	nations::take_decision(state, source, d);
 	if(auto e = state.world.decision_get_effect(d); e) {
-		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
-				uint32_t(source.index() << 4 ^ d.index()));
 		event::update_future_events(state);
 	}
-
-	notification::post(state, notification::message{
-		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_decision_1", text::variable_type::x, source, text::variable_type::y, state.world.decision_get_name(d));
-			if(auto e = state.world.decision_get_effect(d); e) {
-				text::add_line(state, contents, "msg_decision_2");
-				ui::effect_description(state, contents, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(when.value),
-					uint32_t(source.index() << 4 ^ d.index()));
-			}
-		},
-		"msg_decision_title",
-		source, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::decision
-	});
 }
 
 bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
@@ -4216,6 +4201,7 @@ bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a
 
 	return true;
 }
+template<execute_cmd_as execute_as>
 void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
 	// take leader
 	auto a_leader = state.world.navy_get_admiral_from_navy_leadership(a);
@@ -4224,10 +4210,13 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 		state.world.navy_set_admiral_from_navy_leadership(a, b_leader);
 	}
 
-	// stop movement
-	state.world.navy_get_path(a).clear();
-	state.world.navy_set_arrival_time(a, sys::date{});
-	state.world.navy_set_unused_travel_days(a, 0.0f);
+	// stop movement, but not for ai's
+	if constexpr(execute_as == execute_cmd_as::player) {
+		state.world.navy_get_path(a).clear();
+		state.world.navy_set_arrival_time(a, sys::date{});
+		state.world.navy_set_unused_travel_days(a, 0.0f);
+	}
+	
 
 	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
 
@@ -4244,12 +4233,15 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 		auto arm = (*transported.begin()).get_army();
 		arm.set_navy_from_army_transport(a);
 	}
-
-	if(source == state.local_player_nation) {
-		state.deselect(b);
+	if constexpr(execute_as == execute_cmd_as::player) {
+		if(source == state.local_player_nation) {
+			state.deselect(b);
+		}
 	}
 	military::cleanup_navy(state, b);
 }
+template void execute_merge_navies<execute_cmd_as::player>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+template void execute_merge_navies<execute_cmd_as::ai>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 
 void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
@@ -4443,14 +4435,12 @@ void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::r
 	for(unsigned i = 0; i < num_packed_units; i++) {
 		if(regiments[i]) {
 			if(state.world.regiment_get_type(regiments[i]) != new_type) {
-				state.world.regiment_set_type(regiments[i], new_type);
-				state.world.regiment_set_strength(regiments[i], 0.01f);
+				military::upgrade_regiment(state, regiments[i], new_type);
 			}
 		}
 		if(ships[i]) {
 			if(state.world.ship_get_type(ships[i]) != new_type) {
-				state.world.ship_set_type(ships[i], new_type);
-				state.world.ship_set_strength(ships[i], 0.01f);
+				military::upgrade_ship(state, ships[i], new_type);
 			}
 		}
 	}

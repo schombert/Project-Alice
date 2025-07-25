@@ -5,6 +5,13 @@
 
 namespace ai {
 
+struct ai_path_length {
+	uint32_t length;
+	bool operator==(const ai_path_length& other) const = default;
+	bool operator!=(const ai_path_length& other) const = default;
+
+};
+
 void take_ai_decisions(sys::state& state);
 void update_ai_ruling_party(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);

@@ -4690,6 +4690,15 @@ float directed_warscore(
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type) {
+	state.world.ship_set_type(ship, new_type);
+	state.world.ship_set_strength(ship, 0.01f);
+}
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type) {
+	state.world.regiment_set_type(ship, new_type);
+	state.world.regiment_set_strength(ship, 0.01f);
+}
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
 	int32_t max_cap = 0;
 	for(auto n : state.world.province_get_navy_location(p)) {

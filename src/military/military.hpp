@@ -475,6 +475,10 @@ void advance_mobilizations(sys::state& state);
 
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);
+
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type);
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type);
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a);
 dcon::navy_id find_embark_target(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a);
 float effective_army_speed(sys::state& state, dcon::army_id a);
