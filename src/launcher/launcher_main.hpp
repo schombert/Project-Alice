@@ -116,6 +116,7 @@ static sys::player_name player_password;
 static std::string requestedScenarioFileName;
 static std::string enabledModsMask;
 static bool autoBuild = false;
+static bool headless = false;
 
 enum class string_index : uint8_t {
 	create_scenario,
