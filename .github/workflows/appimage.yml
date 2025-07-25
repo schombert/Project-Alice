@@ -1,4 +1,4 @@
-name: Build Matrix
+name: Build AppImage
 
 on:
   pull_request:
