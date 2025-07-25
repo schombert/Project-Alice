@@ -104,7 +104,7 @@ add_executable(Alice WIN32
 	${ALICE_CORE_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32
+add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
@@ -112,7 +112,7 @@ else()
 add_executable(Alice WIN32
 	${ALICE_CORE_SOURCES_LIST}
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32
+add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	${ASSET_FILES})
 endif()
@@ -124,9 +124,9 @@ if(NOT WIN32)
 endif()
 
 # Include sub-projects.
-add_subdirectory(dependencies)
-add_subdirectory(ParserGenerator)
-add_subdirectory(FifInterfaceGenerator)
+add_subdirectory(dependencies EXCLUDE_FROM_ALL)
+add_subdirectory(ParserGenerator EXCLUDE_FROM_ALL)
+add_subdirectory(FifInterfaceGenerator EXCLUDE_FROM_ALL)
 
 add_library(AliceCommon INTERFACE)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
@@ -470,12 +470,12 @@ add_dependencies(AliceIncremental GENERATE_PARSERS)
 
 if (BUILD_TESTING)
     enable_testing()
-	add_subdirectory(tests)
+	add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
 if(WIN32)
-	add_subdirectory(SaveEditor)
-	add_subdirectory(DbgAlice)
+	add_subdirectory(SaveEditor EXCLUDE_FROM_ALL)
+	add_subdirectory(DbgAlice EXCLUDE_FROM_ALL)
 endif()
 add_subdirectory(Launcher)
 
