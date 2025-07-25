@@ -64,6 +64,72 @@ jobs:
     - name: Build Project Alice Incremental
       run: |
         cmake --build build --parallel --target AliceIncremental
+  
+  linux-appimage:
+    strategy:
+      matrix:
+        config: [Release]
+        compiler: [clang]
+        os: [ubuntu-latest]
+
+    name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
+    runs-on: ${{ matrix.os }}
+    container: ubuntu:20.04
+    steps:
+    - uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: "Install"
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
+        version: 1.0
+
+    - name: Set compiler
+      run: |
+        echo "CC=${{ matrix.compiler == 'clang'   }}" >> $GITHUB_ENV
+        echo "CXX=${{ matrix.compiler == 'clang++' }}" >> $GITHUB_ENV
+
+    - name: Configure Build Files
+      run: |
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_INSTALL_PREFIX=/usr -B build 
+
+    - name: Build Project Alice
+      run: |
+        cmake --build build --parallel --target Alice
+
+    - name: Build Launcher
+      run: |
+        cmake --build build --parallel --target launch_alice
+    
+    - name: Create AppDir
+      run: |
+        cd build
+        make install DESTDIR=AppDir
+
+    - name: Create AppImage
+      run: |
+        cd build
+        wget -c -q "https://github.com/linuxdeploy/linuxdeploy/releases/download/continuous/linuxdeploy-x86_64.AppImage"
+        chmod +x linuxdeploy-x86_64.AppImage
+        cp ../src/AppRun AppDir/AppRun
+        ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --desktop-file AppDir/usr/share/applications/alice.desktop --icon-file AppDir/usr/share/icons/hicolor/128x128/apps/alice.png
+    
+    - name: Package AppImage and assets
+      run: |
+        cd build
+        mkdir package
+        cp *.AppImage package/
+        cp -r ../assets package/
+        cd package
+        tar czf Project_Alice-AppImage-with-assets.tar.gz *.AppImage assets
+
+    - name: Upload packaged artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Project_Alice-AppImage-with-assets
+        path: build/package/Project_Alice-AppImage-with-assets.tar.gz
 
   build-check:
     needs: [windows-build, linux-build]
