@@ -1899,14 +1899,27 @@ void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	}
 }
 
+dcon::scripted_interaction_id get_scripted_element_by_gui_def(sys::state& state, dcon::gui_def_id def) {
+	for(auto sel : state.world.in_scripted_interaction) {
+		if(sel.get_gui_element() == def) {
+			return sel;
+		}
+	}
+
+	return dcon::scripted_interaction_id{};
+}
+
 void province_script_button::button_action(sys::state& state) noexcept {
 	auto p = retrieve<dcon::province_id>(state, parent);
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
 	if(p && state.local_player_nation)
-		command::use_province_button(state, state.local_player_nation, base_definition, p);
+		command::use_province_button(state, state.local_player_nation, sel, p);
 }
 void province_script_button::on_update(sys::state& state) noexcept {
 	disabled = false;
 	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
+
 	if(def.get_element_type() != ui::element_type::button) {
 		disabled = true;
 		return;
@@ -1920,10 +1933,17 @@ void province_script_button::on_update(sys::state& state) noexcept {
 		disabled = true;
 		return;
 	}
-	disabled = !command::can_use_province_button(state, state.local_player_nation, base_definition, p);
+	disabled = !command::can_use_province_button(state, state.local_player_nation, sel, p);
+	auto new_visible = command::can_see_province_button(state, state.local_player_nation, sel, p);
+
+	if(visible != new_visible) {
+		visible = new_visible;
+		set_visible(state, visible);
+	}
 }
 void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
 
 	if(def.get_element_type() != ui::element_type::button)
 		return;
@@ -1942,27 +1962,33 @@ void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_
 		text::add_line_break_to_layout(state, contents);
 	}
 
-	if(def.data.button.scriptable_enable) {
-		text::add_line(state, contents, "allow_reform_cond");
-		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation));
+	auto allow = state.world.scripted_interaction_get_allow(sel);
+	auto effect = state.world.scripted_interaction_get_effect(sel);
+	if(allow) {
+		text::add_line(state, contents, "allow_reform_cond"); // Requirements:
+		ui::trigger_description(state, contents, allow, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation));
 		text::add_line_break_to_layout(state, contents);
 	}
-	if(def.data.button.scriptable_effect) {
+	if(effect) {
 		text::add_line(state, contents, "msg_decision_2");
-		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(p.index() ^ (base_definition.index() << 4)));
+		ui::effect_description(state, contents, effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(p.index() ^ (base_definition.index() << 4)));
 	}
 }
 void nation_script_button::button_action(sys::state& state) noexcept {
 	auto n = retrieve<dcon::nation_id>(state, parent);
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
+
 	if(n && state.local_player_nation) {
-		command::use_nation_button(state, state.local_player_nation, base_definition, n);
+		command::use_nation_button(state, state.local_player_nation, sel, n);
 	} else if(state.local_player_nation) {
-		command::use_nation_button(state, state.local_player_nation, base_definition, state.local_player_nation);
+		command::use_nation_button(state, state.local_player_nation, sel, state.local_player_nation);
 	}
 }
 void nation_script_button::on_update(sys::state& state) noexcept {
 	disabled = false;
 	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
+
 	if(def.get_element_type() != ui::element_type::button) {
 		disabled = true;
 		return;
@@ -1976,10 +2002,17 @@ void nation_script_button::on_update(sys::state& state) noexcept {
 		disabled = true;
 		return;
 	}
-	disabled = !command::can_use_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
+	disabled = !command::can_use_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+	auto new_visible = command::can_see_nation_button(state, state.local_player_nation, sel, n ? n : state.local_player_nation);
+
+	if(visible != new_visible) {
+		visible = new_visible;
+		set_visible(state, visible);
+	}
 }
 void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto& def = state.ui_defs.gui[base_definition];
+	auto sel = get_scripted_element_by_gui_def(state, base_definition);
 
 	if(def.get_element_type() != ui::element_type::button)
 		return;
@@ -1998,14 +2031,17 @@ void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t 
 		text::add_line_break_to_layout(state, contents);
 	}
 
-	if(def.data.button.scriptable_enable) {
+	auto allow = state.world.scripted_interaction_get_allow(sel);
+	auto effect = state.world.scripted_interaction_get_effect(sel);
+
+	if(allow) {
 		text::add_line(state, contents, "allow_reform_cond");
-		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
+		ui::trigger_description(state, contents, allow, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
 		text::add_line_break_to_layout(state, contents);
 	}
-	if(def.data.button.scriptable_effect) {
+	if(effect) {
 		text::add_line(state, contents, "msg_decision_2");
-		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(n.index() ^ (base_definition.index() << 4)));
+		ui::effect_description(state, contents, effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(n.index() ^ (base_definition.index() << 4)));
 	}
 }
 
@@ -2030,6 +2066,8 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 	} else if(def.get_element_type() == ui::element_type::button) {
 		if(def.data.button.get_button_scripting() == ui::button_scripting::province) {
 			auto res = std::make_unique<province_script_button>(id);
+			auto txtkey = state.ui_defs.gui[id].data.button.txt;
+
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
