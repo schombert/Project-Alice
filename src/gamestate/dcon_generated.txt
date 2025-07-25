@@ -1875,6 +1875,11 @@ relationship{
 		type{ float }
 		
 	}
+	property{
+		name{ distance_km }
+		type{ float }
+		
+	}
 
 	property{
 		name{ sea_adj_prov }
@@ -2190,6 +2195,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ unused_travel_days }
+		type{ float }
+		tag{ save }
+	}
+	property{
 		name{ ai_activity }
 		type{ uint8_t }
 		tag{ save }
@@ -2226,6 +2236,16 @@ object {
 	property{
 		name{ arrival_time }
 		type{ sys::date }
+		tag{ save }
+	}
+	property{
+		name{ unused_travel_days }
+		type{ float }
+		tag{ save }
+	}
+	property{
+		name{ months_outside_naval_range }
+		type{ uint8_t }
 		tag{ save }
 	}
 	property{
