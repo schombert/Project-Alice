@@ -70,20 +70,20 @@ jobs:
       matrix:
         config: [Release]
         compiler: [clang]
-        os: [ubuntu-latest]
+        os: [ubuntu-22.04]
 
-    name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
+    name: Ubuntu 22.04 with ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
-    container: ubuntu:20.04
     steps:
     - uses: actions/checkout@v4
       with:
         fetch-depth: 0
 
-    - name: "Install dependencies"
-      run: |
-        apt-get update
-        apt-get install -y git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
+    - name: "Install"
+      uses: awalsh128/cache-apt-pkgs-action@latest
+      with:
+        packages: git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
+        version: 1.0
 
     - name: Set compiler
       run: |
