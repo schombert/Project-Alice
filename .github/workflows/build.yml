@@ -83,7 +83,7 @@ jobs:
     - name: "Install dependencies"
       run: |
         apt-get update
-        apt-get install git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
+        apt-get install -y git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
 
     - name: Set compiler
       run: |
