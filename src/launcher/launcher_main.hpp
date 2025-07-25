@@ -1282,4 +1282,7 @@ float base_text_extent(char const* codepoints, uint32_t count, int32_t size, tex
 	return x;
 }
 
+static int32_t active_textbox = -1;
+bool is_cursor_visible = true;
+
 }
