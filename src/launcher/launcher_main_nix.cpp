@@ -4,7 +4,10 @@
 #include <locale>
 #include <codecvt>
 
+#define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3.h>
+#include <GLFW/glfw3native.h>
+
 #include "launcher_main.hpp"
 
 namespace launcher {
@@ -169,7 +172,9 @@ void mouse_click() {
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
 			std::vector<native_string> args;
-			args.push_back(native_string("./Alice"));
+			const char* hereEnv = std::getenv("HERE");
+			std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
+			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
 			printf("Starting game with scenario %s\n", selected_scenario_file.c_str());
 
@@ -528,9 +533,43 @@ void character_with_backspace_callback(GLFWwindow* window, int key, int scancode
 }
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-	if(button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS) {
-		mouse_click();
-		set_cursor();
+	if(button == GLFW_MOUSE_BUTTON_LEFT) {
+		if(action == GLFW_PRESS) {
+			mouse_click();
+			set_cursor();
+			if(obj_under_mouse == -1) {
+				Display* display = glfwGetX11Display();
+				Window x11_window = glfwGetX11Window(m_window);
+
+				if(display == nullptr) {
+					std::cerr << "No X11 Display" << std::endl;
+					return;
+				}
+
+				Window root_return, child_return;
+				int root_x, root_y, win_x, win_y;
+				unsigned int mask_return;
+
+				if(!XQueryPointer(display, DefaultRootWindow(display), &root_return, &child_return, &root_x, &root_y, &win_x, &win_y, &mask_return)) {
+					std::cerr << "XQueryPointer failed" << std::endl;
+					return;
+				}
+
+				XEvent event;
+				memset(&event, 0, sizeof(event));
+				event.xclient.type = ClientMessage;
+				event.xclient.window = x11_window;
+				event.xclient.message_type = XInternAtom(display, "_NET_WM_MOVERESIZE", False);
+				event.xclient.format = 32;
+				event.xclient.data.l[0] = root_x;
+				event.xclient.data.l[1] = root_y;
+				event.xclient.data.l[2] = 8;
+				event.xclient.data.l[3] = 1;
+				event.xclient.data.l[4] = 1;
+				XSendEvent(display, DefaultRootWindow(display), False, SubstructureRedirectMask | SubstructureNotifyMask, &event);
+				XFlush(display);
+			}
+		}
 	}
 }
 
