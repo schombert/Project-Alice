@@ -651,29 +651,30 @@ bool naval_advantage(sys::state& state, dcon::nation_id n) {
 
 
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
-template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path) {
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset = true) {
 	if(naval_path.size() > 0) {
 		auto existing_path = state.world.navy_get_path(navy);
-		if constexpr(path_length_to_use.length == 0) {
-			auto new_size = uint32_t(naval_path.size());
-			existing_path.resize(new_size);
-			for(uint32_t i = 0; i < new_size; ++i) {
-				assert(naval_path[i]);
-				existing_path[i] = naval_path[i];
-			}
-		} else {
-			auto new_size = std::min(uint32_t(naval_path.size()), path_length_to_use.length);
-			existing_path.resize(new_size);
-			for(uint32_t i = new_size; i-- > 0;) {
-				assert(naval_path[naval_path.size() - 1 - i]);
-				existing_path[new_size - 1 - i] = naval_path[naval_path.size() - 1 - i];
-			}
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
 		}
-		auto arrival_data = military::arrival_time_to(state, navy, naval_path.back());
-		state.world.navy_set_arrival_time(navy, arrival_data.arrival_time);
-		state.world.navy_set_unused_travel_days(navy, arrival_data.unused_travel_days);
+		auto append_size = uint32_t(naval_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = naval_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_info = military::arrival_time_to(state, navy, naval_path.back());
+			state.world.navy_set_arrival_time(navy, arrival_info.arrival_time);
+			state.world.navy_set_unused_travel_days(navy, arrival_info.unused_travel_days);
+		}
 		return true;
 	} else {
 		return false;
@@ -685,36 +686,59 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon:
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 }>
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination) {
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true) {
+	if(reset || state.world.navy_get_path(navy).size() == 0) {
 		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination);
-		return move_navy_ai<path_length_to_use>(state, navy, naval_path);
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_ai(state, navy, naval_path, reset);
+	}
+	else {
+		auto from_prov = state.world.navy_get_path(navy).at(0);
+		auto naval_path = province::make_naval_path(state, from_prov, destination);
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_ai(state, navy, naval_path, reset);
+	}
+		
 }
 
 
 // moves armies for ai nations. Uses a path passed to it directly, and assumes it is a valid path
-// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
-template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as) {
+bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset = true) {
 	if(army_path.size() > 0) {
 		auto existing_path = state.world.army_get_path(army);
-		if constexpr(path_length_to_use.length == 0) {
-			auto new_size = uint32_t(army_path.size());
-			existing_path.resize(new_size);
-			for(uint32_t i = 0; i < new_size; ++i) {
-				assert(army_path[i]);
-				existing_path[i] = army_path[i];
-			}
-		} else {
-			auto new_size = std::min(uint32_t(army_path.size()), path_length_to_use.length);
-			existing_path.resize(new_size);
-			for(uint32_t i = new_size; i-- > 0;) {
-				assert(army_path[army_path.size() - 1 - i]);
-				existing_path[new_size - 1 - i] = army_path[army_path.size() - 1 - i];
-			}
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
 		}
-		auto arrival_data = military::arrival_time_to(state, army, army_path.back());
-		state.world.army_set_arrival_time(army, arrival_data.arrival_time);
-		state.world.army_set_unused_travel_days(army, arrival_data.unused_travel_days);
+
+		auto append_size = uint32_t(army_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = army_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_data = military::arrival_time_to(state, army, army_path.back());
+			state.world.army_set_arrival_time(army, arrival_data.arrival_time);
+			state.world.army_set_unused_travel_days(army, arrival_data.unused_travel_days);
+		}
+
 		state.world.army_set_dig_in(army, 0);
 		return true;
 	} else {
@@ -725,10 +749,30 @@ bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon:
 // moves armies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as) {
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true) {
 	bool blackflag = state.world.army_get_black_flag(army);
-	auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
-	return move_army_ai<path_length_to_use>(state, army, army_path, nation_as);
+	if(reset || state.world.army_get_path(army).size() == 0) {
+		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+			
+		}
+		return move_army_ai(state, army, army_path, nation_as, reset);
+
+	} else {
+		auto from_prov = state.world.army_get_path(army).at(0);
+		auto army_path = blackflag ? province::make_unowned_land_path(state, from_prov, destination) : province::make_land_path(state, from_prov, destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+		}
+		return move_army_ai(state, army, army_path, nation_as, reset);
+	}
+
+
 }
 
 
@@ -1404,29 +1448,9 @@ void gather_to_battle(sys::state& state, dcon::nation_id n, dcon::province_id p)
 		auto sdist = province::sorting_distance(state, location, p);
 		if(sdist > state.defines.alice_ai_gather_radius)
 			continue;
-
-		auto jpath = province::make_land_path(state, location, p, n, ar.get_army());
-		if(!jpath.empty()) {
-
-			auto existing_path = ar.get_army().get_path();
-			auto new_size = uint32_t(jpath.size());
-			existing_path.resize(new_size * 2);
-
-			for(uint32_t k = 0; k < new_size; ++k) {
-				assert(jpath[k]);
-				existing_path[new_size + k] = jpath[k];
-			}
-			for(uint32_t k = 1; k < new_size; ++k) {
-				assert(jpath[k]);
-				existing_path[new_size - k] = jpath[k];
-			}
-			assert(location);
-			existing_path[0] = location;
-			auto arrival_info = military::arrival_time_to(state, ar.get_army(), jpath.back());
-			ar.get_army().set_arrival_time(arrival_info.arrival_time);
-			ar.get_army().set_unused_travel_days(arrival_info.unused_travel_days);
-			ar.get_army().set_dig_in(0);
-		}
+		// move back and fourth between the battle and original location
+		move_army_ai(state, ar.get_army().id, p, n);
+		move_army_ai(state, ar.get_army().id, ar.get_army().get_location_from_army_location(), n, false);
 
 	}
 }
@@ -1776,18 +1800,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 					ar.get_army().set_ai_province(potential_targets[i].location);
 					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
 				} else if(auto path = province::make_safe_land_path(state, ready_armies[m].p, central_province, n); !path.empty()) {
-					auto existing_path = ar.get_army().get_path();
-					auto new_size = uint32_t(path.size());
-					existing_path.resize(new_size);
-
-					for(uint32_t q = 0; q < new_size; ++q) {
-						assert(path[q]);
-						existing_path[q] = path[q];
-					}
-					auto arrival_info = military::arrival_time_to(state, ar.get_army(), path.back());
-					ar.get_army().set_arrival_time(arrival_info.arrival_time);
-					ar.get_army().set_unused_travel_days(arrival_info.unused_travel_days);
-					ar.get_army().set_dig_in(0);
+					move_army_ai(state, ar.get_army(), path, n);
 					ar.get_army().set_ai_province(potential_targets[i].location);
 					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
 				}
@@ -1857,21 +1870,8 @@ void move_gathered_attackers(sys::state& state) {
 					}
 				} else {
 					if(province::has_access_to_province(state, ar.get_controller_from_army_control(), ar.get_ai_province())) {
-						if(auto path = province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar); path.size() > 0) {
-
-							auto existing_path = ar.get_path();
-							auto new_size = uint32_t(path.size());
-							existing_path.resize(new_size);
-
-							for(uint32_t i = 0; i < new_size; ++i) {
-								assert(path[i]);
-								existing_path[i] = path[i];
-							}
-							auto arrival_info = military::arrival_time_to(state, ar, path.back());
-							ar.set_arrival_time(arrival_info.arrival_time);
-							ar.set_unused_travel_days(arrival_info.unused_travel_days);
-							ar.set_dig_in(0);
-						} else {
+						auto valid_path = move_army_ai(state, ar, ar.get_ai_province(), ar.get_controller_from_army_control());
+						if(!valid_path) {
 							ar.set_ai_activity(uint8_t(army_activity::on_guard));
 							ar.set_ai_province(dcon::province_id{});
 						}
@@ -1922,18 +1922,8 @@ void move_gathered_attackers(sys::state& state) {
 							if(o.get_army().get_ai_province() == ar.get_ai_province()
 								&& o.get_army().get_path().size() == 0) {
 
-								auto existing_path = o.get_army().get_path();
-								auto new_size = uint32_t(path.size());
-								existing_path.resize(new_size);
+								move_army_ai(state, o.get_army(), path, o.get_army().get_controller_from_army_control());
 
-								for(uint32_t i = 0; i < new_size; ++i) {
-									assert(path[i]);
-									existing_path[i] = path[i];
-								}
-								auto arrival_info = military::arrival_time_to(state, o.get_army(), path.back());
-								o.get_army().set_arrival_time(arrival_info.arrival_time);
-								o.get_army().set_unused_travel_days(arrival_info.unused_travel_days);
-								o.get_army().set_dig_in(0);
 								o.get_army().set_ai_activity(uint8_t(army_activity::attack_gathered));
 							}
 						}
@@ -1989,42 +1979,18 @@ void move_gathered_attackers(sys::state& state) {
 			} else {
 				coastal_target_prov = path.front();
 
-				auto existing_path = state.world.army_get_path(require_transport[i]);
-				auto new_size = uint32_t(path.size());
-				existing_path.resize(new_size);
-
-				for(uint32_t k = 0; k < new_size; ++k) {
-					assert(path[k]);
-					existing_path[k] = path[k];
-				}
-				auto arrival_info = military::arrival_time_to(state, require_transport[i], path.back());
-				state.world.army_set_arrival_time(require_transport[i], arrival_info.arrival_time);
-				state.world.army_set_unused_travel_days(require_transport[i], arrival_info.unused_travel_days);
-				state.world.army_set_dig_in(require_transport[i], 0);
+				move_army_ai(state, require_transport[i], path, controller);
 			}
 		}
 
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
 			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
-				state.world.navy_get_path(transport_fleet).clear();
-				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
-				state.world.navy_set_unused_travel_days(transport_fleet, 0.0f);
+				stop_navy_movement_ai(state, transport_fleet);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
-			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) {
+			} else if(auto valid_path = move_navy_ai(state, transport_fleet, fleet_destination); !valid_path) {
 				continue;
 			} else {
-				auto existing_path = state.world.navy_get_path(transport_fleet);
-				auto new_size = uint32_t(fleet_path.size());
-				existing_path.resize(new_size);
-
-				for(uint32_t k = 0; k < new_size; ++k) {
-					assert(fleet_path[k]);
-					existing_path[k] = fleet_path[k];
-				}
-				auto arrival_data = military::arrival_time_to(state, transport_fleet, fleet_path.back());
-				state.world.navy_set_arrival_time(transport_fleet, arrival_data.arrival_time);
-				state.world.navy_set_unused_travel_days(transport_fleet, arrival_data.unused_travel_days);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
 			}
 		}
@@ -2045,22 +2011,8 @@ void move_gathered_attackers(sys::state& state) {
 						state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_attack));
 						tcap -= int32_t(jregs.end() - jregs.begin());
 					} else {
-						auto jpath = state.world.army_get_black_flag(require_transport[j])
-							? province::make_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov, controller, require_transport[j])
-							: province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov);
-						if(!jpath.empty()) {
-							auto existing_path = state.world.army_get_path(require_transport[j]);
-							auto new_size = uint32_t(jpath.size());
-							existing_path.resize(new_size);
-
-							for(uint32_t k = 0; k < new_size; ++k) {
-								assert(jpath[k]);
-								existing_path[k] = jpath[k];
-							}
-							auto arrival_info = military::arrival_time_to(state, require_transport[j], jpath.back());
-							state.world.army_set_arrival_time(require_transport[j], arrival_info.arrival_time);
-							state.world.army_set_unused_travel_days(require_transport[j], arrival_info.unused_travel_days);
-							state.world.army_set_dig_in(require_transport[j], 0);
+						auto valid_path = move_army_ai(state, require_transport[j], coastal_target_prov, controller);
+						if(valid_path) {
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_attack));
 							tcap -= int32_t(jregs.end() - jregs.begin());
 						}
@@ -2329,19 +2281,7 @@ void new_units_and_merging(sys::state& state) {
 						if(target_location == location) {
 							ar.set_ai_province(target_location);
 							ar.set_ai_activity(uint8_t(army_activity::merging));
-						} else if(auto path = province::make_land_path(state, location, target_location, controller, ar); path.size() > 0) {
-							auto existing_path = ar.get_path();
-							auto new_size = uint32_t(path.size());
-							existing_path.resize(new_size);
-
-							for(uint32_t i = 0; i < new_size; ++i) {
-								assert(path[i]);
-								existing_path[i] = path[i];
-							}
-							auto arrival_info = military::arrival_time_to(state, ar, path.back());
-							ar.set_arrival_time(arrival_info.arrival_time);
-							ar.set_unused_travel_days(arrival_info.unused_travel_days);
-							ar.set_dig_in(0);
+						} else if(bool valid_path = move_army_ai(state, ar, target_location, controller);  valid_path) {
 							ar.set_ai_province(target_location);
 							ar.set_ai_activity(uint8_t(army_activity::merging));
 						} else {
