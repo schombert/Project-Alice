@@ -1,11 +1,11 @@
 name: Build AppImage
 
 on:
+  workflow_dispatch:
   pull_request:
   push:
   release:
     types: [created, published]
-  workflow_dispatch:
 
 jobs:
   linux-appimage-debug:
@@ -70,7 +70,7 @@ jobs:
       run: |
         cd build
         mkdir package
-        cp Project_Alice-x86_64.AppImage package/
+        cp Project_Alice-${{ env.VERSION }}-x86_64.AppImage package/
         cp -r ../assets package/
 
     - name: Upload packaged artifact
@@ -140,7 +140,7 @@ jobs:
       run: |
         cd build
         mkdir package
-        cp Project_Alice-x86_64.AppImage package/
+        cp Project_Alice-${{ env.VERSION }}-x86_64.AppImage package/
         cp -r ../assets package/
 
     - name: Upload packaged artifact
