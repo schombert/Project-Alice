@@ -195,12 +195,12 @@ else() # GCC or CLANG
 		target_compile_options(AliceCommon INTERFACE
 			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20 #-Werror
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O2 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(AliceCommon INTERFACE
 										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O2 -pipe -fno-rtti -DNDEBUG>)
 	endif()
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
