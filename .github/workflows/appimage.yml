@@ -9,7 +9,7 @@ on:
 
 jobs:
   linux-appimage-debug:
-    if: github.event_name == 'pull' || github.event_name == 'pull_request'
+    if: github.event_name == 'push' || github.event_name == 'pull_request'
     strategy:
       matrix:
         config: [Debug]
