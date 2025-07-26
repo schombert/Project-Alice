@@ -913,7 +913,7 @@ alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$ 未准备
 alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
-alice_stockpile_button_1_1;我明白了，好吧，现在我不会说任何话，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
+alice_stockpile_button_1_1;我明白了，好吧，现在我不会继续说，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
 alice_stockpile_button_2_0;我是没用按钮，继续吧
 alice_stockpile_button_3_0;和朋友玩不是嘛? ?Remmm，祝你好运，你会需要它的对不对？?W
@@ -1088,7 +1088,7 @@ alice_topbar_tab_1;开关标签
 alice_topbar_tab_2;开关人口标签
 colonial_points_from_technology;来自技术：
 colonial_points_from_naval_bases;来自海军基地：
-colonial_points_from_ships;来自舰艇：
+colonial_points_from_ships;来自舰船：
 used_colonial_maintenance;维护现有殖民地：
 topbar_pause_speed;暂停游戏，再次点击取消暂停
 att_call_will_accept;$x$会参加你的战争
@@ -1656,3 +1656,9 @@ factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$
 giving_modifier;这会提供以下修正：
 religion_nation_modifier;多数人自称 ?Y$NAME$?!
 when;当时：
+alice_ship_in_supply_range;?G补给范围内的船?W，最近港口：?O$x$?W
+alice_ship_not_in_supply_range;?R补给范围外的船?W，最近港口：?O$x$?W
+alice_supply_range_distance;使用 ?O$x$?W/?O$y$?W 距离到最近港口
+alice_supply_range_friendly_port;?G睦邻友好港口?W
+alice_supply_range_deep_waters;?R在深水?W
+alice_ship_supply_range_unreachable;?R海军无法到达任何港口?W
