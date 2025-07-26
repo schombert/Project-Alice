@@ -1637,6 +1637,12 @@ guiTypes = {
 				spriteType = "GFX_alice_small_unit_frames"
 				position = { 0 0 }
 			}
+			iconType = {
+				name ="small_attrition_icon"
+				spriteType = "GFX_unit_attr"
+				position = { 65 14 }
+				Orientation = "UPPER_LEFT"
+			}
 			instantTextBoxType={
 				position = { 34 4 }
 				name = "strength"
