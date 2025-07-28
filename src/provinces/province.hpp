@@ -71,6 +71,8 @@ bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si);
 
+float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val);
+
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);

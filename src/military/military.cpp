@@ -4758,9 +4758,10 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance_km(state, adj);
+	auto controller = state.world.army_get_controller_from_army_control(a);
 	// take the average of the modifiers in the two provinces. If the army is "over" a sea prov (naval invading or moving into transports), use 1.0f as the movement_cost.
-	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
-	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
 	float avg_mods = (prov_from_mod + prov_to_mod) / 2.0f;
 	float effective_distance = std::max(0.1f, distance * avg_mods);
 
@@ -6597,11 +6598,11 @@ int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, 
 		define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
 		*/
 
-	return std::clamp(state.world.province_get_building_level(location, uint8_t(economy::province_building_type::fort)) -
+	return std::clamp(int32_t(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::fort_level)) -
 									 int32_t(max_siege_value *
 										 std::min(strength_siege_units / total_strength, state.defines.engineer_unit_ratio) /
 										 state.defines.engineer_unit_ratio),
-				0, 9);
+				0, 10);
 
 }
 // gets the fort level for combat in the specified province, taking all of the units in the province into account

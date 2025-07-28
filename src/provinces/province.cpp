@@ -1647,6 +1647,28 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 	}
 }
 
+float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val) {
+	auto modifier_val = state.world.province_get_modifier_values(prov, prov_mod_val);
+	// if the "as_nation" is not at war with the controller, we don't need to subtract anything
+	auto prov_controller = state.world.province_get_nation_from_province_control(prov);
+	if(prov_controller == as_nation || !military::are_enemies(state, as_nation, prov_controller)) {
+		return modifier_val;
+	}
+	for_each_province_building(state, [&](economy::province_building_type building) {
+		if(!bool(state.economy_definitions.building_definitions[uint8_t(building)].province_modifier)) {
+			return;
+		}
+		const auto& mod_vals = state.world.modifier_get_province_values(state.economy_definitions.building_definitions[uint8_t(building)].province_modifier);
+		for(uint32_t i = 0; i < mod_vals.modifier_definition_size; i++) {
+			if(mod_vals.offsets[i] == prov_mod_val) {
+				modifier_val -= mod_vals.values[i] * state.world.province_get_building_level(prov, uint8_t(building));
+				return;
+			}
+		}
+	});
+	return modifier_val;
+}
+
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si) {
 	auto d = state.world.state_instance_get_definition(si);
 	auto owner = state.world.state_instance_get_nation_from_state_ownership(si);
