@@ -3851,7 +3851,8 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(dest.index() < state.province_definitions.first_sea_province.index()) {
 		/* Case for land destinations */
-		if(battle && !province::has_naval_access_to_province(state, source, dest)) {
+		// the previous call was to "province::has_naval_access_to_province" instead, was there a reason for that?
+		if(battle && !province::has_access_to_province(state, source, dest)) {
 			return;
 		}
 	} else {

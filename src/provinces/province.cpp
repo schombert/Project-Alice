@@ -1465,7 +1465,6 @@ bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::prov
 
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
-	assert((state.world.province_adjacency_get_type(adjacency) & province::border::non_adjacent_bit) != 0);
  	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
 	if(strait_prov) { // strait crossing
 		if(military::province_has_enemy_fleet(state, strait_prov, thisnation)) {

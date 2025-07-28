@@ -7917,7 +7917,11 @@ void update_movement(sys::state& state) {
 					a.set_navy_from_army_transport(to_navy);
 					a.set_black_flag(false);
 				} else {
+					// if there are not enough transports by the time the movement happens, eject them back to land and check for enemy armies to collide with
 					path.clear();
+					a.set_arrival_time(sys::date{ });
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 				a.set_unused_travel_days(0.0f);
 			} else { // land province
