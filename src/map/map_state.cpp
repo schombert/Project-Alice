@@ -178,7 +178,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
-			auto path = province::make_naval_path(state, coast_origin, coast_target);
+			auto path = province::make_unowned_naval_path(state, coast_origin, coast_target);
 			auto start = coast_origin;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];

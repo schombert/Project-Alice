@@ -1536,7 +1536,7 @@ naval_range_display_data closest_naval_range_port_with_distance(sys::state& stat
 	if(state.world.nation_get_province_control(nation).begin() != state.world.nation_get_province_control(nation).end()) {
 		for(auto p : state.world.nation_get_province_control(nation)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
-				auto dist = province::naval_range_distance(state, p.get_province(), prov);
+				auto dist = province::naval_range_distance(state, p.get_province(), prov, nation);
 				if(dist.is_reachable && dist.distance < closest.distance) {
 					closest.closest_port = p.get_province();
 					closest.distance = dist.distance;
@@ -6141,7 +6141,7 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 	}*/
 	for(auto p : state.world.nation_get_province_control(navy_controller)) {
 		if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
-			auto dist = province::naval_range_distance(state, p.get_province(), prov);
+			auto dist = province::naval_range_distance(state, p.get_province(), prov, navy_controller);
 			if(dist.is_reachable && dist.distance <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
 				return 0.0f;
 			}
@@ -8019,6 +8019,7 @@ void update_movement(sys::state& state) {
 		assert(!arrival || arrival >= state.current_date);
 		if(auto path = n.get_path(); arrival == state.current_date) {
 			assert(path.size() > 0);
+			auto from = n.get_location_from_navy_location();
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 
@@ -8038,6 +8039,7 @@ void update_movement(sys::state& state) {
 						a.set_unused_travel_days(0.0f);
 						auto acontroller = a.get_controller_from_army_control();
 
+						// ai code
 						if(acontroller && !acontroller.get_is_player_controlled()) {
 							auto army_dest = a.get_ai_province();
 							a.set_location_from_army_location(dest);
@@ -8075,14 +8077,22 @@ void update_movement(sys::state& state) {
 				}
 			} else { // sea province
 
-				navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
+				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
+				auto path_bits = state.world.province_adjacency_get_type(adj);
+				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+					path.clear();
+					
+				}
+				else {
+					navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 
-				// take embarked units along with
-				for(auto a : state.world.navy_get_army_transport(n)) {
-					a.get_army().set_location_from_army_location(dest);
-					a.get_army().get_path().clear();
-					a.get_army().set_arrival_time(sys::date{});
-					a.get_army().set_unused_travel_days(0.0f);
+					// take embarked units along with
+					for(auto a : state.world.navy_get_army_transport(n)) {
+						a.get_army().set_location_from_army_location(dest);
+						a.get_army().get_path().clear();
+						a.get_army().set_arrival_time(sys::date{});
+						a.get_army().set_unused_travel_days(0.0f);
+					}
 				}
 			}
 
@@ -9587,7 +9597,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 			}
 		}
 	} else {
-		auto path = province::make_naval_path(state, start, dest);
+		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
 		if(path.empty())
 			return;
 
