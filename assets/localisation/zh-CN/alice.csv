@@ -18,14 +18,14 @@ remove_core_from;移出势力范围
 change_name_to;名称变成 ?Y$text$?W
 change_terrain_to;地形变成 ?Y$text$?W
 change_rgo_production_to;原料变成 ?Y$text$?W
-make_accepted_culture;$text$ 成为可接受民族
+make_accepted_culture;$text$ 是可接受民族
 primary_culture_changes_to;主体民族变成 ?Y$text$?W
 union_culture_accepted;接受主体民族文化圈中的所有民族
-remove_accepted_culture;$text$ 不再为可接受民族
+remove_accepted_culture;$text$ 不再是可接受民族
 increase_national_variable_by;国家变量 ?Y$text$?W 提高 ?Y$value$?W
 decrease_national_variable_by;国家变量 ?Y$text$?W 降低 ?Y$value$?W
 life_rating;生活条件
-make_national_religion;?Y$text$?W 成为国教
+make_national_religion;?Y$text$?W 是国教
 make_slave_state;成为?Y蓄奴区?W
 make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
@@ -470,7 +470,7 @@ from_nat_religion;来自此国国教
 event_show_requirements;此事件的条件：
 event_only_other_requirements;此事件只会由其他事件触发
 event_show_odds;事件几率
-value_mod_product;$val$ 产物：
+value_mod_product;$val$ 结果：
 value_mod_sum;$val$ 总计：
 value_mod_sum_factor;影响力 $val$ 是 $x$（乘积）：
 admin_explain_1;行政效率修正：$val$
