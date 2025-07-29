@@ -558,6 +558,9 @@ These relate to unit movement
 - `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
 As the above defines implies, the distances between provinces are measured in kilometers now when it comes to unit-movement, and maps directly onto the km/hour stat.
 
+These relate to occupations
+- `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:

@@ -956,7 +956,7 @@ public:
 			for(auto navy : state.world.province_get_navy_location(prov)) {
 				if(navy.get_navy().get_controller_from_navy_control() == state.local_player_nation && military::will_recieve_attrition(state, navy.get_navy())) {
 					visible = true;
-					break;
+					return;
 				}
 			}
 		}
@@ -964,10 +964,11 @@ public:
 			for(auto army : state.world.province_get_army_location(prov)) {
 				if(army.get_army().get_controller_from_army_control() == state.local_player_nation && military::will_recieve_attrition(state, army.get_army())) {
 					visible = true;
-					break;
+					return;
 				}
 			}
 		}
+		visible = false;
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)

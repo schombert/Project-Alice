@@ -6094,7 +6094,7 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto prov = state.world.army_get_location_from_army_location(a);
 
-	if(state.world.province_get_siege_progress(prov) > 0.f || prov.index() >= state.province_definitions.first_sea_province.index())
+	if(prov.index() >= state.province_definitions.first_sea_province.index())
 		return true;
 
 	return relative_attrition_amount(state, a, prov) > 0.0f;
@@ -7971,16 +7971,6 @@ void update_movement(sys::state& state) {
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, a.get_location_from_army_location(), a.id);
-				/*auto arrival_data = arrival_time_to(state, a, next_dest);
-				auto unused_travel_days = a.get_unused_travel_days();
-				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
-					a.set_arrival_time(arrival_data.arrival_time - 1);
-					a.set_unused_travel_days(unused_travel_days - 1.0f);
-				}
-				else {
-					a.set_arrival_time(arrival_data.arrival_time);
-					a.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
-				}*/
 			} else {
 				a.set_arrival_time(sys::date{});
 				a.set_unused_travel_days(0.0f);
@@ -8105,15 +8095,6 @@ void update_movement(sys::state& state) {
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, n.get_location_from_navy_location(), n.id);
-				/*auto arrival_data = arrival_time_to(state, n, next_dest);
-				auto unused_travel_days = n.get_unused_travel_days();
-				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
-					n.set_arrival_time(arrival_data.arrival_time - 1);
-					n.set_unused_travel_days(unused_travel_days - 1.0f);
-				} else {
-					n.set_arrival_time(arrival_data.arrival_time);
-					n.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
-				}*/
 			} else {
 				n.set_arrival_time(sys::date{});
 				n.set_unused_travel_days(0.0f);
@@ -8249,7 +8230,7 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
-constexpr inline float siege_speed_mul = 1.0f / 50.0f;
+constexpr inline float siege_speed_mul = 1.0f / 37.5f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
@@ -8438,15 +8419,14 @@ void update_siege_progress(sys::state& state) {
 			/*
 			Finally, the amount subtracted from the garrison each day is:
 			siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is
-			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / (effective_fort_level x define:ALICE_FORT_SIEGE_SLOWDOWN + 1.0)
 			*/
 
-			static constexpr float siege_table[] = { 0.25f, 1.0f, 2.0f, 2.8f, 3.4f, 3.8f, 4.2f, 4.5f, 4.8f, 5.0f, 5.2f };
 			static constexpr float progress_table[] = { 0.0f, 0.2f, 0.5f, 0.75f, 0.75f, 1, 1.1f, 1.1f, 1.25f, 1.25f };
 
 			float added_progress = siege_speed_modifier * num_brigades_modifier *
 				progress_table[rng::get_random(state, uint32_t(prov.value)) % 10] *
-				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / siege_table[effective_fort_level];
+				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / (effective_fort_level * state.defines.alice_fort_siege_slowdown + 1.0f);
 
 			auto& progress = state.world.province_get_siege_progress(prov);
 			state.world.province_set_siege_progress(prov, progress + siege_speed_mul * added_progress);
@@ -8460,15 +8440,16 @@ void update_siege_progress(sys::state& state) {
 				*/
 
 				// if siege won from rebels : treat as rebel defeat
+				// commented out militancy reduction as this already happens when the rebel units are destroyed, and shouldn't fire on re-occupation
 				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
-				if(old_rf) {
-					for(auto pop : state.world.province_get_pop_location(prov)) {
-						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-						auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
-						pop_demographics::set_militancy(state, pop.get_pop().id, mil);
-						//}
-					}
-				}
+				//if(old_rf) {
+				//	for(auto pop : state.world.province_get_pop_location(prov)) {
+				//		//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+				//		auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
+				//		pop_demographics::set_militancy(state, pop.get_pop().id, mil);
+				//		//}
+				//	}
+				//}
 
 				state.world.province_set_former_controller(prov, controller);
 				state.world.province_set_former_rebel_controller(prov, old_rf);

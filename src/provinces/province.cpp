@@ -1464,6 +1464,9 @@ bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::prov
 }
 
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
+	// assert both provinces are land
+	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 0).index() < state.province_definitions.first_sea_province.index());
+	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 1).index() < state.province_definitions.first_sea_province.index());
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
  	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
 	if(strait_prov) { // strait crossing
@@ -1475,6 +1478,9 @@ bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::prov
 }
 
 bool is_canal_adjacency_passable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
+	// assert both provinces are sea
+	assert(state.world.province_adjacency_get_connected_provinces(adj ,0).index() >= state.province_definitions.first_sea_province.index());
+	assert(state.world.province_adjacency_get_connected_provinces(adj, 1).index() >= state.province_definitions.first_sea_province.index());
 	auto canal_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
 	if(bool(canal_prov)) {
 		auto canal_controller = state.world.province_get_nation_from_province_control(canal_prov);
@@ -1491,8 +1497,6 @@ bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon
 	if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0) {
 		return true;
 	}
-	auto prov_a = state.world.province_adjacency_get_connected_provinces(adj, 0);
-	auto prov_b = state.world.province_adjacency_get_connected_provinces(adj, 1);
 	// if non_adjacent bit is set, check for potential strait or canal blocking
 	if((state.world.province_adjacency_get_type(adj) & province::border::non_adjacent_bit) != 0) {
 		auto blocking_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
