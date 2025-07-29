@@ -2,7 +2,7 @@
 
 Project Alice is a continuation / rewrite of the Open V2 codebase (an open source "retro clone" of Victoria 2).
 
-Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation pages](https://schombert.github.io/Project-Alice/)
+Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation pages](https://schombert.github.io/Project-Alice/). 你也可以加PA QQ群（546691341）。
 
 ## How to install and play
 - [Download the latest release here](https://github.com/schombert/Project-Alice/releases)
