@@ -246,6 +246,7 @@ modifier_base
 	farmers_savings              value      float            member_fn
 	disallow_naval_trade              value      float            member_fn
 	disallow_land_trade              value      float            member_fn
+	fort_level 						value       float 			 member_fn
 
 religion_def
 	nation_modifier group     modifier_base    member_fn
@@ -271,7 +272,6 @@ building_definition
 	visibility           value    none              discard
 	onmap                value    none              discard
 	province             value    none              discard
-	fort_level           value    none              discard
 	pop_build_factory    value    none              discard
 	spawn_railway_track  value    none              discard
 	strategic_factory    value    none              discard

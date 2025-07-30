@@ -755,6 +755,8 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_attrition_war_exhaustion, 1.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_army_marching_hours_per_day, 5.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_navy_sailing_hours_per_day, 20.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_slowdown, 0.75) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rebel_reduction_after_reoccupation, 7.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

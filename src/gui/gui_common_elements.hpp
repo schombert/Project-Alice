@@ -2512,14 +2512,6 @@ inline void province_building_effect_tooltip(sys::state& state, text::columnar_l
 		text::add_to_layout_box(state, contents, box, text::fp_percentage{ def.infrastructure }, text::text_color::green);
 		text::close_layout_box(contents, box);
 	}
-	else if(bt == economy::province_building_type::fort) {
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "FORT_LEVEL"), text::text_color::white);
-		text::add_to_layout_box(state, contents, box, std::string_view{ ":" }, text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, 1, text::text_color::green);
-		text::close_layout_box(contents, box);
-	}
 }
 
 inline void province_building_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt) {

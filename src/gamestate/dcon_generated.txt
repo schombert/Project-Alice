@@ -1882,7 +1882,7 @@ relationship{
 	}
 
 	property{
-		name{ sea_adj_prov }
+		name{ canal_or_blockade_province }
 		type{ dcon::province_id }
 		tag{ save }
 	}
