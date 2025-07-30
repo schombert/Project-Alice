@@ -5185,7 +5185,7 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 		case budget_categories::overseas_spending: break;
 		case budget_categories::subsidies: break;
 		case budget_categories::construction: break;
-		case budget_categories::army_upkeep: break;
+		case budget_categories::army_upkeep: ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::min_land_upkeep, true); break;
 		case budget_categories::navy_upkeep: break;
 		case budget_categories::debt_payment: break;
 		case budget_categories::stockpile: break;

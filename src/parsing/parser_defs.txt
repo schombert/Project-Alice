@@ -72,6 +72,7 @@ modifier_base
 	max_tax                                   value      float            member_fn
 	min_military_spending                     value      float            member_fn
 	max_military_spending                     value      float            member_fn
+	min_land_upkeep                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
 	min_domestic_investment              value      float            member_fn
