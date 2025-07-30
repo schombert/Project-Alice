@@ -8439,17 +8439,16 @@ void update_siege_progress(sys::state& state) {
 				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
 				*/
 
-				// if siege won from rebels : treat as rebel defeat
-				// commented out militancy reduction as this already happens when the rebel units are destroyed, and shouldn't fire on re-occupation
+				// if siege won from rebels : divide by reduction_after_reoccupation define
 				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
-				//if(old_rf) {
-				//	for(auto pop : state.world.province_get_pop_location(prov)) {
-				//		//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-				//		auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
-				//		pop_demographics::set_militancy(state, pop.get_pop().id, mil);
-				//		//}
-				//	}
-				//}
+				if(old_rf) {
+					for(auto pop : state.world.province_get_pop_location(prov)) {
+						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.alice_rebel_reduction_after_reoccupation;
+							pop_demographics::set_militancy(state, pop.get_pop().id, mil);
+						}
+					}
+				}
 
 				state.world.province_set_former_controller(prov, controller);
 				state.world.province_set_former_rebel_controller(prov, old_rf);

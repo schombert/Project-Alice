@@ -560,6 +560,7 @@ As the above defines implies, the distances between provinces are measured in ki
 
 These relate to occupations
 - `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value
+- `alice_rebel_reduction_after_reoccupation = 7.0f`: When a rebel province is reoccupied by the owner, all pops which were part of the controlling rebel faction gets their militancy divided by this amount
 
 ### Support for reforms based on party issues
 
