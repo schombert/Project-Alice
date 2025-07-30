@@ -1662,3 +1662,7 @@ alice_supply_range_distance;使用 ?O$x$?W/?O$y$?W 距离到最近港口
 alice_supply_range_friendly_port;?G睦邻友好港口?W
 alice_supply_range_deep_waters;?R在深水?W
 alice_ship_supply_range_unreachable;?R海军无法到达任何港口?W
+ui_element_name;名称：?Y$x$?!
+ui_element_position;位置：X = ?Y$x$?! Y = ?Y$y$?!
+ui_element_size;尺寸：X = ?Y$x$?! Y = ?Y$y$?!
+rgo_tile_header;自然资源 ?Y$good$?W
