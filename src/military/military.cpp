@@ -1536,7 +1536,7 @@ naval_range_display_data closest_naval_range_port_with_distance(sys::state& stat
 	if(state.world.nation_get_province_control(nation).begin() != state.world.nation_get_province_control(nation).end()) {
 		for(auto p : state.world.nation_get_province_control(nation)) {
 			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
-				auto dist = province::naval_range_distance(state, p.get_province(), prov);
+				auto dist = province::naval_range_distance(state, p.get_province(), prov, nation);
 				if(dist.is_reachable && dist.distance < closest.distance) {
 					closest.closest_port = p.get_province();
 					closest.distance = dist.distance;
@@ -4758,9 +4758,10 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance_km(state, adj);
+	auto controller = state.world.army_get_controller_from_army_control(a);
 	// take the average of the modifiers in the two provinces. If the army is "over" a sea prov (naval invading or moving into transports), use 1.0f as the movement_cost.
-	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
-	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
 	float avg_mods = (prov_from_mod + prov_to_mod) / 2.0f;
 	float effective_distance = std::max(0.1f, distance * avg_mods);
 
@@ -6093,7 +6094,7 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto prov = state.world.army_get_location_from_army_location(a);
 
-	if(state.world.province_get_siege_progress(prov) > 0.f || prov.index() >= state.province_definitions.first_sea_province.index())
+	if(prov.index() >= state.province_definitions.first_sea_province.index())
 		return true;
 
 	return relative_attrition_amount(state, a, prov) > 0.0f;
@@ -6140,7 +6141,7 @@ float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::provin
 	}*/
 	for(auto p : state.world.nation_get_province_control(navy_controller)) {
 		if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
-			auto dist = province::naval_range_distance(state, p.get_province(), prov);
+			auto dist = province::naval_range_distance(state, p.get_province(), prov, navy_controller);
 			if(dist.is_reachable && dist.distance <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
 				return 0.0f;
 			}
@@ -6597,11 +6598,11 @@ int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, 
 		define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
 		*/
 
-	return std::clamp(state.world.province_get_building_level(location, uint8_t(economy::province_building_type::fort)) -
+	return std::clamp(int32_t(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::fort_level)) -
 									 int32_t(max_siege_value *
 										 std::min(strength_siege_units / total_strength, state.defines.engineer_unit_ratio) /
 										 state.defines.engineer_unit_ratio),
-				0, 9);
+				0, 10);
 
 }
 // gets the fort level for combat in the specified province, taking all of the units in the province into account
@@ -7916,7 +7917,11 @@ void update_movement(sys::state& state) {
 					a.set_navy_from_army_transport(to_navy);
 					a.set_black_flag(false);
 				} else {
+					// if there are not enough transports by the time the movement happens, eject them back to land and check for enemy armies to collide with
 					path.clear();
+					a.set_arrival_time(sys::date{ });
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 				a.set_unused_travel_days(0.0f);
 			} else { // land province
@@ -7966,16 +7971,6 @@ void update_movement(sys::state& state) {
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, a.get_location_from_army_location(), a.id);
-				/*auto arrival_data = arrival_time_to(state, a, next_dest);
-				auto unused_travel_days = a.get_unused_travel_days();
-				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
-					a.set_arrival_time(arrival_data.arrival_time - 1);
-					a.set_unused_travel_days(unused_travel_days - 1.0f);
-				}
-				else {
-					a.set_arrival_time(arrival_data.arrival_time);
-					a.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
-				}*/
 			} else {
 				a.set_arrival_time(sys::date{});
 				a.set_unused_travel_days(0.0f);
@@ -8018,6 +8013,7 @@ void update_movement(sys::state& state) {
 		assert(!arrival || arrival >= state.current_date);
 		if(auto path = n.get_path(); arrival == state.current_date) {
 			assert(path.size() > 0);
+			auto from = n.get_location_from_navy_location();
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 
@@ -8037,6 +8033,7 @@ void update_movement(sys::state& state) {
 						a.set_unused_travel_days(0.0f);
 						auto acontroller = a.get_controller_from_army_control();
 
+						// ai code
 						if(acontroller && !acontroller.get_is_player_controlled()) {
 							auto army_dest = a.get_ai_province();
 							a.set_location_from_army_location(dest);
@@ -8074,14 +8071,22 @@ void update_movement(sys::state& state) {
 				}
 			} else { // sea province
 
-				navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
+				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
+				auto path_bits = state.world.province_adjacency_get_type(adj);
+				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+					path.clear();
+					
+				}
+				else {
+					navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 
-				// take embarked units along with
-				for(auto a : state.world.navy_get_army_transport(n)) {
-					a.get_army().set_location_from_army_location(dest);
-					a.get_army().get_path().clear();
-					a.get_army().set_arrival_time(sys::date{});
-					a.get_army().set_unused_travel_days(0.0f);
+					// take embarked units along with
+					for(auto a : state.world.navy_get_army_transport(n)) {
+						a.get_army().set_location_from_army_location(dest);
+						a.get_army().get_path().clear();
+						a.get_army().set_arrival_time(sys::date{});
+						a.get_army().set_unused_travel_days(0.0f);
+					}
 				}
 			}
 
@@ -8090,15 +8095,6 @@ void update_movement(sys::state& state) {
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, n.get_location_from_navy_location(), n.id);
-				/*auto arrival_data = arrival_time_to(state, n, next_dest);
-				auto unused_travel_days = n.get_unused_travel_days();
-				if(unused_travel_days >= 1.0f && arrival_data.arrival_time.to_raw_value() - state.current_date.to_raw_value() != 1) {
-					n.set_arrival_time(arrival_data.arrival_time - 1);
-					n.set_unused_travel_days(unused_travel_days - 1.0f);
-				} else {
-					n.set_arrival_time(arrival_data.arrival_time);
-					n.set_unused_travel_days(unused_travel_days + arrival_data.unused_travel_days);
-				}*/
 			} else {
 				n.set_arrival_time(sys::date{});
 				n.set_unused_travel_days(0.0f);
@@ -8234,7 +8230,7 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
-constexpr inline float siege_speed_mul = 1.0f / 50.0f;
+constexpr inline float siege_speed_mul = 1.0f / 37.5f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
@@ -8423,15 +8419,14 @@ void update_siege_progress(sys::state& state) {
 			/*
 			Finally, the amount subtracted from the garrison each day is:
 			siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is
-			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / (effective_fort_level x define:ALICE_FORT_SIEGE_SLOWDOWN + 1.0)
 			*/
 
-			static constexpr float siege_table[] = { 0.25f, 1.0f, 2.0f, 2.8f, 3.4f, 3.8f, 4.2f, 4.5f, 4.8f, 5.0f, 5.2f };
 			static constexpr float progress_table[] = { 0.0f, 0.2f, 0.5f, 0.75f, 0.75f, 1, 1.1f, 1.1f, 1.25f, 1.25f };
 
 			float added_progress = siege_speed_modifier * num_brigades_modifier *
 				progress_table[rng::get_random(state, uint32_t(prov.value)) % 10] *
-				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / siege_table[effective_fort_level];
+				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / (effective_fort_level * state.defines.alice_fort_siege_slowdown + 1.0f);
 
 			auto& progress = state.world.province_get_siege_progress(prov);
 			state.world.province_set_siege_progress(prov, progress + siege_speed_mul * added_progress);
@@ -8444,14 +8439,14 @@ void update_siege_progress(sys::state& state) {
 				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
 				*/
 
-				// if siege won from rebels : treat as rebel defeat
+				// if siege won from rebels : divide by reduction_after_reoccupation define
 				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
 				if(old_rf) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
-						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-						auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
-						pop_demographics::set_militancy(state, pop.get_pop().id, mil);
-						//}
+						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.alice_rebel_reduction_after_reoccupation;
+							pop_demographics::set_militancy(state, pop.get_pop().id, mil);
+						}
 					}
 				}
 
@@ -9586,7 +9581,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 			}
 		}
 	} else {
-		auto path = province::make_naval_path(state, start, dest);
+		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
 		if(path.empty())
 			return;
 

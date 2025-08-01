@@ -1464,14 +1464,57 @@ bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::prov
 }
 
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
+	// assert both provinces are land
+	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 0).index() < state.province_definitions.first_sea_province.index());
+	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 1).index() < state.province_definitions.first_sea_province.index());
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
- 	auto strait_prov = state.world.province_adjacency_get_sea_adj_prov(adjacency);
-	if((path_bits & province::border::non_adjacent_bit) != 0 && strait_prov) { // strait crossing
+ 	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
+	if(strait_prov) { // strait crossing
 		if(military::province_has_enemy_fleet(state, strait_prov, thisnation)) {
 			return true;
 		}
 	}
 	return false;
+}
+
+bool is_canal_adjacency_passable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
+	// assert both provinces are sea
+	assert(state.world.province_adjacency_get_connected_provinces(adj ,0).index() >= state.province_definitions.first_sea_province.index());
+	assert(state.world.province_adjacency_get_connected_provinces(adj, 1).index() >= state.province_definitions.first_sea_province.index());
+	auto canal_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
+	if(bool(canal_prov)) {
+		auto canal_controller = state.world.province_get_nation_from_province_control(canal_prov);
+		return !military::are_enemies(state, thisnation, canal_controller);
+	}
+	else {
+		return true;
+	}
+	
+}
+
+bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
+	// if impassable bit is set, always return true
+	if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0) {
+		return true;
+	}
+	// if non_adjacent bit is set, check for potential strait or canal blocking
+	if((state.world.province_adjacency_get_type(adj) & province::border::non_adjacent_bit) != 0) {
+		auto blocking_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
+		// the blocking province is invalid, which means it is passable
+		if(!bool(blocking_prov)) {
+			return false;
+		}
+		// the blocking province is land, which means it is a canal
+		else if(blocking_prov.index() < state.province_definitions.first_sea_province.index()) {
+			return !is_canal_adjacency_passable(state, thisnation, adj);
+		}
+		// the blocking province is sea, which means it is a strait crossing
+		else {
+			return is_strait_blocked(state, thisnation, adj);
+		}
+	}
+	return false;
+
 }
 
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner) {
@@ -1645,6 +1688,28 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 					 int32_t(state.defines.colonization_extra_guard_cost * (state.world.colonization_get_level(colony_status) - 4) +
 									 state.defines.colonization_influence_cost);
 	}
+}
+
+float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val) {
+	auto modifier_val = state.world.province_get_modifier_values(prov, prov_mod_val);
+	// if the "as_nation" is not at war with the controller, we don't need to subtract anything
+	auto prov_controller = state.world.province_get_nation_from_province_control(prov);
+	if(prov_controller == as_nation || !military::are_enemies(state, as_nation, prov_controller)) {
+		return modifier_val;
+	}
+	for_each_province_building(state, [&](economy::province_building_type building) {
+		if(!bool(state.economy_definitions.building_definitions[uint8_t(building)].province_modifier)) {
+			return;
+		}
+		const auto& mod_vals = state.world.modifier_get_province_values(state.economy_definitions.building_definitions[uint8_t(building)].province_modifier);
+		for(uint32_t i = 0; i < mod_vals.modifier_definition_size; i++) {
+			if(mod_vals.offsets[i] == prov_mod_val) {
+				modifier_val -= mod_vals.values[i] * state.world.province_get_building_level(prov, uint8_t(building));
+				return;
+			}
+		}
+	});
+	return modifier_val;
 }
 
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si) {
@@ -2212,10 +2277,10 @@ float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_
 }
 
 // naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
-naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov) {
+naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as) {
 	assert(port_prov.index() < state.province_definitions.first_sea_province.index());
 	assert(sea_prov.index() >= state.province_definitions.first_sea_province.index());
-	const std::vector<dcon::province_id> path = make_naval_path(state, port_prov, sea_prov);
+	const std::vector<dcon::province_id> path = make_naval_path(state, port_prov, sea_prov, nation_as);
 	naval_range_data range_data{.distance = 0.0f, .is_reachable = false };
 	if(path.empty()) {
 		return range_data;
@@ -2370,7 +2435,7 @@ std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !is_strait_blocked(state, nation_as, nearest.province, other_prov) && !origins_vector.get(other_prov)) {
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					assert_path_result(path_result);
@@ -2437,7 +2502,7 @@ std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::prov
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if(!is_adjacency_impassable(state, nation_as, adj.id)  && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
 					assert_path_result(path_result);
@@ -2571,7 +2636,7 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 }
 
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
+std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as) {
 
 	std::vector<province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
@@ -2602,7 +2667,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 			auto distance = adj.get_distance();
 
 			// can't move over impassible connections; can't move directly from port to port
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov) &&
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov) &&
 					(other_prov.id.index() >= state.province_definitions.first_sea_province.index() ||
 							nearest.province.index() >= state.province_definitions.first_sea_province.index())) {
 
@@ -2643,6 +2708,90 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 	assert_path_result(path_result);
 	return path_result;
 }
+
+
+
+
+// for sea trade routes
+std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
+
+	std::vector<province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	std::vector<dcon::province_id> path_result;
+
+	if(start == end)
+		return path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		path_result.push_back(end);
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+		};
+
+	path_heap.push_back(province_and_distance{ 0.0f, direct_distance(state, start, end), start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			// can't move over impassible connections; can't move directly from port to port
+			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov) &&
+					(other_prov.id.index() >= state.province_definitions.first_sea_province.index() ||
+						nearest.province.index() >= state.province_definitions.first_sea_province.index())) {
+
+
+
+				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is sea province
+					if(other_prov == end) {
+						fill_path_result(nearest.province);
+						assert_path_result(path_result);
+						return path_result;
+					} else {
+
+						path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					}
+				} else if(other_prov.id.index() < state.province_definitions.first_sea_province.index() && other_prov == end && other_prov.get_port_to() == nearest.province) { // case: ending in a port
+
+					fill_path_result(nearest.province);
+					assert_path_result(path_result);
+					return path_result;
+				} else if(nearest.province.index() < state.province_definitions.first_sea_province.index() && state.world.province_get_port_to(nearest.province) == other_prov.id) { // case: leaving port
+
+					if(other_prov == end) {
+						fill_path_result(nearest.province);
+						assert_path_result(path_result);
+						return path_result;
+					} else {
+						path_heap.push_back(province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					}
+				}
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+}
+
+
+
+
+
+
+
 
 struct retreat_province_and_distance {
 	float distance_covered = 0.0f;
@@ -2687,7 +2836,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov)) {
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is sea province
 					path_heap.push_back(retreat_province_and_distance{ nearest.distance_covered + distance, other_prov });
 					std::push_heap(path_heap.begin(), path_heap.end());
@@ -2743,7 +2892,7 @@ std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::n
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov)) {
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
 					path_heap.push_back(retreat_province_and_distance{nearest.distance_covered + distance, other_prov});
 					std::push_heap(path_heap.begin(), path_heap.end());
@@ -2792,7 +2941,7 @@ std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dco
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov)) {
 				if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
 					if(has_naval_access_to_province(state, nation_as, other_prov)) {
 						path_heap.push_back(retreat_province_and_distance{ nearest.distance_covered + distance, other_prov });

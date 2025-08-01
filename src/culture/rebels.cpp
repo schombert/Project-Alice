@@ -1374,7 +1374,7 @@ void update_armies(sys::state& state) {
 			if(prov.id.index() >= state.province_definitions.first_sea_province.index())
 				continue;
 			/* impassable */
-			if((adj.get_type() & province::border::impassible_bit) != 0)
+			if(province::is_adjacency_impassable(state, dcon::nation_id{ }, adj.id))
 				continue;
 			if(allow_in_area(state, prov, arc.get_controller())) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));

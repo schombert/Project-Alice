@@ -671,7 +671,7 @@ void send_fleet_home(sys::state& state, dcon::navy_id n, fleet_activity moving_s
 		v.set_ai_activity(uint8_t(at_base));
 	} else if(!home_port) {
 		v.set_ai_activity(uint8_t(fleet_activity::unspecified));
-	} else if(auto naval_path = province::make_naval_path(state, v.get_location_from_navy_location(), home_port); naval_path.size() > 0) {
+	} else if(auto naval_path = province::make_naval_path(state, v.get_location_from_navy_location(), home_port, v.get_controller_from_navy_control()); naval_path.size() > 0) {
 		auto new_size = uint32_t(naval_path.size());
 		auto existing_path = v.get_path();
 		existing_path.resize(new_size);
@@ -715,7 +715,7 @@ bool set_fleet_target(sys::state& state, dcon::nation_id n, dcon::province_id st
 
 	if(result) {
 		auto existing_path = state.world.navy_get_path(for_navy);
-		auto path = province::make_naval_path(state, start, result);
+		auto path = province::make_naval_path(state, start, result, state.world.navy_get_controller_from_navy_control(for_navy));
 		if(path.size() > 0) {
 			auto new_size = std::min(uint32_t(path.size()), uint32_t(4));
 			existing_path.resize(new_size);
@@ -856,7 +856,7 @@ void pickup_idle_ships(sys::state& state) {
 						if(!province::has_naval_access_to_province(state, owner, target_prov)) {
 							target_prov = state.world.province_get_port_to(target_prov);
 						}
-						auto naval_path = province::make_naval_path(state, location, target_prov);
+						auto naval_path = province::make_naval_path(state, location, target_prov, n.get_controller_from_navy_control());
 
 						auto existing_path = n.get_path();
 						auto new_size = uint32_t(naval_path.size());
@@ -883,7 +883,7 @@ void pickup_idle_ships(sys::state& state) {
 						if(!province::has_naval_access_to_province(state, owner, target_prov)) {
 							target_prov = state.world.province_get_port_to(target_prov);
 						}
-						auto naval_path = province::make_naval_path(state, location, target_prov);
+						auto naval_path = province::make_naval_path(state, location, target_prov, n.get_controller_from_navy_control());
 
 						auto existing_path = n.get_path();
 						auto new_size = uint32_t(naval_path.size());
@@ -916,7 +916,7 @@ void pickup_idle_ships(sys::state& state) {
 					state.world.navy_set_ai_activity(n, uint8_t(fleet_activity::idle));
 			} else if(home_port) {
 				auto existing_path = state.world.navy_get_path(n);
-				auto path = province::make_naval_path(state, location, home_port);
+				auto path = province::make_naval_path(state, location, home_port, n.get_controller_from_navy_control());
 				if(path.size() > 0) {
 					auto new_size = uint32_t(path.size());
 					existing_path.resize(new_size);
@@ -1304,7 +1304,7 @@ void move_idle_guards(sys::state& state) {
 				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
 				state.world.navy_set_unused_travel_days(transport_fleet, 0.0f);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
-			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) { // this essentially should be impossible ...
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination, state.world.navy_get_controller_from_navy_control(transport_fleet)); fleet_path.empty()) { // this essentially should be impossible ...
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);
@@ -2060,7 +2060,7 @@ void move_gathered_attackers(sys::state& state) {
 				state.world.navy_set_arrival_time(transport_fleet, sys::date{});
 				state.world.navy_set_unused_travel_days(transport_fleet, 0.0f);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
-			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination); fleet_path.empty()) {
+			} else if(auto fleet_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(transport_fleet), fleet_destination, state.world.navy_get_controller_from_navy_control(transport_fleet)); fleet_path.empty()) {
 				continue;
 			} else {
 				auto existing_path = state.world.navy_get_path(transport_fleet);
