@@ -6,6 +6,7 @@
 namespace ai {
 
 void take_ai_decisions(sys::state& state);
+void take_ai_scripted_interactions(sys::state& state);
 void update_ai_ruling_party(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);
 void update_ai_colony_starting(sys::state& state);

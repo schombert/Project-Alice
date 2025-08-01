@@ -583,6 +583,7 @@ public:
 class province_script_button : public button_element_base {
 public:
 	dcon::gui_def_id base_definition;
+	bool visible = true;
 
 	province_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
 	void button_action(sys::state& state) noexcept override;
@@ -590,17 +591,38 @@ public:
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible) {
+			button_element_base::render(state, x, y);
+		}
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 class nation_script_button : public button_element_base {
 public:
 	dcon::gui_def_id base_definition;
+	bool visible = true;
 
 	nation_script_button(dcon::gui_def_id base_definition) : base_definition(base_definition) { }
 	void button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
+	}
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		flags |= ui::element_base::wants_update_when_hidden_mask;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible) {
+			button_element_base::render(state, x, y);
+		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
