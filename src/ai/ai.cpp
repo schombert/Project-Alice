@@ -688,7 +688,7 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon:
 template<ai_path_length path_length_to_use = ai_path_length{ 0 }>
 bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
-		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination);
+		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
 			while(naval_path.size() > path_length_to_use.length) {
 				naval_path.erase(naval_path.begin());
@@ -699,7 +699,7 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id desti
 	}
 	else {
 		auto from_prov = state.world.navy_get_path(navy).at(0);
-		auto naval_path = province::make_naval_path(state, from_prov, destination);
+		auto naval_path = province::make_naval_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
 			while(naval_path.size() > path_length_to_use.length) {
 				naval_path.erase(naval_path.begin());
