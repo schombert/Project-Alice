@@ -3664,6 +3664,53 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	diplomatic_message::post(state, m);
 }
 
+
+void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::stop_army_movement;
+	p.source = source;
+	p.data.stop_army_movement.army = army;
+	add_to_command_queue(state, p);
+}
+
+bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	if(source != state.world.army_get_controller_from_army_control(army))
+		return false;
+	if(state.world.army_get_is_retreating(army))
+		return false;
+
+	return true;
+}
+
+void execute_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	military::stop_army_movement(state, army);
+}
+
+
+
+void stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.type = command_type::stop_navy_movement;
+	p.source = source;
+	p.data.stop_navy_movement.navy = navy;
+	add_to_command_queue(state, p);
+}
+
+bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	if(source != state.world.navy_get_controller_from_navy_control(navy))
+		return false;
+	if(state.world.navy_get_is_retreating(navy))
+		return false;
+
+	return true;
+}
+
+void execute_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	military::stop_navy_movement(state, navy);
+}
+
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -3710,9 +3757,9 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	else {
 		// if reset is true and the armies' current province is the same as the desination province, return a path vector with just the current province.
 		// if passed to execute_move_army, it will pick it up and cancel the current pathing
-		if(last_province == dest) {
+		/*if(last_province == dest) {
 			return std::vector<dcon::province_id>{last_province};
-		}
+		}*/
 	}
 	
 
@@ -6289,6 +6336,10 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true;
 	case command_type::change_ai_nation_state:
 		return true;
+	case command_type::stop_army_movement:
+		return can_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
+	case command_type::stop_navy_movement:
+		return can_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
 	}
 	return false;
 }
@@ -6695,6 +6746,10 @@ bool execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::change_ai_nation_state:
 		execute_change_ai_nation_state(state, c.source, c.data.change_ai_nation_state.no_ai);
+	case command_type::stop_army_movement:
+		execute_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
+	case command_type::stop_navy_movement:
+		execute_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
 	}
 	return true;
 }
