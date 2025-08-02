@@ -775,22 +775,6 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 
 }
 
-
-void stop_army_movement_ai(sys::state& state, dcon::army_id army) {
-	assert(army);
-	state.world.army_get_path(army).clear();
-	state.world.army_set_arrival_time(army, sys::date{ });
-	state.world.army_set_unused_travel_days(army, 0.0f);
-}
-
-void stop_navy_movement_ai(sys::state& state, dcon::navy_id navy) {
-	assert(navy);
-	state.world.navy_get_path(navy).clear();
-	state.world.navy_set_arrival_time(navy, sys::date{ });
-	state.world.navy_set_unused_travel_days(navy, 0.0f);
-}
-
-
 void send_fleet_home(sys::state& state, dcon::navy_id n, fleet_activity moving_status = fleet_activity::returning_to_base, fleet_activity at_base = fleet_activity::idle) {
 	auto v = fatten(state.world, n);
 	auto home_port = v.get_controller_from_navy_control().get_ai_home_port();
@@ -945,7 +929,7 @@ void pickup_idle_ships(sys::state& state) {
 						if(valid_path) {
 							n.set_ai_activity(uint8_t(fleet_activity::transporting));
 						} else {
-							stop_navy_movement_ai(state, n);
+							military::stop_navy_movement(state, n);
 							send_fleet_home(state, n);
 						}
 
@@ -960,7 +944,7 @@ void pickup_idle_ships(sys::state& state) {
 						if(path_valid) {
 							n.set_ai_activity(uint8_t(fleet_activity::transporting));
 						} else {
-							stop_navy_movement_ai(state, n);
+							military::stop_navy_movement(state, n);
 							send_fleet_home(state, n);
 						}
 					}
@@ -1325,7 +1309,7 @@ void move_idle_guards(sys::state& state) {
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
 			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
-				stop_navy_movement_ai(state, transport_fleet);
+				military::stop_navy_movement(state, transport_fleet);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
 			} else if(auto valid_path = move_navy_ai(state, transport_fleet, fleet_destination); !valid_path) { // this essentially should be impossible ...
 				continue;
@@ -1986,7 +1970,7 @@ void move_gathered_attackers(sys::state& state) {
 		{
 			auto fleet_destination = province::has_naval_access_to_province(state, controller, coastal_target_prov) ? coastal_target_prov : state.world.province_get_port_to(coastal_target_prov);
 			if(fleet_destination == state.world.navy_get_location_from_navy_location(transport_fleet)) {
-				stop_navy_movement_ai(state, transport_fleet);
+				military::stop_navy_movement(state, transport_fleet);
 				state.world.navy_set_ai_activity(transport_fleet, uint8_t(fleet_activity::boarding));
 			} else if(auto valid_path = move_navy_ai(state, transport_fleet, fleet_destination); !valid_path) {
 				continue;

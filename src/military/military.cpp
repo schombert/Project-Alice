@@ -8728,6 +8728,24 @@ void recover_org(sys::state& state) {
 		}
 	}
 }
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_army_movement(sys::state& state, dcon::army_id army) {
+	assert(army);
+	state.world.army_get_path(army).clear();
+	state.world.army_set_arrival_time(army, sys::date{ });
+	state.world.army_set_unused_travel_days(army, 0.0f);
+}
+
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_navy_movement(sys::state& state, dcon::navy_id navy) {
+	assert(navy);
+	state.world.navy_get_path(navy).clear();
+	state.world.navy_set_arrival_time(navy, sys::date{ });
+	state.world.navy_set_unused_travel_days(navy, 0.0f);
+}
+
+
+
 
 // Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
