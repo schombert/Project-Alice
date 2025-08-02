@@ -20,6 +20,8 @@ target_link_libraries(tests_project
 
 if (WIN32)
 	target_link_libraries(tests_project PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+else()
+	target_link_libraries(tests_project PRIVATE fmt::fmt)
 endif()
 
 # GENERATE test parsers

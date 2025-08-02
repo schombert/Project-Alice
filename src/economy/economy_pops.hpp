@@ -164,7 +164,7 @@ template<typename POPS>
 auto inline prepare_pop_budget(
 	const sys::state& state, POPS ids
 ) {
-	using VALUE = std::conditional<std::same_as<POPS, dcon::pop_id>, float, ve::fp_vector>::type;
+	using VALUE = typename std::conditional<std::same_as<POPS, dcon::pop_id>, float, ve::fp_vector>::type;
 	vectorized_pops_budget<VALUE> result{ };
 
 	auto pop_size = state.world.pop_get_size(ids);
