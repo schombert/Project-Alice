@@ -71,6 +71,8 @@ bool state_is_coastal(sys::state& state, dcon::state_instance_id s);
 bool state_is_coastal_non_core_nb(sys::state& state, dcon::state_instance_id s);
 bool state_borders_nation(sys::state& state, dcon::nation_id n, dcon::state_instance_id si);
 
+float get_province_modifier_without_hostile_buildings(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov, dcon::provincial_modifier_value prov_mod_val);
+
 dcon::province_id pick_capital(sys::state& state, dcon::nation_id n);
 
 float state_admin_efficiency(sys::state& state, dcon::state_instance_id id);
@@ -80,6 +82,8 @@ float revolt_risk(sys::state& state, dcon::province_id id);
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
 bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
+bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
+bool is_canal_adjacency_passable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);
@@ -112,7 +116,7 @@ float direct_distance(sys::state& state, dcon::province_id a, dcon::province_id 
 float direct_distance_km(sys::state& state, dcon::province_id a, dcon::province_id b);
 
 // naval range distance between a port and a sea province. Must take the distance of a naval path instead of direct distance
-naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov);
+naval_range_data naval_range_distance(sys::state& state, dcon::province_id port_prov, dcon::province_id sea_prov, dcon::nation_id nation_as);
 // sorting distance returns values such that a smaller sorting distance between two provinces
 // means that they are closer, but does not translate 1 to 1 to actual distances (i.e. is the negative dot product)
 float sorting_distance(sys::state& state, dcon::province_id a, dcon::province_id b);
@@ -137,7 +141,9 @@ std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::provin
 // used for rebel unit and black-flagged unit pathfinding
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
+//for sea trade routes
+std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);

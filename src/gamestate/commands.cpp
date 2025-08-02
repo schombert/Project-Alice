@@ -3836,7 +3836,8 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	if(dest.index() < state.province_definitions.first_sea_province.index()) {
 		/* Case for land destinations */
-		if(battle && !province::has_naval_access_to_province(state, source, dest)) {
+		// the previous call was to "province::has_naval_access_to_province" instead, was there a reason for that?
+		if(battle && !province::has_access_to_province(state, source, dest)) {
 			return;
 		}
 	} else {
@@ -3979,7 +3980,7 @@ std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nat
 		return std::vector<dcon::province_id>{};
 
 	if(dest.index() >= state.province_definitions.first_sea_province.index()) {
-		return province::make_naval_path(state, last_province, dest);
+		return province::make_naval_path(state, last_province, dest, source);
 	} else {
 		if(!state.world.province_get_is_coast(dest))
 			return std::vector<dcon::province_id>{};
@@ -3987,7 +3988,7 @@ std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nat
 		if(!province::has_naval_access_to_province(state, source, dest))
 			return std::vector<dcon::province_id>{};
 
-		return province::make_naval_path(state, last_province, dest);
+		return province::make_naval_path(state, last_province, dest, source);
 	}
 }
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {

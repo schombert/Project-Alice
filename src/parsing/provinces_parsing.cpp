@@ -94,7 +94,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						auto blockade_prov_value = parsers::parse_int(blockade_prov_text, 0, err);
 						if(blockade_prov_value > 0) {
 							auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
-							context.state.world.province_adjacency_set_sea_adj_prov( new_rel, dcon::province_id{ blockadeable_prov });
+							context.state.world.province_adjacency_set_canal_or_blockade_province( new_rel, blockadeable_prov );
 						}
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
 						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
@@ -106,6 +106,13 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 
 						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
 
+						if(province_id_a.index() < context.state.province_definitions.first_sea_province.index()) {
+							err.accumulated_errors += "Canal adjacency province ID " + std::to_string(first_value) + " in Canal ID " + std::to_string(canal_id) + " is a land province ("  + err.file_name + ")\n";
+						}
+						if(province_id_b.index() < context.state.province_definitions.first_sea_province.index()) {
+							err.accumulated_errors += "Canal adjacency province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a land province (" + err.file_name + ")\n";
+						}
+
 						if(canal_id > 0) {
 							if(context.state.province_definitions.canals.size() < canal_id) {
 								context.state.province_definitions.canals.resize(canal_id);
@@ -113,10 +120,11 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 							context.state.province_definitions.canals[canal_id - 1] = new_rel;
 
 							auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-							if(context.state.province_definitions.canal_provinces.size() < canal_id) {
-								context.state.province_definitions.canal_provinces.resize(canal_id);
+							if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
+								err.accumulated_errors += "Canal province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a sea province (" + err.file_name + ")\n";
 							}
-							context.state.province_definitions.canal_provinces[canal_id - 1] = context.original_id_to_prov_id_map[canal_province_id];
+
+							context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
 						} else {
 							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
 						}

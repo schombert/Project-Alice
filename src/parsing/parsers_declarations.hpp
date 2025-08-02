@@ -627,6 +627,7 @@ public:
 	MOD_NAT_FUNCTION(max_tariff)
 	MOD_NAT_FUNCTION(ruling_party_support)
 	MOD_PROV_FUNCTION(local_ruling_party_support)
+	MOD_PROV_FUNCTION(fort_level)
 	MOD_NAT_FUNCTION(rich_vote)
 	MOD_NAT_FUNCTION(middle_vote)
 	MOD_NAT_FUNCTION(poor_vote)
