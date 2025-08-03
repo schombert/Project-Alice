@@ -3893,7 +3893,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	}
 	auto path = can_move_army(state, source, a, dest, reset);
 
-	if(military::move_army_ai(state, a, path, source, reset)) {
+	if(military::move_army_fast(state, a, path, source, reset)) {
 		state.world.army_set_is_rebel_hunter(a, false);
 	} else if(reset) {
 		military::stop_army_movement(state, a);
@@ -4015,7 +4015,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	}
 
 	auto path = can_move_navy(state, source, n, dest, reset);
-	if(!military::move_navy_ai(state, n, path, reset)) {
+	if(!military::move_navy_fast(state, n, path, reset)) {
 		if(reset) {
 			military::stop_navy_movement(state, n);
 		}
@@ -4135,9 +4135,7 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	}
 
 	// stop movement
-	state.world.army_get_path(a).clear();
-	state.world.army_set_arrival_time(a, sys::date{});
-	state.world.army_set_unused_travel_days(a, 0.0f);
+	military::stop_army_movement(state, a);
 
 	// set dig in to the lowest value of the two armies
 	state.world.army_set_dig_in(a,std::min(

@@ -5144,7 +5144,7 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 		state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
 
 		for(auto em : state.world.navy_get_army_transport(n)) {
-			em.get_army().get_path().clear();
+			stop_army_movement(state, em.get_army());
 		}
 		return true;
 	} else {
@@ -8045,7 +8045,7 @@ void update_movement(sys::state& state) {
 							if(army_dest && army_dest != dest) {
 								auto apath = province::make_land_path(state, dest, army_dest, acontroller, a);
 								if(apath.size() > 0) {
-									move_army_ai(state, a, apath, acontroller);
+									move_army_fast(state, a, apath, acontroller);
 									auto activity = ai::army_activity(a.get_ai_activity());
 									if(activity == ai::army_activity::transport_guard) {
 										a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
@@ -8238,20 +8238,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			continue;
 
 		auto path = province::make_land_path(state, prov, next_prov.p, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-			auto arrival_data = military::arrival_time_to(state, a, path.back());
-			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-			state.world.army_set_dig_in(a, 0);
-
+		if(move_army_fast(state, a, path, controller)) {
 			break;
 		}
 	}
@@ -8261,20 +8248,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			return;
 
 		auto path = province::make_land_path(state, prov, home, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-			auto arrival_data = military::arrival_time_to(state, a, path.back());
-			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-			state.world.army_set_dig_in(a, 0);
-		}
+		move_army_fast(state, a, path, controller);
 	}
 }
 
@@ -8553,9 +8527,7 @@ void eject_ships(sys::state& state, dcon::province_id p) {
 
 		for(auto a : state.world.navy_get_army_transport(n)) {
 			a.get_army().set_location_from_army_location(sea_zone);
-			a.get_army().get_path().clear();
-			a.get_army().set_arrival_time(sys::date{});
-			a.get_army().set_unused_travel_days(0.0f);
+			stop_army_movement(state, a.get_army());
 		}
 	}
 }
@@ -9556,27 +9528,15 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 		}
 	} else {
 		auto path = province::make_land_path(state, start, dest, by, a);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.army_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
+		if(move_army_fast(state, a, path, by)) {
+			state.world.army_set_moving_to_merge(a, true);
 		}
-		auto arrival_data = military::arrival_time_to(state, a, path.back());
-		state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-		state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-		state.world.army_set_moving_to_merge(a, true);
 	}
 }
 
 
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset) {
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset) {
 	if(naval_path.size() > 0) {
 		auto existing_path = state.world.navy_get_path(navy);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9611,7 +9571,7 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon:
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use>
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
 		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
@@ -9620,7 +9580,7 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id desti
 			}
 
 		}
-		return move_navy_ai(state, navy, naval_path, reset);
+		return move_navy_fast(state, navy, naval_path, reset);
 	} else {
 		auto from_prov = state.world.navy_get_path(navy).at(0);
 		auto naval_path = province::make_naval_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
@@ -9630,17 +9590,17 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id desti
 			}
 
 		}
-		return move_navy_ai(state, navy, naval_path, reset);
+		return move_navy_fast(state, navy, naval_path, reset);
 	}
 
 }
 
-template bool move_navy_ai < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
-template bool move_navy_ai < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
 
 
 // moves armies for ai nations. Uses a path passed to it directly, and assumes it is a valid path
-bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset) {
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset) {
 	if(army_path.size() > 0) {
 		auto existing_path = state.world.army_get_path(army);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9676,7 +9636,7 @@ bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon:
 // moves armies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use>
-bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
+bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
 	if(reset || state.world.army_get_path(army).size() == 0) {
 		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
@@ -9686,7 +9646,7 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 			}
 
 		}
-		return move_army_ai(state, army, army_path, nation_as, reset);
+		return move_army_fast(state, army, army_path, nation_as, reset);
 
 	} else {
 		auto from_prov = state.world.army_get_path(army).at(0);
@@ -9696,12 +9656,12 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 				army_path.erase(army_path.begin());
 			}
 		}
-		return move_army_ai(state, army, army_path, nation_as, reset);
+		return move_army_fast(state, army, army_path, nation_as, reset);
 	}
 }
 
-template bool move_army_ai<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
-template bool move_army_ai < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_fast<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_fast < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
 	if(state.world.nation_get_is_player_controlled(by) == false)
@@ -9724,7 +9684,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 	} else {
 		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
 		if(!path.empty()) {
-			military::move_navy_ai(state, a, path);
+			military::move_navy_fast(state, a, path);
 			state.world.navy_set_moving_to_merge(a, true);
 		}
 	}
