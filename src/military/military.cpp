@@ -7957,7 +7957,10 @@ void update_movement(sys::state& state) {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
 							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
+								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
 								stop_army_movement(state, a);
+								a.set_is_retreating(false);
+								army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 							} else {
 								army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							}
@@ -7969,7 +7972,10 @@ void update_movement(sys::state& state) {
 						}
 					}
 				} else {
+					// if the dest prov is inaccesible when the movement happens, stop movement and check for collision with enemy armies
 					stop_army_movement(state, a);
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 			}
 
@@ -8057,14 +8063,20 @@ void update_movement(sys::state& state) {
 						army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 					}
 				} else {
+					// if the destination province becomes inaccesible by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
 				}
 			} else { // sea province
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
 				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
 					
 				}
 				else {
