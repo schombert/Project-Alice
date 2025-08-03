@@ -3722,6 +3722,46 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 	add_to_command_queue(state, p);
 }
 
+
+bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	auto army_loc = state.world.army_get_location_from_army_location(a);
+	if(command::can_move_army(state, source, a, dest, true).empty() && !(army_loc == dest && command::can_stop_army_movement(state, source, a))) {
+		return false;
+	}
+	else {
+		return true;
+	}
+}
+
+bool can_move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	auto navy_loc = state.world.navy_get_location_from_navy_location(n);
+	if(command::can_move_navy(state, source, n, dest, true).empty() && !(navy_loc == dest && command::can_stop_navy_movement(state, source, n))) {
+		return false;
+	} else {
+		return true;
+	}
+}
+
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	auto army_loc = state.world.army_get_location_from_army_location(a);
+	if(army_loc == dest) {
+		command::stop_army_movement(state, source, a);
+	}
+	else {
+		move_army(state, source, a, dest, true);
+	}
+}
+
+void move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	auto army_loc = state.world.navy_get_location_from_navy_location(n);
+	if(army_loc == dest) {
+		command::stop_navy_movement(state, source, n);
+	} else {
+		move_navy(state, source, n, dest, true);
+	}
+}
+
+
 bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 	if(!b)
 		return true;

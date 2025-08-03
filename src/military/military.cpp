@@ -7983,11 +7983,6 @@ void update_movement(sys::state& state) {
 				a.set_unused_travel_days(0.0f);
 				if(a.get_is_retreating()) {
 					a.set_is_retreating(false);
-					army_arrives_in_province(state, a, dest,
-							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
-								province::border::river_crossing_bit) != 0
-									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{});
 				}
 				if(a.get_moving_to_merge()) {
 					a.set_moving_to_merge(false);
@@ -8092,8 +8087,6 @@ void update_movement(sys::state& state) {
 				n.set_arrival_time(sys::date{});
 				n.set_unused_travel_days(0.0f);
 				if(n.get_is_retreating()) {
-					if(dest.index() >= state.province_definitions.first_sea_province.index())
-						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 					n.set_is_retreating(false);
 				}
 				if(n.get_moving_to_merge()) {

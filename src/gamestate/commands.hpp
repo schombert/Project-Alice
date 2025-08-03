@@ -840,6 +840,23 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset = true);
 
+
+// Wrapper to check if a given army can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+
+// Wrapper to check if a given navy can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+bool can_move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+
+// Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+
+// Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+void move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 
 
