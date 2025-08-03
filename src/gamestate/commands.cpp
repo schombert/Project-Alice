@@ -3754,13 +3754,6 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 			last_province = movement.at(0);
 		}
 	}
-	else {
-		// if reset is true and the armies' current province is the same as the desination province, return a path vector with just the current province.
-		// if passed to execute_move_army, it will pick it up and cancel the current pathing
-		/*if(last_province == dest) {
-			return std::vector<dcon::province_id>{last_province};
-		}*/
-	}
 	
 
 	return calculate_army_path(state, source, a, last_province, dest);
@@ -3897,22 +3890,13 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	auto existing_path = state.world.army_get_path(a);
 
 	if(!dest) {
-		existing_path.clear();
-		state.world.army_set_arrival_time(a, sys::date{});
-		state.world.army_set_unused_travel_days(a, 0.0f);
+		military::stop_army_movement(state, a);
 		return;
 	}
 
 	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 	if(reset) {
 		existing_path.clear();
-		//if the movement is to be reset, and the destination province is the same province as the unit is currently in
-		//we assume that the intention is to cancel the current move command. Cancel the existing path and return w/o assigning a new one
-		if(state.world.army_get_location_from_army_location(a) == dest) {
-			state.world.army_set_arrival_time(a, sys::date{});
-			state.world.army_set_unused_travel_days(a, 0.0f);
-			return;
-		}
 	}
 
 	auto path = can_move_army(state, source, a, dest, reset);
@@ -4052,9 +4036,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	auto existing_path = state.world.navy_get_path(n);
 
 	if(!dest) {
-		existing_path.clear();
-		state.world.navy_set_arrival_time(n, sys::date{});
-		state.world.navy_set_unused_travel_days(n, 0.0f);
+		military::stop_navy_movement(state, n);
 		return;
 	}
 
@@ -4260,9 +4242,7 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 
 	// stop movement, but not for ai's
 	if constexpr(execute_as == execute_cmd_as::player) {
-		state.world.navy_get_path(a).clear();
-		state.world.navy_set_arrival_time(a, sys::date{});
-		state.world.navy_set_unused_travel_days(a, 0.0f);
+		military::stop_navy_movement(state, a);
 	}
 	
 

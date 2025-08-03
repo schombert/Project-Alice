@@ -287,6 +287,13 @@ enum class regiment_dmg_source {
 	combat, attrition
 };
 
+struct ai_path_length {
+	uint32_t length;
+	bool operator==(const ai_path_length& other) const = default;
+	bool operator!=(const ai_path_length& other) const = default;
+
+};
+
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
@@ -618,6 +625,26 @@ dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest);
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
+
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
+// takes a path directly instead of calculating it
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset = true);
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
+// takes a path directly instead of calculating it
+bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
+
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 template<regiment_dmg_source damage_source>
