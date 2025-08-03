@@ -9576,7 +9576,7 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 
 
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset = true) {
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset) {
 	if(naval_path.size() > 0) {
 		auto existing_path = state.world.navy_get_path(navy);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9610,8 +9610,8 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, const std::vector<dcon:
 
 // moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
-template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true) {
+template<ai_path_length path_length_to_use>
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
 		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
@@ -9635,9 +9635,12 @@ bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id desti
 
 }
 
+template bool move_navy_ai < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_ai < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+
 
 // moves armies for ai nations. Uses a path passed to it directly, and assumes it is a valid path
-bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset = true) {
+bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset) {
 	if(army_path.size() > 0) {
 		auto existing_path = state.world.army_get_path(army);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9672,8 +9675,8 @@ bool move_army_ai(sys::state& state, dcon::army_id army, const std::vector<dcon:
 
 // moves armies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
-template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true) {
+template<ai_path_length path_length_to_use>
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
 	if(reset || state.world.army_get_path(army).size() == 0) {
 		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
@@ -9695,20 +9698,10 @@ bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id desti
 		}
 		return move_army_ai(state, army, army_path, nation_as, reset);
 	}
-
-
 }
 
-
-
-
-
-
-
-
-
-
-
+template bool move_army_ai<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_ai < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
 	if(state.world.nation_get_is_player_controlled(by) == false)

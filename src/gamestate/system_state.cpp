@@ -978,13 +978,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 				bool fail = false;
 				for(auto a : selected_armies) {
 					auto army_loc = world.army_get_location_from_army_location(a);
-					if(command::can_move_army(*this, local_player_nation, a, prov).empty() && (army_loc == prov && !command::can_stop_army_movement(*this, local_player_nation, a))) {
+					if(command::can_move_army(*this, local_player_nation, a, prov).empty() && !(army_loc == prov && command::can_stop_army_movement(*this, local_player_nation, a))) {
 						fail = true;
 					}
 				}
 				for(auto a : selected_navies) {
 					auto navy_loc = world.navy_get_location_from_navy_location(a);
-					if(command::can_move_navy(*this, local_player_nation, a, prov).empty() && (navy_loc == prov && !command::can_stop_navy_movement(*this, local_player_nation, a)) ) {
+					if(command::can_move_navy(*this, local_player_nation, a, prov).empty() && !(navy_loc == prov && command::can_stop_navy_movement(*this, local_player_nation, a)) ) {
 						fail = true;
 					}
 				}

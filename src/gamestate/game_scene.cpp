@@ -122,7 +122,7 @@ bool move_unit(sys::state& state, T unit, dcon::province_id target, bool reset) 
 			return true;
 		}
 	} else {
-		if(command::can_move_navy(state, state.local_player_nation, unit, target).empty()) {
+		if(command::can_move_navy(state, state.local_player_nation, unit, target, reset).empty()) {
 			return false;
 		} else {
 			command::move_navy(state, state.local_player_nation, unit, target, reset);

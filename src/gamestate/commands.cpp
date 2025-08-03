@@ -3887,43 +3887,16 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
-	auto existing_path = state.world.army_get_path(a);
-
 	if(!dest) {
 		military::stop_army_movement(state, a);
 		return;
 	}
-
-	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
-	if(reset) {
-		existing_path.clear();
-	}
-
 	auto path = can_move_army(state, source, a, dest, reset);
 
-	if(path.size() > 0) {
-		auto append_size = uint32_t(path.size());
-		auto old_size = existing_path.size();
-		auto new_size = old_size + append_size;
-		existing_path.resize(new_size);
-
-		for(uint32_t i = old_size; i-- > 0; ) {
-			existing_path.at(append_size + i) = existing_path.at(i);
-		}
-		for(uint32_t i = 0; i < append_size; ++i) {
-			existing_path.at(i) = path[i];
-		}
-
-		if(existing_path.at(new_size - 1) != old_first_prov) {
-			auto arrival_info = military::arrival_time_to(state, a, path.back());
-			state.world.army_set_arrival_time(a, arrival_info.arrival_time);
-			state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
-		}
-		state.world.army_set_dig_in(a, 0);
+	if(military::move_army_ai(state, a, path, source, reset)) {
 		state.world.army_set_is_rebel_hunter(a, false);
 	} else if(reset) {
-		state.world.army_set_arrival_time(a, sys::date{});
-		state.world.army_set_unused_travel_days(a, 0.0f);
+		military::stop_army_movement(state, a);
 	}
 	state.world.army_set_moving_to_merge(a, false);
 
@@ -3983,7 +3956,7 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 	p.data.navy_movement.reset = reset;
 	add_to_command_queue(state, p);
 }
-std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 	if(source != state.world.navy_get_controller_from_navy_control(n))
 		return std::vector<dcon::province_id>{};
 	if(state.world.navy_get_is_retreating(n))
@@ -3991,11 +3964,13 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	if(!dest)
 		return std::vector<dcon::province_id>{}; // stop movement
 
-	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
+	// Behavior for shift+click movement. Otherwise - path is cleared beforehand. If movement is reset, make the path from the units current location. If not reset, make the path from the destination prov
 	auto last_province = state.world.navy_get_location_from_navy_location(n);
-	auto movement = state.world.navy_get_path(n);
-	if(movement.size() > 0) {
-		last_province = movement.at(0);
+	if(!reset) {
+		auto movement = state.world.navy_get_path(n);
+		if(movement.size() > 0) {
+			last_province = movement.at(0);
+		}
 	}
 
 	return calculate_navy_path(state, source, n, last_province, dest);
@@ -4022,6 +3997,7 @@ std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nat
 		return province::make_naval_path(state, last_province, dest, source);
 	}
 }
+
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 	if(source != state.world.navy_get_controller_from_navy_control(n))
 		return;
@@ -4033,40 +4009,16 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 		return;
 	}
 
-	auto existing_path = state.world.navy_get_path(n);
-
 	if(!dest) {
 		military::stop_navy_movement(state, n);
 		return;
 	}
 
-	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
-	if(reset) {
-		existing_path.clear();
-	}
-
-	auto path = can_move_navy(state, source, n, dest);
-	if(path.size() > 0) {
-		auto append_size = uint32_t(path.size());
-		auto old_size = existing_path.size();
-		auto new_size = old_size + append_size;
-		existing_path.resize(new_size);
-
-		for(uint32_t i = old_size; i-- > 0; ) {
-			existing_path.at(append_size + i) = existing_path.at(i);
+	auto path = can_move_navy(state, source, n, dest, reset);
+	if(!military::move_navy_ai(state, n, path, reset)) {
+		if(reset) {
+			military::stop_navy_movement(state, n);
 		}
-		for(uint32_t i = 0; i < append_size; ++i) {
-			existing_path.at(i) = path[i];
-		}
-
-		if(existing_path.at(new_size - 1) != old_first_prov) {
-			auto arrival_info = military::arrival_time_to(state, n, path.back());
-			state.world.navy_set_arrival_time(n, arrival_info.arrival_time);
-			state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
-		}
-	} else if(reset) {
-		state.world.navy_set_arrival_time(n, sys::date{});
-		state.world.navy_set_unused_travel_days(n, 0.0f);
 	}
 	state.world.navy_set_moving_to_merge(n, false);
 
@@ -6135,7 +6087,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset).size() != 0;
 
 	case command_type::move_navy:
-		return can_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest).size() != 0;
+		return can_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset).size() != 0;
 
 	case command_type::embark_army:
 		return can_embark_army(state, c.source, c.data.army_movement.a);
