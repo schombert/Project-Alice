@@ -858,24 +858,13 @@ void rebel_hunting_check(sys::state& state) {
 				for(uint32_t i = 0; i < rebel_hunters.size(); ++i) {
 					auto a = rebel_hunters[i].a;
 					if(state.world.army_get_location_from_army_location(a) == closest_prov) {
-						state.world.army_get_path(a).clear();
-						state.world.army_set_arrival_time(a, sys::date{});
-						state.world.army_set_unused_travel_days(a, 0.0f);
+						military::stop_army_movement(state, a);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
 						break;
 					} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
-						auto existing_path = state.world.army_get_path(a);
-						auto new_size = uint32_t(path.size());
-						existing_path.resize(new_size);
-						for(uint32_t j = 0; j < new_size; j++) {
-							existing_path.at(j) = path[j];
-						}
-						auto arrival_info = military::arrival_time_to(state, a, path.back());
-						state.world.army_set_arrival_time(a, arrival_info.arrival_time);
-						state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
-						state.world.army_set_dig_in(a, 0);
+						military::move_army_fast(state, a, path, faction_owner);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
@@ -896,18 +885,7 @@ void rebel_hunting_check(sys::state& state) {
 			&& a.get_location_from_army_location() != a.get_ai_province()
 			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
 		{
-			if(auto path = province::make_land_path(state, a.get_location_from_army_location(), a.get_ai_province(), a.get_army_control().get_controller(), a); path.size() > 0) {
-				auto existing_path = state.world.army_get_path(a);
-				auto new_size = uint32_t(path.size());
-				existing_path.resize(new_size);
-				for(uint32_t j = 0; j < new_size; j++) {
-					existing_path.at(j) = path[j];
-				}
-				auto arrival_info = military::arrival_time_to(state, a, path.back());
-				state.world.army_set_arrival_time(a, arrival_info.arrival_time);
-				state.world.army_set_unused_travel_days(a, arrival_info.unused_travel_days);
-				state.world.army_set_dig_in(a, 0);
-			} else {
+			if(auto path_valid = military::move_army_fast(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
 				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
 			}
 		}

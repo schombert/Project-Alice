@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include "dcon_generated.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
@@ -287,6 +288,13 @@ enum class regiment_dmg_source {
 	combat, attrition
 };
 
+struct ai_path_length {
+	uint32_t length = 0;
+	bool operator==(const ai_path_length& other) const = default;
+	bool operator!=(const ai_path_length& other) const = default;
+
+};
+
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
 void restore_unsaved_values(sys::state& state); // must run after determining connectivity
@@ -476,6 +484,10 @@ void advance_mobilizations(sys::state& state);
 
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);
+
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type);
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type);
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a);
 dcon::navy_id find_embark_target(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a);
 float effective_army_speed(sys::state& state, dcon::army_id a);
@@ -570,6 +582,11 @@ void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state& state, dcon::ship_id ship_id);
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_navy_movement(sys::state& state, dcon::navy_id navy);
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_army_movement(sys::state& state, dcon::army_id army);
+
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
@@ -609,6 +626,26 @@ dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest);
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
+
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.. 
+// takes a path directly instead of calculating it
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset = true);
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
+// takes a path directly instead of calculating it
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
+
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 template<regiment_dmg_source damage_source>

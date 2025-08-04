@@ -122,20 +122,39 @@ void selected_units_control(
 	//as opposed to queueing
 	bool reset_orders = (uint8_t(mod) & uint8_t(sys::key_modifiers::modifiers_shift)) == 0;
 	float volume = get_effects_volume(state);
-
-	for(auto a : state.selected_armies) {
-		if(command::can_move_army(state, nation, a, target, reset_orders).empty()) {
-			fail = true;
-		} else {
-			command::move_army(state, nation, a, target, reset_orders);
-			army_play = true;
+	if(reset_orders) {
+		for(auto a : state.selected_armies) {
+			if(command::can_move_or_stop_army(state, state.local_player_nation, a, target)) {
+				command::move_or_stop_army(state, state.local_player_nation, a, target);
+				army_play = true;
+			}
+			else {
+				fail = true;
+			}
+		}
+		for(auto a : state.selected_navies) {
+			if(command::can_move_or_stop_navy(state, state.local_player_nation, a, target)) {
+				command::move_or_stop_navy(state, state.local_player_nation, a, target);
+			} else {
+				fail = true;
+			}
 		}
 	}
-	for(auto a : state.selected_navies) {
-		if(command::can_move_navy(state, nation, a, target).empty()) {
-			fail = true;
-		} else {
-			command::move_navy(state, nation, a, target, reset_orders);
+	else {
+		for(auto a : state.selected_armies) {
+			if(command::can_move_army(state, state.local_player_nation, a, target, false).empty()) {
+				fail = true;
+			} else {
+				command::move_army(state, state.local_player_nation, a, target, false);
+				army_play = true;
+			}
+		}
+		for(auto a : state.selected_navies) {
+			if(command::can_move_navy(state, state.local_player_nation, a, target, false).empty()) {
+				fail = true;
+			} else {
+				command::move_navy(state, state.local_player_nation, a, target, false);
+			}
 		}
 	}
 
