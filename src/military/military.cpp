@@ -9539,9 +9539,7 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 	}
 }
 
-
-// moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::vector<dcon::province_id>& naval_path, bool reset) {
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset) {
 	if(naval_path.size() > 0) {
 		auto existing_path = state.world.navy_get_path(navy);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9571,10 +9569,6 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::vector<dco
 	}
 }
 
-
-
-// moves navies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use>
 bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
@@ -9604,8 +9598,7 @@ template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::n
 template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
 
 
-// moves armies for ai nations. Uses a path passed to it directly, and assumes it is a valid path
-bool move_army_fast(sys::state& state, dcon::army_id army, const std::vector<dcon::province_id>& army_path, dcon::nation_id nation_as, bool reset) {
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool reset) {
 	if(army_path.size() > 0) {
 		auto existing_path = state.world.army_get_path(army);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
@@ -9638,8 +9631,6 @@ bool move_army_fast(sys::state& state, dcon::army_id army, const std::vector<dco
 	}
 }
 
-// moves armies for ai nations. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path.
-// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use>
 bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);

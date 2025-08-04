@@ -975,20 +975,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
-				bool fail = false;
-				for(auto a : selected_armies) {
-					auto army_loc = world.army_get_location_from_army_location(a);
-					if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
-						fail = true;
+				bool can_move = [this, prov]() {
+					for(auto a : selected_armies) {
+						auto army_loc = world.army_get_location_from_army_location(a);
+						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				for(auto a : selected_navies) {
-					auto navy_loc = world.navy_get_location_from_navy_location(a);
-					if(!command::can_move_or_stop_navy(*this, local_player_nation, a, prov)) {
-						fail = true;
+					for(auto a : selected_navies) {
+						auto navy_loc = world.navy_get_location_from_navy_location(a);
+						if(!command::can_move_or_stop_navy(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				if(!fail) {
+					return true;
+
+				}();
+
+				if(can_move) {
 					auto c = world.province_get_nation_from_province_control(prov);
 					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
 						window::change_cursor(*this, window::cursor_type::hostile_move);

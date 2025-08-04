@@ -18,7 +18,7 @@
 #include "economy_government.hpp"
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
-#include <gui_effect_tooltips.hpp>
+#include "gui_effect_tooltips.hpp"
 
 namespace nations {
 

@@ -4255,8 +4255,9 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 		if(source == state.local_player_nation) {
 			state.deselect(b);
 		}
+		// let the garbage collector deal with the lingering navy if not executed as player, due to looping over navies as ai.
+		military::cleanup_navy(state, b);
 	}
-	military::cleanup_navy(state, b);
 }
 template void execute_merge_navies<execute_cmd_as::player>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 template void execute_merge_navies<execute_cmd_as::ai>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
