@@ -557,6 +557,7 @@ void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
+void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);

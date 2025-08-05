@@ -7596,10 +7596,10 @@ void update_naval_battles(sys::state& state) {
 		if(!state.world.naval_battle_is_valid(b))
 			return;
 
+		auto slots = state.world.naval_battle_get_slots(b);
+		
 		int32_t attacker_ships = 0;
 		int32_t defender_ships = 0;
-
-		auto slots = state.world.naval_battle_get_slots(b);
 
 		for(uint32_t j = slots.size(); j-- > 0;) {
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
@@ -7803,7 +7803,49 @@ void update_naval_battles(sys::state& state) {
 				single_ship_start_retreat(state, slots[j], b);
 			}
 		}
+
+		// check if all ships of a retreating navy has fully retreated. If so them move them from the battle
+		std::vector<dcon::navy_id> to_retreat{ };
+		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
+			auto navy = n.get_navy();
+			if(navy.get_is_retreating()) {
+				std::vector<ship_in_battle*> to_be_removed{ };
+
+				bool can_retreat = [&]() {
+					for(uint32_t j = slots.size(); j-- > 0;) {
+						if(state.world.ship_get_navy_from_navy_membership(slots[j].ship) == navy) {
+							if((slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_retreated &&
+							   (slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_sunk) {
+								return false;
+							}
+							else if((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated) {
+								to_be_removed.push_back(&slots[j]);
+							}
+							
+						}
+						
+					}
+					return true;
+				}();
+
+				if(can_retreat) {
+					// anonymize ship ID of the ships that are retreating out of the battle. Targets depend on the index of the slots vector so can't remove em fully
+					for(auto battle_ship : to_be_removed) {
+						assert((battle_ship->flags& ship_in_battle::mode_mask) == ship_in_battle::mode_retreated);
+						assert(state.world.ship_is_valid(battle_ship->ship));
+						battle_ship->ship = dcon::ship_id{ };			
+
+					}
+					to_retreat.push_back(navy);
+				}
+				
+			}
+		}
+		for(auto navy : to_retreat) {
+			state.world.navy_set_battle_from_navy_battle_participation(navy, dcon::naval_battle_id{ });
+		}
 	});
+
 
 	for(auto i = isize; i-- > 0;) {
 		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(i) };
@@ -8019,6 +8061,10 @@ void update_movement(sys::state& state) {
 	for(auto n : state.world.in_navy) {
 		auto arrival = n.get_arrival_time();
 		assert(!arrival || arrival >= state.current_date);
+		if(n.get_battle_from_navy_battle_participation() && bool(arrival)) {
+			n.set_arrival_time(arrival + 1);
+			continue;
+		}
 		if(auto path = n.get_path(); arrival == state.current_date) {
 			assert(path.size() > 0);
 			auto from = n.get_location_from_navy_location();
@@ -8090,9 +8136,7 @@ void update_movement(sys::state& state) {
 				}
 			}
 
-			if(n.get_battle_from_navy_battle_participation()) {
-				// nothing, movement paused
-			} else if(path.size() > 0) {
+			if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, n.get_location_from_navy_location(), n.id);
 			} else {

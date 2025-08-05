@@ -4064,13 +4064,11 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 
 	if(battle) {
 		state.world.navy_set_is_retreating(n, true);
-		state.world.navy_set_battle_from_navy_battle_participation(n, dcon::naval_battle_id{});
+		//state.world.navy_set_battle_from_navy_battle_participation(n, dcon::naval_battle_id{});
 		for(auto shp : state.world.navy_get_navy_membership(n)) {
 			for(auto& s : state.world.naval_battle_get_slots(battle)) {
-				if(s.ship == shp.get_ship()) {
-					s.ship = dcon::ship_id{};
-					s.flags &= ~s.mode_mask;
-					s.flags |= s.mode_retreated;
+				if(s.ship == shp.get_ship() && (s.flags & s.mode_mask) != s.mode_sunk && (s.flags & s.mode_mask) != s.mode_retreated) {
+					military::single_ship_start_retreat(state, s, battle);
 				}
 			}
 		}
