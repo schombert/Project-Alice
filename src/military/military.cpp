@@ -5850,41 +5850,20 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			}
 		}
 
+		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does NOT get stackwiped if the battle ends before the retreat timer is up, unlike land battles
 		if(battle_attacker && result == battle_result::defender_won) {
-			if(!can_retreat_from_battle(state, b)) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
-			} else {
-				if(!retreat(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
-				}
-			}
-		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!can_retreat_from_battle(state, b)) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
-			} else {
-				if(!retreat(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
-				}
-			}
-		} else {
-			auto path = n.get_navy().get_path();
-			if(path.size() > 0) {
-				// unused travel days is saved from when the navy entered the battle
-				auto arrival_info = arrival_time_to(state, n.get_navy(), path.at(path.size() - 1));
-				state.world.navy_set_arrival_time(n.get_navy(), arrival_info.arrival_time);
-			}
 
-			for(auto em : n.get_navy().get_army_transport()) {
-				auto apath = em.get_army().get_path();
-				if(apath.size() > 0) {
-					auto arrival_info = arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1));
-					state.world.army_set_arrival_time(em.get_army(), arrival_info.arrival_time);
-				}
+			if(!retreat(state, n.get_navy())) {
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
 			}
+			
+		} else if(!battle_attacker && result == battle_result::attacker_won) {
+			if(!retreat(state, n.get_navy())) {
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
+			}
+			
 		}
 	}
 
