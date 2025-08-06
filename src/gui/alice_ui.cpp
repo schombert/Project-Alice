@@ -10,6 +10,7 @@
 #include "macrobuilder2.cpp"
 #include "budgetwindow.cpp"
 #include "demographicswindow.cpp"
+#include "province_economy_overview.cpp"
 #include "pop_details.cpp"
 
 namespace alice_ui {

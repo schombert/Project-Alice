@@ -231,6 +231,7 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);

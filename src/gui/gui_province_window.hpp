@@ -3094,7 +3094,7 @@ private:
 	province_view_statistics* local_details_window = nullptr;
 	province_view_buildings* local_buildings_window = nullptr;
 	province_window_colony* colony_window = nullptr;
-	province_economy_window* economy_window = nullptr;
+	element_base* economy_window = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* tiles_window = nullptr;
 
@@ -3114,52 +3114,7 @@ public:
 		add_child_to_front(std::move(ptr2));
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "close_button") {
-			return make_element_by_type<province_close_button>(state, id);
-		} else if(name == "background") {
-			return make_element_by_type<draggable_target>(state, id);
-		} else if(name == "province_view_header") {
-			auto ptr = make_element_by_type<province_window_header>(state, id);
-			header_window = ptr.get();
-			return ptr;
-		} else if(name == "province_other") {
-			auto ptr = make_element_by_type<province_view_foreign_details>(state, id);
-			ptr->set_visible(state, false);
-			foreign_details_window = ptr.get();
-			return ptr;
-		} else if(name == "province_colony") {
-			auto ptr = make_element_by_type<province_window_colony>(state, id);
-			ptr->set_visible(state, false);
-			colony_window = ptr.get();
-			return ptr;
-		} else if(name == "province_statistics") {
-			auto ptr = make_element_by_type<province_view_statistics>(state, id);
-			local_details_window = ptr.get();
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "province_buildings") {
-			auto ptr = make_element_by_type<province_view_buildings>(state, id);
-			local_buildings_window = ptr.get();
-			ptr->set_visible(state, false);
-			return ptr;
-		} else if(name == "national_focus_window") {
-			auto ptr = make_element_by_type<national_focus_window>(state, id);
-			ptr->set_visible(state, false);
-			nf_win = ptr.get();
-			return ptr;
-		} else if(name == "local_economy_view") {
-			auto ptr = make_element_by_type<province_economy_window>(state, id);
-			economy_window = ptr.get();
-			return ptr;
-		} if(name == "toggle-economy-province") {
-			return make_element_by_type<economy_data_toggle>(state, id);
-		} else if(name == "toggle-tiles-province") {
-			return make_element_by_type<province_tiles_toggle>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::province_id>()) {
@@ -3187,6 +3142,7 @@ public:
 				tiles_window->set_visible(state, !tiles_window->is_visible());
 			}
 			else if(enum_val == province_subtab_toggle_signal::economy) {
+				
 				economy_window->set_visible(state, !economy_window->is_visible());
 			}
 

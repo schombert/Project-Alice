@@ -1426,6 +1426,7 @@ trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
 per_nation;Per nation
+per_commodity;Per commodity
 price;Price
 labour_price;Wage
 labour_price_10k;Wage(10k people)
@@ -1683,3 +1684,11 @@ alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
 alice_supply_range_friendly_port;?GAdjacent to friendly port?W
 alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
+open_details;Details
+rgo;RGO
+province_prices;Prices
+province_production;Production
+gdp_per_sector;GDP
+province_owners;Ownership
+province_labor;Labor
+province_artisan;Artisans
