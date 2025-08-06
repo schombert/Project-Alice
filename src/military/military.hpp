@@ -61,6 +61,8 @@ struct ship_in_battle {
 	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
+	bool operator == (const ship_in_battle&) const = default;
+	bool operator != (const ship_in_battle&) const = default;
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)

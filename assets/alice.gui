@@ -2818,11 +2818,290 @@ guiTypes = {
 			}
 		}
 	}
+	
+	windowType = {
+		name = "ship_unit"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=166 y=63 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		
+
+		guiButtonType = {
+			name = "bg"
+			position = { x=0 y=1 }
+			quadTextureSprite ="GFX_naval_combat_slot_bg"	
+			buttonText = ""
+			buttonFont = "vic_18_black"
+			clicksound = click
+			Orientation = "UPPER_LEFT"
+		}
+
+		iconType = {
+			name ="highlight"
+			spriteType = "GFX_naval_combat_slot_highlight"
+			position = { x=0 y=1 }
+			Orientation = "UPPER_LEFT"
+		}
+
+		windowType = {
+			name = "left_slot"
+			position = { x=0 y=18 }	
+			size = { x=33 y=28 }
+			moveable = 0
+
+			# Toggled in code dependly on current stance
+			guiButtonType = {
+				name ="attacker_icon_normal"
+				spriteType = "GFX_naval_combat_unit_normal_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_attacking"
+				spriteType = "GFX_naval_combat_unit_attack_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_sunk"
+				spriteType = "GFX_naval_combat_unit_sunk_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_retreat"
+				spriteType = "GFX_naval_combat_unit_retreat_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_disengaged"
+				spriteType = "GFX_naval_combat_unit_disengaged_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="seeking_target"
+				spriteType = "GFX_naval_combat_seek_target"
+				position = { x=0 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			# Str/Org
+			iconType = {
+				name ="str"
+				spriteType = "GFX_naval_combat_bar_str"
+				position = { x=8 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			iconType = {
+				name ="org"
+				spriteType = "GFX_naval_combat_bar_org"
+				position = { x=4 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			
+			iconType = {
+				name ="mini_frame_str"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=0 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="mini_frame_org"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=4 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			iconType = {
+				name ="torpedo"
+				spriteType = "GFX_naval_combat_torpedo_L"
+				position = { x=25 y=25 }
+				Orientation = "UPPER_LEFT"
+			}
+		}
+		
+		windowType = {
+			name = "right_slot"
+			position = { x=130 y=18 }	
+			size = { x=33 y=28 }
+			moveable = 0
+
+			# Toggled in code dependly on current stance
+			guiButtonType = {
+				name ="attacker_icon_normal"
+				spriteType = "GFX_naval_combat_unit_normal_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_attacking"
+				spriteType = "GFX_naval_combat_unit_attack_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_sunk"
+				spriteType = "GFX_naval_combat_unit_sunk_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_retreat"
+				spriteType = "GFX_naval_combat_unit_retreat_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_disengaged"
+				spriteType = "GFX_naval_combat_unit_disengaged_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="seeking_target"
+				spriteType = "GFX_naval_combat_seek_target"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			# Str/Org
+			iconType = {
+				name ="str"
+				spriteType = "GFX_naval_combat_bar_str"
+				position = { x=35 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			iconType = {
+				name ="org"
+				spriteType = "GFX_naval_combat_bar_org"
+				position = { x=31 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			
+			iconType = {
+				name ="mini_frame_str"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=26 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="mini_frame_org"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=30 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			iconType = {
+				name ="torpedo"
+				spriteType = "GFX_naval_combat_torpedo_R"
+				position = { x=-13 y=25 }
+				Orientation = "UPPER_LEFT"
+			}
+		}
+
+		# Attacker name
+		instantTextBoxType = {
+			name = "attacker_name"
+			position = { x=3 y=2 }
+			format = left
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 80
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Defender name
+		instantTextBoxType = {
+			name = "defender_name"
+			position = { x=75 y=2 }
+			format = right
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 84
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Attacker flag
+		instantTextBoxType = {
+			name = "attacker_flag"
+			position = { x=2 y=46 }
+			format = left
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 166
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Defender flag
+		instantTextBoxType = {
+			name = "defender_flag"
+			position = { x=-1 y=46 }
+			format = right
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 166
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Status
+		instantTextBoxType = {
+			name = "status"
+			position = { x=1 y=48 }
+			format = center
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 164
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+
+		# Range icon offset together with ship
+		iconType = {
+			name ="range_R"
+			spriteType = "GFX_naval_combat_range_R"
+			position = { x=136 y=20 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="range_L"
+			spriteType = "GFX_naval_combat_range_L"
+			position = { x=14 y=20 }
+			Orientation = "UPPER_LEFT"
+		}
+	}
 
 	windowType = {
 		name = "alice_naval_combat"
 		backGround=""
-		position = { 0 -176 }
+		position = { 0 -536 }
 		size = { 512 512 }
 		moveable = 0
 		fullScreen = no
@@ -2831,9 +3110,48 @@ guiTypes = {
 		# Background image
 		iconType = {
 			name ="combat_bg"
-			spriteType = "GFX_alice_naval_combat_bg"
+			spriteType = "GFX_naval_combat_bg"
 			position = {  0 -75 }
 			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+			name = "sort_label"
+			position = { x=20 y=176 }
+			textureFile = ""
+			font = "vic_18_black"
+			borderSize = {x = 0 y = 0}
+			text = "NAVAL_SORT_LABEL"	
+			maxWidth = 148
+			maxHeight = 32
+			fixedsize = yes
+		}
+		
+		guiButtonType = {
+			name = "sortby_type"
+			position = { x=98 y = 167 }
+			quadTextureSprite ="GFX_sortbutton_84"	
+			buttonText = "NAVAL_SORT_TYPE"
+			buttonFont = "vic_18_black"
+			clicksound = click
+		}
+		
+		guiButtonType = {
+			name = "sortby_stance"
+			position = { x=198 y = 167 }
+			quadTextureSprite ="GFX_sortbutton_84"	
+			buttonText = "NAVAL_SORT_STANCE"
+			buttonFont = "vic_18_black"
+			clicksound = click
+		}
+		
+		guiButtonType = {
+			name = "sortby_str_org"
+			position = { x=298 y = 167 }
+			quadTextureSprite ="GFX_sortbutton_84"	
+			buttonText = "NAVAL_SORT_STR_ORG"
+			buttonFont = "vic_18_black"
+			clicksound = click
 		}
 
 
@@ -3014,6 +3332,18 @@ guiTypes = {
 				fixedsize = no
 				format = right
 			}
+			listboxType = 
+			{
+				name ="slots_list"
+				position = { x=0 y=205 }
+				backGround=""
+				size = { x=166 y=315 }
+				Orientation = "UPPER_LEFT"
+				horizontal = no
+				spacing = 0
+				scrollbartype = "standardlistbox_slider"
+				borderSize = {x = 0 y = 0}
+			}
 
 		}
 
@@ -3168,6 +3498,19 @@ guiTypes = {
 				maxsize = { 27 32 }
 				fixedsize = no
 				format = right
+			}
+			
+			listboxType = 
+			{
+				name ="slots_list"
+				position = { x=2 y=205 }
+				backGround=""
+				size = { x=166 y=315 }
+				Orientation = "UPPER_LEFT"
+				horizontal = no
+				spacing = 0
+				scrollbartype = "standardlistbox_slider"
+				borderSize = {x = 0 y = 0}
 			}
 
 		}
