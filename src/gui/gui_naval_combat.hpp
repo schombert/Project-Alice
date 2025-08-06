@@ -677,10 +677,10 @@ public:
 class nc_retreat_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = !command::can_retreat_from_naval_battle(state, state.local_player_nation, retrieve<dcon::naval_battle_id>(state, parent));
+		//disabled = !command::can_retreat_from_naval_battle(state, state.local_player_nation, retrieve<dcon::naval_battle_id>(state, parent));
 	}
 	void button_action(sys::state& state) noexcept override {
-		command::retreat_from_naval_battle(state, state.local_player_nation, retrieve<dcon::naval_battle_id>(state, parent));
+		//command::retreat_from_naval_battle(state, state.local_player_nation, retrieve<dcon::naval_battle_id>(state, parent));
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

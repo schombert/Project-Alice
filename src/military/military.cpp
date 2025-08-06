@@ -7844,6 +7844,9 @@ void update_naval_battles(sys::state& state) {
 		for(auto navy : to_retreat) {
 			state.world.navy_set_battle_from_navy_battle_participation(navy, dcon::naval_battle_id{ });
 		}
+		if(!to_retreat.empty()) {
+			update_battle_leaders(state, b);
+		}
 	});
 
 

@@ -548,6 +548,7 @@ enum class apply_attrition_on_arrival {
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
+bool retreat(sys::state& state, dcon::navy_id n);
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
