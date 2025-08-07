@@ -1213,6 +1213,7 @@ public:
 				return;
 			}
 		}
+		disabled = true;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
