@@ -1189,13 +1189,8 @@ public:
 class nc_retreat_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		
-	}
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
-		if(!military::can_retreat_from_battle(state, b)) {
-			button_element_base::render(state, x, y);
-		}
+		disabled = !military::can_retreat_from_battle(state, b);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1204,7 +1199,11 @@ public:
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		float current_dist_to_center = state.world.naval_battle_get_avg_distance_from_center_line(b);
 		float required_dist_to_center = military::required_avg_dist_to_center_for_retreat(state);
-		text::add_line(state, contents, "alice_naval_noretreat", text::variable_type::x, text::fp_two_places{current_dist_to_center - required_dist_to_center });
+		bool close_enough = current_dist_to_center <= required_dist_to_center;
+		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_1", current_dist_to_center <= required_dist_to_center);
+		if(!close_enough) {
+			text::add_line(state, contents, "alice_naval_noretreat", text::variable_type::x, text::fp_two_places{ current_dist_to_center - required_dist_to_center });
+		}
 	}
 };
 

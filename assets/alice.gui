@@ -3167,7 +3167,7 @@ guiTypes = {
 
 		guiButtonType = {
 			name ="combat_retreat"
-			spriteType = "GFX_combat_noretreat"
+			spriteType = "GFX_alice_retreat"
 			position = {  13 -44 }
 			Orientation = "UPPER_LEFT"
 		}

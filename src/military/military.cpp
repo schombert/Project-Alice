@@ -7318,6 +7318,18 @@ float required_avg_dist_to_center_for_retreat(sys::state& state) {
 }
 
 
+// pass a value of -1 to clear target
+void ship_in_battle_set_target(ship_in_battle& ship, int16_t target_index, dcon::dcon_vv_fat_id<ship_in_battle>& ship_slots) {
+	if(naval_slot_index_valid(ship.target_slot)) {
+		assert(ship_slots[ship.target_slot].ships_targeting_this > 0);
+		ship_slots[ship.target_slot].ships_targeting_this--;
+	}
+	ship.target_slot = target_index;
+	if(naval_slot_index_valid(target_index)) {
+		ship_slots[target_index].ships_targeting_this++;
+	}
+}
+
 // updates the ship in a naval battle after it has been hit by another ship, and may alter its state and battle-related statistics accordingly. Returns false if the target is no longer targetable (sunk), otherwise true
 bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle, int32_t& defender_ships, int32_t& attacker_ships) {
 
@@ -7356,12 +7368,8 @@ bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& sh
 			}
 			ship.flags &= ~ship_in_battle::mode_mask;
 			ship.flags |= ship_in_battle::mode_sunk;
-			// decrement the number of ships targeting this ships' target if the current target is valid, as it is now sunk.
-			if(naval_slot_index_valid(ship.target_slot)) {
-				assert(slots[ship.target_slot].ships_targeting_this != 0);
-				slots[ship.target_slot].ships_targeting_this--;
-			}
-			ship.target_slot = -1;
+			// reset the ship's target as it is now sunk.
+			ship_in_battle_set_target(ship, -1, slots);
 			ship.ship = dcon::ship_id{ };
 			return false;
 		}
@@ -7563,6 +7571,8 @@ bool should_ship_retreat(sys::state& state, const ship_in_battle& ship, dcon::na
 	return false;
 }
 
+
+
 // makes a single ship start retreating to disengage
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle) {
 
@@ -7571,13 +7581,8 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 	ship.flags &= ~ship_in_battle::mode_mask;
 	ship.flags |= ship_in_battle::mode_retreating;
 	// decrement the number of ships targeting this ships' target, as it is now retreating and unable to target anything.
-	if(naval_slot_index_valid(ship.target_slot)) {
-		assert(slots[ship.target_slot].ships_targeting_this != 0);
-		slots[ship.target_slot].ships_targeting_this--;
-	}
-	ship.target_slot = -1;
+	ship_in_battle_set_target(ship, -1, slots);
 }
-
 
 void update_naval_battles(sys::state& state) {
 	auto isize = state.world.naval_battle_size();
@@ -7771,13 +7776,7 @@ void update_naval_battles(sys::state& state) {
 				// get ship target, put into target_index variable
 				if(naval_slot_index_valid(target_index)) {
 
-					if(naval_slot_index_valid(slots[j].target_slot)) {
-						assert(slots[slots[j].target_slot].ships_targeting_this != 0);
-						slots[slots[j].target_slot].ships_targeting_this--;
-					}
-					slots[j].target_slot = target_index;
-					// increment target count
-					slots[target_index].ships_targeting_this++;
+					ship_in_battle_set_target(slots[j], target_index, slots);
 
 					auto old_distance = slots[j].distance;
 					auto new_distance = std::min(old_distance + 40.0f, naval_battle_distance_to_center);
