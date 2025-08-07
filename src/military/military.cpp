@@ -7584,6 +7584,24 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 	ship_in_battle_set_target(ship, -1, slots);
 }
 
+
+/*
+Naval battle general info:
+
+When a battle starts, all ships will start 100 distance from the "center line", and will move towards it once a target is found. No ship may move past the center line into the enemy navies' half.
+Manual retreating is only available once all non-retreating or sunk ships are on average close enough to the center line.
+How close they have to be is specified in define:NAVAL_COMBAT_RETREAT_MIN_DISTANCE, which is treated as a decimal between 1 ( can retreat within 100 distance of the center), to 0 (Have to be exacly on the center)
+
+When the manual retreat condition is not satisfied, automatic retreats from having very low org (Not sure about the exact threshold, but it appears to be quite low, so i set it to 0 org) are disabled aswell.
+Ships can however still retreat if they get the random roll from define:NAVAL_COMBAT_RETREAT_CHANCE whilst being below define:NAVAL_COMBAT_RETREAT_STR_ORG_LEVEL strength or org.
+
+When a manual retreat of navies are ordered, all ships which are part of the navy(ies) will start retreating, and the navy will only leave the battle once all of its ships are disengaged.
+
+
+*/
+
+
+
 void update_naval_battles(sys::state& state) {
 	auto isize = state.world.naval_battle_size();
 	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(isize);

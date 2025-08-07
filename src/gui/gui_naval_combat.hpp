@@ -1188,9 +1188,31 @@ public:
 
 class nc_retreat_button : public button_element_base {
 public:
+	void button_action(sys::state& state) noexcept override {
+		auto b = retrieve<dcon::naval_battle_id>(state, parent);
+		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
+			auto navy = n.get_navy();
+			if(!command::can_retreat_from_naval_battle(state, state.local_player_nation, navy, true).empty()) {
+				command::retreat_from_naval_battle(state, state.local_player_nation, navy, true);
+			}
+			
+			
+			
+		}
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
-		disabled = !military::can_retreat_from_battle(state, b);
+		if(!military::can_retreat_from_battle(state, b)) {
+			disabled = true;
+			return;
+		}
+		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
+			auto navy = n.get_navy();
+			if(state.world.navy_get_controller_from_navy_control(navy) == state.local_player_nation && !navy.get_is_retreating()) {
+				disabled = false;
+				return;
+			}
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -1200,7 +1222,16 @@ public:
 		float current_dist_to_center = state.world.naval_battle_get_avg_distance_from_center_line(b);
 		float required_dist_to_center = military::required_avg_dist_to_center_for_retreat(state);
 		bool close_enough = current_dist_to_center <= required_dist_to_center;
-		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_1", current_dist_to_center <= required_dist_to_center);
+		bool already_retreating = true;
+		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
+			auto navy = n.get_navy();
+			if(state.world.navy_get_controller_from_navy_control(navy) == state.local_player_nation && !navy.get_is_retreating()) {
+				already_retreating = false;
+				break;
+			}
+		}
+		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_1", close_enough);
+		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_2", !already_retreating);
 		if(!close_enough) {
 			text::add_line(state, contents, "alice_naval_noretreat", text::variable_type::x, text::fp_two_places{ current_dist_to_center - required_dist_to_center });
 		}

@@ -3740,7 +3740,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
 	if(bool(battle)) {
-		if(!command::can_retreat_from_naval_battle(state, source, n, dest).empty()) {
+		if(!command::can_retreat_from_naval_battle(state, source, n, false, dest).empty()) {
 			return true;
 		} else {
 			return false;
@@ -3773,7 +3773,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 		command::stop_navy_movement(state, source, n);
 	} else {
 		if(bool(battle)) {
-			command::retreat_from_naval_battle(state, source, n, dest);
+			command::retreat_from_naval_battle(state, source, n, false , dest);
 		}
 		else {
 			command::move_navy(state, source, n, dest, true);
@@ -4916,16 +4916,17 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::naval_retreat;
 	p.source = source;
 	p.data.retreat_from_naval_battle.navy = navy;
 	p.data.retreat_from_naval_battle.dest = dest;
+	p.data.retreat_from_naval_battle.auto_retreat = auto_retreat;
 	add_to_command_queue(state, p);
 }
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
 	if(source != state.world.navy_get_controller_from_navy_control(navy)) {
 		return std::vector<dcon::province_id>{};
 	}
@@ -4937,13 +4938,15 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 		return std::vector<dcon::province_id>{};
 	if(state.world.navy_get_is_retreating(navy))
 		return std::vector<dcon::province_id>{};
-	if(dest == state.world.navy_get_location_from_navy_location(navy)) {
-		return std::vector<dcon::province_id>{};
+	if(!auto_retreat) {
+		if(dest == state.world.navy_get_location_from_navy_location(navy)) {
+			return std::vector<dcon::province_id>{};
+		}
 	}
 
 	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
 }
-void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
+void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ }) {
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!military::can_retreat_from_battle(state, battle))
 		return;
@@ -6190,7 +6193,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return true; //can_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
 
 	case command_type::naval_retreat:
-		return can_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy, c.data.retreat_from_naval_battle.dest).size() != 0;
+		return can_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy, c.data.retreat_from_naval_battle.auto_retreat, c.data.retreat_from_naval_battle.dest).size() != 0;
 
 	case command_type::land_retreat:
 		return can_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
@@ -6591,7 +6594,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
 		break;
 	case command_type::naval_retreat:
-		execute_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy, c.data.retreat_from_naval_battle.dest);
+		execute_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy,c.data.retreat_from_naval_battle.auto_retreat, c.data.retreat_from_naval_battle.dest);
 		break;
 	case command_type::land_retreat:
 		execute_retreat_from_land_battle(state, c.source, c.data.land_battle.b);

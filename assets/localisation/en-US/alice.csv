@@ -1686,3 +1686,4 @@ alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
 alice_naval_noretreat;In order to be able to retreat, all alive ships must be on average ?O$x$?W closer to the center
 alice_str_name;Strength:?O$val$?W
 alice_naval_retreat_condition_1;Ships are close enough to the center
+alice_naval_retreat_condition_2;Not already retreating
