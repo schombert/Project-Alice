@@ -296,6 +296,13 @@ struct ai_path_length {
 	bool operator!=(const ai_path_length& other) const = default;
 
 };
+// The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
+// The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
+constexpr float naval_battle_distance_to_center = 100.0f; 
+
+constexpr float naval_battle_center_line = 0.0f; // The "center line" of a naval battle. Ships on one side cannot go past this.
+
+constexpr float naval_battle_speed_mult = 100.0f; // mult for casting unit speed to battle speed
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);
@@ -561,6 +568,7 @@ void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+float required_avg_dist_to_center_for_retreat(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
