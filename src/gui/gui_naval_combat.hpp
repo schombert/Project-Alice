@@ -646,10 +646,10 @@ public:
 		if(target_slot > -1 && target_slot < int16_t(slots.size())) {
 			target_ship = slots[target_slot];
 			if constexpr(Attacker) {
-				x = x - int32_t(navy_battle_distance_to_pixels(float(target_ship.flags & military::ship_in_battle::distance_mask)));
+				x = x - int32_t(navy_battle_distance_to_pixels(target_ship.distance));
 			}
 			else {
-				x = x + int32_t(navy_battle_distance_to_pixels(float(target_ship.flags & military::ship_in_battle::distance_mask)));
+				x = x + int32_t(navy_battle_distance_to_pixels(target_ship.distance));
 			}
 			
 		} else {
@@ -762,10 +762,10 @@ public:
 
 		ship = retrieve<military::ship_in_battle>(state, parent);
 		if constexpr(Attacker) {
-			x = x + int32_t(navy_battle_distance_to_pixels(float(ship.flags & military::ship_in_battle::distance_mask)));
+			x = x + int32_t(navy_battle_distance_to_pixels(ship.distance));
 		}
 		else {
-			x = x - int32_t(navy_battle_distance_to_pixels(float(ship.flags & military::ship_in_battle::distance_mask)));
+			x = x - int32_t(navy_battle_distance_to_pixels(ship.distance));
 		}
 		
 		

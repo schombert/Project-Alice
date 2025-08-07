@@ -39,8 +39,16 @@ inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 
 } // namespace cb_flag
 
+// The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
+// The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
+constexpr float naval_battle_distance_to_center = 100.0f;
+
+constexpr float naval_battle_center_line = 0.0f; // The "center line" of a naval battle. Ships on one side cannot go past this.
+
+constexpr float naval_battle_speed_mult = 100.0f; // mult for casting unit speed to battle speed
+
+
 struct ship_in_battle {
-	static constexpr uint16_t distance_mask = 0x03FF;
 
 	static constexpr uint16_t mode_mask = 0x1C00;
 	static constexpr uint16_t mode_seeking = 0x0400;
@@ -61,6 +69,7 @@ struct ship_in_battle {
 	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
+	float distance = naval_battle_distance_to_center;
 	bool operator == (const ship_in_battle&) const = default;
 	bool operator != (const ship_in_battle&) const = default;
 };
@@ -68,7 +77,8 @@ static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
 	+ sizeof(ship_in_battle::ships_targeting_this)
 	+ sizeof(ship_in_battle::target_slot)
-	+ sizeof(ship_in_battle::flags));
+	+ sizeof(ship_in_battle::flags)
+	+ sizeof(ship_in_battle::distance));
 
 struct mobilization_order {
 	sys::date when; //2
@@ -296,13 +306,6 @@ struct ai_path_length {
 	bool operator!=(const ai_path_length& other) const = default;
 
 };
-// The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
-// The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
-constexpr float naval_battle_distance_to_center = 100.0f; 
-
-constexpr float naval_battle_center_line = 0.0f; // The "center line" of a naval battle. Ships on one side cannot go past this.
-
-constexpr float naval_battle_speed_mult = 100.0f; // mult for casting unit speed to battle speed
 
 void reset_unit_stats(sys::state& state);
 void apply_base_unit_stat_modifiers(sys::state& state);

@@ -5070,17 +5070,17 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 			switch(type) {
 			case unit_type::big_ship:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_big });
+						ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_big , 0, naval_battle_distance_to_center});
 				state.world.naval_battle_get_attacker_big_ships(b)++;
 				break;
 			case unit_type::light_ship:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_small });
+						ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_small, 0, naval_battle_distance_to_center });
 				state.world.naval_battle_get_attacker_small_ships(b)++;
 				break;
 			case unit_type::transport:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_transport });
+						ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_transport, 0, naval_battle_distance_to_center });
 				state.world.naval_battle_get_attacker_transport_ships(b)++;
 				break;
 			default:
@@ -5099,16 +5099,16 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
-				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::type_big });
+				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, ship_in_battle::mode_seeking | ship_in_battle::type_big, 0, naval_battle_distance_to_center });
 				state.world.naval_battle_get_defender_big_ships(b)++;
 				break;
 			case unit_type::light_ship:
-				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::type_small });
+				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, ship_in_battle::mode_seeking | ship_in_battle::type_small, 0, naval_battle_distance_to_center });
 				state.world.naval_battle_get_defender_small_ships(b)++;
 				break;
 			case unit_type::transport:
 				slots.push_back(
-						ship_in_battle{ ship.get_ship().id, -1, uint16_t(naval_battle_distance_to_center) | ship_in_battle::mode_seeking | ship_in_battle::type_transport });
+						ship_in_battle{ ship.get_ship().id, -1, ship_in_battle::mode_seeking | ship_in_battle::type_transport, 0, naval_battle_distance_to_center });
 				state.world.naval_battle_get_defender_transport_ships(b)++;
 				break;
 			default:
@@ -7685,14 +7685,11 @@ void update_naval_battles(sys::state& state) {
 
 				float speed = ship_stats.maximum_speed * naval_battle_speed_mult * state.defines.naval_combat_speed_to_distance_factor *
 				(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
-				auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-				int32_t adjust = std::clamp(int32_t(std::ceil(speed)), 0, old_distance);
-				slots[j].flags &= ~ship_in_battle::distance_mask;
-				slots[j].flags |= ship_in_battle::distance_mask & std::max( old_distance - adjust, int(naval_battle_center_line));
+				auto old_distance = slots[j].distance;
+				float adjust = std::clamp(speed, 0.0f, old_distance);
+				slots[j].distance = old_distance - adjust;
 
-				if(old_distance == adjust ||
-						(old_distance - adjust) + (slots[slots[j].target_slot].flags & ship_in_battle::distance_mask) <
-								int32_t(100.0f * ship_stats.reconnaissance_or_fire_range)) {
+				if(slots[j].distance + slots[slots[j].target_slot].distance < 100.0f * ship_stats.reconnaissance_or_fire_range) {
 
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_engaged;
@@ -7716,12 +7713,13 @@ void update_naval_battles(sys::state& state) {
 					break;
 				}
 
-				auto distance = slots[j].flags & ship_in_battle::distance_mask;
-				auto target_distance = slots[slots[j].target_slot].flags & ship_in_battle::distance_mask;
+				auto distance = slots[j].distance;
+				auto target_distance = slots[slots[j].target_slot].distance;
 				// if target is out of range, switch to approaching
-				if(distance + target_distance > int32_t(100.0f * ship_stats.reconnaissance_or_fire_range)) {
+				if(distance + target_distance > 100.0f * ship_stats.reconnaissance_or_fire_range) {
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_approaching;
+					break;
 				}
 			
 
@@ -7743,13 +7741,12 @@ void update_naval_battles(sys::state& state) {
 					state.defines.naval_combat_speed_to_distance_factor *
 					(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
 
-				auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-				int32_t new_distance = std::min(int32_t(std::ceil(speed)) + old_distance, int32_t(naval_battle_distance_to_center));
-				slots[j].flags &= ~ship_in_battle::distance_mask;
-				slots[j].flags |= ship_in_battle::distance_mask & (new_distance);
+				auto old_distance = slots[j].distance;
+				auto new_distance = std::min(speed + old_distance, naval_battle_distance_to_center);
+				slots[j].distance = new_distance;
 
 				// set to retreated if distance is far enough
-				if((slots[j].flags & ship_in_battle::distance_mask) >= naval_battle_distance_to_center) {
+				if(slots[j].distance >= naval_battle_distance_to_center) {
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_retreated;
 					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
@@ -7782,13 +7779,12 @@ void update_naval_battles(sys::state& state) {
 					// increment target count
 					slots[target_index].ships_targeting_this++;
 
-					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-					int32_t new_distance = std::min(old_distance + 400, 1000);
+					auto old_distance = slots[j].distance;
+					auto new_distance = std::min(old_distance + 40.0f, naval_battle_distance_to_center);
 
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_approaching;
-					/*slots[j].flags &= ~ship_in_battle::distance_mask;
-					slots[j].flags |= ship_in_battle::distance_mask & new_distance;*/
+					//slots[j].distance = new_distance;
 
 				}
 				break;
@@ -7806,8 +7802,8 @@ void update_naval_battles(sys::state& state) {
 				case ship_in_battle::mode_approaching:
 				case ship_in_battle::mode_engaged:
 				case ship_in_battle::mode_seeking:
-					sum_dist_from_center += (slots[j].flags & ship_in_battle::distance_mask);
-					count++;
+					sum_dist_from_center += slots[j].distance;
+;					count++;
 					break;
 				default:
 					break;
