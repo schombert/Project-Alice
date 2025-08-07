@@ -4761,7 +4761,7 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
+	return min_speed * (leader_move + 1.0f);
 }
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
@@ -7601,7 +7601,7 @@ Ships are supposed to be "pushed back" from the center line when a new target is
 
 Ships are also supposed to fire conurrently with eachother rather than sequentially, however it does not do this so far. It isn't that important since navies will start outside of firing range of eachother, and speeds are partically randomized so nobody gets a deterministic "first shot"
 
-If one side of a naval battle has less than a tenth of the total hull of the other side when the battle starts, the size with less hull is instantly stackwiped.
+If one side of a naval battle has less than a tenth of the total hull of the other side when the battle starts, the side with less hull is instantly stackwiped.
 
 */
 

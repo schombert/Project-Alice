@@ -2824,7 +2824,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 		auto nearest = path_heap.back();
 		path_heap.pop_back();
 
-		if(nearest.province.index() < state.province_definitions.first_sea_province.index()) {
+		if(nearest.province.index() < state.province_definitions.first_sea_province.index() && state.world.province_get_building_level(nearest.province, uint8_t(economy::province_building_type::naval_base)) > 0) {
 			fill_path_result(nearest.province);
 			assert_path_result(path_result);
 			return path_result;
@@ -2843,7 +2843,7 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 					origins_vector.set(other_prov, nearest.province);
 				} else if(other_prov.get_port_to() != nearest.province) { // province is not connected by a port here
 					// skip
-				} else if(has_naval_access_to_province(state, nation_as, other_prov)) { // possible land province destination
+				} else if(has_naval_access_to_province(state, nation_as, other_prov) && state.world.province_get_building_level(other_prov, uint8_t(economy::province_building_type::naval_base)) > 0) { // possible land province destination which has a naval base
 					path_heap.push_back(retreat_province_and_distance{nearest.distance_covered + distance, other_prov});
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);

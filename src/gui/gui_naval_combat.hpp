@@ -1202,7 +1202,7 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
-		if(!military::can_retreat_from_battle(state, b)) {
+		if(!military::can_retreat_from_battle(state, b) || province::make_naval_retreat_path(state, state.local_player_nation, state.world.naval_battle_get_location_from_naval_battle_location(b)).empty()) {
 			disabled = true;
 			return;
 		}
@@ -1231,8 +1231,10 @@ public:
 				break;
 			}
 		}
+		bool accessible_port = !province::make_naval_retreat_path(state, state.local_player_nation, state.world.naval_battle_get_location_from_naval_battle_location(b)).empty();
 		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_1", close_enough);
 		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_2", !already_retreating);
+		text::add_line_with_condition(state, contents, "alice_naval_retreat_condition_3", accessible_port);
 		if(!close_enough) {
 			text::add_line(state, contents, "alice_naval_noretreat", text::variable_type::x, text::fp_two_places{ current_dist_to_center - required_dist_to_center });
 		}

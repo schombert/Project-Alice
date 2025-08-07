@@ -1687,3 +1687,4 @@ alice_naval_noretreat;In order to be able to retreat, all alive ships must be on
 alice_str_name;Strength:?O$val$?W
 alice_naval_retreat_condition_1;Ships are close enough to the center
 alice_naval_retreat_condition_2;Not already retreating
+alice_naval_retreat_condition_3;Access to an available port
