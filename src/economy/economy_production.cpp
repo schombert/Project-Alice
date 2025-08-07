@@ -2055,7 +2055,7 @@ float estimate_factory_profit_margin(
 	auto output_cost = factory_type_output_cost(
 		state, nid, mid, factory_type
 	);
-	auto input_cost = factory_type_output_cost(
+	auto input_cost = factory_type_input_cost(
 		state, nid, mid, factory_type
 	);
 	//auto wages = state.world.province_get_labor_price(pid, labor::basic_education) * state.world.factory_type_get_base_workforce(factory_type);
@@ -2074,7 +2074,7 @@ float estimate_factory_payback_time(
 	auto output_cost = factory_type_output_cost(
 		state, nid, mid, factory_type
 	);
-	auto input_cost = factory_type_output_cost(
+	auto input_cost = factory_type_input_cost(
 		state, nid, mid, factory_type
 	);
 	//auto wages = state.world.province_get_labor_price(pid, labor::basic_education) * state.world.factory_type_get_base_workforce(factory_type);
@@ -2155,6 +2155,20 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 		} else {
 			break;
 		}
+	}
+	return result;
+}
+float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output) {
+	auto mob_impact = military::mobilization_impact(state, state.world.province_get_nation_from_province_ownership(p));
+	auto data = imitate_artisan_consumption(state, p, output, mob_impact);
+	auto& direct_inputs = state.world.commodity_get_artisan_inputs(output);
+	auto result = 0.f;
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(!direct_inputs.commodity_type[i]) break;
+		result +=
+			data.consumption.direct_inputs_scale
+			* direct_inputs.commodity_amounts[i]
+			* state.world.commodity_get_median_price(direct_inputs.commodity_type[i]);
 	}
 	return result;
 }

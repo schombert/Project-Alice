@@ -120,6 +120,18 @@ vec4 linegraph_acolor(vec2 tc) {
 vec4 stripchart(vec2 tc) {
 	return texture(texture_sampler, vec2(tc.x, 0.5));
 }
+//layout(index = 24) subroutine(font_function_class)
+vec4 triangle_strip(vec2 tc) {
+	vec4 cc = texture(texture_sampler, vec2(tc.x, 0.5));
+	vec4 cc_left = texture(texture_sampler, vec2(tc.x - 0.002f, 0.5));
+	vec4 cc_right = texture(texture_sampler, vec2(tc.x + 0.002f, 0.5));
+	cc = cc * 0.5f + cc_left * 0.25f + cc_right * 0.25f;
+	float gold_frame = max(0, abs(tc.y - 0.5f) - 0.2f) * 5.f;
+	float shadow = min(1.f, (0.5f - abs(tc.y - 0.5f)) * 2.f + 0.1f);
+	float fade = (0.5f - abs(tc.y - 0.5f)) * 6.f;
+	gold_frame = gold_frame * gold_frame * gold_frame;
+	return vec4(cc.xyz * shadow * (1.f - gold_frame) + vec3(1.f, 1.f, 0.f) * gold_frame, fade);
+}
 
 //layout(index = 18) subroutine(font_function_class)
 vec4 transparent_color(vec2 tc) {
@@ -181,6 +193,7 @@ case 20: return alpha_color(tc);
 case 21: return subsprite_c(tc);
 case 22: return linegraph_acolor(tc);
 case 23: return stripchart(tc);
+case 24: return triangle_strip(tc);
 
 default: break;
 	}

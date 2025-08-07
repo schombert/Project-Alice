@@ -1689,6 +1689,11 @@ rgo;RGO
 province_prices;Prices
 province_production;Production
 gdp_per_sector;GDP
-province_owners;Ownership
+gdp_share;GDP %
 province_labor;Labor
 province_artisan;Artisans
+gdp_rgo;Primary sector:
+gdp_factory;Secondary sector (large scale):
+gdp_artisans;Secondary sector (cottage industry):
+gdp_selected;Gdp of the selected province
+gdp_rest;Gdp of the rest of the nation

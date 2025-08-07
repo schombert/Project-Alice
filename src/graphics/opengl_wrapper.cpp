@@ -644,6 +644,28 @@ void render_textured_rect_direct(sys::state const& state, float x, float y, floa
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+void render_ui_mesh(
+	sys::state const& state,
+	color_modification enabled,
+	float x, float y,
+	float width, float height,
+	generic_ui_mesh_triangle_strip& mesh,
+	data_texture& t
+) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	mesh.bind_buffer();
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, t.handle());
+
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::triangle_strip };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, static_cast<GLsizei>(mesh.count));
+}
+
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		lines& l) {
 	glBindVertexArray(state.open_gl.global_square_vao);
@@ -1200,6 +1222,65 @@ void lines::set_default_y() {
 }
 
 void lines::bind_buffer() {
+	if(buffer_handle == 0) {
+		glGenBuffers(1, &buffer_handle);
+
+		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * count * 4, nullptr, GL_DYNAMIC_DRAW);
+	}
+	if(buffer && pending_data_update) {
+		glBindBuffer(GL_ARRAY_BUFFER, buffer_handle);
+		glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(GLfloat) * count * 4, buffer);
+		pending_data_update = false;
+	}
+
+	glBindVertexBuffer(0, buffer_handle, 0, sizeof(GLfloat) * 4);
+}
+
+void generic_ui_mesh_triangle_strip::set_coords(float* v) {
+	for(int32_t i = 0; i < static_cast<int32_t>(count); ++i) {
+		// coords
+		buffer[i * 4 + 0]	= 0.5f + v[2 * i] * 0.5f;
+		buffer[i * 4 + 1]	= 0.5f + v[2 * i + 1] * 0.5f;
+
+		// texcoords
+		buffer[i * 4 + 2]	= static_cast<float>(i) / static_cast<float>(count - 1);
+		buffer[i * 4 + 3]	= 0.5f;
+	}
+	pending_data_update = true;
+}
+
+void generic_ui_mesh_triangle_strip::set_default() {
+	// set circle by default
+
+	for(int32_t i = 0; i < static_cast<int32_t>(count); ++i) {
+		float frac = static_cast<float>(i / 2) / static_cast<float>((count - 1) / 2);
+		float t = frac * std::numbers::pi_v<float> * 2.f;
+
+		if(i % 2 == 0) {
+			// inner
+
+			// coords
+			buffer[i * 4 + 0]	= 0.5f + std::cos(t) * 0.3f;
+			buffer[i * 4 + 1]	= 0.5f + std::sin(t) * 0.3f;
+			// texcoords
+			buffer[i * 4 + 2]	= frac;
+			buffer[i * 4 + 3]	= 0.f;
+		} else {
+			// outer
+
+			// coords
+			buffer[i * 4 + 0]	= 0.5f + std::cos(t) * 0.5f;
+			buffer[i * 4 + 1]	= 0.5f + std::sin(t) * 0.5f;
+			// texcoords
+			buffer[i * 4 + 2]	= frac;
+			buffer[i * 4 + 3]	= 1.f;
+		}
+	}
+	pending_data_update = true;
+}
+
+void generic_ui_mesh_triangle_strip::bind_buffer() {
 	if(buffer_handle == 0) {
 		glGenBuffers(1, &buffer_handle);
 

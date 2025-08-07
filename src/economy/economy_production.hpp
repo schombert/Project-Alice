@@ -246,11 +246,15 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 
 // ARTISANS:
 
+bool valid_artisan_good(sys::state&, dcon::nation_id, dcon::commodity_id);
+
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
+
+float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output);
 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
