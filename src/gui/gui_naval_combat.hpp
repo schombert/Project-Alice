@@ -810,6 +810,112 @@ public:
 	}
 };
 
+class naval_combat_main_ship_org_bar : public vertical_progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		if(bool(ship.ship)) {
+			progress = state.world.ship_get_org(ship.ship);
+		}
+	}
+};
+
+class naval_combat_target_ship_org_bar : public vertical_progress_bar {
+public:
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				vertical_progress_bar::render(state, x, y);
+			}
+
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				progress = state.world.ship_get_org(target_ship.ship);
+			}
+
+		}
+	}
+};
+
+
+
+
+class naval_combat_main_ship_str_bar : public vertical_progress_bar {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		if(bool(ship.ship)) {
+			progress = state.world.ship_get_strength(ship.ship);
+		}
+	}
+};
+
+class naval_combat_target_ship_str_bar : public vertical_progress_bar {
+public:
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				vertical_progress_bar::render(state, x, y);
+			}
+
+		}
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				progress = state.world.ship_get_strength(target_ship.ship);
+			}
+
+		}
+	}
+};
+
+
+class naval_combat_target_ship_org_str_frame : public image_element_base {
+public:
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				image_element_base::render(state, x, y);
+			}
+
+		}
+	}
+};
+
+
 template<bool Attacker>
 class naval_main_ship_combat_slot :public  window_element_base {
 public:
@@ -860,6 +966,18 @@ public:
 		/*else if(name == "seeking_target") {
 			return make_element_by_type<naval_combat_attacker_ship_stance<ship_stance::seeking, Type>>(state, id);
 		}*/
+		else if(name == "str") {
+			return make_element_by_type<naval_combat_main_ship_str_bar>(state, id);
+		}
+		else if(name == "org") {
+			return make_element_by_type<naval_combat_main_ship_org_bar>(state, id);
+		}
+		else if(name == "mini_frame_str") {
+			return make_element_by_type<image_element_base>(state, id);
+		}
+		else if(name == "mini_frame_org") {
+			return make_element_by_type<image_element_base>(state, id);
+		}
 		else {
 			return nullptr;
 		}
@@ -915,6 +1033,17 @@ public:
 		/*else if(name == "seeking_target") {
 			return make_element_by_type<naval_combat_attacker_ship_stance<ship_stance::seeking, Type>>(state, id);
 		}*/
+		else if(name == "str") {
+			return make_element_by_type<naval_combat_target_ship_str_bar>(state, id);
+		} else if(name == "org") {
+			return make_element_by_type<naval_combat_target_ship_org_bar>(state, id);
+		}
+		else if(name == "mini_frame_str") {
+			return make_element_by_type<naval_combat_target_ship_org_str_frame>(state, id);
+		}
+		else if(name == "mini_frame_org") {
+			return make_element_by_type<naval_combat_target_ship_org_str_frame>(state, id);
+		}
 		else {
 			return nullptr;
 		}
@@ -954,7 +1083,27 @@ public:
 	}
 	
 };
+template<bool Attacker>
+class naval_combat_ship_range_icon : public image_element_base {
+public:
 
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		uint16_t mode = ship.flags & military::ship_in_battle::mode_mask;
+		if(bool(ship.ship) && (mode == military::ship_in_battle::mode_approaching || mode == military::ship_in_battle::mode_engaged)) {
+			auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship.ship));
+			auto type = state.world.ship_get_type(ship.ship);
+			auto& stats = state.world.nation_get_unit_stats(controller, type);
+			if constexpr(Attacker) {
+				x = x + (uint32_t(navy_battle_distance_to_pixels(ship.distance) + navy_battle_distance_to_pixels(stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center)));
+			}
+			else {
+				x = x - (uint32_t(navy_battle_distance_to_pixels(ship.distance) + navy_battle_distance_to_pixels(stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center)));
+			}
+			image_element_base::render(state, x, y);
+		}
+	}
+};
 
 class naval_combat_target_ship_name : public simple_text_element_base {
 public:
@@ -968,6 +1117,9 @@ public:
 			if(bool(target_ship.ship)) {
 				auto name = state.world.ship_get_name(target_ship.ship);		
 				set_text(state, text::produce_simple_string(state, state.to_string_view(name)));
+			}
+			else {
+				set_text(state, "");
 			}
 
 		}
@@ -987,9 +1139,6 @@ public:
 		}
 	}
 };
-
-
-
 
 
 class naval_combat_main_ship_flag : public simple_text_element_base {
@@ -1058,13 +1207,12 @@ public:
 		} else if(name == "status") {
 			return make_element_by_type<naval_combat_ship_status>(state, id);
 		} else if(name == "range_r") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<naval_combat_ship_range_icon<false>>(state, id);
 		} else if(name == "range_l") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		} else {
 			return nullptr;
 		}
-
 
 	}
 };
@@ -1102,10 +1250,10 @@ public:
 			return make_element_by_type<naval_combat_ship_status>(state, id);
 		}
 		else if(name == "range_r") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<invisible_element>(state, id);
 		}
 		else if(name == "range_l") {
-			return make_element_by_type<image_element_base>(state, id);
+			return make_element_by_type<naval_combat_ship_range_icon<true>>(state, id);
 		}
 		else {
 			return nullptr;
@@ -1350,14 +1498,6 @@ public:
 			return make_element_by_type<naval_combat_attacker_window>(state, id);
 		} else if(name == "defender") {
 			return make_element_by_type<naval_combat_defender_window>(state, id);
-		} else if(name == "sort_label") {
-			return make_element_by_type<simple_text_element_base>(state, id);
-		} else if(name == "sortby_type") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else if(name == "sortby_stance") {
-			return make_element_by_type<button_element_base>(state, id);
-		} else if(name == "sortby_str_org") {
-			return make_element_by_type<button_element_base>(state, id);
 		}
 		else {
 			return nullptr;

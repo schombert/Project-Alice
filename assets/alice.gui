@@ -2921,13 +2921,6 @@ guiTypes = {
 				position = { x=4 y=2 }
 				Orientation = "UPPER_LEFT"
 			}
-
-			iconType = {
-				name ="torpedo"
-				spriteType = "GFX_naval_combat_torpedo_L"
-				position = { x=25 y=25 }
-				Orientation = "UPPER_LEFT"
-			}
 		}
 		
 		windowType = {
@@ -3001,13 +2994,6 @@ guiTypes = {
 				name ="mini_frame_org"
 				spriteType = "GFX_naval_combat_bar_mini_frame"
 				position = { x=30 y=2 }
-				Orientation = "UPPER_LEFT"
-			}
-
-			iconType = {
-				name ="torpedo"
-				spriteType = "GFX_naval_combat_torpedo_R"
-				position = { x=-13 y=25 }
 				Orientation = "UPPER_LEFT"
 			}
 		}
@@ -3115,46 +3101,6 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 		}
 		
-		instantTextBoxType = {
-			name = "sort_label"
-			position = { x=20 y=176 }
-			textureFile = ""
-			font = "vic_18_black"
-			borderSize = {x = 0 y = 0}
-			text = "NAVAL_SORT_LABEL"	
-			maxWidth = 148
-			maxHeight = 32
-			fixedsize = yes
-		}
-		
-		guiButtonType = {
-			name = "sortby_type"
-			position = { x=98 y = 167 }
-			quadTextureSprite ="GFX_sortbutton_84"	
-			buttonText = "NAVAL_SORT_TYPE"
-			buttonFont = "vic_18_black"
-			clicksound = click
-		}
-		
-		guiButtonType = {
-			name = "sortby_stance"
-			position = { x=198 y = 167 }
-			quadTextureSprite ="GFX_sortbutton_84"	
-			buttonText = "NAVAL_SORT_STANCE"
-			buttonFont = "vic_18_black"
-			clicksound = click
-		}
-		
-		guiButtonType = {
-			name = "sortby_str_org"
-			position = { x=298 y = 167 }
-			quadTextureSprite ="GFX_sortbutton_84"	
-			buttonText = "NAVAL_SORT_STR_ORG"
-			buttonFont = "vic_18_black"
-			clicksound = click
-		}
-
-
 		instantTextBoxType = {
 			name = "label_battlename"
 			position = { 3 -47 }
