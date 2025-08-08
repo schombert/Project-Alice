@@ -5118,11 +5118,7 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 	}
 
 	state.world.navy_set_battle_from_navy_battle_participation(n, b);
-	state.world.navy_set_arrival_time(n, sys::date{}); // pause movement
 
-	for(auto em : state.world.navy_get_army_transport(n)) {
-		em.get_army().set_arrival_time(sys::date{});
-	}
 	update_battle_leaders(state, b);
 }
 

@@ -923,8 +923,6 @@ public:
 
 
 
-
-
 class naval_combat_ship_status : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -958,6 +956,85 @@ public:
 };
 
 
+class naval_combat_target_ship_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				auto name = state.world.ship_get_name(target_ship.ship);		
+				set_text(state, text::produce_simple_string(state, state.to_string_view(name)));
+			}
+
+		}
+		else {
+			set_text(state, "");
+		}
+	}
+};
+
+class naval_combat_main_ship_name : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		if(bool(ship.ship)) {
+			auto name = state.world.ship_get_name(ship.ship);
+			set_text(state, text::produce_simple_string(state, state.to_string_view(name)));
+		}
+	}
+};
+
+
+
+
+
+class naval_combat_main_ship_flag : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		if(bool(ship.ship)) {
+			auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship.ship));
+			auto ident = state.world.nation_get_identity_from_identity_holder(controller);
+			auto ii = state.world.national_identity_get_identifying_int(ident);
+			set_text(state, "@" + nations::int_to_tag(ii));
+		}
+		else {
+			set_text(state, "");
+		}
+	}
+};
+
+class naval_combat_target_ship_flag : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto ship = retrieve<military::ship_in_battle>(state, parent);
+		auto battle = retrieve<dcon::naval_battle_id>(state, parent);
+		auto slots = state.world.naval_battle_get_slots(battle);
+		auto target_slot = ship.target_slot;
+		if(target_slot > -1 && target_slot < uint16_t(slots.size())) {
+			auto target_ship = slots[target_slot];
+			if(bool(target_ship.ship)) {
+				auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(target_ship.ship));
+				auto ident = state.world.nation_get_identity_from_identity_holder(controller);
+				auto ii = state.world.national_identity_get_identifying_int(ident);
+				set_text(state, "@" + nations::int_to_tag(ii));
+			}
+			else {
+				set_text(state, "");
+			}
+
+		}
+		else {
+			set_text(state, "");
+		}
+	}
+};
+
+
 class naval_combat_defender_ship_slot_element : public listbox_row_element_base<military::ship_in_battle> {
 
 public:
@@ -971,13 +1048,13 @@ public:
 		} else if(name == "left_slot") {
 			return make_element_by_type<naval_target_ship_combat_slot<false>>(state, id);
 		} else if(name == "attacker_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_target_ship_name>(state, id);
 		} else if(name == "defender_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_main_ship_name>(state, id);
 		} else if(name == "attacker_flag") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_target_ship_flag>(state, id);
 		} else if(name == "defender_flag") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_main_ship_flag>(state, id);
 		} else if(name == "status") {
 			return make_element_by_type<naval_combat_ship_status>(state, id);
 		} else if(name == "range_r") {
@@ -991,7 +1068,6 @@ public:
 
 	}
 };
-
 
 
 class naval_combat_attacker_ship_slot_element : public listbox_row_element_base<military::ship_in_battle> {
@@ -1011,16 +1087,16 @@ public:
 			return make_element_by_type<naval_main_ship_combat_slot<true>>(state, id);
 		}
 		else if(name == "attacker_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_main_ship_name>(state, id);
 		}
 		else if(name == "defender_name") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_target_ship_name>(state, id);
 		}
 		else if(name == "attacker_flag") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_main_ship_flag>(state, id);
 		}
 		else if(name == "defender_flag") {
-			return make_element_by_type<simple_text_element_base>(state, id);
+			return make_element_by_type<naval_combat_target_ship_flag>(state, id);
 		}
 		else if(name == "status") {
 			return make_element_by_type<naval_combat_ship_status>(state, id);
