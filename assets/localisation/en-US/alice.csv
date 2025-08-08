@@ -1688,3 +1688,4 @@ alice_str_name;Strength:?O$val$?W
 alice_naval_retreat_condition_1;Ships are close enough to the center
 alice_naval_retreat_condition_2;Not already retreating
 alice_naval_retreat_condition_3;Access to an available port
+alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us

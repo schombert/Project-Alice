@@ -7581,6 +7581,92 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 }
 
 
+void notify_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation_as) {
+	bool nation_is_involved = false;
+	war_role battle_role = war_role::none;
+	for(auto n : state.world.naval_battle_get_navy_battle_participation(battle)) {
+		auto navy_controller = n.get_navy().get_controller_from_navy_control();
+		if(is_attacker_in_battle(state, n.get_navy())) {
+			if(navy_controller == nation_as) {
+				assert(battle_role != war_role::defender);
+				battle_role = war_role::attacker;
+				break;
+			}
+		}
+		else {
+			if(navy_controller == nation_as) {
+				assert(battle_role != war_role::attacker);
+				battle_role = war_role::defender;
+				break;
+			}
+		}
+
+	}
+	auto location = state.world.naval_battle_get_location_from_naval_battle_location(battle);
+	// notify if attacking
+	if(battle_role == war_role::attacker) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_nation = get_naval_battle_lead_defender(state, battle);
+				auto enemy_name = text::get_name(state, enemy_nation);
+
+				text::add_line(state, layout, "NAVALATTACKTHEM_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "NAVALATTACKTHEM_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_navalattackitem_4", text::variable_type::defender, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "NAVALATTACKTHEM_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::naval_combat_starts,
+			.province_source = location,
+
+		});
+
+
+	}
+	else if(battle_role == war_role::defender) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_nation = get_naval_battle_lead_attacker(state, battle);
+				auto enemy_name = text::get_name(state, enemy_nation);
+
+				text::add_line(state, layout, "NAVALATTACKUS_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "NAVALATTACKUS_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "NAVALATTACKUS_4", text::variable_type::attacker, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "NAVALATTACKUS_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::naval_combat_starts,
+			.province_source = location
+		});
+
+	}
+
+
+}
+
+
 /*
 Naval battle general info:
 
@@ -7617,6 +7703,7 @@ void update_naval_battles(sys::state& state) {
 
 		// compare total hull of new battles to see if it's an instant wipe
 		if(state.world.naval_battle_get_start_date(b) == state.current_date) {
+			notify_new_naval_battle(state, b, state.local_player_nation);
 			float attacker_hull = 0;
 			float defender_hull = 0;
 			for(uint32_t j = slots.size(); j-- > 0;) {
