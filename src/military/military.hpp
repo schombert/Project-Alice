@@ -43,6 +43,8 @@ inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 // The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
 constexpr float naval_battle_distance_to_center = 100.0f;
 
+constexpr float naval_battle_total_distance = naval_battle_distance_to_center * 2.0f; // total distance from one end of the battle to another
+
 constexpr float naval_battle_center_line = 0.0f; // The "center line" of a naval battle. Ships on one side cannot go past this.
 
 constexpr float naval_battle_speed_mult = 100.0f; // mult for casting unit speed to battle speed

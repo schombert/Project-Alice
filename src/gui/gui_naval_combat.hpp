@@ -1093,12 +1093,14 @@ public:
 		if(bool(ship.ship) && (mode == military::ship_in_battle::mode_approaching || mode == military::ship_in_battle::mode_engaged)) {
 			auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship.ship));
 			auto type = state.world.ship_get_type(ship.ship);
-			auto& stats = state.world.nation_get_unit_stats(controller, type);
+			const auto& stats = state.world.nation_get_unit_stats(controller, type);
+			auto ship_pixel_pos = navy_battle_distance_to_pixels(ship.distance);
+			auto max_range_pos = navy_battle_distance_to_pixels(military::naval_battle_distance_to_center - (stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center));
 			if constexpr(Attacker) {
-				x = x + (uint32_t(navy_battle_distance_to_pixels(ship.distance) + navy_battle_distance_to_pixels(stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center)));
+				x = x + uint32_t(ship_pixel_pos + max_range_pos);
 			}
 			else {
-				x = x - (uint32_t(navy_battle_distance_to_pixels(ship.distance) + navy_battle_distance_to_pixels(stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center)));
+				x = x - uint32_t(ship_pixel_pos + max_range_pos);
 			}
 			image_element_base::render(state, x, y);
 		}

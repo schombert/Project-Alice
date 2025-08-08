@@ -6726,6 +6726,86 @@ int16_t get_naval_battle_target(sys::state& state, const ship_in_battle& ship, d
 	return -1;
 
 }
+
+void notify_on_new_land_battle(sys::state& state, dcon::land_battle_id battle, dcon::nation_id nation_as) {
+	war_role battle_role = war_role::none;
+	for(auto n : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army_controller = n.get_army().get_controller_from_army_control();
+		if(army_controller == nation_as) {
+			if(is_attacker_in_battle(state, n.get_army())) {
+				assert(battle_role != war_role::defender);
+				battle_role = war_role::attacker;
+				break;
+
+			} else {
+				assert(battle_role != war_role::attacker);
+				battle_role = war_role::defender;
+				break;
+			}
+		}
+
+	}
+	auto location = state.world.land_battle_get_location_from_land_battle_location(battle);
+	// notify if attacking
+	dcon::nation_id enemy_nation = (battle_role == war_role::attacker) ? get_land_battle_lead_defender(state, battle) : get_land_battle_lead_attacker(state, battle);
+	bool show_notification = (enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat || enemy_nation != dcon::nation_id{ });
+	if(battle_role == war_role::attacker && show_notification) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+				auto enemy_name = bool(enemy_nation) ? text::get_name(state, enemy_nation) : state.world.national_identity_get_name( state.national_definitions.rebel_id);
+
+				text::add_line(state, layout, "ATTACKTHEM_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "ATTACKTHEM_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_attackthem_4", text::variable_type::defender, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "ATTACKTHEM_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::land_combat_starts_by_nation,
+			.province_source = location,
+
+		});
+
+
+	}
+	// notify if defending
+	else if(battle_role == war_role::defender && show_notification) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_name = bool(enemy_nation) ? text::get_name(state, enemy_nation) : state.world.national_identity_get_name(state.national_definitions.rebel_id);
+
+				text::add_line(state, layout, "ATTACKUS_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "ATTACKUS_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_attackus_4", text::variable_type::attacker, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "ATTACKUS_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::land_combat_starts_on_nation,
+			.province_source = location
+		});
+
+	}
+}
 		
 
 
@@ -6738,6 +6818,11 @@ void update_land_battles(sys::state& state) {
 
 		if(!state.world.land_battle_is_valid(b))
 			return;
+
+
+		if(state.world.land_battle_get_start_date(b) == state.current_date) {
+			notify_on_new_land_battle(state, b, state.local_player_nation);
+		}
 
 		// fill to combat width
 		auto combat_width = state.world.land_battle_get_combat_width(b);
@@ -7581,23 +7666,21 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 }
 
 
-void notify_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation_as) {
-	bool nation_is_involved = false;
+void notify_on_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation_as) {
 	war_role battle_role = war_role::none;
 	for(auto n : state.world.naval_battle_get_navy_battle_participation(battle)) {
 		auto navy_controller = n.get_navy().get_controller_from_navy_control();
-		if(is_attacker_in_battle(state, n.get_navy())) {
-			if(navy_controller == nation_as) {
+		if(navy_controller == nation_as) {
+			if(is_attacker_in_battle(state, n.get_navy())) {
 				assert(battle_role != war_role::defender);
 				battle_role = war_role::attacker;
 				break;
+				
 			}
-		}
-		else {
-			if(navy_controller == nation_as) {
+			else {
 				assert(battle_role != war_role::attacker);
 				battle_role = war_role::defender;
-				break;
+				break;		
 			}
 		}
 
@@ -7627,13 +7710,14 @@ void notify_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dc
 			.source = nation_as,
 			.target = dcon::nation_id{ },
 			.third = dcon::nation_id{ },
-			.type = sys::message_base_type::naval_combat_starts,
+			.type = sys::message_base_type::naval_combat_starts_by_nation,
 			.province_source = location,
 
 		});
 
 
 	}
+	// notify if defending
 	else if(battle_role == war_role::defender) {
 		notification::post(state, notification::message{
 			.body = [=](sys::state& state, text::layout_base& layout) {
@@ -7657,13 +7741,11 @@ void notify_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dc
 			.source = nation_as,
 			.target = dcon::nation_id{ },
 			.third = dcon::nation_id{ },
-			.type = sys::message_base_type::naval_combat_starts,
+			.type = sys::message_base_type::naval_combat_starts_on_nation,
 			.province_source = location
 		});
 
 	}
-
-
 }
 
 
@@ -7675,15 +7757,17 @@ Manual retreating is only available once all non-retreating or sunk ships are on
 How close they have to be is specified in define:NAVAL_COMBAT_RETREAT_MIN_DISTANCE, which is treated as a decimal between 1 ( can retreat within 100 distance of the center), to 0 (Have to be exacly on the center)
 
 When the manual retreat condition is not satisfied, automatic retreats from having very low org (Not sure about the exact threshold, but it appears to be quite low, so i set it to 0 org) are disabled aswell.
-Ships can however still retreat if they get the random roll from define:NAVAL_COMBAT_RETREAT_CHANCE whilst being below define:NAVAL_COMBAT_RETREAT_STR_ORG_LEVEL strength or org.
+Ships can however still retreat even in this state if they get the random roll from define:NAVAL_COMBAT_RETREAT_CHANCE whilst being below define:NAVAL_COMBAT_RETREAT_STR_ORG_LEVEL strength or org.
 
-When a manual retreat of navies are ordered, all ships which are part of the navy(ies) will start retreating, and the navy will only leave the battle once all of its ships are disengaged.
+When a manual retreat of navies are ordered, all ships which are part of the navy(ies) will start retreating, and the navy will only leave the battle once all of its ships are disengaged or sunk.
 
 Ships are supposed to be "pushed back" from the center line when a new target is acquired, however the exact formula of how this is done is unknown (specifically how combat duration affects it), so currently it does not push them back
 
-Ships are also supposed to fire conurrently with eachother rather than sequentially, however it does not do this so far. It isn't that important since navies will start outside of firing range of eachother, and speeds are partically randomized so nobody gets a deterministic "first shot"
+Ships are also supposed to fire conurrently with eachother rather than sequentially, however it does not do this so far. It isn't that important since navies will start outside of firing range of eachother, and speeds are partially randomized so the same side dosen't a deterministic "first shot"
 
 If one side of a naval battle has less than a tenth of the total hull of the other side when the battle starts, the side with less hull is instantly stackwiped.
+
+A navy is also stackwiped if there is no accessible ports for the retreat to path to (yes PORTS, not coast). 
 
 */
 
@@ -7701,9 +7785,13 @@ void update_naval_battles(sys::state& state) {
 
 		auto slots = state.world.naval_battle_get_slots(b);
 
-		// compare total hull of new battles to see if it's an instant wipe
+		
 		if(state.world.naval_battle_get_start_date(b) == state.current_date) {
-			notify_new_naval_battle(state, b, state.local_player_nation);
+			// notify if needed about new battle
+			notify_on_new_naval_battle(state, b, state.local_player_nation);
+
+
+			// compare total hull of new battles to see if it's an instant wipe
 			float attacker_hull = 0;
 			float defender_hull = 0;
 			for(uint32_t j = slots.size(); j-- > 0;) {
