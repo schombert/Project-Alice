@@ -4690,6 +4690,15 @@ float directed_warscore(
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type) {
+	state.world.ship_set_type(ship, new_type);
+	state.world.ship_set_strength(ship, 0.01f);
+}
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type) {
+	state.world.regiment_set_type(ship, new_type);
+	state.world.regiment_set_strength(ship, 0.01f);
+}
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
 	int32_t max_cap = 0;
 	for(auto n : state.world.province_get_navy_location(p)) {
@@ -5135,7 +5144,7 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 		state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
 
 		for(auto em : state.world.navy_get_army_transport(n)) {
-			em.get_army().get_path().clear();
+			stop_army_movement(state, em.get_army());
 		}
 		return true;
 	} else {
@@ -7918,12 +7927,10 @@ void update_movement(sys::state& state) {
 					a.set_black_flag(false);
 				} else {
 					// if there are not enough transports by the time the movement happens, eject them back to land and check for enemy armies to collide with
-					path.clear();
-					a.set_arrival_time(sys::date{ });
+					stop_army_movement(state, a);
 					a.set_is_retreating(false);
 					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
-				a.set_unused_travel_days(0.0f);
 			} else { // land province
 				if(a.get_black_flag()) {
 					auto n = state.world.province_get_nation_from_province_ownership(dest);
@@ -7944,13 +7951,16 @@ void update_movement(sys::state& state) {
 							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							a.set_navy_from_army_transport(dcon::navy_id{});
 						} else {
-							path.clear();
+							stop_army_movement(state, a);
 						}
 					} else {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
 							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
-								path.clear();
+								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
+								stop_army_movement(state, a);
+								a.set_is_retreating(false);
+								army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 							} else {
 								army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							}
@@ -7962,7 +7972,10 @@ void update_movement(sys::state& state) {
 						}
 					}
 				} else {
-					path.clear();
+					// if the dest prov is inaccesible when the movement happens, stop movement and check for collision with enemy armies
+					stop_army_movement(state, a);
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 			}
 
@@ -7976,11 +7989,6 @@ void update_movement(sys::state& state) {
 				a.set_unused_travel_days(0.0f);
 				if(a.get_is_retreating()) {
 					a.set_is_retreating(false);
-					army_arrives_in_province(state, a, dest,
-							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
-								province::border::river_crossing_bit) != 0
-									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{});
 				}
 				if(a.get_moving_to_merge()) {
 					a.set_moving_to_merge(false);
@@ -8028,9 +8036,7 @@ void update_movement(sys::state& state) {
 						auto a = (*attached.begin()).get_army();
 
 						a.set_navy_from_army_transport(dcon::navy_id{});
-						a.get_path().clear();
-						a.set_arrival_time(sys::date{});
-						a.set_unused_travel_days(0.0f);
+						stop_army_movement(state, a);
 						auto acontroller = a.get_controller_from_army_control();
 
 						// ai code
@@ -8040,17 +8046,7 @@ void update_movement(sys::state& state) {
 							if(army_dest && army_dest != dest) {
 								auto apath = province::make_land_path(state, dest, army_dest, acontroller, a);
 								if(apath.size() > 0) {
-									auto existing_path = a.get_path();
-									auto new_size = uint32_t(apath.size());
-									existing_path.resize(new_size);
-
-									for(uint32_t i = 0; i < new_size; ++i) {
-										existing_path[i] = apath[i];
-									}
-									auto arrival_data = military::arrival_time_to(state, a, apath.back());
-									a.set_arrival_time(arrival_data.arrival_time);
-									a.set_unused_travel_days(arrival_data.unused_travel_days);
-									a.set_dig_in(0);
+									move_army_fast(state, a, apath, acontroller);
 									auto activity = ai::army_activity(a.get_ai_activity());
 									if(activity == ai::army_activity::transport_guard) {
 										a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
@@ -8067,14 +8063,20 @@ void update_movement(sys::state& state) {
 						army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 					}
 				} else {
-					path.clear();
+					// if the destination province becomes inaccesible by the time the movement happens, stop movement and check for enemy navy collision
+					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
 				}
 			} else { // sea province
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
 				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
-					path.clear();
+					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
+					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
 					
 				}
 				else {
@@ -8083,9 +8085,7 @@ void update_movement(sys::state& state) {
 					// take embarked units along with
 					for(auto a : state.world.navy_get_army_transport(n)) {
 						a.get_army().set_location_from_army_location(dest);
-						a.get_army().get_path().clear();
-						a.get_army().set_arrival_time(sys::date{});
-						a.get_army().set_unused_travel_days(0.0f);
+						stop_army_movement(state, a.get_army());
 					}
 				}
 			}
@@ -8099,8 +8099,6 @@ void update_movement(sys::state& state) {
 				n.set_arrival_time(sys::date{});
 				n.set_unused_travel_days(0.0f);
 				if(n.get_is_retreating()) {
-					if(dest.index() >= state.province_definitions.first_sea_province.index())
-						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 					n.set_is_retreating(false);
 				}
 				if(n.get_moving_to_merge()) {
@@ -8245,20 +8243,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			continue;
 
 		auto path = province::make_land_path(state, prov, next_prov.p, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-			auto arrival_data = military::arrival_time_to(state, a, path.back());
-			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-			state.world.army_set_dig_in(a, 0);
-
+		if(move_army_fast(state, a, path, controller)) {
 			break;
 		}
 	}
@@ -8268,20 +8253,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			return;
 
 		auto path = province::make_land_path(state, prov, home, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-			auto arrival_data = military::arrival_time_to(state, a, path.back());
-			state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-			state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-			state.world.army_set_dig_in(a, 0);
-		}
+		move_army_fast(state, a, path, controller);
 	}
 }
 
@@ -8560,9 +8532,7 @@ void eject_ships(sys::state& state, dcon::province_id p) {
 
 		for(auto a : state.world.navy_get_army_transport(n)) {
 			a.get_army().set_location_from_army_location(sea_zone);
-			a.get_army().get_path().clear();
-			a.get_army().set_arrival_time(sys::date{});
-			a.get_army().set_unused_travel_days(0.0f);
+			stop_army_movement(state, a.get_army());
 		}
 	}
 }
@@ -8719,6 +8689,24 @@ void recover_org(sys::state& state) {
 		}
 	}
 }
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_army_movement(sys::state& state, dcon::army_id army) {
+	assert(army);
+	state.world.army_get_path(army).clear();
+	state.world.army_set_arrival_time(army, sys::date{ });
+	state.world.army_set_unused_travel_days(army, 0.0f);
+}
+
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_navy_movement(sys::state& state, dcon::navy_id navy) {
+	assert(navy);
+	state.world.navy_get_path(navy).clear();
+	state.world.navy_set_arrival_time(navy, sys::date{ });
+	state.world.navy_set_unused_travel_days(navy, 0.0f);
+}
+
+
+
 
 // Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
@@ -9545,23 +9533,132 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 		}
 	} else {
 		auto path = province::make_land_path(state, start, dest, by, a);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.army_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
+		if(move_army_fast(state, a, path, by)) {
+			state.world.army_set_moving_to_merge(a, true);
 		}
-		auto arrival_data = military::arrival_time_to(state, a, path.back());
-		state.world.army_set_arrival_time(a, arrival_data.arrival_time);
-		state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
-		state.world.army_set_moving_to_merge(a, true);
 	}
 }
+
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset) {
+	if(naval_path.size() > 0) {
+		auto existing_path = state.world.navy_get_path(navy);
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
+		}
+		auto append_size = uint32_t(naval_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = naval_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_info = military::arrival_time_to(state, navy, naval_path.back());
+			state.world.navy_set_arrival_time(navy, arrival_info.arrival_time);
+			state.world.navy_set_unused_travel_days(navy, arrival_info.unused_travel_days);
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<ai_path_length path_length_to_use>
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
+	if(reset || state.world.navy_get_path(navy).size() == 0) {
+		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_fast(state, navy, naval_path, reset);
+	} else {
+		auto from_prov = state.world.navy_get_path(navy).at(0);
+		auto naval_path = province::make_naval_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_fast(state, navy, naval_path, reset);
+	}
+
+}
+
+template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+
+
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool reset) {
+	if(army_path.size() > 0) {
+		auto existing_path = state.world.army_get_path(army);
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
+		}
+
+		auto append_size = uint32_t(army_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = army_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_data = military::arrival_time_to(state, army, army_path.back());
+			state.world.army_set_arrival_time(army, arrival_data.arrival_time);
+			state.world.army_set_unused_travel_days(army, arrival_data.unused_travel_days);
+		}
+
+		state.world.army_set_dig_in(army, 0);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<ai_path_length path_length_to_use>
+bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
+	bool blackflag = state.world.army_get_black_flag(army);
+	if(reset || state.world.army_get_path(army).size() == 0) {
+		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+
+		}
+		return move_army_fast(state, army, army_path, nation_as, reset);
+
+	} else {
+		auto from_prov = state.world.army_get_path(army).at(0);
+		auto army_path = blackflag ? province::make_unowned_land_path(state, from_prov, destination) : province::make_land_path(state, from_prov, destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+		}
+		return move_army_fast(state, army, army_path, nation_as, reset);
+	}
+}
+
+template bool move_army_fast<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_fast < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
 	if(state.world.nation_get_is_player_controlled(by) == false)
 		return; // AI doesn't use rally points or templates
@@ -9582,21 +9679,10 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 		}
 	} else {
 		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.navy_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
+		if(!path.empty()) {
+			military::move_navy_fast(state, a, path);
+			state.world.navy_set_moving_to_merge(a, true);
 		}
-		auto arrival_data = military::arrival_time_to(state, a, path.back());
-		state.world.navy_set_arrival_time(a, arrival_data.arrival_time);
-		state.world.navy_set_unused_travel_days(a, arrival_data.unused_travel_days);
-		state.world.navy_set_moving_to_merge(a, true);
 	}
 }
 
