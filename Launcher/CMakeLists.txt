@@ -13,16 +13,28 @@ foreach(file ${TESTING})
 					${CMAKE_CURRENT_BINARY_DIR}/${file})
 endforeach()
 
-add_executable(launch_alice WIN32
-	"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main.cpp"
-	"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
-	"${PROJECT_SOURCE_DIR}/src/alice.rc"
-	${LAUNCHER_ASSET_FILES})
+if (WIN32)
+	add_executable(launch_alice WIN32
+		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_win.cpp"
+		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
+		"${PROJECT_SOURCE_DIR}/src/alice.rc"
+		${LAUNCHER_ASSET_FILES})
+else()
+	add_executable(launch_alice
+		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_nix.cpp"
+		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
+		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
+		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
+		${LAUNCHER_ASSET_FILES})
+endif()
 
 target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
 
@@ -31,7 +43,11 @@ if (WIN32)
 endif()
 
 target_link_libraries(launch_alice PRIVATE AliceCommon)
-target_link_libraries(launch_alice PRIVATE dbghelp)
+if (WIN32)
+	target_link_libraries(launch_alice PRIVATE dbghelp)
+else()
+	target_link_libraries(launch_alice PRIVATE fmt::fmt)
+endif()
 target_link_libraries(launch_alice INTERFACE libglew_static)
 target_link_libraries(launch_alice INTERFACE stb_image)
 target_link_libraries(launch_alice INTERFACE freetype)

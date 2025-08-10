@@ -15,9 +15,6 @@ void build_land_unit_construction_tooltip(
 	auto& goods = state.military_definitions.unit_base_definitions[unit].build_cost;
 	auto& cgoods = state.world.province_land_construction_get_purchased_goods(conid);
 
-	float total = 0.0f;
-	float purchased = 0.0f;
-
 	{
 		auto name = state.military_definitions.unit_base_definitions[unit].name;
 		auto box = text::open_layout_box(contents, 0);
@@ -53,9 +50,6 @@ void build_naval_unit_construction_tooltip(
 	auto unit = state.world.province_naval_construction_get_type(conid);
 	auto& goods = state.military_definitions.unit_base_definitions[unit].build_cost;
 	auto& cgoods = state.world.province_naval_construction_get_purchased_goods(conid);
-
-	float total = 0.0f;
-	float purchased = 0.0f;
 
 	{
 		auto name = state.military_definitions.unit_base_definitions[unit].name;
@@ -118,7 +112,7 @@ economy::commodity_set calculate_factory_refit_goods_cost(sys::state& state, dco
 			level = f.get_factory().get_size() / f.get_factory().get_building_type().get_base_workforce();
 		}
 	}
- 
+
 
 	// Refit cost = (to_cost) - (from_cost) + (0.1f * to_cost)
 	float refit_mod = 1.0f + state.defines.alice_factory_refit_cost_modifier;
@@ -200,7 +194,8 @@ float global_factory_construction_time_modifier(sys::state& state) {
 
 float build_cost_multiplier(sys::state& state, dcon::province_id location, bool is_pop_project) {
 	float admin_eff = state.world.province_get_control_ratio(location);
-	return is_pop_project ? 1.f : 2.0f - admin_eff;
+	// make factories cheaper to make it a bit easier to get into industry and compensate for low control
+	return (is_pop_project ? 1.f : 2.0f - admin_eff) * 0.5f;
 }
 
 float factory_build_cost_multiplier(sys::state& state, dcon::nation_id n, dcon::province_id location, bool is_pop_project) {
@@ -647,7 +642,7 @@ void populate_construction_consumption(sys::state& state) {
 	//reset static data
 
 	state.world.execute_serial_over_nation([&](auto ids) {
-		auto base_budget = state.world.nation_get_stockpiles(ids, economy::money);
+		auto base_budget = state.world.nation_get_last_base_budget(ids);
 		auto construction_priority = ve::to_float(state.world.nation_get_construction_spending(ids)) / 100.f;
 		current_budget.set(ids, ve::max(0.f, base_budget * construction_priority));
 		total_budget.set(ids, ve::max(0.f, base_budget * construction_priority));

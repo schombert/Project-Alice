@@ -5,6 +5,7 @@
 #include "economy_production.hpp"
 #include "economy_trade_routes.hpp"
 #include "color.hpp"
+#include "labour_details.hpp"
 
 
 namespace economy_viewer {
@@ -1630,7 +1631,7 @@ void render(sys::state& state) {
 				state,
 				(int32_t)static_elements::wages_tab_labor_selector_button_label + i,
 				button_rect,
-				economy::labor_string(i),
+				ui::labour_type_to_employment_name_text_key(i),
 				ui::get_text_color(state, text::text_color::gold)
 			);
 		}

@@ -898,11 +898,17 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, dco
 		masq_nat_id = nat_id;
 	}
 
+	int flag_offset = 0;
+	if(type) {
+		flag_offset = (int)type.index();
+	}
+
 	dcon::texture_id id = dcon::texture_id{
 		dcon::texture_id::value_base_t(
 			state.ui_defs.textures.size()
 			+ (1 + masq_nat_id.id.index())
 			* state.world.government_flag_size()
+			+ flag_offset
 		)
 	};
 

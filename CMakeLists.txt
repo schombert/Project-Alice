@@ -45,10 +45,12 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/demographics.cpp"
 	"src/economy/economy_stats.cpp"
 	"src/economy/economy.cpp"
+	"src/economy/economy_pops.cpp"
 	"src/economy/economy_trade_routes.cpp"
 	"src/economy/economy_government.cpp"
 	"src/economy/economy_production.cpp"
 	"src/economy/construction.cpp"
+	"src/economy/advanced_province_buildings.cpp"
 	"src/gamestate/commands.cpp"
 	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"
@@ -75,6 +77,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/economy_viewer.cpp"
 	"src/gui/unit_tooltip.cpp"
 	"src/gui/gui_context_window.cpp"
+	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
 	"src/nations/nations.cpp"
@@ -101,7 +104,7 @@ add_executable(Alice WIN32
 	${ALICE_CORE_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32
+add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
@@ -109,7 +112,7 @@ else()
 add_executable(Alice WIN32
 	${ALICE_CORE_SOURCES_LIST}
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32
+add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	${ASSET_FILES})
 endif()
@@ -121,9 +124,9 @@ if(NOT WIN32)
 endif()
 
 # Include sub-projects.
-add_subdirectory(dependencies)
-add_subdirectory(ParserGenerator)
-add_subdirectory(FifInterfaceGenerator)
+add_subdirectory(dependencies EXCLUDE_FROM_ALL)
+add_subdirectory(ParserGenerator EXCLUDE_FROM_ALL)
+add_subdirectory(FifInterfaceGenerator EXCLUDE_FROM_ALL)
 
 add_library(AliceCommon INTERFACE)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
@@ -190,7 +193,7 @@ else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20
+			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20 #-Werror
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
@@ -251,6 +254,9 @@ target_link_libraries(AliceIncremental PRIVATE AliceCommon)
 if (WIN32)
 	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+else()
+	target_link_libraries(Alice PRIVATE fmt::fmt)
+	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
 endif()
 
 # System headers
@@ -464,17 +470,21 @@ add_dependencies(AliceIncremental GENERATE_PARSERS)
 
 if (BUILD_TESTING)
     enable_testing()
-	add_subdirectory(tests)
+	add_subdirectory(tests EXCLUDE_FROM_ALL)
 endif()
 
-add_subdirectory(SaveEditor)
 if(WIN32)
-	add_subdirectory(DbgAlice)
-	add_subdirectory(Launcher)
+	add_subdirectory(SaveEditor EXCLUDE_FROM_ALL)
+	add_subdirectory(DbgAlice EXCLUDE_FROM_ALL)
 endif()
+add_subdirectory(Launcher)
 
 # Installation
 if(NOT WIN32)
+	install(TARGETS Alice launch_alice
+		RUNTIME DESTINATION bin
+		LIBRARY DESTINATION lib
+		ARCHIVE DESTINATION lib)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.desktop DESTINATION /usr/share/applications)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.png DESTINATION /usr/share/icons/hicolor/128x128/apps)
 endif()

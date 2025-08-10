@@ -18,6 +18,7 @@
 #include "economy_government.hpp"
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
+#include "gui_effect_tooltips.hpp"
 
 namespace nations {
 
@@ -213,7 +214,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -445,9 +446,8 @@ void generate_sea_trade_routes(sys::state& state) {
 			auto continent_origin = state.world.province_get_continent(state_owner_capital);
 
 			float mult = 1.f;
-			mult += std::min(naval_base_origin, naval_base_target) * 0.25f;
+			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
-
 			
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
 
@@ -471,7 +471,7 @@ void generate_sea_trade_routes(sys::state& state) {
 				std::vector<dcon::province_id> path{ };
 				auto speed = base_speed;
 				dcon::province_id p_prev{ };
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -2384,6 +2384,18 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 	return false;
 }
 
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
+	auto total_pop = state.world.nation_get_demographics(n, demographics::non_colonial_total);
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
 void update_influence(sys::state& state) {
 	for(auto rel : state.world.in_gp_relationship) {
 		if(rel.get_penalty_expires_date() == state.current_date) {
@@ -3478,6 +3490,8 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
 			auto affected_gp = state.world.nation_get_in_sphere_of(target);
 			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			// if the target was in a previous GP's sphere, update their state
+			if(bool(affected_gp))
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto& l = state.world.gp_relationship_get_status(orel);
@@ -3699,6 +3713,29 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
 }
+
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	if(auto e = state.world.decision_get_effect(d); e) {
+		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
+				uint32_t(source.index() << 4 ^ d.index()));
+	}
+
+	notification::post(state, notification::message{
+		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_decision_1", text::variable_type::x, source, text::variable_type::y, state.world.decision_get_name(d));
+			if(auto e = state.world.decision_get_effect(d); e) {
+				text::add_line(state, contents, "msg_decision_2");
+				ui::effect_description(state, contents, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(when.value),
+					uint32_t(source.index() << 4 ^ d.index()));
+			}
+		},
+		"msg_decision_title",
+		source, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::decision
+	});
+}
+
+
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 

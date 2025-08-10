@@ -8,6 +8,9 @@ enum class crisis_state : uint32_t;
 }
 
 namespace nations {
+
+inline float naval_base_level_to_market_attractiveness = 0.25f;
+
 inline uint32_t tag_to_int(char first, char second, char third) {
 	return (uint32_t(first) << 16) | (uint32_t(second) << 8) | (uint32_t(third) << 0);
 }
@@ -358,6 +361,7 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 void adjust_influence(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
 void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, dcon::nation_id target, float delta);
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i);
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id i);
 
@@ -365,6 +369,9 @@ float get_foreign_investment(sys::state& state, dcon::nation_id n);
 float get_foreign_investment_as_gp(sys::state& state, dcon::nation_id n);
 float get_base_shares(sys::state& state, dcon::gp_relationship_id gp, float total_gain, int32_t total_influence_shares);
 bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id target);
+
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n);
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n);
 
 void update_great_powers(sys::state& state);
 void update_influence(sys::state& state);

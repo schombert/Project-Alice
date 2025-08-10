@@ -17,8 +17,8 @@ inline constexpr float invalid_trade_route_distance = 999999.f;
 inline constexpr float trade_loss_per_distance_unit = 0.0001f;
 inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
 inline constexpr float trade_base_decay = 0.05f;
-inline constexpr float min_trade_expansion_multiplier = 0.0000001f;
-inline constexpr float trade_route_min_shift = 0.05f;
+inline constexpr float min_trade_expansion_multiplier = 0.05f;
+inline constexpr float trade_route_min_shift = 0.001f;
 // if exporter has demand satisfaction lower than this value,
 // the trade will effectively stop
 inline constexpr float trade_demand_satisfaction_cutoff = 0.7f;
@@ -48,6 +48,16 @@ struct trade_route_volume_change_reasons {
 	bool commodity_is_not_tradable;
 	bool commodity_is_not_discovered;
 };
+
+float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital);
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market);
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital);
+
+void make_trade_center_tooltip(
+	sys::state& state,
+	text::columnar_layout& contents,
+	dcon::market_id market
+);
 
 void make_trade_volume_tooltip(
 	sys::state& state,

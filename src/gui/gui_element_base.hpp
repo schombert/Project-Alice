@@ -61,6 +61,8 @@ public:
 	}
 
 	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
+		if(state.cheat_data.ui_debug_mode)
+			return tooltip_behavior::tooltip;
 		return tooltip_behavior::no_tooltip;
 	}
 	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept {
@@ -68,7 +70,13 @@ public:
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
 	}
-	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept { }
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+		if(state.cheat_data.ui_debug_mode) {
+			text::add_line(state, contents, "ui_element_name", text::variable_type::x, base_data.name);
+			text::add_line(state, contents, "ui_element_position", text::variable_type::x, base_data.position.x, text::variable_type::y, base_data.position.y);
+			text::add_line(state, contents, "ui_element_size", text::variable_type::x, base_data.size.x, text::variable_type::y, base_data.size.y);
+		}
+	}
 
 	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
 	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
@@ -172,7 +180,8 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		int32_t primary, int32_t this_slot, int32_t from_slot);
 void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
 		int32_t primary, int32_t this_slot, int32_t from_slot);
-void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0);
+
+void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0, float scale = 1.f);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
 		dcon::national_modifier_value nmid, bool header);
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,

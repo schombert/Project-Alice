@@ -1975,11 +1975,21 @@ uint32_t ef_life_rating(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t ef_religion(EFFECT_DISPLAY_PARAMS) {
 	{
+		auto rel = trigger::payload(tval[1]).rel_id;
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(rel));
 		text::localised_format_box(ws, layout, box, "make_national_religion", m);
 		text::close_layout_box(layout, box);
+		auto mod_id = ws.world.religion_get_nation_modifier(rel);
+		auto n = trigger::to_nation(primary_slot);
+		auto dr = ws.world.nation_get_dominant_religion(n);
+		if(bool(mod_id)) {
+			text::add_line(ws, layout, "when", 15);
+			text::add_line_with_condition(ws, layout, "religion_nation_modifier", dr == rel, text::variable_type::name, ws.world.religion_get_name(rel), 30);
+			text::add_line(ws, layout, "giving_modifier",15);
+			modifier_description(ws, layout, mod_id, 30);
+		}
 	}
 	return 0;
 }
@@ -2049,7 +2059,7 @@ uint32_t ef_tech_school(EFFECT_DISPLAY_PARAMS) {
 	text::localised_format_box(ws, layout, box, "change_tech_school", m);
 	text::close_layout_box(layout, box);
 	if(ws.user_settings.spoilers) {
-		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount, 1);
 	}
 	return 0;
 }

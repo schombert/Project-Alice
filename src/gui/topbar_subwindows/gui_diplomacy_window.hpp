@@ -386,20 +386,8 @@ public:
 	}
 };
 
-class diplomacy_industry_size : public standard_nation_text {
+class diplomacy_industry_size : public image_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-
-		float res = 0.f;
-		for(auto p : fat_id.get_province_ownership_as_nation()) {
-			for(auto floc : p.get_province().get_factory_location_as_province()) {
-				res += economy::get_factory_level(state, floc.get_factory());
-			}
-		}
-		return text::format_float(res, 2);
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -408,6 +396,8 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, n);
 
+
+		auto total = 0.f;
 		auto consumer = 0.f;
 		auto heavy = 0.f;
 		auto mils = 0.f;
@@ -420,6 +410,7 @@ public:
 					continue;
 				}
 
+				total += economy::get_factory_level(state, floc.get_factory());
 				auto output = floc.get_factory().get_building_type().get_output().get_commodity_group();
 				if(output == (uint8_t)sys::commodity_group::military_goods) {
 					mils += economy::get_factory_level(state, floc.get_factory());
@@ -439,6 +430,7 @@ public:
 			}
 		}
 
+		text::add_line(state, contents, "factory_total_size", text::variable_type::val, (int)total);
 		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, (int)consumer);
 		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, (int)heavy);
 		text::add_line(state, contents, "factory_military_count", text::variable_type::val, (int)mils);
@@ -449,6 +441,27 @@ public:
 	}
 };
 
+class diplomacy_trade_status_size : public image_element_base {
+public:
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto source = dcon::fatten(state.world, n);
+
+		for(auto target : state.world.in_nation) {
+			if(economy::has_active_embargo(state, source, target)) {
+				text::add_line(state, contents, "embargo_explain_1", text::variable_type::x, source, text::variable_type::y, target);
+			}
+			if(economy::has_active_embargo(state, target, source)) {
+				text::add_line(state, contents, "embargo_explain_2", text::variable_type::x, target, text::variable_type::y, source);
+			}
+		}
+	}
+};
 
 class diplomacy_country_select : public button_element_base {
 public:
@@ -1080,10 +1093,7 @@ class nation_primary_culture : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto pc = state.world.nation_get_primary_culture(retrieve<dcon::nation_id>(state, parent));
-		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
 		std::string t = text::produce_simple_string(state, pc.get_name());
-		t += ", ";
-		t += text::produce_simple_string(state, pr.get_name());
 		set_text(state, t);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1092,7 +1102,31 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
 		text::add_line(state, contents, "is_primary_culture", text::variable_type::name, state.world.culture_get_name(state.world.nation_get_primary_culture(content)));
-		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(state.world.nation_get_religion(content)));
+	}
+};
+
+class nation_state_religion : public religion_type_icon {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
+		frame = int32_t(state.world.religion_get_icon(pr) - 1);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.nation_get_religion(content);
+		auto dr = state.world.nation_get_dominant_religion(content);
+
+		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "when");
+		text::add_line_with_condition(state, contents, "religion_nation_modifier", dr == rel, text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "giving_modifier");
+		auto mod_id = state.world.religion_get_nation_modifier(rel);
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id, 15);
+		}
 	}
 };
 
@@ -1394,6 +1428,8 @@ public:
 			return make_element_by_type<nation_population_text>(state, id);
 		} else if(name == "country_primary_cultures") {
 			return make_element_by_type<nation_primary_culture>(state, id);
+		} else if(name == "nation_icon_religion") {
+			return make_element_by_type<nation_state_religion>(state, id);
 		} else if(name == "country_accepted_cultures") {
 			return make_element_by_type<nation_accepted_cultures>(state, id);
 		} else if(name == "war_extra_info_bg") {
@@ -1484,12 +1520,12 @@ public:
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
 			return ptr;
-		} else if(name == "industry_size_text") {
+		} else if(name == "industry_size_icon") {
 			auto ptr = make_element_by_type<diplomacy_industry_size>(state, id);
 			war_elements[21] = ptr.get();
 			return ptr;
-		} else if(name == "industry_size_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+		} else if(name == "trade_size_icon") {
+			auto ptr = make_element_by_type<diplomacy_trade_status_size>(state, id);
 			war_elements[22] = ptr.get();
 			return ptr;
 		} else if(name == "selected_military_icon") {

@@ -10,6 +10,10 @@ struct province_tile {
 	bool empty = true;
 	bool build_new = false;
 	dcon::province_id province;
+	dcon::administration_id local_administration;
+	bool capital_administration = false;
+	bool no_administration_tile = false;
+	dcon::market_id market;
 	dcon::commodity_id rgo_commodity;
 	dcon::commodity_id potential_commodity;
 	dcon::factory_id factory;

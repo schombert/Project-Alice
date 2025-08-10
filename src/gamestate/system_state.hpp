@@ -53,6 +53,7 @@ struct user_settings_s {
 	projection_mode map_is_globe = projection_mode::globe_ortho;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
+	bool unit_disband_confirmation = false;
 	bool use_classic_fonts = false;
 	bool left_mouse_click_hold_and_release = false;
 	bool outliner_views[14] = {true, true, true, true, true, true, true, true, true, true, true, true, true, true};
@@ -416,6 +417,7 @@ struct cheat_data_s {
 	bool always_allow_reforms = false;
 	bool always_accept_deals = false;
 	bool show_province_id_tooltip = false;
+	bool ui_debug_mode = false;
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;

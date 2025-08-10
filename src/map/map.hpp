@@ -208,6 +208,7 @@ public:
 	uint32_t size_x;
 	uint32_t size_y;
 	uint32_t land_vertex_count = 0;
+	float world_circumference;
 
 	// Meshes
 	static constexpr uint32_t vo_land = 0;
@@ -328,7 +329,9 @@ public:
 	static constexpr uint32_t uniform_sprite_texture_size = 38;
 	static constexpr uint32_t uniform_is_national_border = 39;
 	static constexpr uint32_t uniform_graphics_mode = 40;
-	static constexpr uint32_t uniform_count = 41;
+	static constexpr uint32_t uniform_light_direction = 41;
+	static constexpr uint32_t uniform_ignore_light = 42;
+	static constexpr uint32_t uniform_count = 43;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

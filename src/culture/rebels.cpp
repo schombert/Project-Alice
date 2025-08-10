@@ -858,21 +858,13 @@ void rebel_hunting_check(sys::state& state) {
 				for(uint32_t i = 0; i < rebel_hunters.size(); ++i) {
 					auto a = rebel_hunters[i].a;
 					if(state.world.army_get_location_from_army_location(a) == closest_prov) {
-						state.world.army_get_path(a).clear();
-						state.world.army_set_arrival_time(a, sys::date{});
+						military::stop_army_movement(state, a);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
 						break;
 					} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
-						auto existing_path = state.world.army_get_path(a);
-						auto new_size = uint32_t(path.size());
-						existing_path.resize(new_size);
-						for(uint32_t j = 0; j < new_size; j++) {
-							existing_path.at(j) = path[j];
-						}
-						state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-						state.world.army_set_dig_in(a, 0);
+						military::move_army_fast(state, a, path, faction_owner);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
@@ -893,16 +885,7 @@ void rebel_hunting_check(sys::state& state) {
 			&& a.get_location_from_army_location() != a.get_ai_province()
 			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
 		{
-			if(auto path = province::make_land_path(state, a.get_location_from_army_location(), a.get_ai_province(), a.get_army_control().get_controller(), a); path.size() > 0) {
-				auto existing_path = state.world.army_get_path(a);
-				auto new_size = uint32_t(path.size());
-				existing_path.resize(new_size);
-				for(uint32_t j = 0; j < new_size; j++) {
-					existing_path.at(j) = path[j];
-				}
-				state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-				state.world.army_set_dig_in(a, 0);
-			} else {
+			if(auto path_valid = military::move_army_fast(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
 				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
 			}
 		}
@@ -1369,7 +1352,7 @@ void update_armies(sys::state& state) {
 			if(prov.id.index() >= state.province_definitions.first_sea_province.index())
 				continue;
 			/* impassable */
-			if((adj.get_type() & province::border::impassible_bit) != 0)
+			if(province::is_adjacency_impassable(state, dcon::nation_id{ }, adj.id))
 				continue;
 			if(allow_in_area(state, prov, arc.get_controller())) {
 				//float weight = trigger::evaluate_multiplicative_modifier(state, type.get_movement_evaluation(), trigger::to_generic(prov), trigger::to_generic(prov), trigger::to_generic(arc.get_controller()));
@@ -1389,7 +1372,9 @@ void update_armies(sys::state& state) {
 		if(best_prov != location) {
 			ar.get_path().resize(1);
 			ar.get_path()[0] = best_prov;
-			ar.set_arrival_time(military::arrival_time_to(state, ar.id, best_prov));
+			auto arrival_info = military::arrival_time_to(state, ar.id, best_prov);
+			ar.set_arrival_time(arrival_info.arrival_time);
+			ar.set_unused_travel_days(arrival_info.unused_travel_days);
 			ar.set_dig_in(0);
 			ar.set_is_rebel_hunter(false);
 		}
