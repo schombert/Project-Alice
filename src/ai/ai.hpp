@@ -5,6 +5,13 @@
 
 namespace ai {
 
+struct ai_path_length {
+	uint32_t length;
+	bool operator==(const ai_path_length& other) const = default;
+	bool operator!=(const ai_path_length& other) const = default;
+
+};
+
 void take_ai_decisions(sys::state& state);
 void update_ai_ruling_party(sys::state& state);
 void update_ai_colonial_investment(sys::state& state);
@@ -29,5 +36,7 @@ void general_ai_unit_tick(sys::state& state);
 float estimate_army_offensive_strength(sys::state& state, dcon::army_id a);
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a);
 float estimate_rebel_strength(sys::state& state, dcon::province_id p);
+
+void update_ai_embargoes(sys::state& state);
 
 }

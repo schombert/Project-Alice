@@ -10,6 +10,8 @@
 
 namespace alice_ui {
 
+bool state_is_rtl(sys::state& state);
+
 struct measure_result {
 	int32_t x_space;
 	int32_t y_space;
@@ -220,6 +222,8 @@ inline static ankerl::unordered_dense::set<int32_t> excluded_religions;
 inline static bool show_non_colonial = true;
 inline static bool show_colonial = true;
 inline static bool show_only_pops = false;
+inline static bool sort_pops = true;
+inline static bool sort_states = true;
 }
 
 bool pop_passes_filter(sys::state& state, dcon::pop_id p);
@@ -228,6 +232,8 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
+
+void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 
 inline int8_t cmp3(std::string_view a, std::string_view b) {
 	return int8_t(std::clamp(a.compare(b), -1, 1));
@@ -249,5 +255,6 @@ void describe_mil(sys::state& state, text::columnar_layout& contents, dcon::pop_
 void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
+void describe_money(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 
 }

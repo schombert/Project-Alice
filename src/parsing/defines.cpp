@@ -5,6 +5,7 @@
 #include "defines.hpp"
 #include "parsers.hpp"
 #include "system_state.hpp"
+#include "math_fns.hpp"
 
 void parsing::defines::assign_define(sys::state& state, int32_t line, std::string_view text, float v,
 		parsers::error_handler& err) {
@@ -145,4 +146,5 @@ void parsing::defines::parse_file(sys::state& state, std::string_view data, pars
 	/* Fixups and nudges */
 	state.defines.investment_score_factor *= 0.05f;
 	state.defines.base_truce_months = std::max(0.f, state.defines.base_truce_months); //some mods try to be funny
+	state.map_state.map_data.world_circumference = 2 * math::pi * state.defines.alice_globe_mean_radius_km; // calculate and store world circumference based on define
 }

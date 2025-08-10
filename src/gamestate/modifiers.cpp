@@ -253,8 +253,6 @@ void bulk_apply_scaled_modifier_to_provinces(sys::state& state, dcon::modifier_i
 }
 
 void recreate_national_modifiers(sys::state& state) {
-
-
 	concurrency::parallel_for(uint32_t(0), sys::national_mod_offsets::count, [&](uint32_t i) {
 		dcon::national_modifier_value mid{dcon::national_modifier_value::value_base_t(i)};
 		state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_modifier_values(ids, mid, ve::fp_vector{}); });
@@ -267,6 +265,14 @@ void recreate_national_modifiers(sys::state& state) {
 	for(auto n : state.world.in_nation) {
 		if(auto nv = n.get_national_value(); nv)
 			apply_modifier_values_to_nation(state, n, nv);
+	}
+	for(auto n : state.world.in_nation) {
+		if(auto rgmd = n.get_religion().get_nation_modifier(); rgmd) {
+			// Apply only when state religion is majority religion. The function is called once per month
+			if(state.world.nation_get_dominant_religion(n) == state.world.nation_get_religion(n)) {
+				apply_modifier_values_to_nation(state, n, rgmd);
+			}
+		}
 	}
 	for(auto n : state.world.in_nation) {
 		for(auto mpr : state.world.nation_get_current_modifiers(n)) {
@@ -330,8 +336,8 @@ void recreate_national_modifiers(sys::state& state) {
 	}
 	if(state.national_definitions.average_literacy) {
 		bulk_apply_scaled_modifier_to_nations(state, state.national_definitions.average_literacy, [&](auto ids) {
-			auto total = state.world.nation_get_demographics(ids, demographics::total);
-			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::literacy) / total, 0.0f);
+			auto total = state.world.nation_get_demographics(ids, demographics::non_colonial_total);
+			return ve::select(total > 0, state.world.nation_get_demographics(ids, demographics::non_colonial_literacy) / total, 0.0f);
 		});
 	}
 	if(state.national_definitions.total_blockaded) {
@@ -489,9 +495,8 @@ void update_single_nation_modifiers(sys::state& state, dcon::nation_id n) {
 				state.world.nation_get_war_exhaustion(n));
 	}
 	if(state.national_definitions.average_literacy) {
-		auto total = state.world.nation_get_demographics(n, demographics::total);
-		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy,
-				total > 0 ? state.world.nation_get_demographics(n, demographics::literacy) / total : 0.0f);
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		apply_scaled_modifier_values_to_nation(state, n, state.national_definitions.average_literacy, literacy);
 	}
 	if(state.national_definitions.total_blockaded) {
 		auto bc = ve::to_float(state.world.nation_get_central_blockaded(n));

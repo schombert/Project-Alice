@@ -139,6 +139,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.world_circumference);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
@@ -321,6 +322,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.world_circumference);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
@@ -503,6 +505,7 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
+		sz += sizeof(state.map_state.map_data.world_circumference);
 		sz += serialize_size(state.map_state.map_data.river_vertices);
 		sz += serialize_size(state.map_state.map_data.river_starts);
 		sz += serialize_size(state.map_state.map_data.river_counts);
@@ -996,7 +999,7 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state, save_type type, std::string const& name) {
+void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
 	//header.timestamp = state.scenario_time_stamp;
@@ -1042,9 +1045,15 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
-		auto ymd_date = state.current_date.to_ymd(state.start_date);
-		auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		if(!file_name.empty()) {
+			auto base_str = file_name + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
+		else {
+			auto ymd_date = state.current_date.to_ymd(state.start_date);
+			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
 	}
 	delete[] temp_buffer;
 

@@ -876,7 +876,7 @@ When player navies die from attrition, the admirals are lost too.
 
 ### Movement
 
-Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (origin-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
+Adjacent provinces have a base distance between them (this base also takes terrain into account in some way). When moving to a province, this cost is multiplied by (origin-province-movement-cost-modifier + 1.0)^0.05. The unit "pays" for this cost each day based on its speed, and when it is all paid for, the unit arrives in its destination province. An army's or navy's speed is based on the speed of its slowest ship or regiment x (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait + 1)
 
 When a unit arrives in a new province, it takes attrition (as if it had spent the monthly tick in the province).
 

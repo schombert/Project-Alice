@@ -1,3 +1,7 @@
+ui_element_name;Name: ?Y$x$?!
+ui_element_position;Position: X = ?Y$x$?! Y = ?Y$y$?!
+ui_element_size;Size: X = ?Y$x$?! Y = ?Y$y$?!
+PROVINCEVIEW_GOODSINCOME;Sold ?Y$x$?W ?Y$GOODS$?W for ?Y$VALUE$?W yesterday
 support_for_blank;support for $text$
 uh_support_for_blank;upper house support for $text$
 up_to;up to 
@@ -13,30 +17,31 @@ no_effect;No effect
 move_capital_to;Move capital to
 add_x_core;Add $adj$ core
 add_core_to;Add core to
-remove_x_core;Remove $adj$ core
+remove_x_core;Remove ?Y$adj$?W core
 remove_core_from;Remove core from
-change_name_to;Change name to $text$
-change_terrain_to;Change terrain to $text$
-change_rgo_production_to;Change RGO production to $text$
+change_name_to;Change name to ?Y$text$?W
+change_terrain_to;Change terrain to ?Y$text$?W
+change_rgo_production_to;Change RGO production to ?Y$text$??W
 make_accepted_culture;$text$ becomes an accepted culture
-primary_culture_changes_to;Primary culture changes to $text$
+primary_culture_changes_to;Primary culture changes to ?Y$text$?W
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
-increase_national_variable_by;Increase national variable $text$ by $value$
-decrease_national_variable_by;Decrease national variable $text$ by $value$
+increase_national_variable_by;Increase nation's ?Y$text$?W by ?Y$value$?W
+decrease_national_variable_by;Decrease nation's ?Y$text$?W by ?Y$value$?W
 life_rating;Life rating
-make_national_religion;$text$ becomes the national religion
-make_province_religion;province population converts to $text$
-make_pop_religion;Converts to $text$
-make_pop_culture;Converts to $text$
-make_slave_state;Becomes a slave state
-make_slave_pop;Becomes a slave
+make_national_religion;?Y$text$?W becomes the national religion
+giving_modifier;This will give the following modifier:
+make_province_religion;province population converts to ?Y$text$?W
+make_pop_religion;Converts to ?Y$text$?W
+make_pop_culture;Converts to ?Y$text$?W
+make_slave_state;Becomes a ?Yslave state?W
+make_slave_pop;Becomes a ?Yslave?W
 research_points;Research points
-change_tech_school;Technology school changes to $text$
-change_government_to;Government changes to $text$
+change_tech_school;Technology school changes to ?Y$text$?W
+change_government_to;Government changes to ?Y$text$?W
 add_to_treasury;Added to treasury
 war_exhaustion;War exhaustion
-become_blank;Becomes $text$
+become_blank;Becomes ?Y$text$?W
 player_control_change;Player control changes to $text$
 set_national_flag;$text$ is set for this nation
 remove_national_flag;$text$ is unset for this nation
@@ -109,7 +114,7 @@ add_cb_reversed_months;$text$ gets a $name$ casus belli against the nation in sc
 add_cb_reversed_no_months;$text$ gets a $name$ casus belli against the nation in scope
 remove_cb_reversed;Loses any $name$ casus bellis against $text$
 remove_cb;$text$ loses any $name$ casus bellis against the nation in scope
-set_national_variable_to;Set national variable $text$ to $value$
+set_national_variable_to;Set nation ?Y$text$?W to ?Y$value$?W
 event_fires;Event $text$ is triggered
 event_fires_in_days;Event $text$ is triggered in $value$ days
 railroad_in_capital;?G+1?! railroad level in capital
@@ -377,6 +382,33 @@ has_not_recently_lost_war;has not recently lost a war
 mobilized;mobilized
 mobilization_size;mobilization size
 admin_spending;administration spending
+employment_type_no_education;Employment type: ?YNo education?W
+employment_type_basic_education;Employment type: ?YBasic education?W
+employment_type_high_education_and_accepted;Employment type: ?YHigh Education and Accepted?W
+employment_type_high_education;Employment type: ?YHigh Education?W
+employment_type_guild_education;Employment type: ?YGuild Education?W
+employment_type_basic_education;Employment type: ?YBasic Education?W
+employment_type_no_education;Employment type: ?YNo Education?W
+alice_trade_attractiveness;Trade Route Attraction
+trade_center;Trade Centre
+trade_center_desc;Trade Centres manage trade inside the market and between state-level markets, buying goods up to desired stockpile and selling extras to neighbours.
+trade_center_employment;Trade Center Employees: ?Y$value$?W
+trade_centre_max_throughput;Max throughput: ?Y$value$?W
+local_admin;Local Administration
+capital_admin;Capital Administration
+local_admin_spending;Estimated cost: ?Y$value$?W
+admin_employment;Administration Employees: ?Y$value$?W
+target_employment;Target employment: ?Y$value$?W
+employment_satisfaction;Employment satisfaction: ?Y$value$?W
+wage;Wage: ?Y$value$?W
+local_admin_efficiency;Local administrations are ?Y$value$?W less efficient than the capital one.
+tax_collection_rate;Tax collection rate: ?Y$value$?W
+poor_potential;Potential poor taxes: ?Y$value$?W
+mid_potential;Potential middle taxes: ?Y$value$?W
+rich_potential;Potential rich taxes: ?Y$value$?W
+poor_taxes;Actual poor taxes: ?Y$value$?W
+mid_taxes;Actual middle taxes: ?Y$value$?W
+rich_taxes;Actual rich taxes: ?Y$value$?W
 greater_than_edu_spending;greater than education spending
 support_for_rp;support for ruling party
 colonial;colonial
@@ -517,9 +549,10 @@ factory_upgrade_condition_11;State has available resource potentials
 factory_delete_header;Delete factory
 factory_delete_not_allowed;The ruling party does not allow us to delete factories
 factory_level;Factory level ?Y$val$
-factory_stats_1;This factory is currently operating at $val$ capacity
-factory_stats_2;This factory is targeting $val$ capacity
-factory_stats_3;It produced $val$ units of $x$ in the previous day
+factory_employment;Factory employees: ?Y$val$
+factory_stats_1;Current production scale: ?Y$val$?W
+factory_stats_2;Target production scale: ?Y$val$?W
+factory_stats_3;Yesterday it produced ?Y$val$ $good$?W sold for ?Y$x$?W
 factory_stats_4;It made a profit of $val$ in the previous day
 factory_stats_5;Inputs availability:
 factory_stats_6;Efficiency inputs availability:
@@ -527,9 +560,40 @@ factory_stats_7;Economy of scale throughput bonus: ?G+$val$?!
 factory_stats_wage;Wage:
 factory_stats_expenses;Total expenses
 factory_stats_desired_income;Desired raw profit
+factory_money_flow_sum;?Y$value$?W is predicted profit (income minus expenses)
+factory_money_flow_sales;?G$value$?W is predicted income from sales
+factory_money_flow_primary_inputs;?R$value$?W is predicted spending on inputs
+factory_money_flow_secondary_inputs;?R$value$?W is predicted spending on efficiency inputs
+factory_money_flow_expansion;?R$value$?W is predicted spending on factory expansion
+factory_money_flow_maintenance;?R$value$?W is predicted spending on factory maintenance
+factory_money_flow_wages;?R$value$?W is predicted spending on workers wages
+factory_expansion_rate;We predict that factory will be expanded to accomodate ?Y$value$?W additional workers
+factory_hiring_rate_unqualified;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Yunskilled workers?W. (Current target: ?Y$x$?W)
+factory_hiring_rate_primary;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Ycraftsmen?W. (Current target: ?Y$x$?W)
+factory_hiring_rate_secondary;We predict that factory will attempt to ?Ghire?W ?Y$value$?W more people as ?Ymanagers and engineers?W. (Current target: ?Y$x$?W)
+factory_firing_rate_unqualified;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Yunskilled workers?W. (Current target: ?Y$x$?W)
+factory_firing_rate_primary;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Ycraftsmen?W. (Current target: ?Y$x$?W)
+factory_firing_rate_secondary;We predict that factory will attempt to ?Rfire?W ?Y$value$?W ?Ymanagers and engineers?W. (Current target: ?Y$x$?W)
+factory_hired_unqualified;Factory hired ?Y$value$?W ?Yunskilled workers?W to do simple manual tasks. An ?Yunskilled worker?W provides only ?R$x$?W of a ?Ycraftsman?W output.
+factory_hired_primary;Factory hired ?Y$value$?W ?Ycraftsmen?W.
+factory_hired_secondary;Factory hired ?Y$value$?W ?Ymanagers and engineers?W. They multiply factory output by ?G$x$?W.
+factory_throughput_explanation;Throughput is a measure of raw power of a factory. It's measured in ?Gproduction units?W. Throughput drives both consumption of inputs and production of output. The only source of throughput are ?Gemployment units?W generated by ?Yunskilled workers?W and ?Ycraftsmen?W. Technology advancements can increase amount of ?Gproduction units?W generated per worker. Current throughput modifier is ?G$val$?W. Thus, current ?Y$y$?W employment units generate ?Y$x$?W (?G$val$?W of ?Y$y$?W) production units. Essentially, increase of throughput allows capitalists to employ less workers for the same total wage.
+factory_throughput_base;In Project Alice factories can access goods only from the local market. It means that in early game some goods are very hard to obtain. To partly compensate for it, there is a ?G$val$?W base multiplier to throughput.
+factory_throughput_modifiers;Current technologies and other modifiers provide a throughput multiplier equal to ?G$val$?W
+factory_input_multiplier_explanation;Inputs multiplier is the strongest industry-related multiplier as it doesn't suffer from diminishing returns. On the opposite, the more you stack a source of this multiplier, the stronger it becomes. Current multiplier is equal to ?G$val$?W.
+factory_input_multiplier_competition;Local competition between capitalists encourages factories to be more efficient and consume only ?G$val$?W of required inputs.
+factory_input_multiplier_scale;Smaller factories have to be lean and avoid waste to survive, current factory has ?G$val$?W multiplier due to this reason.
+factory_input_multiplier_specialisation;Scientific, political and legal priorities of private and national agents aligned to provide this industry with ?G$val$?W input multiplier.
+factory_input_multiplier_modifiers;Various technologies and inventions allow this factory to enjoy additional ?G$val$?W input multiplier.
+factory_output_multiplier_explanation;Output multiplier is a strong multiplier but suffers from diminishing returns. Currently this factory has ?G$val$?W output multiplier.
+factory_output_multiplier_lack_of_inputs;Due to lack of inputs, output of this factory is multiplied by ?R$val$?W.
+factory_output_multiplier_efficiency_inputs;To achieve full output, factory has to consume special efficiency inputs. Currently it suffers ?R$val$?W multiplier due to inability to do so.
+factory_output_multiplier_secondary_workers;Employed ?Ymanagers and engineers?W provide factory with ?G$val$?W output multiplier.
+factory_output_multiplier_modifiers;Various technologies and inventions provide additional ?G$val$?W multiplier.
 speed;$val$ kph
 shift_to_hold_open;Hold ?YSHIFT?! to keep this window open, ?YSHIFT-Right-click?! to build this in every state (but not expand)
 factory_upgrade_shortcuts;?YSHIFT-Left-click?W upgrade ?Gall?!S factories in a state\n?YSHIFT-Right-click?W upgrade ?Gall profitable?W factories in a state\n?YCTRL-Left-click?W upgrade ?Gall?W factories in a nation\n?YCTRL-Right-click?W upgrade ?Gall profitable?W factories in a nation\n?YCTRL-SHIFT-Left-click?W upgrade ?Gall profitable with full employment?W factories in a state\n?YCTRL-SHIFT-Right-click?W upgrade ?Gall profitable with full employment?W factories in a state
+factory_total_size;Total factories: ?Y$val$?!
 factory_consumer_count;Consumer factories: ?Y$val$?!
 factory_heavy_count;Heavy industry factories: ?Y$val$?!
 factory_military_count;Military factories: ?Y$val$?!
@@ -621,21 +685,36 @@ pop_lit_5;The national education-efficiency modifier: $x$
 pop_lit_6;The modifier to the national education-efficiency modifier: $x$
 pop_lit_7;The base literacy change rate: $x$
 pop_lit_8;And 0.01
+pop_literacy_spending;Pop is planning to spend ?Y$val$?W on education.
+pop_literacy_spending_required;Max education spendings: ?Y$val$?W.
+pop_literacy_spending_public;?Y$val$?W of expenses will be covered by public education budget.
+pop_literacy_spending_ratio;Satisfied ratio: ?Y$x$?W.
+pop_literacy_spending_result_success;As ?Y$x$?W is higher than ?Y$y$?W, literacy was increased by ?Y$val$?W
+pop_literacy_spending_result_failure;As ?Y$x$?W is lower than ?Y$y$?W, literacy was decreased by ?Y$val$?W
+pop_budget_explanation_header;Pop had accumulated ?Y$val$?W in personal assets.
+pop_budget_explanation_life_needs;Pop will spend ?Y$x$?W (out of desired ?Y$y$?W) on life needs. Ratio: ?Y$val$?W
+pop_budget_explanation_subsistence;Additionally, pop forages ?Y$x$?W of desired goods. Total satisfaction is ?Y$y$?W
+pop_budget_explanation_everyday_needs;Pop will spend ?Y$x$?W (out of desired ?Y$y$?W) on everyday needs. Ratio: ?Y$val$?W
+pop_budget_explanation_luxury_needs;Pop will spend ?Y$x$?W (out of desired ?Y$y$?W) on luxury needs. Ratio: ?Y$val$?W
+pop_budget_explanation_education;Pop will spend ?Y$x$?W on education needs. See details in education tooltip.
+pop_budget_explanation_investments;Pop will spend ?Y$x$?W on investments.
+pop_budget_explanation_banks;Pop will provide ?Y$x$?W to national bank.
 pop_growth_topbar;It's expected to grow by ?G$x$?W within the next month.
 pop_growth_topbar_2;population changed by ?G$x$?W in the last ?Y30?W days.
 pop_growth_topbar_3;Our Adult male population is ?Y$curr$?W. Our adult male
 pop_growth_topbar_4;Our total population is ?Y$val$?W.
 pop_growth_1;Monthly pop growth: 
-pop_growth_2;Slaves do not grow
+pop_growth_2;As this pop is a slave, its growth is divided by ?Y$val$?W.
 pop_growth_3;Pop growth is proportional to the size of the pop times the sum of:
-pop_growth_4;The quality-of-life factor $x$, which is the product of:
-pop_growth_5;The province factor $x$, which is itself the sum of:
-pop_growth_6;The life rating of the province $x$ minus the minimum life rating $y$, all times $val$
-pop_growth_7;And the base pop growth value $x$
-pop_growth_8;The pop's life needs factor $x$ (life needs satisfaction $y$ - the starvation limit $val$)
-pop_growth_9;And 4
-pop_growth_10;The local population-growth modifier $x$
-pop_growth_11;The national population-growth modifier $x$
+pop_growth_4;The growth factor ?Y$x$?W, which is the sum of:
+pop_growth_5;The life rating of the province ?Y$x$?W minus the minimum life rating ?Y$y$?W, all times ?Y$val$?W, giving a total ?Y$value$?W popgrowth
+pop_growth_6;The base pop growth value ?Y$x$?W
+pop_growth_7;The local population-growth modifier ?Y$x$?W
+pop_growth_8;The national population-growth modifier ?Y$x$?W
+pop_growth_9;A pop growth penalty of ?Y$x$?W is applied due to starvation. Starvation is caused by the pop's life needs fufillment (currently ?Y$y$?W) being less than the starvation limit of ?Y$val$?W
+pop_growth_10;The starvation penalty is computed by first taking the max starvation penalty (?Y$x$?W) and adding it to all growth modifiers (?Y$val$?W), giving the ?Ypenalty scale?W (?Y$y$?W), with a min possible result of of ?Y$x$?W
+pop_growth_11;Then, subtract the starvation limit (?Y$x$?W) from the pops life need fufillment, and divide it by the starvation limit (?Y$x$?W), with a max possible result of 0. This gives the ?Ystarvation factor?W (?Y$y$?W)
+pop_growth_12;Lastly, multiply the ?Ystarvation factor?W (?Y$x$?W) and ?Ypenalty scale?W (?Y$y$?W) to get the net pop growth penalty (?Y$val$?W), which is then added to the rest of the modifiers
 pop_assim_1;Monthly pop assimilation: $x$
 pop_assim_2;Slaves do not assimilate
 pop_assim_3;Pops of an accepted culture do not assimilate
@@ -847,18 +926,12 @@ free_trade_explain_4;They are embargoing us
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
 embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
-embargo_explain_1;?GWe embargo them.?!
-embargo_explain_2;?RThey embargo us.?!
+embargo_explain_1;?G$x$ embargoes $y$.?!
+embargo_explain_2;?R$x$ embargoes $y$.?!
 embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere
 embargo_explain_6;They aren't in a sphere
-msg_embargo_issued_title;Embargo issued
-msg_embargo_issued;Nation ?Y$y$?! has issued embargo to ban trade with ?Y$x$?!.
-msg_embargo_lifted_title;Embargo lifted
-msg_embargo_lifted;Nation ?Y$y$?! has lifted embargo on trade with ?Y$x$?!.
-msg_free_trade_agreement_signed_title;Free trade agreement signed.
-msg_free_trade_agreement_signed;Our nations $x$ and $y$ have signed a free trade agreement. It will remove all the tariffs from trade between our countries.
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli
@@ -1095,6 +1168,8 @@ alice_warn_war_ends_for_us;?RThis will end the war for everyone on our side?!.
 alice_invention_chance;The chance of discovering this ?Yinvention?! are as follows:
 is_primary_culture;?Y$NAME$?! is the primary culture.
 is_primary_religion;?Y$NAME$?! is the primary religion.
+religion_nation_modifier;Majority of the population professes ?Y$NAME$?!
+when;When:
 tt_can_use_nation;The conditions needed to allow the use of this wargoal:
 et_on_add;The effects executed from adding this wargoal to a war:
 et_on_po_accepted;The effects executed from accepting a peace offer with this wargoal:
@@ -1186,7 +1261,11 @@ alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
-alice_factory_construction_cost;Construction cost:
+alice_construction_cost;Construction cost:
+alice_building_modifier;Building gives the following effect:
+alice_new_building_modifier;Building will give the following effect:
+alice_building_level;Building Level: ?Y$val$?W
+alice_building_conditions;To build, the following must be true:
 alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
 alice_factory_construction_explain_5;Progress: ?Y$x$?W
@@ -1424,6 +1503,14 @@ trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?
 trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
 trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
 trade_route_volume_final_change;Expected change: ?Y$val$
+trade_centre_trade_volume;Trade volume: ?Y$val$
+trade_centre_trade_value;Trade value: ?Y$val$
+trade_centre_imports_volume;Imports volume: ?Y$val$
+trade_centre_imports_value;Imports value: ?Y$val$
+trade_centre_exports_volume;Exports volume: ?Y$val$
+trade_centre_exports_value;Exports value: ?Y$val$
+trade_centre_trade_routes_profit;Profit from trade routes: ?Y$val$
+trade_centre_money;Money stockpile: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$?W
@@ -1556,6 +1643,9 @@ pop_migration_attraction_3;The migration target factor: $x$
 pop_migration_attraction_wage_ratio;And the wage difference multipler: $x$
 pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
+administration_tile;Local administration
+market_tile;Local market
+rgo_tile_header;Natural source of ?Y$good$?W
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
@@ -1581,3 +1671,15 @@ embargo_reason_origin_embargo;Origin declared embargo
 embargo_reason_origin_join_embargo;Origin joined embargo
 embargo_reason_target_embargo;Target declared embargo
 embargo_reason_target_join_embargo;Target joined embargo
+alice_production_name_sort_tip_province;?YLeft Click?W to sort by province names
+alice_production_name_sort_tip_state;?YShift-Left Click?W to sort by state names
+alice_sort_pops;Sort Pops
+alice_sort_states;Sort States
+alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W
+open_economy_scene;Open economy viewer
+alice_ship_in_supply_range;?GShip in supply range?W, closest port: ?O$x$?W
+alice_ship_not_in_supply_range;?RShip outside supply range?W, closest port: ?O$x$?W
+alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
+alice_supply_range_friendly_port;?GAdjacent to friendly port?W
+alice_supply_range_deep_waters;?RIn deep waters?W
+alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W

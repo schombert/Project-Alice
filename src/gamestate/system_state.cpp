@@ -45,6 +45,7 @@
 #include "blake2.h"
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace ui {
 
@@ -238,6 +239,15 @@ void create_in_game_windows(sys::state& state) {
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(state, "alice_land_combat");
 		new_elm->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
+		// set window to be movable
+		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
+		new_elem->set_visible(state, false);
+		state.ui_state.disband_unit_window = new_elem.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elem));
+
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
@@ -965,18 +975,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
-				bool fail = false;
-				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+				bool can_move = [this, prov]() {
+					for(auto a : selected_armies) {
+						auto army_loc = world.army_get_location_from_army_location(a);
+						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+					for(auto a : selected_navies) {
+						auto navy_loc = world.navy_get_location_from_navy_location(a);
+						if(!command::can_move_or_stop_navy(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				if(!fail) {
+					return true;
+
+				}();
+
+				if(can_move) {
 					auto c = world.province_get_nation_from_province_control(prov);
 					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
 						window::change_cursor(*this, window::cursor_type::hostile_move);
@@ -1198,8 +1214,16 @@ void state::on_create() {
 	}
 	// Nudge, overriden by V2 to be 0 always
 	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
-	// Find the object id for the main_bg displayed (so we display it before the map)
-	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	// Find the object id for the main_bg displayed (so we display it before the map).
+	// It is the background from topbar windows
+	if(ui_state.defs_by_name.find(lookup_key("bg_main_menus")) != ui_state.defs_by_name.end()) {
+		ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	}
+	else if (ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus")) != ui_state.gfx_by_name.end()){
+		// If some mod has removed the GUI element of background in topbar windows, resort to searching for the GFX by name
+		ui_state.bg_gfx_id = ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus"))->second;
+	}
+	// Otherwise the map will be floating in the void
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
 	{
@@ -1573,6 +1597,7 @@ void state::save_user_settings() const {
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
+	US_SAVE(unit_disband_confirmation);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1642,6 +1667,7 @@ void state::load_user_settings() {
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
+			US_LOAD(unit_disband_confirmation);
 #undef US_LOAD
 		} while(false);
 
@@ -2424,6 +2450,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
+		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
@@ -2926,6 +2953,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_demand_satisfaction(economy::labor::total);
 	world.province_resize_labor_supply_sold(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
+
+	services::initialize_size_of_dcon_arrays(*this);
+	advanced_province_buildings::initialize_size_of_dcon_arrays(*this);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -4084,7 +4114,7 @@ void state::single_game_tick() {
 	});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
 		case 0:
 		{
@@ -4120,25 +4150,17 @@ void state::single_game_tick() {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(*this, o, days_in_month);
-			break;
-		}
-		case 5:
-		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_growth(*this, o, days_in_month);
 			break;
 		}
-		case 6:
+		case 5:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
 			break;
-		case 7:
+		case 6:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 			break;
@@ -4294,6 +4316,7 @@ void state::single_game_tick() {
 			ai::make_attacks(*this);
 			ai::update_ships(*this);
 		}
+
 		ai::take_ai_decisions(*this);
 
 		// Once per month updates, spread out over the month
@@ -4376,6 +4399,7 @@ void state::single_game_tick() {
 			break;
 		case 21:
 			ai::update_ai_colony_starting(*this);
+			ai::update_ai_embargoes(*this);
 			break;
 		case 22:
 			ai::take_reforms(*this);
@@ -4616,54 +4640,8 @@ sys::checksum_key state::get_scenario_checksum() {
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
-	// TODO later refactor this to use datacontainer directly somehow
-	// seralizes everything except for the "keep_after_state_reload" tagged items
-	dcon::load_record loaded = world.serialize_entire_container_record();
-	loaded.player_nation = false;
-	loaded.player_nation_mp_player = false;
-	loaded.player_nation_nation = false;
 
-
-	loaded.mp_player = false;
-	loaded.mp_player__index = false;
-	loaded.mp_player_nickname = false;
-	loaded.mp_player_password_salt = false;
-	loaded.mp_player_password_hash = false;
-	loaded.mp_player_fully_loaded = false;
-	loaded.mp_player_is_oos = false;
-
-	loaded.locale = false;
-	loaded.locale_native_rtl = false;
-	loaded.locale_prevent_letterspace = false;
-	loaded.locale_display_name = false;
-	loaded.locale_locale_name = false;
-	loaded.locale_fallback = false;
-	loaded.locale_resolved_language = false;
-	loaded.locale_hb_script = false;
-	loaded.locale_resolved_body_font = false;
-	loaded.locale_resolved_header_font = false;
-	loaded.locale_resolved_map_font = false;
-	loaded.locale_body_font = false;
-	loaded.locale_header_font = false;
-	loaded.locale_map_font = false;
-	loaded.locale_body_font_features = false;
-	loaded.locale_header_font_features = false;
-	loaded.locale_map_font_features = false;
-
-
-	loaded.pop_type_migration_target_fn = false;
-	loaded.pop_type_country_migration_target_fn = false;
-	loaded.pop_type_issues_fns = false;
-	loaded.pop_type_ideology_fns = false;
-	loaded.pop_type_promotion_fns = false;
-
-	loaded.national_event_auto_choice = false;
-	loaded.provincial_event_auto_choice = false;
-
-	loaded.free_national_event_auto_choice = false;
-	loaded.free_provincial_event_auto_choice = false;
-
-
+	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
 
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());

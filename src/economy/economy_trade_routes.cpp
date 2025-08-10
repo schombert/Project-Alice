@@ -8,6 +8,82 @@
 
 namespace economy {
 
+// US3AC2 Labour demand for a single trade route
+float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_fat_id A_capital, dcon::province_fat_id B_capital) {
+	auto total_demanded_labor = 0.f;
+	auto available_labor = std::min(
+		state.world.province_get_labor_demand_satisfaction(A_capital, labor::no_education),
+		state.world.province_get_labor_demand_satisfaction(B_capital, labor::no_education)
+	);
+
+	state.world.for_each_commodity([&](auto cid) {
+		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
+		if(current_volume == 0.f) {
+			return;
+		}
+		current_volume = current_volume * std::max(0.999999f, available_labor);
+		state.world.trade_route_set_volume(trade_route, cid, current_volume);
+		auto effect_of_scale = std::max(
+			trade_effect_of_scale_lower_bound,
+			1.f - std::abs(current_volume) * effect_of_transportation_scale
+		);
+		total_demanded_labor += std::abs(current_volume)
+			* state.world.trade_route_get_distance(trade_route)
+			/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
+			* effect_of_scale;
+		assert(std::isfinite(total_demanded_labor));
+	});
+
+	return total_demanded_labor;
+}
+
+// US3AC2 Calculate labour demand for trade routes between markets
+float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market) {
+
+	auto total_demanded_labour = 0.f;
+
+	for(auto route : state.world.market_get_trade_route(market)) {
+		auto A = state.world.trade_route_get_connected_markets(route, 0);
+		auto B = state.world.trade_route_get_connected_markets(route, 1);
+
+		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
+		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
+
+		total_demanded_labour += trade_route_labour_demand(state, route, A_capital, B_capital);
+	}
+
+	return total_demanded_labour;
+}
+
+
+// US3AC3 Calculate labour demand for trade inside the market
+float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital) {
+	auto base_cargo_transport_demand = 0.f;
+
+	state.world.for_each_commodity([&](auto commodity) {
+		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
+			auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
+			auto origin = 
+				current_volume > 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+			auto target =
+				current_volume <= 0.f
+				? state.world.trade_route_get_connected_markets(trade_route, 0)
+				: state.world.trade_route_get_connected_markets(trade_route, 1);
+
+			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, commodity);
+			base_cargo_transport_demand += std::abs(current_volume);
+		});
+	});
+
+	// auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
+	//if(base_cargo_transport_demand > soft_transport_demand_limit) {
+	//	base_cargo_transport_demand = base_cargo_transport_demand * base_cargo_transport_demand / soft_transport_demand_limit;
+	//}
+
+	return base_cargo_transport_demand;
+}
 
 tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_route) {
 	auto m0 = state.world.trade_route_get_connected_markets(trade_route, 0);
@@ -74,6 +150,50 @@ tariff_data explain_trade_route(sys::state& state, dcon::trade_route_id trade_ro
 			state.world.province_get_labor_demand_satisfaction(capital_1, labor::no_education)
 		)
 	};
+}
+
+void make_trade_center_tooltip(sys::state& state, text::columnar_layout& contents, dcon::market_id market) {
+	auto trade_volume = 0.f;
+	auto trade_value = 0.f;
+	auto imports_volume = 0.f;
+	auto imports_value = 0.f;
+	auto exports_volume = 0.f;
+	auto exports_value = 0.f;
+	auto profit = 0.f;
+
+	auto labour_demand = 0.f;
+
+	for(auto commodity : state.world.in_commodity) {
+		for(auto route : state.world.market_get_trade_route(market)) {
+			auto explain = explain_trade_route_commodity(state, route, commodity);
+
+			if(market == explain.origin && explain.amount_origin > 0) {
+				exports_volume += explain.amount_origin;
+				exports_value += explain.amount_origin * explain.price_origin;
+				trade_value += explain.amount_origin * explain.price_origin;
+				trade_volume += explain.amount_origin;
+				profit += explain.amount_origin * explain.payment_received_per_unit;
+			}
+			else if(market == explain.target && explain.amount_target > 0) {
+				imports_volume += explain.amount_target;
+				imports_value += explain.amount_target * explain.price_target;
+				trade_value += explain.amount_target * explain.price_target;
+				trade_volume += explain.amount_target;
+				profit -= explain.amount_target * explain.payment_per_unit;
+			}
+		}
+	}
+
+	text::add_line(state, contents, "trade_centre_trade_volume", text::variable_type::val, text::fp_two_places{ trade_volume });
+	text::add_line(state, contents, "trade_centre_imports_volume", text::variable_type::val, text::fp_two_places{ imports_volume }, 15);
+	text::add_line(state, contents, "trade_centre_exports_volume", text::variable_type::val, text::fp_two_places{ exports_volume }, 15);
+
+	text::add_line(state, contents, "trade_centre_trade_value", text::variable_type::val, text::fp_currency{ trade_value });
+	text::add_line(state, contents, "trade_centre_imports_value", text::variable_type::val, text::fp_currency{ imports_value }, 15);
+	text::add_line(state, contents, "trade_centre_exports_value", text::variable_type::val, text::fp_currency{ exports_value }, 15);
+
+	text::add_line(state, contents, "trade_centre_trade_routes_profit", text::variable_type::val, text::fp_currency{ profit });
+	text::add_line(state, contents, "trade_centre_money", text::variable_type::val, text::fp_currency{ state.world.market_get_stockpile(market, money) });
 }
 
 void make_trade_volume_tooltip(
@@ -277,10 +397,11 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto is_land_route = state.world.trade_route_get_is_land_route(route);
 	auto same_nation = controller_capital_A == controller_capital_B;
 
-	// Ban international sea routes or international land routes based on the corresponding modifiers
+	// US3AC7. Ban international sea routes or international land routes based on the corresponding modifiers
 	auto A_bans_sea_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 	auto B_bans_sea_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 	auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
+	// US3AC8. Ban international sea routes or international land routes based on the corresponding modifiers
 	auto A_bans_land_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_land_trade) > 0.f;
 	auto B_bans_land_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_land_trade) > 0.f;
 	auto land_trade_banned = A_bans_land_trade || B_bans_land_trade;
@@ -288,9 +409,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
 
-	// sphere joins embargo
-	// subject joins embargo
-	// diplomatic embargos
+	// US3AC9. Wartime embargoes
 	auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
 		return military::are_at_war(state, n_a, n_b);
 	}, sphere_A, controller_capital_B);
@@ -299,6 +418,9 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		return military::are_at_war(state, n_a, n_b);
 	}, sphere_B, controller_capital_A);
 
+	// US3AC10. diplomatic embargos
+	// US3AC11. sphere joins embargo
+	// US3AC12 subject joins embargo
 	auto A_has_embargo =
 		state.world.unilateral_relationship_get_embargo(
 			state.world.get_unilateral_relationship_by_unilateral_pair(controller_capital_B, market_leader_A)
@@ -319,8 +441,10 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		);
 	B_joins_sphere_wide_embargo = B_has_embargo || B_joins_sphere_wide_embargo;
 
+	// US3AC13
 	auto merchant_cut = 1.f + (same_nation ? economy::merchant_cut_domestic : economy::merchant_cut_foreign);
 
+	// US3AC14
 	auto import_tariff_A = (same_nation || A_is_open_to_B) ? 0.f : effective_tariff_import_rate(state, n_A, A);
 	auto export_tariff_A = (same_nation || A_is_open_to_B) ? 0.f : effective_tariff_export_rate(state, n_A, A);
 	auto import_tariff_B = (same_nation || B_is_open_to_A) ? 0.f : effective_tariff_import_rate(state, n_B, B);
@@ -338,7 +462,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	auto trade_good_loss_mult = std::max(0.f, 1.f - trade_loss_per_distance_unit * distance);
 
-	// we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
+	// US3AC2 we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 	// we do it this way to avoid another assymetry in calculations
 	auto transport_cost =
 		distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good
@@ -393,7 +517,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.export_profit[1] = current_profit_B_to_A;
 
 	auto none_is_profiable = (current_profit_A_to_B <= 0.f) && (current_profit_B_to_A <= 0.f);
-	auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f;
+	auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f + trade_route_min_shift;
 	auto max_shrinking = -0.1f / (price_A_export + price_B_export) - absolute_volume * 0.005f;
 
 	result.max_expansion = max_expansion;
@@ -528,11 +652,11 @@ void update_trade_routes_volume(sys::state& state) {
 		auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
 		auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
 
-		// Subjects have embargo of overlords propagated onto them
+		// US3AC12. Subjects have embargo of overlords propagated onto them
 		auto market_leader_A = ve::select(has_overlord_mask_A, overlord_A, ve::select(has_sphere_mask_A, sphere_A, n_A));
 		auto market_leader_B = ve::select(has_overlord_mask_B, overlord_B, ve::select(has_sphere_mask_B, sphere_B, n_B));
 
-		// Equal/unequal trade treaties
+		// US3AC15. Equal/unequal trade treaties
 		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b) {
 			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
 			if(source_tariffs_rel) {
@@ -575,7 +699,7 @@ void update_trade_routes_volume(sys::state& state) {
 		}, overlord_B, controller_capital_A);
 		*/
 
-		// if market capital controller is at war with market coastal controller is different
+		// US3AC17. if market capital controller is at war with market coastal controller is different
 		// or it's actually blockaded
 		// consider province blockaded
 
@@ -586,10 +710,11 @@ void update_trade_routes_volume(sys::state& state) {
 			return military::are_at_war(state, n_a, n_b);
 		}, controller_capital_B, controller_port_B);
 
+		// US3AC16
 		ve::mask_vector is_A_blockaded = state.world.province_get_is_blockaded(port_A) || port_occupied_A;
 		ve::mask_vector is_B_blockaded = state.world.province_get_is_blockaded(port_B) || port_occupied_B;
 
-		// if market capital controllers are at war then we will break the link
+		// US3AC9. if market capital controllers are at war then we will break the link
 		auto at_war = ve::apply([&](auto n_a, auto n_b) {
 			return military::are_at_war(state, n_a, n_b);
 		}, controller_capital_A, controller_capital_B);
@@ -601,7 +726,7 @@ void update_trade_routes_volume(sys::state& state) {
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
 		auto same_nation = controller_capital_A == controller_capital_B;
 
-		// Ban international sea routes or international land routes based on the corresponding modifiers
+		// US3AC7 US3AC8 Ban international sea routes or international land routes based on the corresponding modifiers
 		auto A_bans_sea_trade = state.world.nation_get_modifier_values(n_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 		auto B_bans_sea_trade = state.world.nation_get_modifier_values(n_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 		auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
@@ -612,9 +737,10 @@ void update_trade_routes_volume(sys::state& state) {
 
 		is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
 
-		// sphere joins embargo
-		// subject joins embargo
-		// diplomatic embargos
+		// US3AC9. Wartime embargoes
+		// US3AC10. diplomatic embargos
+		// US3AC11. sphere joins embargo
+		// US3AC12 subject joins embargo
 		auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
 			return military::are_at_war(state, n_a, n_b);
 		}, sphere_A, controller_capital_B);
@@ -678,9 +804,10 @@ void update_trade_routes_volume(sys::state& state) {
 
 		state.world.trade_route_set_distance(trade_route, distance);
 
+		// US3AC18
 		auto trade_good_loss_mult = ve::max(0.f, 1.f - trade_loss_per_distance_unit * distance);
 
-		// we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
+		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
 		auto transport_cost =
 			distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good
@@ -697,6 +824,7 @@ void update_trade_routes_volume(sys::state& state) {
 			|| (!is_sea_route && !is_land_route);
 
 		for(auto c : state.world.in_commodity) {
+			// US3AC19
 			if(state.world.commodity_get_money_rgo(c) || state.world.commodity_get_is_local(c)) {
 				continue;
 			}
@@ -707,6 +835,7 @@ void update_trade_routes_volume(sys::state& state) {
 				continue;
 			}
 
+			// US3AC20. 
 			auto unlocked_A = state.world.nation_get_unlocked_commodities(n_A, c);
 			auto unlocked_B = state.world.nation_get_unlocked_commodities(n_B, c);
 
@@ -723,7 +852,7 @@ void update_trade_routes_volume(sys::state& state) {
 			auto absolute_volume = ve::abs(current_volume);
 			//auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
 
-			// effect of scale
+			// US3AC21 effect of scale
 			// volume reduces transport costs
 			auto effect_of_scale = ve::max(trade_effect_of_scale_lower_bound, 1.f - absolute_volume * effect_of_transportation_scale);
 
@@ -741,7 +870,7 @@ void update_trade_routes_volume(sys::state& state) {
 			// we make changes slow to ensure more or less smooth changes
 			// otherwise assumption of stable demand breaks
 			// constant term is there to allow moving away from 0
-			auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f;
+			auto max_expansion = 0.5f / (price_A_export + price_B_export) + absolute_volume * 0.05f + trade_route_min_shift;
 			auto max_shrinking = -0.1f / (price_A_export + price_B_export) - absolute_volume * 0.005f;
 
 			auto profit_score = ve::select(
@@ -856,38 +985,17 @@ void update_trade_routes_consumption(sys::state& state) {
 		});
 	});
 
-	// register trade demand on transportation labor:
+	// US3AC2 register trade demand on transportation labor:
 	// money are paid during calculation of trade route profits and actual movement of goods
 	state.world.for_each_trade_route([&](auto trade_route) {
+
 		auto A = state.world.trade_route_get_connected_markets(trade_route, 0);
 		auto B = state.world.trade_route_get_connected_markets(trade_route, 1);
 
 		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
 		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
-
-		auto total_demanded_labor = 0.f;
-		auto available_labor = std::min(
-			state.world.province_get_labor_demand_satisfaction(A_capital, labor::no_education),
-			state.world.province_get_labor_demand_satisfaction(B_capital, labor::no_education)
-		);
-
-		state.world.for_each_commodity([&](auto cid) {
-			auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-			if(current_volume == 0.f) {
-				return;
-			}
-			current_volume = current_volume * std::max(0.999999f, available_labor);
-			state.world.trade_route_set_volume(trade_route, cid, current_volume);
-			auto effect_of_scale = std::max(
-				trade_effect_of_scale_lower_bound,
-				1.f - std::abs(current_volume) * effect_of_transportation_scale
-			);
-			total_demanded_labor += std::abs(current_volume)
-				* state.world.trade_route_get_distance(trade_route)
-				/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
-				* effect_of_scale;
-			assert(std::isfinite(total_demanded_labor));
-		});
+		
+		auto total_demanded_labor = trade_route_labour_demand(state, trade_route, A_capital, B_capital);
 
 		state.world.province_get_labor_demand(A_capital, labor::no_education) += total_demanded_labor;
 		state.world.province_get_labor_demand(B_capital, labor::no_education) += total_demanded_labor;
@@ -896,33 +1004,16 @@ void update_trade_routes_consumption(sys::state& state) {
 		assert(std::isfinite(state.world.province_get_labor_demand(B_capital, labor::no_education)));
 	});
 
-	// register demand on local transportation/accounting due to trade
+	// US3AC3 register demand on local transportation/accounting due to trade
 	// all trade generates uneducated labor demand for goods transport locally
 	// labor demand satisfaction does not set limits on transportation: it would be way too jumpy
 	// we assume that 1 human could move 100 units of goods daily locally
 
 	state.world.for_each_market([&](auto market) {
 		auto capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(market));
-		auto base_cargo_transport_demand = 0.f;
-		auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
+		auto base_cargo_transport_demand = transportation_inside_market_labor_demand(state, market, capital);
 
-		state.world.for_each_commodity([&](auto commodity) {
-			state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-				auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
-				auto origin =
-					current_volume > 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto target =
-					current_volume <= 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-
-				//auto sat = state.world.market_get_direct_demand_satisfaction(origin, commodity);
-				base_cargo_transport_demand += std::abs(current_volume);
-			});
-		});
-
+		// auto soft_transport_demand_limit = state.world.market_get_max_throughput(market);
 		//if(base_cargo_transport_demand > soft_transport_demand_limit) {
 		//	base_cargo_transport_demand = base_cargo_transport_demand * base_cargo_transport_demand / soft_transport_demand_limit;
 		//}

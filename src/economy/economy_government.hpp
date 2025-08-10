@@ -6,6 +6,9 @@ struct state;
 }
 
 namespace economy {
+
+inline constexpr float local_administration_efficiency = 0.5f;
+
 // see details about internal workings of the system in cpp file
 
 // ratio of taxes you can collect in a given province
@@ -18,9 +21,9 @@ float estimate_spendings_administration_capital(sys::state& state, dcon::nation_
 // estimate total spendings for your administration
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
 // total current spendings
-float full_spendings_administration(sys::state& state, dcon::nation_id n);
+float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget);
 // register demand on labor
-void update_consumption_administration(sys::state& state, dcon::nation_id n);
+void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget);
 // perform a tax collection update
 void collect_taxes(sys::state& state, dcon::nation_id n);
 
@@ -39,4 +42,8 @@ struct tax_information {
 // sums up all tax income all over the nation
 tax_information explain_tax_income(sys::state& state, dcon::nation_id n);
 tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, dcon::province_id sid);
+
+bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to);
+std::vector<employment_record> explain_local_administration_employment(sys::state& state, dcon::province_id p);
+std::vector<employment_record> explain_capital_administration_employment(sys::state& state, dcon::nation_id n);
 }

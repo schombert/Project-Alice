@@ -190,7 +190,7 @@ public:
 			);
 
 			//auto a = state.world.regiment_get_army_from_army_membership(reg_id);
-			auto reinf = state.defines.pop_size_per_regiment * military::unit_calculate_reinforcement(state, reg_id, true);
+			auto reinf = state.defines.pop_size_per_regiment * military::unit_calculate_reinforcement<military::reinforcement_estimation_type::monthly>(state, reg_id, true);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
