@@ -1690,3 +1690,4 @@ alice_naval_retreat_condition_2;Not already retreating
 alice_naval_retreat_condition_3;Access to an available port
 alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us.
 alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislodge their defences.
+alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.

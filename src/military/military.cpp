@@ -5846,7 +5846,8 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			}
 		}
 
-		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does NOT get stackwiped if the battle ends before the retreat timer is up, unlike land battles
+		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does not normally get stackwiped if the navy automatically retreats before the battle is retreatable (navies are close enough to the center)
+		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
 
 			if(!retreat(state, n.get_navy())) {
@@ -8109,10 +8110,11 @@ void update_naval_battles(sys::state& state) {
 			}
 		}
 
-		// check if all ships of a retreating navy has fully retreated. If so them move them from the battle
+		// check if all ships of a retreating navy has fully retreated. If so then remove them from the battle
 		std::vector<dcon::navy_id> to_retreat{ };
-		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
-			auto navy = n.get_navy();
+		// iterate though navies in battle backwards, to remove as we go if needed
+		for(auto iterator = state.world.naval_battle_get_navy_battle_participation(b).end(); iterator.operator--() != state.world.naval_battle_get_navy_battle_participation(b).begin(); ) {
+			auto navy = (*iterator).get_navy();
 			if(navy.get_is_retreating()) {
 				std::vector<ship_in_battle*> to_be_removed{ };
 
@@ -8122,32 +8124,28 @@ void update_naval_battles(sys::state& state) {
 							if((slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_retreated &&
 							   (slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_sunk) {
 								return false;
-							}
-							else if((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated) {
+							} else if((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated) {
 								to_be_removed.push_back(&slots[j]);
 							}
-							
+
 						}
-						
+
 					}
 					return true;
-				}();
+					}();
 
 				if(can_retreat) {
 					// anonymize ship ID of the ships that are retreating out of the battle. Targets depend on the index of the slots vector so can't remove em fully
 					for(auto battle_ship : to_be_removed) {
-						assert((battle_ship->flags& ship_in_battle::mode_mask) == ship_in_battle::mode_retreated);
+						assert((battle_ship->flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated);
 						assert(state.world.ship_is_valid(battle_ship->ship));
-						battle_ship->ship = dcon::ship_id{ };			
+						battle_ship->ship = dcon::ship_id{ };
 
 					}
-					to_retreat.push_back(navy);
+					state.world.delete_navy_battle_participation(*iterator);
 				}
-				
+
 			}
-		}
-		for(auto navy : to_retreat) {
-			state.world.navy_set_battle_from_navy_battle_participation(navy, dcon::naval_battle_id{ });
 		}
 		if(!to_retreat.empty()) {
 			update_battle_leaders(state, b);

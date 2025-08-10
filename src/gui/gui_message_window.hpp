@@ -153,12 +153,11 @@ public:
 
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto* message = retrieve<notification::message*>(state, parent);
-		auto prov_target = message->province_source;
-		auto nation_source = message->source;
+		auto prov_source = retrieve<dcon::province_id>(state, parent);
+		auto nation_source = retrieve<dcon::nation_id>(state, parent);
 
-		if(bool(prov_target)) {
-			state.map_state.center_map_on_province(state, prov_target);
+		if(bool(prov_source)) {
+			state.map_state.center_map_on_province(state, prov_source);
 		}
 		else if(bool(nation_source)) {
 			auto capital = state.world.nation_get_capital(nation_source);
