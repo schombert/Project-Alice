@@ -8278,8 +8278,6 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 				}
 			}
 		}
-
-		// TODO: notify on new battle
 	}
 }
 
