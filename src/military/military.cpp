@@ -3788,6 +3788,32 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		nations::adjust_prestige(state, target, -prestige_gain);
 }
 
+void merge_navies_impl(sys::state& state, dcon::navy_id a, dcon::navy_id b) {
+	assert(state.world.navy_get_controller_from_navy_control(a) == state.world.navy_get_controller_from_navy_control(b));
+	// take leader
+	auto a_leader = state.world.navy_get_admiral_from_navy_leadership(a);
+	auto b_leader = state.world.navy_get_admiral_from_navy_leadership(b);
+	if(!a_leader && b_leader) {
+		state.world.navy_set_admiral_from_navy_leadership(a, b_leader);
+	}
+
+	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
+
+	state.world.navy_set_months_outside_naval_range(a, highest_months_out_of_range);
+
+	auto regs = state.world.navy_get_navy_membership(b);
+	while(regs.begin() != regs.end()) {
+		auto reg = (*regs.begin()).get_ship();
+		reg.set_navy_from_navy_membership(a);
+	}
+
+	auto transported = state.world.navy_get_army_transport(b);
+	while(transported.begin() != transported.end()) {
+		auto arm = (*transported.begin()).get_army();
+		arm.set_navy_from_army_transport(a);
+	}
+}
+
 void run_gc(sys::state& state) {
 
 	//

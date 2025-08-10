@@ -873,7 +873,6 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
-template<execute_cmd_as execute_as = execute_cmd_as::player>
 void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);

@@ -483,6 +483,8 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 void cleanup_army(sys::state& state, dcon::army_id n);
 void cleanup_navy(sys::state& state, dcon::navy_id n);
 
+void merge_navies_impl(sys::state& state, dcon::navy_id a, dcon::navy_id b);
+
 void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
 		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,
 		dcon::national_identity_id wargoal_t);

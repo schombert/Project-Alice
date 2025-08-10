@@ -4228,46 +4228,20 @@ bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a
 
 	return true;
 }
-template<execute_cmd_as execute_as>
+
 void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
-	// take leader
-	auto a_leader = state.world.navy_get_admiral_from_navy_leadership(a);
-	auto b_leader = state.world.navy_get_admiral_from_navy_leadership(b);
-	if(!a_leader && b_leader) {
-		state.world.navy_set_admiral_from_navy_leadership(a, b_leader);
-	}
 
-	// stop movement, but not for ai's
-	if constexpr(execute_as == execute_cmd_as::player) {
-		military::stop_navy_movement(state, a);
+	military::stop_navy_movement(state, a);
+
+	military::merge_navies_impl(state, a, b);
+
+	if(source == state.local_player_nation) {
+		state.deselect(b);
 	}
+	military::cleanup_navy(state, b);
 	
-
-	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
-
-	state.world.navy_set_months_outside_naval_range(a, highest_months_out_of_range);
-
-	auto regs = state.world.navy_get_navy_membership(b);
-	while(regs.begin() != regs.end()) {
-		auto reg = (*regs.begin()).get_ship();
-		reg.set_navy_from_navy_membership(a);
-	}
-
-	auto transported = state.world.navy_get_army_transport(b);
-	while(transported.begin() != transported.end()) {
-		auto arm = (*transported.begin()).get_army();
-		arm.set_navy_from_army_transport(a);
-	}
-	if constexpr(execute_as == execute_cmd_as::player) {
-		if(source == state.local_player_nation) {
-			state.deselect(b);
-		}
-		// let the garbage collector deal with the lingering navy if not executed as player, due to looping over navies as ai.
-		military::cleanup_navy(state, b);
-	}
 }
-template void execute_merge_navies<execute_cmd_as::player>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
-template void execute_merge_navies<execute_cmd_as::ai>(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+
 
 void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	payload p;
@@ -4947,6 +4921,8 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ }) {
+	// so far, any valid naval retreat is basically always an "auto_retreat" (it will path to the nearest accessible port), so atm those parameters dosent really do anything
+	// This can be extended with diffrent retreat rules later, but to start this is compliant with Vic2 naval retreat behaviour
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!military::can_retreat_from_battle(state, battle))
 		return;
@@ -4956,7 +4932,6 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 	assert(battle);
 	if(bool(battle)) {
 		if(military::retreat(state, navy)) {
-			state.world.navy_set_is_retreating(navy, true);
 			for(auto shp : state.world.navy_get_navy_membership(navy)) {
 				for(auto& s : state.world.naval_battle_get_slots(battle)) {
 					if(s.ship == shp.get_ship() && (s.flags & s.mode_mask) != s.mode_sunk && (s.flags & s.mode_mask) != s.mode_retreated) {
