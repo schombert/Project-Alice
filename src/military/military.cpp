@@ -5147,15 +5147,14 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 
 	update_battle_leaders(state, b);
 }
-
+template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);
 	auto nation_controller = state.world.navy_get_controller_from_navy_control(n);
 
 	if(!nation_controller)
 		return false;
-
-	auto retreat_path = province::make_naval_retreat_path(state, nation_controller, province_start);
+	auto retreat_path = command::can_retreat_from_naval_battle(state, nation_controller, n, true);
 	if(retreat_path.size() > 0) {
 		state.world.navy_set_is_retreating(n, true);
 		auto existing_path = state.world.navy_get_path(n);
@@ -5168,11 +5167,26 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 		for(auto em : state.world.navy_get_army_transport(n)) {
 			stop_army_movement(state, em.get_army());
 		}
+		// if the battle isn't about to end, start retreating the ships from the navy
+		if constexpr(battle_state == battle_is_ending::no) {
+			auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
+			assert(bool(battle));
+			for(auto shp : state.world.navy_get_navy_membership(n)) {
+				for(auto& s : state.world.naval_battle_get_slots(battle)) {
+					if(s.ship == shp.get_ship() && (s.flags & s.mode_mask) != s.mode_sunk && (s.flags & s.mode_mask) != s.mode_retreated) {
+						military::single_ship_start_retreat(state, s, battle);
+					}
+				}
+			}
+		}
+		state.world.navy_set_moving_to_merge(n, false);
 		return true;
 	} else {
 		return false;
 	}
 }
+template bool retreat<battle_is_ending::yes>(sys::state& state, dcon::navy_id n);
+template bool retreat<battle_is_ending::no>(sys::state& state, dcon::navy_id n);
 
 bool retreat(sys::state& state, dcon::army_id n) {
 	auto province_start = state.world.army_get_location_from_army_location(n);
@@ -5876,13 +5890,13 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
 
-			if(!retreat(state, n.get_navy())) {
+			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
 				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 				n.get_navy().set_is_retreating(true);
 			}
 			
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!retreat(state, n.get_navy())) {
+			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
 				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
 				n.get_navy().set_is_retreating(true);
 			}

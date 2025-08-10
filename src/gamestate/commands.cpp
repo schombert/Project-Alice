@@ -4930,7 +4930,7 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 	// In Vic2, navies do not retreat from the battle instantly unlike land units. Each ship which is part of the navy will start to retreat, and when all ships of the navy are retreated, the navy will finally exit the battle.
 	// The navy retreats to the closest port province, regardless of which province the user clicked on when retreating
 	assert(battle);
-	bool can_retreat = military::retreat(state, navy);
+	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy);
 	// navy must be able to retreat, otherwise it shouldnt have passed the "can_retreat_from_naval_battle" check
 	assert(can_retreat);
 	for(auto shp : state.world.navy_get_navy_membership(navy)) {

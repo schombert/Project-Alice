@@ -605,10 +605,6 @@ struct payload {
 	payload() { }
 };
 
-enum class execute_cmd_as {
-	player, ai
-};
-
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
