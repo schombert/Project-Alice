@@ -161,20 +161,8 @@ dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, ind
 
 void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context) {
 	auto id = context.outer_context.state.world.create_army();
-	auto rebel_nid = context.outer_context.state.national_definitions.rebel_id;
-	auto rebel_nation = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(rebel_nid);
-	dcon::nation_id army_controller;
-	// if army is controlled by rebel, use nation ID 0 for army controller
-	if(rebel_nation == context.nation_for) {
-		army_controller = dcon::nation_id{ };
-	}
-	else {
-		army_controller = context.nation_for;
-	}
-		
-	
-	context.outer_context.state.world.force_create_army_control(id, army_controller);
-	oob_file_army_context new_context{context.outer_context, id, army_controller };
+	context.outer_context.state.world.force_create_army_control(id, context.nation_for);
+	oob_file_army_context new_context{context.outer_context, id, context.nation_for};
 	parse_oob_army(gen, err, new_context);
 
 	// and check they have correct unit types
