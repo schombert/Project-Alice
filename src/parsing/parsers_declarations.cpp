@@ -2397,16 +2397,48 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 		err.accumulated_errors +=
 				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
-		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		for(auto pl : context.outer_context.state.world.province_get_pop_location(province_id)) {
-			auto p = pl.get_pop();
-			if(p.get_poptype() == context.outer_context.state.culture_definitions.soldiers) {
-				context.outer_context.state.world.force_create_regiment_source(context.id, p);
-				return;
+		auto army = fatten(context.outer_context.state.world, context.outer_context.state.world.regiment_get_army_from_army_membership(context.id));
+		auto controller = context.outer_context.state.world.army_get_controller_from_army_control(army);
+
+		if(bool(controller)) {
+			auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+			for(auto pl : context.outer_context.state.world.province_get_pop_location(province_id)) {
+				auto p = pl.get_pop();
+				if(p.get_poptype() == context.outer_context.state.culture_definitions.soldiers) {
+					context.outer_context.state.world.force_create_regiment_source(context.id, p);
+					return;
+				}
 			}
-		}
-		err.accumulated_warnings +=
+			err.accumulated_warnings +=
 				"No soldiers in province regiment comes from (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		else {
+			auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+			for(auto pl : context.outer_context.state.world.province_get_pop_location(province_id)) {
+				auto p = pl.get_pop();
+				auto rebel_faction = p.get_rebel_faction_from_pop_rebellion_membership();
+				auto army_rebel_faction = army.get_controller_from_army_rebel_control();
+				// if the army rebel faction is not set yet, or the pop rebel faction is the same, proceed and attempt to use this pop as pop source
+				if(bool(rebel_faction) && (!bool(army_rebel_faction) || rebel_faction == army_rebel_faction)) {
+					uint32_t regiments_attached = 0;
+					uint32_t max_regiments = uint32_t(p.get_size() / context.outer_context.state.defines.pop_size_per_regiment);
+					for(auto reg : context.outer_context.state.world.pop_get_regiment_source(p)) {
+						regiments_attached++;
+					}
+					if(regiments_attached < max_regiments) {
+						context.outer_context.state.world.force_create_regiment_source(context.id, p);
+						if(!bool(army_rebel_faction)) {
+							army.set_controller_from_army_rebel_control(rebel_faction);
+						}
+						return;
+					}
+				}
+			}
+			err.accumulated_warnings +=
+				"Not enough available pops in province are a member of a rebel faction to spawn a rebel brigade (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+
+		
 	}
 }
 
