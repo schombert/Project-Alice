@@ -3740,18 +3740,10 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
 	if(bool(battle)) {
-		if(!command::can_retreat_from_naval_battle(state, source, n, false, dest).empty()) {
-			return true;
-		} else {
-			return false;
-		}
+		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
 	}
 	else {
-		if(!command::can_move_navy(state, source, n, dest, true).empty()) {
-			return true;
-		} else {
-			return false;
-		}
+		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
 	}
 	
 }
