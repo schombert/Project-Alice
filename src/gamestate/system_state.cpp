@@ -2765,14 +2765,21 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
-						parsers::oob_file_context new_context{ context, holder };
-						auto opened_file = open_file(oob_file);
-						if(opened_file) {
-							err.file_name = utf8name;
-							auto content = view_contents(*opened_file);
-							parsers::token_generator gen(content.data, content.data + content.file_size);
-							parsers::parse_oob_file(gen, err, new_context);
+						// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
+						if(context.state.world.nation_get_province_ownership(holder).begin() != context.state.world.nation_get_province_ownership(holder).end() || it->second == context.state.national_definitions.rebel_id) {
+							parsers::oob_file_context new_context{ context, holder };
+							auto opened_file = open_file(oob_file);
+							if(opened_file) {
+								err.file_name = utf8name;
+								auto content = view_contents(*opened_file);
+								parsers::token_generator gen(content.data, content.data + content.file_size);
+								parsers::parse_oob_file(gen, err, new_context);
+							}
 						}
+						else {
+							err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+						}
+						
 					} else {
 						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}

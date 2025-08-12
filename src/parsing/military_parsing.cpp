@@ -167,11 +167,11 @@ void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& c
 	// if army is controlled by rebel, use nation ID 0 for army controller
 	if(rebel_nation == context.nation_for) {
 		army_controller = dcon::nation_id{ };
-	} else {
+	}
+	else {
 		army_controller = context.nation_for;
 	}
-
-
+	
 	context.outer_context.state.world.force_create_army_control(id, army_controller);
 	oob_file_army_context new_context{ context.outer_context, id, army_controller };
 	parse_oob_army(gen, err, new_context);

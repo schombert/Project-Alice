@@ -2418,10 +2418,13 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 		auto controller = context.outer_context.state.world.army_get_controller_from_army_control(army);
 		// if not a rebel brigade
 		if(bool(controller)) {
-			bool found_pop = false;
 			auto province_id = context.outer_context.original_id_to_prov_id_map[value];
 			auto pop = oob_find_available_soldier(context, province_id);
-			if(bool(pop)) {
+			// dont spawn the brigade if home province is not owned by the army controller
+			if(context.outer_context.state.world.province_get_nation_from_province_ownership(province_id) != controller) {
+				err.accumulated_warnings += "Regiment home province is owned by someone else other than the army controller (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			else if(bool(pop)) {
 				context.outer_context.state.world.force_create_regiment_source(context.id, pop);
 			}
 			// try to find a pop in a diffrent province if none are available in home, and log warning that this is the case
