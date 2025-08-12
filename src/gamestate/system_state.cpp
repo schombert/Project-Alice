@@ -2760,9 +2760,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
-					// ignore REB
-				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
 						// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
@@ -3233,24 +3231,26 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
-
-	//Fixup armies defined on a different place. If the army is rebel-controlled then they are excempted
-	for(auto p : world.in_pop_location) {
-		for(const auto src : p.get_pop().get_regiment_source()) {
-			auto prov = p.get_province();
-			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership() || !bool(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control()))
-				continue;
-			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
-			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
-			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
-			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
-			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
-				auto new_u = world.create_army();
-				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
-				src.get_regiment().set_army_from_army_membership(new_u);
-				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
-			} else {
-				src.get_regiment().set_strength(0.f);
+	// Clean up armies with no brigades and navies with no ships
+	for(uint32_t i = world.navy_size(); i-- > 0; ) {
+		dcon::navy_id n{ dcon::navy_id::value_base_t(i) };
+		if(world.navy_is_valid(n)) {
+			auto rng = world.navy_get_navy_membership(n);
+			if(!world.navy_get_battle_from_navy_battle_participation(n)) {
+				if(rng.begin() == rng.end() || !world.navy_get_controller_from_navy_control(n)) {
+					world.delete_navy(n);
+				}
+			}
+		}
+	}
+	for(uint32_t i = world.army_size(); i-- > 0; ) {
+		dcon::army_id n{ dcon::army_id::value_base_t(i) };
+		if(world.army_is_valid(n)) {
+			auto rng = world.army_get_army_membership(n);
+			if(!world.army_get_battle_from_army_battle_participation(n)) {
+				if(rng.begin() == rng.end() || (!world.army_get_controller_from_army_rebel_control(n) && !world.army_get_controller_from_army_control(n))) {
+					world.delete_army(n);
+				}
 			}
 		}
 	}
