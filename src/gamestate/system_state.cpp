@@ -2451,8 +2451,23 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
 		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
-		if(directory_file_count == 0)
-			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+		// if there is no exact match, check if any subdirs match with just the year. If none of those exist, use 1836.1.1 default (Vanilla files does this)
+		if(directory_file_count == 0) {
+			bool found_dir = false;
+			auto potential_dirs = simple_fs::list_subdirectories(pop_history);
+			for(simple_fs::directory dir : potential_dirs) {
+				auto dir_name = get_dir_name(dir);
+				auto year = std::to_wstring(startdate.year);
+				if(dir_name.starts_with(year.c_str())) {
+					date_directory = open_directory(pop_history, dir_name);
+					found_dir = true;
+					break;
+				}
+			}
+			if(!found_dir) {
+				date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+			}
+		}	
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {

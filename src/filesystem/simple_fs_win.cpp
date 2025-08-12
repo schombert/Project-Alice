@@ -257,6 +257,13 @@ native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
 }
 
+native_string get_dir_name(directory const& dir) {
+	size_t found;
+	found = dir.relative_path.find_last_of(L"\\");
+	return dir.relative_path.substr(found + 1);
+}
+
+
 std::optional<native_string> get_path_to_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
