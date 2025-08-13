@@ -3231,7 +3231,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 	}
-	// Clean up armies with no brigades and navies with no ships
+
+	nations::update_revanchism(*this);
+	fill_unsaved_data(); // we need this to run triggers
+
+	// Clean up and fixup armies and navies
 	for(uint32_t i = world.navy_size(); i-- > 0; ) {
 		dcon::navy_id n{ dcon::navy_id::value_base_t(i) };
 		if(world.navy_is_valid(n)) {
@@ -3245,18 +3249,26 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 	for(uint32_t i = world.army_size(); i-- > 0; ) {
 		dcon::army_id n{ dcon::army_id::value_base_t(i) };
+		auto army_controller = world.army_get_controller_from_army_control(n);
+		auto army_location = world.army_get_location_from_army_location(n);
 		if(world.army_is_valid(n)) {
 			auto rng = world.army_get_army_membership(n);
 			if(!world.army_get_battle_from_army_battle_participation(n)) {
 				if(rng.begin() == rng.end() || (!world.army_get_controller_from_army_rebel_control(n) && !world.army_get_controller_from_army_control(n))) {
 					world.delete_army(n);
 				}
+				// if the defined army does not have access to its starting location, allow it to move with blackflag
+				else if(!province::has_access_to_province(*this, army_controller, army_location)) {
+					world.army_set_black_flag(n, true);
+				}
+				// if the army is defined inside enemy controlled territory, set siege to be in progress
+				else if(military::are_enemies(*this, army_controller, world.province_get_nation_from_province_control(army_location))) {
+					world.province_set_siege_progress(army_location, 0.01f);
+				}
 			}
+			
 		}
 	}
-
-	nations::update_revanchism(*this);
-	fill_unsaved_data(); // we need this to run triggers
 
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
