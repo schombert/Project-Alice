@@ -1589,6 +1589,15 @@ struct province_factory_limit {
 	void finish(province_file_context&) { }
 };
 
+struct province_revolt {
+
+	dcon::rebel_type_id rebel;
+
+	void type(parsers::association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) {
+	}
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1604,6 +1613,7 @@ struct province_history_file {
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
 	void factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context);
+	void revolt(province_revolt const& rev, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
