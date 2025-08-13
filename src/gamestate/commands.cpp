@@ -5804,6 +5804,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	state.map_state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
+
+	auto cache = sys::player_data{};
+	cache.nation = state.local_player_nation;
+	state.player_data_cache.push_back(cache);
+
 	state.ui_lock.unlock();
 }
 
