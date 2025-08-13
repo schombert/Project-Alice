@@ -1084,6 +1084,8 @@ int create_window() {
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_warning.png"), fs, warning_tex, false);
+
+	return 0;
 }
 
 int main(int argc, char* argv[]) {
