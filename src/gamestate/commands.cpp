@@ -3743,7 +3743,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
 	}
 	else {
-		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
+		return !command::can_move_navy(state, source, n, dest, true).empty();
 	}
 	
 }

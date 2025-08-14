@@ -41,16 +41,18 @@ inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 
 // The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
 // The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
-constexpr float naval_battle_distance_to_center = 100.0f;
+// the actual integer is 1000 units, which here means 100.0 with one fixed-point decimal.
+constexpr uint16_t naval_battle_distance_to_center = 1000;
 
-constexpr float naval_battle_total_distance = naval_battle_distance_to_center * 2.0f; // total distance from one end of the battle to another
+constexpr uint16_t naval_battle_total_distance = naval_battle_distance_to_center * 2; // total distance from one end of the battle to another
 
-constexpr float naval_battle_center_line = 0.0f; // The "center line" of a naval battle. Ships on one side cannot go past this.
+constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval battle. Ships on one side cannot go past this.
 
-constexpr float naval_battle_speed_mult = 100.0f; // mult for casting unit speed to battle speed
+constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
 
 
 struct ship_in_battle {
+	static constexpr uint16_t distance_mask = 0x03FF;
 
 	static constexpr uint16_t mode_mask = 0x1C00;
 	static constexpr uint16_t mode_seeking = 0x0400;
@@ -71,16 +73,23 @@ struct ship_in_battle {
 	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
-	float distance = naval_battle_distance_to_center;
 	bool operator == (const ship_in_battle&) const = default;
 	bool operator != (const ship_in_battle&) const = default;
+
+	uint16_t get_distance() {
+		return flags & distance_mask;
+	}
+	void set_distance(uint16_t distance) {
+		flags &= ~distance_mask;
+		flags |= distance_mask & (distance);
+
+	}
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
 	+ sizeof(ship_in_battle::ships_targeting_this)
 	+ sizeof(ship_in_battle::target_slot)
-	+ sizeof(ship_in_battle::flags)
-	+ sizeof(ship_in_battle::distance));
+	+ sizeof(ship_in_battle::flags));
 
 struct mobilization_order {
 	sys::date when; //2
