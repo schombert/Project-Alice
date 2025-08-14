@@ -984,7 +984,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					for(auto a : selected_navies) {
 						auto navy_loc = world.navy_get_location_from_navy_location(a);
-						if(!command::can_move_or_stop_navy(*this, local_player_nation, a, prov)) {
+						if(!command::can_move_retreat_or_stop_navy(*this, local_player_nation, a, prov)) {
 							return false;
 						}
 					}
