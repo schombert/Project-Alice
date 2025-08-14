@@ -14,6 +14,8 @@
 #include "demographicswindow.cpp"
 #include "province_economy_overview.cpp"
 #include "pop_details.cpp"
+#include "market_trade_report.cpp"
+#include "rgo_report.cpp"
 
 namespace alice_ui {
 

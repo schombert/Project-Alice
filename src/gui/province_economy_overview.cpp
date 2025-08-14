@@ -1822,6 +1822,8 @@ struct province_economy_overview_method_payback_separator_t : public ui::element
 };
 struct province_economy_overview_body_t : public layout_window_element {
 // BEGIN body::variables
+	ui::element_base * trade_details_window;
+	ui::element_base * rgo_details_window;
 // END
 	std::unique_ptr<province_economy_overview_body_gdp_label_t> gdp_label;
 	std::unique_ptr<province_economy_overview_body_gdp_share_label_t> gdp_share_label;
@@ -2878,6 +2880,9 @@ ui::message_result province_economy_overview_body_trade_details_t::on_lbutton_do
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN body::trade_details::lbutton_action
+	auto target_is_visible = body.trade_details_window->is_visible();
+	body.trade_details_window->set_visible(state, !target_is_visible);
+	body.trade_details_window->parent->move_child_to_front(body.trade_details_window);
 // END
 	return ui::message_result::consumed;
 }
@@ -3103,7 +3108,7 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
 		if(a.value == b.value) {
-			return a.key.value > b.value;
+			return a.key.value > b.key.value;
 		}
 		return a.value > b.value;
 	});
@@ -3246,7 +3251,7 @@ void province_economy_overview_body_export_value_graph_t::on_update(sys::state& 
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
 		if(a.value == b.value) {
-			return a.key.value > b.value;
+			return a.key.value > b.key.value;
 		}
 		return a.value > b.value;
 	});
@@ -3322,7 +3327,7 @@ void province_economy_overview_body_import_structure_graph_t::update_tooltip(sys
 // BEGIN body::import_structure_graph::tooltip
 		if(selected_key) {
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(selected_key));
+			text::add_unparsed_text_to_layout_box(state, contents, box, text::get_commodity_name_with_icon(state, selected_key));
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::fp_currency{ graph_content[temp_index].amount });
 			text::close_layout_box(contents, box);
@@ -3357,7 +3362,7 @@ void province_economy_overview_body_import_structure_graph_t::on_update(sys::sta
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
 		if(a.value == b.value) {
-			return a.key.value > b.value;
+			return a.key.value > b.key.value;
 		}
 		return a.value > b.value;
 	});
@@ -3433,7 +3438,7 @@ void province_economy_overview_body_export_structure_graph_t::update_tooltip(sys
 // BEGIN body::export_structure_graph::tooltip
 		if(selected_key) {
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(selected_key));
+			text::add_unparsed_text_to_layout_box(state, contents, box, text::get_commodity_name_with_icon(state, selected_key));
 			text::add_space_to_layout_box(state, contents, box);
 			text::add_to_layout_box(state, contents, box, text::fp_currency{ graph_content[temp_index].amount });
 			text::close_layout_box(contents, box);
@@ -3468,7 +3473,7 @@ void province_economy_overview_body_export_structure_graph_t::on_update(sys::sta
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
 		if(a.value == b.value) {
-			return a.key.value > b.value;
+			return a.key.value > b.key.value;
 		}
 		return a.value > b.value;
 	});
@@ -3549,6 +3554,9 @@ ui::message_result province_economy_overview_body_rgo_details_t::on_lbutton_down
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN body::rgo_details::lbutton_action
+	auto target_is_visible = body.rgo_details_window->is_visible();
+	body.rgo_details_window->set_visible(state, !target_is_visible);
+	body.rgo_details_window->parent->move_child_to_front(body.rgo_details_window);
 // END
 	return ui::message_result::consumed;
 }
@@ -4317,7 +4325,7 @@ void province_economy_overview_body_artisan_chart_t::update_tooltip(sys::state& 
 		auto& selected_key = graph_content[temp_index].key;
 // BEGIN body::artisan_chart::tooltip
 	auto box = text::open_layout_box(contents);
-	text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(selected_key)));
+	text::add_unparsed_text_to_layout_box(state, contents, box, text::get_commodity_name_with_icon(state, selected_key));
 	text::add_space_to_layout_box(state, contents, box);
 	text::add_to_layout_box(state, contents, box, text::format_wholenum((int32_t)graph_content[temp_index].amount));
 	text::add_space_to_layout_box(state, contents, box);
@@ -5234,6 +5242,18 @@ void province_economy_overview_body_t::on_create(sys::state& state) noexcept {
 	page_text_color = win_data.page_text_color;
 	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN body::create
+	{
+		auto u_ptr = make_market_trade_report_body(state);
+		trade_details_window = u_ptr.get();
+		trade_details_window->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(u_ptr));
+	}
+	{
+		auto u_ptr = make_rgo_report_body(state);
+		rgo_details_window = u_ptr.get();
+		rgo_details_window->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(u_ptr));
+	}
 // END
 }
 std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state) {
@@ -5267,9 +5287,7 @@ void province_economy_overview_rgo_employment_name_t::on_update(sys::state& stat
 	province_economy_overview_rgo_employment_t& rgo_employment = *((province_economy_overview_rgo_employment_t*)(parent)); 
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent->parent)); 
 // BEGIN rgo_employment::name::update
-	set_text(state, text::produce_simple_string(state,
-		state.world.commodity_get_name(rgo_employment.top_commodity)
-	));
+	set_text(state, text::get_commodity_name_with_icon(state, rgo_employment.top_commodity));
 // END
 }
 void province_economy_overview_rgo_employment_name_t::on_create(sys::state& state) noexcept {
@@ -5543,9 +5561,7 @@ void province_economy_overview_rgo_profit_name_t::on_update(sys::state& state) n
 	province_economy_overview_rgo_profit_t& rgo_profit = *((province_economy_overview_rgo_profit_t*)(parent)); 
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent->parent)); 
 // BEGIN rgo_profit::name::update
-	set_text(state, text::produce_simple_string(state,
-		state.world.commodity_get_name(rgo_profit.top_commodity)
-	));
+	set_text(state, text::get_commodity_name_with_icon(state, rgo_profit.top_commodity));
 // END
 }
 void province_economy_overview_rgo_profit_name_t::on_create(sys::state& state) noexcept {
@@ -5819,7 +5835,7 @@ void province_economy_overview_price_entry_name_t::on_update(sys::state& state) 
 	province_economy_overview_price_entry_t& price_entry = *((province_economy_overview_price_entry_t*)(parent)); 
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent->parent)); 
 // BEGIN price_entry::name::update
-	set_text(state, text::produce_simple_string(state, state.world.commodity_get_name(price_entry.commodity)));
+	set_text(state, text::get_commodity_name_with_icon(state, price_entry.commodity));
 // END
 }
 void province_economy_overview_price_entry_name_t::on_create(sys::state& state) noexcept {

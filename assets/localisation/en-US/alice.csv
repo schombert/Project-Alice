@@ -1697,3 +1697,10 @@ gdp_factory;Secondary sector (large scale):
 gdp_artisans;Secondary sector (cottage industry):
 gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
+market_report;External trade in local market of ?Y$province$?W.
+rgo_report;Resource gathering operations in ?Y$province$?W province.
+trade_balance;Balance
+rgo_details_name;Name
+rgo_efficiency_super_header;Efficiency
+rgo_efficiency_value;%
+rgo_efficiency_cost;Cost
