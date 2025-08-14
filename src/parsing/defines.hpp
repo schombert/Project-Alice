@@ -742,6 +742,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_base_to_colonial_distance_factor, 0.04) \
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_factories_in_colonies, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_always_available_cbs_zero_infamy, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_economy_market_stockpile_spoilage, 0.05) \
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_unit_build_time_mult, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_land_unit_build_time_mult, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_province_building_build_time_mult, 0.1) \
