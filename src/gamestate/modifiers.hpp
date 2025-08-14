@@ -208,7 +208,7 @@ namespace sys {
 	MOD_LIST_ELEMENT(134, disallow_naval_trade, false, modifier_display_type::yesno, "disallow_naval_trade") \
 	MOD_LIST_ELEMENT(135, disallow_land_trade, false, modifier_display_type::yesno, "disallow_land_trade") \
 	MOD_LIST_ELEMENT(136, trade_routes_attraction, false, modifier_display_type::percent, "alice_trade_attractiveness") \
-	MOD_LIST_ELEMENT(137, min_land_upkeep, true, modifier_display_type::percent, "modifier_min_military_upkeep")            \
+	MOD_LIST_ELEMENT(137, min_land_upkeep, true, modifier_display_type::percent, "modifier_min_land_upkeep")            \
 
 #define MOD_NAT_LIST_COUNT 138
 
