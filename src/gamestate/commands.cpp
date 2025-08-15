@@ -2909,7 +2909,7 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
 
-	if(!nations::are_allied(state, asker, target) && !(state.world.war_get_primary_defender(w) == asker && state.world.nation_get_in_sphere_of(asker) == target))
+	if((!nations::are_allied(state, asker, target) && !nations::is_nation_subject_of(state, target, asker)) && !(state.world.war_get_primary_defender(w) == asker && state.world.nation_get_in_sphere_of(asker) == target))
 		return false;
 
 	if(military::is_civil_war(state, w))
@@ -3019,10 +3019,21 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
 		return false;
 
-	if(state.world.unilateral_relationship_get_military_access(rel))
-		return true;
-	else
+	if(state.world.unilateral_relationship_get_military_access(rel)) {
+		// subjects cannot cancel military access from their overlords
+		if(nations::is_nation_subject_of(state, source, target)) {
+			return false;
+		}
+		else {
+			return true;
+		}
+		
+	}
+		
+	else {
 		return false;
+	}
+		
 }
 void execute_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
@@ -3100,11 +3111,22 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+
+	if(nations::has_units_inside_other_nation(state, source, target)) {
+		return false;
+	}
+
 	dcon::nation_id real_target = target;
 
 	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source)
+	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source) {
 		real_target = state.world.overlord_get_ruler(target_ol_rel);
+		// check again against the real target if its diffrent
+		if(nations::has_units_inside_other_nation(state, source, real_target)) {
+			return false;
+		}
+	}
+		
 
 	if(source == target || source == real_target)
 		return false;

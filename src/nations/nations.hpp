@@ -333,6 +333,8 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // ca
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n);
 void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
+
+bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
@@ -389,6 +391,8 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
 
 void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n);
 void ask_to_defend_in_crisis(sys::state & state, dcon::nation_id n);
+
+bool is_nation_subject_of(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
 
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);

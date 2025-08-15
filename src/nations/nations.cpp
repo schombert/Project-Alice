@@ -2523,6 +2523,26 @@ void update_influence(sys::state& state) {
 	}
 }
 
+bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b) {
+	assert(nation_a);
+	assert(nation_b);
+	for(auto a : state.world.nation_get_army_control(nation_a)) {
+		auto army = a.get_army();
+		auto army_location = army.get_location_from_army_location();
+		if(army_location.get_nation_from_province_control() == nation_b) {
+			return true;
+		}
+	}
+	for(auto n : state.world.nation_get_navy_control(nation_a)) {
+		auto navy = n.get_navy();
+		auto navy_location = navy.get_location_from_navy_location();
+		if(navy_location.get_nation_from_province_control() == nation_b) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation) {
 	auto fp_focus_nation = fatten(state.world, fp_nation);
 	auto si = fatten(state.world, s);
@@ -2797,6 +2817,11 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 		n, dcon::nation_id{}, dcon::nation_id{},
 		sys::message_base_type::crisis_attacker_backer
 	});
+}
+
+bool is_nation_subject_of(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto target_ol_rel = state.world.nation_get_overlord_as_subject(subject);
+	return state.world.overlord_get_ruler(target_ol_rel) == overlord;
 }
 
 void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {

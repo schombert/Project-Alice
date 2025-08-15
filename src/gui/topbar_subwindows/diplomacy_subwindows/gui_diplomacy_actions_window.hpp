@@ -366,7 +366,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
 			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
-				if(!state.world.nation_get_is_player_controlled(target)) {
+				if(!state.world.nation_get_is_player_controlled(target) && !nations::is_nation_subject_of(state, target, state.local_player_nation)) {
 					diplomatic_message::message m;
 					m.type = diplomatic_message::type::call_ally_request;
 					m.from = state.local_player_nation;
@@ -392,19 +392,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 
 		for(auto war_par : state.world.nation_get_war_participant(asker)) {
 			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
-
-				if(!state.world.nation_get_is_player_controlled(target)) {
-					diplomatic_message::message m;
-					m.type = diplomatic_message::type::call_ally_request;
-					m.from = state.local_player_nation;
-					m.to = target;
-					m.data.war = war_par.get_war();
-					if(diplomatic_message::ai_will_accept(state, m)) {
-						command::call_to_arms(state, asker, target, war_par.get_war());
-					}
-				} else {
-					command::call_to_arms(state, asker, target, war_par.get_war());
-				}
+				command::call_to_arms(state, asker, target, war_par.get_war());
 			}
 		}
 	}
@@ -418,7 +406,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 		if(state.defines.callally_diplomatic_cost > 0) {
 			text::add_line_with_condition(state, contents, "call_ally_explain_2", state.world.nation_get_diplomatic_points(asker) >= state.defines.callally_diplomatic_cost, text::variable_type::x, int64_t(state.defines.callally_diplomatic_cost));
 		}
-		text::add_line_with_condition(state, contents, "call_ally_explain_1", nations::are_allied(state, asker, target));
+		text::add_line_with_condition(state, contents, "call_ally_explain_1", nations::are_allied(state, asker, target) || nations::is_nation_subject_of(state, target, asker));
 		text::add_line_with_condition(state, contents, "call_ally_explain_3", state.world.nation_get_is_at_war(asker));
 
 		bool possible_war = false;
@@ -443,7 +431,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 			}
 		}
 		text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
-		if(!state.world.nation_get_is_player_controlled(target)) {
+		if(!state.world.nation_get_is_player_controlled(target) && !nations::is_nation_subject_of(state, target, state.local_player_nation)) {
 			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
 		}
 
@@ -469,6 +457,12 @@ public:
 			return command::can_cancel_military_access(state, state.local_player_nation, target);
 		} else {
 			if(command::can_ask_for_access(state, state.local_player_nation, target)) {
+				// if it is a subject of the player, the button should be available
+				auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+				auto overlord = state.world.overlord_get_ruler(target_ol_rel);
+				if(overlord == state.local_player_nation) {
+					return true;
+				}
 				if(!state.world.nation_get_is_player_controlled(target)) {
 					diplomatic_message::message m;
 					m.type = diplomatic_message::type::access_request;
@@ -518,7 +512,13 @@ public:
 			if(state.defines.askmilaccess_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "ask_access_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.askmilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.askmilaccess_diplomatic_cost));
 			}
-			if(!state.world.nation_get_is_player_controlled(target)) {
+			text::add_line_with_condition(state, contents, "ask_access_explain_4", !military::are_at_war(state, state.local_player_nation, target));
+			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+			auto overlord = state.world.overlord_get_ruler(target_ol_rel);
+			if(overlord && overlord == state.local_player_nation) {
+				text::add_line_with_condition(state, contents, "ask_access_explain_5", true);
+			}
+			else if(!state.world.nation_get_is_player_controlled(target)) {
 				diplomatic_message::message m;
 				m.type = diplomatic_message::type::access_request;
 				m.from = state.local_player_nation;
@@ -527,7 +527,6 @@ public:
 
 				ai::explain_ai_access_reasons(state, target, contents, 15);
 			}
-			text::add_line_with_condition(state, contents, "ask_access_explain_4", !military::are_at_war(state, state.local_player_nation, target));
 		}
 
 	}
@@ -575,6 +574,7 @@ public:
 			if(state.defines.cancelgivemilaccess_diplomatic_cost > 0) {
 				text::add_line_with_condition(state, contents, "cancel_given_access_explain_1", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.cancelgivemilaccess_diplomatic_cost, text::variable_type::x, int64_t(state.defines.cancelgivemilaccess_diplomatic_cost));
 			}
+			text::add_line_with_condition(state, contents, "cancel_given_access_explain_2", !nations::is_nation_subject_of(state, state.local_player_nation, target));
 		} else {
 			text::add_line(state, contents, "givemilitaryaccess_desc");
 			text::add_line_break_to_layout(state, contents);
@@ -732,7 +732,18 @@ public:
 			return command::can_start_peace_offer(state, state.local_player_nation, target,
 					military::find_war_between(state, state.local_player_nation, target), true);
 		} else {
-			return !(state.local_player_nation == target || !military::can_use_cb_against(state, state.local_player_nation, target) || state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost || military::are_in_common_war(state, state.local_player_nation, target));
+			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+			auto overlord = state.world.overlord_get_ruler(target_ol_rel);
+			if(bool(overlord)) {
+				if(nations::has_units_inside_other_nation(state, state.local_player_nation, overlord)) {
+					return false;
+				}
+			}
+			return !(state.local_player_nation == target ||
+				!military::can_use_cb_against(state, state.local_player_nation, target) ||
+				state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost ||
+				military::are_in_common_war(state, state.local_player_nation, target) ||
+				nations::has_units_inside_other_nation(state, state.local_player_nation, target));
 		}
 	}
 
@@ -798,6 +809,12 @@ public:
 			}
 			text::add_line_with_condition(state, contents, "war_explain_2", military::can_use_cb_against(state, state.local_player_nation, target));
 			text::add_line_with_condition(state, contents, "war_explain_4", !military::are_in_common_war(state, state.local_player_nation, target));
+			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
+			auto overlord = state.world.overlord_get_ruler(target_ol_rel);
+			text::add_line_with_condition(state, contents, "war_explain_5", !nations::has_units_inside_other_nation(state, state.local_player_nation, target));
+			if(bool(overlord)) {
+				text::add_line_with_condition(state, contents, "war_explain_6", !nations::has_units_inside_other_nation(state, state.local_player_nation, overlord));
+			}
 		}
 
 	}

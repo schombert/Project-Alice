@@ -871,7 +871,7 @@ ally_explain_5;You're not a subject nation
 ally_explain_6;You're not currently at war with the target
 ally_explain_7;The AI will accept
 ally_explain_8;The target isn't a subject nation
-call_ally_explain_1;You have an alliance with this nation
+call_ally_explain_1;You have an alliance with this nation, or this nation is your subject
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You're at war
 call_ally_explain_4;There is a war this nation can be called into
@@ -881,7 +881,9 @@ ask_access_explain_1;You can't get military access from yourself
 ask_access_explain_2;You have at least $x$ diplomatic point(s)
 ask_access_explain_3;The AI will accept
 ask_access_explain_4;You are not currently at war with the target
+ask_access_explain_5;Nation is your subject
 cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
+cancel_given_access_explain_2;You are not a subject of this nation
 give_access_explain_1;You can't give military access to yourself
 give_access_explain_2;You have at least $x$ diplomatic point(s)
 give_access_explain_3;You are not currently at war with the target
@@ -949,6 +951,8 @@ war_explain_1;You can't declare war upon yourself
 war_explain_2;You have a casus belli to use against this nation
 war_explain_3;You have at least $x$ diplomatic point(s)
 war_explain_4;You are not already in a war with this nation
+war_explain_5;Does not have units stationed inside this nation
+war_explain_6;Does not have units stationed inside this nation's overlord
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:

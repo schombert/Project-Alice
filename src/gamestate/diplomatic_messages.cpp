@@ -470,6 +470,15 @@ bool ai_will_accept(sys::state& state, message const& m) {
 /// <param name="state"></param>
 /// <param name="m"></param>
 void post(sys::state& state, message const& m) {
+	// a subject should be forced to accept military access,s and being called into wars from its overlord
+	if(nations::is_nation_subject_of(state, m.to, m.from)) {
+		switch(m.type) {
+		case type_t::access_request:
+		case type_t::call_ally_request:
+			accept(state, m);
+			return;
+		}
+	}
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		if(ai_will_accept(state, m)) {
 			accept(state, m);
