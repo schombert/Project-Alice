@@ -1695,3 +1695,5 @@ alice_naval_retreat_condition_3;Access to an available port
 alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us.
 alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislodge their defences.
 alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.
+alice_truce_with_explain;?Y$WAR$?W: Have truce with ?Y$NATION$?W. Truce lasts until $DATE$
+alice_declarewar_truce_with_explain;?Y$NATION$?W: Have truce with ?Y$TARGET$?W. Truce lasts until $DATE$

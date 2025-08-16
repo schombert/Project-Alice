@@ -2713,6 +2713,16 @@ bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id
 	return false;
 }
 
+sys::date truce_end_date(sys::state& state, dcon::nation_id attacker, dcon::nation_id target) {
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, attacker);
+	if(rel) {
+		auto truce_ends = state.world.diplomatic_relation_get_truce_until(rel);
+		if(truce_ends)
+			return truce_ends;
+	}
+	return sys::date{};
+}
+
 dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
 	auto reg = fatten(state.world, state.world.create_regiment());
 	reg.set_type(t);
@@ -3033,6 +3043,8 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 		return;
 
 	auto n = state.world.war_get_primary_defender(wfor);
+	auto sphere = state.world.nation_get_in_sphere_of(n);
+	bool called_in_sphere_early = false;
 	for(auto drel : state.world.nation_get_diplomatic_relation(n)) {
 		auto other_nation = drel.get_related_nations(0) != n ? drel.get_related_nations(0) : drel.get_related_nations(1);
 		if(drel.get_are_allied() && standard_war_joining_is_possible(state, wfor, other_nation, false)) {
@@ -3043,10 +3055,14 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
+			if(sphere == other_nation) {
+				called_in_sphere_early = true;
+			}
 		}
 	}
-	if(state.world.nation_get_in_sphere_of(n)) {
+	if(state.world.nation_get_in_sphere_of(n) && !called_in_sphere_early) {
 		if(joining_war_does_not_violate_constraints(state, state.world.nation_get_in_sphere_of(n), wfor, false)) {
 
 			diplomatic_message::message m;
@@ -3055,6 +3071,7 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = state.world.nation_get_in_sphere_of(n);
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
 		}
 	}
@@ -3075,6 +3092,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
 		}
 	}
@@ -5147,6 +5165,27 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 
 	update_battle_leaders(state, b);
 }
+
+
+std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers) {
+	std::vector<dcon::nation_id> result;
+	if(attackers) {
+		for(auto wp : state.world.war_get_war_participant(war)) {
+			if(wp.get_is_attacker()) {
+				result.push_back(wp.get_nation().id);
+			}
+		}
+	}
+	else {
+		for(auto wp : state.world.war_get_war_participant(war)) {
+			if(!wp.get_is_attacker()) {
+				result.push_back(wp.get_nation().id);
+			}
+		}
+	}
+	return result;
+}
+
 template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);

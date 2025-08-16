@@ -301,6 +301,7 @@ struct state_transfer_data {
 struct call_to_arms_data {
 	dcon::nation_id target;
 	dcon::war_id war;
+	bool automatic_call = false;
 };
 
 struct pending_human_n_event_data {
@@ -795,9 +796,9 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);
 
-void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
-void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w);
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost = false);
+void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call = false);
+void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call);
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost = false, bool automatic_call = false);
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type, bool accept);
 

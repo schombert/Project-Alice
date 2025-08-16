@@ -37,7 +37,7 @@ struct message {
 	dcon::nation_id from; //2
 	dcon::nation_id to; //2
 	type_t type = diplomatic_message::type_t::none; //1
-	uint8_t padding = 0; //1
+	bool automatic_call = false; //1
 
 	message() : type(diplomatic_message::type_t::none) { }
 };
@@ -47,7 +47,7 @@ static_assert(sizeof(message) ==
 	+ sizeof(message::when)
 	+ sizeof(message::data)
 	+ sizeof(message::type)
-	+ sizeof(message::padding));
+	+ sizeof(message::automatic_call));
 
 using type = type_t;
 

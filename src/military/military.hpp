@@ -343,6 +343,7 @@ bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_
 void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
+sys::date truce_end_date(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general);
@@ -576,6 +577,8 @@ enum class battle_is_ending {
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
+
+std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n);

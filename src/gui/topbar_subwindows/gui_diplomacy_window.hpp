@@ -2839,7 +2839,7 @@ public:
 			case diplomacy_action::call_ally:
 				for(auto war_par : fat.get_war_participant()) {
 					command::call_to_arms(state, state.local_player_nation, facts_nation_id,
-							dcon::fatten(state.world, war_par).get_war().id);
+							dcon::fatten(state.world, war_par).get_war().id, false);
 				}
 				break;
 			case diplomacy_action::remove_from_sphere:

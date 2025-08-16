@@ -2893,18 +2893,23 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 	diplomatic_message::post(state, m);
 }
 
-void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::call_to_arms;
 	p.source = asker;
 	p.data.call_to_arms.target = target;
 	p.data.call_to_arms.war = w;
+	p.data.call_to_arms.automatic_call = automatic_call;
 	add_to_command_queue(state, p);
 }
-bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost) {
+bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost, bool automatic_call) {
 	if(asker == target)
 		return false;
+	// cannot call into any wars if the asker is not in any
+	if(state.world.nation_get_war_participant(asker).begin() == state.world.nation_get_war_participant(asker).end()) {
+		return false;
+	}
 
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(asker) && state.world.nation_get_diplomatic_points(asker) < state.defines.callally_diplomatic_cost)
 		return false;
@@ -2921,9 +2926,20 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(state.world.war_get_is_crisis_war(w) && !state.military_definitions.great_wars_enabled)
 		return false;
 
+	// an automatic defensive call bypasses any truces there may be with the other side.
+	bool asker_is_attacker = military::is_attacker(state, w, asker);
+	if(!automatic_call || (automatic_call && asker_is_attacker)) {
+		for(auto participant : military::get_one_side_war_participants(state, w, !asker_is_attacker)) {
+			if(military::has_truce_with(state, target, participant)) {
+				return false;
+			}
+		}
+	}
+	
+
 	return true;
 }
-void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w) {
+void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call) {
 	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
 	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.callally_diplomatic_cost);
 
@@ -2933,6 +2949,7 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 	m.from = asker;
 	m.data.war = w;
 	m.type = diplomatic_message::type::call_ally_request;
+	m.automatic_call = automatic_call;
 
 	diplomatic_message::post(state, m);
 }
@@ -6119,7 +6136,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
 
 	case command_type::call_to_arms:
-		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
+		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war, false, c.data.call_to_arms.automatic_call);
 
 	case command_type::respond_to_diplomatic_message:
 		return true; //can_respond_to_diplomatic_message(state, c.source, c.data.message.from, c.data.message.type, c.data.message.accept);
@@ -6520,7 +6537,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
 		break;
 	case command_type::call_to_arms:
-		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war);
+		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war, c.data.call_to_arms.automatic_call);
 		break;
 	case command_type::respond_to_diplomatic_message:
 		execute_respond_to_diplomatic_message(state, c.source, c.data.message.from, c.data.message.type, c.data.message.accept);

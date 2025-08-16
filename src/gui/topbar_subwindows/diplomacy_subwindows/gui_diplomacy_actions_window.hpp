@@ -45,6 +45,23 @@ struct trigger_gp_choice {
 	gp_choice_actions action = gp_choice_actions::discredit;
 };
 
+
+void explain_truces_blocking_nation_from_joining_war(sys::state& state, text::layout_base& contents, dcon::nation_id asker, dcon::nation_id target) {
+	for(auto w : state.world.nation_get_war_participant(asker)) {
+		auto war = w.get_war();
+		bool is_attacker = military::is_attacker(state, war, asker);
+		for(auto participant : military::get_one_side_war_participants(state, war, !is_attacker)) {
+			if(military::has_truce_with(state, participant, target)) {
+				auto truce_end_date = military::truce_end_date(state, participant, target);
+				auto war_name = military::get_war_name(state, war);
+				auto nation_name = text::get_name(state, participant);
+				text::add_line_with_condition(state, contents, "alice_truce_with_explain", false, text::variable_type::war, text::produce_simple_string(state, war_name), text::variable_type::nation, nation_name, text::variable_type::date, text::date_to_string(state, truce_end_date));
+			}
+		}
+	}
+}
+
+
 class diplomacy_action_btn_logic {
 public:
 	virtual dcon::text_key get_name(sys::state& state, dcon::nation_id target) {
@@ -365,7 +382,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 
 	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
 		for(auto war_par : state.world.nation_get_war_participant(state.local_player_nation)) {
-			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
+			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war(), false, false)) {
 				if(!state.world.nation_get_is_player_controlled(target) && !nations::is_nation_subject_of(state, target, state.local_player_nation)) {
 					diplomatic_message::message m;
 					m.type = diplomatic_message::type::call_ally_request;
@@ -391,8 +408,8 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 		auto asker = state.local_player_nation;
 
 		for(auto war_par : state.world.nation_get_war_participant(asker)) {
-			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war())) {
-				command::call_to_arms(state, asker, target, war_par.get_war());
+			if(command::can_call_to_arms(state, state.local_player_nation, target, war_par.get_war(), false, false)) {
+				command::call_to_arms(state, asker, target, war_par.get_war(), false);
 			}
 		}
 	}
@@ -424,6 +441,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 					m.from = state.local_player_nation;
 					m.to = target;
 					m.data.war = war_par.get_war();
+					m.automatic_call = false;
 					if(diplomatic_message::ai_will_accept(state, m)) {
 						that_ai_will_accept = true;
 					}
@@ -434,7 +452,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 		if(!state.world.nation_get_is_player_controlled(target) && !nations::is_nation_subject_of(state, target, state.local_player_nation)) {
 			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
 		}
-
+		ui::explain_truces_blocking_nation_from_joining_war(state, contents, state.local_player_nation, target);
 	}
 };
 
@@ -1354,7 +1372,7 @@ class diplomacy_action_dialog_agree_button : public generic_settable_element<but
 		case diplomacy_action::call_ally:
 		{
 			for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
-				if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id))
+				if(command::can_call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id, false, false))
 					return true;
 			return false;
 		}
@@ -1425,7 +1443,7 @@ public:
 			break;
 		case diplomacy_action::call_ally:
 			for(auto wp : dcon::fatten(state.world, state.local_player_nation).get_war_participant())
-				command::call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id);
+				command::call_to_arms(state, state.local_player_nation, target, dcon::fatten(state.world, wp).get_war().id, false);
 			break;
 		case diplomacy_action::declare_war:
 			break;
