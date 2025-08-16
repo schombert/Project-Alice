@@ -2906,8 +2906,17 @@ void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id targ
 bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost, bool automatic_call) {
 	if(asker == target)
 		return false;
-	// cannot call into any wars if the asker is not in any
-	if(state.world.nation_get_war_participant(asker).begin() == state.world.nation_get_war_participant(asker).end()) {
+	// asker must be in the war that the target is being called into
+	bool asker_is_in_war = [&]() {
+		for(const auto wp : state.world.nation_get_war_participant(asker)) {
+			if(wp.get_war() == w) {
+				return true;
+			}
+		}
+		return false;
+
+	}();
+	if(!asker_is_in_war) {
 		return false;
 	}
 
