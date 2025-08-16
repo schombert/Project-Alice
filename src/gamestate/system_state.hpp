@@ -881,4 +881,7 @@ void selected_regiments_clear(sys::state& state);
 
 void selected_ships_add(sys::state& state, dcon::ship_id sh);
 void selected_ships_clear(sys::state& state);
+
+void read_console_input(sys::state& state);
+
 } // namespace sys

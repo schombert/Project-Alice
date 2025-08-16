@@ -100,19 +100,19 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 )
 
 if(WIN32)
-add_executable(Alice WIN32
+add_executable(Alice
 	${ALICE_CORE_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
+add_executable(AliceIncremental EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"src/alice.rc"
 	${ASSET_FILES})
 else()
-add_executable(Alice WIN32
+add_executable(Alice
 	${ALICE_CORE_SOURCES_LIST}
 	${ASSET_FILES})
-add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
+add_executable(AliceIncremental EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	${ASSET_FILES})
 endif()

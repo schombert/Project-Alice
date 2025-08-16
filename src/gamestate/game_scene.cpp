@@ -7,6 +7,9 @@
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "simple_fs.hpp"
+#ifdef _WIN32
+#include <iostream>
+#endif
 
 namespace game_scene {
 
@@ -754,15 +757,15 @@ void console_log_other(sys::state& state, std::string_view message) {
 	auto msg = std::string(message);
 	auto dt = state.current_date.to_ymd(state.start_date);
 	auto dtstr = std::to_string(dt.year) + "." + std::to_string(dt.month) + "." + std::to_string(dt.day);
-	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "| " + msg;
+	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "|" + msg + "\n";
 #ifdef _WIN32
 	OutputDebugStringA(msg.c_str());
-	OutputDebugStringA("\n");
+	std::cout << msg;
+#else
+	std::fprintf(stdout, "%s", std::string{ msg }.c_str());
 #endif
 
 	auto folder = simple_fs::get_or_create_data_dumps_directory();
-
-	msg += "\n";
 
 	simple_fs::append_file(
 			folder,

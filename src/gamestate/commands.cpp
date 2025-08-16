@@ -5388,6 +5388,7 @@ void post_chat_message(sys::state& state, ui::chat_message& m) {
 			sys::message_base_type::chat_message
 		});
 	}
+	state.console_log("Chat message from " + std::to_string(m.source) + " text: " + m.body);
 }
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
@@ -5634,6 +5635,7 @@ void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_na
 	network::log_player_nations(state);
 }
 void execute_notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_name& name) {
+	auto old_speed = state.actual_game_speed;
 	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
 
@@ -5658,6 +5660,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, sys::p
 	state.console_log("client:rcv:cmd | type=notify_player_oos | from:" + std::to_string(source.index()));
 #endif
 
+	state.actual_game_speed = old_speed;
 }
 
 void advance_tick(sys::state& state, dcon::nation_id source) {

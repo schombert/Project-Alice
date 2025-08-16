@@ -99,8 +99,7 @@ void EnableCrashingOnCrashes() {
 	SetUserObjectInformationA(GetCurrentProcess(), UOI_TIMERPROC_EXCEPTION_SUPPRESSION, &insanity, sizeof(insanity));
 }
 
-int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR /*commandline*/, int /*nCmdShow*/
-) {
+int main(int argc, char* argv[]) {
 
 #ifdef _DEBUG
 	HeapSetInformation(NULL, HeapEnableTerminationOnCorruption, NULL, 0);
@@ -327,9 +326,25 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
 					game_state.actual_game_speed = headless_speed;
 				};
-				update_thread.join();
+				game_state.console_log("Game started in headless mode");
+				game_state.console_log("Ready to process console commands now");
+
+				AttachConsole(ATTACH_PARENT_PROCESS);
+
+				while(true) {
+					sys::read_console_input(game_state);
+				}
+
 			} else {
-				game_state.game_loop();
+				std::thread update_thread([&]() { game_state.game_loop(); });
+				game_state.console_log("Game started in headless mode");
+				game_state.console_log("Ready to process console commands now");
+
+				AttachConsole(ATTACH_PARENT_PROCESS);
+
+				while(true) {
+					sys::read_console_input(game_state);
+				}
 			}
 		} else {
 			std::thread update_thread([&]() { game_state.game_loop(); });

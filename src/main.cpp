@@ -80,3 +80,4 @@
 #include "gui_console.cpp"
 #include "gui_event.cpp"
 #include "gui_message_settings_window.cpp"
+#include "headless_console_input.cpp"
