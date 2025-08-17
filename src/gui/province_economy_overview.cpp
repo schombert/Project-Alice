@@ -4013,7 +4013,7 @@ void province_economy_overview_body_gdp_chart_t::on_update(sys::state& state) no
 
 		float intermediate_consumption = 0.f;
 
-		for(auto i = 0; i < factory_details.primary_inputs.set_size; i++) {
+		for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
 			auto cid_in = factory_details.primary_inputs.commodity_type[i];
 			if(!cid_in) break;
 
@@ -4023,7 +4023,7 @@ void province_economy_overview_body_gdp_chart_t::on_update(sys::state& state) no
 		}
 
 		if(factory_details.efficiency_inputs_worth_it) {
-			for(auto i = 0; i < factory_details.primary_inputs.set_size; i++) {
+			for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
 				auto cid_in = factory_details.primary_inputs.commodity_type[i];
 				if(!cid_in) break;
 
@@ -4150,7 +4150,7 @@ void province_economy_overview_body_gdp_share_chart_t::on_update(sys::state& sta
 
 		float intermediate_consumption = 0.f;
 
-		for(auto i = 0; i < factory_details.primary_inputs.set_size; i++) {
+		for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
 			auto cid_in = factory_details.primary_inputs.commodity_type[i];
 			if(!cid_in) break;
 
@@ -4160,7 +4160,7 @@ void province_economy_overview_body_gdp_share_chart_t::on_update(sys::state& sta
 		}
 
 		if(factory_details.efficiency_inputs_worth_it) {
-			for(auto i = 0; i < factory_details.primary_inputs.set_size; i++) {
+			for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
 				auto cid_in = factory_details.primary_inputs.commodity_type[i];
 				if(!cid_in) break;
 
