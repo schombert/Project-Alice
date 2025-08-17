@@ -687,6 +687,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis_state);
 	ptr_in = deserialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_attacker);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_defender);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_state_instance);
@@ -702,7 +704,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
-	ptr_in = memcpy_deserialize(ptr_in, state.player_data_cache);
+	ptr_in = deserialize(ptr_in, state.player_data_cache);
 	ptr_in = deserialize(ptr_in, state.future_n_event);
 	ptr_in = deserialize(ptr_in, state.future_p_event);
 
@@ -740,6 +742,8 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.current_crisis_state);
 	ptr_in = serialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_attacker);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_defender);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_state_instance);
@@ -755,7 +759,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
-	ptr_in = memcpy_serialize(ptr_in, state.player_data_cache);
+	ptr_in = serialize(ptr_in, state.player_data_cache);
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
 
@@ -787,6 +791,8 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.current_crisis_state);
 	sz += serialize_size(state.crisis_participants);
 	sz += sizeof(state.crisis_temperature);
+	sz += sizeof(state.crisis_attacker);
+	sz += sizeof(state.crisis_defender);
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
 	sz += sizeof(state.crisis_state_instance);
@@ -802,7 +808,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
 	sz += sizeof(state.pending_messages);
-	sz += sizeof(state.player_data_cache);
+	sz += serialize_size(state.player_data_cache);
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
 

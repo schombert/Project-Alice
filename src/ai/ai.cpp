@@ -741,7 +741,7 @@ bool merge_fleet(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::
 	if(!merge_target) {
 		return false;
 	}
-	command::execute_merge_navies<command::execute_cmd_as::ai>(state, owner, merge_target, n);
+	military::merge_navies_impl(state, merge_target, n);
 	return true;
 }
 

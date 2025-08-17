@@ -2512,6 +2512,11 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property {
+		name{ avg_distance_from_center_line }
+		type{ float }
+		tag{ save }
+	}
 
 	property{
 		name{ slots }

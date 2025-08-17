@@ -415,8 +415,10 @@ struct new_admiral_data {
 	dcon::leader_id l;
 };
 
-struct naval_battle_data {
-	dcon::naval_battle_id b;
+struct retreat_from_naval_battle_data {
+	dcon::navy_id navy;
+	dcon::province_id dest;
+	bool auto_retreat;
 };
 
 struct land_battle_data {
@@ -565,7 +567,7 @@ struct payload {
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
 		change_unit_type_data change_unit_type;
-		naval_battle_data naval_battle;
+		retreat_from_naval_battle_data retreat_from_naval_battle;
 		land_battle_data land_battle;
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
@@ -601,10 +603,6 @@ struct payload {
 	command_type type = command_type::invalid;
 
 	payload() { }
-};
-
-enum class execute_cmd_as {
-	player, ai
 };
 
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
@@ -847,7 +845,7 @@ bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army
 
 // Wrapper to check if a given navy can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-bool can_move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 
 // Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
@@ -855,7 +853,7 @@ void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 // Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-void move_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
 
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 
@@ -871,7 +869,6 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
-template<execute_cmd_as execute_as = execute_cmd_as::player>
 void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
@@ -911,8 +908,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
-bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);

@@ -984,7 +984,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 					}
 					for(auto a : selected_navies) {
 						auto navy_loc = world.navy_get_location_from_navy_location(a);
-						if(!command::can_move_or_stop_navy(*this, local_player_nation, a, prov)) {
+						if(!command::can_move_retreat_or_stop_navy(*this, local_player_nation, a, prov)) {
 							return false;
 						}
 					}
@@ -4544,11 +4544,24 @@ void state::single_game_tick() {
 	}
 
 	/*
-	 * END OF DAY: update cached data
-	 */
+	* END OF DAY: update cached data
+	*/
 
-	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-	player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
+	for(auto n : world.in_nation) {
+		if(!n.get_is_player_controlled())
+			continue;
+
+		if(!find_player_data_cache(n)) {
+			auto cache = sys::player_data{};
+			cache.nation = n;
+			player_data_cache.push_back(cache);
+		}
+		if(auto* cache = find_player_data_cache(n)) {
+			(*cache).treasury_record[current_date.value % 32] = nations::get_treasury(*this, n);
+			(*cache).population_record[current_date.value % 32] = world.nation_get_demographics(n, demographics::total);
+		}
+	}
+	
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {

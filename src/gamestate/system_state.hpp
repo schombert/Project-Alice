@@ -471,6 +471,7 @@ struct state_selection_data {
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
+	dcon::nation_id nation;
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
 	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
 };
@@ -601,7 +602,15 @@ struct alignas(64) state {
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
 	float inflation = 0.999f; // to compensate for some of money generation which will happen anyway
-	player_data player_data_cache;
+	std::vector<player_data> player_data_cache;
+	player_data* find_player_data_cache(dcon::nation_id n) {
+		for(auto& c : player_data_cache) {
+			if(c.nation == n)
+				return &c;
+		}
+
+		return nullptr;
+	}
 	std::vector<dcon::army_id> selected_armies;
 	std::vector<dcon::regiment_id> selected_regiments; // selected regiments inside the army
 
