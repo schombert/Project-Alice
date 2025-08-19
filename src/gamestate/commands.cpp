@@ -3941,24 +3941,10 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
-	auto existing_path = state.world.army_get_path(a);
-
 	// Invalid destination province: reset existing path
 	if(!dest) {
 		military::stop_army_movement(state, a);
 		return;
-	}
-
-	// Reset existing path
-	auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
-	if(reset) {
-		existing_path.clear();
-		//if the movement is to be reset, and the destination province is the same province as the unit is currently in
-		//we assume that the intention is to cancel the current move command. Cancel the existing path and return w/o assigning a new one
-		if(state.world.army_get_location_from_army_location(a) == dest) {
-			state.world.army_set_arrival_time(a, sys::date{});
-			return;
-		}
 	}
 
 	state.world.army_set_special_order(a, (uint8_t)special_order);

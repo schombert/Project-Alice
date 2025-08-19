@@ -8316,9 +8316,9 @@ void update_movement(sys::state& state) {
 			auto province_controller = state.world.province_get_nation_from_province_control(from);
 
 			// Must be able to siege the province the army is in
-			if(siege_potential(state, army_owner, province_controller) && state.world.province_get_nation_from_province_control(from) != army_owner) {
+			if(siege_potential(state, army_owner, province_controller) && state.world.province_get_nation_from_province_control(from) != army_owner && command::can_stop_army_movement(state, army_owner, a)) {
 				// Delay the army until it finishes siege
-				a.set_arrival_time(sys::date{});
+				military::stop_army_movement(state, a);
 			}
 			else if (arrival == sys::date{}) {
 				auto next_dest = path.at(path.size() - 1);
@@ -8410,21 +8410,18 @@ void update_movement(sys::state& state) {
 			
 			if(!a.get_battle_from_army_battle_participation() && a.get_special_order() == military::special_army_order::pursue_to_engage && a.get_pursuit_target()) {
 				auto reg = a.get_pursuit_target();
-				dcon::army_id target_army;
-				// Find the current army of the target regiment
-				for(auto am : state.world.in_army_membership) {
-					if(am.get_regiment() == reg) {
-						target_army = am.get_army();
-					}
-				}
+				auto target_army = state.world.regiment_get_army_from_army_membership(reg);
+				
 				// Update the path
 				auto npath = command::can_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true);
-				auto new_next_dest = npath.at(npath.size() - 1);
-				auto cur_next_dest = path.at(path.size() - 1);
 
 				// Has valid path and has to change direction
-				if(npath.size() > 0 && cur_next_dest != new_next_dest) {
-					command::execute_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true, military::special_army_order::pursue_to_engage);
+				if(npath.size() > 0) {
+					auto new_next_dest = npath.at(npath.size() - 1);
+					auto cur_next_dest = path.at(path.size() - 1);
+					if(cur_next_dest != new_next_dest) {
+						command::execute_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true, military::special_army_order::pursue_to_engage);
+					}
 				}
 				else {
 					// Continue moving to the last known location
@@ -10092,6 +10089,7 @@ bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon:
 	}
 }
 
+// Extracted as a separate function for the AI to use instead of command (remove redundancy in AI code)
 template<ai_path_length path_length_to_use>
 bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
