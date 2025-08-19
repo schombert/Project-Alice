@@ -95,7 +95,6 @@ void take_ai_decisions(sys::state& state) {
 
 void take_ai_scripted_interactions(sys::state& state) {
 	// US7AC5 National level interactions first
-
 	using element_nation_pair = std::pair<dcon::scripted_interaction_id, dcon::nation_id>;
 	struct item_to_sort {
 		element_nation_pair pair; float weight = NAN;
@@ -151,12 +150,21 @@ void take_ai_scripted_interactions(sys::state& state) {
 		auto& weight_a = a.weight;
 		auto& weight_b = b.weight;
 		if(weight_a == NAN) {
-			auto ai_will_do_a = state.world.scripted_interaction_get_ai_will_do(interactiona);
-			weight_a = trigger::evaluate_multiplicative_modifier(state, ai_will_do_a, trigger::to_generic(na), trigger::to_generic(na), 0);
+			auto& ai_will_do_a = state.world.scripted_interaction_get_ai_will_do(interactiona);
+			if(ai_will_do_a) {
+				weight_a = trigger::evaluate_multiplicative_modifier(state, ai_will_do_a, trigger::to_generic(na), trigger::to_generic(na), 0);
+			}
+			else {
+				weight_a = 1;
+			}
 		}
 		if(weight_b == NAN) {
-			auto ai_will_do_b = state.world.scripted_interaction_get_ai_will_do(interactionb);
-			weight_b = trigger::evaluate_multiplicative_modifier(state, ai_will_do_b, trigger::to_generic(nb), trigger::to_generic(nb), 0);
+			auto& ai_will_do_b = state.world.scripted_interaction_get_ai_will_do(interactionb);
+			if (ai_will_do_b) {
+				weight_b = trigger::evaluate_multiplicative_modifier(state, ai_will_do_b, trigger::to_generic(nb), trigger::to_generic(nb), 0);
+			} else {
+				weight_a = 1;
+			}
 		}
 		if(na != nb)
 			return na.index() < nb.index();
@@ -172,8 +180,14 @@ void take_ai_scripted_interactions(sys::state& state) {
 		auto nation = v.pair.second;
 		auto interaction = v.pair.first;
 		// The effect of a prior interaction once taken may invalidate the conditions that enabled another copy of the interaction in the simultaneous evaluation to be taken
-		if(command::can_use_nation_button(state, nation, interaction, nation)) {
+		/*if(command::can_use_nation_button(state, nation, interaction, nation)) {
 			command::execute_use_nation_button(state, nation, interaction, nation);
+		} */
+		auto potential = state.world.scripted_interaction_get_visible(interaction);
+		auto e = state.world.scripted_interaction_get_effect(interaction);
+		if((!potential || trigger::evaluate(state, potential, trigger::to_generic(nation), trigger::to_generic(nation), 0))
+		&& trigger::evaluate(state, state.world.scripted_interaction_get_allow(interaction), trigger::to_generic(nation), trigger::to_generic(nation), 0)) {
+			effect::execute(state, e, trigger::to_generic(nation), trigger::to_generic(nation), 0, uint32_t(state.current_date.value), uint32_t(nation.index() << 4 ^ interaction.index()));
 		}
 	}
 }
