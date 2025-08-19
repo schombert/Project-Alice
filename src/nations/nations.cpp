@@ -2245,6 +2245,7 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 			state.world.nation_get_substates_count(ol)--;
 		}
 		state.world.nation_get_vassals_count(ol)--;
+		military::give_back_units(state, vas);
 		state.world.delete_overlord(rel);
 		politics::update_displayed_identity(state, vas);
 		// TODO: notify player

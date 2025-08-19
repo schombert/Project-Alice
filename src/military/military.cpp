@@ -3274,6 +3274,10 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	state.world.delete_war_participant(par);
 	auto rem_wars = state.world.nation_get_war_participant(n);
 	if(rem_wars.begin() == rem_wars.end()) {
+		// give back units if said nation is a puppet and there are no remaining wars
+		if(bool(state.world.nation_get_overlord_as_subject(n))) {
+			military::give_back_units(state, n);
+		}
 		state.world.nation_set_is_at_war(n, false);
 	}
 
@@ -5700,6 +5704,35 @@ void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id 
 	state.world.ship_set_experience(r, v); //from regular_experience_level to 100%
 }
 
+
+bool nation_participating_in_battle(sys::state& state, dcon::land_battle_id battle, dcon::nation_id nation) {
+	assert(state.world.land_battle_is_valid(battle));
+	std::vector<dcon::nation_id> participants{};
+	for(auto army : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army_controller = state.world.army_get_controller_from_army_control(army.get_army().id);
+		if(nation == army_controller) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+bool nation_participating_in_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation) {
+	assert(state.world.naval_battle_is_valid(battle));
+	for(auto navy : state.world.naval_battle_get_navy_battle_participation(battle)) {
+		auto navy_controller = state.world.navy_get_controller_from_navy_control(navy.get_navy().id);
+		if(nation == navy_controller) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
@@ -5795,8 +5828,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			if(d_nation)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_lost_score_to_leadership);
 
-			// Report
-			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+			// Report.
+			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -5865,7 +5898,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_won_score_to_leadership);
 
 			// Report
-			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -6003,7 +6036,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				adjust_leader_prestige(state, b_leader, score / -50.f / 100.f);
 
 				// Report
-				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -6056,7 +6089,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 
 				// Report
-				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);

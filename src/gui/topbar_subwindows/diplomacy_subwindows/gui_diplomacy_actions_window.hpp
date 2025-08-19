@@ -330,7 +330,7 @@ public:
 			auto asker_wars = state.world.nation_get_war_participant(state.local_player_nation);
 			auto target_wars = state.world.nation_get_war_participant(target);
 
-			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.begin() && target_wars.begin() != target_wars.begin());
+			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.end() && target_wars.begin() != target_wars.end());
 		}
 	}
 };
