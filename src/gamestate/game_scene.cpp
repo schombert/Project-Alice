@@ -125,7 +125,7 @@ void selected_units_control(
 	float volume = get_effects_volume(state);
 	if(reset_orders) {
 		for(auto a : state.selected_armies) {
-			if(command::can_move_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order)) {
+			if(command::can_move_or_stop_army(state, state.local_player_nation, a, target)) {
 				command::move_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order);
 				army_play = true;
 			}
@@ -143,7 +143,7 @@ void selected_units_control(
 	}
 	else {
 		for(auto a : state.selected_armies) {
-			if(command::can_move_army(state, state.local_player_nation, a, target, false, state.ui_state.selected_army_order).empty()) {
+			if(command::can_move_army(state, state.local_player_nation, a, target, false).empty()) {
 				fail = true;
 			} else {
 				command::move_army(state, state.local_player_nation, a, target, false, state.ui_state.selected_army_order);

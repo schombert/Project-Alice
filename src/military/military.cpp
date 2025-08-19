@@ -8322,7 +8322,9 @@ void update_movement(sys::state& state) {
 			}
 			else if (arrival == sys::date{}) {
 				auto next_dest = path.at(path.size() - 1);
-				a.set_arrival_time(arrival_time_to(state, a, next_dest));
+				auto arrival_data = arrival_time_to(state, a, next_dest);
+				state.world.army_set_arrival_time(a, arrival_data.arrival_time);
+				state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
 			}
 		}
 		// US8AC1 Handle "strategic redeployment" order

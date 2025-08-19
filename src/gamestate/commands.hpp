@@ -851,7 +851,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 
 // Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order);
 
 // Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.

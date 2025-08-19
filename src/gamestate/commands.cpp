@@ -3749,13 +3749,13 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	
 }
 
-void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order) {
 	auto army_loc = state.world.army_get_location_from_army_location(a);
 	if(army_loc == dest) {
 		command::stop_army_movement(state, source, a);
 	}
 	else {
-		move_army(state, source, a, dest, true);
+		move_army(state, source, a, dest, true, order);
 	}
 }
 
