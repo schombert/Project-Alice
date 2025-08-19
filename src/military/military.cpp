@@ -1531,6 +1531,23 @@ uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov,
 	}
 }
 
+naval_range_display_data closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
+	naval_range_display_data closest{ .closest_port = dcon::province_id{ }, .distance = 9999999.0f, .timestamp = state.current_date };
+	if(state.world.nation_get_province_control(nation).begin() != state.world.nation_get_province_control(nation).end()) {
+		for(auto p : state.world.nation_get_province_control(nation)) {
+			if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
+				auto dist = province::naval_range_distance(state, p.get_province(), prov, nation);
+				if(dist.is_reachable && dist.distance < closest.distance) {
+					closest.closest_port = p.get_province();
+					closest.distance = dist.distance;
+				}
+			}
+		}
+	}
+	return closest;
+	
+}
+
 void update_naval_supply_points(sys::state& state) {
 	/*
 	- naval supply score: you get define:NAVAL_BASE_SUPPLY_SCORE_BASE x (2 to the power of (its-level - 1)) for each naval base or
@@ -3771,6 +3788,32 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		nations::adjust_prestige(state, target, -prestige_gain);
 }
 
+void merge_navies_impl(sys::state& state, dcon::navy_id a, dcon::navy_id b) {
+	assert(state.world.navy_get_controller_from_navy_control(a) == state.world.navy_get_controller_from_navy_control(b));
+	// take leader
+	auto a_leader = state.world.navy_get_admiral_from_navy_leadership(a);
+	auto b_leader = state.world.navy_get_admiral_from_navy_leadership(b);
+	if(!a_leader && b_leader) {
+		state.world.navy_set_admiral_from_navy_leadership(a, b_leader);
+	}
+
+	uint8_t highest_months_out_of_range = std::max(state.world.navy_get_months_outside_naval_range(b), state.world.navy_get_months_outside_naval_range(a));
+
+	state.world.navy_set_months_outside_naval_range(a, highest_months_out_of_range);
+
+	auto regs = state.world.navy_get_navy_membership(b);
+	while(regs.begin() != regs.end()) {
+		auto reg = (*regs.begin()).get_ship();
+		reg.set_navy_from_navy_membership(a);
+	}
+
+	auto transported = state.world.navy_get_army_transport(b);
+	while(transported.begin() != transported.end()) {
+		auto arm = (*transported.begin()).get_army();
+		arm.set_navy_from_army_transport(a);
+	}
+}
+
 void run_gc(sys::state& state) {
 
 	//
@@ -4673,6 +4716,15 @@ float directed_warscore(
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type) {
+	state.world.ship_set_type(ship, new_type);
+	state.world.ship_set_strength(ship, 0.01f);
+}
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type) {
+	state.world.regiment_set_type(ship, new_type);
+	state.world.regiment_set_strength(ship, 0.01f);
+}
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a) {
 	int32_t max_cap = 0;
 	for(auto n : state.world.province_get_navy_location(p)) {
@@ -4711,18 +4763,16 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	}
 
 	/*
-	 slowest ship or regiment x (1 + infrastructure-provided-by-railroads x railroad-level-of-origin) x
+	 slowest ship or regiment x
 	 (possibly-some-modifier-for-crossing-water) x (define:LAND_SPEED_MODIFIER or define:NAVAL_SPEED_MODIFIER) x (leader-speed-trait
 	 + 1)
+	 (Speed bonus from railroads & modifiers are handled by the movement_cost modifier, which is subtracted by the distance later)
 	*/
 	auto leader = state.world.army_get_general_from_army_leadership(a);
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
-		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
-								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
-		(leader_move + 1.0f);
+	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *  (leader_move + 1.0f) * state.defines.land_speed_modifier;
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -4737,46 +4787,66 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.navy_get_is_retreating(n) ? 2.0f : 1.0f) * (leader_move + 1.0f);
+	return min_speed * (leader_move + 1.0f);
 }
 
-int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
+float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	float distance = province::distance(state, adj);
-	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
-		state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost);
-	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+	float distance = province::distance_km(state, adj);
+	auto controller = state.world.army_get_controller_from_army_control(a);
+	// take the average of the modifiers in the two provinces. If the army is "over" a sea prov (naval invading or moving into transports), use 1.0f as the movement_cost.
+	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float avg_mods = (prov_from_mod + prov_to_mod) / 2.0f;
+	float effective_distance = std::max(0.1f, distance * avg_mods);
 
 	float effective_speed = effective_army_speed(state, a);
 
-	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
-	assert(days > 0);
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * state.defines.alice_army_marching_hours_per_day) : 50;
+	assert(days > 0.0f);
 	return days;
 }
-int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
+float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	float distance = province::distance(state, adj);
-	float sum_mods = state.world.province_get_modifier_values(to, sys::provincial_mod_offsets::movement_cost) +
-		state.world.province_get_modifier_values(from, sys::provincial_mod_offsets::movement_cost);
-	float effective_distance = std::max(0.1f, distance * (sum_mods + 1.0f));
+	float distance = province::distance_km(state, adj);
+	float effective_distance = distance;
 
 	float effective_speed = effective_navy_speed(state, n);
 
-	int32_t days = effective_speed > 0.0f ? int32_t(std::ceil(effective_distance / effective_speed)) : 50;
+	float days = effective_speed > 0.0f ? effective_distance / (effective_speed * state.defines.alice_navy_sailing_hours_per_day) : 50;
+	assert(days > 0.0f);
 	return days;
 }
 
-sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from) {
+	auto float_days = movement_time_from_to(state, a, from, to);
 
-	auto days = movement_time_from_to(state, a, state.world.army_get_location_from_army_location(a), p);
+	float travel_days = std::ceil(float_days);
+	float extra_days = travel_days - float_days;
 
-	return state.current_date + days;
+	return arrival_time_info_raw{ .travel_days = int32_t(travel_days), .unused_travel_days = extra_days };
 }
-sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::navy_id n, dcon::province_id to, dcon::province_id from) {
+	auto float_days = movement_time_from_to(state, n, from, to);
+
+	float travel_days = std::ceil(float_days);
+	float extra_days = travel_days - float_days;
+
+	return arrival_time_info_raw{ .travel_days = int32_t(travel_days), .unused_travel_days = extra_days };
+}
+
+arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p) {
+
+	auto arrival_raw_data = arrival_time_to_in_days(state, a, p, state.world.army_get_location_from_army_location(a));
+
+	return arrival_time_info{ .arrival_time = state.current_date + arrival_raw_data.travel_days, .unused_travel_days = arrival_raw_data.unused_travel_days };
+}
+arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p) {
+	auto arrival_raw_data = arrival_time_to_in_days(state, n, p, state.world.navy_get_location_from_navy_location(n));
 
 
-	auto days = movement_time_from_to(state, n, state.world.navy_get_location_from_navy_location(n), p);
-	return state.current_date + days;
+	return arrival_time_info{ .arrival_time = state.current_date + arrival_raw_data.travel_days, .unused_travel_days = arrival_raw_data.unused_travel_days };
 }
 
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r) {
@@ -5026,17 +5096,17 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 			switch(type) {
 			case unit_type::big_ship:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_big });
+						naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_big , 0});
 				state.world.naval_battle_get_attacker_big_ships(b)++;
 				break;
 			case unit_type::light_ship:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_small });
+						naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_small, 0});
 				state.world.naval_battle_get_attacker_small_ships(b)++;
 				break;
 			case unit_type::transport:
 				slots.push_back(ship_in_battle{ ship.get_ship().id, -1,
-						1000 | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_transport });
+						naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::is_attacking | ship_in_battle::type_transport, 0});
 				state.world.naval_battle_get_attacker_transport_ships(b)++;
 				break;
 			default:
@@ -5055,16 +5125,16 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 			auto type = state.military_definitions.unit_base_definitions[ship.get_ship().get_type()].type;
 			switch(type) {
 			case unit_type::big_ship:
-				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, 1000 | ship_in_battle::mode_seeking | ship_in_battle::type_big });
+				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::type_big, 0});
 				state.world.naval_battle_get_defender_big_ships(b)++;
 				break;
 			case unit_type::light_ship:
-				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, 1000 | ship_in_battle::mode_seeking | ship_in_battle::type_small });
+				slots.push_back(ship_in_battle{ ship.get_ship().id, -1, naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::type_small, 0 });
 				state.world.naval_battle_get_defender_small_ships(b)++;
 				break;
 			case unit_type::transport:
 				slots.push_back(
-						ship_in_battle{ ship.get_ship().id, -1, 1000 | ship_in_battle::mode_seeking | ship_in_battle::type_transport });
+						ship_in_battle{ ship.get_ship().id, -1, naval_battle_distance_to_center | ship_in_battle::mode_seeking | ship_in_battle::type_transport, 0});
 				state.world.naval_battle_get_defender_transport_ships(b)++;
 				break;
 			default:
@@ -5074,37 +5144,49 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 	}
 
 	state.world.navy_set_battle_from_navy_battle_participation(n, b);
-	state.world.navy_set_arrival_time(n, sys::date{}); // pause movement
 
-	for(auto em : state.world.navy_get_army_transport(n)) {
-		em.get_army().set_arrival_time(sys::date{});
-	}
 	update_battle_leaders(state, b);
 }
-
+template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);
 	auto nation_controller = state.world.navy_get_controller_from_navy_control(n);
 
 	if(!nation_controller)
 		return false;
-
-	auto retreat_path = province::make_naval_retreat_path(state, nation_controller, province_start);
+	auto retreat_path = command::can_retreat_from_naval_battle(state, nation_controller, n, true);
 	if(retreat_path.size() > 0) {
 		state.world.navy_set_is_retreating(n, true);
 		auto existing_path = state.world.navy_get_path(n);
 		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
 
-		state.world.navy_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+		auto arrival_info = arrival_time_to(state, n, retreat_path.back());
+		state.world.navy_set_arrival_time(n, arrival_info.arrival_time);
+		state.world.navy_set_unused_travel_days(n, arrival_info.unused_travel_days);
 
 		for(auto em : state.world.navy_get_army_transport(n)) {
-			em.get_army().get_path().clear();
+			stop_army_movement(state, em.get_army());
 		}
+		// if the battle isn't about to end, start retreating the ships from the navy
+		if constexpr(battle_state == battle_is_ending::no) {
+			auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
+			assert(bool(battle));
+			for(auto shp : state.world.navy_get_navy_membership(n)) {
+				for(auto& s : state.world.naval_battle_get_slots(battle)) {
+					if(s.ship == shp.get_ship() && (s.flags & s.mode_mask) != s.mode_sunk && (s.flags & s.mode_mask) != s.mode_retreated) {
+						military::single_ship_start_retreat(state, s, battle);
+					}
+				}
+			}
+		}
+		state.world.navy_set_moving_to_merge(n, false);
 		return true;
 	} else {
 		return false;
 	}
 }
+template bool retreat<battle_is_ending::yes>(sys::state& state, dcon::navy_id n);
+template bool retreat<battle_is_ending::no>(sys::state& state, dcon::navy_id n);
 
 bool retreat(sys::state& state, dcon::army_id n) {
 	auto province_start = state.world.army_get_location_from_army_location(n);
@@ -5119,7 +5201,9 @@ bool retreat(sys::state& state, dcon::army_id n) {
 		auto existing_path = state.world.army_get_path(n);
 		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
 
-		state.world.army_set_arrival_time(n, arrival_time_to(state, n, retreat_path.back()));
+		auto arrival_info = arrival_time_to(state, n, retreat_path.back());
+		state.world.army_set_arrival_time(n, arrival_info.arrival_time);
+		state.world.army_set_unused_travel_days(n, arrival_info.unused_travel_days);
 		state.world.army_set_dig_in(n, 0);
 		return true;
 	} else {
@@ -5599,7 +5683,9 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 		} else {
 			auto path = n.get_army().get_path();
 			if(path.size() > 0) {
-				state.world.army_set_arrival_time(n.get_army(), arrival_time_to(state, n.get_army(), path.at(path.size() - 1)));
+				// unused travel days is saved from when the army entered the battle
+				auto arrival_info = arrival_time_to(state, n.get_army(), path.at(path.size() - 1));
+				state.world.army_set_arrival_time(n.get_army(), arrival_info.arrival_time);
 			}
 		}
 	}
@@ -5800,38 +5886,21 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			}
 		}
 
+		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does not normally get stackwiped if the navy automatically retreats before the battle is retreatable (navies are close enough to the center)
+		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
-			if(!can_retreat_from_battle(state, b)) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
-			} else {
-				if(!retreat(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
-				}
-			}
-		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!can_retreat_from_battle(state, b)) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
-			} else {
-				if(!retreat(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
-				}
-			}
-		} else {
-			auto path = n.get_navy().get_path();
-			if(path.size() > 0) {
-				state.world.navy_set_arrival_time(n.get_navy(), arrival_time_to(state, n.get_navy(), path.at(path.size() - 1)));
-			}
 
-			for(auto em : n.get_navy().get_army_transport()) {
-				auto apath = em.get_army().get_path();
-				if(apath.size() > 0) {
-					state.world.army_set_arrival_time(em.get_army(), arrival_time_to(state, em.get_army(), apath.at(apath.size() - 1)));
-				}
+			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
 			}
+			
+		} else if(!battle_attacker && result == battle_result::attacker_won) {
+			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+				n.get_navy().set_is_retreating(true);
+			}
+			
 		}
 	}
 
@@ -6036,7 +6105,7 @@ dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army) {
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
-	return false;
+	return relative_attrition_amount(state, a, state.world.navy_get_location_from_navy_location(a)) > 0.0f;
 }
 
 float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::province_id prov) {
@@ -6050,14 +6119,61 @@ float peacetime_attrition_limit(sys::state& state, dcon::nation_id n, dcon::prov
 bool will_recieve_attrition(sys::state& state, dcon::army_id a) {
 	auto prov = state.world.army_get_location_from_army_location(a);
 
-	if(state.world.province_get_siege_progress(prov) > 0.f || prov.index() >= state.province_definitions.first_sea_province.index())
+	if(prov.index() >= state.province_definitions.first_sea_province.index())
 		return true;
 
 	return relative_attrition_amount(state, a, prov) > 0.0f;
 }
 
 float relative_attrition_amount(sys::state& state, dcon::navy_id a, dcon::province_id prov) {
-	return 0.0f;
+
+
+	/*Sea attrition is always 0% if adjacent to a land province which is controlled by the navy controller or the navy controller is allied or in a common war with the land province controller.
+	If adjacent to a land province and the above isn't the case, the unit will only take attrition if it is outside the supply range decided by define:SUPPLY_RANGE * supply_range modifiers. Any port lvl 1 or higher counts as a supply origin point
+	If on the deep ocean (all adjacent provinces are sea), the unit will always take attrition.
+	Sea attrition only ticks monthly, and does not tick on province arrival.
+	Each valid monthly attrition tick has a base of 1.0% added to (months_outside_naval_range * 2.0%)
+	Navies docked in a land province or in battles cannot take monthly attrition
+	*/
+
+	auto navy_controller = state.world.navy_get_controller_from_navy_control(a);
+	if(bool(state.world.navy_get_battle_from_navy_battle_participation(a))
+		|| prov.index() < state.province_definitions.first_sea_province.index()
+		|| province::sea_province_is_adjacent_to_accessible_coast(state, prov, navy_controller)) {
+		return 0.0f;
+	}
+	if(province::province_is_deep_waters(state, prov)) {
+		return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
+	}
+
+	/*bool any_adj_land_prov = false;
+	for(auto adj : state.world.province_get_province_adjacency(prov)) {
+		auto indx = adj.get_connected_provinces(0).id != prov ? 0 : 1;
+		auto adj_prov = adj.get_connected_provinces(indx);
+		if(adj_prov.id.index() < state.province_definitions.first_sea_province.index()) {
+			any_adj_land_prov = true;
+			auto controller = state.world.province_get_nation_from_province_control(adj_prov);
+			if(navy_controller == controller || nations::are_allied(state, navy_controller, controller) || military::are_in_common_war(state, navy_controller, controller)) {
+				return 0.0f;
+			}
+		}
+	}
+	if(province::sea_province_is_adjacent_to_accessible_coast(state, prov, navy_controller)) {
+		return 0.0f;
+	}
+	if(!any_adj_land_prov) {
+		return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
+	}*/
+	for(auto p : state.world.nation_get_province_control(navy_controller)) {
+		if(auto nb_level = p.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)); nb_level > 0) {
+			auto dist = province::naval_range_distance(state, p.get_province(), prov, navy_controller);
+			if(dist.is_reachable && dist.distance <= state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(navy_controller, sys::national_mod_offsets::supply_range))) {
+				return 0.0f;
+			}
+		}
+	}
+	return 0.01f + (state.world.navy_get_months_outside_naval_range(a) * 0.02f);
+	
 }
 
 float sum_army_weight(sys::state& state, const std::vector<dcon::army_id>& armies) {
@@ -6168,6 +6284,21 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value);
 	}
 }
+void apply_monthly_attrition_to_navy(sys::state& state, dcon::navy_id navy) {
+	auto prov = state.world.navy_get_location_from_navy_location(navy);
+	float attrition_value = relative_attrition_amount(state, navy, prov);
+	if(attrition_value == 0.0f) {
+		return;
+	}
+	for(auto ship : state.world.navy_get_navy_membership(navy)) {
+		reduce_ship_strength_safe(state, ship.get_ship(), attrition_value);
+	}
+	// increment months outside naval range counter. Check to avoid overflow in egde cases
+	auto current = state.world.navy_get_months_outside_naval_range(navy);
+	if(current != std::numeric_limits<uint8_t>().max()) {
+		state.world.navy_set_months_outside_naval_range(navy, uint8_t(current + 1));
+	}
+}
 
 void apply_attrition(sys::state& state) {
 
@@ -6177,6 +6308,9 @@ void apply_attrition(sys::state& state) {
 
 		for(auto ar : state.world.province_get_army_location(prov)) {
 			apply_attrition_to_army(state, ar.get_army());
+		}
+		for(auto nv : state.world.province_get_navy_location(prov)) {
+			apply_monthly_attrition_to_navy(state, nv.get_navy());
 		}
 	});
 }
@@ -6489,11 +6623,11 @@ int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, 
 		define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
 		*/
 
-	return std::clamp(state.world.province_get_building_level(location, uint8_t(economy::province_building_type::fort)) -
+	return std::clamp(int32_t(state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::fort_level)) -
 									 int32_t(max_siege_value *
 										 std::min(strength_siege_units / total_strength, state.defines.engineer_unit_ratio) /
 										 state.defines.engineer_unit_ratio),
-				0, 9);
+				0, 10);
 
 }
 // gets the fort level for combat in the specified province, taking all of the units in the province into account
@@ -6633,6 +6767,86 @@ int16_t get_naval_battle_target(sys::state& state, const ship_in_battle& ship, d
 	return -1;
 
 }
+
+void notify_on_new_land_battle(sys::state& state, dcon::land_battle_id battle, dcon::nation_id nation_as) {
+	war_role battle_role = war_role::none;
+	for(auto n : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army_controller = n.get_army().get_controller_from_army_control();
+		if(army_controller == nation_as) {
+			if(is_attacker_in_battle(state, n.get_army())) {
+				assert(battle_role != war_role::defender);
+				battle_role = war_role::attacker;
+				break;
+
+			} else {
+				assert(battle_role != war_role::attacker);
+				battle_role = war_role::defender;
+				break;
+			}
+		}
+
+	}
+	auto location = state.world.land_battle_get_location_from_land_battle_location(battle);
+	// notify if attacking
+	dcon::nation_id enemy_nation = (battle_role == war_role::attacker) ? get_land_battle_lead_defender(state, battle) : get_land_battle_lead_attacker(state, battle);
+	bool show_notification = (enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat || enemy_nation != dcon::nation_id{ });
+	if(battle_role == war_role::attacker && show_notification) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+				auto enemy_name = bool(enemy_nation) ? text::get_name(state, enemy_nation) : state.world.national_identity_get_name( state.national_definitions.rebel_id);
+
+				text::add_line(state, layout, "ATTACKTHEM_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "ATTACKTHEM_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_attackthem_4", text::variable_type::defender, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "ATTACKTHEM_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::land_combat_starts_by_nation,
+			.province_source = location,
+
+		});
+
+
+	}
+	// notify if defending
+	else if(battle_role == war_role::defender && show_notification) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_name = bool(enemy_nation) ? text::get_name(state, enemy_nation) : state.world.national_identity_get_name(state.national_definitions.rebel_id);
+
+				text::add_line(state, layout, "ATTACKUS_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "ATTACKUS_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_attackus_4", text::variable_type::attacker, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "ATTACKUS_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::land_combat_starts_on_nation,
+			.province_source = location
+		});
+
+	}
+}
 		
 
 
@@ -6645,6 +6859,11 @@ void update_land_battles(sys::state& state) {
 
 		if(!state.world.land_battle_is_valid(b))
 			return;
+
+
+		if(state.world.land_battle_get_start_date(b) == state.current_date) {
+			notify_on_new_land_battle(state, b, state.local_player_nation);
+		}
 
 		// fill to combat width
 		auto combat_width = state.world.land_battle_get_combat_width(b);
@@ -7216,6 +7435,22 @@ bool naval_slot_index_valid(int16_t index) {
 	return index > -1;
 }
 
+float required_avg_dist_to_center_for_retreat(sys::state& state) {
+	return state.defines.naval_combat_retreat_min_distance * naval_battle_distance_to_center;
+}
+
+
+// pass a value of -1 to clear target
+void ship_in_battle_set_target(ship_in_battle& ship, int16_t target_index, dcon::dcon_vv_fat_id<ship_in_battle>& ship_slots) {
+	if(naval_slot_index_valid(ship.target_slot)) {
+		assert(ship_slots[ship.target_slot].ships_targeting_this > 0);
+		ship_slots[ship.target_slot].ships_targeting_this--;
+	}
+	ship.target_slot = target_index;
+	if(naval_slot_index_valid(target_index)) {
+		ship_slots[target_index].ships_targeting_this++;
+	}
+}
 
 // updates the ship in a naval battle after it has been hit by another ship, and may alter its state and battle-related statistics accordingly. Returns false if the target is no longer targetable (sunk), otherwise true
 bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle, int32_t& defender_ships, int32_t& attacker_ships) {
@@ -7255,12 +7490,9 @@ bool update_ship_in_naval_battle_after_hit(sys::state& state, ship_in_battle& sh
 			}
 			ship.flags &= ~ship_in_battle::mode_mask;
 			ship.flags |= ship_in_battle::mode_sunk;
-			// decrement the number of ships targeting this ships' target if the current target is valid, as it is now sunk.
-			if(naval_slot_index_valid(ship.target_slot)) {
-				assert(slots[ship.target_slot].ships_targeting_this != 0);
-				slots[ship.target_slot].ships_targeting_this--;
-			}
-			ship.target_slot = -1;
+			// reset the ship's target as it is now sunk.
+			ship_in_battle_set_target(ship, -1, slots);
+			ship.ship = dcon::ship_id{ };
 			return false;
 		}
 		break;
@@ -7427,30 +7659,41 @@ void ship_do_damage(sys::state& state, dcon::naval_battle_id battle, ship_in_bat
 }
 
 // checks if a given ship should start retreating. No side effects
-bool should_ship_retreat(sys::state& state, const ship_in_battle& ship) {
+bool should_ship_retreat(sys::state& state, const ship_in_battle& ship, dcon::naval_battle_id battle) {
 
 	switch(ship.flags & ship_in_battle::mode_mask) {
-	case ship_in_battle::mode_seeking:
-	case ship_in_battle::mode_approaching:
-	case ship_in_battle::mode_engaged:
-		// always start retreating if the ship has 0% org
-		if(state.world.ship_get_org(ship.ship) == 0.0f) {
-			return true;
-		}
-		else if(state.world.ship_get_strength(ship.ship) <= state.defines.naval_combat_retreat_str_org_level ||
-		state.world.ship_get_org(ship.ship) <= state.defines.naval_combat_retreat_str_org_level) {
-			// compute random chance for an early retreat
-			uint64_t random = rng::get_random(state, ship.ship.value * state.current_date.to_raw_value());
-			if((random % 100000 + 1) <= (state.defines.naval_combat_retreat_chance * 100000)) {
+		case ship_in_battle::mode_seeking:
+		case ship_in_battle::mode_approaching:
+		case ship_in_battle::mode_engaged:
+		{
+
+	
+			// always start retreating if the ship has 0% org and meets the define requirement for avg distance to center
+			float cur_dist_center_line = state.world.naval_battle_get_avg_distance_from_center_line(battle);
+			float min_dist_for_retreat = required_avg_dist_to_center_for_retreat(state);
+			if(state.world.ship_get_org(ship.ship) <= 0.0f && cur_dist_center_line <= min_dist_for_retreat) {
 				return true;
 			}
+			else if(state.world.ship_get_strength(ship.ship) <= state.defines.naval_combat_retreat_str_org_level ||
+			state.world.ship_get_org(ship.ship) <= state.defines.naval_combat_retreat_str_org_level) {
+				// compute random chance for an early retreat
+				uint64_t random = rng::get_random(state, ship.ship.value * state.current_date.to_raw_value());
+				if((random % 100000 + 1) <= (state.defines.naval_combat_retreat_chance * 100000)) {
+					return true;
+				}
+			}
+			break;
 		}
-		break;
-	default:
-		break;
+		default:
+		{
+			break;
+		}
+		
 	}
 	return false;
 }
+
+
 
 // makes a single ship start retreating to disengage
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle) {
@@ -7460,12 +7703,115 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 	ship.flags &= ~ship_in_battle::mode_mask;
 	ship.flags |= ship_in_battle::mode_retreating;
 	// decrement the number of ships targeting this ships' target, as it is now retreating and unable to target anything.
-	if(naval_slot_index_valid(ship.target_slot)) {
-		assert(slots[ship.target_slot].ships_targeting_this != 0);
-		slots[ship.target_slot].ships_targeting_this--;
-	}
-	ship.target_slot = -1;
+	ship_in_battle_set_target(ship, -1, slots);
 }
+
+
+void notify_on_new_naval_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation_as) {
+	war_role battle_role = war_role::none;
+	for(auto n : state.world.naval_battle_get_navy_battle_participation(battle)) {
+		auto navy_controller = n.get_navy().get_controller_from_navy_control();
+		if(navy_controller == nation_as) {
+			if(is_attacker_in_battle(state, n.get_navy())) {
+				assert(battle_role != war_role::defender);
+				battle_role = war_role::attacker;
+				break;
+				
+			}
+			else {
+				assert(battle_role != war_role::attacker);
+				battle_role = war_role::defender;
+				break;		
+			}
+		}
+
+	}
+	auto location = state.world.naval_battle_get_location_from_naval_battle_location(battle);
+	// notify if attacking
+	if(battle_role == war_role::attacker) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_nation = get_naval_battle_lead_defender(state, battle);
+				auto enemy_name = text::get_name(state, enemy_nation);
+
+				text::add_line(state, layout, "NAVALATTACKTHEM_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "NAVALATTACKTHEM_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "alice_navalattackitem_4", text::variable_type::defender, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "NAVALATTACKTHEM_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::naval_combat_starts_by_nation,
+			.province_source = location,
+
+		});
+
+
+	}
+	// notify if defending
+	else if(battle_role == war_role::defender) {
+		notification::post(state, notification::message{
+			.body = [=](sys::state& state, text::layout_base& layout) {
+
+				auto identity = state.world.nation_get_identity_from_identity_holder(nation_as);
+				auto govt_type = state.world.nation_get_government_type(nation_as);
+				auto ruler_name = state.world.national_identity_get_government_ruler_name(identity, govt_type);
+				auto govt_type_ruler = state.world.government_type_get_ruler_name(govt_type);
+				auto location_name = state.world.province_get_name(location);
+
+
+				auto enemy_nation = get_naval_battle_lead_attacker(state, battle);
+				auto enemy_name = text::get_name(state, enemy_nation);
+
+				text::add_line(state, layout, "NAVALATTACKUS_2", text::variable_type::monarchtitle, text::produce_simple_string(state, govt_type_ruler));
+				text::add_line(state, layout, "NAVALATTACKUS_3", text::variable_type::prov, text::produce_simple_string(state, location_name));
+				text::add_line(state, layout, "NAVALATTACKUS_4", text::variable_type::attacker, text::produce_simple_string(state, enemy_name));
+			},
+
+			.title = "NAVALATTACKUS_1",
+			.source = nation_as,
+			.target = dcon::nation_id{ },
+			.third = dcon::nation_id{ },
+			.type = sys::message_base_type::naval_combat_starts_on_nation,
+			.province_source = location
+		});
+
+	}
+}
+
+
+/*
+Naval battle general info:
+
+When a battle starts, all ships will start 100 distance from the "center line", and will move towards it once a target is found. No ship may move past the center line into the enemy navies' half.
+Manual retreating is only available once all non-retreating or sunk ships are on average close enough to the center line.
+How close they have to be is specified in define:NAVAL_COMBAT_RETREAT_MIN_DISTANCE, which is treated as a decimal between 1 ( can retreat within 100 distance of the center), to 0 (Have to be exacly on the center)
+
+When the manual retreat condition is not satisfied, automatic retreats from having very low org (Not sure about the exact threshold, but it appears to be quite low, so i set it to 0 org) are disabled aswell.
+Ships can however still retreat even in this state if they get the random roll from define:NAVAL_COMBAT_RETREAT_CHANCE whilst being below define:NAVAL_COMBAT_RETREAT_STR_ORG_LEVEL strength or org.
+
+When a manual retreat of navies are ordered, all ships which are part of the navy(ies) will start retreating, and the navy will only leave the battle once all of its ships are disengaged or sunk.
+
+Ships are supposed to be "pushed back" from the center line when a new target is acquired, however the exact formula of how this is done is unknown (specifically how combat duration affects it), so currently it does not push them back
+
+Ships are also supposed to fire conurrently with eachother rather than sequentially, however it does not do this so far. It isn't that important since navies will start outside of firing range of eachother, and speeds are partially randomized so the same side dosen't a deterministic "first shot"
+
+If one side of a naval battle has less than a tenth of the total hull of the other side when the battle starts, the side with less hull is instantly stackwiped.
+
+A navy is also stackwiped if there is no accessible ports for the retreat to path to (yes PORTS, not coast). 
+
+*/
+
 
 
 void update_naval_battles(sys::state& state) {
@@ -7478,10 +7824,108 @@ void update_naval_battles(sys::state& state) {
 		if(!state.world.naval_battle_is_valid(b))
 			return;
 
+		auto slots = state.world.naval_battle_get_slots(b);
+
+		
+		if(state.world.naval_battle_get_start_date(b) == state.current_date) {
+			// notify if needed about new battle
+			notify_on_new_naval_battle(state, b, state.local_player_nation);
+
+
+			// compare total hull of new battles to see if it's an instant wipe
+			float attacker_hull = 0;
+			float defender_hull = 0;
+			for(uint32_t j = slots.size(); j-- > 0;) {
+				if(state.world.ship_is_valid(slots[j].ship)) {
+					bool is_attacking = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+					auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(slots[j].ship));
+					auto type = state.world.ship_get_type(slots[j].ship);
+					if(is_attacking) {
+						attacker_hull += state.world.nation_get_unit_stats(controller, type).defence_or_hull;
+					}
+					else {
+						defender_hull += state.world.nation_get_unit_stats(controller, type).defence_or_hull;
+					}
+				}
+			}
+			if(defender_hull * 10.0f < attacker_hull) {
+				for(uint32_t j = slots.size(); j-- > 0;) {
+					bool is_attacking = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+					if(!is_attacking) {
+						uint16_t type = slots[j].flags & ship_in_battle::type_mask;
+						auto unit_type = state.world.ship_get_type(slots[j].ship);
+						switch(type) {
+							case ship_in_battle::type_big:
+							{
+								state.world.naval_battle_set_defender_big_ships_lost(b, state.world.naval_battle_get_defender_big_ships_lost(b) + 1);
+								break;
+							}
+							case ship_in_battle::type_small:
+							{
+								state.world.naval_battle_set_defender_small_ships_lost(b, state.world.naval_battle_get_defender_small_ships_lost(b) + 1);
+								break;
+								
+							}
+							case ship_in_battle::type_transport:
+							{
+								state.world.naval_battle_set_defender_transport_ships_lost(b, state.world.naval_battle_get_defender_transport_ships_lost(b) + 1);
+								break;
+							}
+							default:
+								assert(false);
+						}
+						state.world.naval_battle_set_defender_loss_value(b, state.world.naval_battle_get_defender_loss_value(b) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
+						state.world.delete_ship(slots[j].ship);
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_sunk;
+						slots[j].ship = dcon::ship_id{ };
+						to_delete.set(b, uint8_t(1));
+						return;
+						
+					}
+				}
+			}
+			else if(attacker_hull * 10.0f < defender_hull) {
+				for(uint32_t j = slots.size(); j-- > 0;) {
+					bool is_attacking = (slots[j].flags & ship_in_battle::is_attacking) != 0;
+					if(is_attacking) {
+						uint16_t type = slots[j].flags & ship_in_battle::type_mask;
+						auto unit_type = state.world.ship_get_type(slots[j].ship);
+						switch(type) {
+							case ship_in_battle::type_big:
+							{
+								state.world.naval_battle_set_attacker_big_ships_lost(b, state.world.naval_battle_get_attacker_big_ships_lost(b) + 1);
+								break;
+							}
+							case ship_in_battle::type_small:
+							{
+								state.world.naval_battle_set_attacker_small_ships_lost(b, state.world.naval_battle_get_attacker_small_ships_lost(b) + 1);
+								break;
+
+							}
+							case ship_in_battle::type_transport:
+							{
+								state.world.naval_battle_set_attacker_transport_ships_lost(b, state.world.naval_battle_get_attacker_transport_ships_lost(b) + 1);
+								break;
+							}
+							default:
+								assert(false);
+						}
+						state.world.naval_battle_set_attacker_loss_value(b, state.world.naval_battle_get_attacker_loss_value(b) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
+						state.world.delete_ship(slots[j].ship);
+						slots[j].flags &= ~ship_in_battle::mode_mask;
+						slots[j].flags |= ship_in_battle::mode_sunk;
+						slots[j].ship = dcon::ship_id{ };
+						to_delete.set(b, uint8_t(2));
+						return;
+
+					}
+				}
+			}
+		}
+		
 		int32_t attacker_ships = 0;
 		int32_t defender_ships = 0;
-
-		auto slots = state.world.naval_battle_get_slots(b);
 
 		for(uint32_t j = slots.size(); j-- > 0;) {
 			switch(slots[j].flags & ship_in_battle::mode_mask) {
@@ -7568,20 +8012,17 @@ void update_naval_battles(sys::state& state) {
 				/*
 				An approaching ship:
 				Has its distance reduced by (random-value-in-range-\[0.0 - 0.5) + 0.5) x max-speed x
-				define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR * 1000 to a minimum of 0. Switches to engaged when its distance + the
+				define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR * 100 to a minimum of 0. Switches to engaged when its distance + the
 				target's distance is less than its fire range
 				*/
 
-				float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_speed_to_distance_factor *
+				float speed = ship_stats.maximum_speed * naval_battle_speed_mult * state.defines.naval_combat_speed_to_distance_factor *
 				(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
-				auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-				int32_t adjust = std::clamp(int32_t(std::ceil(speed)), 0, old_distance);
-				slots[j].flags &= ~ship_in_battle::distance_mask;
-				slots[j].flags |= ship_in_battle::distance_mask & (old_distance - adjust);
+				auto old_distance = slots[j].get_distance();
+				auto adjust = std::clamp(uint16_t(speed), uint16_t(0), old_distance);
+				slots[j].set_distance( old_distance - adjust);
 
-				if(old_distance == adjust ||
-						(old_distance - adjust) + (slots[slots[j].target_slot].flags & ship_in_battle::distance_mask) <
-								int32_t(1000.0f * ship_stats.reconnaissance_or_fire_range)) {
+				if(slots[j].get_distance() + slots[slots[j].target_slot].get_distance() < naval_battle_distance_to_center * ship_stats.reconnaissance_or_fire_range) {
 
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_engaged;
@@ -7597,10 +8038,20 @@ void update_naval_battles(sys::state& state) {
 			{
 				assert(naval_slot_index_valid(slots[j].target_slot));
 				assert(state.world.ship_is_valid(slots[j].ship));
+				
 				auto target_mode = slots[slots[j].target_slot].flags & ship_in_battle::mode_mask;
 				if(target_mode == ship_in_battle::mode_retreated || target_mode == ship_in_battle::mode_sunk) {
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_seeking;
+					break;
+				}
+
+				auto distance = slots[j].get_distance();
+				auto target_distance = slots[slots[j].target_slot].get_distance();
+				// if target is out of range, switch to approaching
+				if(distance + target_distance > naval_battle_distance_to_center * ship_stats.reconnaissance_or_fire_range) {
+					slots[j].flags &= ~ship_in_battle::mode_mask;
+					slots[j].flags |= ship_in_battle::mode_approaching;
 					break;
 				}
 			
@@ -7619,17 +8070,16 @@ void update_naval_battles(sys::state& state) {
 				define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR x (random value in the range \[0.0 - 0.5) + 0.5) x ship-max-speed.
 				*/
 				assert(state.world.ship_is_valid(slots[j].ship));
-				float speed = ship_stats.maximum_speed * 1000.0f * state.defines.naval_combat_retreat_speed_mod *
+				float speed = ship_stats.maximum_speed * naval_battle_speed_mult * state.defines.naval_combat_retreat_speed_mod *
 					state.defines.naval_combat_speed_to_distance_factor *
 					(0.5f + float(rng::get_random(state, uint32_t(slots[j].ship.value)) & 0x7FFF) / float(0xFFFF));
 
-				auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-				int32_t new_distance = std::min(int32_t(std::ceil(speed)) + old_distance, 1000);
-				slots[j].flags &= ~ship_in_battle::distance_mask;
-				slots[j].flags |= ship_in_battle::distance_mask & (new_distance);
+				auto old_distance = slots[j].get_distance();
+				auto new_distance = std::min(uint16_t(uint16_t(speed) + old_distance), naval_battle_distance_to_center);
+				slots[j].set_distance(new_distance);
 
 				// set to retreated if distance is far enough
-				if((slots[j].flags & ship_in_battle::distance_mask) >= 1000) {
+				if(slots[j].get_distance() >= naval_battle_distance_to_center) {
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_retreated;
 					if((slots[j].flags & ship_in_battle::is_attacking) != 0) {
@@ -7654,21 +8104,14 @@ void update_naval_battles(sys::state& state) {
 				// get ship target, put into target_index variable
 				if(naval_slot_index_valid(target_index)) {
 
-					if(naval_slot_index_valid(slots[j].target_slot)) {
-						assert(slots[slots[j].target_slot].ships_targeting_this != 0);
-						slots[slots[j].target_slot].ships_targeting_this--;
-					}
-					slots[j].target_slot = target_index;
-					// increment target count
-					slots[target_index].ships_targeting_this++;
+					ship_in_battle_set_target(slots[j], target_index, slots);
 
-					auto old_distance = slots[j].flags & ship_in_battle::distance_mask;
-					int32_t new_distance = std::min(old_distance + 400, 1000);
+					auto old_distance = slots[j].get_distance();
+					auto new_distance = std::min(uint16_t(old_distance + 40), naval_battle_distance_to_center);
 
 					slots[j].flags &= ~ship_in_battle::mode_mask;
 					slots[j].flags |= ship_in_battle::mode_approaching;
-					slots[j].flags &= ~ship_in_battle::distance_mask;
-					slots[j].flags |= ship_in_battle::distance_mask & new_distance;
+					//slots[j].distance = new_distance;
 
 				}
 				break;
@@ -7678,14 +8121,77 @@ void update_naval_battles(sys::state& state) {
 				break;
 			}
 		}
+		uint32_t sum_dist_from_center = 0;
+		uint32_t count = 0;
+		for(uint32_t j = slots.size(); j-- > 0;) { // calculate average distance from center line before testing retreats. Only counts non retreating or sunk units
+			uint16_t mode = slots[j].flags & ship_in_battle::mode_mask;
+			switch(mode) {
+				case ship_in_battle::mode_approaching:
+				case ship_in_battle::mode_engaged:
+				case ship_in_battle::mode_seeking:
+					sum_dist_from_center += slots[j].get_distance();
+;					count++;
+					break;
+				default:
+					break;
+			}
+			
+
+		}
+		if(count == 0) {
+			count = 1;
+		}
+		state.world.naval_battle_set_avg_distance_from_center_line(b, float(sum_dist_from_center) / float(count));
 
 		for(uint32_t j = slots.size(); j-- > 0;) { // test health&str to see if they should try to retreat
 
-			if(should_ship_retreat(state, slots[j])) {
+			if(should_ship_retreat(state, slots[j], b)) {
 				single_ship_start_retreat(state, slots[j], b);
 			}
 		}
+
+		// check if all ships of a retreating navy has fully retreated. If so then remove them from the battle
+		std::vector<dcon::navy_id> to_retreat{ };
+		// iterate though navies in battle backwards, to remove as we go if needed
+		for(auto iterator = state.world.naval_battle_get_navy_battle_participation(b).end(); iterator.operator--() != state.world.naval_battle_get_navy_battle_participation(b).begin(); ) {
+			auto navy = (*iterator).get_navy();
+			if(navy.get_is_retreating()) {
+				std::vector<ship_in_battle*> to_be_removed{ };
+
+				bool can_retreat = [&]() {
+					for(uint32_t j = slots.size(); j-- > 0;) {
+						if(state.world.ship_get_navy_from_navy_membership(slots[j].ship) == navy) {
+							if((slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_retreated &&
+							   (slots[j].flags & ship_in_battle::mode_mask) != ship_in_battle::mode_sunk) {
+								return false;
+							} else if((slots[j].flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated) {
+								to_be_removed.push_back(&slots[j]);
+							}
+
+						}
+
+					}
+					return true;
+					}();
+
+				if(can_retreat) {
+					// anonymize ship ID of the ships that are retreating out of the battle. Targets depend on the index of the slots vector so can't remove em fully
+					for(auto battle_ship : to_be_removed) {
+						assert((battle_ship->flags & ship_in_battle::mode_mask) == ship_in_battle::mode_retreated);
+						assert(state.world.ship_is_valid(battle_ship->ship));
+						battle_ship->ship = dcon::ship_id{ };
+
+					}
+					state.world.delete_navy_battle_participation(*iterator);
+				}
+
+			}
+		}
+		if(!to_retreat.empty()) {
+			update_battle_leaders(state, b);
+		}
 	});
+
 
 	for(auto i = isize; i-- > 0;) {
 		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(i) };
@@ -7716,6 +8222,15 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
 
 	state.world.navy_set_location_from_navy_location(n, p);
+	if(p.index() < state.province_definitions.first_sea_province.index()) {
+		state.world.navy_set_months_outside_naval_range(n, uint8_t(0));
+	}
+	else {
+		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);
+		if(province::sea_province_is_adjacent_to_accessible_coast(state, p, owner_nation)) {
+			state.world.navy_set_months_outside_naval_range(n, uint8_t(0));
+		}
+	}
 	auto ships = state.world.navy_get_navy_membership(n);
 	if(!state.world.navy_get_is_retreating(n) && p.index() >= state.province_definitions.first_sea_province.index() && ships.begin() != ships.end()) {
 		auto owner_nation = state.world.navy_get_controller_from_navy_control(n);
@@ -7746,6 +8261,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 
 			if(auto par = internal_find_war_between(state, owner_nation, other_nation); par.role != war_role::none) {
 				auto new_battle = fatten(state.world, state.world.create_naval_battle());
+				new_battle.set_avg_distance_from_center_line(naval_battle_distance_to_center);
 				new_battle.set_war_attacker_is_attacker(par.role == war_role::attacker);
 				new_battle.set_start_date(state.current_date);
 				new_battle.set_war_from_naval_battle_in_war(par.w);
@@ -7776,8 +8292,6 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 				}
 			}
 		}
-
-		// TODO: notify on new battle
 	}
 }
 
@@ -7799,7 +8313,10 @@ void update_movement(sys::state& state) {
 					a.set_navy_from_army_transport(to_navy);
 					a.set_black_flag(false);
 				} else {
-					path.clear();
+					// if there are not enough transports by the time the movement happens, eject them back to land and check for enemy armies to collide with
+					stop_army_movement(state, a);
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 			} else { // land province
 				if(a.get_black_flag()) {
@@ -7821,13 +8338,16 @@ void update_movement(sys::state& state) {
 							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							a.set_navy_from_army_transport(dcon::navy_id{});
 						} else {
-							path.clear();
+							stop_army_movement(state, a);
 						}
 					} else {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
 							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
-								path.clear();
+								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
+								stop_army_movement(state, a);
+								a.set_is_retreating(false);
+								army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 							} else {
 								army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 							}
@@ -7839,7 +8359,10 @@ void update_movement(sys::state& state) {
 						}
 					}
 				} else {
-					path.clear();
+					// if the dest prov is inaccesible when the movement happens, stop movement and check for collision with enemy armies
+					stop_army_movement(state, a);
+					a.set_is_retreating(false);
+					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
 				}
 			}
 
@@ -7847,16 +8370,12 @@ void update_movement(sys::state& state) {
 				// nothing -- movement paused
 			} else if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
-				a.set_arrival_time(arrival_time_to(state, a, next_dest));
+				update_movement_arrival_days_on_unit(state, next_dest, a.get_location_from_army_location(), a.id);
 			} else {
 				a.set_arrival_time(sys::date{});
+				a.set_unused_travel_days(0.0f);
 				if(a.get_is_retreating()) {
 					a.set_is_retreating(false);
-					army_arrives_in_province(state, a, dest,
-							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
-								province::border::river_crossing_bit) != 0
-									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{});
 				}
 				if(a.get_moving_to_merge()) {
 					a.set_moving_to_merge(false);
@@ -7882,13 +8401,18 @@ void update_movement(sys::state& state) {
 				}
 			}
 		}
-	}
+		}
 
 	for(auto n : state.world.in_navy) {
 		auto arrival = n.get_arrival_time();
 		assert(!arrival || arrival >= state.current_date);
+		if(n.get_battle_from_navy_battle_participation() && bool(arrival)) {
+			n.set_arrival_time(arrival + 1);
+			continue;
+		}
 		if(auto path = n.get_path(); arrival == state.current_date) {
 			assert(path.size() > 0);
+			auto from = n.get_location_from_navy_location();
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 
@@ -7903,25 +8427,17 @@ void update_movement(sys::state& state) {
 						auto a = (*attached.begin()).get_army();
 
 						a.set_navy_from_army_transport(dcon::navy_id{});
-						a.get_path().clear();
-						a.set_arrival_time(sys::date{});
+						stop_army_movement(state, a);
 						auto acontroller = a.get_controller_from_army_control();
 
+						// ai code
 						if(acontroller && !acontroller.get_is_player_controlled()) {
 							auto army_dest = a.get_ai_province();
 							a.set_location_from_army_location(dest);
 							if(army_dest && army_dest != dest) {
 								auto apath = province::make_land_path(state, dest, army_dest, acontroller, a);
 								if(apath.size() > 0) {
-									auto existing_path = a.get_path();
-									auto new_size = uint32_t(apath.size());
-									existing_path.resize(new_size);
-
-									for(uint32_t i = 0; i < new_size; ++i) {
-										existing_path[i] = apath[i];
-									}
-									a.set_arrival_time(military::arrival_time_to(state, a, apath.back()));
-									a.set_dig_in(0);
+									move_army_fast(state, a, apath, acontroller);
 									auto activity = ai::army_activity(a.get_ai_activity());
 									if(activity == ai::army_activity::transport_guard) {
 										a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
@@ -7938,30 +8454,40 @@ void update_movement(sys::state& state) {
 						army_arrives_in_province(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
 					}
 				} else {
-					path.clear();
+					// if the destination province becomes inaccesible by the time the movement happens, stop movement and check for enemy navy collision
+					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
 				}
 			} else { // sea province
 
-				navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
+				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
+				auto path_bits = state.world.province_adjacency_get_type(adj);
+				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
+					stop_navy_movement(state, n);
+					n.set_is_retreating(false);
+					navy_arrives_in_province(state, n, from, dcon::naval_battle_id{});
+					
+				}
+				else {
+					navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 
-				// take embarked units along with
-				for(auto a : state.world.navy_get_army_transport(n)) {
-					a.get_army().set_location_from_army_location(dest);
-					a.get_army().get_path().clear();
-					a.get_army().set_arrival_time(sys::date{});
+					// take embarked units along with
+					for(auto a : state.world.navy_get_army_transport(n)) {
+						a.get_army().set_location_from_army_location(dest);
+						stop_army_movement(state, a.get_army());
+					}
 				}
 			}
 
-			if(n.get_battle_from_navy_battle_participation()) {
-				// nothing, movement paused
-			} else if(path.size() > 0) {
+			if(path.size() > 0) {
 				auto next_dest = path.at(path.size() - 1);
-				n.set_arrival_time(arrival_time_to(state, n, next_dest));
+				update_movement_arrival_days_on_unit(state, next_dest, n.get_location_from_navy_location(), n.id);
 			} else {
 				n.set_arrival_time(sys::date{});
+				n.set_unused_travel_days(0.0f);
 				if(n.get_is_retreating()) {
-					if(dest.index() >= state.province_definitions.first_sea_province.index())
-						navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{});
 					n.set_is_retreating(false);
 				}
 				if(n.get_moving_to_merge()) {
@@ -7987,6 +8513,50 @@ void update_movement(sys::state& state) {
 	}
 }
 
+template<typename T>
+void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army) {
+	auto arrival_data = military::arrival_time_to_in_days(state, army, to, from);
+	if constexpr(std::is_same<dcon::army_id, T>()) {
+		auto& unused_travel_days = state.world.army_get_unused_travel_days(army);
+		state.world.army_set_unused_travel_days(army, unused_travel_days + arrival_data.unused_travel_days);
+		if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+			state.world.army_set_arrival_time(army, state.current_date + (arrival_data.travel_days - 1));
+			state.world.army_set_unused_travel_days(army, unused_travel_days - 1.0f);
+		} else {
+			state.world.army_set_arrival_time(army, state.current_date + arrival_data.travel_days);
+		}
+	}
+	else {
+		auto& unused_travel_days = state.world.navy_get_unused_travel_days(army);
+		state.world.navy_set_unused_travel_days(army, unused_travel_days + arrival_data.unused_travel_days);
+		if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+			state.world.navy_set_arrival_time(army, state.current_date + (arrival_data.travel_days - 1));
+			state.world.navy_set_unused_travel_days(army, unused_travel_days - 1.0f);
+		} else {
+			state.world.navy_set_arrival_time(army, state.current_date + arrival_data.travel_days);
+		}
+	}
+	
+}
+template void update_movement_arrival_days_on_unit<dcon::army_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::army_id army);
+template void update_movement_arrival_days_on_unit<dcon::navy_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::navy_id army);
+
+
+template<typename T>
+void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon::province_id from, T army, float& unused_travel_days, sys::date& arrival_time) {
+	auto arrival_data = military::arrival_time_to_in_days(state, army, to, from);
+	unused_travel_days += arrival_data.unused_travel_days;
+	if(unused_travel_days >= 1.0f && arrival_data.travel_days != 1) {
+		arrival_time += (arrival_data.travel_days - 1);
+		unused_travel_days -= 1.0f;
+	} else {
+		arrival_time += arrival_data.travel_days;
+	}
+}
+
+template void update_movement_arrival_days<dcon::navy_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::navy_id army, float& unused_travel_days, sys::date& arrival_time);
+template void update_movement_arrival_days<dcon::army_id>(sys::state& state, dcon::province_id to, dcon::province_id from, dcon::army_id army, float& unused_travel_days, sys::date& arrival_time);
+
 float fractional_distance_covered(sys::state& state, dcon::army_id a) {
 	auto date = state.world.army_get_arrival_time(a);
 	if(!date)
@@ -8000,7 +8570,7 @@ float fractional_distance_covered(sys::state& state, dcon::army_id a) {
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
-	auto difference = full_time.value - state.current_date.value;
+	auto difference = full_time.arrival_time.value - state.current_date.value;
 	auto covered = date.value - state.current_date.value;
 
 	if(difference <= 0)
@@ -8021,7 +8591,7 @@ float fractional_distance_covered(sys::state& state, dcon::navy_id a) {
 	auto dest = *(p.end() - 1);
 	auto full_time = arrival_time_to(state, a, dest);
 
-	auto difference = full_time.value - state.current_date.value;
+	auto difference = full_time.arrival_time.value - state.current_date.value;
 	auto covered = date.value - state.current_date.value;
 
 	if(difference <= 0)
@@ -8047,7 +8617,7 @@ int32_t free_transport_capacity(sys::state& state, dcon::navy_id n) {
 	return transport_capacity(state, n) - used_total;
 }
 
-constexpr inline float siege_speed_mul = 1.0f / 50.0f;
+constexpr inline float siege_speed_mul = 1.0f / 37.5f;
 
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov) {
 	auto a = fatten(state.world, ar);
@@ -8062,19 +8632,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			continue;
 
 		auto path = province::make_land_path(state, prov, next_prov.p, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-
-			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-			state.world.army_set_dig_in(a, 0);
-
+		if(move_army_fast(state, a, path, controller)) {
 			break;
 		}
 	}
@@ -8084,19 +8642,7 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 			return;
 
 		auto path = province::make_land_path(state, prov, home, controller, a);
-		if(path.size() > 0) {
-			auto existing_path = state.world.army_get_path(a);
-
-			auto new_size = uint32_t(path.size());
-			existing_path.resize(new_size);
-
-			for(uint32_t i = new_size; i-- > 0; ) {
-				existing_path.at(i) = path[i];
-			}
-
-			state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-			state.world.army_set_dig_in(a, 0);
-		}
+		move_army_fast(state, a, path, controller);
 	}
 }
 
@@ -8234,15 +8780,14 @@ void update_siege_progress(sys::state& state) {
 			/*
 			Finally, the amount subtracted from the garrison each day is:
 			siege-speed-modifier x number-of-brigades-modifier x Progress-Table\[random-int-from-0-to-9\] x (1.25 if the owner is
-			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / Siege-Table\[effective-fort-level\]
+			sieging it back) x (1.1 if the sieger is not the owner but does have a core) / (effective_fort_level x define:ALICE_FORT_SIEGE_SLOWDOWN + 1.0)
 			*/
 
-			static constexpr float siege_table[] = { 0.25f, 1.0f, 2.0f, 2.8f, 3.4f, 3.8f, 4.2f, 4.5f, 4.8f, 5.0f, 5.2f };
 			static constexpr float progress_table[] = { 0.0f, 0.2f, 0.5f, 0.75f, 0.75f, 1, 1.1f, 1.1f, 1.25f, 1.25f };
 
 			float added_progress = siege_speed_modifier * num_brigades_modifier *
 				progress_table[rng::get_random(state, uint32_t(prov.value)) % 10] *
-				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / siege_table[effective_fort_level];
+				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / (effective_fort_level * state.defines.alice_fort_siege_slowdown + 1.0f);
 
 			auto& progress = state.world.province_get_siege_progress(prov);
 			state.world.province_set_siege_progress(prov, progress + siege_speed_mul * added_progress);
@@ -8255,14 +8800,14 @@ void update_siege_progress(sys::state& state) {
 				province to its owner's control without the owner participating, you get +2.5 relations with the owner.
 				*/
 
-				// if siege won from rebels : treat as rebel defeat
+				// if siege won from rebels : divide by reduction_after_reoccupation define
 				auto old_rf = state.world.province_get_rebel_faction_from_province_rebel_control(prov);
 				if(old_rf) {
 					for(auto pop : state.world.province_get_pop_location(prov)) {
-						//if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
-						auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.reduction_after_defeat;
-						pop_demographics::set_militancy(state, pop.get_pop().id, mil);
-						//}
+						if(pop.get_pop().get_rebel_faction_from_pop_rebellion_membership() == old_rf) {
+							auto mil = pop_demographics::get_militancy(state, pop.get_pop()) / state.defines.alice_rebel_reduction_after_reoccupation;
+							pop_demographics::set_militancy(state, pop.get_pop().id, mil);
+						}
 					}
 				}
 
@@ -8376,8 +8921,7 @@ void eject_ships(sys::state& state, dcon::province_id p) {
 
 		for(auto a : state.world.navy_get_army_transport(n)) {
 			a.get_army().set_location_from_army_location(sea_zone);
-			a.get_army().get_path().clear();
-			a.get_army().set_arrival_time(sys::date{});
+			stop_army_movement(state, a.get_army());
 		}
 	}
 }
@@ -8534,6 +9078,24 @@ void recover_org(sys::state& state) {
 		}
 	}
 }
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_army_movement(sys::state& state, dcon::army_id army) {
+	assert(army);
+	state.world.army_get_path(army).clear();
+	state.world.army_set_arrival_time(army, sys::date{ });
+	state.world.army_set_unused_travel_days(army, 0.0f);
+}
+
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_navy_movement(sys::state& state, dcon::navy_id navy) {
+	assert(navy);
+	state.world.navy_get_path(navy).clear();
+	state.world.navy_set_arrival_time(navy, sys::date{ });
+	state.world.navy_set_unused_travel_days(navy, 0.0f);
+}
+
+
+
 
 // Just a wrapper for regiment_get_strength and ship_get_strength where unit is unknown
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id) {
@@ -9161,7 +9723,7 @@ void advance_mobilizations(sys::state& state) {
 }
 
 bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle) {
-	return (state.world.naval_battle_get_start_date(battle) + days_before_retreat < state.current_date);
+	return state.world.naval_battle_get_avg_distance_from_center_line(battle) <= required_avg_dist_to_center_for_retreat(state);
 }
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle) {
 	return (state.world.land_battle_get_start_date(battle) + days_before_retreat < state.current_date);
@@ -9360,21 +9922,132 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 		}
 	} else {
 		auto path = province::make_land_path(state, start, dest, by, a);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.army_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
+		if(move_army_fast(state, a, path, by)) {
+			state.world.army_set_moving_to_merge(a, true);
 		}
-		state.world.army_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.army_set_moving_to_merge(a, true);
 	}
 }
+
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset) {
+	if(naval_path.size() > 0) {
+		auto existing_path = state.world.navy_get_path(navy);
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
+		}
+		auto append_size = uint32_t(naval_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = naval_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_info = military::arrival_time_to(state, navy, naval_path.back());
+			state.world.navy_set_arrival_time(navy, arrival_info.arrival_time);
+			state.world.navy_set_unused_travel_days(navy, arrival_info.unused_travel_days);
+		}
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<ai_path_length path_length_to_use>
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
+	if(reset || state.world.navy_get_path(navy).size() == 0) {
+		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_fast(state, navy, naval_path, reset);
+	} else {
+		auto from_prov = state.world.navy_get_path(navy).at(0);
+		auto naval_path = province::make_naval_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
+		if constexpr(path_length_to_use.length != 0) {
+			while(naval_path.size() > path_length_to_use.length) {
+				naval_path.erase(naval_path.begin());
+			}
+
+		}
+		return move_navy_fast(state, navy, naval_path, reset);
+	}
+
+}
+
+template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+
+
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool reset) {
+	if(army_path.size() > 0) {
+		auto existing_path = state.world.army_get_path(army);
+		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
+		if(reset) {
+			existing_path.clear();
+		}
+
+		auto append_size = uint32_t(army_path.size());
+		auto old_size = existing_path.size();
+		auto new_size = old_size + append_size;
+		existing_path.resize(new_size);
+
+		for(uint32_t i = old_size; i-- > 0; ) {
+			existing_path.at(append_size + i) = existing_path.at(i);
+		}
+		for(uint32_t i = 0; i < append_size; ++i) {
+			existing_path.at(i) = army_path[i];
+		}
+
+		if(existing_path.at(new_size - 1) != old_first_prov) {
+			auto arrival_data = military::arrival_time_to(state, army, army_path.back());
+			state.world.army_set_arrival_time(army, arrival_data.arrival_time);
+			state.world.army_set_unused_travel_days(army, arrival_data.unused_travel_days);
+		}
+
+		state.world.army_set_dig_in(army, 0);
+		return true;
+	} else {
+		return false;
+	}
+}
+
+template<ai_path_length path_length_to_use>
+bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
+	bool blackflag = state.world.army_get_black_flag(army);
+	if(reset || state.world.army_get_path(army).size() == 0) {
+		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+
+		}
+		return move_army_fast(state, army, army_path, nation_as, reset);
+
+	} else {
+		auto from_prov = state.world.army_get_path(army).at(0);
+		auto army_path = blackflag ? province::make_unowned_land_path(state, from_prov, destination) : province::make_land_path(state, from_prov, destination, nation_as, army);
+		if constexpr(path_length_to_use.length != 0) {
+			while(army_path.size() > path_length_to_use.length) {
+				army_path.erase(army_path.begin());
+			}
+		}
+		return move_army_fast(state, army, army_path, nation_as, reset);
+	}
+}
+
+template bool move_army_fast<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_fast < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
 	if(state.world.nation_get_is_player_controlled(by) == false)
 		return; // AI doesn't use rally points or templates
@@ -9394,20 +10067,11 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 			}
 		}
 	} else {
-		auto path = province::make_naval_path(state, start, dest);
-		if(path.empty())
-			return;
-
-		auto existing_path = state.world.navy_get_path(a);
-		auto new_size = uint32_t(path.size());
-		existing_path.resize(new_size);
-
-		for(uint32_t k = 0; k < new_size; ++k) {
-			assert(path[k]);
-			existing_path[k] = path[k];
+		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
+		if(!path.empty()) {
+			military::move_navy_fast(state, a, path);
+			state.world.navy_set_moving_to_merge(a, true);
 		}
-		state.world.navy_set_arrival_time(a, military::arrival_time_to(state, a, path.back()));
-		state.world.navy_set_moving_to_merge(a, true);
 	}
 }
 

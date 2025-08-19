@@ -359,8 +359,8 @@ enum class message_base_type : uint8_t {
 	invention = 23, // added
 	tech = 24, // added
 	leader_dies = 25, // added
-	land_combat_starts = 26,
-	naval_combat_starts = 27,
+	land_combat_starts_on_nation = 26,
+	naval_combat_starts_on_nation = 27,
 	movement_finishes = 28,
 	decision = 29, // added
 	lose_great_power = 30, // added
@@ -410,7 +410,9 @@ enum class message_base_type : uint8_t {
 	embargo = 74,
 	free_trade_agreement = 75,
 	trade_rights_revoked = 76,
-	count = 77,
+	naval_combat_starts_by_nation = 77,
+	land_combat_starts_by_nation = 78,
+	count = 79,
 };
 
 struct msg_setting_entry {
@@ -452,10 +454,10 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::invention,				message_setting_type::count,				message_setting_type::count}, //invention = 23, // added
 	msg_setting_entry{ message_setting_type::tech,					message_setting_type::count,				message_setting_type::count}, //tech = 24, // added
 	msg_setting_entry{ message_setting_type::leader_dies,			message_setting_type::count,				message_setting_type::count}, //leader_dies = 25, // added
-	msg_setting_entry{ message_setting_type::count,					message_setting_type::land_combat_starts_on_nation,
-																												message_setting_type::count}, //land_combat_starts = 26,
-	msg_setting_entry{ message_setting_type::count,					message_setting_type::naval_combat_starts_on_nation,
-																												message_setting_type::count}, //naval_combat_starts = 27,
+	msg_setting_entry{ message_setting_type::land_combat_starts_on_nation,					message_setting_type::count,
+																												message_setting_type::count}, //land_combat_starts_on_nation = 26,
+	msg_setting_entry{ message_setting_type::naval_combat_starts_on_nation,					message_setting_type::count,
+																												message_setting_type::count}, //naval_combat_starts_on_nation = 27,
 	msg_setting_entry{ message_setting_type::movement_finishes,	message_setting_type::count,				message_setting_type::count}, //movement_finishes = 28,
 	msg_setting_entry{ message_setting_type::decision,				message_setting_type::count,				message_setting_type::count}, //decision = 29, // added
 	msg_setting_entry{ message_setting_type::lose_great_power,		message_setting_type::count,				message_setting_type::count}, //lose_great_power = 30, // added
@@ -535,6 +537,10 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
 	msg_setting_entry{ message_setting_type::chat_message, message_setting_type::count, message_setting_type::count },//chat_message = 73,
 	msg_setting_entry{ message_setting_type::embargo_by_nation, message_setting_type::embargo_on_nation, message_setting_type::count },//embargo = 74,
+	msg_setting_entry{ message_setting_type::count, message_setting_type::count, message_setting_type::count },//free_trade_agreement = 75,
+	msg_setting_entry{ message_setting_type::count, message_setting_type::count, message_setting_type::count },//trade_rights_revoked = 76,,
+	msg_setting_entry{ message_setting_type::naval_combat_starts_by_nation,					message_setting_type::count, message_setting_type::count }, //naval_combat_starts_by_nation = 77,
+	msg_setting_entry{ message_setting_type::land_combat_starts_by_nation,					message_setting_type::count, message_setting_type::count }, //naval_combat_starts_by_nation = 78,
 
 
 };

@@ -975,18 +975,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
-				bool fail = false;
-				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+				bool can_move = [this, prov]() {
+					for(auto a : selected_armies) {
+						auto army_loc = world.army_get_location_from_army_location(a);
+						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+					for(auto a : selected_navies) {
+						auto navy_loc = world.navy_get_location_from_navy_location(a);
+						if(!command::can_move_retreat_or_stop_navy(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				if(!fail) {
+					return true;
+
+				}();
+
+				if(can_move) {
 					auto c = world.province_get_nation_from_province_control(prov);
 					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
 						window::change_cursor(*this, window::cursor_type::hostile_move);
@@ -1208,8 +1214,16 @@ void state::on_create() {
 	}
 	// Nudge, overriden by V2 to be 0 always
 	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
-	// Find the object id for the main_bg displayed (so we display it before the map)
-	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	// Find the object id for the main_bg displayed (so we display it before the map).
+	// It is the background from topbar windows
+	if(ui_state.defs_by_name.find(lookup_key("bg_main_menus")) != ui_state.defs_by_name.end()) {
+		ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	}
+	else if (ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus")) != ui_state.gfx_by_name.end()){
+		// If some mod has removed the GUI element of background in topbar windows, resort to searching for the GFX by name
+		ui_state.bg_gfx_id = ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus"))->second;
+	}
+	// Otherwise the map will be floating in the void
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
 	{
@@ -2436,7 +2450,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
-		assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
+		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
 		if(directory_file_count == 0)
 			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
@@ -4622,11 +4636,24 @@ void state::single_game_tick() {
 	}
 
 	/*
-	 * END OF DAY: update cached data
-	 */
+	* END OF DAY: update cached data
+	*/
 
-	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-	player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
+	for(auto n : world.in_nation) {
+		if(!n.get_is_player_controlled())
+			continue;
+
+		if(!find_player_data_cache(n)) {
+			auto cache = sys::player_data{};
+			cache.nation = n;
+			player_data_cache.push_back(cache);
+		}
+		if(auto* cache = find_player_data_cache(n)) {
+			(*cache).treasury_record[current_date.value % 32] = nations::get_treasury(*this, n);
+			(*cache).population_record[current_date.value % 32] = world.nation_get_demographics(n, demographics::total);
+		}
+	}
+	
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {

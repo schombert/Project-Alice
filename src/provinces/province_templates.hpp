@@ -45,4 +45,13 @@ void for_each_province_in_state_instance(sys::state& state, dcon::state_instance
 		}
 	}
 }
+
+template<typename F>
+void for_each_province_building(sys::state& state, F const& function) {
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		function(t);
+	}
+}
+
+
 } // namespace province

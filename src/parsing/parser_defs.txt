@@ -72,6 +72,7 @@ modifier_base
 	max_tax                                   value      float            member_fn
 	min_military_spending                     value      float            member_fn
 	max_military_spending                     value      float            member_fn
+	min_land_upkeep                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
 	min_domestic_investment              value      float            member_fn
@@ -80,6 +81,7 @@ modifier_base
 	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
 	max_tariff                                value      float            member_fn
+	trade_routes_attraction                   value      float            member_fn
 	ruling_party_support                      value      float            member_fn
 	local_ruling_party_support                value      float            member_fn
 	rich_vote                                 value      float            member_fn
@@ -246,6 +248,7 @@ modifier_base
 	farmers_savings              value      float            member_fn
 	disallow_naval_trade              value      float            member_fn
 	disallow_land_trade              value      float            member_fn
+	fort_level 						value       float 			 member_fn
 
 religion_def
 	nation_modifier group     modifier_base    member_fn
@@ -271,7 +274,6 @@ building_definition
 	visibility           value    none              discard
 	onmap                value    none              discard
 	province             value    none              discard
-	fort_level           value    none              discard
 	pop_build_factory    value    none              discard
 	spawn_railway_track  value    none              discard
 	strategic_factory    value    none              discard

@@ -144,6 +144,30 @@ public:
 	}
 };
 
+class message_goto_button : public button_element_base {
+public:
+
+	void on_create(sys::state& state) noexcept override {
+		button_element_base::on_create(state);
+		set_button_text(state, "Goto");
+
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto prov_source = retrieve<dcon::province_id>(state, parent);
+		auto nation_source = retrieve<dcon::nation_id>(state, parent);
+
+		if(bool(prov_source)) {
+			state.map_state.center_map_on_province(state, prov_source);
+		}
+		else if(bool(nation_source)) {
+			auto capital = state.world.nation_get_capital(nation_source);
+			if(bool(capital)) {
+				state.map_state.center_map_on_province(state, capital);
+			}
+		}
+	}
+};
+
 class message_window : public window_element_base {
 	simple_text_element_base* count_text = nullptr;
 	int32_t index = 0;
@@ -200,11 +224,11 @@ public:
 		} else if(name.substr(0, 4) == "line") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "agreebutton") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "declinebutton") {
-			return make_element_by_type<invisible_element>(state, id);
-		} else if(name == "centerok") {
 			return make_element_by_type<message_dismiss_button>(state, id);
+		} else if(name == "declinebutton") {
+			return make_element_by_type<message_goto_button>(state, id);
+		} else if(name == "centerok") {
+			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "leftshield") {
 			return make_element_by_type<message_flag_button>(state, id);
 		} else if(name == "rightshield") {
@@ -275,6 +299,14 @@ public:
 			} else {
 				payload.emplace<notification::message*>(&(messages[index]));
 			}
+		}
+		else if(payload.holds_type<dcon::province_id>()) {
+			if(messages.empty()) {
+				payload.emplace<dcon::province_id>(dcon::province_id{});
+			} else {
+				payload.emplace<dcon::province_id>(messages[index].province_source);
+			}
+			return message_result::consumed;
 		}
 		return window_element_base::get(state, payload);
 	}

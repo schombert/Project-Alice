@@ -947,6 +947,36 @@ class top_unit_icon : public window_element_base {
 	}
 };
 
+class small_counter_attrition_icon : public image_element_base {
+public:
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		auto prov = retrieve<dcon::province_id>(state, parent);
+		if(prov.index() >= state.province_definitions.first_sea_province.index()) {
+			for(auto navy : state.world.province_get_navy_location(prov)) {
+				if(navy.get_navy().get_controller_from_navy_control() == state.local_player_nation && military::will_recieve_attrition(state, navy.get_navy())) {
+					visible = true;
+					return;
+				}
+			}
+		}
+		else {
+			for(auto army : state.world.province_get_army_location(prov)) {
+				if(army.get_army().get_controller_from_army_control() == state.local_player_nation && military::will_recieve_attrition(state, army.get_army())) {
+					visible = true;
+					return;
+				}
+			}
+		}
+		visible = false;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible)
+			image_element_base::render(state, x, y);
+	}
+
+};
+
 class small_top_unit_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
@@ -955,7 +985,10 @@ class small_top_unit_icon : public window_element_base {
 			return make_element_by_type<tl_strength>(state, id);
 		} else if(name == "frame_bg") {
 			return make_element_by_type<tl_frame_bg>(state, id);
-		} else {
+		} else if(name == "small_attrition_icon") {
+			return make_element_by_type< small_counter_attrition_icon>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}

@@ -1,3 +1,6 @@
+ui_element_name;Name: ?Y$x$?!
+ui_element_position;Position: X = ?Y$x$?! Y = ?Y$y$?!
+ui_element_size;Size: X = ?Y$x$?! Y = ?Y$y$?!
 PROVINCEVIEW_GOODSINCOME;Sold ?Y$x$?W ?Y$GOODS$?W for ?Y$VALUE$?W yesterday
 support_for_blank;support for $text$
 uh_support_for_blank;upper house support for $text$
@@ -1646,6 +1649,7 @@ pop_migration_attraction_bureaucracy;Bureaucracy base attraction: $x$
 alice_toggle_administration;Establish or abolish local administration. Administrations outside your control will not work. Consult administrative map mode to check existing administrations.
 administration_tile;Local administration
 market_tile;Local market
+rgo_tile_header;Natural source of ?Y$good$?W
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
@@ -1677,3 +1681,18 @@ alice_sort_pops;Sort Pops
 alice_sort_states;Sort States
 alice_topbar_avg_literacy_in_states;The average ?Yliteracy?W of our non-colonial population is ?Y$x$?W
 open_economy_scene;Open economy viewer
+alice_ship_in_supply_range;?GShip in supply range?W, closest port: ?O$x$?W
+alice_ship_not_in_supply_range;?RShip outside supply range?W, closest port: ?O$x$?W
+alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
+alice_supply_range_friendly_port;?GAdjacent to friendly port?W
+alice_supply_range_deep_waters;?RIn deep waters?W
+alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
+modifier_min_land_upkeep;Minimum Land Upkeep;
+alice_naval_noretreat;In order to be able to retreat, all alive ships must be on average ?O$x$?W closer to the center
+alice_str_name;Strength:?O$val$?W
+alice_naval_retreat_condition_1;Ships are close enough to the center
+alice_naval_retreat_condition_2;Not already retreating
+alice_naval_retreat_condition_3;Access to an available port
+alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us.
+alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislodge their defences.
+alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.

@@ -30,6 +30,25 @@ Then simply click on the `launch_alice` executable.
 - `readme OR ELSE.txt`: Contains relevant information, again, optional and it's fine if you don't have it.
 - `assets`: Folder NEEDED for Alice to work properly.
 
+### (Advanced) Command-line options of Windows Launcher
+
+- `-modsMask {mask}`, enables all the mods that match the mask.
+- `-outputScenario {name.bin}`: outputs scenario with a defined name.
+- `-autoBuild`: if set, builds scenario automatically and closes the launcher
+
+### (Advanced) Command-line options of Windows build
+
+- Specify the name of the .bin scenario to launch it.
+- `-host`: when set, launches multiplayer as host
+- `-join {ip}`: join the multiplayer game
+- `-name`: set player name
+- `-password`: enter lobby password
+- `-player_password`: set player password to protect your country
+- `-v6`: use IPv6
+- `-v4`: use IPv4
+- `-headless`: don't render the game UI, start the game immediately after launch
+- `-repeat`: if headless, immediately restart the game after the end of the previous one
+- `-speed`: set game speed
 
 ## Linux
 ### With Proton
@@ -41,7 +60,6 @@ Then simply click on the `launch_alice` executable.
 #### Without Proton (Distrobox)
 - [follow the instructions here](https://github.com/ComradeNiobe/project-alice-distrobox)
 
-
 ### Ubuntu/PopOS
 
 To install the game on Ubuntu/PopOS, follow the same steps for installation and download as for Windows until the point of launching `launch_alice`. At that point, download [Lutris](https://lutris.net).
@@ -51,6 +69,26 @@ Start Lutris and click on the Wine icon in the sidebar. An icon with an arrow po
 Now click on the + “Manually add a game” icon in the main menu's top left corner. Afterwards, select the last option to "Add a locally installed game". In the first window “Game Info” give the game a name (can be anything). Choose “Wine” as a runner from the pull down. In the second tab “Game options” locate your `launch_alice.exe` file and select it as your “Executable”. Ignore arguments and working directory. “Wine Prefix” I choose ~/Games/Project-Alice for example, and select 64bit for prefix architecture. Under “Runner options” you can choose different wine versions, if you have them. Ignore “System options” you can come in here later if you need to. “Save” and it will exit. if you don’t see you game in the list in Lutris, restart the app. There was a minor bug that won’t show launch banners until you have at least “one game” installed. It is unclear if this bug still exists.
 
 Now, the game should be ready to play from the Lutris main menu.
+
+### (Advanced) Command-line options of Linux Launcher
+
+- `-headless`: if set, it doesn't render launcher window
+- `-modsMask {mask}`, enables all the mods that match the mask.
+- `-outputScenario {name.bin}`: outputs scenario with a defined name.
+- `-autoBuild`: if set, builds scenario automatically and closes the launcher
+
+### (Advanced) Command-line options of Linux build
+
+- Specify the name of the .bin scenario to launch it.
+- `-test`: if set, uses vanilla content with `development_test_file.bin` scenario, builds scenario if necessary
+- `-host`: when set, launches multiplayer as host
+- `-join {ip}`: join the multiplayer game
+- `-name`: set player name
+- `-password`: enter lobby password
+- `-player_password`: set player password to protect your country
+- `-v6`: use IPv6
+- `-v4`: use IPv4
+- `-headless`: don't render the game UI, start the game immediately after launch
 
 ## Installation troubleshooting guide
 
@@ -66,7 +104,6 @@ Please refer to this before opening a tech support ticket.
 - Ctrl-0, Ctrl-1, ..., Ctrl-9: Add units to the control group #1, #2, ..., #9. Will show in outliner between parenthesis for the unit, one unit may be on multiple groups
 - 0, 1, ..., 9: Select the units in control group #1, #2, ..., #9
 - Shift-0, Shift-1, ..., Shift-9: Append select the units in control group #1, #2, ..., #9
-- Tilde (~): Open console
 - Arrow keys: Move on the map
 - WASD: Move the map (only if WASD movement is turned on in settings)
 - Holding shift + Arrow keys: Move faster on the map
@@ -88,6 +125,8 @@ Please refer to this before opening a tech support ticket.
 - Numpad -: Decrease speed
 - s: Split unit
 - r: Reorganize unit (create new unit from existing)
+- Tilde (~): Open console
+- TAB: open lobby.
 
 Other controls are described directly on the tooltip (for example, right clicking to add a technology to the queue).
 
