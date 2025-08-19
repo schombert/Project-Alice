@@ -178,7 +178,7 @@ public:
 							break;
 						}
 					}
-					if(!cb_fabbed) {
+					if(!cb_fabbed && state.defines.alice_can_add_constructable_cbs_as_wargoals != 0.f) {
 						if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 							continue; // can only add a constructable cb this way
 
@@ -196,6 +196,7 @@ public:
 							}
 						}
 					} else {
+						// CB has been pre-fabricated
 						row_contents.push_back(cb_type);
 						continue;
 					}
