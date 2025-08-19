@@ -10093,6 +10093,12 @@ bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon:
 template<ai_path_length path_length_to_use>
 bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
+
+	// When AI takes over the nation (on tag swaps, players leaving or not joining on savegame load), AI armies can have leftover special orders
+	if(!state.world.nation_get_is_player_controlled(nation_as)) {
+		state.world.army_set_special_order(army, (uint8_t)military::special_army_order::none);
+	}
+
 	if(reset || state.world.army_get_path(army).size() == 0) {
 		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
 		if constexpr(path_length_to_use.length != 0) {
