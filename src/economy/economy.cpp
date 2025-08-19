@@ -4111,7 +4111,7 @@ void resolve_constructions(sys::state& state) {
 			}
 
 			// US2AC5. But no faster than construction_time
-			if(!state.cheat_data.instant_army) {
+			if(!state.cheat_data.instant_navy) {
 				if(state.current_date < c.get_start_date() + construction_time) {
 					ready_for_deployment = false;
 				}

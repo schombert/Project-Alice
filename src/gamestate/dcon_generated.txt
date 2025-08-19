@@ -4375,6 +4375,10 @@ object {
 		
 	}
 	property {
+		name{ overlord_commanding_units }
+		type{ bitfield }
+	}
+	property {
 		name{ averge_land_unit_score }
 		type{ float }
 		

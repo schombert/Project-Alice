@@ -2746,6 +2746,24 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	return shp.id;
 }
 
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit) {
+	auto army_controller = state.world.army_get_controller_from_army_control(unit);
+	auto potential_overlord = state.world.nation_get_overlord_as_subject(army_controller);
+	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(army_controller)) {
+		return state.world.overlord_get_ruler(potential_overlord);
+	}
+	return army_controller;
+}
+
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit) {
+	auto navy_controller = state.world.navy_get_controller_from_navy_control(unit);
+	auto potential_overlord = state.world.nation_get_overlord_as_subject(navy_controller);
+	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(navy_controller)) {
+		return state.world.overlord_get_ruler(potential_overlord);
+	}
+	return navy_controller;
+}
+
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
 	auto ur = state.world.get_unilateral_relationship_by_unilateral_pair(target, accessing_nation);
 	if(!ur) {
@@ -2911,6 +2929,12 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 			navy_arrives_in_province(state, o.get_navy(), loc);
 	}
 }
+
+
+void give_back_units(sys::state& state, dcon::nation_id target) {
+	state.world.nation_set_overlord_commanding_units(target, false);
+}
+
 
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n) {
 	for(auto p : state.world.war_get_war_participant(w)) {

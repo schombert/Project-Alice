@@ -288,6 +288,55 @@ public:
 };
 
 
+
+
+
+class diplomacy_action_command_units_button : public diplomacy_action_btn_logic {
+public:
+	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {
+		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+			return state.lookup_key("CANCEL_UNIT_COMMAND_BUTTON");
+		} else {
+			return state.lookup_key("GIVE_UNIT_COMMAND_BUTTON");
+		}
+	}
+
+	bool is_available(sys::state& state, dcon::nation_id target) noexcept override {
+		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+			return command::can_give_back_units(state, state.local_player_nation, target);
+		} else {
+			return command::can_command_units(state, state.local_player_nation, target);
+		}
+	}
+
+
+	void button_action(sys::state& state, dcon::nation_id target, ui::element_base* parent) noexcept override {
+		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+			command::give_back_units(state, state.local_player_nation, target);
+		} else {
+			command::command_units(state, state.local_player_nation, target);
+		}
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
+
+		text::add_line_with_condition(state, contents, "alice_command_units_condition_1", nations::is_nation_subject_of(state, target, state.local_player_nation), text::variable_type::nation, text::get_name(state, target));
+		text::add_line_with_condition(state, contents, "alice_command_units_condition_3", !state.world.nation_get_is_player_controlled(target));
+
+		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
+			
+		}
+		else {
+			auto asker_wars = state.world.nation_get_war_participant(state.local_player_nation);
+			auto target_wars = state.world.nation_get_war_participant(target);
+
+			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.begin() && target_wars.begin() != target_wars.begin());
+		}
+	}
+};
+
+
+
 class diplomacy_action_ally_button : public diplomacy_action_btn_logic {
 public:
 	dcon::text_key get_name(sys::state& state, dcon::nation_id target) noexcept override {

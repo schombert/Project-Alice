@@ -1698,3 +1698,6 @@ alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislo
 alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.
 alice_truce_with_explain;?Y$WAR$?W: Have truce with ?Y$NATION$?W. Truce lasts until $DATE$
 alice_declarewar_truce_with_explain;?Y$NATION$?W: Have truce with ?Y$TARGET$?W. Truce lasts until $DATE$
+alice_command_units_condition_1;?Y$NATION$?W is our subject
+alice_command_units_condition_2;Both you and the target is at war
+alice_command_units_condition_3;Target is not a player

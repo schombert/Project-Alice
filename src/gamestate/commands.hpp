@@ -117,25 +117,27 @@ enum class command_type : uint8_t {
 		toggle_local_administration = 108,
 		stop_army_movement = 109,
 		stop_navy_movement = 110,
+		command_units = 111,
+		give_back_units = 112,
 
 		// network
-		notify_player_ban = 111,
-		notify_player_kick = 112,
-		notify_player_picks_nation = 113,
-		notify_player_joins = 114,
-		notify_player_leaves = 115,
-		notify_player_oos = 116,
-		notify_save_loaded = 117,
-		notify_start_game = 118, // for synchronized "start game"
-		notify_stop_game = 119, // "go back to lobby"
-		notify_pause_game = 120, // visual aid mostly
-		notify_reload = 121,
-		advance_tick = 122,
-		chat_message = 123,
-		network_inactivity_ping = 124,
-		notify_player_fully_loaded = 125, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
-		notify_player_is_loading = 126, // host sends this to all clients to notify that a specific client has begun loading
-		change_ai_nation_state = 127, // host sends this to new clients to inform them of no-ai nations, which arent players. 
+		notify_player_ban = 237,
+		notify_player_kick = 238,
+		notify_player_picks_nation = 239,
+		notify_player_joins = 240,
+		notify_player_leaves = 241,
+		notify_player_oos = 242,
+		notify_save_loaded = 243,
+		notify_start_game = 244, // for synchronized "start game"
+		notify_stop_game = 245, // "go back to lobby"
+		notify_pause_game = 246, // visual aid mostly
+		notify_reload = 247,
+		advance_tick = 248,
+		chat_message = 249,
+		network_inactivity_ping = 250,
+		notify_player_fully_loaded = 251, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
+		notify_player_is_loading = 252, // host sends this to all clients to notify that a specific client has begun loading
+		change_ai_nation_state = 253, // host sends this to new clients to inform them of no-ai nations, which arent players. 
 
 	// console cheats
 	network_populate = 254,
@@ -524,6 +526,10 @@ struct stop_navy_movement_data {
 	dcon::navy_id navy;
 };
 
+struct command_units_data {
+	dcon::nation_id target;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -597,6 +603,7 @@ struct payload {
 		change_ai_nation_state_data change_ai_nation_state;
 		stop_army_movement_data stop_army_movement;
 		stop_navy_movement_data stop_navy_movement;
+		command_units_data command_units;
 
 		dtype() { }
 	} data;
@@ -795,6 +802,12 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id asker, dco
 
 void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);
+
+bool can_give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+void give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+
+bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
+void command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target);
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call = false);
 void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call);

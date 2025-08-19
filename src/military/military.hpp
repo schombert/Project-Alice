@@ -349,6 +349,8 @@ bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general);
 void kill_leader(sys::state& state, dcon::leader_id l);
 
+void give_back_units(sys::state& state, dcon::nation_id target);
+
 // tests whether joining the war would violate the constraint that you can't both be in a war with and
 // fighting against the same nation or fighting against them twice
 bool joining_war_does_not_violate_constraints(sys::state const& state, dcon::nation_id a, dcon::war_id w, bool as_attacker);
@@ -444,6 +446,9 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
+
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit);
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);

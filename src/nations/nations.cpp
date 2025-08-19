@@ -687,6 +687,13 @@ void generate_initial_state_instances(sys::state& state) {
 	}
 }
 
+bool is_commanding_subject_units(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	if(nations::is_nation_subject_of(state, subject, overlord)) {
+		return state.world.nation_get_overlord_commanding_units(subject);
+	}
+	return false;
+}
+
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
 	auto target_nation = state.world.national_identity_get_nation_from_identity_holder(releasable);
 	if(!state.world.national_identity_get_is_not_releasable(releasable) &&
@@ -1928,6 +1935,12 @@ void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_i
 		for(auto& msg : state.ui_state.chat_messages)
 			if(bool(msg.source) && msg.source == old_n)
 				msg.source = new_n;
+	}
+	if(state.current_scene.game_in_progress) {
+		// give back units if puppet becomes player controlled. This is also done when the game starts and goes from lobby to game in progress
+		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
+			military::give_back_units(state, new_n);
+		}
 	}
 
 }

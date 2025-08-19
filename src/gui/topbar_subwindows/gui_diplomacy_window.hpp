@@ -2272,8 +2272,10 @@ public:
 		set_text(state, text::produce_simple_string(state, "tut_8c_3"));
 	}
 };
-inline const int DiplomaticActionsRows = 10;
+inline const int DiplomaticActionsRows = 11;
 
+
+inline static diplomacy_action_command_units_button diplomacy_action_command_units_button_s;
 inline static diplomacy_action_ally_button diplomacy_action_ally_button_s;
 inline static diplomacy_action_call_ally_button diplomacy_action_call_ally_button_s;
 inline static diplomacy_action_military_access_button diplomacy_action_military_access_button_s;
@@ -2306,7 +2308,8 @@ inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows
 	&diplomacy_action_war_subisides_button_s,
 	&diplomacy_action_declare_war_button_s,
 	&diplomacy_action_release_subject_button_s,
-	&diplomacy_action_ask_free_trade_agreement_s
+	&diplomacy_action_ask_free_trade_agreement_s,
+	&diplomacy_action_command_units_button_s
 };
 inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_discredit_button_s,

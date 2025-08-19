@@ -37,7 +37,7 @@ struct message {
 	dcon::nation_id from; //2
 	dcon::nation_id to; //2
 	type_t type = diplomatic_message::type_t::none; //1
-	bool automatic_call = false; //1
+	bool automatic_call = false; // This was 1 byte padding previously, now used for checking if war call-to-arms were done automatically (by attacker by having the "call all allies" btn checked, or defender allies when they are automatically called when declared on
 
 	message() : type(diplomatic_message::type_t::none) { }
 };
