@@ -13,27 +13,27 @@ no_effect;没有效果
 move_capital_to;迁都至
 add_x_core;增加 $adj$ 核心
 add_core_to;添加核心到
-remove_x_core;移除 $adj$ 核心
+remove_x_core;移除 ?Y$adj$?W 核心
 remove_core_from;移出势力范围
-change_name_to;名称变成 $text$
-change_terrain_to;地形变成 $text$
-change_rgo_production_to;原材料变成$text$
-make_accepted_culture;$text$成为可接受民族
-primary_culture_changes_to;主体民族变成$text$
+change_name_to;名称变成 ?Y$text$?W
+change_terrain_to;地形变成 ?Y$text$?W
+change_rgo_production_to;原料变成 ?Y$text$?W
+make_accepted_culture;$text$ 是可接受民族
+primary_culture_changes_to;主体民族变成 ?Y$text$?W
 union_culture_accepted;接受主体民族文化圈中的所有民族
-remove_accepted_culture;$text$不再为可接受民族
-increase_national_variable_by;国家变量 $text$ 提高 $value$
-decrease_national_variable_by;国家变量 $text$ 降低 $value$
+remove_accepted_culture;$text$ 不再是可接受民族
+increase_national_variable_by;国家变量 ?Y$text$?W 提高 ?Y$value$?W
+decrease_national_variable_by;国家变量 ?Y$text$?W 降低 ?Y$value$?W
 life_rating;生活条件
-make_national_religion;$text$ 成为国教
-make_slave_state;成为蓄奴区
-make_slave_pop;成为奴隶
+make_national_religion;?Y$text$?W 是国教
+make_slave_state;成为?Y蓄奴区?W
+make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
-change_tech_school;科研学派变成 $text$
-change_government_to;政体变成 $text$
+change_tech_school;科研学派变成 ?Y$text$?W
+change_government_to;政体变成 ?Y$text$?W
 add_to_treasury;添加到国库
 war_exhaustion;厌战度
-become_blank;成为 $text$
+become_blank;成为 ?Y$text$?W
 player_control_change;玩家操作国家变成 $text$
 set_national_flag;设置国家变量 $text$
 remove_national_flag;移除国家变量 $text$
@@ -106,7 +106,7 @@ add_cb_reversed_months;$text$在 $date$ 之前对此国有 $name$ 宣战理由
 add_cb_reversed_no_months;$text$ 获得 $name$ 宣战理由针对此国
 remove_cb_reversed;失去所有 $name$ 宣战理由针对 $text$
 remove_cb;$text$ 失去 $name$ 宣战理由针对此国
-set_national_variable_to;国家变量 $text$ 设为 $value$
+set_national_variable_to;国家变量 ?Y$text$?W 设为 ?Y$value$?W
 event_fires;已触发事件 $text$
 event_fires_in_days;事件 $text$ 在 $value$ 天内触发
 railroad_in_capital;首都铁路等级?G+1?!
@@ -470,7 +470,7 @@ from_nat_religion;来自此国国教
 event_show_requirements;此事件的条件：
 event_only_other_requirements;此事件只会由其他事件触发
 event_show_odds;事件几率
-value_mod_product;$val$ 产物：
+value_mod_product;$val$ 结果：
 value_mod_sum;$val$ 总计：
 value_mod_sum_factor;影响力 $val$ 是 $x$（乘积）：
 admin_explain_1;行政效率修正：$val$
@@ -516,7 +516,7 @@ voting_rules;投票规则：
 hide_decision;隐藏此决议通知
 sup_point_gain;每月镇压点增加：?G+$val$
 sup_point_explain;来自：基础比例 $x$× 来自官僚的 $y$× 来自镇压点数修正的 $val$
-pop_size_1;下月人群预计变化：
+pop_size_1;下月人群变化预计：
 pop_size_2;来自增长：
 pop_size_3;来自升降职：
 pop_size_4;来自同化：
@@ -589,7 +589,7 @@ pop_lit_5;国内教育效率修正：$x$
 pop_lit_6;国内教育效率修正：$x$
 pop_lit_7;基础识字率变化率：$x$
 pop_lit_8;和 0.01
-pop_growth_topbar;预计下月增长速度将达到 ?G$x$?W
+pop_growth_topbar;下月增长速度预计： ?G$x$?W
 pop_growth_topbar_2;人口变化幅度 ?G$x$?W 在最后 ?Y30?W 天。
 pop_growth_topbar_3;我国成年男性人口：?Y$curr$?W。我们男人
 pop_growth_topbar_4;我国总人口：?Y$val$?W。
@@ -913,7 +913,7 @@ alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$ 未准备
 alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
-alice_stockpile_button_1_1;我明白了，好吧，现在我不会说任何话，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
+alice_stockpile_button_1_1;我明白了，好吧，现在我不会继续说，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
 alice_stockpile_button_2_0;我是没用按钮，继续吧
 alice_stockpile_button_3_0;和朋友玩不是嘛? ?Remmm，祝你好运，你会需要它的对不对？?W
@@ -949,7 +949,7 @@ o_add_modifier_until;省份拥有者获得 $text$ 直到 $date$
 o_add_modifier;省份拥有者获得 $text$
 o_relations_with;省份拥有者与 $text$ 的关系
 o_add_to_treasury;为了省份拥有者
-w_rgo_prod;全球原材料生产：$x$
+w_rgo_prod;全球原料生产：$x$
 w_artisan_prod;全球工匠生产
 w_artisan_profit;国内工匠利润
 w_artisan_distribution;国内工匠分布
@@ -1088,7 +1088,7 @@ alice_topbar_tab_1;开关标签
 alice_topbar_tab_2;开关人口标签
 colonial_points_from_technology;来自技术：
 colonial_points_from_naval_bases;来自海军基地：
-colonial_points_from_ships;来自舰艇：
+colonial_points_from_ships;来自舰船：
 used_colonial_maintenance;维护现有殖民地：
 topbar_pause_speed;暂停游戏，再次点击取消暂停
 att_call_will_accept;$x$会参加你的战争
@@ -1103,7 +1103,7 @@ alice_supply_limit_desc;补给上限：$x$
 alice_factory_worker_1;雇佣：?G$x$?W
 alice_factory_worker_2;失业：?R$x$?W
 alice_rgo_unemployment_country_alert;下列地区有失业者：
-pop_promote_info_on_sel_2;$val$ 预计下月 $who$ 将变动 $where$
+pop_promote_info_on_sel_2;$val$ 下月预计 $who$ 到 $where$
 alice_readme;?G欢迎来到 Project Alice！?W\nProject Alice 是你最喜欢的维多利亚时代游戏的模仿（而不是模拟！）。我们调整了一些机制，使其更易被新玩家理解，也使游戏更动态，更具娱乐性，修复了旧有漏洞（如危机），并实现了新的生活条件功能。\n?G新功能!?W\n?Y地球仪?W：?G褒?W?R贬?W不一，如果你不喜欢就关掉吧！\n?Y科技队列?W：SHIFT+右键将科技加入研发队列！（单击右键取消）\n?Y国内投资?W：与其在单个项目上投资，不如一气呵成\n?Y性能?W：每秒的滴答数（不是FPS）至少快了 10 倍\n?Y检查器?W：在您的模组中获取覆盖错误和警告，轻松发现错误和错字\n?Y部队模板?W：使用我们的部队模板构建由不同兵种组成的部队模板\n?Y11 种新的地图模式?W：宗教，要塞，职业情况，诸如此类\n?Y全国建造?W：SHIFT+右键在全国进行建造！\n?G控制?W：\n?YTAB?W：打开聊天窗口\n?YESC?W：打开主菜单和设置菜单\n?Y波浪符（`或~）?W：打开控制台\n?G享受游戏吧！=^w^=?W
 alice_nf_controls;?Y左键点击?W以选择或替代\n?Y右键点击?W以移除
 unit_controls_tooltip_1;?Y左键?W选择（取消选择其它）\n?YSHIFT+左键?W增加到选择中
@@ -1187,9 +1187,9 @@ alice_pnt_dominant_religion;?Y主要宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
 ledger_ppp_gdp;购买力平价GDP
 ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
-make_province_religion;省份人群变成 $text$
-make_pop_religion;变成 $text$
-make_pop_culture;变成 $text$
+make_province_religion;省份人群变成 ?Y$text$?W
+make_pop_religion;变成 ?Y$text$?W
+make_pop_culture;变成 ?Y$text$?W
 an_assigned_leader;已分配的将领
 leader_prestige;领袖威望
 chat_player_reload;$playername$ 已重新载入
@@ -1527,7 +1527,7 @@ alice_naval_coordination_bonus;$x$ 因低于敌舰规模而受到 ?R$y$?W 的海
 alice_naval_stacking_penalty;$x$ 因堆叠惩罚而受到 ?R$val$?W 的伤害倍增。
 alice_construction_cost;施工成本：
 alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
-alice_factory_construction_explain_4;预计总价：?Y$x$?W
+alice_factory_construction_explain_4;总价预计：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
 ledger_inflation_adjusted_gdp;GDP（通胀调整）
 ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
@@ -1573,7 +1573,7 @@ trade_center_employment;贸易中心雇员：?Y$value$?W
 trade_centre_max_throughput;最大量：?Y$value$?W
 local_admin;当地行政
 capital_admin;首都行政
-local_admin_spending;预计成本：?Y$value$?W
+local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业满足度：?Y$value$?W
 wage;工资：?Y$value$?W
@@ -1653,3 +1653,24 @@ factory_output_multiplier_lack_of_inputs;由于投入缺乏，这家工厂产出
 factory_output_multiplier_efficiency_inputs;为实现全功率输出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
 factory_output_multiplier_secondary_workers;雇佣的 ?Y经理和职员?W 为工厂提供 ?G$val$?W 产出乘数。
 factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$?W 产出乘数。
+giving_modifier;这会提供以下修正：
+religion_nation_modifier;多数人自称 ?Y$NAME$?!
+when;当时：
+alice_ship_in_supply_range;?G补给范围内的船?W，最近港口：?O$x$?W
+alice_ship_not_in_supply_range;?R补给范围外的船?W，最近港口：?O$x$?W
+alice_supply_range_distance;使用 ?O$x$?W/?O$y$?W 距离到最近港口
+alice_supply_range_friendly_port;?G睦邻友好港口?W
+alice_supply_range_deep_waters;?R在深水?W
+alice_ship_supply_range_unreachable;?R海军无法到达任何港口?W
+ui_element_name;名称：?Y$x$?!
+ui_element_position;位置：X = ?Y$x$?! Y = ?Y$y$?!
+ui_element_size;尺寸：X = ?Y$x$?! Y = ?Y$y$?!
+rgo_tile_header;自然资源 ?Y$good$?W
+alice_naval_noretreat;因撤退，幸存舰船必须 平均 ?O$x$?W 靠近中心
+alice_str_name;兵力：?O$val$?W
+alice_naval_retreat_condition_1;舰船可靠近中心
+alice_naval_retreat_condition_2;尚未撤退
+alice_naval_retreat_condition_3;访问可补给港口
+alice_navalattackitem_4;一支由 $DEFENDER$ 组成的敌舰队将被摧毁。
+alice_attackthem_4;我们在攻击 $DEFENDER$ 舰队，并尝试突破防御。
+alice_attackus_4;$ATTACKER$ 敌对势力开火。

@@ -14,6 +14,7 @@
 #include <Mstcpip.h>
 #include <ip2string.h>
 #include "pcp.h"
+using std::format;
 #else // NIX
 #include <netinet/in.h>
 #include <sys/socket.h>
@@ -21,6 +22,8 @@
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <fmt/chrono.h>
+using fmt::format;
 #endif // ...
 #include <string_view>
 #include "system_state.hpp"
@@ -648,23 +651,25 @@ static std::map<int, std::string> readableCommandTypes = {
 { 106,"switch_embargo_status" },
 { 107,"revoke_trade_rights" },
 { 108,"toggle_local_administration" },
-{ 110,"notify_player_ban" },
-{ 111,"notify_player_kick" },
-{ 112,"notify_player_picks_nation" },
-{ 113,"notify_player_joins" },
-{ 114,"notify_player_leaves" },
-{ 115,"notify_player_oos" },
-{ 116,"notify_save_loaded" },
-{ 117,"notify_start_game" },
-{ 118,"notify_stop_game" },
-{ 118,"notify_stop_game" },
-{ 119,"notify_pause_game" },
-{ 120,"notify_reload" },
-{ 121,"advance_tick" },
-{ 122,"chat_message" },
-{ 123,"network_inactivity_ping" },
-{ 124, "notify_player_fully_loaded" },
-{ 125, "notify_player_is_loading" },
+{109, "stop_army_movement" },
+{110, "stop_navy_movement" },
+{ 111,"notify_player_ban" },
+{ 112,"notify_player_kick" },
+{ 113,"notify_player_picks_nation" },
+{ 114,"notify_player_joins" },
+{ 115,"notify_player_leaves" },
+{ 116,"notify_player_oos" },
+{ 117,"notify_save_loaded" },
+{ 118,"notify_start_game" },
+{ 119,"notify_stop_game" },
+{ 120,"notify_pause_game" },
+{ 121,"notify_reload" },
+{ 122,"advance_tick" },
+{ 123,"chat_message" },
+{ 124,"network_inactivity_ping" },
+{ 125, "notify_player_fully_loaded" },
+{ 126, "notify_player_is_loading" },
+{ 127, "change_ai_nation_state" },
 { 255,"console_command" },
 };
 
@@ -846,7 +851,7 @@ void client_send_handshake(sys::state& state) {
 
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(std::string_view(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + "client:send:handshake"));
+	state.console_log(std::string_view(format("{:%d-%m-%Y %H:%M:%OS}", now) + "client:send:handshake"));
 #endif
 }
 
@@ -895,7 +900,7 @@ int client_process_handshake(sys::state& state) {
 
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:handshake");
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:handshake");
 #endif
 
 		state.network_state.handshake = false;
@@ -927,7 +932,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now)+ " host:send:handshake | assignednation:" + std::to_string(client.playing_as.index()));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now)+ " host:send:handshake | assignednation:" + std::to_string(client.playing_as.index()));
 #endif
 
 	/* Exit from handshake mode */
@@ -1017,7 +1022,7 @@ void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::na
 	}
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + "host:broadcast:cmd | type:notify_player_is_loading nation:" + std::to_string(nation.index()));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + "host:broadcast:cmd | type:notify_player_is_loading nation:" + std::to_string(nation.index()));
 #endif
 	write_player_nations(state);
 }
@@ -1042,7 +1047,7 @@ void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_
 	command::execute_command(state, c);
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(nation.index()));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(nation.index()));
 #endif
 	write_player_nations(state);
 }
@@ -1068,7 +1073,7 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 		socket_add_to_send_queue(client.send_buffer, &c, sizeof(c));
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(state.world.mp_player_get_nation_from_player_nation(player).index())
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(state.world.mp_player_get_nation_from_player_nation(player).index())
 		+ " | nickname: " + c.data.notify_join.player_name.to_string());
 #endif
 		
@@ -1122,7 +1127,7 @@ void send_savegame(sys::state& state, network::client_data& client, sys::checksu
 		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | (new->save_loaded) | checksum: " + sha512.hash(state.network_state.current_mp_state_checksum.to_char())
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | (new->save_loaded) | checksum: " + sha512.hash(state.network_state.current_mp_state_checksum.to_char())
 		+ " | target: " + std::to_string(c.data.notify_save_loaded.target.index()));
 		log_player_nations(state);
 #endif
@@ -1411,7 +1416,7 @@ int server_process_commands(sys::state& state, network::client_data& client) {
 		}
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:client_cmd | from:" + std::to_string(client.playing_as.index()) + " type:" + readableCommandTypes[uint32_t(client.recv_buffer.type)]);
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:client_cmd | from:" + std::to_string(client.playing_as.index()) + " type:" + readableCommandTypes[uint32_t(client.recv_buffer.type)]);
 #endif
 			});
 
@@ -1513,7 +1518,7 @@ void broadcast_save_to_single_client(sys::state& state, command::payload& c, cli
 	socket_add_to_send_queue(client.send_buffer, buffer, size_t(length));
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now)  + " host:send:save | to" + std::to_string(client.playing_as.index()) + " len: " + std::to_string(uint32_t(length)));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now)  + " host:send:save | to" + std::to_string(client.playing_as.index()) + " len: " + std::to_string(uint32_t(length)));
 #endif
 }
 
@@ -1600,7 +1605,7 @@ void send_and_receive_commands(sys::state& state) {
 					}
 #ifndef NDEBUG
 					const auto now = std::chrono::system_clock::now();
-					state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->source.index()) + " type:" + readableCommandTypes[(uint32_t(c->type))]);
+					state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->source.index()) + " type:" + readableCommandTypes[(uint32_t(c->type))]);
 #endif
 					// if the command could not be performed on the host, don't bother sending it to the clients
 					if(command::execute_command(state, *c)) {
@@ -1638,7 +1643,7 @@ void send_and_receive_commands(sys::state& state) {
 					if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 						const auto now = std::chrono::system_clock::now();
-						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
 						disconnect_client(state, client, false);
 						continue;
@@ -1647,7 +1652,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 					if(old_size != client.early_send_buffer.size()) {
 						const auto now = std::chrono::system_clock::now();
-						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 					}
 
 #endif
@@ -1657,7 +1662,7 @@ void send_and_receive_commands(sys::state& state) {
 					if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 						const auto now = std::chrono::system_clock::now();
-						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
 						disconnect_client(state, client, false);
 						continue;
@@ -1666,7 +1671,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 					if(old_size != client.send_buffer.size()) {
 						const auto now = std::chrono::system_clock::now();
-						state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to:" + std::to_string(client.playing_as.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 					}
 
 #endif
@@ -1688,7 +1693,7 @@ void send_and_receive_commands(sys::state& state) {
 				&state.network_state.recv_count, [&]() {
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
 				window::change_cursor(state, window::cursor_type::busy);
 				load_network_save(state, state.network_state.save_data.data());
@@ -1697,7 +1702,7 @@ void send_and_receive_commands(sys::state& state) {
 #ifndef NDEBUG
 				assert(mp_state_checksum.is_equal(state.session_host_checksum));
 				const auto noww = std::chrono::system_clock::now();
-				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(mp_state_checksum.to_char()));
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(mp_state_checksum.to_char()));
 				log_player_nations(state);
 #endif
 
@@ -1726,7 +1731,7 @@ void send_and_receive_commands(sys::state& state) {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:cmd | from:" + std::to_string(state.network_state.recv_buffer.source.index()) + "type:" + readableCommandTypes[uint32_t(state.network_state.recv_buffer.type)]);
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:cmd | from:" + std::to_string(state.network_state.recv_buffer.source.index()) + "type:" + readableCommandTypes[uint32_t(state.network_state.recv_buffer.type)]);
 #endif
 
 				command::execute_command(state, state.network_state.recv_buffer);
@@ -1755,7 +1760,7 @@ void send_and_receive_commands(sys::state& state) {
 			while(c) {
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(std::format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:send:cmd | type:" + readableCommandTypes[uint32_t(c->type)]);
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:send:cmd | type:" + readableCommandTypes[uint32_t(c->type)]);
 #endif
 				if(c->type == command::command_type::save_game) {
 					command::execute_command(state, *c);

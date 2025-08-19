@@ -117,7 +117,8 @@
       "hidden": true,
       "cacheVariables": {
         "CMAKE_C_COMPILER": "clang",
-        "CMAKE_CXX_COMPILER": "clang++"
+        "CMAKE_CXX_COMPILER": "clang++",
+        "CMAKE_POLICY_VERSION_MINIMUM": "3.5"
       },
       "condition": {
         "type": "equals",

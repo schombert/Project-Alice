@@ -136,9 +136,6 @@ public:
 	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return message_result::consumed;
 	}
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::no_tooltip;
-	}
 };
 
 class partially_transparent_image : public opaque_element_base {

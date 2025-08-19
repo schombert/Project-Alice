@@ -122,17 +122,20 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
 				if(army.get_path().size() > 0 && *(army.get_path().end() - 1) == path.back()) {
 					dt += (army.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
-
-					curprov = path.front();
-					for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
-						dt += military::movement_time_from_to(state, a, curprov, *provonpath);
-						curprov = *provonpath;;
+					float extra_days = army.get_unused_travel_days();
+					curprov = path.back();
+					for(auto iterator = path.rbegin() + 1; iterator != path.rend(); iterator++) {
+						auto provonpath = *iterator;
+						military::update_movement_arrival_days(state, provonpath, curprov, army.id, extra_days, dt);
+						curprov = provonpath;
 					}
 
 				}
 				else {
-					for(const auto provonpath : path) {
-						dt += military::movement_time_from_to(state, a, curprov, provonpath);
+					float extra_days = 0.0f;
+					for(auto iterator = path.rbegin(); iterator != path.rend(); iterator++) {
+						auto provonpath = *iterator;
+						military::update_movement_arrival_days(state, provonpath, curprov, army.id, extra_days, dt);
 						curprov = provonpath;
 					}
 				}
@@ -199,17 +202,21 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 					// if the first province on the actual unit path is the same as the calculated route, use the arrival time for a more accurate estimate
 					if(navy.get_path().size() > 0 && *(navy.get_path().end() - 1) == path.back()) {
 						dt += (navy.get_arrival_time().to_raw_value() - state.current_date.to_raw_value());
+						float extra_days = navy.get_unused_travel_days();
+						curprov = path.back();
+						for(auto iterator = path.rbegin() + 1; iterator != path.rend(); iterator++) {
+							auto provonpath = *iterator;
+							military::update_movement_arrival_days(state, provonpath, curprov, navy.id, extra_days, dt);
 
-						curprov = path.front();
-						for(auto provonpath = path.begin() + 1; provonpath != path.end(); ++provonpath) {
-							dt += military::movement_time_from_to(state, n, curprov, *provonpath);
-							curprov = *provonpath;;
+							curprov = provonpath;
 						}
 
 					}
 					else {
-						for(const auto provonpath : path) {
-							dt += military::movement_time_from_to(state, n, curprov, provonpath);
+						float extra_days = 0.0f;
+						for(auto iterator = path.rbegin(); iterator != path.rend(); iterator++) {
+							auto provonpath = *iterator;
+							military::update_movement_arrival_days(state, provonpath, curprov, navy.id, extra_days, dt);
 							curprov = provonpath;
 						}
 					}
@@ -231,6 +238,40 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 				}
 
 				text::close_layout_box(contents, box);
+			}
+		}
+		// use caching to avoid calling "closest_naval_range_port_with_distance" on every update as it could be computationally expensive
+		static ankerl::unordered_dense::map<dcon::province_id, military::naval_range_display_data, sys::province_hash> cached_naval_range_distances{};
+		// only show ship supply range information if the province is sea, and the selected navies are controlled by the player
+		if(prov.index() >= state.province_definitions.first_sea_province.index() && state.world.navy_get_controller_from_navy_control( state.selected_navies.front()) == state.local_player_nation) {
+			if(province::province_is_deep_waters(state, prov)) {
+				text::add_line(state, contents, "alice_supply_range_deep_waters");
+			}
+			else if(province::sea_province_is_adjacent_to_accessible_coast(state, prov, state.local_player_nation)) {
+				text::add_line(state, contents, "alice_supply_range_friendly_port");
+			}
+			else {
+
+				auto iterator = cached_naval_range_distances.find(prov);
+				military::naval_range_display_data values{};
+				// check if there is a cached value already, and if it is not out-of-date
+				if(iterator != cached_naval_range_distances.end() && iterator->second.timestamp == state.current_date) {
+					values = iterator->second;
+				}
+				else {
+					values = military::closest_naval_range_port_with_distance(state, prov, state.local_player_nation);
+					cached_naval_range_distances.insert_or_assign(prov, values);
+				}
+				if(bool(values.closest_port) && values.distance <= state.defines.supply_range * ( 1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range))) {
+					text::add_line(state, contents, "alice_ship_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.closest_port)));
+				}
+				else if(!bool(values.closest_port)) {
+					text::add_line(state, contents, "alice_ship_supply_range_unreachable");
+				}
+				else {
+					text::add_line(state, contents, "alice_ship_not_in_supply_range", text::variable_type::x, text::produce_simple_string(state, state.world.province_get_name(values.closest_port)));
+				}
+				text::add_line(state, contents, "alice_supply_range_distance", text::variable_type::x, text::fp_two_places{values.distance }, text::variable_type::y, text::fp_two_places{ state.defines.supply_range * (1.0f + state.world.nation_get_modifier_values(state.local_player_nation, sys::national_mod_offsets::supply_range)) });
 			}
 		}
 	}

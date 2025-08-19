@@ -2261,7 +2261,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// rgo/factories/artisans consumption
 	update_production_consumption(state);
-	
+
 	state.world.for_each_commodity([&](auto cid) {
 		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
 		bool already_known_to_exist = state.world.commodity_get_actually_exists_in_nature(cid);
@@ -2321,7 +2321,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// we have to recalculate loan related variables every new round, because they depend on themselves
 
 	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
-	
+
 	for(auto n : state.nations_by_rank) {
 		if(!n) {
 			continue;
@@ -4358,6 +4358,10 @@ command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id
 		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_domestic_investment));
 		result.domestic_investment = int8_t(std::clamp(min_spend, 0, 100));
 	}
+	{
+		auto min_spend = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_land_upkeep));
+		result.land_spending = int8_t(std::clamp(min_spend, 0, 100));
+	}
 	return result;
 }
 command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n) {
@@ -4488,6 +4492,15 @@ void bound_budget_settings(sys::state& state, dcon::nation_id n) {
 
 		auto& v = state.world.nation_get_domestic_investment_spending(n);
 		state.world.nation_set_domestic_investment_spending(n, int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100)));
+	}
+	{
+		auto min_spend =
+			int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_land_upkeep));
+		auto max_spend = 100;
+		max_spend = std::max(min_spend, max_spend);
+
+		auto& v = state.world.nation_get_land_spending(n);
+		state.world.nation_set_land_spending(n, int8_t(std::clamp(std::clamp(int32_t(v), min_spend, max_spend), 0, 100)));
 	}
 }
 

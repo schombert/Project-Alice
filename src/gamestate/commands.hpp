@@ -115,25 +115,27 @@ enum class command_type : uint8_t {
 		switch_embargo_status = 106,
 		revoke_trade_rights = 107,
 		toggle_local_administration = 108,
+		stop_army_movement = 109,
+		stop_navy_movement = 110,
 
 		// network
-		notify_player_ban = 110,
-		notify_player_kick = 111,
-		notify_player_picks_nation = 112,
-		notify_player_joins = 113,
-		notify_player_leaves = 114,
-		notify_player_oos = 115,
-		notify_save_loaded = 116,
-		notify_start_game = 117, // for synchronized "start game"
-		notify_stop_game = 118, // "go back to lobby"
-		notify_pause_game = 119, // visual aid mostly
-		notify_reload = 120,
-		advance_tick = 121,
-		chat_message = 122,
-		network_inactivity_ping = 123,
-		notify_player_fully_loaded = 124, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
-		notify_player_is_loading = 125, // host sends this to all clients to notify that a specific client has begun loading
-		change_ai_nation_state = 126, // host sends this to new clients to inform them of no-ai nations, which arent players.
+		notify_player_ban = 111,
+		notify_player_kick = 112,
+		notify_player_picks_nation = 113,
+		notify_player_joins = 114,
+		notify_player_leaves = 115,
+		notify_player_oos = 116,
+		notify_save_loaded = 117,
+		notify_start_game = 118, // for synchronized "start game"
+		notify_stop_game = 119, // "go back to lobby"
+		notify_pause_game = 120, // visual aid mostly
+		notify_reload = 121,
+		advance_tick = 122,
+		chat_message = 123,
+		network_inactivity_ping = 124,
+		notify_player_fully_loaded = 125, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
+		notify_player_is_loading = 126, // host sends this to all clients to notify that a specific client has begun loading
+		change_ai_nation_state = 127, // host sends this to new clients to inform them of no-ai nations, which arent players. 
 
 	// console cheats
 	network_populate = 254,
@@ -414,8 +416,10 @@ struct new_admiral_data {
 	dcon::leader_id l;
 };
 
-struct naval_battle_data {
-	dcon::naval_battle_id b;
+struct retreat_from_naval_battle_data {
+	dcon::navy_id navy;
+	dcon::province_id dest;
+	bool auto_retreat;
 };
 
 struct land_battle_data {
@@ -512,6 +516,14 @@ struct change_ai_nation_state_data {
 	bool no_ai;
 };
 
+struct stop_army_movement_data {
+	dcon::army_id army;
+};
+
+struct stop_navy_movement_data {
+	dcon::navy_id navy;
+};
+
 struct payload {
 	union dtype {
 		national_focus_data nat_focus;
@@ -556,7 +568,7 @@ struct payload {
 		split_regiments_data split_regiments;
 		split_ships_data split_ships;
 		change_unit_type_data change_unit_type;
-		naval_battle_data naval_battle;
+		retreat_from_naval_battle_data retreat_from_naval_battle;
 		land_battle_data land_battle;
 		crisis_invitation_data crisis_invitation;
 		new_general_data new_general;
@@ -583,6 +595,8 @@ struct payload {
 		notify_player_kick_data notify_player_kick;
 		notify_player_oos_data notify_player_oos;
 		change_ai_nation_state_data change_ai_nation_state;
+		stop_army_movement_data stop_army_movement;
+		stop_navy_movement_data stop_navy_movement;
 
 		dtype() { }
 	} data;
@@ -722,9 +736,11 @@ bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::move
 
 void civilize_nation(sys::state& state, dcon::nation_id source);
 bool can_civilize_nation(sys::state& state, dcon::nation_id source);
+void execute_civilize_nation(sys::state& state, dcon::nation_id source);
 
 void appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
+void execute_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::political_party_id p);
 
 void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r);
@@ -743,6 +759,7 @@ bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dc
 
 void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
+void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d);
 
 void make_event_choice(sys::state& state, event::pending_human_n_event const& e, uint8_t option_id);
 void make_event_choice(sys::state& state, event::pending_human_f_n_event const& e, uint8_t option_id);
@@ -802,6 +819,12 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
+void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army);
+bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army);
+
+void stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy);
+bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy);
+
 // NOTE: sending an invalid province id will stop movement of an army or navy;
 //     otherwise path will be appended to its current destination if any
 // Thus, if you want to move the unit to a new location from its current location,
@@ -815,7 +838,26 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
-std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset = true);
+
+
+// Wrapper to check if a given army can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+
+// Wrapper to check if a given navy can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+
+// Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+
+// Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
+// The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
+void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest);
+
+void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 
 
 // This command is used for getting armies in/out of transports while those transports are docked in port
@@ -829,6 +871,7 @@ bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
+void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b);
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
@@ -867,8 +910,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
-bool can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::naval_battle_id b);
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);

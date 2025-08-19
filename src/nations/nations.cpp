@@ -18,6 +18,7 @@
 #include "economy_government.hpp"
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
+#include "gui_effect_tooltips.hpp"
 
 namespace nations {
 
@@ -213,7 +214,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -470,7 +471,7 @@ void generate_sea_trade_routes(sys::state& state) {
 				std::vector<dcon::province_id> path{ };
 				auto speed = base_speed;
 				dcon::province_id p_prev{ };
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -3712,6 +3713,29 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
 }
+
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	if(auto e = state.world.decision_get_effect(d); e) {
+		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
+				uint32_t(source.index() << 4 ^ d.index()));
+	}
+
+	notification::post(state, notification::message{
+		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_decision_1", text::variable_type::x, source, text::variable_type::y, state.world.decision_get_name(d));
+			if(auto e = state.world.decision_get_effect(d); e) {
+				text::add_line(state, contents, "msg_decision_2");
+				ui::effect_description(state, contents, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(when.value),
+					uint32_t(source.index() << 4 ^ d.index()));
+			}
+		},
+		"msg_decision_title",
+		source, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::decision
+	});
+}
+
+
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 

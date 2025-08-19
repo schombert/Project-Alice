@@ -1,4 +1,5 @@
 #pragma once
+#include <span>
 #include "dcon_generated.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
@@ -38,6 +39,18 @@ inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 
 } // namespace cb_flag
 
+// The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
+// The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
+// the actual integer is 1000 units, which here means 100.0 with one fixed-point decimal.
+constexpr uint16_t naval_battle_distance_to_center = 1000;
+
+constexpr uint16_t naval_battle_total_distance = naval_battle_distance_to_center * 2; // total distance from one end of the battle to another
+
+constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval battle. Ships on one side cannot go past this.
+
+constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
+
+
 struct ship_in_battle {
 	static constexpr uint16_t distance_mask = 0x03FF;
 
@@ -60,6 +73,17 @@ struct ship_in_battle {
 	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
+	bool operator == (const ship_in_battle&) const = default;
+	bool operator != (const ship_in_battle&) const = default;
+
+	uint16_t get_distance() {
+		return flags & distance_mask;
+	}
+	void set_distance(uint16_t distance) {
+		flags &= ~distance_mask;
+		flags |= distance_mask & (distance);
+
+	}
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
@@ -262,6 +286,22 @@ struct land_battle_report {
 	bool player_on_winning_side;
 };
 
+struct arrival_time_info {
+	sys::date arrival_time;
+	float unused_travel_days;
+};
+struct arrival_time_info_raw {
+	int32_t travel_days;
+	float unused_travel_days;
+};
+
+
+struct naval_range_display_data {
+	dcon::province_id closest_port;
+	float distance;
+	sys::date timestamp;
+};
+
 constexpr inline int32_t days_before_retreat = 11;
 
 enum class battle_result {
@@ -269,6 +309,13 @@ enum class battle_result {
 };
 enum class regiment_dmg_source {
 	combat, attrition
+};
+
+struct ai_path_length {
+	uint32_t length = 0;
+	bool operator==(const ai_path_length& other) const = default;
+	bool operator!=(const ai_path_length& other) const = default;
+
 };
 
 void reset_unit_stats(sys::state& state);
@@ -289,6 +336,7 @@ dcon::unit_type_id get_best_transport(sys::state& state, dcon::nation_id n, bool
 dcon::unit_type_id get_best_light_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
 dcon::unit_type_id get_best_big_ship(sys::state& state, dcon::nation_id n, bool primary_culture = false, bool evaluate_shortages = true);
 
+bool are_enemies(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_at_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_allied_in_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool are_in_common_war(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
@@ -382,6 +430,8 @@ ve::fp_vector ve_mobilization_impact(sys::state const& state, ve::tagged_vector<
 
 float get_ship_combat_score(sys::state& state, dcon::ship_id ship);
 
+naval_range_display_data closest_naval_range_port_with_distance(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
+
 uint32_t naval_supply_from_naval_base(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 void update_naval_supply_points(sys::state& state); // must run after determining connectivity
 void update_cbs(sys::state& state);
@@ -442,6 +492,8 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 void cleanup_army(sys::state& state, dcon::army_id n);
 void cleanup_navy(sys::state& state, dcon::navy_id n);
 
+void merge_navies_impl(sys::state& state, dcon::navy_id a, dcon::navy_id b);
+
 void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
 		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,
 		dcon::national_identity_id wargoal_t);
@@ -457,6 +509,10 @@ void advance_mobilizations(sys::state& state);
 
 int32_t transport_capacity(sys::state& state, dcon::navy_id n);
 int32_t free_transport_capacity(sys::state& state, dcon::navy_id n);
+
+void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type);
+void upgrade_regiment(sys::state& state, dcon::regiment_id ship, dcon::unit_type_id new_type);
+
 bool can_embark_onto_sea_tile(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::army_id a);
 dcon::navy_id find_embark_target(sys::state& state, dcon::nation_id from, dcon::province_id p, dcon::army_id a);
 float effective_army_speed(sys::state& state, dcon::army_id a);
@@ -489,12 +545,20 @@ void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value
 template<regiment_dmg_source damage_source>
 void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
 
-int32_t movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
-int32_t movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
-sys::date arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
-sys::date arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
+float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
+arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
+arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);
+arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::navy_id n, dcon::province_id to, dcon::province_id from);
 float fractional_distance_covered(sys::state& state, dcon::army_id a);
 float fractional_distance_covered(sys::state& state, dcon::navy_id a);
+
+template<typename T>
+void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon::province_id from, T army, float& unused_travel_days, sys::date& arrival_time);
+
+template<typename T>
+void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army);
 
 enum class crossing_type {
 	none, river, sea
@@ -505,10 +569,17 @@ enum class apply_attrition_on_arrival {
 
 };
 
+enum class battle_is_ending {
+	no, yes
+};
 
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
+
+template<battle_is_ending battle_state>
+bool retreat(sys::state& state, dcon::navy_id n);
+
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
@@ -518,6 +589,8 @@ void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
+void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+float required_avg_dist_to_center_for_retreat(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
@@ -543,6 +616,11 @@ void recover_org(sys::state& state);
 float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::province_id location, dcon::nation_id in_nation);
 float unit_get_strength(sys::state& state, dcon::regiment_id regiment_id);
 float unit_get_strength(sys::state& state, dcon::ship_id ship_id);
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_navy_movement(sys::state& state, dcon::navy_id navy);
+// stops the unit movement completly and clears all other auxillary movement effects (arrival date, path etc)
+void stop_army_movement(sys::state& state, dcon::army_id army);
+
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
@@ -582,6 +660,26 @@ dcon::province_id find_land_rally_pt(sys::state& state, dcon::nation_id by, dcon
 dcon::province_id find_naval_rally_pt(sys::state& state, dcon::nation_id by, dcon::province_id start);
 void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, dcon::province_id start, dcon::province_id dest);
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
+
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.. 
+// takes a path directly instead of calculating it
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset = true);
+
+// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
+// takes a path directly instead of calculating it
+bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+
+// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
+// if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
+template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
+bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
+
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 
 template<regiment_dmg_source damage_source>

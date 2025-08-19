@@ -553,6 +553,15 @@ These relate to army attrition
 - `alice_attrition_war_exhaustion = 1.5`: Multiplier to the war exhaustion gained from taking attrition losses. Works similar to the "COMBATLOSS_WAR_EXHAUSTION" define, but for attrition losses instead. Set to 0 to disable all attrition war exhaustion.
 
 
+These relate to unit movement
+- `alice_army_marching_hours_per_day = 5.0f`: The amount of hours an army marches per day on average. Effectively this is a multiplier to the army's km/hour stat deciding how far an army can move in a single day
+- `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
+As the above defines implies, the distances between provinces are measured in kilometers now when it comes to unit-movement, and maps directly onto the km/hour stat.
+
+These relate to occupations
+- `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value
+- `alice_rebel_reduction_after_reoccupation = 7.0f`: When a rebel province is reoccupied by the owner, all pops which were part of the controlling rebel faction gets their militancy divided by this amount
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:
@@ -786,4 +795,20 @@ change_factory_limit = {
     trade_good = rubber
     value = 15
 }
+```
+
+
+## Religion
+
+State Religion can give a national modifier like this:
+
+```
+shinto = {
+		color = { 0.8 0 0 }
+		icon = 12
+
+		nation_modifier = {
+			education_efficiency = 0.05
+		}
+	}
 ```

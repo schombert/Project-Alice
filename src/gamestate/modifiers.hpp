@@ -58,8 +58,9 @@ namespace sys {
 	MOD_LIST_ELEMENT(47, min_build_fort, false, modifier_display_type::integer, "fort_level") \
 	MOD_LIST_ELEMENT(48, min_build_bank, false, modifier_display_type::integer, "bank_level") \
 	MOD_LIST_ELEMENT(49, min_build_university, false, modifier_display_type::integer, "university_level") \
-	MOD_LIST_ELEMENT(50, conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate")
-#define MOD_PROV_LIST_COUNT 51
+	MOD_LIST_ELEMENT(50, conversion_rate, true, modifier_display_type::percent, "modifier_conversion_rate") \
+	MOD_LIST_ELEMENT(51, fort_level, true, modifier_display_type::integer, "fort_level")
+#define MOD_PROV_LIST_COUNT 52
 
 #define MOD_NAT_LIST                                                                                                             \
 	MOD_LIST_ELEMENT(0, war_exhaustion, false, modifier_display_type::fp_two_places, "war_exhaustion")                             \
@@ -206,8 +207,10 @@ namespace sys {
 	MOD_LIST_ELEMENT(133, farmers_savings, true, modifier_display_type::percent, "farmers_savings") \
 	MOD_LIST_ELEMENT(134, disallow_naval_trade, false, modifier_display_type::yesno, "disallow_naval_trade") \
 	MOD_LIST_ELEMENT(135, disallow_land_trade, false, modifier_display_type::yesno, "disallow_land_trade") \
+	MOD_LIST_ELEMENT(136, trade_routes_attraction, false, modifier_display_type::percent, "alice_trade_attractiveness") \
+	MOD_LIST_ELEMENT(137, min_land_upkeep, true, modifier_display_type::percent, "modifier_min_land_upkeep")            \
 
-#define MOD_NAT_LIST_COUNT 136
+#define MOD_NAT_LIST_COUNT 138
 
 namespace provincial_mod_offsets {
 #define MOD_LIST_ELEMENT(num, name, green_is_negative, display_type, locale_name)                                                \

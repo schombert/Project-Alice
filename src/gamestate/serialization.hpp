@@ -212,7 +212,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
 bool try_read_scenario_as_save_file(sys::state& state, native_string_view name);
 
-void write_save_file(sys::state& state, sys::save_type type = sys::save_type::normal, std::string const& name = std::string(""));
+void write_save_file(sys::state& state, sys::save_type type = sys::save_type::normal, std::string const& name = std::string(""), const std::string& file_name = std::string(""));
 bool try_read_save_file(sys::state& state, native_string_view name);
 
 } // namespace sys
