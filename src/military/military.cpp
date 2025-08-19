@@ -4774,12 +4774,10 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	// US8AC1 Army can be commanded to "Strategic Redeployment" increasing its speed but limiting org to 10%
 	// Yes, it applies the infrastructure bonus again
-	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? (1.3f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
+	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? (state.defines.strategic_redeployment_speed_modifier +
+		state.defines.strategic_redeployment_infrastructure_factor * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
 								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) : 1.f;
-	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
-		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
-								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
-		(leader_move + 1.0f) * special_order_mod * state.defines.land_speed_modifier;
+	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) * (leader_move + 1.0f) * special_order_mod * state.defines.land_speed_modifier;
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
