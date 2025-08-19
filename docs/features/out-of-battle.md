@@ -9,7 +9,7 @@
 **So that they can fight in the next battles.**
 
 **Acceptance Criteria:**
-| AC1 | Organization of regiments is replenished monthly |
+| AC1 | Organization of regiments is replenished daily |
 | AC2 | Organization regain is reduced by the fulfilled army upkeep (army supply) |
 | AC3 | National `org_regain` modifier increases organization regain rate |
 | AC4 | Traits of the general can increase organization regain rate |

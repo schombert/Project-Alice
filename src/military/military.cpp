@@ -4773,7 +4773,9 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	// US8AC1 Army can be commanded to "Strategic Redeployment" increasing its speed but limiting org to 10%
-	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? 3.f : 1.f;
+	// Yes, it applies the infrastructure bonus again
+	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? (1.3f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
+								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) : 1.f;
 	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *
 		(1.0f + state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
 								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) *
