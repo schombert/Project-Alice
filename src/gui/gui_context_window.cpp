@@ -34,11 +34,11 @@ public:
 	}
 
 	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
-
+		open_build_factory(state, context.province);
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override  {
-
+		text::add_line(state, contents, "build_factory");
 	}
 };
 
