@@ -56,6 +56,36 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tiles[curind].province = p;
 			curind++;
 		}
+
+		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
+			tiles[curind].province_building = economy::province_building_type::naval_base;
+			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
+			tiles[curind].province = p;
+			curind++;
+		}
+
+		// if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad) > 0) {
+		{
+			tiles[curind].province_building = economy::province_building_type::railroad;
+			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
+			tiles[curind].province = p;
+			curind++;
+		}
+
+		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
+			tiles[curind].province_building = economy::province_building_type::fort;
+			tiles[curind].empty = false;
+			tiles[curind].has_province_building = true;
+			tiles[curind].province = p;
+			curind++;
+		}
+	}
+
+	// Skip to the next row
+	while(curind % 8 != 0) {
+		curind++;
 	}
 
 	// Main province RGOs
@@ -85,40 +115,6 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 				tiles[curind].province = p;
 				curind++;
 			}
-		}
-
-		for(auto r : state.world.in_regiment_source) {
-			if(r.get_pop().get_province_from_pop_location() == p) {
-				tiles[curind].regiment = r.get_regiment();
-				tiles[curind].empty = false;
-				tiles[curind].province = p;
-				curind++;
-			}
-		}
-
-		if (state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
-			tiles[curind].province_building = economy::province_building_type::naval_base;
-			tiles[curind].empty = false;
-			tiles[curind].has_province_building = true;
-			tiles[curind].province = p;
-			curind++;
-		}
-
-		// if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad) > 0) {
-		{
-			tiles[curind].province_building = economy::province_building_type::railroad;
-			tiles[curind].empty = false;
-			tiles[curind].has_province_building = true;
-			tiles[curind].province = p;
-			curind++;
-		}
-
-		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
-			tiles[curind].province_building = economy::province_building_type::fort;
-			tiles[curind].empty = false;
-			tiles[curind].has_province_building = true;
-			tiles[curind].province = p;
-			curind++;
 		}
 
 		for(auto fc : state.world.in_factory_construction) {
@@ -153,6 +149,22 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tiles[curind].empty = false;
 			tiles[curind].province = p;
 			curind++;
+		}
+	}
+
+	// Skip to the next row
+	while(curind % 8 != 0) {
+		curind++;
+	}
+
+	if(owner) {
+		for(auto r : state.world.in_regiment_source) {
+			if(r.get_pop().get_province_from_pop_location() == p) {
+				tiles[curind].regiment = r.get_regiment();
+				tiles[curind].empty = false;
+				tiles[curind].province = p;
+				curind++;
+			}
 		}
 	}
 
