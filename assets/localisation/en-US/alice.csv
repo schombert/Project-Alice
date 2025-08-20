@@ -750,6 +750,10 @@ trade_commodity_report_1;Current global demand: $x$
 trade_commodity_report_2;Current global production: $x$
 trade_commodity_report_3;Current global consumption: $x$
 trade_commodity_report_4;Amount on world market: $x$
+commodity_consumption_header;Population consumption: life/everyday/luxury needs
+commodity_consumed_by;Consumed by
+commodity_production_header;In factory production chains: input/output
+national_modifiers;National modifiers
 trade_fill;Fill
 trade_use;Draw upon
 trade_stockpile_target;Stockpile target amount:
