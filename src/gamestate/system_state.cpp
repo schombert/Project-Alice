@@ -1201,6 +1201,7 @@ void state::on_create() {
 			"endofnavalcombatpopup",
 			"endoflandcombatpopup",
 			"ingame_lobby_window",
+			"build_factory"
 		};
 		for(const auto& elem_name : elem_names) {
 			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
