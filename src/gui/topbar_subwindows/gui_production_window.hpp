@@ -758,9 +758,7 @@ public:
 		if(!com)
 			return;
 
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::yellow);
-		text::close_layout_box(contents, box);
+		commodity_tooltip(state, contents, com);
 
 		auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 			if(value == 0.f)

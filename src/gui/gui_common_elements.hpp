@@ -1810,6 +1810,76 @@ public:
 	}
 };
 
+
+inline void commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::commodity_id c) {
+	auto box = text::open_layout_box(contents, 0);
+	text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(c)), text::text_color::yellow);
+	text::close_layout_box(contents, box);
+
+	// Commodity in pop needs
+	text::add_line_break_to_layout(state, contents);
+	box = text::open_layout_box(contents, 0);
+	text::localised_format_box(state, contents, box, std::string_view{ "commodity_consumption_header" });
+	text::close_layout_box(contents, box);
+
+	state.world.for_each_pop_type([&](dcon::pop_type_id pop_type) {
+		auto life_base = state.world.pop_type_get_life_needs(pop_type, c);
+		auto everyday_base = state.world.pop_type_get_everyday_needs(pop_type, c);
+		auto luxury_base = state.world.pop_type_get_luxury_needs(pop_type, c);
+
+		if(life_base > 0 || everyday_base > 0 || luxury_base > 0) {
+			box = text::open_layout_box(contents, 15);
+			text::localised_format_box(state, contents, box, std::string_view{ "commodity_consumed_by" });
+			text::add_to_layout_box(state, contents, box, std::string_view{ " " });
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.pop_type_get_name(pop_type)), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ life_base }, text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ everyday_base }, text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ luxury_base }, text::text_color::yellow);
+			text::close_layout_box(contents, box);
+
+		}
+	});
+
+	// Commodity in production chains
+	text::add_line_break_to_layout(state, contents);
+	box = text::open_layout_box(contents, 0);
+	text::localised_format_box(state, contents, box, std::string_view{ "commodity_production_header" });
+	text::close_layout_box(contents, box);
+
+	for (auto fid : state.world.in_factory_type) {
+		auto output = fid.get_output();
+		if(output != c)
+			continue;
+
+		auto outputamount = 0.f;
+		if (output == c)
+			outputamount = fid.get_output_amount();
+
+		auto inputamount = 0.f;
+		auto& inputs = fid.get_inputs();
+
+		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+			if(inputs.commodity_type[i] == c) {
+				inputamount = inputs.commodity_amounts[i];
+				break;
+			}
+		}
+
+		if(inputamount > 0 || outputamount > 0) {
+			box = text::open_layout_box(contents, 15);
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, fid.get_name()), text::text_color::yellow);
+			text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ inputamount }, text::text_color::red);
+			text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+			text::add_to_layout_box(state, contents, box, text::fp_one_place{ outputamount }, text::text_color::green);
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class commodity_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1827,16 +1897,20 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto p = retrieve<dcon::province_id>(state, parent);
 
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::yellow);
-		text::close_layout_box(contents, box);
+		commodity_tooltip(state, contents, com);
+		
 
 		// Nation modifiers
 		if(bool(n)) {
+			text::add_line_break_to_layout(state, contents);
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, std::string_view{ "national_modifiers" });
+			text::close_layout_box(contents, box);
+
 			auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 				if(value == 0.f)
 					return;
-				auto box = text::open_layout_box(contents, 0);
+				auto box = text::open_layout_box(contents, 15);
 				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::white);
 				text::add_space_to_layout_box(state, contents, box);
 				text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_is_mine(com) ? locale_base_name : locale_farm_base_name), text::text_color::white);
@@ -1852,43 +1926,43 @@ public:
 		}
 		if(economy::commodity_get_factory_types_as_output(state, com).size() > 0) {
 			if(bool(n)) {
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_output, true);
+				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::factory_output, true);
 			}
 			if(bool(p)) {
-				active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_factory_output, true);
+				active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::local_factory_output, true);
 			}
 			if(bool(n)) {
-				active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::factory_throughput, true);
+				active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::factory_throughput, true);
 			}
 			if(bool(p)) {
-				active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::local_factory_throughput, true);
+				active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::local_factory_throughput, true);
 			}
 		} else {
 			if(state.world.commodity_get_is_mine(com)) {
 				if(bool(n)) {
-					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_eff, true);
+					active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::mine_rgo_eff, true);
 				}
 				if(bool(p)) {
-					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_eff, true);
+					active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_eff, true);
 				}
 				if(bool(n)) {
-					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::mine_rgo_size, true);
+					active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::mine_rgo_size, true);
 				}
 				if(bool(p)) {
-					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::mine_rgo_size, true);
+					active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::mine_rgo_size, true);
 				}
 			} else {
 				if(bool(n)) {
-					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_eff, true);
+					active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::farm_rgo_eff, true);
 				}
 				if(bool(p)) {
-					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_eff, true);
+					active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_eff, true);
 				}
 				if(bool(n)) {
-					active_modifiers_description(state, contents, n, 0, sys::national_mod_offsets::farm_rgo_size, true);
+					active_modifiers_description(state, contents, n, 15, sys::national_mod_offsets::farm_rgo_size, true);
 				}
 				if(bool(p)) {
-					active_modifiers_description(state, contents, p, 0, sys::provincial_mod_offsets::farm_rgo_size, true);
+					active_modifiers_description(state, contents, p, 15, sys::provincial_mod_offsets::farm_rgo_size, true);
 				}
 			}
 		}
@@ -1900,7 +1974,7 @@ public:
 					for(const auto mod : list) {
 						if(mod.type != com || mod.amount == 0.f)
 							return;
-						auto box = text::open_layout_box(contents, 0);
+						auto box = text::open_layout_box(contents, 15);
 						if(!have_header) {
 							text::add_to_layout_box(state, contents, box, state.world.technology_get_name(tid), text::text_color::yellow);
 							text::add_line_break_to_layout_box(state, contents, box);
@@ -1929,7 +2003,7 @@ public:
 					for(const auto mod : list) {
 						if(mod.type != com || mod.amount == 0.f)
 							return;
-						auto box = text::open_layout_box(contents, 0);
+						auto box = text::open_layout_box(contents, 15);
 						if(!have_header) {
 							text::add_to_layout_box(state, contents, box, state.world.invention_get_name(iid), text::text_color::yellow);
 							text::add_line_break_to_layout_box(state, contents, box);
@@ -1945,7 +2019,7 @@ public:
 						text::add_to_layout_box(state, contents, box, (mod.amount > 0.f ? "+" : "") + text::format_percentage(mod.amount, 1), color);
 						text::close_layout_box(contents, box);
 					}
-				};
+};
 				commodity_invention_mod_description(state.world.invention_get_factory_goods_output(iid), "tech_output", "tech_output");
 				commodity_invention_mod_description(state.world.invention_get_rgo_goods_output(iid), "tech_mine_output", "tech_farm_output");
 				commodity_invention_mod_description(state.world.invention_get_rgo_size(iid), "tech_mine_size", "tech_farm_size");
