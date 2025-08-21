@@ -30,7 +30,16 @@ public:
 	}
 
 	bool is_available(sys::state& state, context_menu_context context) noexcept override  {
-		return true;
+		auto pid = context.province;
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+
+		bool can_build = false;
+		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+			can_build =
+				can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false);
+		});
+		return can_build;
 	}
 
 	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
@@ -39,6 +48,48 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override  {
 		text::add_line(state, contents, "build_factory");
+
+		auto pid = context.province;
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+
+		int32_t num_factories = economy::state_factory_count(state, sid, n);
+
+		text::add_line(state, contents, "production_build_new_factory_tooltip");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
+		// Disallow building in colonies unless define flag is set
+		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
+		}
+
+		if(n == state.local_player_nation) {
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_condition_3", (rules & issue_rule::build_factory) != 0);
+		} else {
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", state.world.nation_get_is_great_power(state.local_player_nation) && !state.world.nation_get_is_great_power(n));
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+
+			auto target = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+					(target & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7", !military::are_at_war(state, state.local_player_nation, n));
+		}
+
+		{
+			auto box = text::open_layout_box(contents);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::check);
+			} else {
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::xmark);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
