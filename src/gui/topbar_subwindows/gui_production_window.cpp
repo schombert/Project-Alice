@@ -137,4 +137,12 @@ void open_build_foreign_factory(sys::state& state, dcon::province_id st) {
 	send(state, state.ui_state.production_subwindow, production_selection_wrapper{st, true, xy_pair{0, 0}});
 }
 
+void open_build_factory(sys::state& state, dcon::province_id pid) {
+	const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
+
+	state.ui_state.build_new_factory_subwindow->set_visible(state, true);
+	state.ui_state.root->move_child_to_front(state.ui_state.build_new_factory_subwindow);
+	send(state, state.ui_state.build_new_factory_subwindow, production_selection_wrapper{ pid, true, xy_pair{0, 0} });
+}
+
 } // namespace ui

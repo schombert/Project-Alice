@@ -18,12 +18,6 @@
 
 namespace ui {
 
-struct production_selection_wrapper {
-	dcon::province_id data{};
-	bool is_build = false;
-	xy_pair focus_pos{0, 0};
-};
-
 class factory_employment_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -1156,12 +1150,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-			const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
-			state.ui_state.production_subwindow->set_visible(state, true);
-			state.ui_state.root->move_child_to_front(state.ui_state.production_subwindow);
-			state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
-			send(state, state.ui_state.production_subwindow, production_window_tab::factories);
-			send(state, state.ui_state.production_subwindow, production_selection_wrapper{ pid, true, xy_pair{0, 0} });
+			open_build_factory(state, pid);
 		}
 	}
 
@@ -1826,7 +1815,6 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 	production_state_invest_listbox* state_listbox_invest = nullptr;
 	element_base* nf_win = nullptr;
-	element_base* build_win = nullptr;
 	element_base* project_window = nullptr;
 	production_foreign_investment_window* foreign_invest_win = nullptr;
 
@@ -1875,8 +1863,9 @@ public:
 		}
 
 		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("build_factory"))->second.definition);
-		build_win = win.get();
-		add_child_to_front(std::move(win));
+		state.ui_state.build_new_factory_subwindow = win.get();
+		win->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(win));
 
 		auto win2 = make_element_by_type<project_investment_window>(state,
 				state.ui_state.defs_by_name.find(state.lookup_key("invest_project_window"))->second.definition);
@@ -2075,8 +2064,9 @@ public:
 			auto data = any_cast<production_selection_wrapper>(payload);
 			focus_province = data.data;
 			if(data.is_build) {
-				build_win->set_visible(state, true);
-				move_child_to_front(build_win);
+				send(state, state.ui_state.build_new_factory_subwindow, payload);
+				state.ui_state.build_new_factory_subwindow->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(state.ui_state.build_new_factory_subwindow);
 			} else {
 				nf_win->set_visible(state, true);
 				nf_win->base_data.position = data.focus_pos;

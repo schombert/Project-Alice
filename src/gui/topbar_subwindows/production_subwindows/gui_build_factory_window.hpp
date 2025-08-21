@@ -494,6 +494,7 @@ public:
 class factory_build_window : public window_element_base {
 private:
 	dcon::factory_type_id factory_to_build{};
+	dcon::province_id focus_province{};
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -562,6 +563,15 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::commodity_id>()) {
 			payload.emplace<dcon::commodity_id>(dcon::fatten(state.world, factory_to_build).get_output());
+			return message_result::consumed;
+		} else if(payload.holds_type<dcon::province_id>()) {
+			payload.emplace<dcon::province_id>(focus_province);
+			return message_result::consumed;
+		} else if(payload.holds_type<production_selection_wrapper>()) {
+			auto data = any_cast<production_selection_wrapper>(payload);
+			focus_province = data.data;
+			
+			impl_on_update(state);
 			return message_result::consumed;
 		}
 		return message_result::unseen;
