@@ -355,7 +355,11 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 void cleanup_nation(sys::state& state, dcon::nation_id n);
 
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
+void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel);
+void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel);
+
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
+bool is_vassal(sys::state& state, dcon::nation_id nation);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
 void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
 void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);

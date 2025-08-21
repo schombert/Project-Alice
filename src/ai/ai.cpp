@@ -371,7 +371,7 @@ bool unit_on_ai_control(sys::state& state, dcon::navy_id a) {
 	if(fat_id.get_controller_from_navy_control().get_overlord_commanding_units()) {
 		return false;
 	}
-	return fat_id.get_controller_from_navy_control().get_is_player_controlled();
+	return !fat_id.get_controller_from_navy_control().get_is_player_controlled();
 }
 
 bool will_upgrade_ships(sys::state& state, dcon::nation_id n) {

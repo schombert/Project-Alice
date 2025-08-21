@@ -2206,6 +2206,135 @@ bool destroy_vassal_relationships(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
+	auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
+
+	// One way tariff removal
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
+	if(!rel_1) {
+		rel_1 = state.world.force_create_unilateral_relationship(to, from);
+	}
+	state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+
+	// Another way tariff removal
+	auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(from, to);
+	if(!rel_2) {
+		rel_2 = state.world.force_create_unilateral_relationship(from, to);
+	}
+	state.world.unilateral_relationship_set_no_tariffs_until(rel_2, enddt);
+
+	notification::post(state, notification::message{
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_free_trade_agreement_signed", text::variable_type::x, target, text::variable_type::y, source);
+		},
+		"msg_free_trade_agreement_signed_title",
+		to, from, dcon::nation_id{},
+		sys::message_base_type::free_trade_agreement
+	});
+}
+
+void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
+	auto rights = economy::nation_gives_free_trade_rights(state, from, to);
+
+	if(!rights) {
+		return; // Nation doesn't give trade rights
+	}
+
+	state.world.unilateral_relationship_set_no_tariffs_until(rights, sys::date{}); // Reset trade rights
+
+	notification::post(state, notification::message{
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_trade_rights_revoked", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_trade_rights_revoked_title",
+			from, to, dcon::nation_id{},
+			sys::message_base_type::trade_rights_revoked
+		});
+}
+
+void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
+	auto to = state.world.unilateral_relationship_get_target(rel);
+	auto from = state.world.unilateral_relationship_get_source(rel);
+	if(state.world.unilateral_relationship_get_embargo(rel)) {
+		state.world.unilateral_relationship_set_embargo(rel, false);
+
+		// All subjects of asker have to remove embargo on target as well
+		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(from)) {
+			auto subject = sub_rel.get_subject();
+			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(to, subject);
+			if(!subjectrel) {
+				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
+			}
+			remove_embargo(state, subjectrel);
+		}
+		// Notify the person from whom we lifted embargo
+		notification::post(state, notification::message{
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_embargo_lifted_title",
+			from, to, dcon::nation_id{},
+			sys::message_base_type::embargo
+		});
+	}
+}
+
+void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
+	auto to = state.world.unilateral_relationship_get_target(rel);
+	auto from = state.world.unilateral_relationship_get_source(rel);
+	if(!state.world.unilateral_relationship_get_embargo(rel)) {
+		state.world.unilateral_relationship_set_embargo(rel, true);
+
+		// All subjects of asker have to remove embargo on target as well
+		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(from)) {
+			auto subject = sub_rel.get_subject();
+			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(to, subject);
+			if(!subjectrel) {
+				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
+			}
+			do_embargo(state, subjectrel);
+		}
+		// Notify the person who got embargoed
+		notification::post(state, notification::message{
+				[source = from, target = to](sys::state& state, text::layout_base& contents) {
+					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
+				},
+				"msg_embargo_issued_title",
+				from, to, dcon::nation_id{},
+				sys::message_base_type::embargo
+		});
+	}
+}
+
+// removes both embagoes to AND from the nation
+void clear_all_embargoes(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(nation)) {
+		remove_embargo(state, rel);
+	}
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(nation)) {
+		remove_embargo(state, rel);
+	}
+}
+
+void clear_alliances(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_diplomatic_relation(nation)) {
+		break_alliance(state, rel);
+	}
+}
+
+void clear_trade_agreements(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(nation)) {
+		if(bool(rel.get_no_tariffs_until())) {
+			state.world.unilateral_relationship_set_no_tariffs_until(rel, sys::date{ });
+		}
+	}
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(nation)) {
+		if(bool(rel.get_no_tariffs_until())) {
+			state.world.unilateral_relationship_set_no_tariffs_until(rel, sys::date{ });
+		}
+	}
+}
+
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
@@ -2224,9 +2353,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
 	}
 	{
-		for(auto rel : state.world.nation_get_diplomatic_relation(n)) {
-			break_alliance(state, rel);
-		}
+		clear_alliances(state, n);
 	}
 	{
 		auto ov_rel = state.world.nation_get_overlord_as_ruler(n);
@@ -2236,6 +2363,13 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		}
 	}
 }
+
+bool is_vassal(sys::state& state, dcon::nation_id nation) {
+	auto overlord = state.world.nation_get_overlord_as_subject(nation);
+	return bool(state.world.overlord_get_ruler(overlord));
+}
+
+
 void release_vassal(sys::state& state, dcon::overlord_id rel) {
 	auto vas = state.world.overlord_get_subject(rel);
 	auto ol = state.world.overlord_get_ruler(rel);
@@ -2251,6 +2385,7 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 		// TODO: notify player
 	}
 }
+
 
 void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
 	if(subject == overlord)
@@ -2272,6 +2407,10 @@ void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id ove
 	} else {
 		state.world.force_create_overlord(subject, overlord);
 		state.world.nation_get_vassals_count(overlord)++;
+		// clear alliances of subject to prevent potential tomfoolery by the subject
+		clear_alliances(state, subject);
+		clear_all_embargoes(state, subject);
+		clear_trade_agreements(state, subject);
 		politics::update_displayed_identity(state, subject);
 	}
 }
@@ -2297,6 +2436,10 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
 		state.world.nation_get_substates_count(current_ruler)++;
+		// clear alliances of subject to prevent potential tomfoolery by the subject
+		clear_alliances(state, subject);
+		clear_all_embargoes(state, subject);
+		clear_trade_agreements(state, subject);
 		politics::update_displayed_identity(state, subject);
 	}
 }

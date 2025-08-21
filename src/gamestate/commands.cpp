@@ -2711,62 +2711,15 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon
 		state.world.nation_set_diplomatic_points(from, current_diplo - state.defines.askmilaccess_diplomatic_cost);
 	}
 
-	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(from, to);
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {
-		rel_1 = state.world.force_create_unilateral_relationship(from, to);
+		rel_1 = state.world.force_create_unilateral_relationship(to, from);
 	}
-
-	auto new_status = !state.world.unilateral_relationship_get_embargo(rel_1);
-	state.world.unilateral_relationship_set_embargo(rel_1, new_status);
-
-	std::vector<dcon::nation_id> asker_party;
-	std::vector<dcon::nation_id> target_party;
-
-	// All subjects of asker have to embargo target as well
-	for(auto n : state.world.in_nation) {
-		auto subjrel = state.world.nation_get_overlord_as_subject(n);
-		auto subject = state.world.overlord_get_subject(subjrel);
-
-		if(state.world.overlord_get_ruler(subjrel) == from) {
-			asker_party.push_back(subject);
-		} else if(state.world.overlord_get_ruler(subjrel) == to) {
-			target_party.push_back(subject);
-		}
-	}
-
-	for(auto froms : asker_party) {
-		for(auto tos : target_party) {
-			auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(tos, froms);
-			if(!rel_2) {
-				rel_2 = state.world.force_create_unilateral_relationship(tos, froms);
-			}
-			state.world.unilateral_relationship_set_embargo(rel_2, new_status);
-		}
-	}
-
-	if(new_status) {
-		// Embargo issued
-		// Notify the person who got embargoed
-		notification::post(state, notification::message{
-				[source = from, target = to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
-				},
-				"msg_embargo_issued_title",
-				from, to, dcon::nation_id{},
-				sys::message_base_type::embargo
-		});
+	if(state.world.unilateral_relationship_get_embargo(rel_1)) {
+		nations::remove_embargo(state, rel_1);
 	}
 	else {
-		// Embargo lifted
-		// Notify the person from whom we lifted embargo
-		notification::post(state, notification::message{
-		[source = from, target = to](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
-			},
-			"msg_embargo_lifted_title",
-			from, to, dcon::nation_id{},
-			sys::message_base_type::embargo
-		});
+		nations::do_embargo(state, rel_1);
 	}
 }
 
