@@ -1,5 +1,6 @@
 #include "gui_element_types.hpp"
 #include "gui_context_window.hpp"
+#include "gui_common_elements.hpp"
 
 namespace ui {
 
