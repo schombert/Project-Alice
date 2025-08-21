@@ -408,21 +408,29 @@ void change_music_volume(sys::state& state, float v) {
 
 // these start playing an effect or track at the specified volume
 void play_effect(sys::state& state, audio_instance& s, float volume) {
+	if(!state.sound_ptr)
+		return;
 	if(volume > 0.0f)
 		state.sound_ptr->play_effect(s, volume);
 }
 void play_interface_sound(sys::state& state, audio_instance& s, float volume) {
+	if(!state.sound_ptr)
+		return;
 	if(volume > 0.0f)
 		state.sound_ptr->play_interface_sound(s, volume);
 }
 
 // controls autoplaying music (start music should start with the main theme)
 void stop_music(sys::state& state) {
+	if(!state.sound_ptr)
+		return;
 	if(state.sound_ptr->last_music != -1)
 		state.sound_ptr->music_list[state.sound_ptr->last_music].stop();
 	state.sound_ptr->last_music = -1;
 }
 void start_music(sys::state& state, float v) {
+	if(!state.sound_ptr)
+		return;
 	if(v > 0.0f && state.sound_ptr->music_list.size() != 0) {
 		if(state.sound_ptr->first_music != -1)
 			state.sound_ptr->play_music(state.sound_ptr->first_music, v);

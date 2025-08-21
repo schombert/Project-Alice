@@ -1666,3 +1666,16 @@ ui_element_name;名称：?Y$x$?!
 ui_element_position;位置：X = ?Y$x$?! Y = ?Y$y$?!
 ui_element_size;尺寸：X = ?Y$x$?! Y = ?Y$y$?!
 rgo_tile_header;自然资源 ?Y$good$?W
+alice_naval_noretreat;因撤退，幸存舰船必须 平均 ?O$x$?W 靠近中心
+alice_str_name;兵力：?O$val$?W
+alice_naval_retreat_condition_1;舰船可靠近中心
+alice_naval_retreat_condition_2;尚未撤退
+alice_naval_retreat_condition_3;访问可补给港口
+alice_navalattackitem_4;一支由 $DEFENDER$ 组成的敌舰队将被摧毁。
+alice_attackthem_4;我们在攻击 $DEFENDER$ 舰队，并尝试突破防御。
+alice_attackus_4;$ATTACKER$ 敌对势力开火。
+commodity_consumption_header;人群消费：必需品/日用品/奢侈品
+commodity_consumed_by;被消耗
+commodity_production_header;工厂生产链：投入/产出
+national_modifiers;国家修正
+modifier_min_land_upkeep;土地最低维护

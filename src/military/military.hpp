@@ -39,6 +39,18 @@ inline constexpr uint32_t po_unequal_treaty = 0x08000000;
 
 } // namespace cb_flag
 
+// The distance from one side of of the naval battle to the middle. Unit speed is cast to this distance with define:NAVAL_COMBAT_SPEED_TO_DISTANCE_FACTOR and naval_battle_speed_mult.
+// The "total" distance for both sides is double this number, as each ship will start at 100 distance from the middle (which equals to 200 distance between them)
+// the actual integer is 1000 units, which here means 100.0 with one fixed-point decimal.
+constexpr uint16_t naval_battle_distance_to_center = 1000;
+
+constexpr uint16_t naval_battle_total_distance = naval_battle_distance_to_center * 2; // total distance from one end of the battle to another
+
+constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval battle. Ships on one side cannot go past this.
+
+constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
+
+
 struct ship_in_battle {
 	static constexpr uint16_t distance_mask = 0x03FF;
 
@@ -61,6 +73,17 @@ struct ship_in_battle {
 	int16_t target_slot = -1;
 	uint16_t flags = 0;
 	uint16_t ships_targeting_this = 0;
+	bool operator == (const ship_in_battle&) const = default;
+	bool operator != (const ship_in_battle&) const = default;
+
+	uint16_t get_distance() {
+		return flags & distance_mask;
+	}
+	void set_distance(uint16_t distance) {
+		flags &= ~distance_mask;
+		flags |= distance_mask & (distance);
+
+	}
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
@@ -469,6 +492,8 @@ void cleanup_war(sys::state& state, dcon::war_id w, war_result result);
 void cleanup_army(sys::state& state, dcon::army_id n);
 void cleanup_navy(sys::state& state, dcon::navy_id n);
 
+void merge_navies_impl(sys::state& state, dcon::navy_id a, dcon::navy_id b);
+
 void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wargoal, dcon::nation_id from,
 		dcon::nation_id target, dcon::nation_id secondary_nation, dcon::state_definition_id wargoal_state,
 		dcon::national_identity_id wargoal_t);
@@ -544,10 +569,17 @@ enum class apply_attrition_on_arrival {
 
 };
 
+enum class battle_is_ending {
+	no, yes
+};
 
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
+
+template<battle_is_ending battle_state>
+bool retreat(sys::state& state, dcon::navy_id n);
+
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
@@ -557,6 +589,8 @@ void eject_ships(sys::state& state, dcon::province_id p);
 void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
+void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+float required_avg_dist_to_center_for_retreat(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);

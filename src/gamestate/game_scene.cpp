@@ -133,8 +133,8 @@ void selected_units_control(
 			}
 		}
 		for(auto a : state.selected_navies) {
-			if(command::can_move_or_stop_navy(state, state.local_player_nation, a, target)) {
-				command::move_or_stop_navy(state, state.local_player_nation, a, target);
+			if(command::can_move_retreat_or_stop_navy(state, state.local_player_nation, a, target)) {
+				command::move_retreat_or_stop_navy(state, state.local_player_nation, a, target);
 			} else {
 				fail = true;
 			}

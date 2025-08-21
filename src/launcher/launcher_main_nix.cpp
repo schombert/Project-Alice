@@ -153,6 +153,9 @@ void mouse_click() {
 		return;
 	}
 
+	const char* hereEnv = std::getenv("HERE");
+	std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
+
 	switch(obj_under_mouse) {
 	case ui_obj_close:
 		glfwSetWindowShouldClose(m_window, 1);
@@ -172,8 +175,6 @@ void mouse_click() {
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
 			std::vector<native_string> args;
-			const char* hereEnv = std::getenv("HERE");
-			std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
 			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
 			printf("Starting game with scenario %s\n", selected_scenario_file.c_str());
@@ -198,7 +199,7 @@ void mouse_click() {
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
 			std::vector<std::string> args;
-			args.push_back("./Alice");
+			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
 
 			if(obj_under_mouse == ui_obj_host_game) {
@@ -1083,6 +1084,8 @@ int create_window() {
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_down.png"), fs, down_tex, false);
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_line_bg.png"), fs, line_bg_tex, false);
 	::ogl::load_file_and_return_handle(NATIVE("assets/launcher_warning.png"), fs, warning_tex, false);
+
+	return 0;
 }
 
 int main(int argc, char* argv[]) {

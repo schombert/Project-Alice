@@ -12,6 +12,13 @@ Join us on [discord](https://discord.gg/QUJExr4mRn) or visit our [documentation 
 - Mods may or may not run with more or less problems (see the October update and the compatibility patches channel in the discord for more information about particular mods).
 - Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/blob/main/docs/user_guide.md) for further information and troubleshooting
 
+### For Linux users
+- [Download the AppImage version in Github Actions](https://github.com/schombert/Project-Alice/actions)
+- Uncompress the archive and move the executable files and the assets folder into your main Victoria 2 directory. **AppImage file and assets should in the same folder as v2game.exe**.
+- Make the AppImage executable (e.g. Project_Alice.AppImage) by running `chmod +x Project_Alice.AppImage`.
+- Start the game by running `./Project_Alice.AppImage`.
+- Read up the [User and multiplayer guide](https://github.com/schombert/Project-Alice/blob/main/docs/user_guide.md#linux) for parameters.
+
 ## Contributing
 - Please, [visit this page](https://schombert.github.io/Project-Alice/md_contributing.html) ([简中](https://github.com/schombert/Project-Alice/blob/main/docs/zh-cn/contributing.md), [Español](https://github.com/schombert/Project-Alice/blob/main/docs/es-es/contributing.md), [Deutsch](https://github.com/schombert/Project-Alice/blob/main/docs/de-de/contributing.md), [Português](https://github.com/schombert/Project-Alice/blob/main/docs/pt/contributing.md))
 

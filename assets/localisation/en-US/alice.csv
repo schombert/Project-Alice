@@ -750,6 +750,10 @@ trade_commodity_report_1;Current global demand: $x$
 trade_commodity_report_2;Current global production: $x$
 trade_commodity_report_3;Current global consumption: $x$
 trade_commodity_report_4;Amount on world market: $x$
+commodity_consumption_header;Population consumption: life/everyday/luxury needs
+commodity_consumed_by;Consumed by
+commodity_production_header;In factory production chains: input/output
+national_modifiers;National modifiers
 trade_fill;Fill
 trade_use;Draw upon
 trade_stockpile_target;Stockpile target amount:
@@ -1683,3 +1687,12 @@ alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
 alice_supply_range_friendly_port;?GAdjacent to friendly port?W
 alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
+modifier_min_land_upkeep;Minimum Land Upkeep;
+alice_naval_noretreat;In order to be able to retreat, all alive ships must be on average ?O$x$?W closer to the center
+alice_str_name;Strength:?O$val$?W
+alice_naval_retreat_condition_1;Ships are close enough to the center
+alice_naval_retreat_condition_2;Not already retreating
+alice_naval_retreat_condition_3;Access to an available port
+alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us.
+alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislodge their defences.
+alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.
