@@ -2325,12 +2325,12 @@ void clear_alliances(sys::state& state, dcon::nation_id nation) {
 void clear_trade_agreements(sys::state& state, dcon::nation_id nation) {
 	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(nation)) {
 		if(bool(rel.get_no_tariffs_until())) {
-			state.world.unilateral_relationship_set_no_tariffs_until(rel, sys::date{ });
+			revoke_free_trade_agreement_one_way(state, rel.get_target(), rel.get_source());
 		}
 	}
 	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(nation)) {
 		if(bool(rel.get_no_tariffs_until())) {
-			state.world.unilateral_relationship_set_no_tariffs_until(rel, sys::date{ });
+			revoke_free_trade_agreement_one_way(state, rel.get_target(), rel.get_source());
 		}
 	}
 }
@@ -2505,7 +2505,7 @@ bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel) {
 	if((state.world.gp_relationship_get_status(rel) & influence::is_banned) != 0)
 		return false;
-	if(military::has_truce_with(state, gp, target))
+	if(military::has_truce_with(state, gp, target) && state.world.nation_get_in_sphere_of(target) != gp )
 		return false;
 	if(military::are_at_war(state, gp, target))
 		return false;

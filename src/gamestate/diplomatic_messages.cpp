@@ -372,30 +372,7 @@ void accept(sys::state& state, message const& m) {
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
 		nations::adjust_relationship(state, m.to, m.from, state.defines.askmilaccess_relation_on_accept);
 
-		auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
-
-		// One way tariff removal
-		auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(m.to, m.from);
-		if(!rel_1) {
-			rel_1 = state.world.force_create_unilateral_relationship(m.to, m.from);
-		}
-		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
-
-		// Another way tariff removal
-		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(m.from, m.to);
-		if(!rel_2) {
-			rel_2 = state.world.force_create_unilateral_relationship(m.from, m.to);
-		}
-		state.world.unilateral_relationship_set_no_tariffs_until(rel_2, enddt);
-
-		notification::post(state, notification::message{
-			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_free_trade_agreement_signed", text::variable_type::x, target, text::variable_type::y, source);
-			},
-			"msg_free_trade_agreement_signed_title",
-			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::free_trade_agreement
-		});
+		nations::create_free_trade_agreement_both_ways(state, m.to, m.from);
 		break;
 	}
 	case type::state_transfer:

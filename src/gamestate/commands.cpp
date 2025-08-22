@@ -2765,23 +2765,7 @@ bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::na
 void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
 	state.world.nation_set_diplomatic_points(source, current_diplo - state.defines.askmilaccess_diplomatic_cost);
-
-	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
-
-	if(!rights) {
-		return; // Nation doesn't give trade rights
-	}
-
-	state.world.unilateral_relationship_set_no_tariffs_until(rights, sys::date{}); // Reset trade rights
-
-	notification::post(state, notification::message{
-		[source = source, target = target](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_trade_rights_revoked", text::variable_type::x, target, text::variable_type::y, source);
-			},
-			"msg_trade_rights_revoked_title",
-			target, source, dcon::nation_id{},
-			sys::message_base_type::trade_rights_revoked
-		});
+	nations::revoke_free_trade_agreement_one_way(state, target, source);
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {

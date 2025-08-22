@@ -510,7 +510,7 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		text::add_line(state, contents, "influence_explain_1");
 		return;
 	}
-	if(military::has_truce_with(state, state.local_player_nation, target)) {
+	if(military::has_truce_with(state, state.local_player_nation, target) && state.world.nation_get_in_sphere_of(target) != state.local_player_nation) {
 		text::add_line(state, contents, "influence_explain_2");
 		return;
 	}

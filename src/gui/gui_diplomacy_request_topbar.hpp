@@ -30,6 +30,8 @@ class diplomatic_message_topbar_button : public button_element_base {
 			return "crisis_offer_di";
 		case diplomatic_message::type_t::state_transfer:
 			return "state_transfer_di";
+		case diplomatic_message::type_t::free_trade_agreement:
+			return "free_trade_di";
 		default:
 			return "???";
 		}

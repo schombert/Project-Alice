@@ -1701,3 +1701,5 @@ alice_declarewar_truce_with_explain;?Y$NATION$?W: Have truce with ?Y$TARGET$?W. 
 alice_command_units_condition_1;?Y$NATION$?W is our subject
 alice_command_units_condition_2;Both you and the target is at war
 alice_command_units_condition_3;Target is not a player
+free_trade_di;Free trade agreement
+free_trade_offer;$actor$ is offering a free trade agreement, allowing us to trade tariff-free for $years$ years

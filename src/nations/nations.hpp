@@ -357,6 +357,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n);
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
 void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel);
 void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel);
+void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from);
+void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from);
 
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 bool is_vassal(sys::state& state, dcon::nation_id nation);
