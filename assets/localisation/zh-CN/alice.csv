@@ -1297,8 +1297,8 @@ alice_take_province_6;它不在战时
 alice_take_province_7;它受控
 investment_pool;投资池：?Y$x$?W
 investment_pool_income_1;人口再投资：?G$x$?W
-investment_pool_income_2;来自$country$：?G$x$W
-investment_pool_income_3;政府国内投资：?G$x$W
+investment_pool_income_2;来自$country$：?G$x$?W
+investment_pool_income_3;政府国内投资：?G$x$?W
 investment_pool_spending_1;每日损失（0.1%）：?R$x$?W
 investment_pool_spending_2;建设支出：?R$x$?W
 investment_pool_spending_3;转移到：?R$x$?W
