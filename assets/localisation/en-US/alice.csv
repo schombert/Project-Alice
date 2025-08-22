@@ -925,6 +925,9 @@ free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
 free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
 free_trade_explain_3;We are embargoeing them
 free_trade_explain_4;They are embargoing us
+free_trade_explain_5;Target is not a subject OR Target is a our subject
+free_trade_explain_6;We aren't in a sphere
+free_trade_explain_7;Target isn't in a sphere OR Target is in our sphere
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
 embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.

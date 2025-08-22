@@ -1087,10 +1087,18 @@ public:
 
 			text::add_line_with_condition(state, contents, "ally_explain_2", state.world.nation_get_diplomatic_points(state.local_player_nation) >= state.defines.alliance_diplomatic_cost, text::variable_type::x, int64_t(state.defines.alliance_diplomatic_cost));
 
-			auto ol = state.world.nation_get_overlord_as_subject(asker);
-			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
-			auto ol2 = state.world.nation_get_overlord_as_subject(target);
-			text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+
+			auto asker_overlord = state.world.nation_get_overlord_as_subject(asker);
+			auto target_overlord = state.world.nation_get_overlord_as_subject(target);
+
+			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(asker_overlord));
+			text::add_line_with_condition(state, contents, "free_trade_explain_5", !(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != asker));
+
+			auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
+			auto target_sphere = state.world.nation_get_in_sphere_of(target);
+
+			text::add_line_with_condition(state, contents, "free_trade_explain_6", !asker_sphere);
+			text::add_line_with_condition(state, contents, "free_trade_explain_7", !(target_sphere && target_sphere != asker));
 
 			auto rights = economy::nation_gives_free_trade_rights(state, asker, target);
 			auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(rights);
@@ -1129,10 +1137,19 @@ public:
 			auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, state.local_player_nation);
 			text::add_line_with_condition(state, contents, "ally_explain_4", !state.world.nation_get_is_great_power(asker) || !state.world.nation_get_is_great_power(target) || state.current_crisis_state == sys::crisis_state::inactive);
 
-			auto ol = state.world.nation_get_overlord_as_subject(asker);
-			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(ol));
-			auto ol2 = state.world.nation_get_overlord_as_subject(target);
-			text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
+			auto asker_overlord = state.world.nation_get_overlord_as_subject(asker);
+			auto target_overlord = state.world.nation_get_overlord_as_subject(target);
+
+			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(asker_overlord));
+			text::add_line_with_condition(state, contents, "free_trade_explain_5", !(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != asker));
+
+
+			auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
+			auto target_sphere = state.world.nation_get_in_sphere_of(target);
+			text::add_line_with_condition(state, contents, "free_trade_explain_6", !asker_sphere);
+			text::add_line_with_condition(state, contents, "free_trade_explain_7", !(target_sphere && target_sphere != asker));
+
+
 
 			text::add_line_with_condition(state, contents, "ally_explain_6", !military::are_at_war(state, asker, target));
 
@@ -1141,10 +1158,10 @@ public:
 			auto they_embargo_us = false;
 			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
 			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);
-			if(source_tariffs_rel) {
+			if(state.world.unilateral_relationship_get_embargo( source_tariffs_rel)) {
 				we_embargo_them = true;
 			}
-			if(target_tariffs_rel) {
+			if(state.world.unilateral_relationship_get_embargo(target_tariffs_rel)) {
 				they_embargo_us = true;
 			}
 			text::add_line_with_condition(state, contents, "free_trade_explain_3", !we_embargo_them);

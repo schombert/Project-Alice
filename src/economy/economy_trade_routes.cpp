@@ -353,24 +353,30 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
 	auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
 	// Subjects have embargo of overlords propagated onto them
-	auto market_leader_A = has_overlord_mask_A ? overlord_A : (has_sphere_mask_A ? sphere_A : n_A);
-	auto market_leader_B = has_overlord_mask_B ? overlord_B : (has_sphere_mask_B ? sphere_B : n_B);
+	auto market_leader_A = nations::get_market_leader(state, controller_capital_A);
+	auto market_leader_B = nations::get_market_leader(state, controller_capital_B);
 
 	// Equal/unequal trade treaties
 	auto A_open_to_B = false;
-	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(
-		controller_capital_B, market_leader_A
-	);
+	auto B_open_to_A = false;
+	dcon::unilateral_relationship_id source_tariffs_rel;
+	dcon::unilateral_relationship_id target_tariffs_rel;
+	if(market_leader_A == market_leader_B) {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(controller_capital_B, controller_capital_A);
+		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(controller_capital_A, controller_capital_B);
+
+	}
+	else {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_B, market_leader_A);
+		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_A, market_leader_B);
+	}
+	
 	if(source_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 		if(enddt) {
 			A_open_to_B = true;
 		}
 	}
-	auto B_open_to_A = false;
-	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(
-		controller_capital_A, market_leader_B
-	);
 	if(target_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
 		if(enddt) {
@@ -646,19 +652,21 @@ void update_trade_routes_volume(sys::state& state) {
 		auto overlord_B = state.world.overlord_get_ruler(
 			state.world.nation_get_overlord_as_subject(controller_capital_B)
 		);
-
-		auto has_overlord_mask_A = overlord_A != dcon::nation_id{};
-		auto has_overlord_mask_B = overlord_B != dcon::nation_id{};
-		auto has_sphere_mask_A = sphere_A != dcon::nation_id{};
-		auto has_sphere_mask_B = sphere_B != dcon::nation_id{};
-
 		// US3AC12. Subjects have embargo of overlords propagated onto them
-		auto market_leader_A = ve::select(has_overlord_mask_A, overlord_A, ve::select(has_sphere_mask_A, sphere_A, n_A));
-		auto market_leader_B = ve::select(has_overlord_mask_B, overlord_B, ve::select(has_sphere_mask_B, sphere_B, n_B));
+		auto market_leader_A = nations::get_market_leader(state, controller_capital_A);
+		auto market_leader_B = nations::get_market_leader(state, controller_capital_B);
 
 		// US3AC15. Equal/unequal trade treaties
-		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b) {
-			auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+		auto A_open_to_B = ve::apply([&](auto n_a, auto n_b, auto market_leader_a, auto market_leader_b) {
+			dcon::unilateral_relationship_id source_tariffs_rel;
+			// if same market leader, check for free trade agreement directly between eachother
+			if(market_leader_a == market_leader_b) {
+				source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+			}
+			// otherwise, check market leaders free trade agreements
+			else {
+				source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_b, market_leader_a);
+			}
 			if(source_tariffs_rel) {
 				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 				// Enddt empty signalises revoken agreement
@@ -668,11 +676,18 @@ void update_trade_routes_volume(sys::state& state) {
 				}
 			}
 			return false;
-		}, market_leader_A, controller_capital_B);
+		}, controller_capital_A, controller_capital_B, market_leader_A, market_leader_B);
 
-		auto B_open_to_A = ve::apply([&](auto n_a, auto n_b) {
-			auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
-
+		auto B_open_to_A = ve::apply([&](auto n_a, auto n_b, auto market_leader_a, auto market_leader_b) {
+			dcon::unilateral_relationship_id target_tariffs_rel;
+			// if same market leader, check for free trade agreement directly between eachother
+			if(market_leader_a == market_leader_b) {
+				target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+			}
+			// otherwise, check market leaders free trade agreements
+			else {
+				target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_a, market_leader_b);
+			}
 			if(target_tariffs_rel) {
 				auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
 				if(enddt) {
@@ -681,7 +696,7 @@ void update_trade_routes_volume(sys::state& state) {
 			}
 
 			return false;
-		}, market_leader_B, controller_capital_A);
+		}, controller_capital_B, controller_capital_A, market_leader_B, market_leader_A);
 
 		auto A_is_open_to_B = sphere_A == controller_capital_B || overlord_A == controller_capital_B || A_open_to_B;
 		auto B_is_open_to_A = sphere_B == controller_capital_A || overlord_B == controller_capital_A || B_open_to_A;
@@ -1161,13 +1176,23 @@ trade_and_tariff explain_trade_route_commodity(sys::state& state, dcon::trade_ro
 	auto overlord_target = state.world.overlord_get_ruler(
 		state.world.nation_get_overlord_as_subject(controller_capital_target)
 	);
-
+	auto market_leader_origin = nations::get_market_leader(state, controller_capital_origin);
+	auto market_leader_target = nations::get_market_leader(state, controller_capital_target);
 	// Equal/unequal trade agreements
 	// Rel source if obliged towards target
 	auto source_applies_tariffs = true;
 	auto target_applies_tariffs = true;
-	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_target, n_origin);
-	auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_origin, n_target);
+	dcon::unilateral_relationship_id source_tariffs_rel;
+	dcon::unilateral_relationship_id target_tariffs_rel;
+	if(market_leader_origin == market_leader_target) {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(controller_capital_target, controller_capital_origin);
+		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(controller_capital_origin, controller_capital_target);
+	}
+	else {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_origin);
+		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_origin, market_leader_target);
+	}
+	
 	if(source_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 		if(state.current_date < enddt) {

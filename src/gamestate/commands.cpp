@@ -2603,7 +2603,6 @@ void ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon
 bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
-	Even if nations have already free trade agreement - they can prolongate it for further years.
 	*/
 	if(asker == target)
 		return false;
@@ -2611,11 +2610,25 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 	if(state.world.nation_get_is_player_controlled(asker) && !ignore_cost && state.world.nation_get_diplomatic_points(asker) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
-	auto ol = state.world.nation_get_overlord_as_subject(asker);
-	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	auto asker_overlord = state.world.nation_get_overlord_as_subject(asker);
+	auto target_overlord = state.world.nation_get_overlord_as_subject(target);
 
-	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
-		return false; // Subjects can't negotiate trade agreements
+	// Cannot negotitate trade agreement if the asker is a subject, or the target is a subject of someone other than the asker
+	if(state.world.overlord_get_ruler(asker_overlord)) {
+		return false; 
+	}
+	if(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != asker) {
+		return false;
+	}
+
+	auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
+	auto target_sphere = state.world.nation_get_in_sphere_of(target);
+	// Cannot negotiate trade agreement if the asker is in a sphere, or the target is in a sphere that isn't the asker's sphere
+	if(bool(asker_sphere)) {
+		return false;
+	}
+	if(bool(target_sphere) && target_sphere != asker) {
+		return false;
 	}
 
 	// Can't free trade if embargo is imposed
@@ -2742,12 +2755,28 @@ bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::na
 	if(state.world.nation_get_is_player_controlled(source) && !ignore_cost && state.world.nation_get_diplomatic_points(source) < state.defines.askmilaccess_diplomatic_cost)
 		return false;
 
-	auto ol = state.world.nation_get_overlord_as_subject(source);
-	auto ol2 = state.world.nation_get_overlord_as_subject(target);
+	auto asker_overlord = state.world.nation_get_overlord_as_subject(source);
+	auto target_overlord = state.world.nation_get_overlord_as_subject(target);
 
-	if(state.world.overlord_get_ruler(ol) || state.world.overlord_get_ruler(ol2)) {
-		return false; // Subjects can't negotiate trade agreements
+	// Cannot cancel trade agreement if the asker is a subject, or the target is a subject of someone other than the asker
+	if(state.world.overlord_get_ruler(asker_overlord)) {
+		return false;
 	}
+	if(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != source) {
+		return false;
+	}
+
+	auto asker_sphere = state.world.nation_get_in_sphere_of(source);
+	auto target_sphere = state.world.nation_get_in_sphere_of(target);
+	// Cannot cancel trade agreement if the asker is in a sphere, or the target is in a sphere that isn't the asker's sphere
+	if(bool(asker_sphere)) {
+		return false;
+	}
+	if(bool(target_sphere) && target_sphere != source) {
+		return false;
+	}
+
+
 
 	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
 

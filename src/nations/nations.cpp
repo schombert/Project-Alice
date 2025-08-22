@@ -2206,6 +2206,29 @@ bool destroy_vassal_relationships(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation) {
+	auto overlord = state.world.nation_get_overlord_as_subject(nation);
+	if(state.world.overlord_get_ruler(overlord)) {
+		return state.world.overlord_get_ruler(overlord);
+	}
+	auto sphere = state.world.nation_get_in_sphere_of(nation);
+	if(bool(sphere)) {
+		return sphere;
+	}
+	return nation;
+}
+
+ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations) {
+	auto sphere = state.world.nation_get_in_sphere_of(nations);
+
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(nations));
+
+	auto has_overlord_mask = overlord != dcon::nation_id{};;
+	auto has_sphere_mask = sphere != dcon::nation_id{};
+
+	return ve::select(has_overlord_mask, overlord, ve::select(has_sphere_mask, sphere, nations));
+}
+
 void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
 	auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
 

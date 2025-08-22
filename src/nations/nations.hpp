@@ -359,6 +359,8 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool no
 void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify = true);
 void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from);
 void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from);
+dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation);
+ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations);
 
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 bool is_vassal(sys::state& state, dcon::nation_id nation);
