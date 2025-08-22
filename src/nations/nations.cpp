@@ -2252,7 +2252,7 @@ void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, 
 		});
 }
 
-void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
+void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
 	auto to = state.world.unilateral_relationship_get_target(rel);
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(state.world.unilateral_relationship_get_embargo(rel)) {
@@ -2267,7 +2267,7 @@ void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
 			if(!subjectrel) {
 				subjectrel = state.world.force_create_unilateral_relationship(subject, from);
 			}
-			remove_embargo(state, subjectrel);
+			remove_embargo(state, subjectrel,false);
 		}
 
 
@@ -2279,21 +2279,24 @@ void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
 			if(!subjectrel) {
 				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
 			}
-			remove_embargo(state, subjectrel);
+			remove_embargo(state, subjectrel,false);
 		}
-		// Notify the person from whom we lifted embargo
-		notification::post(state, notification::message{
-		[source = from, target = to](sys::state& state, text::layout_base& contents) {
-			text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
-			},
-			"msg_embargo_lifted_title",
-			from, to, dcon::nation_id{},
-			sys::message_base_type::embargo
-		});
+		if(notify) {
+			// Notify the person from whom we lifted embargo
+			notification::post(state, notification::message{
+			[source = from, target = to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
+				},
+				"msg_embargo_lifted_title",
+				from, to, dcon::nation_id{},
+				sys::message_base_type::embargo
+			});
+		}
+		
 	}
 }
 
-void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
+void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
 	auto to = state.world.unilateral_relationship_get_target(rel);
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(!state.world.unilateral_relationship_get_embargo(rel)) {
@@ -2306,7 +2309,7 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
 			if(!subjectrel) {
 				subjectrel = state.world.force_create_unilateral_relationship(subject, from);
 			}
-			do_embargo(state, subjectrel);
+			do_embargo(state, subjectrel, false);
 		}
 
 		// All subjects of asker have to do embargo on target as well
@@ -2316,17 +2319,20 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel) {
 			if(!subjectrel) {
 				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
 			}
-			do_embargo(state, subjectrel);
+			do_embargo(state, subjectrel, false);
 		}
-		// Notify the person who got embargoed
-		notification::post(state, notification::message{
-				[source = from, target = to](sys::state& state, text::layout_base& contents) {
-					text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
-				},
-				"msg_embargo_issued_title",
-				from, to, dcon::nation_id{},
-				sys::message_base_type::embargo
-		});
+		if(notify) {
+			// Notify the person who got embargoed
+			notification::post(state, notification::message{
+					[source = from, target = to](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
+					},
+					"msg_embargo_issued_title",
+					from, to, dcon::nation_id{},
+					sys::message_base_type::embargo
+			});
+		}
+		
 	}
 }
 
