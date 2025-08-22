@@ -324,9 +324,10 @@ public:
 		text::add_line_with_condition(state, contents, "alice_command_units_condition_3", !state.world.nation_get_is_player_controlled(target));
 
 		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
-			
+			text::add_line(state, contents, "CANCEL_UNIT_COMMAND_DESC");
 		}
 		else {
+			text::add_line(state, contents, "GIVE_UNIT_COMMAND_DESC");
 			auto asker_wars = state.world.nation_get_war_participant(state.local_player_nation);
 			auto target_wars = state.world.nation_get_war_participant(target);
 
