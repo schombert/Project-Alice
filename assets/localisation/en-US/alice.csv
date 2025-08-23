@@ -920,6 +920,7 @@ revoke_trade_rights;Revoke trade rights
 msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?! in their country.
 trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
 revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
+revoke_trade_rights_explain_2;We have the rights to revoke the agreement
 free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
 free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
 free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!

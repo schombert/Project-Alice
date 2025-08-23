@@ -2747,7 +2747,6 @@ void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation
 bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
-	Even if nations have already free trade agreement - they can prolongate it for further years.
 	*/
 	if(source == target)
 		return false;
@@ -2766,22 +2765,15 @@ bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::na
 		return false;
 	}
 
-	auto asker_sphere = state.world.nation_get_in_sphere_of(source);
-	auto target_sphere = state.world.nation_get_in_sphere_of(target);
-	// Cannot cancel trade agreement if the asker is in a sphere, or the target is in a sphere that isn't the asker's sphere
-	if(bool(asker_sphere)) {
-		return false;
-	}
-	if(bool(target_sphere) && target_sphere != source) {
-		return false;
-	}
-
-
-
 	auto rights = economy::nation_gives_free_trade_rights(state, source, target);
+
+	auto our_rights = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
 
 	if(!rights) {
 		return false; // Nation doesn't give trade rights
+	}
+	if(!our_rights || rights != our_rights) {
+		return false; // We do not own the rights to this agreement, someone else does (spherelord/overlord)
 	}
 	auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(rights);
 

@@ -1094,13 +1094,12 @@ public:
 			text::add_line_with_condition(state, contents, "ally_explain_5", !state.world.overlord_get_ruler(asker_overlord));
 			text::add_line_with_condition(state, contents, "free_trade_explain_5", !(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != asker));
 
-			auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
-			auto target_sphere = state.world.nation_get_in_sphere_of(target);
-
-			text::add_line_with_condition(state, contents, "free_trade_explain_6", !asker_sphere);
-			text::add_line_with_condition(state, contents, "free_trade_explain_7", !(target_sphere && target_sphere != asker));
-
 			auto rights = economy::nation_gives_free_trade_rights(state, asker, target);
+			auto our_rights = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
+
+
+			text::add_line_with_condition(state, contents, "revoke_trade_rights_explain_2", our_rights && rights == our_rights);
+
 			auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(rights);
 
 			text::add_line_with_condition(state, contents, "revoke_trade_rights_explain_1", state.current_date > enddt);
