@@ -70,6 +70,11 @@ enum class focus_type : uint8_t {
 	immigration_colonization_focus = 21,
 };
 
+enum class war_initiation : bool {
+	join_war,
+	declare_war
+};
+
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
@@ -361,6 +366,9 @@ void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, 
 void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from);
 dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation);
 ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations);
+
+template<war_initiation check_alliance>
+bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
 
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
 bool is_vassal(sys::state& state, dcon::nation_id nation);

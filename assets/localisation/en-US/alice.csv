@@ -876,6 +876,7 @@ call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You're at war
 call_ally_explain_4;There is a war this nation can be called into
 call_ally_explain_5;The AI will accept
+call_ally_explain_6;Spherelord is not in the war on the enemy side
 cancel_access_explain_1;You have at least $x$ diplomatic point(s)
 ask_access_explain_1;You can't get military access from yourself
 ask_access_explain_2;You have at least $x$ diplomatic point(s)
@@ -961,6 +962,8 @@ war_explain_5;Does not have units stationed inside this nation
 war_explain_6;Does not have units stationed inside this nation's overlord
 war_explain_7;Is not allied to target
 war_explain_8;Is not allied to target's overlord
+war_explain_9;Target is not our spherelord AND is not allied to our spherelord
+war_explain_10;Target is not our sphereling
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:

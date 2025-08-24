@@ -2228,6 +2228,32 @@ ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagg
 
 	return ve::select(has_overlord_mask, overlord, ve::select(has_sphere_mask, sphere, nations));
 }
+template<war_initiation check_alliance>
+bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target) {
+	auto source_sphere = state.world.nation_get_in_sphere_of(sphereling);
+	if(!source_sphere) {
+		return false;
+	}
+	auto target_sphere = state.world.nation_get_in_sphere_of(target);
+
+	if(source_sphere == target) {
+		return true; // cannot go to war against sphere leader
+	}
+	if constexpr(check_alliance == war_initiation::declare_war) {
+		if(source_sphere && target_sphere && target_sphere == source_sphere) {
+			return true; // cannot go to war against sphereling if source is in the same sphere as target
+		}
+	
+		if(are_allied(state, target, source_sphere)) {
+			return true; // cannot go to war against someone who is directly allied to the sphere leader
+		}
+	}
+	
+	return false;
+}
+
+template bool would_war_conflict_with_sphere_leader<war_initiation::join_war>(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
+template bool would_war_conflict_with_sphere_leader<war_initiation::declare_war>(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
 
 void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
 	auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);

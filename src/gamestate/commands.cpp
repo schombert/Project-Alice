@@ -2979,8 +2979,17 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	if(state.world.war_get_is_crisis_war(w) && !state.military_definitions.great_wars_enabled)
 		return false;
 
-	// an automatic defensive call bypasses any truces there may be with the other side.
 	bool asker_is_attacker = military::is_attacker(state, w, asker);
+
+	// cannot join a war aganst spherelord.
+	for(auto participant : military::get_one_side_war_participants(state, w, !asker_is_attacker)) {
+		if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::join_war>(state, target, participant)) {
+			return false;
+		}
+	}
+
+	// an automatic defensive call bypasses any truces there may be with the other side.
+	
 	if(!automatic_call || (automatic_call && asker_is_attacker)) {
 		for(auto participant : military::get_one_side_war_participants(state, w, !asker_is_attacker)) {
 			if(military::has_truce_with(state, target, participant)) {
@@ -3215,7 +3224,11 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 		return false;
 
 	if(state.world.nation_get_in_sphere_of(real_target) == source)
+		return false; // cannot declare war on your own sphereling
+	// when declaring a war, alliances with the spherelord are also checked
+	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, source, real_target)) {
 		return false;
+	}
 
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
 		return false;

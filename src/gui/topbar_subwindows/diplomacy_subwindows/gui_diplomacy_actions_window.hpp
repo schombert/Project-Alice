@@ -477,13 +477,14 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 		text::add_line_with_condition(state, contents, "call_ally_explain_3", state.world.nation_get_is_at_war(asker));
 
 		bool possible_war = false;
+		dcon::war_id war;
 		bool that_ai_will_accept = false;
 
 		for(auto war_par : state.world.nation_get_war_participant(asker)) {
 			if(!military::is_civil_war(state, war_par.get_war())
 				&& military::standard_war_joining_is_possible(state, war_par.get_war(), target, military::is_attacker(state, war_par.get_war(), asker))
 				&& (!war_par.get_war().get_is_crisis_war() || state.military_definitions.great_wars_enabled)) {
-
+				war = war_par.get_war();
 				possible_war = true;
 				if(!state.world.nation_get_is_player_controlled(target)) {
 					diplomatic_message::message m;
@@ -499,6 +500,21 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 			}
 		}
 		text::add_line_with_condition(state, contents, "call_ally_explain_4", possible_war);
+
+		auto target_is_attacker = military::is_attacker(state, war, target);
+		auto target_sphere = state.world.nation_get_in_sphere_of(target);
+		if(bool(target_sphere)) {
+			bool no_conflict = [&]() {
+				for(auto participant : military::get_one_side_war_participants(state, war, !target_is_attacker)) {
+					if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::join_war>(state, target, participant)) {
+						return false;
+					}
+				}
+				return true;
+			}();
+			text::add_line_with_condition(state, contents, "call_ally_explain_6", no_conflict);
+		}
+
 		if(!state.world.nation_get_is_player_controlled(target) && !nations::is_nation_subject_of(state, target, state.local_player_nation)) {
 			text::add_line_with_condition(state, contents, "call_ally_explain_5", that_ai_will_accept);
 		}
@@ -800,6 +816,7 @@ public:
 			return command::can_start_peace_offer(state, state.local_player_nation, target,
 					military::find_war_between(state, state.local_player_nation, target), true);
 		} else {
+			auto target_sphere = state.world.nation_get_in_sphere_of(target);
 			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 			auto overlord = state.world.overlord_get_ruler(target_ol_rel);
 			if(bool(overlord)) {
@@ -807,11 +824,15 @@ public:
 					return false;
 				}
 			}
+			if(target_sphere == state.local_player_nation) {
+				return false;  // cannot declare war on own sphereling
+			}
 			return !(state.local_player_nation == target ||
 				!military::can_use_cb_against(state, state.local_player_nation, target) ||
 				state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost ||
 				military::are_in_common_war(state, state.local_player_nation, target) ||
-				nations::are_allied(state, state.local_player_nation, target)||
+				nations::are_allied(state, state.local_player_nation, target) ||
+				nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, state.local_player_nation, target) ||
 				nations::has_units_inside_other_nation(state, state.local_player_nation, target));
 		}
 	}
@@ -886,6 +907,14 @@ public:
 				text::add_line_with_condition(state, contents, "war_explain_8", !nations::are_allied(state, state.local_player_nation, overlord));
 			}
 			text::add_line_with_condition(state, contents, "war_explain_7", !nations::are_allied(state, state.local_player_nation, target));
+			auto player_sphere = state.world.nation_get_in_sphere_of(state.local_player_nation);
+			auto target_sphere = state.world.nation_get_in_sphere_of(target);
+			if(bool(player_sphere)) {
+				text::add_line_with_condition(state, contents, "war_explain_9", !nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, state.local_player_nation, target));
+			}
+			if(bool(target_sphere)) {
+				text::add_line_with_condition(state, contents, "war_explain_10", target_sphere != source);
+			}
 		}
 
 	}
