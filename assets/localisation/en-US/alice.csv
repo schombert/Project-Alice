@@ -921,7 +921,7 @@ msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?!
 trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
 revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
 revoke_trade_rights_explain_2;We have the rights to revoke the agreement
-free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations and our markets (spheres & subjects) for ?Y$x$ years?W.
 free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
 free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
 free_trade_explain_3;We are embargoeing them
@@ -932,7 +932,7 @@ free_trade_explain_7;Target isn't in a sphere OR Target is in our sphere
 free_trade_explain_8;$x$ and their spheres&subjects ?Ghas free trade with?! $y$ and their spheres&subjects.
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
-embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
+embargo_desc;Embargo prevents all trade between our nations and their markets (spheres & subjects). Embargoes are applied automatically to enemies during war.
 embargo_explain_1;$x$ and their spheres&subjects ?Gembargoes?! $y$ and their spheres&subjects.
 embargo_explain_2;$x$ and their spheres&subjects ?Rembargoes?! $y$ and their spheres&subjects.
 embargo_explain_3;We don't have trade rights in their country
@@ -959,6 +959,8 @@ war_explain_3;You have at least $x$ diplomatic point(s)
 war_explain_4;You are not already in a war with this nation
 war_explain_5;Does not have units stationed inside this nation
 war_explain_6;Does not have units stationed inside this nation's overlord
+war_explain_7;Is not allied to target
+war_explain_8;Is not allied to target's overlord
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:

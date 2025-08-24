@@ -803,7 +803,7 @@ public:
 			auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
 			auto overlord = state.world.overlord_get_ruler(target_ol_rel);
 			if(bool(overlord)) {
-				if(nations::has_units_inside_other_nation(state, state.local_player_nation, overlord)) {
+				if(nations::has_units_inside_other_nation(state, state.local_player_nation, overlord) || nations::are_allied(state, state.local_player_nation, overlord)) {
 					return false;
 				}
 			}
@@ -811,6 +811,7 @@ public:
 				!military::can_use_cb_against(state, state.local_player_nation, target) ||
 				state.world.nation_get_diplomatic_points(state.local_player_nation) < state.defines.declarewar_diplomatic_cost ||
 				military::are_in_common_war(state, state.local_player_nation, target) ||
+				nations::are_allied(state, state.local_player_nation, target)||
 				nations::has_units_inside_other_nation(state, state.local_player_nation, target));
 		}
 	}
@@ -882,7 +883,9 @@ public:
 			text::add_line_with_condition(state, contents, "war_explain_5", !nations::has_units_inside_other_nation(state, state.local_player_nation, target));
 			if(bool(overlord)) {
 				text::add_line_with_condition(state, contents, "war_explain_6", !nations::has_units_inside_other_nation(state, state.local_player_nation, overlord));
+				text::add_line_with_condition(state, contents, "war_explain_8", !nations::are_allied(state, state.local_player_nation, overlord));
 			}
+			text::add_line_with_condition(state, contents, "war_explain_7", !nations::are_allied(state, state.local_player_nation, target));
 		}
 
 	}
