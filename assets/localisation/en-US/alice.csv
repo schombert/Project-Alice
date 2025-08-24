@@ -929,15 +929,17 @@ free_trade_explain_4;They are embargoing us
 free_trade_explain_5;Target is not a subject OR Target is a our subject
 free_trade_explain_6;We aren't in a sphere
 free_trade_explain_7;Target isn't in a sphere OR Target is in our sphere
+free_trade_explain_8;$x$ and their spheres&subjects ?Ghas free trade with?! $y$ and their spheres&subjects.
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
 embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
-embargo_explain_1;?G$x$ embargoes $y$.?!
-embargo_explain_2;?R$x$ embargoes $y$.?!
+embargo_explain_1;$x$ and their spheres&subjects ?Gembargoes?! $y$ and their spheres&subjects.
+embargo_explain_2;$x$ and their spheres&subjects ?Rembargoes?! $y$ and their spheres&subjects.
 embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere
 embargo_explain_6;They aren't in a sphere
+embargo_explain_7;The target isn't in our sphere
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli

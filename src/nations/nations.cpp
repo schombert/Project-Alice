@@ -2276,34 +2276,11 @@ void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, 
 }
 
 void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
+	assert(rel);
 	auto to = state.world.unilateral_relationship_get_target(rel);
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(state.world.unilateral_relationship_get_embargo(rel)) {
 		state.world.unilateral_relationship_set_embargo(rel, false);
-
-
-
-		// We must lift embargo all subjects of target aswell
-		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(to)) {
-			auto subject = sub_rel.get_subject();
-			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(subject, from);
-			if(!subjectrel) {
-				subjectrel = state.world.force_create_unilateral_relationship(subject, from);
-			}
-			remove_embargo(state, subjectrel,false);
-		}
-
-
-
-		// All subjects of asker have to remove embargo on target as well
-		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(from)) {
-			auto subject = sub_rel.get_subject();
-			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(to, subject);
-			if(!subjectrel) {
-				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
-			}
-			remove_embargo(state, subjectrel,false);
-		}
 		if(notify) {
 			// Notify the person from whom we lifted embargo
 			notification::post(state, notification::message{
@@ -2320,30 +2297,12 @@ void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, boo
 }
 
 void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
+	assert(rel);
 	auto to = state.world.unilateral_relationship_get_target(rel);
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(!state.world.unilateral_relationship_get_embargo(rel)) {
 		state.world.unilateral_relationship_set_embargo(rel, true);
 
-		// We must embargo all subjects of target aswell
-		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(to)) {
-			auto subject = sub_rel.get_subject();
-			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(subject, from);
-			if(!subjectrel) {
-				subjectrel = state.world.force_create_unilateral_relationship(subject, from);
-			}
-			do_embargo(state, subjectrel, false);
-		}
-
-		// All subjects of asker have to do embargo on target as well
-		for(auto sub_rel : state.world.nation_get_overlord_as_ruler(from)) {
-			auto subject = sub_rel.get_subject();
-			auto subjectrel = state.world.get_unilateral_relationship_by_unilateral_pair(to, subject);
-			if(!subjectrel) {
-				subjectrel = state.world.force_create_unilateral_relationship(to, subject);
-			}
-			do_embargo(state, subjectrel, false);
-		}
 		if(notify) {
 			// Notify the person who got embargoed
 			notification::post(state, notification::message{

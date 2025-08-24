@@ -1228,10 +1228,13 @@ public:
 		auto ol2 = state.world.nation_get_overlord_as_subject(target);
 		text::add_line_with_condition(state, contents, "ally_explain_8", !state.world.overlord_get_ruler(ol2));
 
-		auto sl = state.world.nation_get_in_sphere_of(asker);
-		auto sl2 = state.world.nation_get_in_sphere_of(asker);
-		text::add_line_with_condition(state, contents, "embargo_explain_5", !sl);
-		text::add_line_with_condition(state, contents, "embargo_explain_6", !sl2);
+		if(!economy::has_active_embargo(state, asker, target)) {
+			auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
+			auto target_sphere = state.world.nation_get_in_sphere_of(target);
+
+			text::add_line_with_condition(state, contents, "embargo_explain_5", !asker_sphere);
+			text::add_line_with_condition(state, contents, "embargo_explain_7", !(target_sphere && target_sphere == asker));
+		}
 
 		// Can't embargo if free trade is in place
 		auto we_have_free_trade = state.world.get_unilateral_relationship_by_unilateral_pair(asker, target);

@@ -451,7 +451,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto source = dcon::fatten(state.world, n);
-
 		for(auto target : state.world.in_nation) {
 			if(economy::has_active_embargo(state, source, target)) {
 				text::add_line(state, contents, "embargo_explain_1", text::variable_type::x, source, text::variable_type::y, target);
@@ -460,6 +459,17 @@ public:
 				text::add_line(state, contents, "embargo_explain_2", text::variable_type::x, target, text::variable_type::y, source);
 			}
 		}
+		
+		for(auto target : state.world.in_nation) {
+			if(economy::nation_gives_direct_free_trade_rights(state, source, target)) {
+				text::add_line(state, contents, "free_trade_explain_8", text::variable_type::x, source, text::variable_type::y, target);
+			}
+			if(economy::nation_gives_direct_free_trade_rights(state, target, source)) {
+				text::add_line(state, contents, "free_trade_explain_8", text::variable_type::x, target, text::variable_type::y, source);
+			}
+		}
+		
+		
 	}
 };
 

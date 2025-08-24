@@ -16,6 +16,7 @@
 #include "ai.hpp"
 #include "gui_console.hpp"
 #include "network.hpp"
+#include "economy_government.hpp"
 
 namespace command {
 
@@ -2689,12 +2690,20 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 		return false; // Subjects can't embargo or be embargoed
 	}
 
-	auto sl = state.world.nation_get_in_sphere_of(asker);
-	auto sl2 = state.world.nation_get_in_sphere_of(asker);
+	if(!economy::has_active_embargo(state, asker, target)) {
+		auto asker_sphere = state.world.nation_get_in_sphere_of(asker);
+		auto target_sphere = state.world.nation_get_in_sphere_of(target);
 
-	if(sl || sl2) {
-		return false; // Spherelings can't embargo or be embargoed
+		if(target_sphere && target_sphere == asker) {
+			return false; // cannot embargo your own sphereling
+		}
+
+		if(asker_sphere) {
+			return false; // Spherelings can't embargo, but they can cancel direct embargo's (lingering from before they got sphered for example)
+		}
 	}
+
+	
 
 	// Can't embargo if free trade is in place
 	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
