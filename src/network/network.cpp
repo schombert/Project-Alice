@@ -1381,13 +1381,12 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 	return r;
 }
 
-int server_process_commands(sys::state& state, network::client_data& client) {
+int server_process_client_commands(sys::state& state, network::client_data& client) {
 	int r = socket_recv(client.socket_fd, &client.recv_buffer, sizeof(client.recv_buffer), &client.recv_count, [&]() {
 		switch(client.recv_buffer.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
-			if(client.recv_buffer.source == client.playing_as
-			&& command::can_perform_command(state, client.recv_buffer)) {
+			if(client.recv_buffer.source == client.playing_as) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
 			break;
@@ -1408,7 +1407,6 @@ int server_process_commands(sys::state& state, network::client_data& client) {
 			/* Has to be from the nation of the client proper - and early
 			discard invalid commands, and no clients must be currently loading */
 			if(client.recv_buffer.source == client.playing_as
-			&& command::can_perform_command(state, client.recv_buffer)
 			&& !network::check_any_players_loading(state)) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
@@ -1443,7 +1441,7 @@ static void receive_from_clients(sys::state& state) {
 
 		int commandspertick = 0;
 		while(r == 0 && commandspertick < 10) {
-			r = server_process_commands(state, client);
+			r = server_process_client_commands(state, client);
 			commandspertick++;
 		}
 
