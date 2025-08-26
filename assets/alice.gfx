@@ -488,6 +488,12 @@ spriteTypes = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
 	}
+	
+	spriteType = {
+		name = "GFX_local_admin"
+		texturefile = "assets\\local_admin.png"
+	}
+	
 	spriteType = {
 		name = "GFX_take_province"
 		texturefile = "assets\\take_away_province_btn.png"

@@ -5049,15 +5049,34 @@ guiTypes = {
 	guiButtonType = {
 		name = "alice_move_capital"
 		extends = "province_view_header"
-		position = { x= 368 y = 43 }
+		position = { x = 368 y = 43 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {
 		name = "alice_toggle_administration"
 		extends = "province_view_header"
-		position = { x= 100 y = 43 }
-		quadTextureSprite = "GFX_move_capital"	
+		position = { x = 346 y = 43 }
+		quadTextureSprite = "GFX_local_admin"	
 	}
+	
+	iconType = {
+		name ="province_victory_points_icon"
+		extends = "province_view_header"
+		spriteType = "GFX_prestige_icon_2"
+		position = { x = 310 y = 46 }
+		Orientation = "UPPER_LEFT"
+	}
+	
+	instantTextBoxType = {
+		name = "province_victory_points"
+		extends = "province_view_header"
+		position = { x = 325 y = 45}
+		borderSize = { 0 0 }
+		maxsize = { 20 20 }
+		textureFile = ""
+		font = "vic_18"
+	}
+	
 	guiButtonType = {
 		name = "alice_take_province"
 		extends = "province_view_header"
@@ -5065,51 +5084,32 @@ guiTypes = {
 		quadTextureSprite = "GFX_take_province"	
 	}
 
-	iconType = {
-		name ="province_victory_points_icon"
-		extends = "province_view_header"
-		spriteType = "GFX_prestige_icon_2"
-		position = { x=125 y=43 }
-		Orientation = "UPPER_LEFT"
-	}
 	instantTextBoxType = {
-			name = "province_victory_points"
-			extends = "province_view_header"
-			position = { x=140 y =45}
-			borderSize = { 0 0}
-			maxsize = { 50 20 }
-			textureFile = ""
-			font = "vic_18"
+		name = "ready_state"
+		extends = "ingame_multiplayer_entry"
+		position = { x=160 y =2}
+		borderSize = { 0 0}
+		maxsize = { 50 32 }
+		textureFile = ""
+		font = "vic_18_black"
 	}
-
-	instantTextBoxType = {
-			name = "ready_state"
-			extends = "ingame_multiplayer_entry"
-			position = { x=160 y =2}
-			borderSize = { 0 0}
-			maxsize = { 50 32 }
-			textureFile = ""
-			font = "vic_18_black"
-		}
 
 	guiButtonType = {
-			name = "button_ban"
-			extends = "ingame_multiplayer_entry"
-			quadTextureSprite = "GFX_button_ban"
-			tooltip = ""
-			tooltipText =""	
-			delayedTooltipText = ""
-			position = { x=228 y =2}
-		}
+		name = "button_ban"
+		extends = "ingame_multiplayer_entry"
+		quadTextureSprite = "GFX_button_ban"
+		tooltip = ""
+		tooltipText =""	
+		delayedTooltipText = ""
+		position = { x=228 y =2}
+	}
 
-		guiButtonType = {
-			name = "resync_button"
-			extends = "ingame_lobby_window"
-			quadTextureSprite = "GFX_alice_event_auto"
-			position = { x=535 y =314}
-		}
-
-
+	guiButtonType = {
+		name = "resync_button"
+		extends = "ingame_lobby_window"
+		quadTextureSprite = "GFX_alice_event_auto"
+		position = { x=535 y =314}
+	}
 
     guiButtonType = {
 		name = "alice_budget_warning"
