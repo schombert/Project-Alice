@@ -10,13 +10,32 @@
 
 namespace ui {
 
+// US29AC4 US29AC5 Extracted into a separate function because both icon classes (below) and scripted button classes reference it
 int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel);
 
-// US29AC5
-class icon_w_datamodel : public image_element_base {
+// US29AC3
+class datamodel_general_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
+		// US29AC3 US29AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
 		frame = frame_from_datamodel(state, base_data.datamodel);
+	}
+};
+
+// US29AC6 US29AC7
+class datamodel_icon_country_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto elname = text::produce_simple_string(state, base_data.name);
+
+		for(auto identity : state.world.in_national_identity) {
+			auto tag = nations::int_to_tag(identity.get_identifying_int());
+			if(elname.ends_with(tag)) {
+				return identity;
+			}
+		}
+		
+		return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
 	}
 };
 

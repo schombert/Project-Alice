@@ -178,6 +178,8 @@ void gui_element_common::datamodel(association_type, std::string_view txt, error
 		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "state_religion")) {
 		target.datamodel = ui::datamodel::state_religion;
+	} else if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "country_flag")) {
+		target.datamodel = ui::datamodel::country_flag;
 	} else {
 		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as datamodel on line " + std::to_string(line) +
 			" of file " + err.file_name + "\n";

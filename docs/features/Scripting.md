@@ -106,6 +106,8 @@ Recent changes:
 | AC3 | When a supper element has `datamodel="state_religion"`, it always displays the state religion of the player |
 | AC4 | `uiscriptbuttontype` can have a datamodel |
 | AC5 | `iconType` can have a datamodel |
+| AC6 | Datamodel can be `country_flag` |
+| AC7 | When an element has `datamodel="country_flag"`, it will display the flag of a tag that id placed in the end of the name of the element |
 
 **Definition of Done:**
 - [X] All acceptance criteria are met.

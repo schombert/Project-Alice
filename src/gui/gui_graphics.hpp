@@ -113,7 +113,8 @@ enum class orientation : uint8_t { // 3 bits
 
 enum class datamodel : uint8_t { // 3 bits
 	none = 0,
-	state_religion = 1
+	state_religion = 1,
+	country_flag = 2
 };
 
 struct text_base_data {

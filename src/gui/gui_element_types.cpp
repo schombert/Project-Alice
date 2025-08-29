@@ -1921,9 +1921,17 @@ message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, i
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
 	auto& def = state.ui_defs.gui[id];
 	if(def.get_element_type() == ui::element_type::image) {
-		// US29AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
-		if(def.datamodel != ui::datamodel::none) {
-			auto res = std::make_unique<icon_w_datamodel>();
+		// US29AC2 US29AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
+		if(def.datamodel == ui::datamodel::state_religion) {
+			auto res = std::make_unique<datamodel_general_icon>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
+		//US29AC6 US29AC7
+		else if(def.datamodel == ui::datamodel::country_flag) {
+			auto res = std::make_unique<datamodel_icon_country_flag>();
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
