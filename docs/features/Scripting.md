@@ -1,6 +1,6 @@
 # Scripting
 
-## US7. Scriptable buttons
+## US27. Scriptable buttons
 
 Adding new buttons wouldn't mean much if you couldn't make them do things. To allow you to add custom button effects to the game, we have introduced two new ui element types: `provinceScriptButtonType` and `nationScriptButtonType`. These buttons are defined in the same way as a `guiButtonType`, except that they can be given additional `allow` and `effect` parameters. For example:
 
@@ -73,7 +73,7 @@ Recent changes:
 - [X] Documentation is updated, if applicable.
 - [x] Feature is available in release versions of PA.
 
-## US8. Toggleable windows
+## US28. Toggleable windows
 
 **As a Modder,**
 **I want to mod buttons that toggle windows visibility,**
@@ -94,7 +94,7 @@ Recent changes:
 - [X] Documentation is updated, if applicable.
 - [x] Feature is available in release versions of PA.
 
-## US9. Scriptable images with dynamic frames through datamodels
+## US29. Scriptable images with dynamic frames through datamodels
 
 **As a Modder,**
 **I want to mod in icons that have dynamic frames,**

@@ -94,7 +94,7 @@ void take_ai_decisions(sys::state& state) {
 }
 
 void take_ai_scripted_interactions(sys::state& state) {
-	// US7AC5 National level interactions first
+	// US27AC5 National level interactions first
 	using element_nation_pair = std::pair<dcon::scripted_interaction_id, dcon::nation_id>;
 	struct item_to_sort {
 		element_nation_pair pair; float weight = NAN;

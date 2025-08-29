@@ -6,7 +6,7 @@
 namespace ui {
 
 int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel) {
-	// US9AC3 US9AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
+	// US29AC3 US29AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
 	if(datamodel == ui::datamodel::state_religion) {
 		auto country = state.local_player_nation;
 		auto fat_id = dcon::fatten(state.world, state.world.nation_get_religion(country));
@@ -181,7 +181,7 @@ void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 		disabled = true;
 		return;
 	}
-	// US8AC5 US8AC6 UI variable toggle buttons can have nation-level scripting (visible, allow)
+	// US28AC5 US28AC6 UI variable toggle buttons can have nation-level scripting (visible, allow)
 	if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
 		auto sel = get_scripted_element_by_gui_def(state, base_definition);
 
@@ -194,7 +194,7 @@ void ui_variable_toggle_button::on_update(sys::state& state) noexcept {
 		}
 	}
 
-	// US9AC4
+	// US29AC4
 	if(base_data.datamodel != ui::datamodel::none) {
 		frame = frame_from_datamodel(state, base_data.datamodel);
 	}

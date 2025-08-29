@@ -12,7 +12,7 @@ namespace ui {
 
 int32_t frame_from_datamodel(sys::state& state, ui::datamodel datamodel);
 
-// US9AC5
+// US29AC5
 class icon_w_datamodel : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -67,7 +67,7 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 };
 
-// US8AC2 When clicking button with toggle_ui_key the associated UI variable is toggled True/False
+// US28AC2 When clicking button with toggle_ui_key the associated UI variable is toggled True/False
 // We treat UI variable toggle buttons as nation buttons but with toggle_ui_key instead of the effect
 class ui_variable_toggle_button : public button_element_base {
 public:
@@ -102,7 +102,7 @@ public:
 
 };
 
-// US8AC4 Window is shown only when UI variable in `visible_ui_key` is set to True
+// US28AC4 Window is shown only when UI variable in `visible_ui_key` is set to True
 class ui_variable_toggleable_window : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {

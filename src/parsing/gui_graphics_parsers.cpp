@@ -173,7 +173,7 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 	}
 }
 
-//US9AC1 GUI elements can have `datamodel` with one of the datamodel options
+//US29AC1 GUI elements can have `datamodel` with one of the datamodel options
 void gui_element_common::datamodel(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
 	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "state_religion")) {
@@ -572,7 +572,7 @@ bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building
 }
 
 
-// US8AC1
+// US28AC1
 void ui_script_button::toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	auto key = context.full_state.lookup_key(txt);
 	if(!key) {
@@ -594,13 +594,13 @@ void ui_script_button::toggle_ui_key(association_type, std::string_view txt, err
 
 	target.data.button.toggle_ui_key = uv;
 }
-// US8AC5
+// US28AC5
 bool ui_script_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.nation_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
-// US8AC6
+// US28AC6
 bool ui_script_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
 	context.nation_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
@@ -869,7 +869,7 @@ void window::moveable(association_type, bool v, error_handler& err, int32_t line
 		target.data.window.flags |= ui::window_data::is_moveable_mask;
 }
 
-// US8AC3
+// US28AC3
 void window::visible_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
 	auto key = context.full_state.lookup_key(txt);
 	if(!key) {
@@ -1101,7 +1101,7 @@ void guitypes::nationscriptbuttontype(nation_script_button const& v, error_handl
 	auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
 	auto sel = context.full_state.world.create_scripted_interaction();
 	context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
-	// US7AC1 US7AC2 US7AC3 US7AC4
+	// US27AC1 US27AC2 US27AC3 US27AC4
 	if(v.added_visible != -1) {
 		context.nation_buttons_visible[v.added_visible].scripted_element = sel;
 	}
