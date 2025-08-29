@@ -20,6 +20,8 @@
 namespace ai {
 
 void take_ai_decisions(sys::state& state) {
+	// Assumption: AI_WILL_DO in decisions returns either 0 or 1. When it's zero, then the AI will not enact the decision. Weighting the decisions, therefore, is not implemented.
+
 	using decision_nation_pair = std::pair<dcon::decision_id, dcon::nation_id>;
 	concurrency::combinable<std::vector<decision_nation_pair, dcon::cache_aligned_allocator<decision_nation_pair>>> decisions_taken;
 
@@ -42,6 +44,7 @@ void take_ai_decisions(sys::state& state) {
 					&& state.world.nation_get_owned_province_count(ids) != 0;
 				if(ve::compress_mask(filter_a).v != 0) {
 					// empty allow assumed to be an "always = yes"
+					// empty potential assumed to be an "always = yes"
 					ve::mask_vector filter_b = potential
 						? filter_a && (trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0))
 						: filter_a;
@@ -83,8 +86,108 @@ void take_ai_decisions(sys::state& state) {
 		auto n = v.second;
 		auto d = v.first;
 		auto e = state.world.decision_get_effect(d);
+		// The effect of a prior decision once taken may invalidate the conditions that enabled another copy of the decision in the simultaneous evaluation to be taken
 		if(command::can_take_decision(state, n, d)) {
 			nations::take_decision(state, n, d);
+		}
+	}
+}
+
+void take_ai_scripted_interactions(sys::state& state) {
+	// US27AC5 National level interactions first
+	using element_nation_pair = std::pair<dcon::scripted_interaction_id, dcon::nation_id>;
+	struct item_to_sort {
+		element_nation_pair pair; float weight = NAN;
+	};
+	concurrency::combinable<std::vector<item_to_sort, dcon::cache_aligned_allocator<item_to_sort>>> interactions_taken;
+
+	// execute in staggered blocks
+	uint32_t d_block_size = state.world.decision_size() / 32;
+	uint32_t block_index = 0;
+	auto d_block_end = state.world.decision_size();
+	concurrency::parallel_for(d_block_size * block_index, d_block_end, [&](uint32_t i) {
+		auto sel = dcon::scripted_interaction_id{ dcon::scripted_interaction_id::value_base_t(i) };
+		auto e = state.world.scripted_interaction_get_effect(sel);
+		if(e) {
+			auto potential = state.world.scripted_interaction_get_visible(sel);
+			auto allow = state.world.scripted_interaction_get_allow(sel);
+			auto ai_will_do = state.world.scripted_interaction_get_ai_will_do(sel);
+			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
+				// AI-only, not dead nations
+				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids) && state.world.nation_get_owned_province_count(ids) != 0;
+				if(ve::compress_mask(filter_a).v != 0) {
+					// empty allow assumed to be an "always = yes"
+					// empty visible assumed to be an "always = yes"
+					ve::mask_vector filter_b = potential ? filter_a && (trigger::evaluate(state, potential, trigger::to_generic(ids), trigger::to_generic(ids), 0))	: filter_a;
+					if(ve::compress_mask(filter_b).v != 0) {
+						ve::mask_vector filter_c = allow ? filter_b && (trigger::evaluate(state, allow, trigger::to_generic(ids), trigger::to_generic(ids), 0)) : filter_b;
+						if(ve::compress_mask(filter_c).v != 0) {
+							ve::mask_vector filter_d = ai_will_do ? filter_c && (trigger::evaluate_multiplicative_modifier(state, ai_will_do, trigger::to_generic(ids), trigger::to_generic(ids), 0) > 0.0f) : filter_c;
+							ve::apply([&](dcon::nation_id n, bool passed_filter) {
+								if(passed_filter) {
+									interactions_taken.local().push_back({ element_nation_pair(sel, n), NAN });
+								}
+							}, ids, filter_d);
+						}
+					}
+				}
+			});
+		}
+	});
+	// combination and final execution
+	auto total_vector = interactions_taken.combine([](auto& a, auto& b) {
+		std::vector<item_to_sort, dcon::cache_aligned_allocator<item_to_sort>> result(a.begin(), a.end());
+		result.insert(result.end(), b.begin(), b.end());
+		return result;
+	});
+	
+	// Order interactions
+	std::sort(total_vector.begin(), total_vector.end(), [&](auto a, auto b) {
+		auto na = a.pair.second;
+		auto nb = b.pair.second;
+		auto interactiona = a.pair.first;
+		auto interactionb = b.pair.first;
+		auto& weight_a = a.weight;
+		auto& weight_b = b.weight;
+		if(weight_a == NAN) {
+			auto& ai_will_do_a = state.world.scripted_interaction_get_ai_will_do(interactiona);
+			if(ai_will_do_a) {
+				weight_a = trigger::evaluate_multiplicative_modifier(state, ai_will_do_a, trigger::to_generic(na), trigger::to_generic(na), 0);
+			}
+			else {
+				weight_a = 1;
+			}
+		}
+		if(weight_b == NAN) {
+			auto& ai_will_do_b = state.world.scripted_interaction_get_ai_will_do(interactionb);
+			if (ai_will_do_b) {
+				weight_b = trigger::evaluate_multiplicative_modifier(state, ai_will_do_b, trigger::to_generic(nb), trigger::to_generic(nb), 0);
+			} else {
+				weight_a = 1;
+			}
+		}
+		if(na != nb)
+			return na.index() < nb.index();
+		if(weight_a != weight_b)
+			return weight_a > weight_b;
+
+		auto random_a = rng::get_random(state, uint32_t(interactiona.index()) << 5 ^ uint32_t(na.index()));
+		auto random_b = rng::get_random(state, uint32_t(interactionb.index()) << 5 ^ uint32_t(nb.index()));
+		return random_a < random_b;
+	});
+	// assumption 1: no duplicate pair of <n, d>
+	for(const auto& v : total_vector) {
+		auto nation = v.pair.second;
+		auto interaction = v.pair.first;
+		// The effect of a prior interaction once taken may invalidate the conditions that enabled another copy of the interaction in the simultaneous evaluation to be taken
+		/*if(command::can_use_nation_button(state, nation, interaction, nation)) {
+			command::execute_use_nation_button(state, nation, interaction, nation);
+		} */
+		auto potential = state.world.scripted_interaction_get_visible(interaction);
+		auto e = state.world.scripted_interaction_get_effect(interaction);
+		if((!potential || trigger::evaluate(state, potential, trigger::to_generic(nation), trigger::to_generic(nation), 0))
+		&& trigger::evaluate(state, state.world.scripted_interaction_get_allow(interaction), trigger::to_generic(nation), trigger::to_generic(nation), 0)) {
+			effect::execute(state, e, trigger::to_generic(nation), trigger::to_generic(nation), 0, uint32_t(state.current_date.value), uint32_t(nation.index() << 4 ^ interaction.index()));
 		}
 	}
 }

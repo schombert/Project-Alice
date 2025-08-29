@@ -26,6 +26,10 @@ make_accepted_culture;$text$ becomes an accepted culture
 primary_culture_changes_to;Primary culture changes to ?Y$text$?W
 union_culture_accepted;All cultures in the nation's primary culture group become accepted
 remove_accepted_culture;$text$ stops being an accepted culture
+set_national_variable_to;Set national variable $text$ to $value$
+set_global_variable_to;Set global ?Y$text$?! to ?Y$value$?!
+increase_global_variable_by;Increase global ?Y$text$?! by ?Y$value$?!
+decrease_global_variable_by;Decrease global ?Y$text$?! by ?Y$value$?!
 increase_national_variable_by;Increase nation's ?Y$text$?W by ?Y$value$?W
 decrease_national_variable_by;Decrease nation's ?Y$text$?W by ?Y$value$?W
 life_rating;Life rating

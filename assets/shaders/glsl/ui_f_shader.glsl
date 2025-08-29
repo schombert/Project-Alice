@@ -82,6 +82,57 @@ vec4 frame_stretch(vec2 tc) {
 		yout = border_size / tsize.y + (1.0 - 2.0 * border_size / tsize.y) * (realy - border_size) / (d_rect.w * 2.0 * border_size);
 	return texture(texture_sampler, vec2(xout, yout));
 }
+
+vec4 frame_repeat(vec2 tc) {
+    float realx = tc.x * d_rect.z;
+    float realy = tc.y * d_rect.w;
+    vec2 tsize = textureSize(texture_sampler, 0);
+    float xout = 0.0;
+    float yout = 0.0;
+    
+    // Calculate inner texture dimensions (center portion)
+    float inner_tex_w = tsize.x - 2.0 * border_size;
+    float inner_tex_h = tsize.y - 2.0 * border_size;
+    float inner_rect_w = d_rect.z - 2.0 * border_size;
+    float inner_rect_h = d_rect.w - 2.0 * border_size;
+    
+    // Handle X-axis
+    if(realx <= border_size) {
+        xout = realx / tsize.x;
+    }
+    else if(realx >= (d_rect.z - border_size)) {
+        xout = (1.0 - border_size / tsize.x) + (border_size - (d_rect.z - realx)) / tsize.x;
+    }
+    else {
+        // Tile center horizontally
+        if(inner_tex_w > 0.0) {
+            float offset = mod(realx - border_size, inner_tex_w);
+            xout = (border_size + offset) / tsize.x;
+        } else {
+            xout = border_size / tsize.x;
+        }
+    }
+    
+    // Handle Y-axis
+    if(realy <= border_size) {
+        yout = realy / tsize.y;
+    }
+    else if(realy >= (d_rect.w - border_size)) {
+        yout = (1.0 - border_size / tsize.y) + (border_size - (d_rect.w - realy)) / tsize.y;
+    }
+    else {
+        // Tile center vertically
+        if(inner_tex_h > 0.0) {
+            float offset = mod(realy - border_size, inner_tex_h);
+            yout = (border_size + offset) / tsize.y;
+        } else {
+            yout = border_size / tsize.y;
+        }
+    }
+    
+    return texture(texture_sampler, vec2(xout, yout));
+}
+
 //layout(index = 9) subroutine(font_function_class)
 vec4 piechart(vec2 tc) {
 	if(((tc.x - 0.5) * (tc.x - 0.5) + (tc.y - 0.5) * (tc.y - 0.5)) > 0.25)
@@ -181,6 +232,7 @@ case 20: return alpha_color(tc);
 case 21: return subsprite_c(tc);
 case 22: return linegraph_acolor(tc);
 case 23: return stripchart(tc);
+case 24: return frame_repeat(tc);
 
 default: break;
 	}

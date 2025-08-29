@@ -31,6 +31,7 @@ gfx_object_outer
 	scrollingsprite         group     none         discard
 	spritetype              group     gfx_object   member_fn
 	corneredtilespritetype  group     gfx_object   member_fn
+	corneredrepeatpritetype  group     gfx_object   member_fn
 	maskedshieldtype        group     gfx_object   member_fn
 	textspritetype          group     gfx_object   member_fn
 	tilespritetype          group     gfx_object   member_fn
@@ -56,6 +57,7 @@ gui_element_common
 	add_size			group		gfx_xy_pair		member_fn
 	add_position		group		gfx_xy_pair		member_fn
 	table_layout		group		gfx_xy_pair		member_fn
+	datamodel       value    text    member_fn
 
 button
 	#base                 gui_element_common
@@ -73,13 +75,24 @@ button
 
 province_script_button
 	#base          button
+	visible         extern          province_button_visible       member_fn
 	allow         extern          province_button_allow       member_fn
 	effect         extern          province_button_effect       member_fn
+	ai_will_do         extern          province_button_ai_will_do       member_fn
+
 
 nation_script_button
 	#base          button
+	visible         extern          nation_button_visible       member_fn
 	allow         extern          nation_button_allow       member_fn
 	effect         extern          nation_button_effect       member_fn
+	ai_will_do         extern      nation_button_ai_will_do       member_fn
+
+ui_script_button
+	#base          button
+	visible         extern          ui_script_button_visible       member_fn
+	allow         extern          ui_script_button_allow       member_fn
+	toggle_ui_key         value       text       member_fn
 
 image
 	#base           gui_element_common
@@ -147,6 +160,7 @@ window
 	horizontalborder           value       none               discard
 	verticalborder             value       none               discard
 	moveable                   value       bool               member_fn
+	visible_ui_key             value       text               member_fn
 	guibuttontype              group       button             member_fn
 	eu3dialogtype              group       window             member_fn
 	icontype                   group       image              member_fn
@@ -162,6 +176,7 @@ window
 	textboxtype                group       textbox            member_fn
 	provincescriptbuttontype    group   province_script_button   member_fn
 	nationscriptbuttontype    group   nation_script_button   member_fn
+	uiscriptbuttontype        group   ui_script_button   member_fn
 
 guitypes
 	guibuttontype              group       button             member_fn
@@ -179,6 +194,7 @@ guitypes
 	textboxtype                group       textbox            member_fn
 	provincescriptbuttontype    group   province_script_button   member_fn
 	nationscriptbuttontype    group   nation_script_button   member_fn
+	uiscriptbuttontype        group   ui_script_button   member_fn
 
 gui_files
 	guitypes     extern     parse_guitypes     discard

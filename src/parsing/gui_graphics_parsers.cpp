@@ -87,6 +87,12 @@ void gfx_object_outer::corneredtilespritetype(gfx_object const& obj, parsers::er
 		building_gfx_context& context) {
 	auto res = common_create_object(obj, context);
 	res.obj->flags |= uint8_t(ui::object_type::bordered_rect);
+	// Repeating the center segment produces the same result as stretching it even though uses a bit more GPU resources
+}
+void gfx_object_outer::corneredrepeatpritetype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
+		building_gfx_context& context) {
+	auto res = common_create_object(obj, context);
+	res.obj->flags |= uint8_t(ui::object_type::bordered_rect_repeat);
 }
 void gfx_object_outer::maskedshieldtype(gfx_object const& obj, parsers::error_handler& err, int32_t line,
 		building_gfx_context& context) {
@@ -166,6 +172,18 @@ void gui_element_common::orientation(association_type, std::string_view txt, err
 															" of file " + err.file_name + "\n";
 	}
 }
+
+//US29AC1 GUI elements can have `datamodel` with one of the datamodel options
+void gui_element_common::datamodel(association_type, std::string_view txt, error_handler& err, int32_t line,
+		building_gfx_context& context) {
+	if(is_fixed_token_ci(txt.data(), txt.data() + txt.length(), "state_religion")) {
+		target.datamodel = ui::datamodel::state_religion;
+	} else {
+		err.accumulated_errors += "tried to parse  " + std::string(txt) + " as datamodel on line " + std::to_string(line) +
+			" of file " + err.file_name + "\n";
+	}
+}
+
 void gui_element_common::name(association_type, std::string_view txt, error_handler& err, int32_t line,
 		building_gfx_context& context) {
 	target.name = context.full_state.add_key_win1252(txt);
@@ -452,6 +470,12 @@ void button::clicksound(association_type, std::string_view t, error_handler& err
 	}
 }
 
+void nation_script_button::visible(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_visible != -1) {
+		err.accumulated_errors += "multiple visible conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_visible = int32_t(context.nation_buttons_visible.size()) - 1;
+}
 void nation_script_button::allow(bool, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(added_allow != -1) {
 		err.accumulated_errors += "multiple allow conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
@@ -463,6 +487,18 @@ void nation_script_button::effect(bool, error_handler& err, int32_t line, buildi
 		err.accumulated_errors += "multiple effects for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
 	}
 	added_effect = int32_t(context.nation_buttons_effect.size()) - 1;
+}
+void nation_script_button::ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_ai_will_do != -1) {
+		err.accumulated_errors += "multiple ai_will_do for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_ai_will_do = int32_t(context.nation_buttons_ai_will_do.size()) - 1;
+}
+void province_script_button::visible(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_visible != -1) {
+		err.accumulated_errors += "multiple visible conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_visible = int32_t(context.province_buttons_visible.size()) - 1;
 }
 void province_script_button::allow(bool, error_handler& err, int32_t line, building_gfx_context& context) {
 	if(added_allow != -1) {
@@ -476,25 +512,97 @@ void province_script_button::effect(bool, error_handler& err, int32_t line, buil
 	}
 	added_effect = int32_t(context.province_buttons_effect.size()) - 1;
 }
-
-
+void province_script_button::ai_will_do(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_ai_will_do != -1) {
+		err.accumulated_errors += "multiple ai_will_do for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_ai_will_do = int32_t(context.province_buttons_ai_will_do.size()) - 1;
+}
+void ui_script_button::visible(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_visible != -1) {
+		err.accumulated_errors += "multiple visible conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_visible = int32_t(context.nation_buttons_visible.size()) - 1;
+}
+void ui_script_button::allow(bool, error_handler& err, int32_t line, building_gfx_context& context) {
+	if(added_allow != -1) {
+		err.accumulated_errors += "multiple allow conditions for a button defined on line  " + std::to_string(line) + " of file " + err.file_name + "\n";
+	}
+	added_allow = int32_t(context.nation_buttons_allow.size()) - 1;
+}
+bool province_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.province_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
 bool province_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
-	context.province_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	context.province_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
 bool province_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context) {
-	context.province_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	context.province_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+bool province_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.province_buttons_ai_will_do.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+bool nation_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
 bool nation_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
-	context.nation_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	context.nation_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
 bool nation_button_effect(token_generator& gen, error_handler& err, building_gfx_context& context) {
-	context.nation_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::gui_def_id{} });
+	context.nation_buttons_effect.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+bool nation_button_ai_will_do(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_ai_will_do.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+
+
+// US28AC1
+void ui_script_button::toggle_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
+	auto key = context.full_state.lookup_key(txt);
+	if(!key) {
+		key = context.full_state.add_key_win1252(txt);
+	}
+
+	auto uv = dcon::ui_variable_id{};
+	for(auto uvk : context.full_state.world.in_ui_variable) {
+		if(uvk.get_name() == key) {
+			uv = uvk;
+			break;
+		}
+	}
+
+	if(!uv) {
+		uv = context.full_state.world.create_ui_variable();
+		context.full_state.world.ui_variable_set_name(uv, key);
+	}
+
+	target.data.button.toggle_ui_key = uv;
+}
+// US28AC5
+bool ui_script_button_visible(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_visible.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
+	gen.discard_group();
+	return true;
+}
+// US28AC6
+bool ui_script_button_allow(token_generator& gen, error_handler& err, building_gfx_context& context) {
+	context.nation_buttons_allow.push_back(pending_button_script{ err.file_name, gen, dcon::scripted_interaction_id{} });
 	gen.discard_group();
 	return true;
 }
@@ -761,6 +869,29 @@ void window::moveable(association_type, bool v, error_handler& err, int32_t line
 		target.data.window.flags |= ui::window_data::is_moveable_mask;
 }
 
+// US28AC3
+void window::visible_ui_key(association_type, std::string_view txt, error_handler& err, int32_t line, building_gfx_context& context) {
+	auto key = context.full_state.lookup_key(txt);
+	if(!key) {
+		key = context.full_state.add_key_win1252(txt);
+	}
+
+	auto uv = dcon::ui_variable_id{};
+	for(auto uvk : context.full_state.world.in_ui_variable) {
+		if(uvk.get_name() == key) {
+			uv = uvk;
+			break;
+		}
+	}
+
+	if(!uv) {
+		uv = context.full_state.world.create_ui_variable();
+		context.full_state.world.ui_variable_set_name(uv, key);
+	}
+
+	target.data.window.visible_ui_key = uv;
+}
+
 void window::guibuttontype(button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
 }
@@ -807,30 +938,43 @@ void window::textboxtype(textbox const& v, error_handler& err, int32_t line, bui
 }
 void window::provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
-	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), v.added_allow, v.added_effect, -1, -1 });
+	window_scripted_children.push_back(window::scripted_children{ uint32_t(children.size() - 1), v.added_visible, v.added_allow, v.added_effect, -1, -1, -1 });
 }
 void window::nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	children.push_back(v.target);
-	sc.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, v.added_allow, v.added_effect});
+	window_scripted_children.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, -1, v.added_visible, v.added_allow, v.added_effect});
+}
+void window::uiscriptbuttontype(ui_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	children.push_back(v.target);
+	window_scripted_children.push_back(window::scripted_children{ uint32_t(children.size() - 1), -1, -1, -1, v.added_visible, v.added_allow, v.added_effect });
 }
 void window::finish(building_gfx_context& context) {
 	auto first_child = context.full_state.ui_defs.gui.size();
 	for(auto& ch : children) {
 		context.full_state.ui_defs.gui.push_back(ch);
 	}
-	for(auto& s : sc) {
-		auto child_id = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child + s.child_number));
+	for(auto& s : window_scripted_children) {
+		auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(first_child + s.child_number));
+		auto sel = context.full_state.world.create_scripted_interaction();
+		context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
+
+		if(s.pvisible != -1) {
+			context.province_buttons_visible[s.pvisible].scripted_element = sel;
+		}
 		if(s.pallow != -1) {
-			context.province_buttons_allow[s.pallow].button_element = child_id;
+			context.province_buttons_allow[s.pallow].scripted_element = sel;
 		}
 		if(s.peffect != -1) {
-			context.province_buttons_effect[s.peffect].button_element = child_id;
+			context.province_buttons_effect[s.peffect].scripted_element = sel;
+		}
+		if(s.nvisible != -1) {
+			context.nation_buttons_visible[s.nvisible].scripted_element = sel;
 		}
 		if(s.nallow != -1) {
-			context.nation_buttons_allow[s.nallow].button_element = child_id;
+			context.nation_buttons_allow[s.nallow].scripted_element = sel;
 		}
 		if(s.neffect != -1) {
-			context.nation_buttons_effect[s.neffect].button_element = child_id;
+			context.nation_buttons_effect[s.neffect].scripted_element = sel;
 		}
 	}
 	target.data.window.num_children = uint8_t(children.size());
@@ -934,11 +1078,18 @@ void guitypes::textboxtype(textbox const& v, error_handler& err, int32_t line, b
 void guitypes::provincescriptbuttontype(province_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	auto sel = context.full_state.world.create_scripted_interaction();
+	context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
+	
+	if(v.added_visible != -1) {
+		context.province_buttons_visible[v.added_visible].scripted_element = sel;
+	}
 	if(v.added_allow != -1) {
-		context.province_buttons_allow[v.added_allow].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+		context.province_buttons_allow[v.added_allow].scripted_element = sel;
 	}
 	if(v.added_effect != -1) {
-		context.province_buttons_effect[v.added_effect].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+		context.province_buttons_effect[v.added_effect].scripted_element = sel;
 	}
 	if(v.extension) {
 		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
@@ -947,11 +1098,37 @@ void guitypes::provincescriptbuttontype(province_script_button const& v, error_h
 void guitypes::nationscriptbuttontype(nation_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
 	context.full_state.ui_defs.gui.push_back(v.target);
 	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	auto sel = context.full_state.world.create_scripted_interaction();
+	context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
+	// US27AC1 US27AC2 US27AC3 US27AC4
+	if(v.added_visible != -1) {
+		context.nation_buttons_visible[v.added_visible].scripted_element = sel;
+	}
 	if(v.added_allow != -1) {
-		context.nation_buttons_allow[v.added_allow].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+		context.nation_buttons_allow[v.added_allow].scripted_element = sel;
 	}
 	if(v.added_effect != -1) {
-		context.nation_buttons_effect[v.added_effect].button_element = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+		context.nation_buttons_effect[v.added_effect].scripted_element = sel;
+	}
+	if(v.added_ai_will_do != -1) {
+		context.nation_buttons_effect[v.added_ai_will_do].scripted_element = sel;
+	}
+	if(v.extension) {
+		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
+	}
+}
+void guitypes::uiscriptbuttontype(ui_script_button const& v, error_handler& err, int32_t line, building_gfx_context& context) {
+	context.full_state.ui_defs.gui.push_back(v.target);
+	context.full_state.ui_defs.gui.back().ex_flags |= ui::element_data::ex_is_top_level;
+	auto gid = dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1));
+	auto sel = context.full_state.world.create_scripted_interaction();
+	context.full_state.world.scripted_interaction_set_gui_element(sel, gid);
+	if(v.added_visible != -1) {
+		context.nation_buttons_visible[v.added_visible].scripted_element = sel;
+	}
+	if(v.added_allow != -1) {
+		context.nation_buttons_allow[v.added_allow].scripted_element = sel;
 	}
 	if(v.extension) {
 		context.ui_defs.extensions.push_back(ui::window_extension{ v.extension, dcon::gui_def_id(dcon::gui_def_id::value_base_t(context.full_state.ui_defs.gui.size() - 1)) });
