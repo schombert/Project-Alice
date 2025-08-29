@@ -2184,11 +2184,6 @@ object {
 		type{ uint8_t }
 		tag{ save }
 	}
-	property{
-		name{ pursuit_target }
-		type{ dcon::regiment_id }
-		tag{ save }
-	}
 	property {
 		name{ dig_in }
 		type{ uint8_t }
@@ -2223,6 +2218,23 @@ object {
 		name{ is_ai_controlled }
 		type{ bitfield }
 		tag{ save }
+	}
+}
+
+relationship{
+	name{ army_pursuit }
+	tag{ save }
+
+	link{
+		object{army}
+		name{source}
+		type{unique}
+	}
+	link{
+		object{army}
+		name{target}
+		type{unique}
+		index_storage{array}
 	}
 }
 

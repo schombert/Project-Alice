@@ -8318,7 +8318,9 @@ void update_movement(sys::state& state) {
 			// Must be able to siege the province the army is in
 			if(siege_potential(state, army_owner, province_controller) && state.world.province_get_nation_from_province_control(from) != army_owner && command::can_stop_army_movement(state, army_owner, a)) {
 				// Delay the army until it finishes siege
-				military::stop_army_movement(state, a);
+				state.world.army_set_arrival_time(a, sys::date{ });
+				state.world.army_set_unused_travel_days(a, 0.0f);
+				continue;
 			}
 			else if (arrival == sys::date{}) {
 				auto next_dest = path.at(path.size() - 1);
@@ -8408,9 +8410,13 @@ void update_movement(sys::state& state) {
 			}
 
 			
-			if(!a.get_battle_from_army_battle_participation() && a.get_special_order() == military::special_army_order::pursue_to_engage && a.get_pursuit_target()) {
-				auto reg = a.get_pursuit_target();
-				auto target_army = state.world.regiment_get_army_from_army_membership(reg);
+			if(!a.get_battle_from_army_battle_participation() && a.get_special_order() == military::special_army_order::pursue_to_engage) {
+				auto target_army = a.get_army_pursuit_as_source().get_target();
+
+				if(!target_army) {
+					state.world.army_set_special_order(a, military::special_army_order::none);
+					continue;
+				}
 				
 				// Update the path
 				auto npath = command::can_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true);

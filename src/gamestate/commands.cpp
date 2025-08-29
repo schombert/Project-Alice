@@ -3957,25 +3957,13 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 		// US9AC1 Command army to pursue the target
 		if(special_order == military::special_army_order::pursue_to_engage) {
-			auto found = false;
-
-			// Target the first regiment of the first army in the target province
-			// Targeting regiments allows more stable pursuit that can't be easily reset by nullifying army id
+			// Target the first army in the target province
 			auto al = (*state.world.province_get_army_location(dest).begin());
-
 			if(al) {
-				auto army = al.get_army();
-				auto membership = (*army.get_army_membership().begin());
-
-				if(membership) {
-					state.world.army_set_pursuit_target(a, membership.get_regiment());
-				}
-				else {
-					state.world.army_set_pursuit_target(a, dcon::regiment_id{});
-				}
+				state.world.force_create_army_pursuit(a, al.get_army());
 			}
 			else {
-				state.world.army_set_pursuit_target(a, dcon::regiment_id{});
+				state.world.force_create_army_pursuit(a, dcon::army_id{});
 			}
 		}
 	} else if(reset) {
