@@ -16,6 +16,7 @@
 #include "pop_details.cpp"
 #include "market_trade_report.cpp"
 #include "rgo_report.cpp"
+#include "market_prices_report.cpp"
 
 namespace alice_ui {
 

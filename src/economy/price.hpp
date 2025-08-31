@@ -1,4 +1,5 @@
 #pragma once
+#include "adaptive_ve.hpp"
 
 namespace economy {
 namespace price_properties {
@@ -27,10 +28,10 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	// avoid singularity
 	supply = supply + additive_smoothing * 3.f;
 	demand = demand + additive_smoothing;
-	auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
-	auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
+	auto oversupply_factor = adaptive_ve::max<VALUE>(supply / demand - 1.f, 0.f);
+	auto overdemand_factor = adaptive_ve::max<VALUE>(demand / supply - 1.f, 0.f);
 	auto speed_modifer = (overdemand_factor - oversupply_factor);
-	auto price_speed = ve::min(ve::max(speed_multiplier * speed_modifer, -relative_speed_limit), relative_speed_limit);
+	auto price_speed = adaptive_ve::min<VALUE>(adaptive_ve::max<VALUE>(speed_multiplier * speed_modifer, -relative_speed_limit), relative_speed_limit);
 	return price_speed * current_price;
 }
 }

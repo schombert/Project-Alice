@@ -6,7 +6,6 @@ struct province_economy_overview_body_artisans_label_t;
 struct province_economy_overview_body_prices_label_t;
 struct province_economy_overview_body_prices_details_t;
 struct province_economy_overview_body_production_label_t;
-struct province_economy_overview_body_production_details_t;
 struct province_economy_overview_body_margin_label_t;
 struct province_economy_overview_body_payback_time_label_t;
 struct province_economy_overview_body_trade_label_t;
@@ -270,40 +269,6 @@ struct province_economy_overview_body_prices_details_t : public ui::element_base
 };
 struct province_economy_overview_body_production_label_t : public ui::element_base {
 // BEGIN body::production_label::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::black;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct province_economy_overview_body_production_details_t : public ui::element_base {
-// BEGIN body::production_details::variables
 // END
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
@@ -1824,6 +1789,7 @@ struct province_economy_overview_body_t : public layout_window_element {
 // BEGIN body::variables
 	ui::element_base * trade_details_window;
 	ui::element_base * rgo_details_window;
+	ui::element_base * price_details_window;
 // END
 	std::unique_ptr<province_economy_overview_body_gdp_label_t> gdp_label;
 	std::unique_ptr<province_economy_overview_body_gdp_share_label_t> gdp_share_label;
@@ -1832,7 +1798,6 @@ struct province_economy_overview_body_t : public layout_window_element {
 	std::unique_ptr<province_economy_overview_body_prices_label_t> prices_label;
 	std::unique_ptr<province_economy_overview_body_prices_details_t> prices_details;
 	std::unique_ptr<province_economy_overview_body_production_label_t> production_label;
-	std::unique_ptr<province_economy_overview_body_production_details_t> production_details;
 	std::unique_ptr<province_economy_overview_body_margin_label_t> margin_label;
 	std::unique_ptr<province_economy_overview_body_payback_time_label_t> payback_time_label;
 	std::unique_ptr<province_economy_overview_body_trade_label_t> trade_label;
@@ -2608,6 +2573,9 @@ ui::message_result province_economy_overview_body_prices_details_t::on_lbutton_d
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN body::prices_details::lbutton_action
+	auto target_is_visible = body.price_details_window->is_visible();
+	body.price_details_window->set_visible(state, !target_is_visible);
+	body.price_details_window->parent->move_child_to_front(body.price_details_window);
 // END
 	return ui::message_result::consumed;
 }
@@ -2694,54 +2662,6 @@ void province_economy_overview_body_production_label_t::on_update(sys::state& st
 void province_economy_overview_body_production_label_t::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
 // BEGIN body::production_label::create
-// END
-}
-ui::message_result province_economy_overview_body_production_details_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN body::production_details::lbutton_action
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result province_economy_overview_body_production_details_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void province_economy_overview_body_production_details_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 20), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void province_economy_overview_body_production_details_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 20), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void province_economy_overview_body_production_details_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 20);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void province_economy_overview_body_production_details_t::on_update(sys::state& state) noexcept {
-	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
-// BEGIN body::production_details::update
-// END
-}
-void province_economy_overview_body_production_details_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN body::production_details::create
 // END
 }
 ui::message_result province_economy_overview_body_margin_label_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -4436,9 +4356,6 @@ void province_economy_overview_body_t::create_layout_level(sys::state& state, la
 				if(cname == "production_label") {
 					temp.ptr = production_label.get();
 				}
-				if(cname == "production_details") {
-					temp.ptr = production_details.get();
-				}
 				if(cname == "margin_label") {
 					temp.ptr = margin_label.get();
 				}
@@ -4733,25 +4650,6 @@ void province_economy_overview_body_t::on_create(sys::state& state) noexcept {
 			production_label = std::make_unique<province_economy_overview_body_production_label_t>();
 			production_label->parent = this;
 			auto cptr = production_label.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "production_details") {
-			production_details = std::make_unique<province_economy_overview_body_production_details_t>();
-			production_details->parent = this;
-			auto cptr = production_details.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -5252,6 +5150,12 @@ void province_economy_overview_body_t::on_create(sys::state& state) noexcept {
 		auto u_ptr = make_rgo_report_body(state);
 		rgo_details_window = u_ptr.get();
 		rgo_details_window->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(u_ptr));
+	}
+	{
+		auto u_ptr = make_market_prices_report_body(state);
+		price_details_window = u_ptr.get();
+		price_details_window->set_visible(state, false);
 		state.ui_state.root->add_child_to_back(std::move(u_ptr));
 	}
 // END
@@ -6779,5 +6683,4 @@ std::unique_ptr<ui::element_base> make_province_economy_overview_method_payback(
 	ptr->on_create(state);
 	return ptr;
 }
-// LOST-CODE
 }
