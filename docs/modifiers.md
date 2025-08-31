@@ -21,3 +21,4 @@ MOD_LIST_ELEMENT(126, aristocrat_reinvestment, true, modifier_display_type::perc
 | farmers_savings | Increases the % of incomes this pop type deposits into the national bank |
 | disallow_naval_trade = 1 | If >0.0f, then the nation can't trade with other countries by sea. Passing zero or negative values will lead to unexpected results. |
 | disallow_land_trade = 1 | If >0.0f, then the nation can't trade with other countries by land. Passing zero or negative values will lead to unexpected results. |
+| trade_routes_attraction | Increases attraction of trade routes |

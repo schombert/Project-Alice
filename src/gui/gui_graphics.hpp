@@ -28,7 +28,8 @@ enum class object_type : uint8_t {
 	text_sprite = 0x06,
 	barchart = 0x07,
 	piechart = 0x08,
-	linegraph = 0x09
+	linegraph = 0x09,
+	bordered_rect_repeat = 0x0A,
 };
 
 struct xy_pair {
@@ -52,7 +53,8 @@ struct gfx_object {
 	xy_pair size; // 4bytes
 	dcon::text_key name;
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
+	// secondary texture handle or border size -- 8bytes
+	uint16_t type_dependent = 0; 
 	uint8_t flags = 0; // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 
@@ -110,6 +112,12 @@ enum class orientation : uint8_t { // 3 bits
 	center = (0x06 << orientation_bit_offset)
 };
 
+enum class datamodel : uint8_t { // 3 bits
+	none = 0,
+	state_religion = 1,
+	country_flag = 2
+};
+
 struct text_base_data {
 	static constexpr uint16_t alignment_mask = 0x03;
 
@@ -117,11 +125,13 @@ struct text_base_data {
 	uint16_t font_handle = 0; // 6bytes
 	uint16_t flags = 0; // 8bytes
 
+	dcon::ui_variable_id toggle_ui_key;
+
 	alignment get_alignment() const {
 		return alignment(flags & alignment_mask);
 	}
 };
-static_assert(sizeof(text_base_data) == 8);
+static_assert(sizeof(text_base_data) == 12);
 
 inline constexpr int32_t clicksound_bit_offset = 2;
 enum class clicksound : uint16_t { // 2 bits
@@ -147,9 +157,7 @@ struct button_data : public text_base_data {
 
 	//8bytes
 	dcon::gfx_object_id button_image; // 8+2bytes
-	dcon::trigger_key scriptable_enable; // 8 + 4 bytes
-	dcon::effect_key scriptable_effect; // 8 + 6 bytes
-	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+7 bytes
+	sys::virtual_key shortcut = sys::virtual_key::NONE; // 8+9 bytes
 
 	clicksound get_clicksound() const {
 		return clicksound(text_base_data::flags & clicksound_mask);
@@ -161,7 +169,7 @@ struct button_data : public text_base_data {
 		return button_scripting(text_base_data::flags & button_scripting_mask);
 	}
 };
-static_assert(sizeof(button_data) == sizeof(text_base_data) + 8);
+static_assert(sizeof(button_data) == sizeof(text_base_data) + 4);
 
 inline constexpr int32_t text_background_bit_offset = 2;
 enum class text_background : uint8_t { // 2 bits
@@ -266,6 +274,7 @@ struct window_data {
 	dcon::gui_def_id first_child; // 2bytes
 	uint8_t num_children = 0; // 3bytes
 	uint8_t flags = 0; // 4bytes
+	dcon::ui_variable_id visible_ui_key;
 
 	bool is_dialog() const {
 		return (flags & is_dialog_mask) != 0;
@@ -312,6 +321,7 @@ struct element_data {
 	uint8_t flags = 0; // 29
 	uint8_t ex_flags = 0; // 30
 	uint8_t padding[2] = { 0, 0 }; // 32
+	ui::datamodel datamodel = ui::datamodel::none;
 
 	element_data() {
 		std::memset(this, 0, sizeof(element_data));
@@ -330,7 +340,7 @@ struct element_data {
 		return (ex_flags & ex_is_top_level) != 0;
 	}
 };
-static_assert(sizeof(element_data) == 32);
+static_assert(sizeof(element_data) == 36);
 
 struct window_extension {
 	dcon::text_key window;

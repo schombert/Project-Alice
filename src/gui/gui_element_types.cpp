@@ -13,6 +13,7 @@
 #include "demographics.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
+#include "gui_scripted_elements.hpp"
 #include "fonts.hpp"
 #include "gui_graphics.hpp"
 #include "nations.hpp"
@@ -245,13 +246,20 @@ void image_element_base::render(sys::state& state, int32_t x, int32_t y) noexcep
 	if(gid) {
 		auto& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
-			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+			 if(gfx_def.get_object_type() == ui::object_type::bordered_rect_repeat) {
+				ogl::render_bordered_rect_repeat(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
+				frame, gfx_def.number_of_frames, gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
+				base_data.get_rotation(), gfx_def.is_vertically_flipped(),
+				get_horizontal_flip(state));
+			}
+			else if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+				ogl::render_bordered_rect_stretch(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable),
 					gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
 					get_horizontal_flip(state));
-			} else if(gfx_def.number_of_frames > 1) {
+			}  else if(gfx_def.number_of_frames > 1) {
 				ogl::render_subsprite(state, get_color_modification(this == state.ui_state.under_mouse, disabled, interactable), frame,
 					gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
@@ -787,7 +795,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		// is-vertically-flipped is also ignored, also the border size **might** be
 		// variable/stored somewhere, but I don't know where?
 		if(bool(background_texture_id)) {
-			ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
+			ogl::render_bordered_rect_stretch(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
 				float(base_data.size.y), ogl::get_texture_handle(state, background_texture_id, true), base_data.get_rotation(), false,
 				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 		}
@@ -803,7 +811,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 }
 
 void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
+	ogl::render_bordered_rect_stretch(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
 		float(base_data.size.y), ogl::get_texture_handle(state, definitions::tiles_dialog, true), ui::rotation::upright, false, false);
 	auto black_text = text::is_black_from_font_id(state.ui_state.tooltip_font);
 	for(auto& t : internal_layout.contents) {
@@ -1568,7 +1576,7 @@ void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t 
 		auto const& gfx_def = state.ui_defs.gfx[gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
+				ogl::render_bordered_rect_stretch(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
 					float(base_data.size.x), float(base_data.size.y),
 					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
 					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
@@ -1899,116 +1907,6 @@ void flag_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::
 	}
 }
 
-void province_script_button::button_action(sys::state& state) noexcept {
-	auto p = retrieve<dcon::province_id>(state, parent);
-	if(p && state.local_player_nation)
-		command::use_province_button(state, state.local_player_nation, base_definition, p);
-}
-void province_script_button::on_update(sys::state& state) noexcept {
-	disabled = false;
-	auto& def = state.ui_defs.gui[base_definition];
-	if(def.get_element_type() != ui::element_type::button) {
-		disabled = true;
-		return;
-	}
-	if(def.data.button.get_button_scripting() != ui::button_scripting::province) {
-		disabled = true;
-		return;
-	}
-	auto p = retrieve<dcon::province_id>(state, parent);
-	if(!p) {
-		disabled = true;
-		return;
-	}
-	disabled = !command::can_use_province_button(state, state.local_player_nation, base_definition, p);
-}
-void province_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	auto& def = state.ui_defs.gui[base_definition];
-
-	if(def.get_element_type() != ui::element_type::button)
-		return;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::province)
-		return;
-	auto p = retrieve<dcon::province_id>(state, parent);
-	if(!p)
-		return;
-	if(!state.local_player_nation)
-		return;
-
-	auto name = state.to_string_view(def.name);
-	auto tt_name = std::string{ name } + "_tooltip";
-	if(state.key_is_localized(tt_name)) {
-		text::add_line(state, contents, std::string_view{tt_name}, text::variable_type::province, p, text::variable_type::nation, state.world.province_get_nation_from_province_ownership(p), text::variable_type::player, state.local_player_nation);
-		text::add_line_break_to_layout(state, contents);
-	}
-
-	if(def.data.button.scriptable_enable) {
-		text::add_line(state, contents, "allow_reform_cond");
-		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation));
-		text::add_line_break_to_layout(state, contents);
-	}
-	if(def.data.button.scriptable_effect) {
-		text::add_line(state, contents, "msg_decision_2");
-		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(p), trigger::to_generic(p), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(p.index() ^ (base_definition.index() << 4)));
-	}
-}
-void nation_script_button::button_action(sys::state& state) noexcept {
-	auto n = retrieve<dcon::nation_id>(state, parent);
-	if(n && state.local_player_nation) {
-		command::use_nation_button(state, state.local_player_nation, base_definition, n);
-	} else if(state.local_player_nation) {
-		command::use_nation_button(state, state.local_player_nation, base_definition, state.local_player_nation);
-	}
-}
-void nation_script_button::on_update(sys::state& state) noexcept {
-	disabled = false;
-	auto& def = state.ui_defs.gui[base_definition];
-	if(def.get_element_type() != ui::element_type::button) {
-		disabled = true;
-		return;
-	}
-	if(def.data.button.get_button_scripting() != ui::button_scripting::nation) {
-		disabled = true;
-		return;
-	}
-	auto n = retrieve<dcon::nation_id>(state, parent);
-	if(!state.local_player_nation) {
-		disabled = true;
-		return;
-	}
-	disabled = !command::can_use_nation_button(state, state.local_player_nation, base_definition, n ? n : state.local_player_nation);
-}
-void nation_script_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	auto& def = state.ui_defs.gui[base_definition];
-
-	if(def.get_element_type() != ui::element_type::button)
-		return;
-	if(def.data.button.get_button_scripting() != ui::button_scripting::nation)
-		return;
-	auto n = retrieve<dcon::nation_id>(state, parent);
-	if(!n)
-		n = state.local_player_nation;
-	if(!state.local_player_nation)
-		return;
-
-	auto name = state.to_string_view(def.name);
-	auto tt_name = std::string{ name } + "_tooltip";
-	if(state.key_is_localized(tt_name)) {
-		text::add_line(state, contents, std::string_view{ tt_name }, text::variable_type::nation, n, text::variable_type::player, state.local_player_nation);
-		text::add_line_break_to_layout(state, contents);
-	}
-
-	if(def.data.button.scriptable_enable) {
-		text::add_line(state, contents, "allow_reform_cond");
-		ui::trigger_description(state, contents, def.data.button.scriptable_enable, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation));
-		text::add_line_break_to_layout(state, contents);
-	}
-	if(def.data.button.scriptable_effect) {
-		text::add_line(state, contents, "msg_decision_2");
-		ui::effect_description(state, contents, def.data.button.scriptable_effect, trigger::to_generic(n), trigger::to_generic(n), trigger::to_generic(state.local_player_nation), uint32_t(state.current_date.value), uint32_t(n.index() ^ (base_definition.index() << 4)));
-	}
-}
-
 message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	for(auto tmp = parent; tmp != nullptr; tmp = tmp->parent) {
 		if(tmp->base_data.get_element_type() == element_type::window && tmp->base_data.data.window.is_moveable()) {
@@ -2019,22 +1917,51 @@ message_result draggable_target::on_lbutton_down(sys::state& state, int32_t x, i
 	return message_result::consumed;
 }
 
+// Create elements w/o hardcoded logic based on GUI definitions
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id) {
 	auto& def = state.ui_defs.gui[id];
 	if(def.get_element_type() == ui::element_type::image) {
-		auto res = std::make_unique<image_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
+		// US29AC2 US29AC3 When an icon has `datamodel="state_religion"`, it always displays the state religion of the player
+		if(def.datamodel == ui::datamodel::state_religion) {
+			auto res = std::make_unique<datamodel_general_icon>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
+		//US29AC6 US29AC7
+		else if(def.datamodel == ui::datamodel::country_flag) {
+			auto res = std::make_unique<datamodel_icon_country_flag>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
+		else {
+			auto res = std::make_unique<image_element_base>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		}
 	} else if(def.get_element_type() == ui::element_type::button) {
 		if(def.data.button.get_button_scripting() == ui::button_scripting::province) {
 			auto res = std::make_unique<province_script_button>(id);
+			auto txtkey = state.ui_defs.gui[id].data.button.txt;
+
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			make_size_from_graphics(state, res->base_data);
+			res->on_create(state);
+			return res;
+		} else if(def.data.button.toggle_ui_key != dcon::ui_variable_id{}) {
+			// First resolve ui_variable_toggle_button buttons since they have get_button_scripting() == ui::button_scripting::nation
+			auto res = std::make_unique<ui_variable_toggle_button>(id);
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
 			res->on_create(state);
 			return res;
 		} else if(def.data.button.get_button_scripting() == ui::button_scripting::nation) {
+			// Only after - nation_script_button
 			auto res = std::make_unique<nation_script_button>(id);
 			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
 			make_size_from_graphics(state, res->base_data);
@@ -2048,10 +1975,18 @@ std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gu
 			return res;
 		}
 	} else if(def.get_element_type() == ui::element_type::window) {
-		auto res = std::make_unique<window_element_base>();
-		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
-		res->on_create(state);
-		return res;
+		if(def.data.window.visible_ui_key) {
+			auto res = std::make_unique<ui_variable_toggleable_window>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			res->on_create(state);
+			return res;
+		}
+		else {
+			auto res = std::make_unique<window_element_base>();
+			std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
+			res->on_create(state);
+			return res;
+		}
 	} else if(def.get_element_type() == ui::element_type::scrollbar) {
 		auto res = std::make_unique<scrollbar>();
 		std::memcpy(&(res->base_data), &def, sizeof(ui::element_data));
