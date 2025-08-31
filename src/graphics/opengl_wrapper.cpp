@@ -790,11 +790,14 @@ void render_bordered_rect_stretch(sys::state const& state, color_modification en
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 // Render a rectangle of a given size at given coordinates filled up with a texture (repeat)
-void render_bordered_rect_repeat(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+void render_bordered_rect_repeat(sys::state const& state, color_modification enabled, int frame, int total_frames, float border_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);
 
 	bind_vertices_by_rotation(state, r, flipped, rtl);
+
+	auto const scale = 1.0f / static_cast<float>(total_frames);
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, static_cast<float>(frame) * scale, scale, 0.0f);
 
 	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
 	glUniform1f(state.open_gl.ui_shader_border_size_uniform, border_size);
@@ -802,7 +805,7 @@ void render_bordered_rect_repeat(sys::state const& state, color_modification ena
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::frame_repeat };
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::frame_repeat};
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
 	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
 

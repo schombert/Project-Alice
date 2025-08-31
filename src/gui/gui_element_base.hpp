@@ -75,6 +75,19 @@ public:
 			text::add_line(state, contents, "ui_element_name", text::variable_type::x, base_data.name);
 			text::add_line(state, contents, "ui_element_position", text::variable_type::x, base_data.position.x, text::variable_type::y, base_data.position.y);
 			text::add_line(state, contents, "ui_element_size", text::variable_type::x, base_data.size.x, text::variable_type::y, base_data.size.y);
+
+			dcon::gfx_object_id gid;
+			if(base_data.get_element_type() == element_type::image) {
+				gid = base_data.data.image.gfx_object;
+			} else if(base_data.get_element_type() == element_type::button) {
+				gid = base_data.data.button.button_image;
+			}
+			if(gid) {
+				auto const& gfx_def = state.ui_defs.gfx[gid];
+				
+				text::add_line(state, contents, "ui_gfx_type", text::variable_type::x, (int)gfx_def.get_object_type());
+				text::add_line(state, contents, "ui_gfx_noofframes", text::variable_type::x, gfx_def.number_of_frames);
+			}
 		}
 	}
 

@@ -53,7 +53,8 @@ struct gfx_object {
 	xy_pair size; // 4bytes
 	dcon::text_key name;
 	dcon::texture_id primary_texture_handle; // 6bytes
-	uint16_t type_dependent = 0; // secondary texture handle or border size -- 8bytes
+	// secondary texture handle or border size -- 8bytes
+	uint16_t type_dependent = 0; 
 	uint8_t flags = 0; // 9bytes
 	uint8_t number_of_frames = 1; // 10bytes
 

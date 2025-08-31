@@ -83,19 +83,23 @@ vec4 frame_stretch(vec2 tc) {
 	return texture(texture_sampler, vec2(xout, yout));
 }
 
+vec4 sample_subsprite(sampler2D sampled_texture, vec2 local_coord, float subsprite_shift, float subsprite_width) {
+    return texture(sampled_texture, vec2(local_coord.x * subsprite_width + subsprite_shift, local_coord.y));
+}
+
 vec4 frame_repeat(vec2 tc) {
     float realx = tc.x * d_rect.z;
     float realy = tc.y * d_rect.w;
-    vec2 tsize = textureSize(texture_sampler, 0);
+    vec2 tsize = textureSize(texture_sampler, 0) * vec2(inner_color.y, 1.0);
     float xout = 0.0;
     float yout = 0.0;
-    
+
     // Calculate inner texture dimensions (center portion)
     float inner_tex_w = tsize.x - 2.0 * border_size;
     float inner_tex_h = tsize.y - 2.0 * border_size;
     float inner_rect_w = d_rect.z - 2.0 * border_size;
     float inner_rect_h = d_rect.w - 2.0 * border_size;
-    
+
     // Handle X-axis
     if(realx <= border_size) {
         xout = realx / tsize.x;
@@ -112,7 +116,7 @@ vec4 frame_repeat(vec2 tc) {
             xout = border_size / tsize.x;
         }
     }
-    
+
     // Handle Y-axis
     if(realy <= border_size) {
         yout = realy / tsize.y;
@@ -129,8 +133,8 @@ vec4 frame_repeat(vec2 tc) {
             yout = border_size / tsize.y;
         }
     }
-    
-    return texture(texture_sampler, vec2(xout, yout));
+
+    return sample_subsprite(texture_sampler, vec2(xout, yout), inner_color.x, inner_color.y);
 }
 
 //layout(index = 9) subroutine(font_function_class)
