@@ -11,8 +11,6 @@ struct rgo_report_list_header_t;
 struct rgo_report_body_header_t : public ui::element_base {
 // BEGIN body::header::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -28,7 +26,7 @@ struct rgo_report_body_header_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -37,8 +35,6 @@ struct rgo_report_body_header_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct rgo_report_body_close_t : public ui::element_base {
@@ -67,8 +63,6 @@ struct rgo_report_body_close_t : public ui::element_base {
 struct rgo_report_body_employment_header_t : public ui::element_base {
 // BEGIN body::employment_header::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -85,7 +79,7 @@ struct rgo_report_body_employment_header_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -94,15 +88,11 @@ struct rgo_report_body_employment_header_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct rgo_report_body_efficiency_header_t : public ui::element_base {
 // BEGIN body::efficiency_header::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -119,7 +109,7 @@ struct rgo_report_body_efficiency_header_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -128,8 +118,6 @@ struct rgo_report_body_efficiency_header_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct rgo_report_body_rgos_t : public layout_generator {
@@ -354,6 +342,9 @@ struct rgo_report_list_item_t : public layout_window_element {
 	std::unique_ptr<rgo_report_list_item_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
 	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
@@ -377,15 +368,11 @@ struct rgo_report_list_header_t : public layout_window_element {
 // END
 	std::unique_ptr<rgo_report_list_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
 };
@@ -429,7 +416,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_employment_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::employment
 						auto value_a = economy::rgo_employment(state, a.cid, pid);
@@ -442,7 +429,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_max_employment_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::max_employment
 						auto value_a = economy::rgo_max_employment(state, a.cid, pid);
@@ -455,7 +442,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_output_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::output
 						auto value_a = economy::rgo_output(state, a.cid, pid);
@@ -468,7 +455,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_profit_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::profit
 						auto value_a = economy::rgo_income(state, a.cid, pid);
@@ -481,7 +468,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_wage_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::wage
 						auto value_a = economy::rgo_wage(state, a.cid, pid);
@@ -494,7 +481,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_eff_spend_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::eff_spend
 						auto value_a = economy::rgo_efficiency_spending(state, a.cid, pid);
@@ -507,7 +494,7 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 				if(table_source->list_eff_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<list_item_option>(raw_a);
-							auto const& b = std::get<list_item_option>(raw_b);
+						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::eff
 						auto value_a = state.world.province_get_rgo_efficiency(pid, a.cid);
@@ -546,6 +533,7 @@ measure_result  rgo_report_body_rgos_t::place_item(sys::state& state, ui::non_ow
 				list_item_pool[list_item_pool_used]->parent = destination;
 				destination->children.push_back(list_item_pool[list_item_pool_used].get());
 				((rgo_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->cid = std::get<list_item_option>(values[index]).cid;
+			((rgo_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->is_active = !alternate;
 				list_item_pool[list_item_pool_used]->impl_on_update(state);
 				list_header_pool_used++;
 				list_item_pool_used++;
@@ -559,10 +547,11 @@ measure_result  rgo_report_body_rgos_t::place_item(sys::state& state, ui::non_ow
 			list_item_pool[list_item_pool_used]->parent = destination;
 			destination->children.push_back(list_item_pool[list_item_pool_used].get());
 			((rgo_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->cid = std::get<list_item_option>(values[index]).cid;
+			((rgo_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->is_active = alternate;
 			list_item_pool[list_item_pool_used]->impl_on_update(state);
 			list_item_pool_used++;
 		}
-		alternate = true;
+		alternate = !alternate;
 		return measure_result{ list_item_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
@@ -570,12 +559,6 @@ measure_result  rgo_report_body_rgos_t::place_item(sys::state& state, ui::non_ow
 void  rgo_report_body_rgos_t::reset_pools() {
 	list_header_pool_used = 0;
 	list_item_pool_used = 0;
-}
-ui::message_result rgo_report_body_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result rgo_report_body_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void rgo_report_body_header_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
@@ -589,7 +572,6 @@ void rgo_report_body_header_t::set_text(sys::state& state, std::string const& ne
 void rgo_report_body_header_t::on_reset_text(sys::state& state) noexcept {
 }
 void rgo_report_body_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -639,12 +621,6 @@ void rgo_report_body_close_t::on_create(sys::state& state) noexcept {
 // BEGIN body::close::create
 // END
 }
-ui::message_result rgo_report_body_employment_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result rgo_report_body_employment_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
 void rgo_report_body_employment_header_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -662,7 +638,6 @@ void rgo_report_body_employment_header_t::on_reset_text(sys::state& state) noexc
 	sl.add_text(state, cached_text);
 }
 void rgo_report_body_employment_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -683,12 +658,6 @@ void rgo_report_body_employment_header_t::on_create(sys::state& state) noexcept 
 // BEGIN body::employment_header::create
 // END
 }
-ui::message_result rgo_report_body_efficiency_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result rgo_report_body_efficiency_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
 void rgo_report_body_efficiency_header_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
@@ -706,7 +675,6 @@ void rgo_report_body_efficiency_header_t::on_reset_text(sys::state& state) noexc
 	sl.add_text(state, cached_text);
 }
 void rgo_report_body_efficiency_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -736,6 +704,15 @@ ui::message_result rgo_report_body_t::on_rbutton_down(sys::state& state, int32_t
 }
 void rgo_report_body_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void rgo_report_body_t::on_update(sys::state& state) noexcept {
 // BEGIN body::update
@@ -769,6 +746,13 @@ void rgo_report_body_t::create_layout_level(sys::state& state, layout_level& lvl
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -858,7 +842,6 @@ void rgo_report_body_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
@@ -889,7 +872,6 @@ void rgo_report_body_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
 			cptr->text_key = state.lookup_key(child_data.text_key);
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
@@ -908,7 +890,6 @@ void rgo_report_body_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
 			cptr->text_key = state.lookup_key(child_data.text_key);
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
@@ -1257,7 +1238,19 @@ ui::message_result rgo_report_list_item_t::on_rbutton_down(sys::state& state, in
 	return ui::message_result::consumed;
 }
 void rgo_report_list_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (rgo_report_body_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -1329,6 +1322,13 @@ void rgo_report_list_item_t::create_layout_level(sys::state& state, layout_level
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1396,6 +1396,7 @@ void rgo_report_list_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -1738,14 +1739,16 @@ void rgo_report_list_header_content_t::on_create(sys::state& state) noexcept {
 // BEGIN list_header::content::create
 // END
 }
-ui::message_result rgo_report_list_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-ui::message_result rgo_report_list_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
 void rgo_report_list_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (rgo_report_body_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -1817,6 +1820,13 @@ void rgo_report_list_header_t::create_layout_level(sys::state& state, layout_lev
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1883,7 +1893,6 @@ void rgo_report_list_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {

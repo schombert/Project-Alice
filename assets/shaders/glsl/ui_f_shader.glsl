@@ -133,6 +133,65 @@ vec4 triangle_strip(vec2 tc) {
 	return vec4(cc.xyz * shadow * (1.f - gold_frame) + vec3(1.f, 1.f, 0.f) * gold_frame, fade);
 }
 
+//layout(index = 25) subroutine(font_function_class)
+vec4 fixed_size_repeat_border(vec2 tc) {
+	float realx = tc.x * d_rect.z;
+	float realy = tc.y * d_rect.w;
+
+	vec4 result = vec4(1.0, 1.0, 1.0, 0.0);
+
+	if(realx <= border_size) {
+		vec4 color = texture(texture_sampler, vec2(mod(realy, border_size), mod(realx, border_size)) / border_size);
+		result.rgb *= color.rgb;
+		result.a = max(result.a, color.a);
+	}
+	if(realx >= (d_rect.z - border_size)){
+		vec4 color = texture(texture_sampler, vec2(mod(realy, border_size), mod(d_rect.z - realx, border_size)) / border_size);
+		result.rgb *= color.rgb;
+		result.a = max(result.a, color.a);
+	}
+	if(realy <= border_size){
+		vec4 color = texture(texture_sampler, vec2(mod(realx, border_size), mod(realy, border_size)) / border_size);
+		result.rgb *= color.rgb;
+		result.a = max(result.a, color.a);
+	}
+	if(realy >= (d_rect.w - border_size)){
+		vec4 color = texture(texture_sampler, vec2(mod(realx, border_size), mod(d_rect.w - realy, border_size)) / border_size);
+		result.rgb *= color.rgb;
+		result.a = max(result.a, color.a);
+	}
+
+	return result;
+}
+
+//layout(index = 26) subroutine(font_function_class)
+vec4 corners(vec2 tc) {
+	float xout = tc.x * d_rect.z;
+	float yout = tc.y * d_rect.w;
+
+	float flag_h = 0.f;
+	float flag_w = 0.f;
+
+	if(xout <= border_size) {
+		flag_w = 1.f;
+	}
+	if(xout >= d_rect.z - border_size) {
+		flag_w = 1.f;
+		xout = d_rect.z - xout;
+	}
+	if(yout <= border_size) {
+		flag_h = 1.f;
+	}
+	if(yout >= d_rect.w - border_size) {
+		flag_h = 1.f;
+		yout = d_rect.w - yout;
+	}
+
+	if (flag_h * flag_w < 0.5f) discard;
+
+	return texture(texture_sampler, vec2(xout, yout) / border_size);
+}
+
 //layout(index = 18) subroutine(font_function_class)
 vec4 transparent_color(vec2 tc) {
 	return vec4(inner_color, 0.5);
@@ -194,7 +253,8 @@ case 21: return subsprite_c(tc);
 case 22: return linegraph_acolor(tc);
 case 23: return stripchart(tc);
 case 24: return triangle_strip(tc);
-
+case 25: return fixed_size_repeat_border(tc);
+case 26: return corners(tc);
 default: break;
 	}
 	return vec4(0.f, 0.f, 1.f, 1.f);

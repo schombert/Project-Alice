@@ -83,10 +83,33 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout
+	control, window, glue, generator, layout, texture_layer
 };
 
-using layout_item = std::variant<std::monostate, layout_control, layout_window, layout_glue, generator_instance, sub_layout>;
+enum class background_type : uint8_t {
+	none,
+	texture,
+	bordered_texture,
+	existing_gfx,
+	linechart,
+	stackedbarchart,
+	colorsquare,
+	flag,
+	table_columns,
+	table_headers,
+	progress_bar,
+	icon_strip,
+	doughnut,
+	border_texture_repeat,
+	textured_corners
+};
+
+struct texture_layer {
+	background_type texture_type = background_type::texture;
+	std::string texture;
+};
+
+using layout_item = std::variant<std::monostate, layout_control, layout_window, layout_glue, generator_instance, sub_layout, texture_layer>;
 
 class page_buttons;
 class layout_window_element;
@@ -162,6 +185,13 @@ public:
 
 struct layout_iterator;
 
+struct positioned_texture {
+	int16_t x; int16_t y; int16_t w; int16_t h;
+	std::string_view texture;
+	dcon::texture_id texture_id;
+	background_type texture_type = background_type::texture;
+};
+
 class layout_window_element : public ui::non_owning_container_base {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
@@ -175,8 +205,11 @@ public:
 	dcon::texture_id page_right_texture_id;
 	text::text_color page_text_color = text::text_color::black;
 
+	std::vector<positioned_texture> textures_to_render{};
+
 	void remake_layout(sys::state& state, bool remake_lists) {
 		children.clear();
+		textures_to_render.clear();
 		if(remake_lists)
 			clear_pages_internal(layout);
 		remake_layout_internal(layout, state, 0, 0, base_data.size.x, base_data.size.y, remake_lists);

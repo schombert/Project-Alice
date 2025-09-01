@@ -20,8 +20,6 @@ struct market_trade_report_trade_header_t;
 struct market_trade_report_body_report_header_t : public ui::element_base {
 // BEGIN body::report_header::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -37,7 +35,7 @@ struct market_trade_report_body_report_header_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -46,8 +44,6 @@ struct market_trade_report_body_report_header_t : public ui::element_base {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct market_trade_report_body_close_button_t : public ui::element_base {
@@ -96,7 +92,7 @@ struct market_trade_report_body_pivot_volume_header_t : public ui::element_base 
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -130,7 +126,7 @@ struct market_trade_report_body_pivot_balance_top_header_t : public ui::element_
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -164,7 +160,7 @@ struct market_trade_report_body_pivot_balance_bottom_header_t : public ui::eleme
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -210,6 +206,8 @@ struct market_trade_report_body_list_t : public layout_generator {
 struct market_trade_report_commodity_entry_t : public ui::element_base {
 // BEGIN commodity::entry::variables
 // END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
@@ -265,6 +263,10 @@ struct market_trade_report_trade_item_trade_item_c_t : public ui::element_base {
 	text::text_color  value_text_color = text::text_color::black;
 	std::string value_cached_text;
 	void set_value_text(sys::state & state, std::string const& new_text);
+	text::layout empty_internal_layout;
+	text::text_color  empty_text_color = text::text_color::black;
+	std::string empty_cached_text;
+	void set_empty_text(sys::state & state, std::string const& new_text);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
@@ -495,6 +497,11 @@ struct market_trade_report_body_t : public layout_window_element {
 	int8_t trade_value_sort_direction = 0;
 	int16_t trade_value_column_start = 0;
 	int16_t trade_value_column_width = 0;
+	text::text_color trade_empty_header_text_color = text::text_color::black;
+	text::text_color trade_empty_column_text_color = text::text_color::black;
+	text::alignment trade_empty_text_alignment = text::alignment::center;
+	int16_t trade_empty_column_start = 0;
+	int16_t trade_empty_column_width = 0;
 	std::string_view trade_ascending_icon_key;
 	dcon::texture_id trade_ascending_icon;
 	std::string_view trade_descending_icon_key;
@@ -574,6 +581,9 @@ struct market_trade_report_trade_item_t : public layout_window_element {
 	std::unique_ptr<market_trade_report_trade_item_select_market_t> select_market;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
 	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
@@ -602,6 +612,7 @@ struct market_trade_report_nation_data_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -619,15 +630,11 @@ struct market_trade_report_trade_header_t : public layout_window_element {
 // END
 	std::unique_ptr<market_trade_report_trade_header_trade_header_c_t> trade_header_c;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
 };
@@ -676,7 +683,7 @@ measure_result  market_trade_report_body_commodity_selector_t::place_item(sys::s
 			commodity_pool_used++;
 		}
 		alternate = !alternate;
-		return measure_result{ commodity_pool[0]->base_data.size.x, commodity_pool[0]->base_data.size.y + 10, measure_result::special::none};
+		return measure_result{ commodity_pool[0]->base_data.size.x, commodity_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -727,7 +734,7 @@ void  market_trade_report_body_list_t::update(sys::state& state, layout_window_e
 				if(table_source->trade_distance_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<trade_item_option>(raw_a);
-							auto const& b = std::get<trade_item_option>(raw_b);
+						auto const& b = std::get<trade_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::list::trade::sort::distance
 						auto trade_route_a = state.world.get_trade_route_by_province_pair(mid, a.other);
@@ -742,7 +749,7 @@ void  market_trade_report_body_list_t::update(sys::state& state, layout_window_e
 				if(table_source->trade_price_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<trade_item_option>(raw_a);
-							auto const& b = std::get<trade_item_option>(raw_b);
+						auto const& b = std::get<trade_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::list::trade::sort::price
 						if(state.selected_trade_good) {
@@ -760,7 +767,7 @@ void  market_trade_report_body_list_t::update(sys::state& state, layout_window_e
 				if(table_source->trade_volume_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<trade_item_option>(raw_a);
-							auto const& b = std::get<trade_item_option>(raw_b);
+						auto const& b = std::get<trade_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::list::trade::sort::volume
 						auto trade_route_a = state.world.get_trade_route_by_province_pair(mid, a.other);
@@ -790,7 +797,7 @@ void  market_trade_report_body_list_t::update(sys::state& state, layout_window_e
 				if(table_source->trade_value_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<trade_item_option>(raw_a);
-							auto const& b = std::get<trade_item_option>(raw_b);
+						auto const& b = std::get<trade_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::list::trade::sort::value
 						auto trade_route_a = state.world.get_trade_route_by_province_pair(mid, a.other);
@@ -854,15 +861,16 @@ measure_result  market_trade_report_body_list_t::place_item(sys::state& state, u
 				}
 				destination->children.push_back(trade_header_pool[trade_header_pool_used].get());
 				trade_item_pool[trade_item_pool_used]->base_data.position.x = int16_t(x);
-				trade_item_pool[trade_item_pool_used]->base_data.position.y = int16_t(y +  trade_item_pool[0]->base_data.size.y + 5);
+				trade_item_pool[trade_item_pool_used]->base_data.position.y = int16_t(y +  trade_item_pool[0]->base_data.size.y + 0);
 				trade_item_pool[trade_item_pool_used]->parent = destination;
 				destination->children.push_back(trade_item_pool[trade_item_pool_used].get());
 				((market_trade_report_trade_item_t*)(trade_item_pool[trade_item_pool_used].get()))->other = std::get<trade_item_option>(values[index]).other;
+			((market_trade_report_trade_item_t*)(trade_item_pool[trade_item_pool_used].get()))->is_active = !alternate;
 				trade_item_pool[trade_item_pool_used]->impl_on_update(state);
 				trade_header_pool_used++;
 				trade_item_pool_used++;
 			}
-			return measure_result{std::max(trade_header_pool[0]->base_data.size.x, trade_item_pool[0]->base_data.size.x), trade_header_pool[0]->base_data.size.y + trade_item_pool[0]->base_data.size.y + 10, measure_result::special::none};
+			return measure_result{std::max(trade_header_pool[0]->base_data.size.x, trade_item_pool[0]->base_data.size.x), trade_header_pool[0]->base_data.size.y + trade_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 		}
 		if(destination) {
 			if(trade_item_pool.size() <= size_t(trade_item_pool_used)) trade_item_pool.emplace_back(make_market_trade_report_trade_item(state));
@@ -871,23 +879,18 @@ measure_result  market_trade_report_body_list_t::place_item(sys::state& state, u
 			trade_item_pool[trade_item_pool_used]->parent = destination;
 			destination->children.push_back(trade_item_pool[trade_item_pool_used].get());
 			((market_trade_report_trade_item_t*)(trade_item_pool[trade_item_pool_used].get()))->other = std::get<trade_item_option>(values[index]).other;
+			((market_trade_report_trade_item_t*)(trade_item_pool[trade_item_pool_used].get()))->is_active = alternate;
 			trade_item_pool[trade_item_pool_used]->impl_on_update(state);
 			trade_item_pool_used++;
 		}
-		alternate = true;
-		return measure_result{ trade_item_pool[0]->base_data.size.x, trade_item_pool[0]->base_data.size.y + 5, measure_result::special::none};
+		alternate = !alternate;
+		return measure_result{ trade_item_pool[0]->base_data.size.x, trade_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
 void  market_trade_report_body_list_t::reset_pools() {
 	trade_header_pool_used = 0;
 	trade_item_pool_used = 0;
-}
-ui::message_result market_trade_report_body_report_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result market_trade_report_body_report_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void market_trade_report_body_report_header_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
@@ -901,7 +904,6 @@ void market_trade_report_body_report_header_t::set_text(sys::state& state, std::
 void market_trade_report_body_report_header_t::on_reset_text(sys::state& state) noexcept {
 }
 void market_trade_report_body_report_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -1096,6 +1098,15 @@ ui::message_result market_trade_report_body_t::on_rbutton_down(sys::state& state
 }
 void market_trade_report_body_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void market_trade_report_body_t::on_update(sys::state& state) noexcept {
 // BEGIN body::update
@@ -1144,6 +1155,13 @@ void market_trade_report_body_t::create_layout_level(sys::state& state, layout_l
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1245,7 +1263,6 @@ void market_trade_report_body_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
@@ -1396,6 +1413,15 @@ void market_trade_report_body_t::on_create(sys::state& state) noexcept {
 			col_section.read(trade_value_column_text_color);
 			col_section.read(trade_value_header_text_color);
 			col_section.read(trade_value_text_alignment);
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			trade_empty_column_start = running_w_total;
+			col_section.read(trade_empty_column_width);
+			running_w_total += trade_empty_column_width;
+			col_section.read(trade_empty_column_text_color);
+			col_section.read(trade_empty_header_text_color);
+			col_section.read(trade_empty_text_alignment);
 			pending_children.pop_back(); continue;
 		}
 		pending_children.pop_back();
@@ -1444,6 +1470,7 @@ void market_trade_report_commodity_entry_t::set_text(sys::state& state, std::str
 void market_trade_report_commodity_entry_t::on_reset_text(sys::state& state) noexcept {
 }
 void market_trade_report_commodity_entry_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_rect_with_repeated_border(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(8), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -1481,6 +1508,15 @@ void market_trade_report_commodity_t::render(sys::state & state, int32_t x, int3
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void market_trade_report_commodity_t::on_update(sys::state& state) noexcept {
 	market_trade_report_body_t& body = *((market_trade_report_body_t*)(parent->parent)); 
@@ -1514,6 +1550,13 @@ void market_trade_report_commodity_t::create_layout_level(sys::state& state, lay
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1598,6 +1641,7 @@ void market_trade_report_commodity_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
@@ -1641,6 +1685,8 @@ void market_trade_report_trade_item_trade_item_c_t::tooltip_position(sys::state&
 	}
 	if(x >= table_source->trade_value_column_start && x < table_source->trade_value_column_start + table_source->trade_value_column_width) {
 	}
+	if(x >= table_source->trade_empty_column_start && x < table_source->trade_empty_column_start + table_source->trade_empty_column_width) {
+	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
@@ -1667,6 +1713,8 @@ void market_trade_report_trade_item_trade_item_c_t::update_tooltip(sys::state& s
 // END
 	}
 	if(x >=  table_source->trade_value_column_start && x <  table_source->trade_value_column_start +  table_source->trade_value_column_width) {
+	}
+	if(x >=  table_source->trade_empty_column_start && x <  table_source->trade_empty_column_start +  table_source->trade_empty_column_width) {
 	}
 }
 void market_trade_report_trade_item_trade_item_c_t::set_flag_text(sys::state & state, std::string const& new_text) {
@@ -1819,6 +1867,19 @@ void market_trade_report_trade_item_trade_item_c_t::set_value_text(sys::state & 
 	} else {
 	}
 }
+void market_trade_report_trade_item_trade_item_c_t::set_empty_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (market_trade_report_body_t*)(parent->parent);
+	if(new_text !=  empty_cached_text) {
+		empty_cached_text = new_text;
+		empty_internal_layout.contents.clear();
+		empty_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ empty_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->trade_empty_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->trade_empty_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, empty_cached_text);
+		}
+	} else {
+	}
+}
 void market_trade_report_trade_item_trade_item_c_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	auto fh = text::make_font_id(state, false, 1.0f * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -1865,6 +1926,13 @@ void market_trade_report_trade_item_trade_item_c_t::render(sys::state & state, i
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_value , false, false); 
 		for(auto& t : value_internal_layout.contents) {
 			ui::render_text_chunk(state, t, float(x) + t.x + table_source->trade_value_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, value_text_color), cmod);
+		}
+	}
+	bool col_um_empty = rel_mouse_x >= table_source->trade_empty_column_start && rel_mouse_x < (table_source->trade_empty_column_start + table_source->trade_empty_column_width);
+	if(!empty_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_empty , false, false); 
+		for(auto& t : empty_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->trade_empty_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, empty_text_color), cmod);
 		}
 	}
 }
@@ -2052,7 +2120,19 @@ ui::message_result market_trade_report_trade_item_t::on_rbutton_down(sys::state&
 	return ui::message_result::consumed;
 }
 void market_trade_report_trade_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (market_trade_report_body_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -2082,6 +2162,10 @@ void market_trade_report_trade_item_t::render(sys::state & state, int32_t x, int
 	bool col_um_value = rel_mouse_x >= table_source->trade_value_column_start && rel_mouse_x < (table_source->trade_value_column_start + table_source->trade_value_column_width);
 	if(col_um_value && !under_mouse) {
 		ogl::render_alpha_colored_rect(state, float(x + table_source->trade_value_column_start), float(y), float(table_source->trade_value_column_width), float(base_data.size.y), 0.949020f, 0.505882f, 0.505882f, 0.611765f);
+	}
+	bool col_um_empty = rel_mouse_x >= table_source->trade_empty_column_start && rel_mouse_x < (table_source->trade_empty_column_start + table_source->trade_empty_column_width);
+	if(col_um_empty && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->trade_empty_column_start), float(y), float(table_source->trade_empty_column_width), float(base_data.size.y), 0.949020f, 0.505882f, 0.505882f, 0.611765f);
 	}
 }
 void market_trade_report_trade_item_t::on_update(sys::state& state) noexcept {
@@ -2116,6 +2200,13 @@ void market_trade_report_trade_item_t::create_layout_level(sys::state& state, la
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -2195,6 +2286,7 @@ void market_trade_report_trade_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "trade_item_c") {
@@ -2303,6 +2395,17 @@ void market_trade_report_nation_data_value_t::on_create(sys::state& state) noexc
 // BEGIN nation_data::value::create
 // END
 }
+void market_trade_report_nation_data_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+}
 void market_trade_report_nation_data_t::on_update(sys::state& state) noexcept {
 	market_trade_report_body_t& body = *((market_trade_report_body_t*)(parent->parent)); 
 // BEGIN nation_data::update
@@ -2335,6 +2438,13 @@ void market_trade_report_nation_data_t::create_layout_level(sys::state& state, l
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -2532,6 +2642,8 @@ void market_trade_report_trade_header_trade_header_c_t::tooltip_position(sys::st
 	}
 	if(x >= table_source->trade_value_column_start && x < table_source->trade_value_column_start + table_source->trade_value_column_width) {
 	}
+	if(x >= table_source->trade_empty_column_start && x < table_source->trade_empty_column_start + table_source->trade_empty_column_width) {
+	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
@@ -2549,6 +2661,8 @@ void market_trade_report_trade_header_trade_header_c_t::update_tooltip(sys::stat
 	if(x >=  table_source->trade_volume_column_start && x <  table_source->trade_volume_column_start +  table_source->trade_volume_column_width) {
 	}
 	if(x >=  table_source->trade_value_column_start && x <  table_source->trade_value_column_start +  table_source->trade_value_column_width) {
+	}
+	if(x >=  table_source->trade_empty_column_start && x <  table_source->trade_empty_column_start +  table_source->trade_empty_column_width) {
 	}
 }
 void market_trade_report_trade_header_trade_header_c_t::on_reset_text(sys::state& state) noexcept {
@@ -2655,6 +2769,7 @@ void market_trade_report_trade_header_trade_header_c_t::render(sys::state & stat
 			ui::render_text_chunk(state, t, float(x) + t.x + table_source->trade_value_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->trade_value_header_text_color), cmod);
 		}
 	}
+	bool col_um_empty = rel_mouse_x >= table_source->trade_empty_column_start && rel_mouse_x < (table_source->trade_empty_column_start + table_source->trade_empty_column_width);
 	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->trade_divider_color.r, table_source->trade_divider_color.g, table_source->trade_divider_color.b, 1.0f);
 }
 void market_trade_report_trade_header_trade_header_c_t::on_update(sys::state& state) noexcept {
@@ -2667,14 +2782,16 @@ void market_trade_report_trade_header_trade_header_c_t::on_create(sys::state& st
 // BEGIN trade_header::trade_header_c::create
 // END
 }
-ui::message_result market_trade_report_trade_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-ui::message_result market_trade_report_trade_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
 void market_trade_report_trade_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (market_trade_report_body_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -2704,6 +2821,10 @@ void market_trade_report_trade_header_t::render(sys::state & state, int32_t x, i
 	bool col_um_value = rel_mouse_x >= table_source->trade_value_column_start && rel_mouse_x < (table_source->trade_value_column_start + table_source->trade_value_column_width);
 	if(col_um_value && !under_mouse) {
 		ogl::render_alpha_colored_rect(state, float(x + table_source->trade_value_column_start), float(y), float(table_source->trade_value_column_width), float(base_data.size.y), 0.949020f, 0.505882f, 0.505882f, 0.611765f);
+	}
+	bool col_um_empty = rel_mouse_x >= table_source->trade_empty_column_start && rel_mouse_x < (table_source->trade_empty_column_start + table_source->trade_empty_column_width);
+	if(col_um_empty && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->trade_empty_column_start), float(y), float(table_source->trade_empty_column_width), float(base_data.size.y), 0.949020f, 0.505882f, 0.505882f, 0.611765f);
 	}
 }
 void market_trade_report_trade_header_t::on_update(sys::state& state) noexcept {
@@ -2738,6 +2859,13 @@ void market_trade_report_trade_header_t::create_layout_level(sys::state& state, 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -2810,7 +2938,6 @@ void market_trade_report_trade_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "trade_header_c") {

@@ -810,6 +810,33 @@ void render_bordered_rect(sys::state const& state, color_modification enabled, f
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
+
+void render_rect_with_repeated_border(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, grid_size);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::border_repeat };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
+void render_rect_with_repeated_corner(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+	bind_vertices_by_rotation(state, r, flipped, rtl);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x, y, width, height);
+	glUniform1f(state.open_gl.ui_shader_border_size_uniform, grid_size);
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::corner_repeat };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
+
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl) {
 	glBindVertexArray(state.open_gl.global_square_vao);

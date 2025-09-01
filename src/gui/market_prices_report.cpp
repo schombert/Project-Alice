@@ -4,6 +4,7 @@ struct market_prices_report_body_t;
 struct market_prices_report_list_header_bg_t;
 struct market_prices_report_list_header_t;
 struct market_prices_report_list_item_bg_t;
+struct market_prices_report_list_item_icon_t;
 struct market_prices_report_list_item_t;
 struct market_prices_report_body_header_t : public ui::element_base {
 // BEGIN body::header::variables
@@ -11,8 +12,8 @@ struct market_prices_report_body_header_t : public ui::element_base {
 	text::layout internal_layout;
 	text::text_color text_color = text::text_color::black;
 	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
+	bool text_is_header = true; 
+	text::alignment text_alignment = text::alignment::center;
 	std::string cached_text;
 	void set_text(sys::state & state, std::string const& new_text);
 	void on_reset_text(sys::state & state) noexcept override;
@@ -89,6 +90,10 @@ struct market_prices_report_list_header_bg_t : public ui::element_base {
 struct market_prices_report_list_item_bg_t : public ui::element_base {
 // BEGIN list_item::bg::variables
 // END
+	text::layout spacer_internal_layout;
+	text::text_color  spacer_text_color = text::text_color::black;
+	std::string spacer_cached_text;
+	void set_spacer_text(sys::state & state, std::string const& new_text);
 	text::layout name_internal_layout;
 	text::text_color  name_text_color = text::text_color::black;
 	std::string name_cached_text;
@@ -131,12 +136,43 @@ struct market_prices_report_list_item_bg_t : public ui::element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct market_prices_report_list_item_icon_t : public ui::element_base {
+// BEGIN list_item::icon::variables
+// END
+	std::string_view gfx_key;
+	dcon::gfx_object_id background_gid;
+	int32_t frame = 0;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct market_prices_report_body_t : public layout_window_element {
 // BEGIN body::variables
 // END
 	std::unique_ptr<market_prices_report_body_header_t> header;
 	market_prices_report_body_price_list_t price_list;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	text::text_color list_spacer_header_text_color = text::text_color::black;
+	text::text_color list_spacer_column_text_color = text::text_color::black;
+	text::alignment list_spacer_text_alignment = text::alignment::center;
+	int16_t list_spacer_column_start = 0;
+	int16_t list_spacer_column_width = 0;
 	std::string_view list_name_header_text_key;
 	text::text_color list_name_header_text_color = text::text_color::black;
 	text::text_color list_name_column_text_color = text::text_color::black;
@@ -215,6 +251,7 @@ struct market_prices_report_list_header_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -226,11 +263,20 @@ struct market_prices_report_list_item_t : public layout_window_element {
 // END
 	dcon::commodity_id cid;
 	std::unique_ptr<market_prices_report_list_item_bg_t> bg;
+	std::unique_ptr<market_prices_report_list_item_icon_t> icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view texture_key;
+	std::string_view alt_texture_key;
+	dcon::texture_id alt_background_texture;
+	bool is_active = false;
+	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return ui::message_result::unseen;
+		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
@@ -377,15 +423,16 @@ measure_result  market_prices_report_body_price_list_t::place_item(sys::state& s
 				}
 				destination->children.push_back(list_header_pool[list_header_pool_used].get());
 				list_item_pool[list_item_pool_used]->base_data.position.x = int16_t(x);
-				list_item_pool[list_item_pool_used]->base_data.position.y = int16_t(y +  list_item_pool[0]->base_data.size.y + 4);
+				list_item_pool[list_item_pool_used]->base_data.position.y = int16_t(y +  list_item_pool[0]->base_data.size.y + 0);
 				list_item_pool[list_item_pool_used]->parent = destination;
 				destination->children.push_back(list_item_pool[list_item_pool_used].get());
 				((market_prices_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->cid = std::get<list_item_option>(values[index]).cid;
+			((market_prices_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->is_active = !alternate;
 				list_item_pool[list_item_pool_used]->impl_on_update(state);
 				list_header_pool_used++;
 				list_item_pool_used++;
 			}
-			return measure_result{std::max(list_header_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.x), list_header_pool[0]->base_data.size.y + list_item_pool[0]->base_data.size.y + 8, measure_result::special::none};
+			return measure_result{std::max(list_header_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.x), list_header_pool[0]->base_data.size.y + list_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 		}
 		if(destination) {
 			if(list_item_pool.size() <= size_t(list_item_pool_used)) list_item_pool.emplace_back(make_market_prices_report_list_item(state));
@@ -394,11 +441,12 @@ measure_result  market_prices_report_body_price_list_t::place_item(sys::state& s
 			list_item_pool[list_item_pool_used]->parent = destination;
 			destination->children.push_back(list_item_pool[list_item_pool_used].get());
 			((market_prices_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->cid = std::get<list_item_option>(values[index]).cid;
+			((market_prices_report_list_item_t*)(list_item_pool[list_item_pool_used].get()))->is_active = alternate;
 			list_item_pool[list_item_pool_used]->impl_on_update(state);
 			list_item_pool_used++;
 		}
-		alternate = true;
-		return measure_result{ list_item_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.y + 4, measure_result::special::none};
+		alternate = !alternate;
+		return measure_result{ list_item_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -431,6 +479,10 @@ void market_prices_report_body_header_t::render(sys::state & state, int32_t x, i
 void market_prices_report_body_header_t::on_update(sys::state& state) noexcept {
 	market_prices_report_body_t& body = *((market_prices_report_body_t*)(parent)); 
 // BEGIN body::header::update
+	text::substitution_map m;
+	text::add_to_substitution_map(m, text::variable_type::province, state.map_state.selected_province);
+	auto result = text::resolve_string_substitution(state, "market_prices_report", m);
+	set_text(state, result);
 // END
 }
 void market_prices_report_body_header_t::on_create(sys::state& state) noexcept {
@@ -446,6 +498,15 @@ ui::message_result market_prices_report_body_t::on_rbutton_down(sys::state& stat
 }
 void market_prices_report_body_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void market_prices_report_body_t::on_update(sys::state& state) noexcept {
 // BEGIN body::update
@@ -479,6 +540,13 @@ void market_prices_report_body_t::create_layout_level(sys::state& state, layout_
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -577,6 +645,15 @@ void market_prices_report_body_t::on_create(sys::state& state) noexcept {
 			list_descending_icon_key = main_section.read<std::string_view>();
 			main_section.read(list_divider_color);
 			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			list_spacer_column_start = running_w_total;
+			col_section.read(list_spacer_column_width);
+			running_w_total += list_spacer_column_width;
+			col_section.read(list_spacer_column_text_color);
+			col_section.read(list_spacer_header_text_color);
+			col_section.read(list_spacer_text_alignment);
 			list_name_header_text_key = col_section.read<std::string_view>();
 			col_section.read<std::string_view>(); // discard
 			col_section.read<std::string_view>(); // discard
@@ -702,6 +779,8 @@ ui::message_result market_prices_report_list_header_bg_t::on_rbutton_down(sys::s
 }
 void market_prices_report_list_header_bg_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
+	if(x >= table_source->list_spacer_column_start && x < table_source->list_spacer_column_start + table_source->list_spacer_column_width) {
+	}
 	if(x >= table_source->list_name_column_start && x < table_source->list_name_column_start + table_source->list_name_column_width) {
 	}
 	if(x >= table_source->list_local_price_column_start && x < table_source->list_local_price_column_start + table_source->list_local_price_column_width) {
@@ -718,6 +797,8 @@ void market_prices_report_list_header_bg_t::tooltip_position(sys::state& state, 
 }
 void market_prices_report_list_header_bg_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
+	if(x >=  table_source->list_spacer_column_start && x <  table_source->list_spacer_column_start +  table_source->list_spacer_column_width) {
+	}
 	if(x >=  table_source->list_name_column_start && x <  table_source->list_name_column_start +  table_source->list_name_column_width) {
 	}
 	if(x >=  table_source->list_local_price_column_start && x <  table_source->list_local_price_column_start +  table_source->list_local_price_column_width) {
@@ -773,6 +854,7 @@ void market_prices_report_list_header_bg_t::render(sys::state & state, int32_t x
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	bool col_um_spacer = rel_mouse_x >= table_source->list_spacer_column_start && rel_mouse_x < (table_source->list_spacer_column_start + table_source->list_spacer_column_width);
 	bool col_um_name = rel_mouse_x >= table_source->list_name_column_start && rel_mouse_x < (table_source->list_name_column_start + table_source->list_name_column_width);
 	if(table_source->list_name_sort_direction > 0) {
 		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->list_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->list_ascending_icon, table_source->list_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
@@ -850,6 +932,47 @@ void market_prices_report_list_header_bg_t::on_create(sys::state& state) noexcep
 // BEGIN list_header::bg::create
 // END
 }
+void market_prices_report_list_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+	auto table_source = (market_prices_report_body_t*)(parent);
+	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	if(under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_spacer = rel_mouse_x >= table_source->list_spacer_column_start && rel_mouse_x < (table_source->list_spacer_column_start + table_source->list_spacer_column_width);
+	if(col_um_spacer && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_spacer_column_start), float(y), float(table_source->list_spacer_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_name = rel_mouse_x >= table_source->list_name_column_start && rel_mouse_x < (table_source->list_name_column_start + table_source->list_name_column_width);
+	if(col_um_name && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_name_column_start), float(y), float(table_source->list_name_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_local_price = rel_mouse_x >= table_source->list_local_price_column_start && rel_mouse_x < (table_source->list_local_price_column_start + table_source->list_local_price_column_width);
+	if(col_um_local_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_local_price_column_start), float(y), float(table_source->list_local_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_median_price = rel_mouse_x >= table_source->list_median_price_column_start && rel_mouse_x < (table_source->list_median_price_column_start + table_source->list_median_price_column_width);
+	if(col_um_median_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_median_price_column_start), float(y), float(table_source->list_median_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_ratio_price = rel_mouse_x >= table_source->list_ratio_price_column_start && rel_mouse_x < (table_source->list_ratio_price_column_start + table_source->list_ratio_price_column_width);
+	if(col_um_ratio_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_ratio_price_column_start), float(y), float(table_source->list_ratio_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_future_change = rel_mouse_x >= table_source->list_future_change_column_start && rel_mouse_x < (table_source->list_future_change_column_start + table_source->list_future_change_column_width);
+	if(col_um_future_change && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_future_change_column_start), float(y), float(table_source->list_future_change_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+}
 void market_prices_report_list_header_t::on_update(sys::state& state) noexcept {
 	market_prices_report_body_t& body = *((market_prices_report_body_t*)(parent->parent)); 
 // BEGIN list_header::update
@@ -882,6 +1005,13 @@ void market_prices_report_list_header_t::create_layout_level(sys::state& state, 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -985,6 +1115,8 @@ ui::message_result market_prices_report_list_item_bg_t::on_rbutton_down(sys::sta
 }
 void market_prices_report_list_item_bg_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
+	if(x >= table_source->list_spacer_column_start && x < table_source->list_spacer_column_start + table_source->list_spacer_column_width) {
+	}
 	if(x >= table_source->list_name_column_start && x < table_source->list_name_column_start + table_source->list_name_column_width) {
 	}
 	if(x >= table_source->list_local_price_column_start && x < table_source->list_local_price_column_start + table_source->list_local_price_column_width) {
@@ -1001,6 +1133,8 @@ void market_prices_report_list_item_bg_t::tooltip_position(sys::state& state, in
 }
 void market_prices_report_list_item_bg_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
+	if(x >=  table_source->list_spacer_column_start && x <  table_source->list_spacer_column_start +  table_source->list_spacer_column_width) {
+	}
 	if(x >=  table_source->list_name_column_start && x <  table_source->list_name_column_start +  table_source->list_name_column_width) {
 	}
 	if(x >=  table_source->list_local_price_column_start && x <  table_source->list_local_price_column_start +  table_source->list_local_price_column_width) {
@@ -1010,6 +1144,19 @@ void market_prices_report_list_item_bg_t::update_tooltip(sys::state& state, int3
 	if(x >=  table_source->list_ratio_price_column_start && x <  table_source->list_ratio_price_column_start +  table_source->list_ratio_price_column_width) {
 	}
 	if(x >=  table_source->list_future_change_column_start && x <  table_source->list_future_change_column_start +  table_source->list_future_change_column_width) {
+	}
+}
+void market_prices_report_list_item_bg_t::set_spacer_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (market_prices_report_body_t*)(parent->parent);
+	if(new_text !=  spacer_cached_text) {
+		spacer_cached_text = new_text;
+		spacer_internal_layout.contents.clear();
+		spacer_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ spacer_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->list_spacer_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->list_spacer_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, spacer_cached_text);
+		}
+	} else {
 	}
 }
 void market_prices_report_list_item_bg_t::set_name_text(sys::state & state, std::string const& new_text) {
@@ -1083,6 +1230,13 @@ void market_prices_report_list_item_bg_t::render(sys::state & state, int32_t x, 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (market_prices_report_body_t*)(parent->parent);
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	bool col_um_spacer = rel_mouse_x >= table_source->list_spacer_column_start && rel_mouse_x < (table_source->list_spacer_column_start + table_source->list_spacer_column_width);
+	if(!spacer_internal_layout.contents.empty() && linesz > 0.0f) {
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_spacer , false, false); 
+		for(auto& t : spacer_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->list_spacer_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, spacer_text_color), cmod);
+		}
+	}
 	bool col_um_name = rel_mouse_x >= table_source->list_name_column_start && rel_mouse_x < (table_source->list_name_column_start + table_source->list_name_column_width);
 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, false); 
@@ -1131,7 +1285,7 @@ void market_prices_report_list_item_bg_t::on_update(sys::state& state) noexcept 
 	float local = economy::price(state, sid, list_item.cid);
 	float median = state.world.commodity_get_median_price(list_item.cid);
 
-	set_name_text(state, text::get_commodity_name_with_icon(state, list_item.cid));
+	set_name_text(state, text::produce_simple_string(state, state.world.commodity_get_name(list_item.cid)));
 	set_local_price_text(state, text::format_money(local));
 	set_median_price_text(state, text::format_money(median));
 	set_ratio_price_text(state, text::format_percentage(local / median));
@@ -1141,6 +1295,91 @@ void market_prices_report_list_item_bg_t::on_update(sys::state& state) noexcept 
 void market_prices_report_list_item_bg_t::on_create(sys::state& state) noexcept {
 // BEGIN list_item::bg::create
 // END
+}
+ui::message_result market_prices_report_list_item_icon_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+ui::message_result market_prices_report_list_item_icon_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void market_prices_report_list_item_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(background_gid) {
+		auto& gfx_def = state.ui_defs.gfx[background_gid];
+		if(gfx_def.primary_texture_handle) {
+			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			} else if(gfx_def.number_of_frames > 1) {
+				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			} else {
+				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			}
+		}
+	}
+}
+void market_prices_report_list_item_icon_t::on_update(sys::state& state) noexcept {
+	market_prices_report_list_item_t& list_item = *((market_prices_report_list_item_t*)(parent)); 
+	market_prices_report_body_t& body = *((market_prices_report_body_t*)(parent->parent)); 
+// BEGIN list_item::icon::update
+	frame = state.world.commodity_get_icon(list_item.cid);
+// END
+}
+void market_prices_report_list_item_icon_t::on_create(sys::state& state) noexcept {
+	if(auto it = state.ui_state.gfx_by_name.find(state.lookup_key(gfx_key)); it != state.ui_state.gfx_by_name.end()) {
+		background_gid = it->second;
+	}
+// BEGIN list_item::icon::create
+// END
+}
+ui::message_result market_prices_report_list_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result market_prices_report_list_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void market_prices_report_list_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(is_active)
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	else
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& __item : textures_to_render) {
+		if (__item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (__item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+	auto table_source = (market_prices_report_body_t*)(parent);
+	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	if(under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_spacer = rel_mouse_x >= table_source->list_spacer_column_start && rel_mouse_x < (table_source->list_spacer_column_start + table_source->list_spacer_column_width);
+	if(col_um_spacer && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_spacer_column_start), float(y), float(table_source->list_spacer_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_name = rel_mouse_x >= table_source->list_name_column_start && rel_mouse_x < (table_source->list_name_column_start + table_source->list_name_column_width);
+	if(col_um_name && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_name_column_start), float(y), float(table_source->list_name_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_local_price = rel_mouse_x >= table_source->list_local_price_column_start && rel_mouse_x < (table_source->list_local_price_column_start + table_source->list_local_price_column_width);
+	if(col_um_local_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_local_price_column_start), float(y), float(table_source->list_local_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_median_price = rel_mouse_x >= table_source->list_median_price_column_start && rel_mouse_x < (table_source->list_median_price_column_start + table_source->list_median_price_column_width);
+	if(col_um_median_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_median_price_column_start), float(y), float(table_source->list_median_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_ratio_price = rel_mouse_x >= table_source->list_ratio_price_column_start && rel_mouse_x < (table_source->list_ratio_price_column_start + table_source->list_ratio_price_column_width);
+	if(col_um_ratio_price && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_ratio_price_column_start), float(y), float(table_source->list_ratio_price_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
+	bool col_um_future_change = rel_mouse_x >= table_source->list_future_change_column_start && rel_mouse_x < (table_source->list_future_change_column_start + table_source->list_future_change_column_width);
+	if(col_um_future_change && !under_mouse) {
+		ogl::render_alpha_colored_rect(state, float(x + table_source->list_future_change_column_start), float(y), float(table_source->list_future_change_column_width), float(base_data.size.y), 0.772549f, 0.219608f, 0.219608f, 0.117647f);
+	}
 }
 void market_prices_report_list_item_t::on_update(sys::state& state) noexcept {
 	market_prices_report_body_t& body = *((market_prices_report_body_t*)(parent->parent)); 
@@ -1174,6 +1413,13 @@ void market_prices_report_list_item_t::create_layout_level(sys::state& state, la
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1184,6 +1430,9 @@ void market_prices_report_list_item_t::create_layout_level(sys::state& state, la
 				temp.ptr = nullptr;
 				if(cname == "bg") {
 					temp.ptr = bg.get();
+				}
+				if(cname == "icon") {
+					temp.ptr = icon.get();
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1240,6 +1489,8 @@ void market_prices_report_list_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
+	texture_key = win_data.texture;
+	alt_texture_key = win_data.alt_texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "bg") {
@@ -1250,6 +1501,20 @@ void market_prices_report_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "icon") {
+			icon = std::make_unique<market_prices_report_list_item_icon_t>();
+			icon->parent = this;
+			auto cptr = icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->gfx_key = child_data.texture;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);

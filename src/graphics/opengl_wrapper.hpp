@@ -49,6 +49,8 @@ inline constexpr GLuint subsprite_c = 21;
 inline constexpr GLuint linegraph_acolor = 22;
 inline constexpr GLuint stripchart = 23;
 inline constexpr GLuint triangle_strip = 24;
+inline constexpr GLuint border_repeat = 25;
+inline constexpr GLuint corner_repeat = 26;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -369,6 +371,10 @@ void render_ui_mesh(
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t);
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_border(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_corner(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);
