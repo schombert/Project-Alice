@@ -1,4 +1,5 @@
 #include <numbers>
+#include <cmath>
 
 #include "system_state.hpp"
 #include "gui_element_base.hpp"
