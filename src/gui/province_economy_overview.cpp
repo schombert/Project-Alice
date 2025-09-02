@@ -2476,7 +2476,8 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 	raw_content.clear();
 
 	state.world.for_each_nation([&](auto origin) {
-		raw_content.emplace_back(origin, per_nation_data[origin.index()]);
+		entry_before_merge temp{ origin, per_nation_data[origin.index()] };
+		raw_content.push_back(temp);
 	});
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
@@ -2618,8 +2619,9 @@ void province_economy_overview_body_export_value_graph_t::on_update(sys::state& 
 
 	raw_content.clear();
 
-	state.world.for_each_nation([&](auto target) {
-		raw_content.emplace_back(target, per_nation_data[target.index()]);
+	state.world.for_each_nation([&](auto origin) {
+		entry_before_merge temp{ origin, per_nation_data[origin.index()] };
+		raw_content.push_back(temp);
 	});
 
 	std::sort(raw_content.begin(), raw_content.end(), [&](auto a, auto b) {
