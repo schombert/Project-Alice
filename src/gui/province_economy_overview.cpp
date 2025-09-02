@@ -3640,13 +3640,13 @@ ui::message_result province_economy_overview_body_t::on_rbutton_down(sys::state&
 void province_economy_overview_body_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_body_t::on_update(sys::state& state) noexcept {
@@ -4503,13 +4503,13 @@ void province_economy_overview_rgo_employment_t::render(sys::state & state, int3
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_rgo_employment_t::on_update(sys::state& state) noexcept {
@@ -4761,13 +4761,13 @@ void province_economy_overview_rgo_profit_t::render(sys::state & state, int32_t 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_rgo_profit_t::on_update(sys::state& state) noexcept {
@@ -5064,13 +5064,13 @@ void province_economy_overview_price_entry_t::render(sys::state & state, int32_t
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_price_entry_t::on_update(sys::state& state) noexcept {
@@ -5345,13 +5345,13 @@ void province_economy_overview_method_margin_t::render(sys::state & state, int32
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_method_margin_t::on_update(sys::state& state) noexcept {
@@ -5604,13 +5604,13 @@ void province_economy_overview_method_payback_t::render(sys::state & state, int3
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(10), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void province_economy_overview_method_payback_t::on_update(sys::state& state) noexcept {
@@ -5784,38 +5784,38 @@ std::unique_ptr<ui::element_base> make_province_economy_overview_method_payback(
 }
 // LOST-CODE
 // BEGIN body::payback::on_create
-//////	base_data.clear();
-//////	state.world.for_each_factory_type([&](auto a) {
-//////		base_data.push_back(a);
-//////	});
+////////	base_data.clear();
+////////	state.world.for_each_factory_type([&](auto a) {
+////////		base_data.push_back(a);
+////////	});
 // END
 // BEGIN body::payback::update
-//////	auto pid = state.map_state.selected_province;
-//////	auto sid = state.world.province_get_state_membership(pid);
-//////	auto nid = state.world.province_get_nation_from_province_ownership(pid);
-//////	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+////////	auto pid = state.map_state.selected_province;
+////////	auto sid = state.world.province_get_state_membership(pid);
+////////	auto nid = state.world.province_get_nation_from_province_ownership(pid);
+////////	auto mid = state.world.state_instance_get_market_from_local_market(sid);
 
-//////	std::sort(base_data.begin(), base_data.end(), [&](auto a, auto b) {
-//////		auto value_a = economy::estimate_factory_payback_time(state, pid, a);
-//////		auto value_b = economy::estimate_factory_payback_time(state, pid, b);
+////////	std::sort(base_data.begin(), base_data.end(), [&](auto a, auto b) {
+////////		auto value_a = economy::estimate_factory_payback_time(state, pid, a);
+////////		auto value_b = economy::estimate_factory_payback_time(state, pid, b);
 
-//////		if(value_a == value_b) {
-//////			return a.value > b.value;
-//////		}
-//////		return value_a < value_b;
-//////	});
+////////		if(value_a == value_b) {
+////////			return a.value > b.value;
+////////		}
+////////		return value_a < value_b;
+////////	});
 
-//////	values.clear();
-//////	for(size_t i = 0; i < std::min((size_t)4, base_data.size()); i++) {
-//////		if(std::isfinite(economy::estimate_factory_payback_time(state, pid, base_data[i]))) {
-//////			add_method_payback(base_data[i]);
-//////		}
-//////	}
+////////	values.clear();
+////////	for(size_t i = 0; i < std::min((size_t)4, base_data.size()); i++) {
+////////		if(std::isfinite(economy::estimate_factory_payback_time(state, pid, base_data[i]))) {
+////////			add_method_payback(base_data[i]);
+////////		}
+////////	}
 // END
 // BEGIN price_entry::median_price::update
-//////	set_text(state, text::format_money(state.world.commodity_get_median_price(price_entry.commodity)));
+////////	set_text(state, text::format_money(state.world.commodity_get_median_price(price_entry.commodity)));
 // END
 // BEGIN body::payback::variables
-//////	std::vector<dcon::factory_type_id> base_data;
+////////	std::vector<dcon::factory_type_id> base_data;
 // END
 }

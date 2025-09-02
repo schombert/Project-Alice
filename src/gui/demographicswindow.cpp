@@ -456,7 +456,7 @@ struct demographicswindow_nation_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -484,7 +484,7 @@ struct demographicswindow_nation_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -512,7 +512,7 @@ struct demographicswindow_nation_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -540,7 +540,7 @@ struct demographicswindow_nation_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -568,7 +568,7 @@ struct demographicswindow_nation_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -596,7 +596,7 @@ struct demographicswindow_nation_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -769,7 +769,7 @@ struct demographicswindow_nation_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -795,7 +795,7 @@ struct demographicswindow_nation_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -909,7 +909,7 @@ struct demographicswindow_state_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -937,7 +937,7 @@ struct demographicswindow_state_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -965,7 +965,7 @@ struct demographicswindow_state_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -993,7 +993,7 @@ struct demographicswindow_state_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1021,7 +1021,7 @@ struct demographicswindow_state_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1049,7 +1049,7 @@ struct demographicswindow_state_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1222,7 +1222,7 @@ struct demographicswindow_state_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1248,7 +1248,7 @@ struct demographicswindow_state_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1390,7 +1390,7 @@ struct demographicswindow_province_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1418,7 +1418,7 @@ struct demographicswindow_province_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1446,7 +1446,7 @@ struct demographicswindow_province_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1474,7 +1474,7 @@ struct demographicswindow_province_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1502,7 +1502,7 @@ struct demographicswindow_province_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1530,7 +1530,7 @@ struct demographicswindow_province_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1703,7 +1703,7 @@ struct demographicswindow_province_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1729,7 +1729,7 @@ struct demographicswindow_province_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1816,7 +1816,7 @@ struct demographicswindow_pop_row_size_trend_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1841,7 +1841,7 @@ struct demographicswindow_pop_row_culture_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1868,7 +1868,7 @@ struct demographicswindow_pop_row_job_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1895,7 +1895,7 @@ struct demographicswindow_pop_row_religion_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1923,7 +1923,7 @@ struct demographicswindow_pop_row_ideology_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -1951,7 +1951,7 @@ struct demographicswindow_pop_row_issues_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2128,7 +2128,7 @@ struct demographicswindow_pop_row_needs_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2267,7 +2267,7 @@ struct demographicswindow_pop_row_frames_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2293,7 +2293,7 @@ struct demographicswindow_pop_row_movement_political_t : public ui::element_base
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2320,7 +2320,7 @@ struct demographicswindow_pop_row_movement_social_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2976,7 +2976,7 @@ struct demographicswindow_job_filter_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3059,7 +3059,7 @@ struct demographicswindow_religion_filter_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3269,7 +3269,7 @@ struct demographicswindow_pops_header_mil_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3294,7 +3294,7 @@ struct demographicswindow_pops_header_con_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3319,7 +3319,7 @@ struct demographicswindow_pops_header_emp_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3344,7 +3344,7 @@ struct demographicswindow_pops_header_lit_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3369,7 +3369,7 @@ struct demographicswindow_pops_header_reb_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3394,7 +3394,7 @@ struct demographicswindow_pops_header_cash_icon_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
+			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -3809,6 +3809,7 @@ struct demographicswindow_job_filter_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -3831,6 +3832,7 @@ struct demographicswindow_religion_filter_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -3852,6 +3854,7 @@ struct demographicswindow_location_filter_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -3873,6 +3876,7 @@ struct demographicswindow_culture_filter_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -4020,7 +4024,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_location_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::location
 						result = cmp3(text::produce_simple_string(state, state.world.province_get_name(state.world.pop_get_province_from_pop_location(a.value))),
@@ -4032,7 +4036,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_size_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::size
 						result = cmp3(state.world.pop_get_size(a.value), state.world.pop_get_size(b.value));
@@ -4043,7 +4047,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_culture_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::culture
 						result = cmp3(text::produce_simple_string(state, state.world.culture_get_name(state.world.pop_get_culture(a.value))),
@@ -4055,7 +4059,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_job_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::job
 						result = cmp3(text::produce_simple_string(state, state.world.pop_type_get_name(state.world.pop_get_poptype(a.value))),
@@ -4067,7 +4071,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_religion_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::religion
 						result = cmp3(text::produce_simple_string(state, state.world.religion_get_name(state.world.pop_get_religion(a.value))),
@@ -4079,7 +4083,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_militancy_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::militancy
 						result = cmp3(pop_demographics::get_militancy(state, a.value), pop_demographics::get_militancy(state, b.value));
@@ -4090,7 +4094,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_consciousness_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::consciousness
 						result = cmp3(pop_demographics::get_consciousness(state, a.value), pop_demographics::get_consciousness(state, b.value));
@@ -4101,7 +4105,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_employment_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::employment
 						result = cmp3(pop_demographics::get_employment(state, a.value), pop_demographics::get_employment(state, b.value));
@@ -4112,7 +4116,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_literacy_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::literacy
 						result = cmp3(pop_demographics::get_literacy(state, a.value), pop_demographics::get_literacy(state, b.value));
@@ -4123,7 +4127,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_money_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::money
 						result = cmp3(state.world.pop_get_savings(a.value), state.world.pop_get_savings(b.value));
@@ -4134,7 +4138,7 @@ void  demographicswindow_main_table_t::update(sys::state& state, layout_window_e
 				if(table_source->table_needs_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<pop_row_option>(raw_a);
-							auto const& b = std::get<pop_row_option>(raw_b);
+						auto const& b = std::get<pop_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::table::table::sort::needs
 						result = cmp3(pop_demographics::get_life_needs(state, a.value) + pop_demographics::get_everyday_needs(state, a.value) + pop_demographics::get_luxury_needs(state, a.value), pop_demographics::get_life_needs(state, b.value) + pop_demographics::get_everyday_needs(state, b.value) + pop_demographics::get_luxury_needs(state,b.value));
@@ -4677,6 +4681,15 @@ ui::message_result demographicswindow_main_t::on_rbutton_down(sys::state& state,
 }
 void demographicswindow_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void demographicswindow_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
@@ -4710,6 +4723,13 @@ void demographicswindow_main_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -6037,6 +6057,15 @@ void demographicswindow_nation_row_t::render(sys::state & state, int32_t x, int3
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -6132,6 +6161,13 @@ void demographicswindow_nation_row_t::create_layout_level(sys::state& state, lay
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -7553,6 +7589,15 @@ void demographicswindow_state_row_t::render(sys::state & state, int32_t x, int32
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -7648,6 +7693,13 @@ void demographicswindow_state_row_t::create_layout_level(sys::state& state, layo
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -8996,6 +9048,15 @@ void demographicswindow_province_row_t::render(sys::state & state, int32_t x, in
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -9091,6 +9152,13 @@ void demographicswindow_province_row_t::create_layout_level(sys::state& state, l
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -10635,6 +10703,15 @@ void demographicswindow_pop_row_t::render(sys::state & state, int32_t x, int32_t
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -10730,6 +10807,13 @@ void demographicswindow_pop_row_t::create_layout_level(sys::state& state, layout
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -12150,6 +12234,15 @@ ui::message_result demographicswindow_filters_window_t::on_rbutton_down(sys::sta
 }
 void demographicswindow_filters_window_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void demographicswindow_filters_window_t::on_update(sys::state& state) noexcept {
 // BEGIN filters_window::update
@@ -12186,6 +12279,13 @@ void demographicswindow_filters_window_t::create_layout_level(sys::state& state,
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -12739,6 +12839,17 @@ void demographicswindow_job_filter_filter_label_t::on_create(sys::state& state) 
 // BEGIN job_filter::filter_label::create
 // END
 }
+void demographicswindow_job_filter_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+}
 void demographicswindow_job_filter_t::on_update(sys::state& state) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN job_filter::update
@@ -12771,6 +12882,13 @@ void demographicswindow_job_filter_t::create_layout_level(sys::state& state, lay
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -13030,6 +13148,17 @@ void demographicswindow_religion_filter_filter_label_t::on_create(sys::state& st
 // BEGIN religion_filter::filter_label::create
 // END
 }
+void demographicswindow_religion_filter_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+}
 void demographicswindow_religion_filter_t::on_update(sys::state& state) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN religion_filter::update
@@ -13062,6 +13191,13 @@ void demographicswindow_religion_filter_t::create_layout_level(sys::state& state
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -13287,6 +13423,17 @@ void demographicswindow_location_filter_filter_label_t::on_create(sys::state& st
 // BEGIN location_filter::filter_label::create
 // END
 }
+void demographicswindow_location_filter_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+}
 void demographicswindow_location_filter_t::on_update(sys::state& state) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN location_filter::update
@@ -13319,6 +13466,13 @@ void demographicswindow_location_filter_t::create_layout_level(sys::state& state
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -13527,6 +13681,17 @@ void demographicswindow_culture_filter_filter_label_t::on_create(sys::state& sta
 // BEGIN culture_filter::filter_label::create
 // END
 }
+void demographicswindow_culture_filter_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
+}
 void demographicswindow_culture_filter_t::on_update(sys::state& state) noexcept {
 	demographicswindow_filters_window_t& filters_window = *((demographicswindow_filters_window_t*)(parent->parent)); 
 // BEGIN culture_filter::update
@@ -13559,6 +13724,13 @@ void demographicswindow_culture_filter_t::create_layout_level(sys::state& state,
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -14330,6 +14502,15 @@ void demographicswindow_pops_header_t::render(sys::state & state, int32_t x, int
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (demographicswindow_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -14425,6 +14606,13 @@ void demographicswindow_pops_header_t::create_layout_level(sys::state& state, la
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -14650,25 +14838,25 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state
 }
 // LOST-CODE
 // BEGIN filters_window::culture_list::create
-//////////////////////////////////////////////	for(auto c : state.world.in_culture) {
-//////////////////////////////////////////////		values.push_back(c.id);
-//////////////////////////////////////////////	}
-//////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
-//////////////////////////////////////////////	});
+////////////////////////////////////////////////	for(auto c : state.world.in_culture) {
+////////////////////////////////////////////////		values.push_back(c.id);
+////////////////////////////////////////////////	}
+////////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////////////////////////		return text::produce_simple_string(state, state.world.culture_get_name(a)) < text::produce_simple_string(state, state.world.culture_get_name(b));
+////////////////////////////////////////////////	});
 // END
 // BEGIN filters_window::religion_list::create
-//////////////////////////////////////////////	for(auto r : state.world.in_religion)
-//////////////////////////////////////////////		values.push_back(r.id);
-//////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
-//////////////////////////////////////////////	});
+////////////////////////////////////////////////	for(auto r : state.world.in_religion)
+////////////////////////////////////////////////		values.push_back(r.id);
+////////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////////////////////////		return text::produce_simple_string(state, state.world.religion_get_name(a)) < text::produce_simple_string(state, state.world.religion_get_name(b));
+////////////////////////////////////////////////	});
 // END
 // BEGIN filters_window::job_list::create
-//////////////////////////////////////////////	for(auto j : state.world.in_pop_type)
-//////////////////////////////////////////////		values.push_back(j.id);
-//////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
-//////////////////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
-//////////////////////////////////////////////	});
+////////////////////////////////////////////////	for(auto j : state.world.in_pop_type)
+////////////////////////////////////////////////		values.push_back(j.id);
+////////////////////////////////////////////////	std::sort(values.begin(), values.end(), [&](auto a, auto b) {
+////////////////////////////////////////////////		return text::produce_simple_string(state, state.world.pop_type_get_name(a)) < text::produce_simple_string(state, state.world.pop_type_get_name(b));
+////////////////////////////////////////////////	});
 // END
 }

@@ -732,13 +732,13 @@ ui::message_result macrobuilder2_main_t::on_rbutton_down(sys::state& state, int3
 void macrobuilder2_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void macrobuilder2_main_t::on_update(sys::state& state) noexcept {
@@ -1048,13 +1048,13 @@ void macrobuilder2_list_item_delete_button_t::on_create(sys::state& state) noexc
 }
 void macrobuilder2_list_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void macrobuilder2_list_item_t::on_update(sys::state& state) noexcept {
@@ -1509,13 +1509,13 @@ ui::message_result macrobuilder2_grid_item_t::on_rbutton_down(sys::state& state,
 void macrobuilder2_grid_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& __item : textures_to_render) {
-		if (__item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void macrobuilder2_grid_item_t::on_update(sys::state& state) noexcept {
