@@ -3224,7 +3224,7 @@ void province_economy_overview_body_gdp_chart_t::update_tooltip(sys::state& stat
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float x_normal = float(x) / float(base_data.size.x) * 2.f - 1.f;
 	float y_normal = float(y) / float(base_data.size.y) * 2.f - 1.f;
-	float temp_offset = temp_total * (std::atan2f(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
+	float temp_offset = temp_total * (std::atan2(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
 	int32_t temp_index = 0;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
@@ -3367,7 +3367,7 @@ void province_economy_overview_body_gdp_share_chart_t::update_tooltip(sys::state
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float x_normal = float(x) / float(base_data.size.x) * 2.f - 1.f;
 	float y_normal = float(y) / float(base_data.size.y) * 2.f - 1.f;
-	float temp_offset = temp_total * (std::atan2f(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
+	float temp_offset = temp_total * (std::atan2(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
 	int32_t temp_index = 0;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
@@ -3505,7 +3505,7 @@ void province_economy_overview_body_labor_chart_t::update_tooltip(sys::state& st
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float x_normal = float(x) / float(base_data.size.x) * 2.f - 1.f;
 	float y_normal = float(y) / float(base_data.size.y) * 2.f - 1.f;
-	float temp_offset = temp_total * (std::atan2f(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
+	float temp_offset = temp_total * (std::atan2(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
 	int32_t temp_index = 0;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
@@ -3584,7 +3584,7 @@ void province_economy_overview_body_artisan_chart_t::update_tooltip(sys::state& 
 	for(auto& p : graph_content) { temp_total += p.amount; }
 	float x_normal = float(x) / float(base_data.size.x) * 2.f - 1.f;
 	float y_normal = float(y) / float(base_data.size.y) * 2.f - 1.f;
-	float temp_offset = temp_total * (std::atan2f(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
+	float temp_offset = temp_total * (std::atan2(-y_normal, -x_normal) / std::numbers::pi_v<float> / 2.f + 0.5f);
 	int32_t temp_index = 0;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
@@ -5780,38 +5780,38 @@ std::unique_ptr<ui::element_base> make_province_economy_overview_method_payback(
 }
 // LOST-CODE
 // BEGIN body::payback::on_create
-////	base_data.clear();
-////	state.world.for_each_factory_type([&](auto a) {
-////		base_data.push_back(a);
-////	});
+//////	base_data.clear();
+//////	state.world.for_each_factory_type([&](auto a) {
+//////		base_data.push_back(a);
+//////	});
 // END
 // BEGIN body::payback::update
-////	auto pid = state.map_state.selected_province;
-////	auto sid = state.world.province_get_state_membership(pid);
-////	auto nid = state.world.province_get_nation_from_province_ownership(pid);
-////	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+//////	auto pid = state.map_state.selected_province;
+//////	auto sid = state.world.province_get_state_membership(pid);
+//////	auto nid = state.world.province_get_nation_from_province_ownership(pid);
+//////	auto mid = state.world.state_instance_get_market_from_local_market(sid);
 
-////	std::sort(base_data.begin(), base_data.end(), [&](auto a, auto b) {
-////		auto value_a = economy::estimate_factory_payback_time(state, pid, a);
-////		auto value_b = economy::estimate_factory_payback_time(state, pid, b);
+//////	std::sort(base_data.begin(), base_data.end(), [&](auto a, auto b) {
+//////		auto value_a = economy::estimate_factory_payback_time(state, pid, a);
+//////		auto value_b = economy::estimate_factory_payback_time(state, pid, b);
 
-////		if(value_a == value_b) {
-////			return a.value > b.value;
-////		}
-////		return value_a < value_b;
-////	});
+//////		if(value_a == value_b) {
+//////			return a.value > b.value;
+//////		}
+//////		return value_a < value_b;
+//////	});
 
-////	values.clear();
-////	for(size_t i = 0; i < std::min((size_t)4, base_data.size()); i++) {
-////		if(std::isfinite(economy::estimate_factory_payback_time(state, pid, base_data[i]))) {
-////			add_method_payback(base_data[i]);
-////		}
-////	}
+//////	values.clear();
+//////	for(size_t i = 0; i < std::min((size_t)4, base_data.size()); i++) {
+//////		if(std::isfinite(economy::estimate_factory_payback_time(state, pid, base_data[i]))) {
+//////			add_method_payback(base_data[i]);
+//////		}
+//////	}
 // END
 // BEGIN price_entry::median_price::update
-////	set_text(state, text::format_money(state.world.commodity_get_median_price(price_entry.commodity)));
+//////	set_text(state, text::format_money(state.world.commodity_get_median_price(price_entry.commodity)));
 // END
 // BEGIN body::payback::variables
-////	std::vector<dcon::factory_type_id> base_data;
+//////	std::vector<dcon::factory_type_id> base_data;
 // END
 }
