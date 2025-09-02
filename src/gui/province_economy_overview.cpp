@@ -2731,7 +2731,8 @@ void province_economy_overview_body_import_structure_graph_t::on_update(sys::sta
 	state.world.for_each_commodity([&](auto cid) {
 		auto flow = economy::trade_influx(state, mid, cid);
 		auto value_flow = flow * state.world.commodity_get_median_price(cid);
-		raw_content.emplace_back(cid, value_flow);
+		entry_before_merge temp{ cid, value_flow };
+		raw_content.push_back(temp);
 		total_left += value_flow;
 	});
 
