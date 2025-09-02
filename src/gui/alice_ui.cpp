@@ -783,7 +783,13 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		while(place_it.has_more()) {
 			if(std::holds_alternative<texture_layer>(lvl.contents[place_it.index])) {
 				auto& i = std::get<texture_layer>(lvl.contents[place_it.index]);
-				textures_to_render.emplace_back(lvl.resolved_x_pos, lvl.resolved_y_pos, effective_x_size, effective_y_size, i.texture, dcon::texture_id{}, i.texture_type);
+				positioned_texture temp{
+					(int16_t)lvl.resolved_x_pos, (int16_t)lvl.resolved_y_pos, (int16_t)effective_x_size, (int16_t)effective_y_size,
+					i.texture,
+					dcon::texture_id{},
+					i.texture_type
+				};
+				textures_to_render.push_back(temp);
 			}
 			place_it.move_position(1);
 		}
