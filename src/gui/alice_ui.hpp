@@ -1,4 +1,5 @@
 #pragma once
+#include <cmath>
 #include "gui_element_base.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
