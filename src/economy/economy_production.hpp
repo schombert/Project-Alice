@@ -50,7 +50,7 @@ void update_artisan_production(sys::state& state);
 void update_production_consumption(sys::state& state);
 
 float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s);
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size);
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size);
 float factory_output_multiplier_no_secondary_workers(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p);
 float factory_throughput_additional_multiplier(sys::state const& state, dcon::factory_id fac, float mobilization_impact, bool occupied);
 
@@ -94,6 +94,17 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c);
+
+float estimate_factory_profit_margin(
+	sys::state& state,
+	dcon::province_id pid,
+	dcon::factory_type_id factory_type
+);
+float estimate_factory_payback_time(
+	sys::state& state,
+	dcon::province_id pid,
+	dcon::factory_type_id factory_type
+);
 
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
@@ -235,11 +246,15 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 
 // ARTISANS:
 
+bool valid_artisan_good(sys::state&, dcon::nation_id, dcon::commodity_id);
+
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
+
+float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output);
 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);

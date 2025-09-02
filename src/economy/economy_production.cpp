@@ -1005,7 +1005,6 @@ float factory_input_multiplier(sys::state const& state, dcon::factory_id fac, dc
 		0.001f,
 		small_size_effect
 		* mult
-		* std::max(0.1f, state.world.factory_get_triggered_modifiers(fac))
 		* competition
 		* modifiers
 	);
@@ -1036,11 +1035,12 @@ throughput_multipliers_explanation explain_throughput_multiplier(sys::state cons
 		auto national_t = state.world.nation_get_factory_goods_throughput(n, output);
 		auto provincial_fac_t = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_throughput);
 		auto nationnal_fac_t = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_throughput);
-
+		auto triggered = state.world.factory_get_triggered_modifiers(fac);
 		result.from_modifiers = 1.f
 			* std::max(0.f, 1.f + national_t)
 			* std::max(0.f, 1.f + provincial_fac_t)
-			* std::max(0.f, 1.f + nationnal_fac_t);
+			* std::max(0.f, 1.f + nationnal_fac_t)
+			* std::max(0.f, 1.f + triggered);
 	}
 
 	{
@@ -1051,17 +1051,20 @@ throughput_multipliers_explanation explain_throughput_multiplier(sys::state cons
 }
 }
 
-float factory_throughput_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size) {
+float factory_throughput_multiplier(sys::state const& state, dcon::factory_id fac, dcon::nation_id n, dcon::province_id p, dcon::state_instance_id s, float size) {
+	auto fac_type = state.world.factory_get_building_type(fac);
 	auto output = state.world.factory_type_get_output(fac_type);
 	auto national_t = state.world.nation_get_factory_goods_throughput(n, output);
 	auto provincial_fac_t = state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_factory_throughput);
 	auto nationnal_fac_t = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_throughput);
+	auto triggered = state.world.factory_get_triggered_modifiers(fac);
 
 	auto result = 1.f
 		* std::max(0.f, 1.f + national_t)
 		* std::max(0.f, 1.f + provincial_fac_t)
 		* std::max(0.f, 1.f + nationnal_fac_t)
-		* (1.f + size / state.world.factory_type_get_base_workforce(fac_type) / 100.f);
+		* (1.f + size / state.world.factory_type_get_base_workforce(fac_type) / 100.f)
+		* std::max(0.f, 1.f + triggered);
 
 	return production_throughput_multiplier * result;
 }
@@ -1256,7 +1259,7 @@ factory_update_data imitate_single_factory_consumption(
 	//modifiers
 	float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
 	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_size());
+	float throughput_multiplier = factory_throughput_multiplier(state, fac, n, p, s, fac.get_size());
 	float output_multiplier = factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 	auto& direct_inputs = fac_type.get_inputs();
@@ -1311,7 +1314,7 @@ void update_single_factory_consumption(
 	//modifiers
 	float input_multiplier = factory_input_multiplier(state, fac, n, p, s);
 	auto const mfactor = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-	float throughput_multiplier = factory_throughput_multiplier(state, fac_type, n, p, s, fac.get_size());
+	float throughput_multiplier = factory_throughput_multiplier(state, f, n, p, s, fac.get_size());
 	float output_multiplier = factory_output_multiplier_no_secondary_workers(state, fac, n, p);
 
 	auto& direct_inputs = fac_type.get_inputs();
@@ -2041,6 +2044,44 @@ float factory_type_input_cost(
 	return inputs_data.total_cost * input_multiplier + e_inputs_data.total_cost * input_multiplier * maint_multiplier;
 }
 
+float estimate_factory_profit_margin(
+	sys::state& state,
+	dcon::province_id pid,
+	dcon::factory_type_id factory_type
+) {
+	auto sid = state.world.province_get_state_membership(pid);
+	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+	auto nid = state.world.province_get_nation_from_province_ownership(pid);
+	auto output_cost = factory_type_output_cost(
+		state, nid, mid, factory_type
+	);
+	auto input_cost = factory_type_input_cost(
+		state, nid, mid, factory_type
+	);
+	//auto wages = state.world.province_get_labor_price(pid, labor::basic_education) * state.world.factory_type_get_base_workforce(factory_type);
+
+	return (output_cost - input_cost) / output_cost;
+}
+
+float estimate_factory_payback_time(
+	sys::state& state,
+	dcon::province_id pid,
+	dcon::factory_type_id factory_type
+) {
+	auto sid = state.world.province_get_state_membership(pid);
+	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+	auto nid = state.world.province_get_nation_from_province_ownership(pid);
+	auto output_cost = factory_type_output_cost(
+		state, nid, mid, factory_type
+	);
+	auto input_cost = factory_type_input_cost(
+		state, nid, mid, factory_type
+	);
+	//auto wages = state.world.province_get_labor_price(pid, labor::basic_education) * state.world.factory_type_get_base_workforce(factory_type);
+
+	return factory_type_build_cost(state, nid, pid, factory_type, false) / std::max(0.f, (output_cost - input_cost));
+}
+
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::factory_id f) {
 	auto data = imitate_single_factory_consumption(state, f);
 	auto fac = fatten(state.world, f);
@@ -2114,6 +2155,20 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 		} else {
 			break;
 		}
+	}
+	return result;
+}
+float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output) {
+	auto mob_impact = military::mobilization_impact(state, state.world.province_get_nation_from_province_ownership(p));
+	auto data = imitate_artisan_consumption(state, p, output, mob_impact);
+	auto& direct_inputs = state.world.commodity_get_artisan_inputs(output);
+	auto result = 0.f;
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(!direct_inputs.commodity_type[i]) break;
+		result +=
+			data.consumption.direct_inputs_scale
+			* direct_inputs.commodity_amounts[i]
+			* state.world.commodity_get_median_price(direct_inputs.commodity_type[i]);
 	}
 	return result;
 }
