@@ -1686,8 +1686,7 @@ alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
 open_details;Details
 rgo;RGO
-province_prices;Prices
-province_production;Production
+province_prices;Prices (% of worldwide)
 gdp_per_sector;GDP
 gdp_share;GDP %
 province_labor;Labor
@@ -1697,15 +1696,17 @@ gdp_factory;Secondary sector (large scale):
 gdp_artisans;Secondary sector (cottage industry):
 gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
-market_report;External trade in local market of ?Y$province$?W.
-market_prices_report;Prices in local market of ?Y$province$?W.
-rgo_report;Resource gathering operations in ?Y$province$?W province.
+market_report;External trade in the local market of ?Y$province$?W
+market_prices_report;Prices in the local market of ?Y$province$?W
+rgo_report;Resource gathering operations in ?Y$province$?W
 trade_balance;Balance
 rgo_details_name;Name
 rgo_efficiency_super_header;Efficiency
 rgo_efficiency_value;%
 rgo_efficiency_cost;Cost
 local_price;Local
-median_price;Median
+median_price;Worldwide
 ratio_to_median;%
 change_price;Change
+method_profit_margin;Potential profit margin
+ratio_to_median_price;Ratio to median price

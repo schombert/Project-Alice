@@ -654,7 +654,7 @@ void  market_trade_report_body_commodity_selector_t::on_create(sys::state& state
 	std::sort(raw.begin(), raw.end(), [&](auto a, auto b) {
 		std::string a_name = text::produce_simple_string(state, state.world.commodity_get_name(a));
 		std::string b_name = text::produce_simple_string(state, state.world.commodity_get_name(b));
-		return a_name.compare(b_name) > 0;
+		return b_name.compare(a_name) > 0;
 	});
 
 	for(auto & a : raw) {
