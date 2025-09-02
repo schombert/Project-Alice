@@ -348,6 +348,8 @@ bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 bool is_landlocked(sys::state& state, dcon::nation_id n);
 
+bool nation_is_in_war(sys::state& state, dcon::nation_id nation, dcon::war_id war);
+
 void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties);
 
 void update_monthly_points(sys::state& state);

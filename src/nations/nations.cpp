@@ -2738,6 +2738,15 @@ bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, 
 	return false;
 }
 
+bool nation_is_in_war(sys::state& state, dcon::nation_id nation, dcon::war_id war) {
+	for(auto war_part : state.world.nation_get_war_participant(nation)) {
+		if(war_part.get_war() == war) {
+			return true;
+		}
+	}
+	return false;
+}
+
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation) {
 	auto fp_focus_nation = fatten(state.world, fp_nation);
 	auto si = fatten(state.world, s);

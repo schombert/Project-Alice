@@ -922,7 +922,7 @@ msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?!
 trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
 revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
 revoke_trade_rights_explain_2;We have the rights to revoke the agreement
-free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations and our markets (spheres & subjects) for ?Y$x$ years?W.
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our markets and their markets (spheres & subjects) for ?Y$x$ years?W.
 free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
 free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
 free_trade_explain_3;We are embargoeing them
@@ -933,7 +933,7 @@ free_trade_explain_7;Target isn't in a sphere OR Target is in our sphere
 free_trade_explain_8;$x$ and their spheres&subjects ?Ghas free trade with?! $y$ and their spheres&subjects.
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
-embargo_desc;Embargo prevents all trade between our nations and their markets (spheres & subjects). Embargoes are applied automatically to enemies during war.
+embargo_desc;Embargo prevents all trade between our markets and their markets (spheres & subjects). Embargoes are applied automatically to enemies during war.
 embargo_explain_1;$x$ and their spheres&subjects ?Gembargoes?! $y$ and their spheres&subjects.
 embargo_explain_2;$x$ and their spheres&subjects ?Rembargoes?! $y$ and their spheres&subjects.
 embargo_explain_3;We don't have trade rights in their country
@@ -1714,3 +1714,7 @@ alice_command_units_condition_2;Both you and the target is at war
 alice_command_units_condition_3;Target is not a player
 free_trade_di;Free trade agreement
 free_trade_offer;$actor$ is offering a free trade agreement, allowing us to trade tariff-free for $years$ years
+alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
+alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
+alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
+alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W

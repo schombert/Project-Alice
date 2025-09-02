@@ -2790,7 +2790,7 @@ void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::substitution_map& sub) {
 	auto war = fatten(state.world, w);
 
-	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+	dcon::nation_id primary_attacker = state.world.war_get_original_attacker(war);
 	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
@@ -2982,6 +2982,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	new_war.set_over_state(primary_wargoal_state);
 	new_war.set_over_tag(primary_wargoal_tag);
 	new_war.set_original_target(primary_defender);
+	new_war.set_original_attacker(primary_attacker);
 	if(primary_wargoal_secondary) {
 		new_war.set_over_tag(state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary));
 	}
@@ -3998,9 +3999,6 @@ void add_truce_between_sides(sys::state& state, dcon::war_id w, int32_t months) 
 		auto this_par = *(wpar.begin() + i);
 		auto this_nation = this_par.get_nation();
 
-		if(this_nation.get_overlord_as_subject().get_ruler())
-			continue;
-
 		auto attacker = this_par.get_is_attacker();
 
 		for(int32_t j = i + 1; j < num_par; ++j) {
@@ -4025,8 +4023,6 @@ void add_truce_from_nation(sys::state& state, dcon::war_id w, dcon::nation_id n,
 
 	for(auto par : state.world.war_get_war_participant(w)) {
 		auto other_nation = par.get_nation();
-		if(other_nation.get_overlord_as_subject().get_ruler())
-			continue;
 
 
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(n, other_nation);

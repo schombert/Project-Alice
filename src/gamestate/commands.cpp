@@ -2988,11 +2988,12 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 		}
 	}
 
-	// an automatic defensive call bypasses any truces there may be with the other side.
+	// an automatic defensive call bypasses any truces there may be with the other side. Truce is checked against the original attacker or defender
 	
 	if(!automatic_call || (automatic_call && asker_is_attacker)) {
-		for(auto participant : military::get_one_side_war_participants(state, w, !asker_is_attacker)) {
-			if(military::has_truce_with(state, target, participant)) {
+		auto truce_target = military::is_attacker(state, w, asker) ? state.world.war_get_original_target(w) : state.world.war_get_original_attacker(w);
+		if(nations::nation_is_in_war(state, truce_target, w)) {
+			if(military::has_truce_with(state, target, truce_target)) {
 				return false;
 			}
 		}

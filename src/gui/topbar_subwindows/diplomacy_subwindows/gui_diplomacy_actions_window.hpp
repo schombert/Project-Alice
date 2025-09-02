@@ -49,12 +49,12 @@ struct trigger_gp_choice {
 void explain_truces_blocking_nation_from_joining_war(sys::state& state, text::layout_base& contents, dcon::nation_id asker, dcon::nation_id target) {
 	for(auto w : state.world.nation_get_war_participant(asker)) {
 		auto war = w.get_war();
-		bool is_attacker = military::is_attacker(state, war, asker);
-		for(auto participant : military::get_one_side_war_participants(state, war, !is_attacker)) {
-			if(military::has_truce_with(state, participant, target)) {
-				auto truce_end_date = military::truce_end_date(state, participant, target);
+		auto truce_target = military::is_attacker(state, war, asker) ? state.world.war_get_original_target(war) : state.world.war_get_original_attacker(war);
+		if(nations::nation_is_in_war(state, truce_target, war)) {
+			if(military::has_truce_with(state, truce_target, target)) {
+				auto truce_end_date = military::truce_end_date(state, truce_target, target);
 				auto war_name = military::get_war_name(state, war);
-				auto nation_name = text::get_name(state, participant);
+				auto nation_name = text::get_name(state, truce_target);
 				text::add_line_with_condition(state, contents, "alice_truce_with_explain", false, text::variable_type::war, text::produce_simple_string(state, war_name), text::variable_type::nation, nation_name, text::variable_type::date, text::date_to_string(state, truce_end_date));
 			}
 		}
