@@ -985,6 +985,8 @@ inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_i
 	return text::produce_simple_string(state, get_adjective(state, n));
 }
 
+std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid);
+
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
 		substitution_map const& sub = substitution_map{});
 void localised_single_sub_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key, variable_type subkey,

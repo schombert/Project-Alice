@@ -2,6 +2,7 @@
 #include "gui_element_base.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
+#include "price.hpp"
 #include "construction.hpp"
 #include "graphics/color.hpp"
 #include "province_templates.hpp"
@@ -82,10 +83,33 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout
+	control, window, glue, generator, layout, texture_layer
 };
 
-using layout_item = std::variant<std::monostate, layout_control, layout_window, layout_glue, generator_instance, sub_layout>;
+enum class background_type : uint8_t {
+	none,
+	texture,
+	bordered_texture,
+	existing_gfx,
+	linechart,
+	stackedbarchart,
+	colorsquare,
+	flag,
+	table_columns,
+	table_headers,
+	progress_bar,
+	icon_strip,
+	doughnut,
+	border_texture_repeat,
+	textured_corners
+};
+
+struct texture_layer {
+	background_type texture_type = background_type::texture;
+	std::string texture;
+};
+
+using layout_item = std::variant<std::monostate, layout_control, layout_window, layout_glue, generator_instance, sub_layout, texture_layer>;
 
 class page_buttons;
 class layout_window_element;
@@ -161,6 +185,13 @@ public:
 
 struct layout_iterator;
 
+struct positioned_texture {
+	int16_t x; int16_t y; int16_t w; int16_t h;
+	std::string_view texture;
+	dcon::texture_id texture_id;
+	background_type texture_type = background_type::texture;
+};
+
 class layout_window_element : public ui::non_owning_container_base {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
@@ -174,8 +205,11 @@ public:
 	dcon::texture_id page_right_texture_id;
 	text::text_color page_text_color = text::text_color::black;
 
+	std::vector<positioned_texture> textures_to_render{};
+
 	void remake_layout(sys::state& state, bool remake_lists) {
 		children.clear();
+		textures_to_render.clear();
 		if(remake_lists)
 			clear_pages_internal(layout);
 		remake_layout_internal(layout, state, 0, 0, base_data.size.x, base_data.size.y, remake_lists);
@@ -231,7 +265,11 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& state);
+std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
+std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 

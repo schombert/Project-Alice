@@ -1430,6 +1430,7 @@ trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
 per_nation;Per nation
+per_commodity;Per commodity
 price;Price
 labour_price;Wage
 labour_price_10k;Wage(10k people)
@@ -1687,6 +1688,32 @@ alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
 alice_supply_range_friendly_port;?GAdjacent to friendly port?W
 alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
+open_details;Details
+rgo;RGO
+province_prices;Prices (% of worldwide)
+gdp_per_sector;GDP
+gdp_share;GDP %
+province_labor;Labor
+province_artisan;Artisans
+gdp_rgo;Primary sector:
+gdp_factory;Secondary sector (large scale):
+gdp_artisans;Secondary sector (cottage industry):
+gdp_selected;Gdp of the selected province
+gdp_rest;Gdp of the rest of the nation
+market_report;External trade in the local market of ?Y$province$?W
+market_prices_report;Prices in the local market of ?Y$province$?W
+rgo_report;Resource gathering operations in ?Y$province$?W
+trade_balance;Balance
+rgo_details_name;Name
+rgo_efficiency_super_header;Efficiency
+rgo_efficiency_value;%
+rgo_efficiency_cost;Cost
+local_price;Local
+median_price;Worldwide
+ratio_to_median;%
+change_price;Change
+method_profit_margin;Potential profit margin
+ratio_to_median_price;Ratio to median price
 modifier_min_land_upkeep;Minimum Land Upkeep;
 alice_naval_noretreat;In order to be able to retreat, all alive ships must be on average ?O$x$?W closer to the center
 alice_str_name;Strength:?O$val$?W

@@ -665,80 +665,17 @@ class normal_factory_background : public opaque_element_base {
 				s = id;
 		});
 		auto market = state.world.state_instance_get_market_from_local_market(s);
-
-		// nation data
-
-		float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;
-		auto cap_prov = state.world.nation_get_capital(n);
-		auto cap_continent = state.world.province_get_continent(cap_prov);
-		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
-
-
-		auto fac = fatten(state.world, fid);
 		auto type = state.world.factory_get_building_type(fid);
-
-		auto& inputs = type.get_inputs();
-		auto& einputs = type.get_efficiency_inputs();
-
-		//inputs
-		auto inputs_data = economy::get_inputs_data(state, market, type.get_inputs());
-		auto e_inputs_data = economy::get_inputs_data(state, market, type.get_efficiency_inputs());
-
-		//modifiers
-
-		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
-		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s, fac.get_size());
-		float output_multiplier = economy::factory_output_multiplier_no_secondary_workers(state, fac, n, p);
-
-		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
-			* 0.25f
-			* throughput_multiplier
-			* output_multiplier
-			* economy::price(state, market, fac.get_building_type().get_output());
-
-		// if efficiency inputs are not worth it, then do not buy them
-		if(bonus_profit_thanks_to_max_e_input < e_inputs_data.total_cost * e_input_multiplier * input_multiplier)
-			e_inputs_data.min_available = 0.f;
-
-		float base_throughput =
-			(
-				state.world.factory_get_unqualified_employment(fac)
-				* state.world.province_get_labor_demand_satisfaction(fac.get_province_from_factory_location(), economy::labor::no_education)
-				* economy::unqualified_throughput_multiplier
-				+
-				state.world.factory_get_primary_employment(fac)
-				* state.world.province_get_labor_demand_satisfaction(fac.get_province_from_factory_location(), economy::labor::basic_education)
-			)
-			* economy::factory_throughput_additional_multiplier(
-				state,
-				fac,
-				mobilization_impact,
-				false
-			);
-
-		float effective_production_scale = economy::factory_total_employment_score(state, fid);
-
-		auto amount = (0.75f + 0.25f * e_inputs_data.min_available) * inputs_data.min_available * effective_production_scale;
-
 		text::add_line(state, contents, state.world.factory_type_get_name(type));
-
 		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
-
 		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
 				text::fp_percentage{economy::factory_total_employment_score(state, fid)});
-
 		auto profit_explantion = economy::explain_last_factory_profit(state, fid);
-
 		text::add_line(state, contents, "factory_stats_3",
 			text::variable_type::val, text::fp_one_place{state.world.factory_get_output(fid) },
 			text::variable_type::good, type.get_output().get_name(),
 			text::variable_type::x, text::format_money(profit_explantion.output)
 		);
-
-
 		factory_stats_tooltip(state, contents, fid);
 }
 };
