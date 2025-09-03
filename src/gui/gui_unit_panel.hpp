@@ -781,13 +781,13 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			if(state.world.army_get_controller_from_army_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 255, 210);
 			} else {
 				color = sys::pack_color(170, 190, 170);
 			}
 		} else {
-			if(state.world.navy_get_controller_from_navy_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 210, 255);
 			} else {
 				color = sys::pack_color(170, 170, 190);
@@ -1405,14 +1405,15 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		int32_t max_cap = 0;
 		for(auto n : state.world.province_get_navy_location(p)) {
-			if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+			if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 				max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 			}
 		}
-		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+		if(!command::can_embark_army(state, state.local_player_nation, a)
 			&& max_cap > 0) { //require splitting
 			auto regs = state.world.army_get_army_membership(a);
 			int32_t army_cap = int32_t(regs.end() - regs.begin());
@@ -1447,20 +1448,21 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		visible = !bool(state.world.army_get_navy_from_army_transport(a)); //not already in ship
 		disabled = true;
 		frame = 0;
 		if(visible) {
 			int32_t max_cap = 0;
 			for(auto n : state.world.province_get_navy_location(p)) {
-				if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+				if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 					!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 					max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 				}
 			}
 			disabled = max_cap <= 0;
 			//require splitting
-			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+			if(!command::can_embark_army(state, state.local_player_nation, a)
 				&& max_cap > 0) {
 				frame = 1;
 			}
@@ -1475,7 +1477,7 @@ public:
 		auto loc = state.world.army_get_location_from_army_location(n);
 
 		text::add_line(state, contents, "uw_load_is_valid");
-		text::add_line_with_condition(state, contents, "alice_load_unload_1", military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n));
+		text::add_line_with_condition(state, contents, "alice_load_unload_1", command::can_embark_army(state, state.local_player_nation, n));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)

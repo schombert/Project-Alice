@@ -295,4 +295,6 @@ void describe_growth(sys::state& state, text::columnar_layout& contents, dcon::p
 void describe_assimilation(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_money(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 
+
+
 }

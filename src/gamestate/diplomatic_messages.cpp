@@ -45,7 +45,7 @@ void decline(sys::state& state, message const& m) {
 		});
 		break;
 	case type::call_ally_request: {
-		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war))
+		if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, m.automatic_call))
 			return;
 
 		nations::adjust_relationship(state, m.from, m.to, state.defines.callally_relation_on_decline);
@@ -265,7 +265,7 @@ bool can_accept(sys::state& state, message const& m) {
 	case type::alliance_request:
 		return command::can_ask_for_alliance(state, m.from, m.to, true);
 	case type::call_ally_request:
-		return command::can_call_to_arms(state, m.from, m.to, m.data.war, true);
+		return command::can_call_to_arms(state, m.from, m.to, m.data.war, true, m.automatic_call);
 	case type::be_crisis_primary_attacker:
 	case type::be_crisis_primary_defender:
 	case type::peace_offer:
@@ -372,30 +372,7 @@ void accept(sys::state& state, message const& m) {
 		nations::adjust_relationship(state, m.from, m.to, state.defines.askmilaccess_relation_on_accept);
 		nations::adjust_relationship(state, m.to, m.from, state.defines.askmilaccess_relation_on_accept);
 
-		auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
-
-		// One way tariff removal
-		auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(m.to, m.from);
-		if(!rel_1) {
-			rel_1 = state.world.force_create_unilateral_relationship(m.to, m.from);
-		}
-		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
-
-		// Another way tariff removal
-		auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(m.from, m.to);
-		if(!rel_2) {
-			rel_2 = state.world.force_create_unilateral_relationship(m.from, m.to);
-		}
-		state.world.unilateral_relationship_set_no_tariffs_until(rel_2, enddt);
-
-		notification::post(state, notification::message{
-			[source = m.from, target = m.to](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_free_trade_agreement_signed", text::variable_type::x, target, text::variable_type::y, source);
-			},
-			"msg_free_trade_agreement_signed_title",
-			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::free_trade_agreement
-		});
+		nations::create_free_trade_agreement_both_ways(state, m.to, m.from);
 		break;
 	}
 	case type::state_transfer:
@@ -430,7 +407,7 @@ bool ai_will_accept(sys::state& state, message const& m) {
 		case type::alliance_request:
 			return ai::ai_will_accept_alliance(state, m.to, m.from);
 		case type::call_ally_request:
-			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true))
+			if(!command::can_call_to_arms(state, m.from, m.to, m.data.war, true, m.automatic_call))
 				return false;
 			return ai::will_join_war(state, m.to, m.data.war, military::get_role(state, m.data.war, m.from) == military::war_role::attacker);
 		case type::be_crisis_primary_defender:
@@ -470,6 +447,15 @@ bool ai_will_accept(sys::state& state, message const& m) {
 /// <param name="state"></param>
 /// <param name="m"></param>
 void post(sys::state& state, message const& m) {
+	// a subject should be forced to accept military access,s and being called into wars from its overlord
+	if(nations::is_nation_subject_of(state, m.to, m.from)) {
+		switch(m.type) {
+		case type_t::access_request:
+		case type_t::call_ally_request:
+			accept(state, m);
+			return;
+		}
+	}
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
 		if(ai_will_accept(state, m)) {
 			accept(state, m);

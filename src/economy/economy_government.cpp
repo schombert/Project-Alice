@@ -274,8 +274,30 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
+
+bool non_war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+	auto leader_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_b, market_leader_a);
+	auto leader_target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_a, market_leader_b);
+	auto nation_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+	auto nation_target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+	if(state.world.unilateral_relationship_get_embargo(leader_source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(leader_target_tariffs_rel)) {
+		return true;
+	}
+
+	return state.world.unilateral_relationship_get_embargo(nation_source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(nation_target_tariffs_rel);
+}
+
+bool war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+	auto market_leaders_at_war = military::are_at_war(state, market_leader_a, market_leader_a);
+	if(market_leaders_at_war) {
+		return true;
+	}
+	return military::are_at_war(state, n_a, n_b);
+
+}
+
 bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
-	// When embargo is issued, it is automatically propagated onto all subjects. Therefore, checking for direct relationship is enough
+	// Only shows if the diplomatic relationship has an embargo, and dosent show "derived" embargos from spheres and subjects
 
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {

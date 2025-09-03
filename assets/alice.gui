@@ -104,7 +104,19 @@ guiTypes = {
 		}
 		
 	}
-
+	iconType = {
+			name = "original_defender"
+			position = { x = 410 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+	}
+	iconType = {
+			name = "original_attacker"
+			position = { x = 157 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+			
+	}
 
 			
 	iconType = {

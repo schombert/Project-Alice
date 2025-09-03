@@ -56,6 +56,8 @@ public:
 			return text::produce_simple_string(state, "crisis_offer_di");
 		case diplomatic_message::type_t::state_transfer:
 			return text::produce_simple_string(state, "state_transfer_di");
+		case diplomatic_message::type_t::free_trade_agreement:
+			return text::produce_simple_string(state, "free_trade_di");
 		default:
 			return std::string("???");
 		}
@@ -196,7 +198,12 @@ class diplomacy_request_desc_text : public scrollable_text {
 			text::add_to_layout_box(state, contents, box, diplomacy_request.data.state);
 			text::close_layout_box(contents, box);
 		}
-			break;
+		break;
+		case diplomatic_message::type_t::free_trade_agreement:
+		{
+			text::add_line(state, contents, "free_trade_offer", text::variable_type::actor, diplomacy_request.from, text::variable_type::years, std::to_string(state.defines.alice_free_trade_agreement_years));
+		}
+		break;
 		default:
 			break;
 		}

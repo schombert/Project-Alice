@@ -4002,6 +4002,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;
 						m.data.war = wfor.get_war();
+						m.automatic_call = false;
 						diplomatic_message::post(ws, m);
 					}
 				}
@@ -4014,6 +4015,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;
 						m.data.war = wfor.get_war();
+						m.automatic_call = false;
 						diplomatic_message::post(ws, m);
 					}
 				}
