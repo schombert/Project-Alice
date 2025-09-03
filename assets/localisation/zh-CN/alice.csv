@@ -1679,3 +1679,30 @@ commodity_consumed_by;被消耗
 commodity_production_header;工厂生产链：投入/产出
 national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
+per_commodity;每个商品
+open_details;细节
+rgo;产地
+province_prices;价格（全球占比 %）
+gdp_per_sector;国内生产总值
+gdp_share;GDP占比（%）
+province_labor;劳工
+province_artisan;工匠
+gdp_rgo;初级产业：
+gdp_factory;二级产业（大规模）：
+gdp_artisans;二级产业（手工业）：
+gdp_selected;所选省份GDP
+gdp_rest;国内其他省份GDP
+market_report;?Y$province$?W 当地市场出口贸易
+market_prices_report;?Y$province$?W 当地市场价格
+rgo_report;?Y$province$?W 资源运营
+trade_balance;结余
+rgo_details_name;名称
+rgo_efficiency_super_header;效率
+rgo_efficiency_value;%
+rgo_efficiency_cost;成本
+local_price;本地
+median_price;全球均价
+ratio_to_median;%
+change_price;变化
+method_profit_margin;潜在利润率
+ratio_to_median_price;与均价比
