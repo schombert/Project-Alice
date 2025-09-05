@@ -2233,7 +2233,7 @@ relationship{
 	link{
 		object{army}
 		name{target}
-		type{unique}
+		type{many}
 		index_storage{array}
 	}
 }
