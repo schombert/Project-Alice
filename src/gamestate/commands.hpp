@@ -387,6 +387,7 @@ struct army_movement_data {
 	dcon::army_id a;
 	dcon::province_id dest;
 	bool reset;
+	military::special_army_order special_order;
 };
 
 struct navy_movement_data {
@@ -829,10 +830,11 @@ bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::nav
 // Thus, if you want to move the unit to a new location from its current location,
 //     first stop its current movement and then send the new destination as a second command
 // ALSO: can returns an empty vector if no path could be made
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset);
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order = military::special_army_order::none);
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest);
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset = true);
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order);
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset);
 std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest);
@@ -849,7 +851,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 
 // Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order);
 
 // Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.

@@ -802,6 +802,9 @@ struct alignas(64) state {
 		if(!is_selected(a)) {
 			selected_armies.push_back(a);
 			game_state_updated.store(true, std::memory_order_release);
+
+			// US6AC3 Reset selected army orders
+			ui_state.selected_army_order = military::special_army_order::none;
 		}
 	}
 	void select(dcon::navy_id a) {
@@ -816,6 +819,9 @@ struct alignas(64) state {
 				selected_armies[i] = selected_armies.back();
 				selected_armies.pop_back();
 				game_state_updated.store(true, std::memory_order_release);
+
+				// US6AC3 Reset selected army orders
+				ui_state.selected_army_order = military::special_army_order::none;
 				return;
 			}
 		}
@@ -890,4 +896,5 @@ void selected_regiments_clear(sys::state& state);
 
 void selected_ships_add(sys::state& state, dcon::ship_id sh);
 void selected_ships_clear(sys::state& state);
+
 } // namespace sys
