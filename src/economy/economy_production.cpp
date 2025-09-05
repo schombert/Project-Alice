@@ -87,7 +87,7 @@ ve::fp_vector base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price * state.world.market_get_supply_sold_ratio(markets, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price;
 
 	auto input_multiplier = artisan_input_multiplier(state, nations);
 	auto output_multiplier = artisan_output_multiplier(state, nations);
@@ -113,7 +113,7 @@ float base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price * state.world.market_get_supply_sold_ratio(market, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * predicted_price;
 
 	auto input_multiplier = artisan_input_multiplier<dcon::nation_id>(state, nid);
 	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
@@ -199,7 +199,7 @@ float base_artisan_profit(
 		}
 	}
 
-	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c) * state.world.market_get_supply_sold_ratio(market, c);
+	auto output_total = state.world.commodity_get_artisan_output_amount(c) * price(state, market, c);
 
 	auto input_multiplier = artisan_input_multiplier<dcon::nation_id>(state, nid);
 	auto output_multiplier = artisan_output_multiplier<dcon::nation_id>(state, nid);
@@ -857,7 +857,7 @@ void update_artisan_consumption(
 		);
 		total_profit =
 			total_profit
-			+ consumption_data.output * prepared_data.output_price
+			+ consumption_data.output * prepared_data.output_price * state.world.market_get_supply_sold_ratio(markets, cid)
 			- consumption_data.direct_inputs_cost;
 	}
 	state.world.province_set_artisan_profit(provinces, total_profit);
