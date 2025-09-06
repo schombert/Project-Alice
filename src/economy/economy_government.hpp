@@ -22,8 +22,10 @@ float estimate_spendings_administration_capital(sys::state& state, dcon::nation_
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
 // total current spendings
 float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget);
-// register demand on labor
+// register demand on labor or produce control
 void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget);
+void update_production_administration(sys::state& state, dcon::nation_id n);
+
 // perform a tax collection update
 void collect_taxes(sys::state& state, dcon::nation_id n);
 

@@ -105,10 +105,6 @@ void register_intermediate_demand(
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
@@ -123,10 +119,6 @@ void register_intermediate_demand(
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
@@ -141,10 +133,6 @@ void register_intermediate_demand(
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 
 void register_intermediate_demand(
@@ -162,10 +150,6 @@ void register_intermediate_demand(
 			c,
 			state.world.market_get_intermediate_demand(s, c) + amount
 		);
-		auto local_price = price(state, s, c);
-		auto median_price = state.world.commodity_get_median_price(c);
-		auto sat = state.world.market_get_demand_satisfaction(s, c);
-		state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 	}
 	
 }

@@ -3190,6 +3190,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	update_factories_production(state);
 	update_rgo_production(state);
 
+	for(auto n : state.world.in_nation) {
+		update_production_administration(state, n);
+	}
+
 	// ####################
 	// # PAYMENTS TO POPS #
 	// ####################
