@@ -1565,7 +1565,7 @@ class lc_goto_location_button : public button_element_base {
 		military::land_battle_report* report = retrieve< military::land_battle_report*>(state, parent);
 		auto prov = report->location;
 		if(prov && prov.value < state.province_definitions.first_sea_province.value) {
-			state.map_state.set_selected_province(prov);
+			state.set_selected_province(prov);
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 			if(state.map_state.get_zoom() < map::zoom_very_close)
 				state.map_state.zoom = map::zoom_very_close;
