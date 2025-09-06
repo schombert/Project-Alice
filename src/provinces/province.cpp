@@ -1650,6 +1650,7 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 			return false;
 	}
 
+	// Must have colonization in progress
 	dcon::colonization_id colony_status;
 	auto crange = state.world.state_definition_get_colonization(d);
 	for(auto rel : crange) {

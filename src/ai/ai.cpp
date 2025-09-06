@@ -222,35 +222,50 @@ void update_ai_colony_starting(sys::state& state) {
 			}
 		}
 	}
+	// Randomize colonization target to avoid colonization along map patterns
+	std::vector<dcon::state_definition_id> states;
 	for(auto sd : state.world.in_state_definition) {
-		if(sd.get_colonization_stage() <= 1) {
-			bool has_unowned_land = false;
+		states.push_back(sd);
+	}
+	// Shuffle the vector
+	for(int i = (int) states.size() - 1; i >= 0; i--) {
+		int j = rng::get_random(state, state.current_date.to_raw_value()) % (i+1);
+		std::swap(states[i], states[j]);
+	}
+	// Iterate every colonizeable state and find colonizer
+	for(auto sdid : states) {
+		auto sd = dcon::fatten(state.world, sdid);
 
-			dcon::province_id coastal_target;
-			for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
-				if(!p.get_province().get_nation_from_province_ownership()) {
-					if(p.get_province().get_is_coast() && !coastal_target) {
-						coastal_target = p.get_province();
-					}
-					if(p.get_province().id.index() < state.province_definitions.first_sea_province.index())
-						has_unowned_land = true;
+		if(sd.get_colonization_stage() > 1) {
+			continue;
+		}
+		bool has_unowned_land = false;
+
+		dcon::province_id coastal_target;
+		for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(p.get_province().get_is_coast() && !coastal_target) {
+					coastal_target = p.get_province();
 				}
+				if(p.get_province().id.index() < state.province_definitions.first_sea_province.index())
+					has_unowned_land = true;
 			}
-			if(has_unowned_land) {
-				for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
-					if(free_points[i] > 0) {
-						bool adjacent = false;
-						if(province::fast_can_start_colony(state, state.nations_by_rank[i], sd, free_points[i], coastal_target, adjacent)) {
-							free_points[i] -= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+		}
+		if(!has_unowned_land) {
+			continue;
+		}
+		for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
+			if(free_points[i] > 0) {
+				bool adjacent = false;
+				if(province::fast_can_start_colony(state, state.nations_by_rank[i], sd, free_points[i], coastal_target, adjacent)) {
+					free_points[i] -= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
 
-							auto new_rel = fatten(state.world, state.world.force_create_colonization(sd, state.nations_by_rank[i]));
-							new_rel.set_level(uint8_t(1));
-							new_rel.set_last_investment(state.current_date);
-							new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
+					auto new_rel = fatten(state.world, state.world.force_create_colonization(sd, state.nations_by_rank[i]));
+					new_rel.set_level(uint8_t(1));
+					new_rel.set_last_investment(state.current_date);
+					new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
 
-							state.world.state_definition_set_colonization_stage(sd, uint8_t(1));
-						}
-					}
+					state.world.state_definition_set_colonization_stage(sd, uint8_t(1));
 				}
 			}
 		}
