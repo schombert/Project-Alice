@@ -32,7 +32,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		state.stored_map_mode = state.map_state.active_map_mode;
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
-		state.map_state.set_selected_province(dcon::province_id{});
+		state.set_selected_province(dcon::province_id{});
 
 		return;
 
@@ -431,6 +431,11 @@ void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mo
 	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) == 0) {
 		deselect_units(state);
 	}
+	// Hide selected province
+	if(state.ui_state.province_window) {
+		state.ui_state.province_window->set_visible(state, false);
+		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
+	}
 	if((int32_t(sys::key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
 		for(auto a : state.world.nation_get_army_control(state.local_player_nation)) {
 			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
@@ -450,18 +455,11 @@ void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mo
 	if(!state.selected_armies.empty() && !state.selected_navies.empty()) {
 		state.selected_navies.clear();
 	}
-	// Hide province upon selecting multiple armies / navies :)
-	if(!state.selected_armies.empty() || !state.selected_navies.empty()) {
-		if(state.ui_state.province_window) {
-			state.ui_state.province_window->set_visible(state, false);
-			state.map_state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
-		}
-		// Play selection sound effect
-		if(!state.selected_armies.empty()) {
-			sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
-		} else {
-			sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
-		}
+	// Play selection sound effect
+	if(!state.selected_armies.empty()) {
+		sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
+	} else {
+		sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }

@@ -2087,7 +2087,7 @@ ui::message_result market_trade_report_trade_item_select_market_t::on_lbutton_do
 // BEGIN trade_item::select_market::lbutton_action
 	auto sid_other = state.world.market_get_zone_from_local_market(trade_item.other);
 	auto pid_other = state.world.state_instance_get_capital(sid_other);
-	state.map_state.set_selected_province(pid_other);
+	state.set_selected_province(pid_other);
 	state.map_state.center_map_on_province(state, state.map_state.get_selected_province());
 	state.update_trade_flow.store(true, std::memory_order::release);
 	if(state.ui_state.province_window) {

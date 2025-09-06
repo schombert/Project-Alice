@@ -5823,7 +5823,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 			ai::remove_ai_data(state, n);
 	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
-	state.map_state.set_selected_province(dcon::province_id{});
+	state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 
 	auto cache = sys::player_data{};
@@ -5897,7 +5897,7 @@ bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
-	state.map_state.set_selected_province(dcon::province_id{});
+	state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 	state.ui_lock.unlock();
 }

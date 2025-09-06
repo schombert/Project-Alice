@@ -25,7 +25,7 @@ public:
 			auto prov_id = std::get<dcon::province_id>(map_variant_id);
 			if(prov_id) {
 				if(prov_id.value < state.province_definitions.first_sea_province.value) {
-					state.map_state.set_selected_province(prov_id);
+					state.set_selected_province(prov_id);
 					static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov_id);
 				}
 				state.map_state.center_map_on_province(state, prov_id);	
@@ -36,7 +36,7 @@ public:
 			if(state_id) {
 				auto capital_prov = state.world.state_instance_get_capital(state_id);
 				if(capital_prov) {
-					state.map_state.set_selected_province(capital_prov);
+					state.set_selected_province(capital_prov);
 					static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, capital_prov);
 					state.map_state.center_map_on_province(state, capital_prov);
 				}
@@ -47,7 +47,7 @@ public:
 			if(nation_id && state.world.nation_get_owned_province_count(nation_id) > 0) {
 				auto capital_prov = state.world.nation_get_capital(nation_id);
 				if(capital_prov) {
-					state.map_state.set_selected_province(capital_prov);
+					state.set_selected_province(capital_prov);
 					static_cast<province_view_window*>(state.ui_state.province_window)->set_active_province(state, capital_prov);
 					state.map_state.center_map_on_province(state, capital_prov);
 				}

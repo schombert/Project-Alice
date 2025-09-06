@@ -35,10 +35,6 @@ map_view map_state::current_view(sys::state& state) {
 	return current_view;
 }
 
-void map_state::set_selected_province(dcon::province_id prov_id) {
-	unhandled_province_selection = selected_province != prov_id;
-	selected_province = prov_id;
-}
 
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
@@ -1933,13 +1929,13 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 				state.user_settings.interface_volume * state.user_settings.master_volume);
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 			if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
-				set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
+				state.set_selected_province(province::from_map_id(map_data.province_id_map[idx]));
 				//state.current_scene.
 			} else {
-				set_selected_province(dcon::province_id{});
+				state.set_selected_province(dcon::province_id{});
 			}
 		} else {
-			set_selected_province(dcon::province_id{});
+			state.set_selected_province(dcon::province_id{});
 		}
 	}
 }
@@ -1958,7 +1954,7 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 
 	} else {
-		set_selected_province(dcon::province_id{});
+		state.set_selected_province(dcon::province_id{});
 	}
 }
 

@@ -906,8 +906,7 @@ int client_process_handshake(sys::state& state) {
 		state.network_state.handshake = false;
 
 		//update map
-		state.map_state.set_selected_province(dcon::province_id{});
-		state.map_state.unhandled_province_selection = true;
+		state.set_selected_province(dcon::province_id{});
 			});
 
 	return r;

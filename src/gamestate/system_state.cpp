@@ -5893,6 +5893,28 @@ void state::build_up_to_template_land(
 	}
 }
 
+// When selecting a province, clear selected armies
+void sys::state::set_selected_province(dcon::province_id prov_id) {
+	// US31AC3 If a valid province has been selected, reset selection of armies as well
+	if(prov_id && map_state.selected_province != prov_id) {
+		map_state.unhandled_province_selection = true;
+		map_state.selected_province = prov_id;
+		selected_regiments.clear();
+		selected_navies.clear();
+		selected_armies.clear();
+		selected_ships.clear();
+		game_state_updated.store(true, std::memory_order_release);
+	}
+	else {
+		// Otherwise - just hide the province window and province selection w/o deselecting armies
+		map_state.unhandled_province_selection = true;
+		map_state.selected_province = prov_id;
+		if(ui_state.province_window) {
+			ui_state.province_window->set_visible(*this, false);
+		}
+	}
+}
+
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
 		// Toggle selection

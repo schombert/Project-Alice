@@ -799,6 +799,8 @@ struct alignas(64) state {
 		return std::find(selected_navies.begin(), selected_navies.end(), a) != selected_navies.end();
 	}
 	void select(dcon::army_id a) {
+		set_selected_province(dcon::province_id{});
+
 		if(!is_selected(a)) {
 			selected_armies.push_back(a);
 			game_state_updated.store(true, std::memory_order_release);
@@ -808,6 +810,8 @@ struct alignas(64) state {
 		}
 	}
 	void select(dcon::navy_id a) {
+		set_selected_province(dcon::province_id{});
+
 		if(!is_selected(a)) {
 			selected_navies.push_back(a);
 			game_state_updated.store(true, std::memory_order_release);
@@ -836,6 +840,8 @@ struct alignas(64) state {
 			}
 		}
 	}
+
+	void set_selected_province(dcon::province_id prov_id);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);
