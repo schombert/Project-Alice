@@ -5899,10 +5899,10 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 	if(prov_id && map_state.selected_province != prov_id) {
 		map_state.unhandled_province_selection = true;
 		map_state.selected_province = prov_id;
-		selected_regiments.clear();
 		selected_navies.clear();
 		selected_armies.clear();
-		selected_ships.clear();
+		selected_regiments_clear(*this);
+		selected_ships_clear(*this);
 		game_state_updated.store(true, std::memory_order_release);
 	}
 	else {
@@ -5930,6 +5930,7 @@ void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
+// Clear state.selected_regiments of data, maintaining fixed vector size
 void selected_regiments_clear(sys::state& state) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
 		if(state.selected_regiments[i]) {
@@ -5940,7 +5941,7 @@ void selected_regiments_clear(sys::state& state) {
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
-
+// Clear state.selected_ships of data, maintaining fixed vector size
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
 	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
 		// Toggle selection
