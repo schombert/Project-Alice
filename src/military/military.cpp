@@ -4772,7 +4772,12 @@ float effective_army_speed(sys::state& state, dcon::army_id a) {
 	auto bg = get_leader_background_wrapper(state, leader);
 	auto per = get_leader_personality_wrapper(state, leader);
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
-	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) *  (leader_move + 1.0f) * state.defines.land_speed_modifier;
+	// US8AC1 Army can be commanded to "Strategic Redeployment" increasing its speed but limiting org to 10%
+	// Yes, it applies the infrastructure bonus again
+	auto special_order_mod = state.world.army_get_special_order(a) == military::special_army_order::strategic_redeployment ? (state.defines.strategic_redeployment_speed_modifier +
+		state.defines.strategic_redeployment_infrastructure_factor * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::railroad)) *
+								state.economy_definitions.building_definitions[int32_t(economy::province_building_type::railroad)].infrastructure) : 1.f;
+	return min_speed * (state.world.army_get_is_retreating(a) ? 2.0f : 1.0f) * (leader_move + 1.0f) * special_order_mod * state.defines.land_speed_modifier;
 }
 float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto owner = state.world.navy_get_controller_from_navy_control(n);
@@ -6264,7 +6269,8 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 		siege_attrition = state.defines.siege_attrition + hostile_fort * state.defines.alice_fort_siege_attrition_per_level;
 	}
 
-	auto value = std::clamp(total_army_weight * attrition_mods - supply_limit, 0.0f, max_attrition) + siege_attrition;
+	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
+	auto value = std::clamp((total_army_weight - supply_limit) * attrition_mods, 0.0f, max_attrition) + siege_attrition;
 	return value * 0.01f;
 }
 float attrition_amount(sys::state& state, dcon::navy_id a) {
@@ -8296,15 +8302,52 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 }
 
 void update_movement(sys::state& state) {
+	// Army movement
 	for(auto a : state.world.in_army) {
 		auto arrival = a.get_arrival_time();
+		auto path = a.get_path();
+		auto from = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		assert(!arrival || arrival >= state.current_date);
-		if(auto path = a.get_path(); arrival == state.current_date) {
+
+		// US7AC1 Handle "move to siege" order
+		if (path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::move_to_siege) {
+			// Army was ordered to chain siege and it has not yet finished siege
+			auto province_controller = state.world.province_get_nation_from_province_control(from);
+
+			// Must be able to siege the province the army is in
+			if(siege_potential(state, army_owner, province_controller) && state.world.province_get_nation_from_province_control(from) != army_owner && command::can_stop_army_movement(state, army_owner, a)) {
+				// Delay the army until it finishes siege
+				state.world.army_set_arrival_time(a, sys::date{ });
+				state.world.army_set_unused_travel_days(a, 0.0f);
+				continue;
+			}
+			else if (arrival == sys::date{}) {
+				auto next_dest = path.at(path.size() - 1);
+				auto arrival_data = arrival_time_to(state, a, next_dest);
+				state.world.army_set_arrival_time(a, arrival_data.arrival_time);
+				state.world.army_set_unused_travel_days(a, arrival_data.unused_travel_days);
+			}
+		}
+		// US8AC1 Handle "strategic redeployment" order
+		else if(path.size() > 0 && army_owner && a.get_special_order() == military::special_army_order::strategic_redeployment) {
+			// While moving - limit the org
+			for(auto r : state.world.army_get_army_membership(a)) {
+				r.get_regiment().set_org(0.1f);
+			}
+		}
+		// US8AC1 Movement finished - reset the order to let army reorg
+		else if(path.size() == 0 && a.get_special_order() == military::special_army_order::strategic_redeployment) {
+			a.set_special_order(military::special_army_order::none);
+		}
+
+		// US5AC1 Army arrives to province
+		if(arrival == state.current_date) {
 			assert(path.size() > 0);
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
-			auto from = state.world.army_get_location_from_army_location(a);
 
+			// Can the army reach the target
 			if(dest.index() >= state.province_definitions.first_sea_province.index()) { // sea province
 				// check for embarkation possibility, then embark
 				auto to_navy = find_embark_target(state, a.get_controller_from_army_control(), dest, a);
@@ -8366,9 +8409,37 @@ void update_movement(sys::state& state) {
 				}
 			}
 
+			
+			if(!a.get_battle_from_army_battle_participation() && a.get_special_order() == military::special_army_order::pursue_to_engage) {
+				auto target_army = a.get_army_pursuit_as_source().get_target();
+
+				if(!target_army) {
+					state.world.army_set_special_order(a, military::special_army_order::none);
+					continue;
+				}
+				
+				// Update the path
+				auto npath = command::can_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true);
+
+				// Has valid path and has to change direction
+				if(npath.size() > 0) {
+					auto new_next_dest = npath.at(npath.size() - 1);
+					auto cur_next_dest = path.at(path.size() - 1);
+					if(cur_next_dest != new_next_dest) {
+						command::execute_move_army(state, army_owner, a, state.world.army_get_location_from_army_location(target_army), true, military::special_army_order::pursue_to_engage);
+					}
+				}
+				else {
+					// Continue moving to the last known location
+					state.world.army_set_special_order(a, military::special_army_order::none);
+				}
+			}
+
 			if(a.get_battle_from_army_battle_participation()) {
 				// nothing -- movement paused
-			} else if(path.size() > 0) {
+			}
+			else if(path.size() > 0) {
+				// Army was ordered chain move
 				auto next_dest = path.at(path.size() - 1);
 				update_movement_arrival_days_on_unit(state, next_dest, a.get_location_from_army_location(), a.id);
 			} else {
@@ -8403,6 +8474,7 @@ void update_movement(sys::state& state) {
 		}
 		}
 
+	// Navy movement
 	for(auto n : state.world.in_navy) {
 		auto arrival = n.get_arrival_time();
 		assert(!arrival || arrival >= state.current_date);
@@ -8661,6 +8733,7 @@ bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::n
 	return will_siege;
 }
 
+// US5AC2 Army siege
 void update_siege_progress(sys::state& state) {
 	static auto new_nation_controller = ve::vectorizable_buffer<dcon::nation_id, dcon::province_id>(state.world.province_size());
 	static auto new_rebel_controller = ve::vectorizable_buffer<dcon::rebel_faction_id, dcon::province_id>(state.world.province_size());
@@ -9007,8 +9080,7 @@ economy::commodity_set get_required_supply(sys::state& state, dcon::nation_id ow
 void recover_org(sys::state& state) {
 	/*
 	- Units that are not on the frontline of a battle, and not embarked recover organization daily at: (national-organization-regeneration-modifier
-	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization possible
-	for the unit times (0.25 + 0.75 x effective land or naval spending).
+	+ morale-from-tech + leader-morale-trait + 1) x the-unit's-supply-factor / 5 up to the maximum organization of 100%
 	- Additionally, the prestige of the leader factors in morale as unit-morale
 	+ (leader-prestige x defines:LEADER_PRESTIGE_TO_MORALE_FACTOR).
 	- Similarly, unit-max-org + (leader-prestige x defines:LEADER_PRESTIGE_TO_MAX_ORG_FACTOR) allows for maximum org.
@@ -9023,11 +9095,12 @@ void recover_org(sys::state& state) {
 
 		auto leader = ar.get_general_from_army_leadership();
 
-		// Morale (Organization Regain): increases a unit's organization by 0.01 * discipline for each % of morale.
+		// US13AC3 US13AC4 US13AC5 Morale (Organization Regain): increases a unit's organization by 0.01 * discipline for each % of morale.
 		// Max org is applied in battle
 		auto regen_mod = tech_nation.get_modifier_values(sys::national_mod_offsets::org_regain)
 			+ leader.get_personality().get_morale() + leader.get_background().get_morale() + 1.0f
 			+ leader.get_prestige() * state.defines.leader_prestige_to_morale_factor;
+		// US13AC2
 		auto spending_level = (in_nation ? in_nation.get_effective_land_spending() : 1.0f);
 		auto army_regen = regen_mod * spending_level / 150.f;
 		for(auto reg : ar.get_army_membership()) {
@@ -9041,14 +9114,16 @@ void recover_org(sys::state& state) {
 			auto max_org_divisor = unit_get_effective_default_org(state, reg.get_regiment()) / 30;
 			auto reg_regen = army_regen / max_org_divisor;
 
-
 			auto c_org = reg.get_regiment().get_org();
-			// Unfulfilled supply doesn't lower max org as it makes half the game unplayable
-			auto max_org = std::max(c_org, 0.25f + 0.75f * spending_level);
+			// US13AC7 Unfulfilled supply doesn't lower max org as it makes half the game unplayable
+			// US13AC8 Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable
+			// US13AC6 Max organization of the regiment is 100% (1.0)
+			auto max_org = 1.f;
 			reg.get_regiment().set_org(std::min(c_org + reg_regen, max_org));
 		}
 	}
 
+	// US17
 	for(auto ar : state.world.in_navy) {
 		if(ar.get_navy_battle_participation().get_battle())
 			continue;
@@ -9375,7 +9450,7 @@ float calculate_average_battle_national_modifiers(sys::state& state, dcon::land_
 	return total / count;
 }
 
-// Calculates reinforcement for a particular regiment
+// US14 Calculates reinforcement for a particular regiment
 // Combined = max reinforcement for units in the army from calculate_army_combined_reinforce
 // potential_reinf = if true, will not cap max reinforcement to max unit strength, aka it will ignore current unit strength when returning reinforcement rate!
 float regiment_calculate_reinforcement(sys::state& state, dcon::regiment_fat_id reg, float combined, bool potential_reinf = false) {
@@ -9520,7 +9595,7 @@ float ship_calculate_reinforcement(sys::state& state, dcon::ship_id ship_id, flo
 
 void repair_ships(sys::state& state) {
 	/*
-	A ship that is docked at a naval base is repaired (has its strength increase) by:
+	US18. A ship that is docked at a naval base is repaired (has its strength increase) by:
 maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate + 1) x (national-reinforce-speed-modifier + 1) x navy-supplies x DEFINE:REINFORCE_SPEED
 	*/
 	for(auto n : state.world.in_navy) {
@@ -10020,9 +10095,16 @@ bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon:
 	}
 }
 
+// Extracted as a separate function for the AI to use instead of command (remove redundancy in AI code)
 template<ai_path_length path_length_to_use>
 bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
+
+	// When AI takes over the nation (on tag swaps, players leaving or not joining on savegame load), AI armies can have leftover special orders
+	if(!state.world.nation_get_is_player_controlled(nation_as)) {
+		state.world.army_set_special_order(army, (uint8_t)military::special_army_order::none);
+	}
+
 	if(reset || state.world.army_get_path(army).size() == 0) {
 		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
 		if constexpr(path_length_to_use.length != 0) {

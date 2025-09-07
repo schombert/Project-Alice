@@ -135,7 +135,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type);
 
-				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
 				auto roi = profit / cost;
 
 				if(profit / input > 10.f && roi > 0.01f)
@@ -197,7 +197,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
 
-				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
 				auto roi = profit / cost;
 
 				if(!lacking_constr && profit / input > 2.f && roi > 0.01f)
@@ -246,7 +246,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
 				auto roi = profit / cost;
 
 				if((!lacking_input && !lacking_constr && (lacking_output || (profit / cost > 0.005f))) || profit / input > 1.00f)
@@ -292,7 +292,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 				float output = economy::factory_type_output_cost(state, n, m, type);
 				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input - wage * type.get_base_workforce()) * (1.0f - rich_effect);
+				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
 				auto roi = profit / cost;
 
 				if(!lacking_input && !lacking_constr && profit / input > 0.3f && roi > 0.001f)

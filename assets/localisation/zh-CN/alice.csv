@@ -1007,7 +1007,7 @@ macro_warn_unlocked;?R此单位尚未解锁!?!
 macro_select_province;请选一省在地图上
 macro_warn_insuff;?R不能建造 $x$ $name$（仅 $y$）?!
 macro_warn_invalid_province;?R不属于此地区的省份?!
-shortcut_tooltip;快捷键：?Y$x$?!
+shortcut_tooltip;热键：?Y$x$?!
 filter_all;选择?Y所有?!国家。
 filter_allies;选择与我们有?Y同盟?!关系的国家。\n?Y右键点击?!以选择想要与我们结盟的国家。
 filter_enemies;选择与我们?Y敌对或交战?!的国家。
@@ -1297,8 +1297,8 @@ alice_take_province_6;它不在战时
 alice_take_province_7;它受控
 investment_pool;投资池：?Y$x$?W
 investment_pool_income_1;人口再投资：?G$x$?W
-investment_pool_income_2;来自$country$：?G$x$W
-investment_pool_income_3;政府国内投资：?G$x$W
+investment_pool_income_2;来自$country$：?G$x$?W
+investment_pool_income_3;政府国内投资：?G$x$?W
 investment_pool_spending_1;每日损失（0.1%）：?R$x$?W
 investment_pool_spending_2;建设支出：?R$x$?W
 investment_pool_spending_3;转移到：?R$x$?W
@@ -1674,3 +1674,41 @@ alice_naval_retreat_condition_3;访问可补给港口
 alice_navalattackitem_4;一支由 $DEFENDER$ 组成的敌舰队将被摧毁。
 alice_attackthem_4;我们在攻击 $DEFENDER$ 舰队，并尝试突破防御。
 alice_attackus_4;$ATTACKER$ 敌对势力开火。
+commodity_consumption_header;人群消费：必需品/日用品/奢侈品
+commodity_consumed_by;被消耗
+commodity_production_header;工厂生产链：投入/产出
+national_modifiers;国家修正
+modifier_min_land_upkeep;土地最低维护
+per_commodity;每个商品
+open_details;细节
+rgo;产地
+province_prices;价格（全球占比 %）
+gdp_per_sector;国内生产总值
+gdp_share;GDP占比（%）
+province_labor;劳工
+province_artisan;工匠
+gdp_rgo;初级产业：
+gdp_factory;二级产业（大规模）：
+gdp_artisans;二级产业（手工业）：
+gdp_selected;所选省份GDP
+gdp_rest;国内其他省份GDP
+market_report;?Y$province$?W 当地市场出口贸易
+market_prices_report;?Y$province$?W 当地市场价格
+rgo_report;?Y$province$?W 资源运营
+trade_balance;结余
+rgo_details_name;名称
+rgo_efficiency_super_header;效率
+rgo_efficiency_value;%
+rgo_efficiency_cost;成本
+local_price;本地
+median_price;全球均价
+ratio_to_median;%
+change_price;变化
+method_profit_margin;潜在利润率
+ratio_to_median_price;与均价比
+move_to_siege;围攻（热键：V）
+move_to_siege_desc;军队仅在完全占领当前省份时才去下一省份。
+strategic_redeployment;战略部署（热键：B）
+strategic_redeployment_desc;允许部队更快移动，但组织度归零。
+pursue_to_engage;追歼（热键：N）
+pursue_to_engage_desc;部队将追击并攻击目标省份的敌军。

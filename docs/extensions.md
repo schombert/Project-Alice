@@ -558,6 +558,9 @@ These relate to unit movement
 - `alice_army_marching_hours_per_day = 5.0f`: The amount of hours an army marches per day on average. Effectively this is a multiplier to the army's km/hour stat deciding how far an army can move in a single day
 - `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
 As the above defines implies, the distances between provinces are measured in kilometers now when it comes to unit-movement, and maps directly onto the km/hour stat.
+- `strategic_redeployment_speed_modifier = 1.3f`: base speed increase from strategic redeployment special army order
+- `strategic_redeployment_infrastructure_factor = 1.0f`: factor for infrastructure effect on speed increase from strategic redeployment special army order
+
 
 These relate to occupations
 - `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value

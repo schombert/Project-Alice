@@ -1,3 +1,6 @@
+#include <numbers>
+#include <cmath>
+
 #include "system_state.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
@@ -10,7 +13,11 @@
 #include "macrobuilder2.cpp"
 #include "budgetwindow.cpp"
 #include "demographicswindow.cpp"
+#include "province_economy_overview.cpp"
 #include "pop_details.cpp"
+#include "market_trade_report.cpp"
+#include "rgo_report.cpp"
+#include "market_prices_report.cpp"
 
 namespace alice_ui {
 
@@ -766,6 +773,25 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		if(holds_alternative<generator_instance>(m)) {
 			auto& i = std::get<generator_instance>(m);
 			i.generator->reset_pools();
+		}
+	}
+
+	// handle texture layers here: they do not depend on layout type
+
+	{
+		layout_iterator place_it(lvl.contents);
+		while(place_it.has_more()) {
+			if(std::holds_alternative<texture_layer>(lvl.contents[place_it.index])) {
+				auto& i = std::get<texture_layer>(lvl.contents[place_it.index]);
+				positioned_texture temp{
+					(int16_t)lvl.resolved_x_pos, (int16_t)lvl.resolved_y_pos, (int16_t)effective_x_size, (int16_t)effective_y_size,
+					i.texture,
+					dcon::texture_id{},
+					i.texture_type
+				};
+				textures_to_render.push_back(temp);
+			}
+			place_it.move_position(1);
 		}
 	}
 
