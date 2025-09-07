@@ -524,14 +524,17 @@ void build_ships(sys::state& state) {
 					return a.index() < b.index();
 			});
 
+			// Depending on the strategy, the AI will prioritize different fleet size
+			auto target_naval_supply_points = calculate_desired_navy_size(state, n);
+
 			int32_t constructing_fleet_cap = 0;
 			if(best_transport) {
-				if(fleet_cap_in_transports * 3 < n.get_naval_supply_points()) {
+				if(fleet_cap_in_transports * 3 < target_naval_supply_points) {
 					auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
 					auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
 					auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
 
-					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
+					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < target_naval_supply_points; ++j) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
@@ -557,7 +560,7 @@ void build_ships(sys::state& state) {
 			}
 
 			int32_t used_points = n.get_used_naval_supply_points();
-			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
+			auto rem_free = target_naval_supply_points - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
 			fleet_cap_in_small = std::max(fleet_cap_in_small, 1);
 			fleet_cap_in_big = std::max(fleet_cap_in_big, 1);
 
