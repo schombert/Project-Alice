@@ -13,6 +13,7 @@ create_admiral;A new admiral is created
 add_war_goal;A $text$ war goal is added against $nation$
 blank_loyalty;$text$ loyalty
 in_blank;in $text$
+currently;(currently: ?Y$x$?!)
 no_effect;No effect
 move_capital_to;Move capital to
 add_x_core;Add $adj$ core
