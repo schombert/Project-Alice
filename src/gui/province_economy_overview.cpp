@@ -3309,9 +3309,11 @@ void province_economy_overview_body_gdp_chart_t::on_update(sys::state& state) no
 	// artisans
 	float artisans_gdp = 0.f;
 	state.world.for_each_commodity([&](auto cid) {
-		auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-		auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
-		artisans_gdp += value_produced - intermediate_consumption;
+		if(economy::valid_artisan_good(state, state.world.province_get_nation_from_province_ownership(pid), cid)) {
+			auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
+			auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
+			artisans_gdp += value_produced - intermediate_consumption;
+		}
 	});
 
 	graph_content[0].amount = std::max(0.f, rgo_gdp);
@@ -3446,9 +3448,11 @@ void province_economy_overview_body_gdp_share_chart_t::on_update(sys::state& sta
 	// artisans
 	float artisans_gdp = 0.f;
 	state.world.for_each_commodity([&](auto cid) {
-		auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-		auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
-		artisans_gdp += value_produced - intermediate_consumption;
+		if(economy::valid_artisan_good(state, state.world.province_get_nation_from_province_ownership(pid), cid)) {
+			auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
+			auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
+			artisans_gdp += value_produced - intermediate_consumption;
+		}
 	});
 
 	auto local_gdp = artisans_gdp + rgo_gdp + factories_gdp;
