@@ -560,6 +560,12 @@ spriteTypes = {
         noOfFrames = 2
     }
 
+	spriteType = {
+        name = "army_orders_strip"
+        texturefile = "assets\\army_orders_strip.png"
+        noOfFrames = 8
+    }
+
     spriteType = {
         name = "button-40-40-ship"
         texturefile = "assets\\button-40-40-ship.png"

@@ -1007,7 +1007,7 @@ macro_warn_unlocked;?R此单位尚未解锁!?!
 macro_select_province;请选一省在地图上
 macro_warn_insuff;?R不能建造 $x$ $name$（仅 $y$）?!
 macro_warn_invalid_province;?R不属于此地区的省份?!
-shortcut_tooltip;快捷键：?Y$x$?!
+shortcut_tooltip;热键：?Y$x$?!
 filter_all;选择?Y所有?!国家。
 filter_allies;选择与我们有?Y同盟?!关系的国家。\n?Y右键点击?!以选择想要与我们结盟的国家。
 filter_enemies;选择与我们?Y敌对或交战?!的国家。
@@ -1706,3 +1706,9 @@ ratio_to_median;%
 change_price;变化
 method_profit_margin;潜在利润率
 ratio_to_median_price;与均价比
+move_to_siege;围攻（热键：V）
+move_to_siege_desc;军队仅在完全占领当前省份时才去下一省份。
+strategic_redeployment;战略部署（热键：B）
+strategic_redeployment_desc;允许部队更快移动，但组织度归零。
+pursue_to_engage;追歼（热键：N）
+pursue_to_engage_desc;部队将追击并攻击目标省份的敌军。
