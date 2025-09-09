@@ -600,8 +600,8 @@ enum class ship_stance {
 	disengaged,
 
 };
-inline float navy_battle_distance_to_pixels(float distance) {
-	float distance_percent = distance / military::naval_battle_distance_to_center;
+inline float navy_battle_distance_to_pixels(uint16_t distance) {
+	float distance_percent = float(distance) / float(military::naval_battle_distance_to_center);
 	return (1.0f - distance_percent) * 61.0f;
 }
 
@@ -646,10 +646,10 @@ public:
 		if(target_slot > -1 && target_slot < int16_t(slots.size())) {
 			target_ship = slots[target_slot];
 			if constexpr(Attacker) {
-				x = x - int32_t(navy_battle_distance_to_pixels(target_ship.distance));
+				x = x - int32_t(navy_battle_distance_to_pixels(target_ship.get_distance()));
 			}
 			else {
-				x = x + int32_t(navy_battle_distance_to_pixels(target_ship.distance));
+				x = x + int32_t(navy_battle_distance_to_pixels(target_ship.get_distance()));
 			}
 			
 		} else {
@@ -762,10 +762,10 @@ public:
 
 		ship = retrieve<military::ship_in_battle>(state, parent);
 		if constexpr(Attacker) {
-			x = x + int32_t(navy_battle_distance_to_pixels(ship.distance));
+			x = x + int32_t(navy_battle_distance_to_pixels(ship.get_distance()));
 		}
 		else {
-			x = x - int32_t(navy_battle_distance_to_pixels(ship.distance));
+			x = x - int32_t(navy_battle_distance_to_pixels(ship.get_distance()));
 		}
 		
 		
@@ -1094,8 +1094,8 @@ public:
 			auto controller = state.world.navy_get_controller_from_navy_control(state.world.ship_get_navy_from_navy_membership(ship.ship));
 			auto type = state.world.ship_get_type(ship.ship);
 			const auto& stats = state.world.nation_get_unit_stats(controller, type);
-			auto ship_pixel_pos = navy_battle_distance_to_pixels(ship.distance);
-			auto max_range_pos = navy_battle_distance_to_pixels(military::naval_battle_distance_to_center - (stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center));
+			auto ship_pixel_pos = navy_battle_distance_to_pixels(ship.get_distance());
+			auto max_range_pos = navy_battle_distance_to_pixels(military::naval_battle_distance_to_center - uint16_t(stats.reconnaissance_or_fire_range * military::naval_battle_distance_to_center));
 			if constexpr(Attacker) {
 				x = x + uint32_t(ship_pixel_pos + max_range_pos);
 			}
@@ -1903,7 +1903,7 @@ class nc_goto_location_button : public button_element_base {
 		military::naval_battle_report* report = retrieve< military::naval_battle_report*>(state, parent);
 		auto prov = report->location;
 		if(prov && prov.value < state.province_definitions.first_sea_province.value) {
-			state.map_state.set_selected_province(prov);
+			state.set_selected_province(prov);
 			static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 			if(state.map_state.get_zoom() < map::zoom_very_close)
 				state.map_state.zoom = map::zoom_very_close;

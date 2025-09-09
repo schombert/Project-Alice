@@ -18,12 +18,6 @@
 
 namespace ui {
 
-struct production_selection_wrapper {
-	dcon::province_id data{};
-	bool is_build = false;
-	xy_pair focus_pos{0, 0};
-};
-
 class factory_employment_image : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -671,80 +665,17 @@ class normal_factory_background : public opaque_element_base {
 				s = id;
 		});
 		auto market = state.world.state_instance_get_market_from_local_market(s);
-
-		// nation data
-
-		float mobilization_impact = state.world.nation_get_is_mobilized(n) ? military::mobilization_impact(state, n) : 1.0f;
-		auto cap_prov = state.world.nation_get_capital(n);
-		auto cap_continent = state.world.province_get_continent(cap_prov);
-		auto cap_region = state.world.province_get_connected_region_id(cap_prov);
-
-
-		auto fac = fatten(state.world, fid);
 		auto type = state.world.factory_get_building_type(fid);
-
-		auto& inputs = type.get_inputs();
-		auto& einputs = type.get_efficiency_inputs();
-
-		//inputs
-		auto inputs_data = economy::get_inputs_data(state, market, type.get_inputs());
-		auto e_inputs_data = economy::get_inputs_data(state, market, type.get_efficiency_inputs());
-
-		//modifiers
-
-		float input_multiplier = economy::factory_input_multiplier(state, fac, n, p, s);
-		float e_input_multiplier = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_maintenance) + 1.0f;
-		float throughput_multiplier = economy::factory_throughput_multiplier(state, type, n, p, s, fac.get_size());
-		float output_multiplier = economy::factory_output_multiplier_no_secondary_workers(state, fac, n, p);
-
-		float bonus_profit_thanks_to_max_e_input = fac.get_building_type().get_output_amount()
-			* 0.25f
-			* throughput_multiplier
-			* output_multiplier
-			* economy::price(state, market, fac.get_building_type().get_output());
-
-		// if efficiency inputs are not worth it, then do not buy them
-		if(bonus_profit_thanks_to_max_e_input < e_inputs_data.total_cost * e_input_multiplier * input_multiplier)
-			e_inputs_data.min_available = 0.f;
-
-		float base_throughput =
-			(
-				state.world.factory_get_unqualified_employment(fac)
-				* state.world.province_get_labor_demand_satisfaction(fac.get_province_from_factory_location(), economy::labor::no_education)
-				* economy::unqualified_throughput_multiplier
-				+
-				state.world.factory_get_primary_employment(fac)
-				* state.world.province_get_labor_demand_satisfaction(fac.get_province_from_factory_location(), economy::labor::basic_education)
-			)
-			* economy::factory_throughput_additional_multiplier(
-				state,
-				fac,
-				mobilization_impact,
-				false
-			);
-
-		float effective_production_scale = economy::factory_total_employment_score(state, fid);
-
-		auto amount = (0.75f + 0.25f * e_inputs_data.min_available) * inputs_data.min_available * effective_production_scale;
-
 		text::add_line(state, contents, state.world.factory_type_get_name(type));
-
 		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_stats_1", text::variable_type::val, text::fp_percentage{amount});
-
 		text::add_line(state, contents, "factory_stats_2", text::variable_type::val,
 				text::fp_percentage{economy::factory_total_employment_score(state, fid)});
-
 		auto profit_explantion = economy::explain_last_factory_profit(state, fid);
-
 		text::add_line(state, contents, "factory_stats_3",
 			text::variable_type::val, text::fp_one_place{state.world.factory_get_output(fid) },
 			text::variable_type::good, type.get_output().get_name(),
 			text::variable_type::x, text::format_money(profit_explantion.output)
 		);
-
-
 		factory_stats_tooltip(state, contents, fid);
 }
 };
@@ -764,9 +695,7 @@ public:
 		if(!com)
 			return;
 
-		auto box = text::open_layout_box(contents, 0);
-		text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, state.world.commodity_get_name(com)), text::text_color::yellow);
-		text::close_layout_box(contents, box);
+		commodity_tooltip(state, contents, com);
 
 		auto commodity_mod_description = [&](float value, std::string_view locale_base_name, std::string_view locale_farm_base_name) {
 			if(value == 0.f)
@@ -1158,12 +1087,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		if(parent) {
 			const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-			const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
-			state.ui_state.production_subwindow->set_visible(state, true);
-			state.ui_state.root->move_child_to_front(state.ui_state.production_subwindow);
-			state.ui_state.topbar_subwindow = state.ui_state.production_subwindow;
-			send(state, state.ui_state.production_subwindow, production_window_tab::factories);
-			send(state, state.ui_state.production_subwindow, production_selection_wrapper{ pid, true, xy_pair{0, 0} });
+			open_build_factory(state, pid);
 		}
 	}
 
@@ -1828,7 +1752,6 @@ class production_window : public generic_tabbed_window<production_window_tab> {
 	production_state_listbox* state_listbox = nullptr;
 	production_state_invest_listbox* state_listbox_invest = nullptr;
 	element_base* nf_win = nullptr;
-	element_base* build_win = nullptr;
 	element_base* project_window = nullptr;
 	production_foreign_investment_window* foreign_invest_win = nullptr;
 
@@ -1877,8 +1800,9 @@ public:
 		}
 
 		auto win = make_element_by_type<factory_build_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("build_factory"))->second.definition);
-		build_win = win.get();
-		add_child_to_front(std::move(win));
+		state.ui_state.build_new_factory_subwindow = win.get();
+		win->set_visible(state, false);
+		state.ui_state.root->add_child_to_front(std::move(win));
 
 		auto win2 = make_element_by_type<project_investment_window>(state,
 				state.ui_state.defs_by_name.find(state.lookup_key("invest_project_window"))->second.definition);
@@ -2077,8 +2001,9 @@ public:
 			auto data = any_cast<production_selection_wrapper>(payload);
 			focus_province = data.data;
 			if(data.is_build) {
-				build_win->set_visible(state, true);
-				move_child_to_front(build_win);
+				send(state, state.ui_state.build_new_factory_subwindow, payload);
+				state.ui_state.build_new_factory_subwindow->set_visible(state, true);
+				state.ui_state.root->move_child_to_front(state.ui_state.build_new_factory_subwindow);
 			} else {
 				nf_win->set_visible(state, true);
 				nf_win->base_data.position = data.focus_pos;

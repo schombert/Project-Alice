@@ -236,7 +236,7 @@ std::vector<uint32_t> factory_map_from(sys::state& state) {
 		}
 
 		total = economy::province_factory_level(state, pid);
-		float value = float(total) / float(max_total);
+		float value = std::log(float(total + 1)) / std::log(float(max_total + 1));
 		uint32_t color = ogl::color_gradient_viridis(value);
 		auto i = province::to_map_id(pid);
 		prov_color[i] = color;

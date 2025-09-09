@@ -1982,7 +1982,7 @@ struct pop_details_needs_row_content_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2107,7 +2107,7 @@ struct pop_details_prom_row_content_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2196,7 +2196,7 @@ struct pop_details_weights_row_content_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2259,7 +2259,7 @@ struct pop_details_emm_row_content_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2285,7 +2285,7 @@ struct pop_details_emm_row_dest_flag_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2347,7 +2347,7 @@ struct pop_details_mig_row_content_t : public ui::element_base {
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
+			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
 		} else if(type == ui::mouse_probe_type::scroll) {
@@ -2570,7 +2570,7 @@ struct pop_details_main_t : public layout_window_element {
 				new_abs_pos.x = int16_t(std::clamp(int32_t(new_abs_pos.x), 0, ui::ui_width(state) - base_data.size.x));
 			if(ui::ui_height(state) > base_data.size.y)
 				new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui::ui_height(state) - base_data.size.y));
-			if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+			if(state_is_rtl(state)) {
 				base_data.position.x -= int16_t(new_abs_pos.x - location_abs.x);
 			} else {
 				base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
@@ -2885,7 +2885,7 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_name_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::ln_list::needs_table::sort::name
 						result = cmp3(text::produce_simple_string(state, state.world.commodity_get_name(a.commodity)), text::produce_simple_string(state, state.world.commodity_get_name(b.commodity)));
@@ -2896,7 +2896,7 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_amount_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::ln_list::needs_table::sort::amount
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -2908,7 +2908,7 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_cost_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::ln_list::needs_table::sort::cost
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -3010,7 +3010,7 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_name_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::en_list::needs_table::sort::name
 						result = cmp3(text::produce_simple_string(state, state.world.commodity_get_name(a.commodity)), text::produce_simple_string(state, state.world.commodity_get_name(b.commodity)));
@@ -3021,7 +3021,7 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_amount_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::en_list::needs_table::sort::amount
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -3033,7 +3033,7 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_cost_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::en_list::needs_table::sort::cost
 						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
@@ -3138,7 +3138,7 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_name_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::lx_list::needs_table::sort::name
 						result = cmp3(text::produce_simple_string(state, state.world.commodity_get_name(a.commodity)), text::produce_simple_string(state, state.world.commodity_get_name(b.commodity)));
@@ -3149,7 +3149,7 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_amount_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::lx_list::needs_table::sort::amount
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -3161,7 +3161,7 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 				if(table_source->needs_table_cost_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<needs_row_option>(raw_a);
-							auto const& b = std::get<needs_row_option>(raw_b);
+						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::lx_list::needs_table::sort::cost
 						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
@@ -3266,7 +3266,7 @@ void  pop_details_main_prom_list_t::update(sys::state& state, layout_window_elem
 				if(table_source->prom_table_name_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<prom_row_option>(raw_a);
-							auto const& b = std::get<prom_row_option>(raw_b);
+						auto const& b = std::get<prom_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::prom_list::prom_table::sort::name
 						result = cmp3(text::produce_simple_string(state, state.world.pop_type_get_name(a.value)), text::produce_simple_string(state, state.world.pop_type_get_name(b.value)));
@@ -3277,7 +3277,7 @@ void  pop_details_main_prom_list_t::update(sys::state& state, layout_window_elem
 				if(table_source->prom_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<prom_row_option>(raw_a);
-							auto const& b = std::get<prom_row_option>(raw_b);
+						auto const& b = std::get<prom_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::prom_list::prom_table::sort::weight
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -3379,7 +3379,7 @@ void  pop_details_main_dem_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->prom_table_name_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<prom_row_option>(raw_a);
-							auto const& b = std::get<prom_row_option>(raw_b);
+						auto const& b = std::get<prom_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::dem_list::prom_table::sort::name
 						result = cmp3(text::produce_simple_string(state, state.world.pop_type_get_name(a.value)), text::produce_simple_string(state, state.world.pop_type_get_name(b.value)));
@@ -3390,7 +3390,7 @@ void  pop_details_main_dem_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->prom_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<prom_row_option>(raw_a);
-							auto const& b = std::get<prom_row_option>(raw_b);
+						auto const& b = std::get<prom_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::dem_list::prom_table::sort::weight
 						auto type = state.world.pop_get_poptype(main.for_pop);
@@ -3492,7 +3492,7 @@ void  pop_details_main_ideo_list_t::update(sys::state& state, layout_window_elem
 				if(table_source->weights_table_item_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<weights_row_option>(raw_a);
-							auto const& b = std::get<weights_row_option>(raw_b);
+						auto const& b = std::get<weights_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::ideo_list::weights_table::sort::item
 						result = cmp3(a.item_name, b.item_name);
@@ -3503,7 +3503,7 @@ void  pop_details_main_ideo_list_t::update(sys::state& state, layout_window_elem
 				if(table_source->weights_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<weights_row_option>(raw_a);
-							auto const& b = std::get<weights_row_option>(raw_b);
+						auto const& b = std::get<weights_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::ideo_list::weights_table::sort::weight
 						result = cmp3(a.weight_value, b.weight_value);
@@ -3626,7 +3626,7 @@ void  pop_details_main_iss_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->weights_table_item_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<weights_row_option>(raw_a);
-							auto const& b = std::get<weights_row_option>(raw_b);
+						auto const& b = std::get<weights_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::iss_list::weights_table::sort::item
 						result = cmp3(a.item_name, b.item_name);
@@ -3637,7 +3637,7 @@ void  pop_details_main_iss_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->weights_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<weights_row_option>(raw_a);
-							auto const& b = std::get<weights_row_option>(raw_b);
+						auto const& b = std::get<weights_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::iss_list::weights_table::sort::weight
 						result = cmp3(a.weight_value, b.weight_value);
@@ -3749,7 +3749,7 @@ void  pop_details_main_emm_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->emm_table_destination_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<emm_row_option>(raw_a);
-							auto const& b = std::get<emm_row_option>(raw_b);
+						auto const& b = std::get<emm_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::emm_list::emm_table::sort::destination
 						result = cmp3(text::produce_simple_string(state, text::get_name(state, a.destination)), text::produce_simple_string(state, text::get_name(state, b.destination)));
@@ -3760,7 +3760,7 @@ void  pop_details_main_emm_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->emm_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<emm_row_option>(raw_a);
-							auto const& b = std::get<emm_row_option>(raw_b);
+						auto const& b = std::get<emm_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::emm_list::emm_table::sort::weight
 						auto owner = nations::owner_of_pop(state, main.for_pop);
@@ -3886,7 +3886,7 @@ void  pop_details_main_mig_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->mig_table_destination_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<mig_row_option>(raw_a);
-							auto const& b = std::get<mig_row_option>(raw_b);
+						auto const& b = std::get<mig_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::mig_list::mig_table::sort::destination
 						result = cmp3(text::produce_simple_string(state, state.world.province_get_name(a.destination)), text::produce_simple_string(state, state.world.province_get_name(b.destination)));
@@ -3897,7 +3897,7 @@ void  pop_details_main_mig_list_t::update(sys::state& state, layout_window_eleme
 				if(table_source->mig_table_weight_sort_direction != 0) {
 					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
 						auto const& a = std::get<mig_row_option>(raw_a);
-							auto const& b = std::get<mig_row_option>(raw_b);
+						auto const& b = std::get<mig_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::mig_list::mig_table::sort::weight
 						float aweight = demographics::explain_province_internal_migration_weight(state, main.for_pop, a.destination).result;
@@ -3984,7 +3984,7 @@ ui::message_result pop_details_main_close_button_t::on_key_down(sys::state& stat
 	return ui::message_result::unseen;
 }
 void pop_details_main_close_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_close_button_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -4000,7 +4000,7 @@ void pop_details_main_window_title_t::set_text(sys::state& state, std::string co
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4008,7 +4008,7 @@ void pop_details_main_window_title_t::on_reset_text(sys::state& state) noexcept 
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_window_title_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4037,7 +4037,7 @@ void pop_details_main_location_header_t::set_text(sys::state& state, std::string
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4045,7 +4045,7 @@ void pop_details_main_location_header_t::on_reset_text(sys::state& state) noexce
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_location_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4074,7 +4074,7 @@ void pop_details_main_location_value_t::set_text(sys::state& state, std::string 
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4106,7 +4106,7 @@ void pop_details_main_job_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4114,7 +4114,7 @@ void pop_details_main_job_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_job_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4143,7 +4143,7 @@ void pop_details_main_job_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4175,7 +4175,7 @@ void pop_details_main_mil_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4183,7 +4183,7 @@ void pop_details_main_mil_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_mil_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4218,7 +4218,7 @@ void pop_details_main_mil_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4250,7 +4250,7 @@ void pop_details_main_con_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4258,7 +4258,7 @@ void pop_details_main_con_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_con_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4293,7 +4293,7 @@ void pop_details_main_con_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4325,7 +4325,7 @@ void pop_details_main_lit_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4333,7 +4333,7 @@ void pop_details_main_lit_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_lit_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4368,7 +4368,7 @@ void pop_details_main_lit_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4400,7 +4400,7 @@ void pop_details_main_religion_header_t::set_text(sys::state& state, std::string
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4408,7 +4408,7 @@ void pop_details_main_religion_header_t::on_reset_text(sys::state& state) noexce
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_religion_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4437,7 +4437,7 @@ void pop_details_main_religion_value_t::set_text(sys::state& state, std::string 
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4469,7 +4469,7 @@ void pop_details_main_culture_header_t::set_text(sys::state& state, std::string 
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4477,7 +4477,7 @@ void pop_details_main_culture_header_t::on_reset_text(sys::state& state) noexcep
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_culture_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4506,7 +4506,7 @@ void pop_details_main_culture_value_t::set_text(sys::state& state, std::string c
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4538,7 +4538,7 @@ void pop_details_main_employment_header_t::set_text(sys::state& state, std::stri
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4546,7 +4546,7 @@ void pop_details_main_employment_header_t::on_reset_text(sys::state& state) noex
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_employment_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4575,7 +4575,7 @@ void pop_details_main_employment_value_t::set_text(sys::state& state, std::strin
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4611,7 +4611,7 @@ void pop_details_main_income_header_t::set_text(sys::state& state, std::string c
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4619,7 +4619,7 @@ void pop_details_main_income_header_t::on_reset_text(sys::state& state) noexcept
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_income_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4648,7 +4648,7 @@ void pop_details_main_income_value_t::set_text(sys::state& state, std::string co
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4680,7 +4680,7 @@ void pop_details_main_growth_header_t::set_text(sys::state& state, std::string c
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4688,7 +4688,7 @@ void pop_details_main_growth_header_t::on_reset_text(sys::state& state) noexcept
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_growth_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4723,7 +4723,7 @@ void pop_details_main_growth_value_t::set_text(sys::state& state, std::string co
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4755,7 +4755,7 @@ void pop_details_main_assim_header_t::set_text(sys::state& state, std::string co
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4763,7 +4763,7 @@ void pop_details_main_assim_header_t::on_reset_text(sys::state& state) noexcept 
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_assim_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4798,7 +4798,7 @@ void pop_details_main_assim_value_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4830,7 +4830,7 @@ void pop_details_main_ln_header_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4838,7 +4838,7 @@ void pop_details_main_ln_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_ln_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4867,7 +4867,7 @@ void pop_details_main_ln_total_t::set_text(sys::state& state, std::string const&
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4907,7 +4907,7 @@ void pop_details_main_en_header_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4915,7 +4915,7 @@ void pop_details_main_en_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_en_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4944,7 +4944,7 @@ void pop_details_main_en_total_t::set_text(sys::state& state, std::string const&
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4984,7 +4984,7 @@ void pop_details_main_lx_header_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -4992,7 +4992,7 @@ void pop_details_main_lx_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_lx_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5021,7 +5021,7 @@ void pop_details_main_lx_total_t::set_text(sys::state& state, std::string const&
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5063,7 +5063,7 @@ ui::message_result pop_details_main_bg_a_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_a_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_a_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5081,7 +5081,7 @@ ui::message_result pop_details_main_bg_b_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_b_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_b_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5099,7 +5099,7 @@ ui::message_result pop_details_main_bg_c_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_c_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_c_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5117,7 +5117,7 @@ ui::message_result pop_details_main_bg_d_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_d_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_d_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5135,7 +5135,7 @@ ui::message_result pop_details_main_bg_e_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_e_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_e_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5151,7 +5151,7 @@ void pop_details_main_prom_header_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5159,7 +5159,7 @@ void pop_details_main_prom_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_prom_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5188,7 +5188,7 @@ void pop_details_main_prom_amount_label_t::set_text(sys::state& state, std::stri
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5196,7 +5196,7 @@ void pop_details_main_prom_amount_label_t::on_reset_text(sys::state& state) noex
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_prom_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5231,7 +5231,7 @@ void pop_details_main_prom_value_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5344,7 +5344,7 @@ ui::message_result pop_details_main_prom_bar_overlay_t::on_rbutton_down(sys::sta
 	return ui::message_result::unseen;
 }
 void pop_details_main_prom_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_prom_bar_overlay_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5360,7 +5360,7 @@ void pop_details_main_dem_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5368,7 +5368,7 @@ void pop_details_main_dem_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_dem_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5397,7 +5397,7 @@ void pop_details_main_dem_amount_label_t::set_text(sys::state& state, std::strin
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5405,7 +5405,7 @@ void pop_details_main_dem_amount_label_t::on_reset_text(sys::state& state) noexc
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_dem_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5440,7 +5440,7 @@ void pop_details_main_dem_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5553,7 +5553,7 @@ ui::message_result pop_details_main_dem_bar_overlay_t::on_rbutton_down(sys::stat
 	return ui::message_result::unseen;
 }
 void pop_details_main_dem_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_dem_bar_overlay_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5569,7 +5569,7 @@ void pop_details_main_ideo_header_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5577,7 +5577,7 @@ void pop_details_main_ideo_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_ideo_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5677,7 +5677,7 @@ ui::message_result pop_details_main_ideo_bar_overlay_t::on_rbutton_down(sys::sta
 	return ui::message_result::unseen;
 }
 void pop_details_main_ideo_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_ideo_bar_overlay_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5693,7 +5693,7 @@ void pop_details_main_iss_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5701,7 +5701,7 @@ void pop_details_main_iss_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_iss_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5804,7 +5804,7 @@ ui::message_result pop_details_main_iss_bar_overlay_t::on_rbutton_down(sys::stat
 	return ui::message_result::unseen;
 }
 void pop_details_main_iss_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_iss_bar_overlay_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5820,7 +5820,7 @@ void pop_details_main_emm_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5828,7 +5828,7 @@ void pop_details_main_emm_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_emm_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5857,7 +5857,7 @@ void pop_details_main_emm_amount_label_t::set_text(sys::state& state, std::strin
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5865,7 +5865,7 @@ void pop_details_main_emm_amount_label_t::on_reset_text(sys::state& state) noexc
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_emm_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5900,7 +5900,7 @@ void pop_details_main_emm_value_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5932,7 +5932,7 @@ void pop_details_main_mig_header_t::set_text(sys::state& state, std::string cons
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5940,7 +5940,7 @@ void pop_details_main_mig_header_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_mig_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -5969,7 +5969,7 @@ void pop_details_main_i_mig_amount_label_t::set_text(sys::state& state, std::str
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -5977,7 +5977,7 @@ void pop_details_main_i_mig_amount_label_t::on_reset_text(sys::state& state) noe
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_i_mig_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -6012,7 +6012,7 @@ void pop_details_main_i_mig_value_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -6044,7 +6044,7 @@ void pop_details_main_c_mig_amount_label_t::set_text(sys::state& state, std::str
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -6052,7 +6052,7 @@ void pop_details_main_c_mig_amount_label_t::on_reset_text(sys::state& state) noe
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void pop_details_main_c_mig_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -6087,7 +6087,7 @@ void pop_details_main_c_mig_value_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -6121,7 +6121,7 @@ ui::message_result pop_details_main_bg_f_t::on_rbutton_down(sys::state& state, i
 	return ui::message_result::unseen;
 }
 void pop_details_main_bg_f_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void pop_details_main_bg_f_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -6140,7 +6140,16 @@ ui::message_result pop_details_main_t::on_rbutton_down(sys::state& state, int32_
 	return ui::message_result::consumed;
 }
 void pop_details_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void pop_details_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
@@ -6182,6 +6191,13 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -6477,17 +6493,6 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
-	auto name_key = state.lookup_key("pop_details::main");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "close_button") {
@@ -7727,7 +7732,7 @@ void pop_details_needs_row_content_t::set_icon_text(sys::state & state, std::str
 		icon_internal_layout.contents.clear();
 		icon_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ icon_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_icon_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_icon_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ icon_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_icon_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_icon_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, icon_cached_text);
 		}
 	} else {
@@ -7740,7 +7745,7 @@ void pop_details_needs_row_content_t::set_name_text(sys::state & state, std::str
 		name_internal_layout.contents.clear();
 		name_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_name_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, name_cached_text);
 		}
 	} else {
@@ -7753,7 +7758,7 @@ void pop_details_needs_row_content_t::set_amount_text(sys::state & state, std::s
 		amount_internal_layout.contents.clear();
 		amount_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ amount_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_amount_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_amount_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ amount_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_amount_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_amount_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, amount_cached_text);
 		}
 	} else {
@@ -7766,7 +7771,7 @@ void pop_details_needs_row_content_t::set_cost_text(sys::state & state, std::str
 		cost_internal_layout.contents.clear();
 		cost_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, cost_cached_text);
 		}
 	} else {
@@ -7835,11 +7840,11 @@ void pop_details_needs_row_need_icon_t::render(sys::state & state, int32_t x, in
 		auto& gfx_def = state.ui_defs.gfx[background_gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else if(gfx_def.number_of_frames > 1) {
-				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else {
-				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			}
 		}
 	}
@@ -7866,9 +7871,18 @@ ui::message_result pop_details_needs_row_t::on_rbutton_down(sys::state& state, i
 }
 void pop_details_needs_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -7924,6 +7938,13 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -8019,17 +8040,6 @@ void pop_details_needs_row_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::needs_row");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8137,21 +8147,21 @@ void pop_details_needs_header_content_t::on_reset_text(sys::state& state) noexce
 	name_cached_text = text::produce_simple_string(state, table_source->needs_table_name_header_text_key);
 	 name_internal_layout.contents.clear();
 	 name_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_name_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_name_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_name_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, name_cached_text);
 	}
 	{
 	amount_cached_text = text::produce_simple_string(state, table_source->needs_table_amount_header_text_key);
 	 amount_internal_layout.contents.clear();
 	 amount_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  amount_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_amount_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_amount_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  amount_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_amount_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_amount_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, amount_cached_text);
 	}
 	{
 	cost_cached_text = text::produce_simple_string(state, table_source->needs_table_cost_header_text_key);
 	 cost_internal_layout.contents.clear();
 	 cost_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cost_cached_text);
 	}
 }
@@ -8164,10 +8174,10 @@ void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, i
 	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
 	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
 	if(table_source->needs_table_name_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->needs_table_name_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, true); 
@@ -8177,10 +8187,10 @@ void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, i
 	}
 	bool col_um_amount = rel_mouse_x >= table_source->needs_table_amount_column_start && rel_mouse_x < (table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width);
 	if(table_source->needs_table_amount_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->needs_table_amount_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!amount_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount , false, true); 
@@ -8190,10 +8200,10 @@ void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, i
 	}
 	bool col_um_cost = rel_mouse_x >= table_source->needs_table_cost_column_start && rel_mouse_x < (table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width);
 	if(table_source->needs_table_cost_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->needs_table_cost_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!cost_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost , false, true); 
@@ -8221,9 +8231,18 @@ ui::message_result pop_details_needs_header_t::on_rbutton_down(sys::state& state
 }
 void pop_details_needs_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -8279,6 +8298,13 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -8371,17 +8397,6 @@ void pop_details_needs_header_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::needs_header");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8460,14 +8475,14 @@ void pop_details_prom_header_content_t::on_reset_text(sys::state& state) noexcep
 	name_cached_text = text::produce_simple_string(state, table_source->prom_table_name_header_text_key);
 	 name_internal_layout.contents.clear();
 	 name_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_name_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_name_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_name_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, name_cached_text);
 	}
 	{
 	weight_cached_text = text::produce_simple_string(state, table_source->prom_table_weight_header_text_key);
 	 weight_internal_layout.contents.clear();
 	 weight_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, weight_cached_text);
 	}
 }
@@ -8480,10 +8495,10 @@ void pop_details_prom_header_content_t::render(sys::state & state, int32_t x, in
 	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
 	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
 	if(table_source->prom_table_name_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->prom_table_name_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, true); 
@@ -8493,10 +8508,10 @@ void pop_details_prom_header_content_t::render(sys::state & state, int32_t x, in
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->prom_table_weight_column_start && rel_mouse_x < (table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width);
 	if(table_source->prom_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->prom_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
@@ -8524,9 +8539,18 @@ ui::message_result pop_details_prom_header_t::on_rbutton_down(sys::state& state,
 }
 void pop_details_prom_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -8578,6 +8602,13 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -8670,17 +8701,6 @@ void pop_details_prom_header_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::prom_header");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8750,7 +8770,7 @@ void pop_details_prom_row_content_t::set_icon_text(sys::state & state, std::stri
 		icon_internal_layout.contents.clear();
 		icon_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ icon_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_icon_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_icon_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ icon_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_icon_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_icon_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, icon_cached_text);
 		}
 	} else {
@@ -8763,7 +8783,7 @@ void pop_details_prom_row_content_t::set_name_text(sys::state & state, std::stri
 		name_internal_layout.contents.clear();
 		name_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_name_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ name_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_name_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_name_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, name_cached_text);
 		}
 	} else {
@@ -8776,7 +8796,7 @@ void pop_details_prom_row_content_t::set_weight_text(sys::state & state, std::st
 		weight_internal_layout.contents.clear();
 		weight_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->prom_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->prom_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, weight_cached_text);
 		}
 	} else {
@@ -8835,11 +8855,11 @@ void pop_details_prom_row_job_icon_t::render(sys::state & state, int32_t x, int3
 		auto& gfx_def = state.ui_defs.gfx[background_gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else if(gfx_def.number_of_frames > 1) {
-				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else {
-				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			}
 		}
 	}
@@ -8866,9 +8886,18 @@ ui::message_result pop_details_prom_row_t::on_rbutton_down(sys::state& state, in
 }
 void pop_details_prom_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -8920,6 +8949,13 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -9015,17 +9051,6 @@ void pop_details_prom_row_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::prom_row");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9114,14 +9139,14 @@ void pop_details_weights_header_content_t::on_reset_text(sys::state& state) noex
 	item_cached_text = text::produce_simple_string(state, table_source->weights_table_item_header_text_key);
 	 item_internal_layout.contents.clear();
 	 item_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  item_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_item_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_item_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  item_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_item_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_item_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, item_cached_text);
 	}
 	{
 	weight_cached_text = text::produce_simple_string(state, table_source->weights_table_weight_header_text_key);
 	 weight_internal_layout.contents.clear();
 	 weight_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, weight_cached_text);
 	}
 }
@@ -9133,10 +9158,10 @@ void pop_details_weights_header_content_t::render(sys::state & state, int32_t x,
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
 	if(table_source->weights_table_item_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->weights_table_item_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!item_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item , false, true); 
@@ -9146,10 +9171,10 @@ void pop_details_weights_header_content_t::render(sys::state & state, int32_t x,
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->weights_table_weight_column_start && rel_mouse_x < (table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width);
 	if(table_source->weights_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->weights_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
@@ -9177,9 +9202,18 @@ ui::message_result pop_details_weights_header_t::on_rbutton_down(sys::state& sta
 }
 void pop_details_weights_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -9227,6 +9261,13 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -9319,17 +9360,6 @@ void pop_details_weights_header_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::weights_header");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9505,7 +9535,7 @@ void pop_details_weights_row_content_t::set_item_text(sys::state & state, std::s
 		item_internal_layout.contents.clear();
 		item_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ item_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_item_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_item_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ item_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_item_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_item_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, item_cached_text);
 		}
 	} else {
@@ -9518,7 +9548,7 @@ void pop_details_weights_row_content_t::set_weight_text(sys::state & state, std:
 		weight_internal_layout.contents.clear();
 		weight_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->weights_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->weights_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, weight_cached_text);
 		}
 	} else {
@@ -9565,9 +9595,18 @@ ui::message_result pop_details_weights_row_t::on_rbutton_down(sys::state& state,
 }
 void pop_details_weights_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -9615,6 +9654,13 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -9707,17 +9753,6 @@ void pop_details_weights_row_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::weights_row");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9792,14 +9827,14 @@ void pop_details_emm_header_content_t::on_reset_text(sys::state& state) noexcept
 	destination_cached_text = text::produce_simple_string(state, table_source->emm_table_destination_header_text_key);
 	 destination_internal_layout.contents.clear();
 	 destination_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_destination_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_destination_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_destination_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_destination_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, destination_cached_text);
 	}
 	{
 	weight_cached_text = text::produce_simple_string(state, table_source->emm_table_weight_header_text_key);
 	 weight_internal_layout.contents.clear();
 	 weight_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, weight_cached_text);
 	}
 }
@@ -9811,10 +9846,10 @@ void pop_details_emm_header_content_t::render(sys::state & state, int32_t x, int
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	bool col_um_destination = rel_mouse_x >= table_source->emm_table_destination_column_start && rel_mouse_x < (table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width);
 	if(table_source->emm_table_destination_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->emm_table_destination_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, true); 
@@ -9824,10 +9859,10 @@ void pop_details_emm_header_content_t::render(sys::state & state, int32_t x, int
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->emm_table_weight_column_start && rel_mouse_x < (table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width);
 	if(table_source->emm_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->emm_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
@@ -9855,9 +9890,18 @@ ui::message_result pop_details_emm_header_t::on_rbutton_down(sys::state& state, 
 }
 void pop_details_emm_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -9905,6 +9949,13 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -9997,17 +10048,6 @@ void pop_details_emm_header_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::emm_header");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10081,7 +10121,7 @@ void pop_details_emm_row_content_t::set_destination_text(sys::state & state, std
 		destination_internal_layout.contents.clear();
 		destination_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_destination_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_destination_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_destination_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_destination_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, destination_cached_text);
 		}
 	} else {
@@ -10094,7 +10134,7 @@ void pop_details_emm_row_content_t::set_weight_text(sys::state & state, std::str
 		weight_internal_layout.contents.clear();
 		weight_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->emm_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->emm_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, weight_cached_text);
 		}
 	} else {
@@ -10169,7 +10209,7 @@ void pop_details_emm_row_dest_flag_t::update_tooltip(sys::state& state, int32_t 
 }
 void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(std::holds_alternative<dcon::nation_id>(flag)) {
-		dcon::government_flag_id flag_type {};
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
 		auto h_temp = state.world.nation_get_identity_from_identity_holder(std::get<dcon::nation_id>(flag));
 		if(bool(std::get<dcon::nation_id>(flag)) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) != 0) {
 			flag_type = culture::get_current_flag_type(state, std::get<dcon::nation_id>(flag));
@@ -10179,7 +10219,7 @@ void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int3
 		auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
 		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
 	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
-		dcon::government_flag_id flag_type {};
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
 		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
 		if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
 			flag_type = culture::get_current_flag_type(state, n_temp);
@@ -10191,7 +10231,7 @@ void pop_details_emm_row_dest_flag_t::render(sys::state & state, int32_t x, int3
 	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
 		dcon::rebel_faction_id rf_temp = std::get<dcon::rebel_faction_id>(flag);
 		if(state.world.rebel_faction_get_type(rf_temp).get_independence() != uint8_t(culture::rebel_independence::none) && state.world.rebel_faction_get_defection_target(rf_temp)) {
-			dcon::government_flag_id flag_type {};
+			dcon::government_flag_id flag_type = dcon::government_flag_id{};
 			auto h_temp = state.world.rebel_faction_get_defection_target(rf_temp);
 			auto n_temp = state.world.national_identity_get_nation_from_identity_holder(h_temp);
 			if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
@@ -10226,9 +10266,18 @@ ui::message_result pop_details_emm_row_t::on_rbutton_down(sys::state& state, int
 }
 void pop_details_emm_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -10276,6 +10325,13 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -10371,17 +10427,6 @@ void pop_details_emm_row_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::emm_row");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10469,14 +10514,14 @@ void pop_details_mig_header_content_t::on_reset_text(sys::state& state) noexcept
 	destination_cached_text = text::produce_simple_string(state, table_source->mig_table_destination_header_text_key);
 	 destination_internal_layout.contents.clear();
 	 destination_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_destination_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_destination_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_destination_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_destination_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, destination_cached_text);
 	}
 	{
 	weight_cached_text = text::produce_simple_string(state, table_source->mig_table_weight_header_text_key);
 	 weight_internal_layout.contents.clear();
 	 weight_internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, weight_cached_text);
 	}
 }
@@ -10488,10 +10533,10 @@ void pop_details_mig_header_content_t::render(sys::state & state, int32_t x, int
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
 	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
 	if(table_source->mig_table_destination_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->mig_table_destination_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, true); 
@@ -10501,10 +10546,10 @@ void pop_details_mig_header_content_t::render(sys::state & state, int32_t x, int
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->mig_table_weight_column_start && rel_mouse_x < (table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width);
 	if(table_source->mig_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(table_source->mig_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
@@ -10532,9 +10577,18 @@ ui::message_result pop_details_mig_header_t::on_rbutton_down(sys::state& state, 
 }
 void pop_details_mig_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -10582,6 +10636,13 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -10674,17 +10735,6 @@ void pop_details_mig_header_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::mig_header");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10738,7 +10788,6 @@ void pop_details_mig_row_content_t::update_tooltip(sys::state& state, int32_t x,
 	pop_details_mig_row_t& mig_row = *((pop_details_mig_row_t*)(parent)); 
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
 // BEGIN mig_row::content::weight::column_tooltip
-
 	auto explanation = demographics::explain_province_internal_migration_weight(state, main.for_pop, mig_row.destination);
 	auto pt = state.world.pop_get_poptype(main.for_pop);
 	auto modifier = state.world.pop_type_get_migration_target(pt);
@@ -10762,7 +10811,7 @@ void pop_details_mig_row_content_t::set_destination_text(sys::state & state, std
 		destination_internal_layout.contents.clear();
 		destination_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_destination_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_destination_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ destination_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_destination_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_destination_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, destination_cached_text);
 		}
 	} else {
@@ -10775,7 +10824,7 @@ void pop_details_mig_row_content_t::set_weight_text(sys::state & state, std::str
 		weight_internal_layout.contents.clear();
 		weight_internal_layout.number_of_lines = 0;
 		{
-		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_weight_text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->mig_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->mig_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, weight_cached_text);
 		}
 	} else {
@@ -10823,9 +10872,18 @@ ui::message_result pop_details_mig_row_t::on_rbutton_down(sys::state& state, int
 }
 void pop_details_mig_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 	auto table_source = (pop_details_main_t*)(parent);
 	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
 	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
@@ -10873,6 +10931,13 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -10965,17 +11030,6 @@ void pop_details_mig_row_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	alt_texture_key = win_data.alt_texture;
-	auto name_key = state.lookup_key("pop_details::mig_row");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {

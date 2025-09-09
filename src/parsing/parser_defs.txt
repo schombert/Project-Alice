@@ -72,6 +72,7 @@ modifier_base
 	max_tax                                   value      float            member_fn
 	min_military_spending                     value      float            member_fn
 	max_military_spending                     value      float            member_fn
+	min_land_upkeep                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
 	min_domestic_investment              value      float            member_fn
@@ -80,6 +81,7 @@ modifier_base
 	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
 	max_tariff                                value      float            member_fn
+	trade_routes_attraction                   value      float            member_fn
 	ruling_party_support                      value      float            member_fn
 	local_ruling_party_support                value      float            member_fn
 	rich_vote                                 value      float            member_fn

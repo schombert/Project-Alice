@@ -4,6 +4,7 @@
 #include "commodities.hpp"
 #include "advanced_province_buildings.hpp"
 #include "demographics.hpp"
+#include "adaptive_ve.hpp"
 
 namespace economy {
 
@@ -139,25 +140,6 @@ VALUE inline bank_saving_rate(const sys::state& state, POPS ids) {
 		);
 
 	return bank_saving_ratio;
-}
-
-namespace adaptive_ve {
-template<typename VALUE>
-VALUE min(VALUE a, VALUE b) {
-	if constexpr(std::same_as<VALUE, float>) {
-		return std::min(a, b);
-	} else {
-		return ve::min(a, b);
-	}
-}
-template<typename VALUE>
-VALUE max(VALUE a, VALUE b) {
-	if constexpr(std::same_as<VALUE, float>) {
-		return std::max(a, b);
-	} else {
-		return ve::max(a, b);
-	}
-}
 }
 
 template<typename POPS>

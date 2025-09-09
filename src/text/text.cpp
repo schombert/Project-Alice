@@ -614,6 +614,12 @@ char16_t win1250toUTF16(char in) {
 	return converted[(uint8_t)in];
 }
 
+std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid) {
+	std::string padding = cid.index() < 10 ? "0" : "";
+	std::string description = "@$" + padding + std::to_string(cid.index());
+	return description + text::produce_simple_string(state, state.world.commodity_get_name(cid));
+}
+
 std::string produce_simple_string(sys::state const& state, dcon::text_key id) {
 	std::string result;
 

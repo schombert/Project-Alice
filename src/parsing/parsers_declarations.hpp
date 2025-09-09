@@ -618,6 +618,8 @@ public:
 	MOD_NAT_FUNCTION(max_tax)
 	MOD_NAT_FUNCTION(min_military_spending)
 	MOD_NAT_FUNCTION(max_military_spending)
+	MOD_NAT_FUNCTION(trade_routes_attraction)
+	MOD_NAT_FUNCTION(min_land_upkeep)
 	MOD_NAT_FUNCTION(min_social_spending)
 	MOD_NAT_FUNCTION(max_social_spending)
 	MOD_NAT_FUNCTION(min_domestic_investment)

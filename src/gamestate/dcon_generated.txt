@@ -2179,6 +2179,11 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ special_order }
+		type{ uint8_t }
+		tag{ save }
+	}
 	property {
 		name{ dig_in }
 		type{ uint8_t }
@@ -2213,6 +2218,23 @@ object {
 		name{ is_ai_controlled }
 		type{ bitfield }
 		tag{ save }
+	}
+}
+
+relationship{
+	name{ army_pursuit }
+	tag{ save }
+
+	link{
+		object{army}
+		name{source}
+		type{unique}
+	}
+	link{
+		object{army}
+		name{target}
+		type{many}
+		index_storage{array}
 	}
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dcon_generated.hpp"
+#include "adaptive_ve.hpp"
 
 namespace sys {
 struct state;
@@ -108,6 +109,20 @@ ve::fp_vector ve_price(
 	ve::tagged_vector<dcon::market_id> s,
 	dcon::commodity_id c
 );
+
+template <typename MARKETS, typename VALUE>
+void adjust_gdp_intermediate_consumption(
+	sys::state& state,
+	MARKETS s,
+	dcon::commodity_id c,
+	VALUE amount,
+	VALUE upper_limit_for_consumed_ratio,
+	economy_reason reason
+) {
+	auto median_price = state.world.commodity_get_median_price(c);
+	auto sat = adaptive_ve::min<VALUE>(state.world.market_get_demand_satisfaction(s, c), upper_limit_for_consumed_ratio);
+	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
+}
 
 void register_demand(
 	sys::state& state,

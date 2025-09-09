@@ -52,7 +52,12 @@ void create_opengl_context(sys::state& state) {
 		0,
 		WGL_CONTEXT_PROFILE_MASK_ARB,
 		WGL_CONTEXT_CORE_PROFILE_BIT_ARB,
-		0
+		0,
+		WGL_SAMPLE_BUFFERS_ARB,
+		GL_TRUE,
+		0,
+		WGL_SAMPLES_ARB,
+		8
 	};
 	state.open_gl.context = wglCreateContextAttribsARB(window_dc, nullptr, attribs_3_1);
 	if(state.open_gl.context == nullptr) {
