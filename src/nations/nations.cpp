@@ -3749,6 +3749,37 @@ void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, d
 	state.world.unilateral_relationship_set_foreign_investment(rel, std::max(0.0f, invest + delta));
 }
 
+void remove_from_sphere(sys::state& state, dcon::nation_id target, uint8_t new_influence_level) {
+	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(target);
+	if(existing_sphere_leader) {
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, existing_sphere_leader);
+		assert(rel);
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask));
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) | new_influence_level));
+
+		state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+	}
+}
+
+
+void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id source) {
+	if(state.world.nation_get_in_sphere_of(target) || state.world.nation_get_is_great_power(target)) {
+		return;
+	}
+	if(state.world.nation_get_is_great_power(source)) {
+		auto gp_rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
+		if(!gp_rel) {
+			gp_rel = state.world.force_create_gp_relationship(target, source);
+		}
+		auto& flags = state.world.gp_relationship_get_status(gp_rel);
+		state.world.gp_relationship_set_status(gp_rel, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
+		state.world.nation_set_in_sphere_of(target, source);
+	}
+	else {
+		assert(false);
+	}
+}
+
 float get_yesterday_income(sys::state& state, dcon::nation_id n) {
 	/* TODO -
 	 * This is a temporary function (the contents of it), what it should return is yesterdays income

@@ -319,20 +319,24 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::nation_id target) noexcept override {
-
-		text::add_line_with_condition(state, contents, "alice_command_units_condition_1", nations::is_nation_subject_of(state, target, state.local_player_nation), text::variable_type::nation, text::get_name(state, target));
-		text::add_line_with_condition(state, contents, "alice_command_units_condition_3", !state.world.nation_get_is_player_controlled(target));
-
 		if(nations::is_commanding_subject_units(state, target, state.local_player_nation)) {
 			text::add_line(state, contents, "CANCEL_UNIT_COMMAND_DESC");
-		}
-		else {
+		} else {
 			text::add_line(state, contents, "GIVE_UNIT_COMMAND_DESC");
 			auto asker_wars = state.world.nation_get_war_participant(state.local_player_nation);
 			auto target_wars = state.world.nation_get_war_participant(target);
 
 			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.end() && target_wars.begin() != target_wars.end());
 		}
+
+		if(state.network_mode == sys::network_mode_type::single_player) {
+			text::add_line_with_condition(state, contents, "alice_command_units_condition_4", false);
+		}
+
+		text::add_line_with_condition(state, contents, "alice_command_units_condition_1", nations::is_nation_subject_of(state, target, state.local_player_nation), text::variable_type::nation, text::get_name(state, target));
+		text::add_line_with_condition(state, contents, "alice_command_units_condition_3", !state.world.nation_get_is_player_controlled(target));
+
+		
 	}
 };
 

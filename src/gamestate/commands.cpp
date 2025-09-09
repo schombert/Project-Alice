@@ -2861,6 +2861,10 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	// disable in SP for now. Maybe could be a game rule later?
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 

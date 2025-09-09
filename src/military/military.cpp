@@ -1065,8 +1065,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
 						state.world.diplomatic_relation_get_are_allied(dip_rel)) {
 		modifier = 2.0f;
-	} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, n);
-						state.world.unilateral_relationship_get_military_access(uni_rel)) {
+	} else if(province::has_safe_access_to_province(state, n, p)) {
 		modifier = 2.0f;
 	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
 		modifier = 2.0f;

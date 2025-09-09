@@ -426,6 +426,9 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
 
+void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id source);
+void remove_from_sphere(sys::state& state, dcon::nation_id target, uint8_t new_influence_level);
+
 float get_yesterday_income(sys::state& state, dcon::nation_id n);
 
 void make_civilized(sys::state& state, dcon::nation_id n);
