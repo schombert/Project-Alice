@@ -1,4 +1,5 @@
 #pragma once
+#include "adaptive_ve.hpp"
 
 namespace economy {
 namespace price_properties {
@@ -27,11 +28,29 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	// avoid singularity
 	supply = supply + additive_smoothing * 3.f;
 	demand = demand + additive_smoothing;
-	auto oversupply_factor = ve::max(supply / demand - 1.f, 0.f);
-	auto overdemand_factor = ve::max(demand / supply - 1.f, 0.f);
-	auto speed_modifer = (overdemand_factor - oversupply_factor);
-	auto price_speed = ve::min(ve::max(speed_multiplier * speed_modifer, -relative_speed_limit), relative_speed_limit);
-	return price_speed * current_price;
+
+	auto probability_to_sell = adaptive_ve::min<VALUE>(demand / supply, 1.f); 
+	auto probability_to_buy = adaptive_ve::min<VALUE>(supply / demand, 1.f);
+
+	
+	auto probability_to_keep_price_when_failed_to_buy = probability_to_buy;
+	auto probability_to_keep_price_when_failed_to_sell = probability_to_sell;
+
+	auto relative_price_change =
+		(
+			(1.f - probability_to_sell)
+			* (1.f - speed_multiplier)
+			* (1.f - probability_to_keep_price_when_failed_to_sell)
+			+ (probability_to_sell + (1.f - probability_to_sell) * probability_to_keep_price_when_failed_to_sell - 1.f)
+			+
+			(1.f - probability_to_buy)
+			* (1.f + speed_multiplier)
+			* (1.f - probability_to_keep_price_when_failed_to_buy)
+			+ (probability_to_buy + (1.f - probability_to_buy) * probability_to_keep_price_when_failed_to_buy - 1.f)
+		);
+
+	auto relative_price_change_clamped = adaptive_ve::min<VALUE>(adaptive_ve::max<VALUE>(relative_price_change, -relative_speed_limit), relative_speed_limit);
+	return relative_price_change_clamped * current_price;
 }
 }
 }

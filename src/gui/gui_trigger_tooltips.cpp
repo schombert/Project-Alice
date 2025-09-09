@@ -6018,6 +6018,11 @@ void tf_number_of_states(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_states"), int64_t(tval[1]), ws, layout, box);
+	text::substitution_map sub;
+
+	auto count = ws.world.nation_get_owned_state_count(trigger::to_nation(primary_slot));
+	text::add_to_substitution_map(sub, text::variable_type::x, count);
+	text::add_to_layout_box(ws, layout, box, " " + text::resolve_string_substitution(ws, "currently", sub));
 	text::close_layout_box(layout, box);
 }
 void tf_war_score(TRIGGER_DISPLAY_PARAMS) {

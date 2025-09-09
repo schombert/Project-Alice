@@ -41,7 +41,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
-#ifdef __linux__
+#ifdef __unix__
 
 	//Ported from Microsoft's documentation
 	//Replaced DWORD into uint32_t, WORD into uint16_t

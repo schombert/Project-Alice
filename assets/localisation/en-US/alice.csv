@@ -13,6 +13,7 @@ create_admiral;A new admiral is created
 add_war_goal;A $text$ war goal is added against $nation$
 blank_loyalty;$text$ loyalty
 in_blank;in $text$
+currently;(currently: ?Y$x$?!)
 no_effect;No effect
 move_capital_to;Move capital to
 add_x_core;Add $adj$ core
@@ -750,6 +751,10 @@ trade_commodity_report_1;Current global demand: $x$
 trade_commodity_report_2;Current global production: $x$
 trade_commodity_report_3;Current global consumption: $x$
 trade_commodity_report_4;Amount on world market: $x$
+commodity_consumption_header;Population consumption: life/everyday/luxury needs
+commodity_consumed_by;Consumed by
+commodity_production_header;In factory production chains: input/output
+national_modifiers;National modifiers
 trade_fill;Fill
 trade_use;Draw upon
 trade_stockpile_target;Stockpile target amount:
@@ -1172,6 +1177,12 @@ macro_warn_unlocked;?RUsing units not unlocked yet!?!
 macro_select_province;Please select a province on the map
 macro_warn_insuff;?RCan't build $x$ $name$ (only $y$)?!
 macro_warn_invalid_province;?RProvince not part of a region?!
+move_to_siege;Move to Siege order (hotkey: V)
+move_to_siege_desc;With Move to Siege order army moves to the next province only after full occupation of the current one.
+strategic_redeployment;Strategic redeployment (hotkey: B)
+strategic_redeployment_desc;Strategic redeployment allows to move troops at increased speed, but with zero organisation.
+pursue_to_engage;Pursue and engage an army (hotkey: N)
+pursue_to_engage_desc;Army will pursue and engage an army from the target province.
 shortcut_tooltip;Shortcut: ?Y$x$?!
 filter_all;Show ?Yall?! relevant nations.
 filter_allies;Filter by nations we have an ?Yalliance?! with.\n?YRight-click?! to filter by nations which want to ally us.
@@ -1441,6 +1452,7 @@ trade_good_stats_global;Nations
 trade_good_stats_markets;Markets
 trade_good_name_header;Trade good
 per_nation;Per nation
+per_commodity;Per commodity
 price;Price
 labour_price;Wage
 labour_price_10k;Wage(10k people)
@@ -1501,8 +1513,8 @@ volume;Volume
 actual_volume;Actual Volume
 max_throughput;Max volume
 trade_margin;Profit%
-used_throughput_tooltip;Volume used by all routes in the province: ?Y$val$W
-max_throughput_tooltip;Max volume for routes in the province: ?Y$val$W
+used_throughput_tooltip;Volume used by all routes in the province: ?Y$val$?W
+max_throughput_tooltip;Max volume for routes in the province: ?Y$val$?W
 tariff_rate_origin;Seller effective tariff rate: ?Y$val$
 tariff_rate_target;Buyer effective tariff rate: ?Y$val$
 tariff_paid_origin;Tariffs paid at Seller: ?Y$val$
@@ -1698,6 +1710,32 @@ alice_supply_range_distance;Using ?O$x$?W/?O$y$?W distance to the nearest port
 alice_supply_range_friendly_port;?GAdjacent to friendly port?W
 alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
+open_details;Details
+rgo;RGO
+province_prices;Prices (% of worldwide)
+gdp_per_sector;GDP
+gdp_share;GDP %
+province_labor;Labor
+province_artisan;Artisans
+gdp_rgo;Primary sector:
+gdp_factory;Secondary sector (large scale):
+gdp_artisans;Secondary sector (cottage industry):
+gdp_selected;Gdp of the selected province
+gdp_rest;Gdp of the rest of the nation
+market_report;External trade in the local market of ?Y$province$?W
+market_prices_report;Prices in the local market of ?Y$province$?W
+rgo_report;Resource gathering operations in ?Y$province$?W
+trade_balance;Balance
+rgo_details_name;Name
+rgo_efficiency_super_header;Efficiency
+rgo_efficiency_value;%
+rgo_efficiency_cost;Cost
+local_price;Local
+median_price;Worldwide
+ratio_to_median;%
+change_price;Change
+method_profit_margin;Potential profit margin
+ratio_to_median_price;Ratio to median price
 modifier_min_land_upkeep;Minimum Land Upkeep;
 alice_naval_noretreat;In order to be able to retreat, all alive ships must be on average ?O$x$?W closer to the center
 alice_str_name;Strength:?O$val$?W

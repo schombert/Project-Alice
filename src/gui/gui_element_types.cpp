@@ -1122,7 +1122,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto prov = std::get<dcon::province_id>(chunk->source);
 			if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-				state.map_state.set_selected_province(prov);
+				state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
@@ -1133,7 +1133,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			auto prov = state.world.state_instance_get_capital(s);
 			if(prov && prov.id.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-				state.map_state.set_selected_province(prov);
+				state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
@@ -1160,7 +1160,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			dcon::province_id prov = prov_rng.begin() != prov_rng.end() ? (*prov_rng.begin()).get_province().id : dcon::province_id{ };
 			if(prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-				state.map_state.set_selected_province(prov);
+				state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;

@@ -501,7 +501,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.divisor = 1.f;
 	if(current_profit_A_to_B > 0.f) {
 		result.profit = current_profit_A_to_B;
-		result.divisor = price_B_import;
+		result.divisor = price_A_export;
 		if(current_volume > 0.f) {
 			result.profit_score = current_profit_A_to_B / result.divisor;
 		} else {
@@ -509,7 +509,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		}
 	} else if(current_profit_B_to_A > 0.f) {
 		result.profit = current_profit_B_to_A;
-		result.divisor = price_A_import;
+		result.divisor = price_B_export;
 		if(current_volume > 0.f) {
 			result.profit_score = -current_profit_B_to_A / result.divisor;
 		} else {
@@ -852,15 +852,15 @@ void update_trade_routes_volume(sys::state& state) {
 				current_profit_A_to_B > 0.f,
 				ve::select(
 					current_volume > 0.f,
-					current_profit_A_to_B / price_B_import,
-					-current_profit_A_to_B / price_B_import
+					current_profit_A_to_B / price_A_export,
+					-current_profit_A_to_B / price_A_export
 				),
 				ve::select(
 					current_profit_B_to_A > 0.f,
 					ve::select(
 						current_volume > 0.f,
-						-current_profit_B_to_A / price_A_import,
-						current_profit_B_to_A / price_A_import
+						-current_profit_B_to_A / price_B_export,
+						current_profit_B_to_A / price_B_export
 					),
 					ve::fp_vector{ -0.1f }
 				)

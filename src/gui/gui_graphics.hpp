@@ -9,6 +9,7 @@
 #include "constants.hpp"
 #include "parsers.hpp"
 #include "cyto_any.hpp"
+#include "military.hpp"
 
 namespace parsers {
 struct building_gfx_context;
@@ -497,6 +498,7 @@ struct state {
 	element_base* politics_subwindow = nullptr;
 	element_base* population_subwindow = nullptr;
 	element_base* production_subwindow = nullptr;
+	element_base* build_new_factory_subwindow = nullptr;
 	element_base* trade_subwindow = nullptr;
 	element_base* unit_window_army = nullptr;
 	element_base* unit_window_navy = nullptr;
@@ -554,6 +556,7 @@ struct state {
 	uint16_t default_body_font = 0;
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
+	military::special_army_order selected_army_order;
 
 	float last_tick_investment_pool_change;
 
