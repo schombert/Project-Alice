@@ -1002,10 +1002,7 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	state.world.force_create_overlord(holder, source);
 	if(state.world.nation_get_is_great_power(source)) {
-		auto sr = state.world.force_create_gp_relationship(holder, source);
-		auto& flags = state.world.gp_relationship_get_status(sr);
-		state.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
-		state.world.nation_set_in_sphere_of(holder, source);
+		nations::sphere_nation(state, holder, source);
 	}
 	nations::remove_cores_from_owned(state, holder, state.world.nation_get_identity_from_identity_holder(source));
 	auto& inf = state.world.nation_get_infamy(source);
@@ -1565,10 +1562,8 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 
 	auto& current_influence = state.world.gp_relationship_get_influence(rel);
 	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.addtosphere_influence_cost);
-	auto& l = state.world.gp_relationship_get_status(rel);
-	state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 
-	state.world.nation_set_in_sphere_of(influence_target, source);
+	nations::sphere_nation(state, influence_target, source);
 
 	notification::post(state, notification::message{
 		[source, influence_target](sys::state& state, text::layout_base& contents) {
@@ -1630,12 +1625,10 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 	define:REMOVEFROMSPHERE_RELATION_ON_ACCEPT points. The removed nation then becomes friendly with its former sphere leader.
 	*/
 	auto rel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, source);
-
-	state.world.nation_set_in_sphere_of(influence_target, dcon::nation_id{});
-
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
-	auto& l = state.world.gp_relationship_get_status(orel);
-	state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
+	auto l = state.world.gp_relationship_get_status(orel);
+
+	nations::remove_from_sphere(state, influence_target, uint8_t(nations::influence::decrease_level(l)));
 
 	if(source != affected_gp) {
 		auto& current_influence = state.world.gp_relationship_get_influence(rel);

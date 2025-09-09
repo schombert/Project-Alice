@@ -2230,6 +2230,10 @@ ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagg
 }
 template<war_initiation check_alliance>
 bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target) {
+	// check define if restrictions are toggled on
+	if(state.defines.alice_can_goto_war_against_spherelord == 1.0f) {
+		return false;
+	}
 	auto source_sphere = state.world.nation_get_in_sphere_of(sphereling);
 	if(!source_sphere) {
 		return false;
@@ -2283,13 +2287,13 @@ void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to
 }
 
 void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
-	auto rights = economy::nation_gives_free_trade_rights(state, from, to);
+	auto our_rights = economy::nation_gives_direct_free_trade_rights(state, from, to);
 
-	if(!rights) {
+	if(!our_rights) {
 		return; // Nation doesn't give trade rights
 	}
 
-	state.world.unilateral_relationship_set_no_tariffs_until(rights, sys::date{}); // Reset trade rights
+	state.world.unilateral_relationship_set_no_tariffs_until(our_rights, sys::date{}); // Reset trade rights
 
 	notification::post(state, notification::message{
 		[source = from, target = to](sys::state& state, text::layout_base& contents) {
@@ -2341,6 +2345,19 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool no
 			});
 		}
 		
+	}
+}
+// removes all embargoes issued by the source nation
+void clear_embargoes_by(sys::state& state, dcon::nation_id source) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(source)) {
+		remove_embargo(state, rel);
+	}
+}
+
+// removes all embargoes issued to the target nation
+void clear_embargoes_to(sys::state& state, dcon::nation_id target) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(target)) {
+		remove_embargo(state, rel);
 	}
 }
 
@@ -3702,10 +3719,9 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 	while(inf < 0) {
 		if(state.world.nation_get_in_sphere_of(target) == great_power) {
 			state.world.gp_relationship_set_influence(rel, inf + state.defines.addtosphere_influence_cost);
-			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			auto l = state.world.gp_relationship_get_status(rel);
+			nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
 
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::decrease_level(l)));
 		} else {
 			state.world.gp_relationship_set_influence(rel, inf + state.defines.increaseopinion_influence_cost);
 
@@ -3718,19 +3734,16 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 		if(state.world.nation_get_in_sphere_of(target) != great_power) {
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
 			auto affected_gp = state.world.nation_get_in_sphere_of(target);
-			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
 			// if the target was in a previous GP's sphere, update their state
 			if(bool(affected_gp))
 			{
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
-				auto& l = state.world.gp_relationship_get_status(orel);
-				state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
+				auto l = state.world.gp_relationship_get_status(orel);
+				nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
 			}
 		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
-			state.world.nation_set_in_sphere_of(target, great_power);
+			nations::sphere_nation(state, target, great_power);
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
 		} else {
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
 
@@ -3774,6 +3787,28 @@ void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id so
 		auto& flags = state.world.gp_relationship_get_status(gp_rel);
 		state.world.gp_relationship_set_status(gp_rel, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
 		state.world.nation_set_in_sphere_of(target, source);
+		// clear trade agreements as spherelings can't do them. The spherelord's trade agreements are in effect instead. Will NOT clear the trade agreement if the nation is the sphereleader, since those are allowed
+		for(auto rel : state.world.nation_get_unilateral_relationship_as_source(target)) {
+			if(bool(rel.get_no_tariffs_until())) {
+				auto rel_target = rel.get_target();
+				auto rel_source = rel.get_source();
+				if(rel_target != source ) {
+					revoke_free_trade_agreement_one_way(state, rel_target, rel_source);
+				}
+				
+			}
+		}
+		for(auto rel : state.world.nation_get_unilateral_relationship_as_target(target)) {
+			if(bool(rel.get_no_tariffs_until())) {
+				auto rel_target = rel.get_target();
+				auto rel_source = rel.get_source();
+				if(rel_source != source) {
+					revoke_free_trade_agreement_one_way(state, rel_target, rel_source);
+				}
+			}
+		}
+		// clear embargoes BY the sphereling as they are now covered by the spherelord's embargo discretion. Nations can however still embargo the sphereling individually.
+		clear_embargoes_by(state, target);
 	}
 	else {
 		assert(false);
