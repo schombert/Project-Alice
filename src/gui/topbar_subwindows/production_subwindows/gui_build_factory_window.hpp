@@ -230,8 +230,8 @@ public:
 				text::close_layout_box(contents, box);
 			}
 		}
-		text::add_line_break_to_layout(state, contents);
-		//
+		/*text::add_line_break_to_layout(state, contents);
+		// These bonuses are not applied in PA
 		float sum = 0.f;
 		if(auto b1 = state.world.factory_type_get_bonus_1_trigger(content); b1) {
 			text::add_line(state, contents, "alice_factory_bonus", text::variable_type::x, text::fp_four_places{ state.world.factory_type_get_bonus_1_amount(content) });
@@ -254,7 +254,7 @@ public:
 			}
 			ui::trigger_description(state, contents, b3, trigger::to_generic(sid), trigger::to_generic(n), 0);
 		}
-		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });
+		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });*/
 
 		/* If mod uses Factory Province limits */
 		auto output = state.world.factory_type_get_output(content);
@@ -567,7 +567,10 @@ public:
 		} else if(payload.holds_type<dcon::province_id>()) {
 			payload.emplace<dcon::province_id>(focus_province);
 			return message_result::consumed;
-		} else if(payload.holds_type<production_selection_wrapper>()) {
+		} else if(payload.holds_type<dcon::state_instance_id>()) {
+			payload.emplace<dcon::state_instance_id>(state.world.province_get_state_membership(focus_province));
+			return message_result::consumed;
+		}else if(payload.holds_type<production_selection_wrapper>()) {
 			auto data = any_cast<production_selection_wrapper>(payload);
 			focus_province = data.data;
 			
