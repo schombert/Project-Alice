@@ -428,8 +428,8 @@ void update_ai_econ_construction(sys::state& state) {
 		float additional_expenses = 0.f;
 		float days_prepaid = 0.5f;
 		auto rules = n.get_combined_issue_rules();
-
-		if(budget < 0.f) {
+		// Try to build to expand the economy even without a positive budget (since spendings are scaled down)
+		if(budget < 0.f && state.world.nation_get_construction_spending(n) <= 0.1f) {
 			continue;
 		}
 
