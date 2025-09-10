@@ -3731,20 +3731,28 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 	}
 
 	while(inf > state.defines.max_influence) {
-		if(state.world.nation_get_in_sphere_of(target) != great_power) {
-			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
-			auto affected_gp = state.world.nation_get_in_sphere_of(target);
-			// if the target was in a previous GP's sphere, update their state
-			if(bool(affected_gp))
-			{
+		// if already sphered, set influence to max
+		if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_in_sphere) {
+			state.world.gp_relationship_set_influence(rel, state.defines.max_influence);
+		}
+		else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
+			// if in someone else's sphere, spend overflow influence to remove them from it first
+			if(bool(state.world.nation_get_in_sphere_of(target)) && state.world.nation_get_in_sphere_of(target) != great_power) {
+				state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
+				auto affected_gp = state.world.nation_get_in_sphere_of(target);
+				// the target was in a previous GP's sphere, update their state
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
 				auto l = state.world.gp_relationship_get_status(orel);
 				nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
+
 			}
-		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
-			nations::sphere_nation(state, target, great_power);
-			state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
-		} else {
+			// if they arent in a sphere, use overflow influence to spehere them
+			else {
+				nations::sphere_nation(state, target, great_power);
+				state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
+			}
+		}
+		else {
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
