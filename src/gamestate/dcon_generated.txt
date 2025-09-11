@@ -2972,6 +2972,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ original_attacker }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
 		name{ over_tag }
 		type{ national_identity_id }
 		tag{ save }
@@ -4395,6 +4400,10 @@ object {
 		name{ recruitable_regiments }
 		type{ uint16_t }
 		
+	}
+	property {
+		name{ overlord_commanding_units }
+		type{ bitfield }
 	}
 	property {
 		name{ averge_land_unit_score }

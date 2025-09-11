@@ -424,10 +424,10 @@ inline outline_color to_color(sys::state& state, unit_var display_unit) {
 	dcon::nation_id controller;
 	bool selected = false;
 	if(std::holds_alternative<dcon::army_id>(display_unit)) {
-		controller = state.world.army_get_controller_from_army_control(std::get<dcon::army_id>(display_unit));
+		controller = military::get_effective_unit_commander(state, std::get<dcon::army_id>(display_unit));
 		selected = state.is_selected(std::get<dcon::army_id>(display_unit));
 	} else if(std::holds_alternative<dcon::navy_id>(display_unit)) {
-		controller = state.world.navy_get_controller_from_navy_control(std::get<dcon::navy_id>(display_unit));
+		controller = military::get_effective_unit_commander(state, std::get<dcon::navy_id>(display_unit));
 		selected = state.is_selected(std::get<dcon::navy_id>(display_unit));
 	} else {
 		return outline_color::gray;
