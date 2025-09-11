@@ -1331,7 +1331,8 @@ void update_great_powers(sys::state& state) {
 				},
 				"msg_lost_gp_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::lose_great_power
+				sys::message_base_type::lose_great_power,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -1358,7 +1359,8 @@ void update_great_powers(sys::state& state) {
 				},
 				"msg_new_gp_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::become_great_power
+				sys::message_base_type::become_great_power,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -2159,7 +2161,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 				},
 				"msg_rem_sphere_title",
 				n, o, dcon::nation_id{},
-				sys::message_base_type::rem_sphere
+				sys::message_base_type::rem_sphere,
+				dcon::province_id{ }
 			});
 			o.set_in_sphere_of(dcon::nation_id{});
 		}
@@ -2306,7 +2309,8 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 					},
 					"msg_alliance_ends_title",
 					a, b, dcon::nation_id{},
-					sys::message_base_type::alliance_ends
+					sys::message_base_type::alliance_ends,
+					dcon::province_id{ }
 				});
 			}
 		}
@@ -2332,7 +2336,8 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 			},
 			"msg_alliance_starts_title",
 			a, b, dcon::nation_id{},
-			sys::message_base_type::alliance_starts
+			sys::message_base_type::alliance_starts,
+			dcon::province_id{ }
 		});
 	}
 }
@@ -2781,7 +2786,8 @@ void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_crisis_defender_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::crisis_defender_backer
+		sys::message_base_type::crisis_defender_backer,
+		dcon::province_id{ }
 	});
 }
 
@@ -2795,7 +2801,8 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_crisis_attacker_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::crisis_attacker_backer
+		sys::message_base_type::crisis_attacker_backer,
+		dcon::province_id{ }
 	});
 }
 
@@ -2850,7 +2857,8 @@ void reject_crisis_participation(sys::state& state) {
 					},
 					"msg_crisis_fizzle_title",
 					state.local_player_nation,dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::crisis_fizzle
+					sys::message_base_type::crisis_fizzle,
+					dcon::province_id{ }
 				});
 
 				cleanup_crisis(state);
@@ -2874,7 +2882,8 @@ void reject_crisis_participation(sys::state& state) {
 					},
 					"msg_crisis_fizzle_title",
 					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::crisis_fizzle
+					sys::message_base_type::crisis_fizzle,
+					dcon::province_id{ }
 				});
 
 				auto first_wg = state.crisis_attacker_wargoals.at(0);
@@ -3004,7 +3013,8 @@ void crisis_state_transition(sys::state& state, sys::crisis_state new_state) {
 						},
 						"msg_crisis_vol_join_title",
 						i.id, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::crisis_voluntary_join,
+						dcon::province_id{ }
 					});
 				} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
 					|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
@@ -3021,7 +3031,8 @@ void crisis_state_transition(sys::state& state, sys::crisis_state new_state) {
 						},
 						"msg_crisis_vol_join_title",
 						i.id, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::crisis_voluntary_join,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -3126,7 +3137,8 @@ void update_crisis(sys::state& state) {
 					state.local_player_nation,
 					crisis_liberation_tag.get_nation_from_identity_holder(),
 					owner,
-					sys::message_base_type::crisis_starts
+					sys::message_base_type::crisis_starts,
+					dcon::province_id{ }
 				});
 
 				break;
@@ -3184,7 +3196,8 @@ void update_crisis(sys::state& state) {
 							},
 							"msg_new_crisis_title",
 							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::crisis_starts
+							sys::message_base_type::crisis_starts,
+							dcon::province_id{ }
 						});
 						break;
 					}
@@ -3345,7 +3358,8 @@ void update_crisis(sys::state& state) {
 				},
 				"msg_crisis_escalates_title",
 				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::crisis_becomes_war
+				sys::message_base_type::crisis_becomes_war,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -3731,7 +3745,8 @@ void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id 
 		},
 		"msg_decision_title",
 		source, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::decision
+		sys::message_base_type::decision,
+		dcon::province_id{ }
 	});
 }
 

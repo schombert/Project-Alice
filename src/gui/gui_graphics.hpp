@@ -583,6 +583,6 @@ void show_main_menu_nation_picker(sys::state& state);
 int32_t ui_width(sys::state const& state);
 int32_t ui_height(sys::state const& state);
 
-void create_in_game_windows(sys::state& state);
+//void create_in_game_windows(sys::state& state);
 
 } // namespace ui

@@ -597,10 +597,7 @@ void update(sys::state& state) {
 		uint32_t split = 0;
 		while(split < N && sample[split] < 0.f) split++;
 
-		auto max_index = std::min((split + 9 * N) / 10, sample.size() - 1);
-		if(max_index < 0) {
-			max_index = 0;
-		}
+		size_t max_index = std::min((split + 9 * N) / 10, sample.size() - 1);
 
 		market_data_max = sample[max_index];
 		market_data_min = sample[split / 10];

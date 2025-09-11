@@ -295,7 +295,8 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 		},
 		"msg_wsub_start_title",
 		source, target, dcon::nation_id{},
-		sys::message_base_type::war_subsidies_start
+		sys::message_base_type::war_subsidies_start,
+		dcon::province_id{ }
 	});
 }
 
@@ -337,7 +338,7 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 			},
 			"msg_wsub_end_title",
 			source, target, dcon::nation_id{},
-			sys::message_base_type::war_subsidies_end
+			sys::message_base_type::war_subsidies_end, dcon::province_id{ }
 		});
 	}
 }
@@ -380,7 +381,7 @@ void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon:
 		},
 		"msg_inc_rel_title",
 		source, target, dcon::nation_id{},
-		sys::message_base_type::increase_relation
+		sys::message_base_type::increase_relation, dcon::province_id{ }
 	});
 }
 
@@ -417,7 +418,7 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 		},
 		"msg_dec_rel_title",
 		source, target, dcon::nation_id{},
-		sys::message_base_type::decrease_relation
+		sys::message_base_type::decrease_relation, dcon::province_id{ }
 	});
 }
 
@@ -1228,7 +1229,7 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 		},
 		"msg_discredit_title",
 		source, affected_gp, influence_target,
-		sys::message_base_type::discredit
+		sys::message_base_type::discredit, dcon::province_id{ }
 	});
 }
 
@@ -1301,7 +1302,7 @@ void execute_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 		},
 		"msg_expel_title",
 		source, affected_gp, influence_target,
-		sys::message_base_type::expell
+		sys::message_base_type::expell, dcon::province_id{ }
 	});
 }
 
@@ -1375,7 +1376,7 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 		},
 		"msg_ban_title",
 		source, affected_gp, influence_target,
-		sys::message_base_type::ban
+		sys::message_base_type::ban, dcon::province_id{ }
 	});
 }
 
@@ -1434,7 +1435,7 @@ void execute_increase_opinion(sys::state& state, dcon::nation_id source, dcon::n
 		},
 		"msg_op_inc_title",
 		source, influence_target, dcon::nation_id{},
-		sys::message_base_type::increase_opinion
+		sys::message_base_type::increase_opinion, dcon::province_id{ }
 	});
 }
 
@@ -1515,7 +1516,7 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 		},
 		"msg_op_dec_title",
 		source, affected_gp, influence_target,
-		sys::message_base_type::decrease_opinion
+		sys::message_base_type::decrease_opinion, dcon::province_id{ }
 	});
 }
 
@@ -1575,7 +1576,7 @@ void execute_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nati
 		},
 		"msg_add_sphere_title",
 		source, influence_target, dcon::nation_id{},
-		sys::message_base_type::add_to_sphere
+		sys::message_base_type::add_to_sphere, dcon::province_id{ }
 	});
 }
 
@@ -1655,7 +1656,7 @@ void execute_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon:
 		},
 		"msg_rem_sphere_title",
 		source, affected_gp, influence_target,
-		sys::message_base_type::rem_sphere
+		sys::message_base_type::rem_sphere, dcon::province_id{ }
 	});
 }
 
@@ -2103,7 +2104,7 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 				},
 				"msg_crisis_vol_join_title",
 				source, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::crisis_voluntary_join
+				sys::message_base_type::crisis_voluntary_join, dcon::province_id{ }
 			});
 
 			return;
@@ -2753,7 +2754,7 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon
 				},
 				"msg_embargo_issued_title",
 				from, to, dcon::nation_id{},
-				sys::message_base_type::embargo
+				sys::message_base_type::embargo, dcon::province_id{ }
 		});
 	}
 	else {
@@ -2765,7 +2766,7 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon
 			},
 			"msg_embargo_lifted_title",
 			from, to, dcon::nation_id{},
-			sys::message_base_type::embargo
+			sys::message_base_type::embargo, dcon::province_id{ }
 		});
 	}
 }
@@ -2827,7 +2828,7 @@ void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon
 			},
 			"msg_trade_rights_revoked_title",
 			target, source, dcon::nation_id{},
-			sys::message_base_type::trade_rights_revoked
+			sys::message_base_type::trade_rights_revoked, dcon::province_id{ }
 		});
 }
 
@@ -3001,7 +3002,7 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 		},
 		"msg_access_canceled_a_title",
 		source, target, dcon::nation_id{},
-		sys::message_base_type::mil_access_end
+		sys::message_base_type::mil_access_end, dcon::province_id{ }
 	});
 }
 
@@ -3040,7 +3041,7 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 			},
 			"msg_access_canceled_b_title",
 			source, target, dcon::nation_id{},
-			sys::message_base_type::mil_access_end
+			sys::message_base_type::mil_access_end, dcon::province_id{ }
 		});
 	}
 }
@@ -5927,7 +5928,6 @@ bool can_perform_command(sys::state& state, payload& c) {
 	switch(c.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
-		break;
 
 	case command_type::change_nat_focus:
 		return can_set_national_focus(state, c.source, c.data.nat_focus.target_state, c.data.nat_focus.focus);
@@ -6328,7 +6328,7 @@ bool execute_command(sys::state& state, payload& c) {
 	switch(c.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
-		break;
+
 	case command_type::change_nat_focus:
 		execute_set_national_focus(state, c.source, c.data.nat_focus.target_state, c.data.nat_focus.focus);
 		break;
@@ -6724,10 +6724,13 @@ bool execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::change_ai_nation_state:
 		execute_change_ai_nation_state(state, c.source, c.data.change_ai_nation_state.no_ai);
+		break;
 	case command_type::stop_army_movement:
 		execute_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
+		break;
 	case command_type::stop_navy_movement:
 		execute_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
+		break;
 	}
 	return true;
 }

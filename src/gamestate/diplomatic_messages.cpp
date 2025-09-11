@@ -26,7 +26,7 @@ void decline(sys::state& state, message const& m) {
 			},
 			"msg_access_refused_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::mil_access_declined
+			sys::message_base_type::mil_access_declined, dcon::province_id{ }
 		});
 		break;
 	case type::alliance_request:
@@ -41,7 +41,7 @@ void decline(sys::state& state, message const& m) {
 			},
 			"msg_alliance_declined_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::alliance_declined
+			sys::message_base_type::alliance_declined, dcon::province_id{ }
 		});
 		break;
 	case type::call_ally_request: {
@@ -67,7 +67,7 @@ void decline(sys::state& state, message const& m) {
 					},
 					"msg_alliance_ends_title",
 					m.to, m.from, dcon::nation_id{},
-					sys::message_base_type::alliance_ends
+					sys::message_base_type::alliance_ends, dcon::province_id{ }
 				});
 			}
 		}
@@ -87,7 +87,7 @@ void decline(sys::state& state, message const& m) {
 			},
 			"msg_ally_call_declined_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::ally_called_declined
+			sys::message_base_type::ally_called_declined, dcon::province_id{ }
 		});
 
 		break;
@@ -109,7 +109,7 @@ void decline(sys::state& state, message const& m) {
 			},
 			"msg_crisis_joffer_rejected",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::crisis_join_offer_declined
+			sys::message_base_type::crisis_join_offer_declined, dcon::province_id{ }
 		});
 		break;
 	case type::crisis_peace_offer:
@@ -128,7 +128,7 @@ void decline(sys::state& state, message const& m) {
 			},
 			"msg_crisis_not_settled_title",
 			m.to,  m.from, dcon::nation_id{},
-			sys::message_base_type::crisis_resolution_declined
+			sys::message_base_type::crisis_resolution_declined, dcon::province_id{ }
 		});
 
 		break;
@@ -303,7 +303,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_access_granted_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::mil_access_start
+			sys::message_base_type::mil_access_start, dcon::province_id{ }
 		});
 		break;
 	}
@@ -330,7 +330,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_ally_call_accepted_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::ally_called_accepted
+			sys::message_base_type::ally_called_accepted, dcon::province_id{ }
 		});
 
 		break;
@@ -353,7 +353,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_crisis_joffer_accepted",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::crisis_join_offer_accepted
+			sys::message_base_type::crisis_join_offer_accepted, dcon::province_id{ }
 		});
 		break;
 	case type::crisis_peace_offer:
@@ -364,7 +364,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_crisis_settled_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::crisis_resolution_accepted
+			sys::message_base_type::crisis_resolution_accepted, dcon::province_id{ }
 		});
 		break;
 	case type::free_trade_agreement:
@@ -394,7 +394,7 @@ void accept(sys::state& state, message const& m) {
 			},
 			"msg_free_trade_agreement_signed_title",
 			m.to, m.from, dcon::nation_id{},
-			sys::message_base_type::free_trade_agreement
+			sys::message_base_type::free_trade_agreement, dcon::province_id{ }
 		});
 		break;
 	}
@@ -424,7 +424,6 @@ bool ai_will_accept(sys::state& state, message const& m) {
 	switch(m.type) {
 		case type::none:
 			std::abort();
-			break;
 		case type::access_request:
 			return ai::ai_will_grant_access(state, m.to, m.from);
 		case type::alliance_request:
