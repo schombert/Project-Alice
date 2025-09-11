@@ -16,6 +16,12 @@ void suppress_movement(sys::state& state, dcon::nation_id n, dcon::movement_id m
 void daily_update_rebel_organization(sys::state& state); // increases org based on pop income and militancy
 void update_factions(sys::state& state); // adds pops to factions, deletes invalid factions
 dcon::rebel_faction_id get_faction_by_type(sys::state& state, dcon::nation_id n, dcon::rebel_type_id r);
+
+// Should only be called when initializing. Finds or creates a rebel movement within a rebel type for a pop with a starting rebel type specified in the popfile
+dcon::rebel_faction_id find_or_create_faction_for_pop(sys::state& state, dcon::nation_id nation, dcon::rebel_type_id rebel_type, dcon::pop_id pop);
+// Should only be called when initializing. Finds a rebel movement within a rebel type to give occupation with a starting revolt specified in province file
+dcon::rebel_faction_id find_faction_for_prov_occupation(sys::state& state, dcon::nation_id nation, dcon::rebel_type_id rebel_type, dcon::province_id prov);
+
 void remove_pop_from_rebel_faction(sys::state& state, dcon::pop_id p);
 
 bool sphere_member_has_ongoing_revolt(sys::state& state, dcon::nation_id n);

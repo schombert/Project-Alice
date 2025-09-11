@@ -317,6 +317,13 @@ struct pending_invention_content {
 	token_generator generator_state;
 	dcon::invention_id id;
 };
+struct rebel_regiment_parse_data {
+	dcon::province_id home_prov;
+	int32_t line_num;
+	std::string file_name;
+};
+
+
 struct pending_nat_event {
 	std::string original_file;
 	dcon::national_event_id id;
@@ -376,6 +383,8 @@ struct scenario_building_context {
 
 	sys::state& state;
 	ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
+	ankerl::unordered_dense::map<dcon::pop_id, dcon::rebel_type_id, sys::pop_hash> map_of_pop_rebel_affiliation;
+	ankerl::unordered_dense::map<dcon::province_id, dcon::rebel_type_id, sys::province_hash> map_of_province_rebel_control;
 	tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
 	ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
@@ -416,6 +425,8 @@ struct scenario_building_context {
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
+	ankerl::unordered_dense::map<dcon::regiment_id, rebel_regiment_parse_data, sys::regiment_hash> map_of_rebel_regiment_homes;
+
 
 	ankerl::unordered_dense::map<uint32_t, dcon::province_id> map_color_to_province_id;
 

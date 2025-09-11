@@ -355,16 +355,10 @@ void province_history_file::revolt(province_revolt const& rev, error_handler& er
 	auto prov_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
 	if(prov_owner) {
 		if(rebel_type) {
-			auto existing_faction = rebel::get_faction_by_type(context.outer_context.state, prov_owner, rebel_type);
-			context.outer_context.state.world.province_set_nation_from_province_control(context.id, dcon::nation_id{ });
-			if(existing_faction) {
-				context.outer_context.state.world.province_set_rebel_faction_from_province_rebel_control(context.id, existing_faction);
-			} else {
-				auto new_faction = fatten(context.outer_context.state.world, context.outer_context.state.world.create_rebel_faction());
-				new_faction.set_type(rebel_type);
-				context.outer_context.state.world.try_create_rebellion_within(new_faction, prov_owner);
-				context.outer_context.state.world.province_set_rebel_faction_from_province_rebel_control(context.id, new_faction);
-			}
+			context.outer_context.map_of_province_rebel_control.insert_or_assign(context.id, rev.rebel);
+		}
+		else {
+			err.accumulated_errors += "Revolt specified on a province uses an invalid rebel type (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 		
 	} else {

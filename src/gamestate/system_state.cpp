@@ -46,6 +46,7 @@
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
 #include "advanced_province_buildings.hpp"
+#include "military_templates.hpp"
 
 namespace ui {
 
@@ -2452,6 +2453,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
 		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
+		// // Zombie:
 		// if there is no exact match, check if any subdirs match with just the year. If none of those exist, use 1836.1.1 default (Vanilla files does this)
 		if(directory_file_count == 0) {
 			bool found_dir = false;
@@ -2884,6 +2886,58 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
+	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
+		auto pop_loc = context.state.world.pop_get_province_from_pop_location(pop_reb.first);
+		auto pop_owner = context.state.world.province_get_nation_from_province_ownership(pop_loc);
+		auto reb_fac = rebel::find_or_create_faction_for_pop(context.state, pop_owner, pop_reb.second, pop_reb.first);
+		context.state.world.try_create_pop_rebellion_membership(pop_reb.first, reb_fac);
+	}
+	// apply provinces which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto prov_reb : context.map_of_province_rebel_control) {
+		auto prov = prov_reb.first;
+		auto rebel_type = prov_reb.second;
+		auto prov_owner = context.state.world.province_get_nation_from_province_ownership(prov);
+		auto matching_reb_faction = rebel::find_faction_for_prov_occupation(context.state, prov_owner, rebel_type, prov);
+		if(bool(matching_reb_faction)) {
+			context.state.world.province_set_nation_from_province_control(prov, dcon::nation_id{ });
+			context.state.world.province_set_rebel_faction_from_province_rebel_control(prov, matching_reb_faction);
+		}
+		else {
+			err.accumulated_errors += "Could not find available rebel faction for revolt in province ID " + std::to_string(context.prov_id_to_original_id_map[prov].id) + ", has any compatible pops been assigned to the rebel type yet?";
+		}
+		
+	}
+
+	// apply regiments which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto reg_prov : context.map_of_rebel_regiment_homes) {
+		auto rebel_reg = reg_prov.first;
+		auto prov = reg_prov.second.home_prov;
+		auto reb_army = context.state.world.regiment_get_army_from_army_membership(rebel_reg);
+		auto reb_army_fac = context.state.world.army_get_controller_from_army_rebel_control(reb_army);
+
+		auto rebel_pop = military::find_available_soldier_parsing(context.state, prov, [&](sys::state& state, dcon::pop_id pop) {
+
+			auto reb_fac = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
+			// if the army rebel faction is not set yet, or the pop rebel faction is the same as the army one, proceed and attempt to use this pop as pop source
+			return bool(reb_fac) && (!bool(reb_army_fac) || reb_fac == reb_army_fac);
+		});
+		if(bool(rebel_pop)) {
+			context.state.world.force_create_regiment_source(rebel_reg, rebel_pop);
+			if(!bool(reb_army_fac)) {
+				auto pop_rebel_faction = context.state.world.pop_get_rebel_faction_from_pop_rebellion_membership(rebel_pop);
+				context.state.world.army_set_controller_from_army_rebel_control(reb_army, pop_rebel_faction);
+			}
+		}
+		// no rebel pop available
+		else {
+			context.state.world.delete_regiment(rebel_reg);
+			err.accumulated_warnings +=
+				"Not enough available pops in province are a member of a rebel faction to spawn a rebel brigade (" + reg_prov.second.file_name + " line " + std::to_string(reg_prov.second.line_num) + ")\n";
+		}
+			
+	}
+
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_output(world.commodity_size());
@@ -3270,6 +3324,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			
 		}
 	}
+	//cleanup regiments with no pop attached
+	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
+		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+		if(!world.regiment_get_pop_from_regiment_source(n)) {
+			world.delete_regiment(n);
+		}
+	}
+
+
 
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();

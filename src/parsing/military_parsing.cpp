@@ -164,7 +164,7 @@ void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& c
 	auto rebel_nid = context.outer_context.state.national_definitions.rebel_id;
 	auto rebel_nation = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(rebel_nid);
 	dcon::nation_id army_controller;
-	// if army is controlled by rebel, use nation ID 0 for army controller
+	// if army is controlled by rebel, use nation ID 0 for army controller. Add it to vector to apply rebel factions to it later
 	if(rebel_nation == context.nation_for) {
 		army_controller = dcon::nation_id{ };
 	}
@@ -207,8 +207,8 @@ void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_c
 	context.outer_context.state.world.force_create_army_membership(id, context.id);
 	oob_file_regiment_context new_context{context.outer_context, id};
 	parse_oob_regiment(gen, err, new_context);
-	// clean up regiments with invalid unit type or no pop attached
-	if(!context.outer_context.state.world.regiment_get_type(id) || !bool(context.outer_context.state.world.regiment_get_pop_from_regiment_source(id))) {
+	// clean up regiments with invalid unit type
+	if(!context.outer_context.state.world.regiment_get_type(id)) {
 		context.outer_context.state.world.delete_regiment(id);
 	}
 }

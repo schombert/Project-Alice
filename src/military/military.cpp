@@ -1261,134 +1261,29 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 	return total;
 }
 
+
+bool can_pop_form_regiment(sys::state& state, dcon::pop_id pop, float divisor) {
+	if(state.world.pop_get_size(pop) >= state.defines.pop_min_size_for_regiment) {
+
+		auto amount = int32_t((state.world.pop_get_size(pop) / divisor) + 1);
+		auto regs = state.world.pop_get_regiment_source(pop);
+		auto building = state.world.pop_get_province_land_construction(pop);
+
+		if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
+			return true;
+		}
+	}
+	return false;
+}
+
 // Calculates whether province can support more regiments
 // Considers existing regiments and construction as well
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture) {
-	if(state.world.province_get_is_colonial(p)) {
-		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment;
 
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum && pop.get_pop().get_culture() == pop_culture) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
+	return find_available_soldier(state, p, [&](sys::state& state, dcon::pop_id pop) {
+		return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers && state.world.pop_get_culture(pop) == pop_culture;
+	});
 
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						return pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return dcon::pop_id{};
-	} else if(!state.world.province_get_is_owner_core(p)) {
-		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment;
-
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum && pop.get_pop().get_culture() == pop_culture) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
-
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						return pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return dcon::pop_id{};
-	} else {
-		float divisor = state.defines.pop_size_per_regiment;
-		float minimum = state.defines.pop_min_size_for_regiment;
-
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum && pop.get_pop().get_culture() == pop_culture) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
-
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						return pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return dcon::pop_id{};
-	}
-}
-
-dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted) {
-	if(state.world.province_get_is_colonial(p)) {
-		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_colony_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment;
-
-		dcon::pop_id non_preferred;
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
-
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						if(require_accepted == pop.get_pop().get_is_primary_or_accepted_culture())
-							return pop.get_pop().id;
-						else
-							non_preferred = pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return non_preferred;
-	} else if(!state.world.province_get_is_owner_core(p)) {
-		float divisor = state.defines.pop_size_per_regiment * state.defines.pop_min_size_for_regiment_noncore_multiplier;
-		float minimum = state.defines.pop_min_size_for_regiment;
-
-		dcon::pop_id non_preferred;
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
-
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						if(require_accepted == pop.get_pop().get_is_primary_or_accepted_culture())
-							return pop.get_pop().id;
-						else
-							non_preferred = pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return non_preferred;
-	} else {
-		float divisor = state.defines.pop_size_per_regiment;
-		float minimum = state.defines.pop_min_size_for_regiment;
-
-		dcon::pop_id non_preferred;
-		for(auto pop : state.world.province_get_pop_location(p)) {
-			if(pop.get_pop().get_poptype() == state.culture_definitions.soldiers) {
-				if(pop.get_pop().get_size() >= minimum) {
-					auto amount = int32_t((pop.get_pop().get_size() / divisor) + 1);
-					auto regs = pop.get_pop().get_regiment_source();
-					auto building = pop.get_pop().get_province_land_construction();
-
-					if(amount > ((regs.end() - regs.begin()) + (building.end() - building.begin()))) {
-						if(require_accepted == pop.get_pop().get_is_primary_or_accepted_culture())
-							return pop.get_pop().id;
-						else
-							non_preferred = pop.get_pop().id;
-					}
-				}
-			}
-		}
-		return non_preferred;
-	}
 }
 
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p) {
