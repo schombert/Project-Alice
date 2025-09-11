@@ -1,5 +1,15 @@
 #pragma once
 
+#ifdef NDEBUG
+#ifdef _MSC_VER
+#define RELEASE_INLINE __forceinline
+#else
+#define RELEASE_INLINE inline __attribute__((always_inline))
+#endif
+#else
+#define RELEASE_INLINE inline
+#endif
+
 namespace adaptive_ve {
 
 template<typename T>
@@ -22,52 +32,52 @@ template<typename T>
 using convert_to_bool = std::conditional_t<ve::is_vector_type_s<T>::value, ve::mask_vector, bool>;
 
 template<typename VALUE> requires has_default_order<VALUE>
-VALUE min(const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE min(const VALUE a, const VALUE b) {
 	return std::min(a, b);
 }
 
 template<typename VALUE>
-VALUE min(const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE min(const VALUE a, const VALUE b) {
 	return ve::min(a, b);
 }
 
 template<typename VALUE> requires has_default_order<VALUE>
-VALUE max(const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE max(const VALUE a, const VALUE b) {
 	return std::max(a, b);
 }
 
 template<typename VALUE>
-VALUE max(const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE max(const VALUE a, const VALUE b) {
 	return ve::max(a, b);
 }
 
 template<typename VALUE> requires abs_is_defined<VALUE>
-VALUE abs(const VALUE a) {
+RELEASE_INLINE VALUE abs(const VALUE a) {
 	return std::abs(a);
 }
 
 template<typename VALUE>
-VALUE abs(const VALUE a) {
+RELEASE_INLINE VALUE abs(const VALUE a) {
 	return ve::abs(a);
 }
 
 template<typename MASK, typename VALUE> requires is_vector<MASK> && is_vector<VALUE>
-VALUE select(const MASK mask, const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE select(const MASK mask, const VALUE a, const VALUE b) {
 	return ve::select(mask, a, b);
 }
 
 template<typename MASK, typename VALUE> requires is_vector<MASK>
-VALUE select(const MASK mask, const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE select(const MASK mask, const VALUE a, const VALUE b) {
 	return ve::select(mask, VALUE{ a }, VALUE{ b });
 }
 
 template<typename MASK, typename VALUE> requires std::same_as<MASK, bool>
-VALUE select(const MASK mask, const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE select(const MASK mask, const VALUE a, const VALUE b) {
 	return mask ? a : b;
 }
 
 template<typename MASK, typename VALUE>
-VALUE select(const MASK mask, const VALUE a, const VALUE b) {
+RELEASE_INLINE VALUE select(const MASK mask, const VALUE a, const VALUE b) {
 	return ve::select<VALUE::wrapped_value>(mask, a, b);
 }
 
