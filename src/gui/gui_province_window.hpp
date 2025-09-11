@@ -152,7 +152,7 @@ public:
 class province_close_button : public generic_close_button {
 public:
 	void button_action(sys::state& state) noexcept override {
-		state.map_state.set_selected_province(dcon::province_id{});
+		state.set_selected_province(dcon::province_id{});
 		generic_close_button::button_action(state);
 	}
 };
@@ -2023,7 +2023,7 @@ public:
 		auto content = retrieve<dcon::province_id>(state, parent);
 		command::finish_colonization(state, state.local_player_nation, content);
 		state.ui_state.province_window->set_visible(state, false);
-		state.map_state.set_selected_province(dcon::province_id{});
+		state.set_selected_province(dcon::province_id{});
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -2499,7 +2499,7 @@ public:
 	void set_active_province(sys::state& state, dcon::province_id map_province) {
 		if(bool(map_province)) {
 			active_province = map_province;
-			state.map_state.set_selected_province(map_province);
+			state.set_selected_province(map_province);
 			if(!is_visible())
 				set_visible(state, true);
 			else

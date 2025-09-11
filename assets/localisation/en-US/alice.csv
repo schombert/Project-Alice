@@ -13,6 +13,7 @@ create_admiral;A new admiral is created
 add_war_goal;A $text$ war goal is added against $nation$
 blank_loyalty;$text$ loyalty
 in_blank;in $text$
+currently;(currently: ?Y$x$?!)
 no_effect;No effect
 move_capital_to;Move capital to
 add_x_core;Add $adj$ core
@@ -1161,6 +1162,12 @@ macro_warn_unlocked;?RUsing units not unlocked yet!?!
 macro_select_province;Please select a province on the map
 macro_warn_insuff;?RCan't build $x$ $name$ (only $y$)?!
 macro_warn_invalid_province;?RProvince not part of a region?!
+move_to_siege;Move to Siege order (hotkey: V)
+move_to_siege_desc;With Move to Siege order army moves to the next province only after full occupation of the current one.
+strategic_redeployment;Strategic redeployment (hotkey: B)
+strategic_redeployment_desc;Strategic redeployment allows to move troops at increased speed, but with zero organisation.
+pursue_to_engage;Pursue and engage an army (hotkey: N)
+pursue_to_engage_desc;Army will pursue and engage an army from the target province.
 shortcut_tooltip;Shortcut: ?Y$x$?!
 filter_all;Show ?Yall?! relevant nations.
 filter_allies;Filter by nations we have an ?Yalliance?! with.\n?YRight-click?! to filter by nations which want to ally us.

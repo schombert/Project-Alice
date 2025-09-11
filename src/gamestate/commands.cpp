@@ -3665,7 +3665,6 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 	diplomatic_message::post(state, m);
 }
 
-
 void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
@@ -3712,7 +3711,7 @@ void execute_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon:
 	military::stop_navy_movement(state, navy);
 }
 
-void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order) {
 	payload p;
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::move_army;
@@ -3720,6 +3719,8 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 	p.data.army_movement.a = a;
 	p.data.army_movement.dest = dest;
 	p.data.army_movement.reset = reset;
+	p.data.army_movement.special_order = order;
+
 	add_to_command_queue(state, p);
 }
 
@@ -3749,13 +3750,13 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	
 }
 
-void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order) {
 	auto army_loc = state.world.army_get_location_from_army_location(a);
 	if(army_loc == dest) {
 		command::stop_army_movement(state, source, a);
 	}
 	else {
-		move_army(state, source, a, dest, true);
+		move_army(state, source, a, dest, true, order);
 	}
 }
 
@@ -3921,7 +3922,7 @@ std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nati
 	}
 }
 
-void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order) {
 	if(source != state.world.army_get_controller_from_army_control(a))
 		return;
 	if(state.world.army_get_is_retreating(a))
@@ -3941,19 +3942,37 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		}
 	}
 
+	// Invalid destination province: reset existing path
 	if(!dest) {
 		military::stop_army_movement(state, a);
 		return;
 	}
+
+	state.world.army_set_special_order(a, (uint8_t)special_order);
+
+	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
 
 	if(military::move_army_fast(state, a, path, source, reset)) {
 		state.world.army_set_is_rebel_hunter(a, false);
+
+		// US9AC1 Command army to pursue the target
+		if(special_order == military::special_army_order::pursue_to_engage) {
+			// Target the first army in the target province
+			auto al = (*state.world.province_get_army_location(dest).begin());
+			if(al) {
+				state.world.force_create_army_pursuit(a, al.get_army());
+			}
+			else {
+				state.world.force_create_army_pursuit(a, dcon::army_id{});
+			}
+		}
 	} else if(reset) {
 		military::stop_army_movement(state, a);
 	}
 	state.world.army_set_moving_to_merge(a, false);
 
+	// Move away FROM battle
 	if(battle) {
 		state.world.army_set_is_retreating(a, true);
 		state.world.army_set_battle_from_army_battle_participation(a, dcon::land_battle_id{});
@@ -5805,7 +5824,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 			ai::remove_ai_data(state, n);
 	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
-	state.map_state.set_selected_province(dcon::province_id{});
+	state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 
 	auto cache = sys::player_data{};
@@ -5879,7 +5898,7 @@ bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
-	state.map_state.set_selected_province(dcon::province_id{});
+	state.set_selected_province(dcon::province_id{});
 	state.map_state.unhandled_province_selection = true;
 	state.ui_lock.unlock();
 }
@@ -6531,7 +6550,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_send_peace_offer(state, c.source);
 		break;
 	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset);
+		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.special_order);
 		break;
 	case command_type::move_navy:
 		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);

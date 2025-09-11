@@ -131,6 +131,8 @@
 	LUA_DEFINES_LIST_ELEMENT(pop_size_per_regiment, 3000.000000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(soldier_to_pop_damage, 0.200000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(land_speed_modifier, 1.000000)                                                                        \
+	LUA_DEFINES_LIST_ELEMENT(strategic_redeployment_speed_modifier, 1.300000)                                                      \
+	LUA_DEFINES_LIST_ELEMENT(strategic_redeployment_infrastructure_factor, 1.00000)                                                \
 	LUA_DEFINES_LIST_ELEMENT(naval_speed_modifier, 2.000000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(exp_gain_div, 0.050000)                                                                               \
 	LUA_DEFINES_LIST_ELEMENT(leader_recruit_cost, 20.000000)                                                                       \
