@@ -2459,8 +2459,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			bool found_dir = false;
 			auto potential_dirs = simple_fs::list_subdirectories(pop_history);
 			for(simple_fs::directory dir : potential_dirs) {
-				auto dir_name = std::wstring(get_dir_name(dir));
-				auto year = std::to_wstring(startdate.year);
+				auto dir_name = get_dir_name(dir);
+				auto year = to_native_string(startdate.year);
 				if(dir_name.starts_with(year.c_str())) {
 					date_directory = open_directory(pop_history, dir_name);
 					found_dir = true;
