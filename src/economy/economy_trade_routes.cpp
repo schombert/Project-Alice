@@ -572,7 +572,7 @@ void update_trade_routes_volume(
 
 		auto is_A_civ = state.world.nation_get_is_civilized(controller_A);
 		auto is_B_civ = state.world.nation_get_is_civilized(controller_B);
-		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
+		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route) && !is_A_blockaded && !is_B_blockaded;
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
 		auto same_nation = controller_A == controller_B;
 		// US3AC7 US3AC8 Ban international sea routes or international land routes based on the corresponding modifiers
@@ -619,7 +619,7 @@ void update_trade_routes_volume(
 				+ state.world.province_get_labor_price(capital_B, labor::no_education)
 			);
 
-		auto reset_route = is_A_blockaded || is_B_blockaded || trade_closed || trade_banned
+		auto reset_route = trade_closed || trade_banned
 			|| !ve::apply([&](auto r) { return state.world.trade_route_is_valid(r); }, trade_route)
 			|| (!is_sea_route && !is_land_route);
 

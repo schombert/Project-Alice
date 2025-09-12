@@ -2125,7 +2125,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			return military::are_at_war(state, capital_nation, port_nation);
 		}, controller_capital, controller_port);
 
-		state_naval_trade_is_blockaded.set(sids, ve::select(occupied || state.world.province_get_is_blockaded(port), ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f }));
+		state_naval_trade_is_blockaded.set(sids, ve::select(port == dcon::province_id{} || occupied || state.world.province_get_is_blockaded(port), ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f }));
 	});
 
 	set_profile_point("blockade_check");
