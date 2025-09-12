@@ -361,18 +361,18 @@ public:
 					float b_population = state.world.nation_get_demographics(b, demographics::total);
 
 					if(lsort.reversed) {
-						return economy::gdp_adjusted(state, a) / a_population < economy::gdp_adjusted(state, b) / b_population;
+						return economy::gdp::value_nation_adjusted(state, a) / a_population < economy::gdp::value_nation_adjusted(state, b) / b_population;
 					} else {
-						return economy::gdp_adjusted(state, a) / a_population > economy::gdp_adjusted(state, b) / b_population;
+						return economy::gdp::value_nation_adjusted(state, a) / a_population > economy::gdp::value_nation_adjusted(state, b) / b_population;
 					}
 				});
 				break;
 			case ledger_sort_type::gdp:	
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(lsort.reversed) {
-						return economy::gdp_adjusted(state, a) < economy::gdp_adjusted(state, b);
+						return economy::gdp::value_nation_adjusted(state, a) < economy::gdp::value_nation_adjusted(state, b);
 					} else {
-						return economy::gdp_adjusted(state, a) > economy::gdp_adjusted(state, b);
+						return economy::gdp::value_nation_adjusted(state, a) > economy::gdp::value_nation_adjusted(state, b);
 					}
 				});
 				break;

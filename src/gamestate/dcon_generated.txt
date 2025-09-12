@@ -4727,6 +4727,25 @@ relationship{
 		tag{ save }
 	}
 
+	property{
+		name{ is_trade_forbidden }
+		type{ bitfield }
+		tag{ save }
+	}
+
+
+	property{
+		name{ is_tariff_applied_0 }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ is_tariff_applied_1 }
+		type{ bitfield }
+		tag{ save }
+	}
+
 	property {
 		name{ volume }
 		type{ array{commodity_id}{float} }

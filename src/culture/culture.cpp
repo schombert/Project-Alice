@@ -1119,7 +1119,8 @@ void update_research(sys::state& state, uint32_t current_year) {
 						},
 						"msg_tech_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::tech
+						sys::message_base_type::tech,
+						dcon::province_id{ }
 					});
 
 					n.set_current_research(dcon::technology_id{});

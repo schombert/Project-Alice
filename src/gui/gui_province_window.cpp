@@ -193,7 +193,6 @@ std::unique_ptr<element_base> province_view_window::make_child(sys::state& state
 		nf_win = ptr.get();
 		return ptr;
 	} else if(name == "local_economy_view") {
-		//auto ptr = make_element_by_type<province_economy_window>(state, id);
 		auto ptr = alice_ui::make_province_economy_overview_body(state);
 		economy_window = ptr.get();
 		return ptr;

@@ -1672,7 +1672,8 @@ void update_cbs(sys::state& state) {
 						},
 						"msg_fab_canceled_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::cb_fab_cancelled
+						sys::message_base_type::cb_fab_cancelled,
+						dcon::province_id{ }
 					});
 				}
 
@@ -1723,7 +1724,8 @@ void update_cbs(sys::state& state) {
 						},
 						"msg_fab_finished_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::cb_fab_finished
+						sys::message_base_type::cb_fab_finished,
+						dcon::province_id{ }
 					});
 				}
 
@@ -2487,7 +2489,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_fab_discovered_title",
 		n, target, dcon::nation_id{},
-		sys::message_base_type::cb_detected
+		sys::message_base_type::cb_detected,
+		dcon::province_id{ }
 	});
 }
 
@@ -2557,7 +2560,8 @@ void kill_leader(sys::state& state, dcon::leader_id l) {
 				},
 				"msg_leader_died_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::leader_dies
+				sys::message_base_type::leader_dies,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -2838,7 +2842,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 						},
 						"msg_wsub_end_title",
 						n, ul.get_target().id, dcon::nation_id{},
-						sys::message_base_type::war_subsidies_end
+						sys::message_base_type::war_subsidies_end,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -2857,7 +2862,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 						},
 						"msg_wsub_end_title",
 						n, ul.get_target().id, dcon::nation_id{},
-						sys::message_base_type::war_subsidies_end
+						sys::message_base_type::war_subsidies_end,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -2892,7 +2898,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 				},
 				"msg_war_becomes_great_title",
 				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::war_becomes_great
+				sys::message_base_type::war_becomes_great,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -2904,7 +2911,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		},
 		"msg_war_join_title",
 		n, get_role(state, w, state.local_player_nation) != war_role::none ? state.local_player_nation : dcon::nation_id{}, dcon::nation_id{ },
-		sys::message_base_type::join_war
+		sys::message_base_type::join_war,
+		dcon::province_id{ }
 	});
 
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
@@ -2957,6 +2965,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_attacker);
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
+	state.trade_route_cached_values_out_of_date = true;
 
 	// release puppet if subject declares on overlord or vice versa
 	{
@@ -3014,7 +3023,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 		},
 		"msg_war_title",
 		primary_attacker, primary_defender, dcon::nation_id{},
-		sys::message_base_type::war
+		sys::message_base_type::war,
+		dcon::province_id{ }
 	});
 
 	return new_war;
@@ -3208,7 +3218,8 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 			},
 			"msg_wargoal_title",
 			added_by, target, state.local_player_nation,
-			sys::message_base_type::wargoal_added
+			sys::message_base_type::wargoal_added,
+			dcon::province_id{ }
 		});
 	}
 }
@@ -3391,7 +3402,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 		},
 		"msg_rem_sphere_title",
 		new_gp, existing_sphere_leader, member,
-		sys::message_base_type::rem_sphere
+		sys::message_base_type::rem_sphere,
+		dcon::province_id{ }
 	});
 }
 
@@ -3418,6 +3430,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			rel_1 = state.world.force_create_unilateral_relationship(target, from);
 		}
 		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+		state.trade_route_cached_values_out_of_date = true;
 	}
 
 	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that
@@ -4060,7 +4073,8 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			},
 			"msg_peace_offer_accepted_title",
 			target, from, dcon::nation_id{},
-			sys::message_base_type::peace_accepted
+			sys::message_base_type::peace_accepted,
+			dcon::province_id{ }
 		});
 	}
 
@@ -4357,7 +4371,8 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			},
 			"msg_peace_offer_rejected_title",
 			target, from, dcon::nation_id{},
-			sys::message_base_type::peace_rejected
+			sys::message_base_type::peace_rejected,
+			dcon::province_id{ }
 		});
 	}
 
@@ -6876,7 +6891,7 @@ void notify_on_new_land_battle(sys::state& state, dcon::land_battle_id battle, d
 	auto location = state.world.land_battle_get_location_from_land_battle_location(battle);
 	// notify if attacking
 	dcon::nation_id enemy_nation = (battle_role == war_role::attacker) ? get_land_battle_lead_defender(state, battle) : get_land_battle_lead_attacker(state, battle);
-	bool show_notification = (enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat || enemy_nation != dcon::nation_id{ });
+	bool show_notification = ((enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat) || enemy_nation != dcon::nation_id{ });
 	if(battle_role == war_role::attacker && show_notification) {
 		notification::post(state, notification::message{
 			.body = [=](sys::state& state, text::layout_base& layout) {
@@ -9007,7 +9022,8 @@ void update_siege_progress(sys::state& state) {
 					},
 					"msg_siegeover_title",
 					cc, oc, dcon::nation_id{},
-					sys::message_base_type::siegeover
+					sys::message_base_type::siegeover,
+					dcon::province_id{ }
 				});
 			}
 
@@ -9770,7 +9786,8 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_mobilize_start_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::mobilization_start
+		sys::message_base_type::mobilization_start,
+		dcon::province_id{ }
 	});
 }
 void end_mobilization(sys::state& state, dcon::nation_id n) {
@@ -9800,7 +9817,8 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_mobilize_end_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::mobilization_end
+		sys::message_base_type::mobilization_end,
+		dcon::province_id{ }
 	});
 }
 void advance_mobilizations(sys::state& state) {
