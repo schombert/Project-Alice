@@ -1002,6 +1002,7 @@ void execute_make_vassal(sys::state& state, dcon::nation_id source, dcon::nation
 	nations::liberate_nation_from(state, t, source);
 	auto holder = state.world.national_identity_get_nation_from_identity_holder(t);
 	state.world.force_create_overlord(holder, source);
+	state.trade_route_cached_values_out_of_date = true;
 	if(state.world.nation_get_is_great_power(source)) {
 		nations::sphere_nation(state, holder, source);
 	}

@@ -19,6 +19,7 @@
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
 #include "gui_effect_tooltips.hpp"
+#include "adaptive_ve.hpp"
 
 namespace nations {
 
@@ -157,6 +158,7 @@ void restore_unsaved_values(sys::state& state) {
 			auto t = state.world.gp_relationship_get_influence_target(rel);
 			auto gp = state.world.gp_relationship_get_great_power(rel);
 			state.world.nation_set_in_sphere_of(t, gp);
+			state.trade_route_cached_values_out_of_date = true;
 		}
 	});
 
@@ -1312,6 +1314,7 @@ void update_great_powers(sys::state& state) {
 			state.great_nations[i].last_greatness = state.current_date;
 		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
 							state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
+			state.trade_route_cached_values_out_of_date = true;
 
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();
@@ -1353,6 +1356,7 @@ void update_great_powers(sys::state& state) {
 			state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
 
 			state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
+			state.trade_route_cached_values_out_of_date = true;
 			auto rng = state.world.nation_get_gp_relationship_as_influence_target(n);
 			while(rng.begin() != rng.end()) {
 				state.world.delete_gp_relationship(*(rng.begin()));
@@ -2166,6 +2170,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
+	state.trade_route_cached_values_out_of_date = true;
+
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
 			notification::post(state, notification::message{
@@ -2265,6 +2271,8 @@ template bool would_war_conflict_with_sphere_leader<war_initiation::declare_war>
 void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
 	auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
 
+	state.trade_route_cached_values_out_of_date = true;
+
 	// One way tariff removal
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {
@@ -2297,6 +2305,7 @@ void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, 
 	}
 
 	state.world.unilateral_relationship_set_no_tariffs_until(our_rights, sys::date{}); // Reset trade rights
+	state.trade_route_cached_values_out_of_date = true;
 
 	notification::post(state, notification::message{
 		[source = from, target = to](sys::state& state, text::layout_base& contents) {
@@ -2314,6 +2323,7 @@ void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, boo
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(state.world.unilateral_relationship_get_embargo(rel)) {
 		state.world.unilateral_relationship_set_embargo(rel, false);
+		state.trade_route_cached_values_out_of_date = true;
 		if(notify) {
 			// Notify the person from whom we lifted embargo
 			notification::post(state, notification::message{
@@ -2335,7 +2345,7 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool no
 	auto from = state.world.unilateral_relationship_get_source(rel);
 	if(!state.world.unilateral_relationship_get_embargo(rel)) {
 		state.world.unilateral_relationship_set_embargo(rel, true);
-
+		state.trade_route_cached_values_out_of_date = true;
 		if(notify) {
 			// Notify the person who got embargoed
 			notification::post(state, notification::message{
@@ -2394,6 +2404,7 @@ void clear_trade_agreements(sys::state& state, dcon::nation_id nation) {
 }
 
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
+	state.trade_route_cached_values_out_of_date = true;
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
 		while(gp_relationships.begin() != gp_relationships.end()) {
@@ -2464,6 +2475,7 @@ void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id ove
 		}
 	} else {
 		state.world.force_create_overlord(subject, overlord);
+		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_get_vassals_count(overlord)++;
 		// clear alliances of subject to prevent potential tomfoolery by the subject
 		clear_alliances(state, subject);
@@ -2491,6 +2503,7 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		}
 	} else {
 		state.world.force_create_overlord(subject, overlord);
+		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
 		state.world.nation_get_substates_count(current_ruler)++;
@@ -3787,6 +3800,7 @@ void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, d
 void remove_from_sphere(sys::state& state, dcon::nation_id target, uint8_t new_influence_level) {
 	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(target);
 	if(existing_sphere_leader) {
+		state.trade_route_cached_values_out_of_date = true;
 		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, existing_sphere_leader);
 		assert(rel);
 		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask));
@@ -3802,6 +3816,7 @@ void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id so
 		return;
 	}
 	if(state.world.nation_get_is_great_power(source)) {
+		state.trade_route_cached_values_out_of_date = true;
 		auto gp_rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
 		if(!gp_rel) {
 			gp_rel = state.world.force_create_gp_relationship(target, source);

@@ -23,18 +23,6 @@ inline constexpr float trade_route_min_shift = 0.001f;
 // the trade will effectively stop
 inline constexpr float trade_demand_satisfaction_cutoff = 0.7f;
 
-template<typename NATION>
-auto get_market_leader(sys::state const& state, NATION n) {
-	NATION sphere = state.world.nation_get_in_sphere_of(n);
-	auto has_sphere = sphere != dcon::nation_id{};
-
-	// US3AC12. Subjects have embargo of overlords propagated onto them
-	auto overlord_rel = state.world.nation_get_overlord_as_subject(n);
-	NATION overlord = state.world.overlord_get_ruler(overlord_rel);
-	auto has_overlord = overlord != dcon::nation_id{};
-
-	return ve::select(has_overlord, overlord, ve::select(has_sphere, sphere, n));
-}
 
 template<typename TRADE_ROUTE>
 auto trade_route_effect_of_scale(sys::state& state, TRADE_ROUTE trade_route) {
@@ -83,10 +71,7 @@ void update_trade_routes_volume(
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
 	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>& coastal_capital_buffer,
-	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied,
-	ve::vectorizable_buffer<dcon::nation_id, dcon::market_id>& market_leader,
-	ankerl::unordered_dense::map<int32_t, bool>& trade_closed,
-	ankerl::unordered_dense::map<int32_t, bool>& no_tariffs
+	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied
 );
 void update_trade_routes_consumption(sys::state& state);
 
@@ -174,8 +159,8 @@ auto explain_trade_route(
 	auto controller_capital_0 = state.world.province_get_nation_from_province_control(capital_0);
 	auto controller_capital_1 = state.world.province_get_nation_from_province_control(capital_1);
 
-	auto market_leader_0 = get_market_leader(state, n0);
-	auto market_leader_1 = get_market_leader(state, n1);
+	auto market_leader_0 = nations::get_market_leader(state, n0);
+	auto market_leader_1 = nations::get_market_leader(state, n1);
 
 	auto applies_tariffs_0 = ve::apply([&](auto n_a, auto n_b) {
 		auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);

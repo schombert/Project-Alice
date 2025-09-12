@@ -2965,6 +2965,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_attacker);
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
+	state.trade_route_cached_values_out_of_date = true;
 
 	// release puppet if subject declares on overlord or vice versa
 	{
@@ -3429,6 +3430,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			rel_1 = state.world.force_create_unilateral_relationship(target, from);
 		}
 		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+		state.trade_route_cached_values_out_of_date = true;
 	}
 
 	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that

@@ -490,10 +490,7 @@ void update_trade_routes_volume(
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
 	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>& coastal_capital_buffer,
-	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied,
-	ve::vectorizable_buffer<dcon::nation_id, dcon::market_id>& market_leader,
-	ankerl::unordered_dense::map<int32_t, bool>& trade_closed_storage,
-	ankerl::unordered_dense::map<int32_t, bool>& no_tariffs
+	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied
 ) {
 	state.world.execute_parallel_over_trade_route([&](auto trade_route) {
 		auto A = ve::apply([&](auto route) {
@@ -513,34 +510,13 @@ void update_trade_routes_volume(
 		auto controller_A = state.world.province_get_nation_from_province_control(capital_A);
 		auto controller_B = state.world.province_get_nation_from_province_control(capital_B);
 
-		auto A_is_open_to_B = ve::apply([&](auto n1, auto n2) {
-			auto index_pair = n1.index() * state.world.nation_size() + n2.index();
-			if(no_tariffs.find(index_pair) != no_tariffs.end()) {
-				return true;
-			} else {
-				return false;
-			}
-		}, controller_A, controller_B);
-		auto B_is_open_to_A = ve::apply([&](auto n1, auto n2) {
-			auto index_pair = n1.index() * state.world.nation_size() + n2.index();
-			if(no_tariffs.find(index_pair) != no_tariffs.end()) {
-				return true;
-			} else {
-				return false;
-			}
-		}, controller_B, controller_A);
+		auto A_is_open_to_B = !state.world.trade_route_get_is_tariff_applied_0(trade_route);
+		auto B_is_open_to_A = !state.world.trade_route_get_is_tariff_applied_1(trade_route);
 
 		ve::mask_vector is_A_blockaded = state_port_is_occupied.get(s_A) > 0.f;
 		ve::mask_vector is_B_blockaded = state_port_is_occupied.get(s_B) > 0.f;
 
-		auto trade_closed = ve::apply([&](auto n1, auto n2) {
-			auto index_pair = n1.index() * state.world.nation_size() + n2.index();
-			if(trade_closed_storage.find(index_pair) != trade_closed_storage.end()) {
-				return true;
-			} else {
-				return false;
-			}
-		}, controller_A, controller_B);
+		auto trade_closed = state.world.trade_route_get_is_trade_forbidden(trade_route);
 
 		auto is_A_civ = state.world.nation_get_is_civilized(controller_A);
 		auto is_B_civ = state.world.nation_get_is_civilized(controller_B);

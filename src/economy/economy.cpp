@@ -1878,16 +1878,16 @@ void run_private_investment(sys::state& state) {
 
 
 // AWESOME ECONOMY PROFILE TOOLS
-//static auto pf = fopen("performance_record", "w");
-//static inline int64_t GetTicks() {
-//	LARGE_INTEGER ticks;
-//	if(!QueryPerformanceCounter(&ticks)) {
-//		std::abort();
-//	}
-//	return ticks.QuadPart;
-//}
+static auto pf = fopen("performance_record", "w");
+static inline int64_t GetTicks() {
+	LARGE_INTEGER ticks;
+	if(!QueryPerformanceCounter(&ticks)) {
+		std::abort();
+	}
+	return ticks.QuadPart;
+}
 static void set_profile_point(std::string name) {
-	//fprintf(pf, (name + ",%llu\n").c_str(), GetTicks());
+	fprintf(pf, (name + ",%llu\n").c_str(), GetTicks());
 }
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
@@ -1949,13 +1949,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto import_tariff_buffer = state.world.market_make_vectorizable_float_buffer();
 	auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());	
 	auto state_naval_trade_is_blockaded = ve::vectorizable_buffer<float, dcon::state_instance_id>(state.world.state_instance_size());
-	auto market_leader = ve::vectorizable_buffer<dcon::nation_id, dcon::market_id>(state.world.state_instance_size());
-	ankerl::unordered_dense::map<int32_t, bool> trade_closed;
-	ankerl::unordered_dense::map<int32_t, bool> no_tariffs;
+	auto market_leader = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.state_instance_size());
 
 	set_profile_point("create_buffers");
 
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 6, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -1984,154 +1982,195 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			break;
 		case 3:
-			state.world.execute_serial_over_market([&](auto ids) {
-				auto sids = state.world.market_get_zone_from_local_market(ids);
-				auto capital = state.world.state_instance_get_capital(sids);
-				auto controller = state.world.province_get_nation_from_province_control(capital);
-				market_leader.set(ids, economy::get_market_leader(state, controller));
+			state.world.for_each_nation([&](auto ids) {
+				market_leader.set(ids, nations::get_market_leader(state, ids));
 			});
 			break;
 		case 4:
-			// US3AC9. Wartime embargoes
-			state.world.for_each_war([&](auto war) {
-				state.world.war_for_each_war_participant(war, [&](auto attacker_candidate) {
-					if(!state.world.war_participant_get_is_attacker(attacker_candidate)) return;
-					auto attacker = state.world.war_participant_get_nation(attacker_candidate);
-
-					state.world.war_for_each_war_participant(war, [&](auto defender_candidate) {
-						if(state.world.war_participant_get_is_attacker(defender_candidate)) return;
-						auto defender = state.world.war_participant_get_nation(defender_candidate);
-
-						auto index_pair = attacker.index() * state.world.nation_size() + defender.index();
-						auto index_pair_T = defender.index() * state.world.nation_size() + attacker.index();
-						trade_closed[index_pair] = true;
-						trade_closed[index_pair_T] = true;
-
-						state.world.for_each_nation([&](auto nid) {
-							dcon::nation_id sphere = state.world.nation_get_in_sphere_of(nid);
-							auto overlord = state.world.nation_get_overlord_as_subject(nid);
-							dcon::nation_id ruler = state.world.overlord_get_ruler(overlord);
-
-							int votes_to_close_trade_with_attacker = 0;
-							int votes_to_close_trade_with_defender = 0;
-							// US3AC11. sphere joins embargo
-							if(sphere == attacker) {
-								votes_to_close_trade_with_defender++;
-							}
-							if(sphere == defender) {
-								votes_to_close_trade_with_attacker++;
-							}
-							// US3AC12. subject joins embargo
-							if(ruler == attacker) {
-								votes_to_close_trade_with_defender++;
-							}
-							if(ruler == defender) {
-								votes_to_close_trade_with_attacker++;
-							}
-
-							if(votes_to_close_trade_with_attacker == 0 && votes_to_close_trade_with_defender > 0) {
-								auto index_pair = nid.index() * state.world.nation_size() + defender.index();
-								auto index_pair_T = defender.index() * state.world.nation_size() + nid.index();
-								trade_closed[index_pair] = true;
-								trade_closed[index_pair_T] = true;
-							}
-							if(votes_to_close_trade_with_attacker > 0 && votes_to_close_trade_with_defender == 0) {
-								auto index_pair = attacker.index() * state.world.nation_size() + nid.index();
-								auto index_pair_T = nid.index() * state.world.nation_size() + attacker.index();
-								trade_closed[index_pair] = true;
-								trade_closed[index_pair_T] = true;
-							}
-						});
-					});
-				});
-			});
-
-			// US3AC10. diplomatic embargos
-			state.world.for_each_unilateral_relationship([&](auto rel) {
-				if(state.world.unilateral_relationship_get_embargo(rel)) {
-					dcon::nation_id source = state.world.unilateral_relationship_get_source(rel);
-					dcon::nation_id target = state.world.unilateral_relationship_get_target(rel);
-
-					auto index_pair = source.index() * state.world.nation_size() + target.index();
-					auto index_pair_T = target.index() * state.world.nation_size() + source.index();
-
-					trade_closed[index_pair] = true;
-					trade_closed[index_pair_T] = true;
-
-					state.world.for_each_nation([&](auto nid) {
-						dcon::nation_id sphere = state.world.nation_get_in_sphere_of(nid);
-						auto overlord = state.world.nation_get_overlord_as_subject(nid);
-						dcon::nation_id ruler = state.world.overlord_get_ruler(overlord);
-
-						int votes_to_close_trade_with_source = 0;
-						int votes_to_close_trade_with_target = 0;
-
-						// US3AC11. sphere joins embargo
-						if(sphere == source) {
-							votes_to_close_trade_with_target++;
-						}
-						if(sphere == target) {
-							votes_to_close_trade_with_source++;
-						}
-						// US3AC12. subject joins embargo
-						if(ruler == source) {
-							votes_to_close_trade_with_target++;
-						}
-						if(ruler == target) {
-							votes_to_close_trade_with_source++;
-						}
-
-						if(votes_to_close_trade_with_source == 0 && votes_to_close_trade_with_target > 0) {
-							auto index_pair = nid.index() * state.world.nation_size() + target.index();
-							auto index_pair_T = target.index() * state.world.nation_size() + nid.index();
-							trade_closed[index_pair] = true;
-							trade_closed[index_pair_T] = true;
-						}
-						if(votes_to_close_trade_with_source > 0 && votes_to_close_trade_with_target == 0) {
-							auto index_pair = source.index() * state.world.nation_size() + nid.index();
-							auto index_pair_T = nid.index() * state.world.nation_size() + source.index();
-							trade_closed[index_pair] = true;
-							trade_closed[index_pair_T] = true;
-						}
-					});
-				}
-				});
-			break;
-		case 5:
-			// US3AC15. Equal/unequal trade treaties
-			state.world.for_each_unilateral_relationship([&](auto rel) {
-				if(state.world.unilateral_relationship_get_no_tariffs_until(rel)) {
-					dcon::nation_id n1 = state.world.unilateral_relationship_get_source(rel);
-					dcon::nation_id n2 = state.world.unilateral_relationship_get_target(rel);
-
-					auto index_pair = n1.index() * state.world.nation_size() + n2.index();
-					no_tariffs[index_pair] = true;
-				}
-			});
-			state.world.for_each_nation([&](auto nid) {
-				dcon::nation_id sphere = state.world.nation_get_in_sphere_of(nid);
-				if(sphere) {
-					auto index_pair = nid.index() * state.world.nation_size() + sphere.index();
-					no_tariffs[index_pair] = true;
-				}
-			});
-			state.world.for_each_overlord([&](auto ovid) {
-				dcon::nation_id subject = state.world.overlord_get_subject(ovid);
-				dcon::nation_id overlord = state.world.overlord_get_ruler(ovid);
-				auto index_pair = subject.index() * state.world.nation_size() + overlord.index();
-				no_tariffs[index_pair] = true;
-			});
-			break;
-		case 6:
 			populate_army_consumption(state);
 			break;
-		case 7:
+		case 5:
 			populate_construction_consumption(state);
 			break;
 		}
 	});
 
-	set_profile_point("fill buffers");
+	if(state.trade_route_cached_values_out_of_date) {
+		state.trade_route_cached_values_out_of_date = false;
+
+		ankerl::unordered_dense::map<int32_t, bool> direct_block;
+		ankerl::unordered_dense::map<int32_t, bool> trade_closed;
+		ankerl::unordered_dense::map<int32_t, bool> direct_no_tariffs;
+		ankerl::unordered_dense::map<int32_t, bool> no_tariffs;
+
+		// US3AC9. Wartime embargoes
+			
+		state.world.for_each_war([&](auto war) {
+			state.world.war_for_each_war_participant(war, [&](auto attacker_candidate) {
+				if(!state.world.war_participant_get_is_attacker(attacker_candidate)) return;
+				auto attacker = state.world.war_participant_get_nation(attacker_candidate);
+
+				state.world.war_for_each_war_participant(war, [&](auto defender_candidate) {
+					if(state.world.war_participant_get_is_attacker(defender_candidate)) return;
+					auto defender = state.world.war_participant_get_nation(defender_candidate);
+
+					auto index_pair = attacker.index() * state.world.nation_size() + defender.index();
+					auto index_pair_T = defender.index() * state.world.nation_size() + attacker.index();
+					direct_block[index_pair] = true;
+					direct_block[index_pair_T] = true;
+				});
+			});
+		});
+
+		// US3AC10. diplomatic embargos
+		state.world.for_each_unilateral_relationship([&](auto rel) {
+			if(state.world.unilateral_relationship_get_embargo(rel)) {
+				dcon::nation_id source = state.world.unilateral_relationship_get_source(rel);
+				dcon::nation_id target = state.world.unilateral_relationship_get_target(rel);
+
+				auto index_pair = source.index() * state.world.nation_size() + target.index();
+				auto index_pair_T = target.index() * state.world.nation_size() + source.index();
+
+				direct_block[index_pair] = true;
+				direct_block[index_pair_T] = true;
+			}
+		});
+
+		// US3AC11. US3AC12. sphere joins market leader
+		state.world.for_each_nation([&](auto A) {
+			dcon::nation_id market_leader_A = market_leader.get(A);
+			state.world.for_each_nation([&](auto B) {
+				dcon::nation_id market_leader_B = market_leader.get(B);
+				int32_t base_pair = A.index() * state.world.nation_size() + B.index();
+
+				int32_t indices[3]{
+					market_leader_A.index() * int32_t(state.world.nation_size()) + market_leader_B.index(),
+					market_leader_A.index() * int32_t(state.world.nation_size()) + B.index(),
+					A.index() * int32_t(state.world.nation_size()) + market_leader_B.index(),
+				};
+
+				if(market_leader_A && market_leader_B) {
+					if(direct_block.find(indices[0]) != direct_block.end()) {
+						trade_closed[base_pair] = true;
+					}
+				}
+				if(market_leader_A) {
+					if(direct_block.find(indices[1]) != direct_block.end()) {
+						trade_closed[base_pair] = true;
+					}
+				}
+				if(market_leader_B) {
+					if(direct_block.find(indices[2]) != direct_block.end()) {
+						trade_closed[base_pair] = true;
+					}
+				}
+
+				{
+					if(direct_block.find(base_pair) != direct_block.end()) {
+						trade_closed[base_pair] = true;
+					}
+				}
+			});
+		});
+
+		// US3AC15. Equal/unequal trade treaties
+		state.world.for_each_unilateral_relationship([&](auto rel) {
+			if(state.world.unilateral_relationship_get_no_tariffs_until(rel)) {
+				dcon::nation_id n1 = state.world.unilateral_relationship_get_source(rel);
+				dcon::nation_id n2 = state.world.unilateral_relationship_get_target(rel);
+
+				auto index_pair = n1.index() * state.world.nation_size() + n2.index();
+				direct_no_tariffs[index_pair] = true;
+			}
+		});
+		state.world.for_each_nation([&](auto nid) {
+			dcon::nation_id sphere = state.world.nation_get_in_sphere_of(nid);
+			if(sphere) {
+				auto index_pair = nid.index() * state.world.nation_size() + sphere.index();
+				direct_no_tariffs[index_pair] = true;
+			}
+		});
+		state.world.for_each_overlord([&](auto ovid) {
+			dcon::nation_id subject = state.world.overlord_get_subject(ovid);
+			dcon::nation_id overlord = state.world.overlord_get_ruler(ovid);
+			auto index_pair = subject.index() * state.world.nation_size() + overlord.index();
+			direct_no_tariffs[index_pair] = true;
+		});
+
+		state.world.for_each_nation([&](auto A) {
+			dcon::nation_id market_leader_A = market_leader.get(A);
+			state.world.for_each_nation([&](auto B) {
+				dcon::nation_id market_leader_B = market_leader.get(B);
+
+				int32_t base_pair = A.index() * state.world.nation_size() + B.index();
+
+				int32_t indices[3]{
+					market_leader_A.index() * int32_t(state.world.nation_size()) + market_leader_B.index(),
+					market_leader_A.index() * int32_t(state.world.nation_size()) + B.index(),
+					A.index() * int32_t(state.world.nation_size()) + market_leader_B.index(),
+				};
+
+				if(market_leader_A && market_leader_B) {
+					if(direct_no_tariffs.find(indices[0]) != direct_no_tariffs.end()) {
+						no_tariffs[base_pair] = true;
+					}
+				}
+				if(market_leader_A) {
+					if(direct_no_tariffs.find(indices[1]) != direct_no_tariffs.end()) {
+						no_tariffs[base_pair] = true;
+					}
+				}
+				if(market_leader_B) {
+					if(direct_no_tariffs.find(indices[2]) != direct_no_tariffs.end()) {
+						no_tariffs[base_pair] = true;
+					}
+				}
+				{
+					if(direct_no_tariffs.find(base_pair) != direct_no_tariffs.end()) {
+						no_tariffs[base_pair] = true;
+					}
+				}
+			});
+		});
+
+		// update cache:
+
+		state.world.for_each_trade_route([&](auto route) {
+			auto A = state.world.trade_route_get_connected_markets(route, 0);
+			auto B = state.world.trade_route_get_connected_markets(route, 1);
+			auto s_A = state.world.market_get_zone_from_local_market(A);
+			auto s_B = state.world.market_get_zone_from_local_market(B);
+
+			auto capital_A = state.world.state_instance_get_capital(s_A);
+			auto capital_B = state.world.state_instance_get_capital(s_B);
+
+			auto controller_A = state.world.province_get_nation_from_province_control(capital_A);
+			auto controller_B = state.world.province_get_nation_from_province_control(capital_B);
+
+			auto index = controller_A.index() * state.world.nation_size() + controller_B.index();
+			auto index_T = controller_B.index() * state.world.nation_size() + controller_A.index();
+
+			if(trade_closed.find(index) != trade_closed.end()) {
+				state.world.trade_route_set_is_trade_forbidden(route, true);
+			} else {
+				state.world.trade_route_set_is_trade_forbidden(route, false);
+			}
+
+			if(no_tariffs.find(index) != no_tariffs.end()) {
+				state.world.trade_route_set_is_tariff_applied_0(route, false);
+			} else {
+				state.world.trade_route_set_is_tariff_applied_0(route, true);
+			}
+
+			if(no_tariffs.find(index_T) != no_tariffs.end()) {
+				state.world.trade_route_set_is_tariff_applied_1(route, false);
+			} else {
+				state.world.trade_route_set_is_tariff_applied_1(route, true);
+			}
+		});
+	};
+
+	set_profile_point("update trade cache and buffers");
 
 	state.world.execute_serial_over_state_instance([&](auto sids) {
 		// US3AC17. if market capital controller is at war with market coastal controller is different
@@ -2197,10 +2236,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		export_tariff_buffer,
 		import_tariff_buffer,
 		coastal_capital_buffer,
-		state_naval_trade_is_blockaded,
-		market_leader,
-		trade_closed,
-		no_tariffs
+		state_naval_trade_is_blockaded
 	);
 
 	set_profile_point("trade volume");
@@ -3656,6 +3692,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
+	set_profile_point("reset prices");
+
 	// price of labor
 
 	concurrency::parallel_for(int32_t(0), int32_t(labor::total), [&](int32_t i) {
@@ -3696,6 +3734,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
+	set_profile_point("update labor prices");
+
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 		//handling gold cost separetely
@@ -3715,12 +3755,20 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});	
 	});
 
+	set_profile_point("update commodity prices");
+
 	services::update_price(state);
 
+	set_profile_point("update services prices");
+
 	// update median prices
-	state.world.for_each_commodity([&](auto cid) {
+
+	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
+		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
 		state.world.commodity_set_median_price(cid, median_price(state, cid));
 	});
+
+	set_profile_point("update median prices");
 
 	sanity_check(state);
 
@@ -3746,9 +3794,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.cheat_data.prices_dump_buffer += "\n";
 		state.cheat_data.supply_dump_buffer += "\n";
 		state.cheat_data.demand_dump_buffer += "\n";
-	}
-
-	set_profile_point("prices");
+	}	
 
 	/*
 	DIPLOMATIC EXPENSES
