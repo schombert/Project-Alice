@@ -391,22 +391,18 @@ bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) { // TODO
 	return false;
 }
 
-// Check if source gives trade rights to target
+// Check if source gives trade rights to target. Includes derived rights from sphere/overlord
 dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	auto sphere_A = state.world.nation_get_in_sphere_of(target);
-	auto sphere_B = state.world.nation_get_in_sphere_of(source);
 
-	auto overlord_A = state.world.overlord_get_ruler(
-		state.world.nation_get_overlord_as_subject(target)
-	);
-	auto overlord_B = state.world.overlord_get_ruler(
-		state.world.nation_get_overlord_as_subject(source)
-	);
-
-	auto market_leader_target = (overlord_A) ? overlord_A : ((sphere_A) ? sphere_A : target);
-	auto market_leader_source = (overlord_B) ? overlord_B : ((sphere_B) ? sphere_B : source);
-
-	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_source);
+	auto market_leader_target = nations::get_market_leader(state, target);
+	auto market_leader_source = nations::get_market_leader(state, source);
+	dcon::unilateral_relationship_id source_tariffs_rel;
+	if(market_leader_target == market_leader_source) {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
+	}
+	else {
+		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_source);
+	}
 	if(source_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 		// Enddt empty signalises revoken agreement
@@ -417,6 +413,33 @@ dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& stat
 	}
 	return dcon::unilateral_relationship_id{};
 }
+// Check if source gives trade rights to target. Only include direct relationship
+dcon::unilateral_relationship_id nation_gives_direct_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, source);
+	if(source_tariffs_rel) {
+		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+		// Enddt empty signalises revoken agreement
+		// Enddt > cur_date signalises that the agreement can't be broken
+		if(enddt) {
+			return source_tariffs_rel;
+		}
+	}
+	return dcon::unilateral_relationship_id{};
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 void initialize(sys::state& state) {
 	initialize_artisan_distribution(state);
@@ -4473,7 +4496,7 @@ void resolve_constructions(sys::state& state) {
 			}
 
 			// US2AC5. But no faster than construction_time
-			if(!state.cheat_data.instant_army) {
+			if(!state.cheat_data.instant_navy) {
 				if(state.current_date < c.get_start_date() + construction_time) {
 					ready_for_deployment = false;
 				}
