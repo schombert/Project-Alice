@@ -453,6 +453,8 @@ void post(sys::state& state, message const& m) {
 		case type_t::call_ally_request:
 			accept(state, m);
 			return;
+		default:
+			break;
 		}
 	}
 	if(state.world.nation_get_is_player_controlled(m.to) == false) {
