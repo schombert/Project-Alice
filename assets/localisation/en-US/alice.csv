@@ -876,17 +876,20 @@ ally_explain_5;You're not a subject nation
 ally_explain_6;You're not currently at war with the target
 ally_explain_7;The AI will accept
 ally_explain_8;The target isn't a subject nation
-call_ally_explain_1;You have an alliance with this nation
+call_ally_explain_1;You have an alliance with this nation, or this nation is your subject
 call_ally_explain_2;You have at least $x$ diplomatic point(s)
 call_ally_explain_3;You're at war
 call_ally_explain_4;There is a war this nation can be called into
 call_ally_explain_5;The AI will accept
+call_ally_explain_6;Spherelord is not in the war on the enemy side OR sphere war restrictions are turned OFF
 cancel_access_explain_1;You have at least $x$ diplomatic point(s)
 ask_access_explain_1;You can't get military access from yourself
 ask_access_explain_2;You have at least $x$ diplomatic point(s)
 ask_access_explain_3;The AI will accept
 ask_access_explain_4;You are not currently at war with the target
+ask_access_explain_5;Nation is your subject
 cancel_given_access_explain_1;You have at least $x$ diplomatic point(s)
+cancel_given_access_explain_2;You are not a subject of this nation
 give_access_explain_1;You can't give military access to yourself
 give_access_explain_2;You have at least $x$ diplomatic point(s)
 give_access_explain_3;You are not currently at war with the target
@@ -923,20 +926,26 @@ revoke_trade_rights;Revoke trade rights
 msg_trade_rights_revoked;Nation ?Y$y$?W has revoked free trade rights of ?Y$x$?! in their country.
 trade_rights_desc;Trade rights or unequal treaties give the other party preferential treatment in trade ignoring tariffs of our country. Once imposed, cannot be revoked for ?Y$x$ years.
 revoke_trade_rights_explain_1;Enough time has passed since trade rights were imposed
-free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our nations for ?Y$x$ years?W.
+revoke_trade_rights_explain_2;We have the rights to revoke the agreement
+free_trade_desc;If another party agrees, we'll enter into trade agreement removing all tariffs between our markets and their markets (spheres & subjects) for ?Y$x$ years?W.
 free_trade_explain_1;Our traders won't pay their tariffs until ?G$date$?!
 free_trade_explain_2;Their traders won't pay our tariffs until ?R$date$?!
 free_trade_explain_3;We are embargoeing them
 free_trade_explain_4;They are embargoing us
+free_trade_explain_5;Target is not a subject OR Target is a our subject
+free_trade_explain_6;We aren't in a sphere
+free_trade_explain_7;Target isn't in a sphere OR Target is in our sphere
+free_trade_explain_8;$x$ and their spheres&subjects ?Ghas free trade with?! $y$ and their spheres&subjects.
 issue_embargo;Issue Embargo
 lift_embargo;Lift Embargo
-embargo_desc;Embargo prevents all trade between our nations. Embargoes are applied automatically to enemies during war.
-embargo_explain_1;?G$x$ embargoes $y$.?!
-embargo_explain_2;?R$x$ embargoes $y$.?!
+embargo_desc;Embargo prevents all trade between our markets and their markets (spheres & subjects). Embargoes are applied automatically to enemies during war.
+embargo_explain_1;$x$ and their spheres&subjects ?Gembargoes?! $y$ and their spheres&subjects.
+embargo_explain_2;$x$ and their spheres&subjects ?Rembargoes?! $y$ and their spheres&subjects.
 embargo_explain_3;We don't have trade rights in their country
 embargo_explain_4;They don't have trade rights in our country
 embargo_explain_5;We aren't in a sphere
 embargo_explain_6;They aren't in a sphere
+embargo_explain_7;The target isn't in our sphere
 fab_explain_1;You can't justify war against yourself
 fab_explain_2;You have at least $x$ diplomatic point(s)
 fab_explain_3;You are not currently fabricating a casus belli
@@ -954,6 +963,12 @@ war_explain_1;You can't declare war upon yourself
 war_explain_2;You have a casus belli to use against this nation
 war_explain_3;You have at least $x$ diplomatic point(s)
 war_explain_4;You are not already in a war with this nation
+war_explain_5;Does not have units stationed inside this nation
+war_explain_6;Does not have units stationed inside this nation's overlord
+war_explain_7;Is not allied to target
+war_explain_8;Is not allied to target's overlord
+war_explain_9;Target is not our spherelord AND is not allied to our spherelord AND sphere war restrictions are turned ON
+war_explain_10;Target is not our sphereling
 wg_result_1;On adding this war goal:
 wg_result_2;On achieving this war goal:
 wg_result_3;On failing to achieve this war goal:
@@ -1730,3 +1745,15 @@ alice_naval_retreat_condition_3;Access to an available port
 alice_navalattackitem_4;An enemy fleet consisting of ships from $DEFENDER$ will be destroyed by us.
 alice_attackthem_4;We are attacking forces of $DEFENDER$ and attempting to dislodge their defences.
 alice_attackus_4;Hostile forces from $ATTACKER$ have engaged us.
+alice_truce_with_explain;?Y$WAR$?W: Have truce with ?Y$NATION$?W. Truce lasts until $DATE$
+alice_declarewar_truce_with_explain;?Y$NATION$?W: Have truce with ?Y$TARGET$?W. Truce lasts until $DATE$
+alice_command_units_condition_1;?Y$NATION$?W is our subject
+alice_command_units_condition_2;Both you and the target is at war
+alice_command_units_condition_3;Target is not a player
+alice_command_units_condition_4;Playing singleplayer
+free_trade_di;Free trade agreement
+free_trade_offer;$actor$ is offering a free trade agreement, allowing us to trade tariff-free for $years$ years
+alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
+alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
+alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
+alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W

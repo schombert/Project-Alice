@@ -553,7 +553,7 @@ constexpr float axial_tilt_angle = 0.409f;
 const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { -1.f, 0.f, 0.f });
 
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
-	if(!screen_size.x || !screen_size.y) {
+	if(screen_size.x == 0.f || screen_size.y == 0.f) {
 		return;
 	}
 

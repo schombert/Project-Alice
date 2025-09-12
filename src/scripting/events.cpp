@@ -126,7 +126,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			},
 			"msg_m_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::major_event
+			sys::message_base_type::major_event,
+			dcon::province_id{ }
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -148,7 +149,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			},
 			"msg_n_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::national_event
+			sys::message_base_type::national_event,
+			dcon::province_id{ }
 		});
 	}
 
@@ -221,7 +223,8 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			},
 			"msg_m_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::major_event
+			sys::message_base_type::major_event,
+			dcon::province_id{ }
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -243,7 +246,8 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			},
 			"msg_n_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::national_event
+			sys::message_base_type::national_event,
+			dcon::province_id{ }
 		});
 	}
 	if(auto immediate = state.world.free_national_event_get_immediate_effect(e); immediate) {
@@ -316,7 +320,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 			},
 			"msg_p_event_title",
 			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
+			sys::message_base_type::province_event,
+			p
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
@@ -388,7 +393,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 			},
 			"msg_p_event_title",
 			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
+			sys::message_base_type::province_event,
+			p
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {

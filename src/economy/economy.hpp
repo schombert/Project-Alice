@@ -164,6 +164,7 @@ bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
 
 dcon::unilateral_relationship_id nation_gives_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+dcon::unilateral_relationship_id nation_gives_direct_free_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 void initialize(sys::state& state);
 void regenerate_unsaved_values(sys::state& state);
@@ -272,10 +273,6 @@ int32_t most_recent_price_record_index(sys::state& state);
 int32_t previous_price_record_index(sys::state& state);
 int32_t most_recent_gdp_record_index(sys::state& state);
 int32_t previous_gdp_record_index(sys::state& state);
-
-float gdp(sys::state& state, dcon::nation_id n);
-float gdp(sys::state& state, dcon::market_id n);
-float gdp_adjusted(sys::state& state, dcon::nation_id n);
 
 void prune_factories(sys::state& state); // get rid of closed factories in full states
 void go_bankrupt(sys::state& state, dcon::nation_id n);

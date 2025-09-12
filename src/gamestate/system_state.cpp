@@ -4638,7 +4638,7 @@ void state::single_game_tick() {
 	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
 		auto index = economy::most_recent_gdp_record_index(*this);
 		for(auto n : world.in_nation) {
-			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
+			n.set_gdp_record(index, economy::gdp::value_nation_adjusted(*this, n));
 		}
 	}
 

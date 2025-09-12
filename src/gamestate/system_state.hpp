@@ -518,6 +518,8 @@ struct alignas(64) state {
 	bool adjacency_data_out_of_date = true;
 	bool national_cached_values_out_of_date = false;
 	bool diplomatic_cached_values_out_of_date = false;
+	bool trade_route_cached_values_out_of_date = true;
+
 	std::vector<dcon::nation_id> nations_by_rank;
 	std::vector<dcon::nation_id> nations_by_industrial_score;
 	std::vector<dcon::nation_id> nations_by_military_score;

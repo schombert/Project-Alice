@@ -146,7 +146,9 @@ template<typename POPS>
 auto inline prepare_pop_budget(
 	const sys::state& state, POPS ids
 ) {
-	using VALUE = typename std::conditional<std::same_as<POPS, dcon::pop_id>, float, ve::fp_vector>::type;
+	using VALUE = typename std::conditional_t<std::same_as<POPS, dcon::pop_id>, float, ve::fp_vector>;
+	using BOOL_VALUE = typename std::conditional_t<std::same_as<POPS, dcon::pop_id>, bool, ve::mask_vector>;
+
 	vectorized_pops_budget<VALUE> result{ };
 
 	auto pop_size = state.world.pop_get_size(ids);
@@ -238,7 +240,7 @@ auto inline prepare_pop_budget(
 
 	VALUE old_life = pop_demographics::get_life_needs(state, ids);
 	VALUE subsistence = adjusted_subsistence_score<VALUE, decltype(provs)>(state, provs);
-	auto rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
+	BOOL_VALUE rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
 	subsistence = ve::select(rgo_worker, subsistence, 0.f);
 	VALUE available_subsistence = adaptive_ve::min<VALUE>(subsistence_score_life, subsistence);
 	subsistence = subsistence - available_subsistence;

@@ -1110,7 +1110,8 @@ void rebel_risings_check(sys::state& state) {
 					},
 					"msg_revolt_title",
 					rf.get_ruler_from_rebellion_within(), dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::revolt });
+					sys::message_base_type::revolt ,
+					dcon::province_id{ } });
 			}
 		}
 	}
@@ -1381,7 +1382,8 @@ void execute_rebel_victories(sys::state& state) {
 				},
 				"msg_rebels_win_title",
 				within, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::breakcountry
+				sys::message_base_type::breakcountry,
+				dcon::province_id{ }
 			});
 
 			/*
