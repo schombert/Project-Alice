@@ -1878,16 +1878,16 @@ void run_private_investment(sys::state& state) {
 
 
 // AWESOME ECONOMY PROFILE TOOLS
-static auto pf = fopen("performance_record", "w");
-static inline int64_t GetTicks() {
-	LARGE_INTEGER ticks;
-	if(!QueryPerformanceCounter(&ticks)) {
-		std::abort();
-	}
-	return ticks.QuadPart;
-}
+//static auto pf = fopen("performance_record", "w");
+//static inline int64_t GetTicks() {
+//	LARGE_INTEGER ticks;
+//	if(!QueryPerformanceCounter(&ticks)) {
+//		std::abort();
+//	}
+//	return ticks.QuadPart;
+//}
 static void set_profile_point(std::string name) {
-	fprintf(pf, (name + ",%llu\n").c_str(), GetTicks());
+	//fprintf(pf, (name + ",%llu\n").c_str(), GetTicks());
 }
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
