@@ -19,6 +19,8 @@ float estimate_strength(sys::state& state, dcon::nation_id n);
 float estimate_defensive_strength(sys::state& state, dcon::nation_id n);
 float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
+float calculate_desired_navy_size(sys::state& state, dcon::nation_id nation);
+
 bool does_have_naval_supremacy(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
 bool ai_will_accept_free_trade(sys::state& state, dcon::nation_id target, dcon::nation_id from);
