@@ -6259,9 +6259,14 @@ void apply_regiment_damage(sys::state& state) {
 				}
 				state.world.regiment_set_pending_attrition_damage(s, 0.0f);
 			}
-			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
+			
 			auto psize = state.world.pop_get_size(backing_pop);
-			if(psize <= 1.0f) {
+			// Check if the regiment has no attached pop without having been deleted (from demotion, migration etc).
+			if(!bool(backing_pop)) {
+				military::delete_regiment_safe_wrapper(state, s);
+			}
+			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
+			else if(psize <= 1.0f) {
 				//safely delete any regiment which has this pop as its source
 				while(state.world.pop_get_regiment_source(backing_pop).begin() != state.world.pop_get_regiment_source(backing_pop).end()) {
 					auto reg = *(state.world.pop_get_regiment_source(backing_pop).begin());

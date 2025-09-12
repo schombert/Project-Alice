@@ -2459,7 +2459,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			bool found_dir = false;
 			auto potential_dirs = simple_fs::list_subdirectories(pop_history);
 			for(simple_fs::directory dir : potential_dirs) {
-				auto dir_name = get_dir_name(dir);
+				auto dir_name = std::wstring(get_dir_name(dir));
 				auto year = std::to_wstring(startdate.year);
 				if(dir_name.starts_with(year.c_str())) {
 					date_directory = open_directory(pop_history, dir_name);
@@ -2938,6 +2938,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			
 	}
 
+	//cleanup regiments with no pop attached
+	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
+		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+		if(!world.regiment_get_pop_from_regiment_source(n)) {
+			world.delete_regiment(n);
+		}
+	}
+
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_output(world.commodity_size());
@@ -3324,16 +3332,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			
 		}
 	}
-	//cleanup regiments with no pop attached
-	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
-		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
-		if(!world.regiment_get_pop_from_regiment_source(n)) {
-			world.delete_regiment(n);
-		}
-	}
-
-
-
+	
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());

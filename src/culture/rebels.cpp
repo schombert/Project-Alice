@@ -26,6 +26,15 @@ dcon::movement_id get_movement_by_independence(sys::state& state, dcon::nation_i
 	return dcon::movement_id{};
 }
 
+dcon::national_identity_id pop_get_independence_rebel_tag(sys::state& state, dcon::pop_id pop) {
+	auto prov = state.world.pop_get_province_from_pop_location(pop);
+	for (auto core : state.world.province_get_core(prov)) {
+		if (!core.get_identity().get_is_not_releasable() && core.get_identity().get_primary_culture() == state.world.pop_get_culture(pop))
+			return core.get_identity().id;
+	}
+	return dcon::national_identity_id{};
+}
+
 dcon::rebel_faction_id find_faction_for_prov_occupation(sys::state& state, dcon::nation_id nation, dcon::rebel_type_id rebel_type, dcon::province_id prov) {
 	auto independence = culture::rebel_independence(state.world.rebel_type_get_independence(rebel_type));
 	auto defection = culture::rebel_defection(state.world.rebel_type_get_defection(rebel_type));
@@ -52,17 +61,7 @@ dcon::rebel_faction_id find_faction_for_prov_occupation(sys::state& state, dcon:
 dcon::rebel_faction_id find_or_create_faction_for_pop(sys::state& state, dcon::nation_id nation, dcon::rebel_type_id rebel_type, dcon::pop_id pop) {
 
 	auto temp = fatten(state.world, state.world.create_rebel_faction());
-	dcon::national_identity_id ind_tag = [&]() {
-		auto prov = state.world.pop_get_province_from_pop_location(pop);
-		for(auto core : state.world.province_get_core(prov)) {
-			auto rel = !core.get_identity().get_is_not_releasable();
-			auto pri_cul = core.get_identity().get_primary_culture();
-			auto cul = state.world.pop_get_culture(pop);
-			if(!core.get_identity().get_is_not_releasable() && core.get_identity().get_primary_culture() == state.world.pop_get_culture(pop))
-				return core.get_identity().id;
-		}
-		return dcon::national_identity_id{};
-	}();
+	dcon::national_identity_id ind_tag = pop_get_independence_rebel_tag(state, pop);
 	// this is being called during scenario building. fill_unsaved_values havent been called so we have to compute this ourselves.
 	bool pop_is_primary_or_accepted = [&]() {
 		return state.world.nation_get_accepted_cultures(nation, state.world.pop_get_culture(pop)) || state.world.nation_get_primary_culture(nation) == state.world.pop_get_culture(pop);
@@ -175,13 +174,6 @@ dcon::rebel_faction_id find_or_create_faction_for_pop(sys::state& state, dcon::n
 	return temp;
 }
 
-dcon::rebel_faction_id get_faction_by_type(sys::state& state, dcon::nation_id n, dcon::rebel_type_id r) {
-	for(auto f : state.world.nation_get_rebellion_within(n)) {
-		if(f.get_rebels().get_type() == r)
-			return f.get_rebels().id;
-	}
-	return dcon::rebel_faction_id{};
-}
 
 void update_movement_values(sys::state& state) { // simply updates cached values
 
@@ -647,14 +639,7 @@ void update_pop_rebel_membership(sys::state& state) {
 					}
 
 					dcon::rebel_faction_id temp = state.world.create_rebel_faction();
-					dcon::national_identity_id ind_tag = [&]() {
-						auto prov = state.world.pop_get_province_from_pop_location(p);
-						for(auto core : state.world.province_get_core(prov)) {
-							if(!core.get_identity().get_is_not_releasable() && core.get_identity().get_primary_culture() == state.world.pop_get_culture(p))
-								return core.get_identity().id;
-						}
-						return dcon::national_identity_id{};
-					}();
+					dcon::national_identity_id ind_tag = pop_get_independence_rebel_tag(state, p);
 
 					dcon::rebel_type_id max_type;
 
