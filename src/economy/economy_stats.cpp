@@ -1262,5 +1262,4 @@ float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::m
 	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_export(n)) / 100.0f;
 	return std::max(r, 0.0f);
 }
-
 }

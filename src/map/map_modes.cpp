@@ -7,6 +7,7 @@
 #include "province.hpp"
 #include "nations.hpp"
 #include "economy_stats.hpp"
+#include "economy_production.hpp"
 
 #include <unordered_map>
 
@@ -660,73 +661,43 @@ std::vector<uint32_t> workforce_map_from(sys::state& state) {
 	uint32_t province_size = state.world.province_size() + 1;
 	uint32_t texture_size = province_size + 256 - province_size % 256;
 	std::vector<uint32_t> prov_color(texture_size * 2);
-	if(state.map_state.get_selected_province()) {
-		dcon::pop_type_fat_id fat_id = dcon::fatten(state.world, dcon::pop_type_id{});
-		float pt_max = 0.f;
-		for(const auto pt : state.world.in_pop_type) {
-			auto total = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::to_key(state, pt));
-			if(total > pt_max) {
-				fat_id = pt;
-				total = pt_max;
+	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
+
+	float max_gdp = 0.f;
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		if((nation == sel_nation) || !sel_nation) {
+			auto gdp = economy::gdp::breakdown_province(state, prov_id);
+			if(gdp.total > max_gdp) {
+				max_gdp = gdp.total;
 			}
 		}
-		if(bool(fat_id)) {
-			uint32_t full_color = fat_id.get_color();
-			uint32_t empty_color = 0xDDDDDD;
-			// Make the other end of the gradient dark if the color is bright and vice versa.
-			if((full_color & 0xFF) + (full_color >> 8 & 0xFF) + (full_color >> 16 & 0xFF) > 140 * 3) {
-				empty_color = 0x222222;
-			}
-			state.world.for_each_province([&](dcon::province_id prov_id) {
-				auto i = province::to_map_id(prov_id);
-				float total = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::total);
-				float value = state.world.province_get_demographics(state.map_state.get_selected_province(), demographics::to_key(state, fat_id));
-				auto ratio = value / total;
-				auto color = ogl::color_gradient(ratio, full_color, empty_color);
-				prov_color[i] = color;
-				prov_color[i + texture_size] = color;
-			});
+	});
+
+	state.world.for_each_province([&](dcon::province_id prov_id) {
+		auto id = province::to_map_id(prov_id);
+		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
+		if((nation == sel_nation) || !sel_nation) {
+			auto gdp = economy::gdp::breakdown_province(state, prov_id);
+			auto eps = 0.001f;
+			auto scale = std::log(gdp.total + 1.f) / (std::log(max_gdp + 1.f) + eps);
+
+			auto primary_color = sys::pack_color(
+				gdp.primary / (gdp.total + eps) * scale,
+				gdp.secondary_factory / (gdp.total + eps) * scale,
+				gdp.secondary_artisan / (gdp.total + eps) * scale
+			);
+			auto secondary_color = primary_color;
+
+			prov_color[id] = primary_color;
+			prov_color[id + texture_size] = primary_color;
+		} else {
+			prov_color[id] = 0x000000;
+			prov_color[id + texture_size] = 0x000000;
 		}
-	} else {
-		state.world.for_each_province([&](dcon::province_id prov_id) {
-			auto id = province::to_map_id(prov_id);
-			float total_pops = state.world.province_get_demographics(prov_id, demographics::total);
-			dcon::pop_type_id primary_id;
-			dcon::pop_type_id secondary_id;
-			float primary_percent = 0.f;
-			float secondary_percent = 0.f;
-			state.world.for_each_pop_type([&](dcon::pop_type_id id) {
-				float volume = 0.f;
-				for(const auto pl : state.world.province_get_pop_location_as_province(prov_id)) {
-					if(pl.get_pop().get_poptype() == id) {
-						volume += pl.get_pop().get_size();
-					}
-				}
-				float percent = volume / total_pops;
-				if(percent > primary_percent) {
-					secondary_id = primary_id;
-					secondary_percent = primary_percent;
-					primary_id = id;
-					primary_percent = percent;
-				} else if(percent > secondary_percent) {
-					secondary_id = id;
-					secondary_percent = percent;
-				}
-			});
-			uint32_t primary_color = dcon::fatten(state.world, primary_id).get_color();
-			uint32_t secondary_color = 0xFFAAAAAA; // This color won't be reached
-			if(bool(secondary_id)) {
-				secondary_color = dcon::fatten(state.world, secondary_id).get_color();
-			}
-			if(secondary_percent >= primary_percent * 0.75f) {
-				prov_color[id] = primary_color;
-				prov_color[id + texture_size] = secondary_color;
-			} else {
-				prov_color[id] = primary_color;
-				prov_color[id + texture_size] = primary_color;
-			}
-		});
-	}
+	});
+
 	return prov_color;
 }
 std::vector<uint32_t> players_map_from(sys::state& state) {

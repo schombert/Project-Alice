@@ -3263,68 +3263,17 @@ void province_economy_overview_body_gdp_chart_t::on_update(sys::state& state) no
 
 	// todo: add construction and services sectors
 
-	// rgo
-	float rgo_gdp = 0.f;
-	state.world.for_each_commodity([&](auto cid) {
-		auto value_produced = economy::rgo_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-		auto intermediate_consumption = economy::rgo_efficiency_spending(state, cid, pid);
-		rgo_gdp += value_produced - intermediate_consumption;
-	});
+	auto local_gdp = economy::gdp::breakdown_province(state, pid);
 
-	// factories
-	float factories_gdp = 0.f;
-	state.world.province_for_each_factory_location_as_province(pid, [&](auto flid) {
-		auto fid = state.world.factory_location_get_factory(flid);
-		auto ftid = state.world.factory_get_building_type(fid);
-		auto cid = state.world.factory_type_get_output(ftid);
-		auto factory_details = economy::factory_operation::explain_everything(state, fid);
-		
-		auto value_produced = factory_details.output_actual_amount * state.world.commodity_get_median_price(cid);
-
-		float intermediate_consumption = 0.f;
-
-		for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
-			auto cid_in = factory_details.primary_inputs.commodity_type[i];
-			if(!cid_in) break;
-
-			intermediate_consumption +=
-				factory_details.primary_inputs.commodity_actual_amount[i]
-				* state.world.commodity_get_median_price(cid_in);
-		}
-
-		if(factory_details.efficiency_inputs_worth_it) {
-			for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
-				auto cid_in = factory_details.primary_inputs.commodity_type[i];
-				if(!cid_in) break;
-
-				intermediate_consumption +=
-					factory_details.primary_inputs.commodity_actual_amount[i]
-					* state.world.commodity_get_median_price(cid_in);
-			}
-		}
-
-		factories_gdp += value_produced - intermediate_consumption;
-	});
-
-	// artisans
-	float artisans_gdp = 0.f;
-	state.world.for_each_commodity([&](auto cid) {
-		if(economy::valid_artisan_good(state, state.world.province_get_nation_from_province_ownership(pid), cid)) {
-			auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-			auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
-			artisans_gdp += value_produced - intermediate_consumption;
-		}
-	});
-
-	graph_content[0].amount = std::max(0.f, rgo_gdp);
+	graph_content[0].amount = std::max(0.f, local_gdp.primary);
 	graph_content[0].color = { 1.f, 0.f, 0.f };
 	graph_content[0].key = 0;
 
-	graph_content[1].amount = std::max(0.f, factories_gdp);
+	graph_content[1].amount = std::max(0.f, local_gdp.secondary_factory);
 	graph_content[1].color = { 0.f, 1.f, 0.f };
 	graph_content[1].key = 1;
 
-	graph_content[2].amount = std::max(0.f, artisans_gdp);
+	graph_content[2].amount = std::max(0.f, local_gdp.secondary_artisan);
 	graph_content[2].color = { 0.f, 0.f, 1.f };
 	graph_content[2].key = 2;
 
@@ -3402,62 +3351,9 @@ void province_economy_overview_body_gdp_share_chart_t::on_update(sys::state& sta
 	province_economy_overview_body_t& body = *((province_economy_overview_body_t*)(parent)); 
 // BEGIN body::gdp_share_chart::update
 	auto pid = state.map_state.selected_province;
-	// rgo
-	float rgo_gdp = 0.f;
-	state.world.for_each_commodity([&](auto cid) {
-		auto value_produced = economy::rgo_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-		auto intermediate_consumption = economy::rgo_efficiency_spending(state, cid, pid);
-		rgo_gdp += value_produced - intermediate_consumption;
-	});
 
-	// factories
-	float factories_gdp = 0.f;
-	state.world.province_for_each_factory_location_as_province(pid, [&](auto flid) {
-		auto fid = state.world.factory_location_get_factory(flid);
-		auto ftid = state.world.factory_get_building_type(fid);
-		auto cid = state.world.factory_type_get_output(ftid);
-		auto factory_details = economy::factory_operation::explain_everything(state, fid);
-
-		auto value_produced = factory_details.output_actual_amount * state.world.commodity_get_median_price(cid);
-
-		float intermediate_consumption = 0.f;
-
-		for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
-			auto cid_in = factory_details.primary_inputs.commodity_type[i];
-			if(!cid_in) break;
-
-			intermediate_consumption +=
-				factory_details.primary_inputs.commodity_actual_amount[i]
-				* state.world.commodity_get_median_price(cid_in);
-		}
-
-		if(factory_details.efficiency_inputs_worth_it) {
-			for(uint32_t i = 0; i < factory_details.primary_inputs.set_size; i++) {
-				auto cid_in = factory_details.primary_inputs.commodity_type[i];
-				if(!cid_in) break;
-
-				intermediate_consumption +=
-					factory_details.primary_inputs.commodity_actual_amount[i]
-					* state.world.commodity_get_median_price(cid_in);
-			}
-		}
-
-		factories_gdp += value_produced - intermediate_consumption;
-	});
-
-	// artisans
-	float artisans_gdp = 0.f;
-	state.world.for_each_commodity([&](auto cid) {
-		if(economy::valid_artisan_good(state, state.world.province_get_nation_from_province_ownership(pid), cid)) {
-			auto value_produced = economy::artisan_output(state, cid, pid) * state.world.commodity_get_median_price(cid);
-			auto intermediate_consumption = economy::estimate_artisan_gdp_intermediate_consumption(state, pid, cid);
-			artisans_gdp += value_produced - intermediate_consumption;
-		}
-	});
-
-	auto local_gdp = artisans_gdp + rgo_gdp + factories_gdp;
-
-	auto total_gdp = economy::gdp(state, state.world.province_get_nation_from_province_ownership(pid));
+	auto total_gdp = economy::gdp::value_nation(state, state.world.province_get_nation_from_province_ownership(pid));
+	auto local_gdp = economy::gdp::breakdown_province(state, pid).total;
 
 	graph_content[0].amount = std::max(0.f, local_gdp);
 	graph_content[0].color = { 1.f, 1.f, 1.f };

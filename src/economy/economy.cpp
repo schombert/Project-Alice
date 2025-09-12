@@ -113,44 +113,6 @@ int32_t previous_gdp_record_index(sys::state& state) {
 	return ((date.year * 4 + date.month / 3) + gdp_history_length - 1) % gdp_history_length;
 }
 
-float ideal_pound_to_real_pound(sys::state& state) {
-	auto cost_of_needs = 0.f;
-	uint32_t total_commodities = state.world.commodity_size();
-	auto worker = state.culture_definitions.primary_factory_worker;
-	for(uint32_t i = 1; i < total_commodities; ++i) {
-		dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-		auto price = state.world.commodity_get_median_price(c);
-		auto life_base = state.world.pop_type_get_life_needs(worker, c);
-		auto everyday_base = state.world.pop_type_get_everyday_needs(worker, c);
-		cost_of_needs += price * (life_base + 0.1f * everyday_base);
-	}
-	return cost_of_needs;
-}
-
-float gdp(sys::state& state, dcon::market_id n) {
-	return state.world.market_get_gdp(n);
-}
-
-float gdp(sys::state& state, dcon::nation_id n) {
-	auto total = 0.f;
-	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
-		auto sid = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(sid);
-		total = total + economy::gdp(state, market);
-	});
-	return total;
-}
-
-float gdp_adjusted(sys::state& state, dcon::nation_id n) {
-	auto conversion = ideal_pound_to_real_pound(state);
-	auto total = 0.f;
-	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
-		auto sid = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(sid);
-		total = total + economy::gdp(state, market);
-	});
-	return total / conversion;
-}
 
 struct spending_cost {
 	float administration;
