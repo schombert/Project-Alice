@@ -266,7 +266,8 @@ public:
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
 	static constexpr uint32_t texture_array_province_color = 1;
-	static constexpr uint32_t texture_array_count = 2;
+	static constexpr uint32_t texture_array_terrainsheet_winter = 2;
+	static constexpr uint32_t texture_array_count = 3;
 	GLuint texture_arrays[texture_array_count] = { 0 };
 	// Shaders
 	static constexpr uint32_t shader_terrain = 0;

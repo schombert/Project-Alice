@@ -657,7 +657,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+
+	// Summer world textures
+	if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	}
+	// Winter world textures
+	else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet_winter]);
+	}
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
@@ -3393,7 +3401,15 @@ void display_data::load_map(sys::state& state) {
 			texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
 		}
 	}
+	auto texturesheet_winter = open_file(map_terrain_dir, NATIVE("texturesheet_winter.png"));
+	if(!texturesheet_winter) {
+		texturesheet_winter = open_file(map_terrain_dir, NATIVE("texturesheet_winter.tga"));
+		if(!texturesheet_winter) {
+			texturesheet_winter = open_file(map_terrain_dir, NATIVE("texturesheet_winter.dds"));
+		}
+	}
 	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
+	texture_arrays[texture_array_terrainsheet_winter] = ogl::load_texture_array_from_file(*texturesheet_winter, 8, 8);
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));
