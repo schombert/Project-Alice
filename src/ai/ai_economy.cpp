@@ -609,10 +609,121 @@ void update_ai_econ_construction(sys::state& state) {
 				}
 			}
 
-
 			// try to build good factories
 			if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
 				build_or_upgrade_desired_factories(
+					state, n, ordered_provinces, budget, additional_expenses,
+					good_profitability, good_demand_supply_disbalance, good_payback_time
+				);
+			}
+		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
+
+		// AI has smarter desired army size, this check stops economic devt.
+		//if(0.9f * n.get_recruitable_regiments() > n.get_active_regiments())
+		//	continue;
+
+		static std::vector<dcon::province_id> project_provs;
+		project_provs.clear();
+
+		// try naval bases
+		if(budget - additional_expenses >= 0.f) {
+			project_provs.clear();
+			for(auto o : n.get_province_ownership()) {
+				if(!o.get_province().get_is_coast())
+					continue;
+				if(n != o.get_province().get_nation_from_province_control())
+					continue;
+
+				if(military::province_is_under_siege(state, o.get_province()))
+					continue;
+				if(o.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base)) == 0 && o.get_province().get_state_membership().get_naval_base_is_taken())
+					continue;
+
+				int32_t current_lvl = o.get_province().get_building_level(uint8_t(economy::province_building_type::naval_base));
+				int32_t max_local_lvl = n.get_max_building_level(uint8_t(economy::province_building_type::naval_base));
+				int32_t min_build = int32_t(o.get_province().get_modifier_values(sys::provincial_mod_offsets::min_build_naval_base));
+
+				if(max_local_lvl - current_lvl - min_build <= 0)
+					continue;
+
+				if(!province::has_naval_base_being_built(state, o.get_province())) {
+					project_provs.push_back(o.get_province().id);
+				}
+			}
+
+			auto cap = n.get_capital();
+			std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+				auto a_dist = province::sorting_distance(state, a, cap);
+				auto b_dist = province::sorting_distance(state, b, cap);
+				if(a_dist != b_dist)
+					return a_dist < b_dist;
+				else
+					return a.index() < b.index();
+			});
+			if(!project_provs.empty()) {
+				auto si = state.world.province_get_state_membership(project_provs[0]);
+				auto market = state.world.state_instance_get_market_from_local_market(si);
+
+				// avoid overbuilding!
+
+				auto expected_item_cost = 0.f;
+				auto& costs = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].cost;
+				auto& time = state.economy_definitions.building_definitions[int32_t(economy::province_building_type::naval_base)].time;
+				for(uint32_t i = 0; i < costs.set_size; ++i) {
+					if(costs.commodity_type[i]) {
+						expected_item_cost +=
+							costs.commodity_amounts[i]
+							* economy::price(state, market, costs.commodity_type[i])
+							/ float(time)
+							* days_prepaid;
+					} else {
+						break;
+					}
+				}
+
+				if(budget - additional_expenses - expected_item_cost <= 0.f)
+					continue;
+
+				if(si)
+					si.set_naval_base_is_taken(true);
+				auto new_rr = fatten(state.world, state.world.force_create_province_building_construction(project_provs[0], n));
+				new_rr.set_is_pop_project(false);
+				new_rr.set_type(uint8_t(economy::province_building_type::naval_base));
+				additional_expenses += expected_item_cost;
+			}
+		}
+
+		// try railroads
+		const struct {
+			bool buildable;
+			economy::province_building_type type;
+			dcon::provincial_modifier_value mod;
+		} econ_buildable[3] = {
+			{ (rules & issue_rule::build_railway) != 0, economy::province_building_type::railroad, sys::provincial_mod_offsets::min_build_railroad },
+			{ (rules & issue_rule::build_bank) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::bank)].defined, economy::province_building_type::bank, sys::provincial_mod_offsets::min_build_bank },
+			{ (rules & issue_rule::build_university) != 0 && state.economy_definitions.building_definitions[uint32_t(economy::province_building_type::university)].defined, economy::province_building_type::university, sys::provincial_mod_offsets::min_build_university }
+		};
+		for(auto i = 0; i < 3; i++) {
+			if(econ_buildable[i].buildable && budget - additional_expenses > 0) {
+				project_provs.clear();
+				for(auto o : n.get_province_ownership()) {
+					if(n != o.get_province().get_nation_from_province_control())
+						continue;
+					if(military::province_is_under_siege(state, o.get_province()))
+						continue;
+					int32_t current_lvl = state.world.province_get_building_level(o.get_province(), uint8_t(econ_buildable[i].type));
+					int32_t max_local_lvl = state.world.nation_get_max_building_level(n, uint8_t(econ_buildable[i].type));
+					int32_t min_build = int32_t(state.world.province_get_modifier_values(o.get_province(), econ_buildable[i].mod));
+					if(max_local_lvl - current_lvl - min_build <= 0)
+						continue;
+					if(!province::has_province_building_being_built(state, o.get_province(), econ_buildable[i].type)) {
+						project_provs.push_back(o.get_province().id);
+					}
+				}
+				auto cap = n.get_capital();
+				std::sort(project_provs.begin(), project_provs.end(), [&](dcon::province_id a, dcon::province_id b) {
+					auto a_dist = province::sorting_distance(state, a, cap);
+					auto b_dist = province::sorting_distance(state, b, cap);
 					if(a_dist != b_dist)
 						return a_dist < b_dist;
 					else
@@ -620,6 +731,7 @@ void update_ai_econ_construction(sys::state& state) {
 				});
 				for(uint32_t j = 0; j < project_provs.size() && budget - additional_expenses > 0; ++j) {
 					auto sid = state.world.province_get_state_membership(project_provs[j]);
+					auto market = state.world.state_instance_get_market_from_local_market(sid);
 
 					// avoid overbuilding!
 
