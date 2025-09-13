@@ -3388,7 +3388,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 				break;
 			}
 		}
-		if(!cb_fabbed) {
+		if(!cb_fabbed && state.defines.alice_can_add_constructable_cbs_as_wargoals != 0.f) {
 			if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 				return false; // can only add a constructable cb this way
 
