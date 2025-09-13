@@ -1949,7 +1949,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto import_tariff_buffer = state.world.market_make_vectorizable_float_buffer();
 	auto coastal_capital_buffer = ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>(state.world.state_instance_size());	
 	auto state_naval_trade_is_blockaded = ve::vectorizable_buffer<float, dcon::state_instance_id>(state.world.state_instance_size());
-	auto market_leader = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.state_instance_size());
+	auto market_leader = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 
 	set_profile_point("create_buffers");
 
