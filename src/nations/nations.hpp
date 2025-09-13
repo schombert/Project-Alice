@@ -70,6 +70,11 @@ enum class focus_type : uint8_t {
 	immigration_colonization_focus = 21,
 };
 
+enum class war_initiation : bool {
+	join_war,
+	declare_war
+};
+
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
 	std::vector<dcon::bitfield_type> global_flag_variables;
@@ -266,6 +271,8 @@ dcon::nation_id get_nth_great_power(sys::state const& state, uint16_t n);
 
 dcon::nation_id owner_of_pop(sys::state const& state, dcon::pop_id pop_ids);
 
+bool is_commanding_subject_units(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
+
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable);
 bool identity_has_holder(sys::state const& state, dcon::national_identity_id ident);
 dcon::nation_id get_relationship_partner(sys::state const& state, dcon::diplomatic_relation_id rel_id, dcon::nation_id query);
@@ -333,11 +340,15 @@ bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // ca
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n);
 void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
+
+bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b);
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation);
 int64_t get_monthly_pop_increase_of_nation(sys::state& state, dcon::nation_id n);
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel);
 bool are_allied(sys::state& state, dcon::nation_id a, dcon::nation_id b);
 bool is_landlocked(sys::state& state, dcon::nation_id n);
+
+bool nation_is_in_war(sys::state& state, dcon::nation_id nation, dcon::war_id war);
 
 void get_active_political_parties(sys::state& state, dcon::nation_id n, std::vector<dcon::political_party_id>& parties);
 
@@ -351,7 +362,18 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 void cleanup_nation(sys::state& state, dcon::nation_id n);
 
 void adjust_prestige(sys::state& state, dcon::nation_id n, float delta);
+void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify = true);
+void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify = true);
+void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from);
+void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from);
+dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation);
+ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations);
+
+template<war_initiation check_alliance>
+bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
+
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n);
+bool is_vassal(sys::state& state, dcon::nation_id nation);
 void release_vassal(sys::state& state, dcon::overlord_id rel);
 void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
 void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
@@ -390,6 +412,8 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n);
 void ask_to_attack_in_crisis(sys::state& state, dcon::nation_id n);
 void ask_to_defend_in_crisis(sys::state & state, dcon::nation_id n);
 
+bool is_nation_subject_of(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord);
+
 void reject_crisis_participation(sys::state& state);
 void cleanup_crisis(sys::state& state);
 void cleanup_crisis_peace_offer(sys::state& state, dcon::peace_offer_id peace);
@@ -401,6 +425,9 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 		dcon::nation_id from); // difference from liberate: only non-cores can be lost with release
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag);
 void perform_nationalization(sys::state& state, dcon::nation_id n);
+
+void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id source);
+void remove_from_sphere(sys::state& state, dcon::nation_id target, uint8_t new_influence_level);
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n);
 

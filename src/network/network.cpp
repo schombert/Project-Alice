@@ -653,23 +653,24 @@ static std::map<int, std::string> readableCommandTypes = {
 { 108,"toggle_local_administration" },
 {109, "stop_army_movement" },
 {110, "stop_navy_movement" },
-{ 111,"notify_player_ban" },
-{ 112,"notify_player_kick" },
-{ 113,"notify_player_picks_nation" },
-{ 114,"notify_player_joins" },
-{ 115,"notify_player_leaves" },
-{ 116,"notify_player_oos" },
-{ 117,"notify_save_loaded" },
-{ 118,"notify_start_game" },
-{ 119,"notify_stop_game" },
-{ 120,"notify_pause_game" },
-{ 121,"notify_reload" },
-{ 122,"advance_tick" },
-{ 123,"chat_message" },
-{ 124,"network_inactivity_ping" },
-{ 125, "notify_player_fully_loaded" },
-{ 126, "notify_player_is_loading" },
-{ 127, "change_ai_nation_state" },
+{ 237,"notify_player_ban" },
+{ 238,"notify_player_kick" },
+{ 239,"notify_player_picks_nation" },
+{ 240,"notify_player_joins" },
+{ 241,"notify_player_leaves" },
+{ 242,"notify_player_oos" },
+{ 243,"notify_save_loaded" },
+{ 244,"notify_start_game" },
+{ 245,"notify_stop_game" },
+{ 246,"notify_pause_game" },
+{ 247,"notify_reload" },
+{ 248,"advance_tick" },
+{ 249,"chat_message" },
+{ 250,"network_inactivity_ping" },
+{ 251, "notify_player_fully_loaded" },
+{ 252, "notify_player_is_loading" },
+{ 253, "change_ai_nation_state" },
+{ 254, "network_populate" },
 { 255,"console_command" },
 };
 
@@ -1898,6 +1899,14 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 	for(auto& msg : state.ui_state.chat_messages)
 		if(bool(msg.source) && msg.source == old_n && state.world.mp_player_get_nickname(player) == msg.get_sender_name())
 			msg.source = new_n;
+
+	if(state.current_scene.game_in_progress) {
+		// give back units if puppet becomes player controlled. This is also done when the game starts and goes from lobby to game in progress
+		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
+			military::give_back_units(state, new_n);
+		}
+	}
+
 }
 
 

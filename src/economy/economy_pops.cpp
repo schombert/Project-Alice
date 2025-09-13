@@ -3,6 +3,7 @@
 #include "price.hpp"
 #include "nations.hpp"
 #include "province_templates.hpp"
+#include "demographics.hpp"
 
 namespace economy {
 namespace pops {
@@ -273,9 +274,9 @@ void update_consumption(
 				demand_everyday = ve::select(valid_good_mask, demand_everyday, 0.f);
 				demand_luxury = ve::select(valid_good_mask, demand_luxury, 0.f);
 
-				register_demand(state, ids, cid, demand_life, economy_reason::pop);
-				register_demand(state, ids, cid, demand_everyday, economy_reason::pop);
-				register_demand(state, ids, cid, demand_luxury, economy_reason::pop);
+				register_demand(state, ids, cid, demand_life);
+				register_demand(state, ids, cid, demand_everyday);
+				register_demand(state, ids, cid, demand_luxury);
 			}
 		}
 	});

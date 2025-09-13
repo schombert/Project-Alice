@@ -3,6 +3,19 @@
 namespace ui {
 
 
+
+
+void explain_truce_blocking_single_nation(sys::state& state, text::layout_base& contents, dcon::nation_id asked_to_join, dcon::nation_id against) {
+	if(military::has_truce_with(state, asked_to_join, against)) {
+		auto truce_end_date = military::truce_end_date(state, asked_to_join, against);
+		auto against_nation_name = text::get_name(state, against);
+		auto asked_to_join_nation_name = text::get_name(state, asked_to_join);
+		text::add_line_with_condition(state, contents, "alice_declarewar_truce_with_explain", false, text::variable_type::target, against_nation_name, text::variable_type::nation, asked_to_join_nation_name, text::variable_type::date, text::date_to_string(state, truce_end_date));
+	}
+}
+
+
+
 class wargoal_cancel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -964,7 +977,10 @@ public:
 		for(auto dr : state.world.nation_get_diplomatic_relation(state.local_player_nation)) {
 			if(dr.get_are_allied()) {
 				auto other = dr.get_related_nations(0) == state.local_player_nation ? dr.get_related_nations(1) : dr.get_related_nations(0);
-				if(other.get_is_player_controlled()) {
+				if(military::has_truce_with(state, other, target)) {
+					explain_truce_blocking_single_nation(state, contents, other, target);
+				}
+				else if(other.get_is_player_controlled()) {
 					text::add_line(state, contents, "att_call_is_human", text::variable_type::x, other.id);
 				} else {
 					if(target == other || military::are_in_common_war(state, target, other) || military::are_at_war(state, target, other) || nations::are_allied(state, target, other)) {

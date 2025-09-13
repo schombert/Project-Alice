@@ -4838,7 +4838,7 @@ TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
 	// What exactly is a claim crisis?
-	assert(false && "Claim crisis is not part of PA");
+	// assert(false && "Claim crisis is not part of PA");
 	return compare_to_true(tval[0], false);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {

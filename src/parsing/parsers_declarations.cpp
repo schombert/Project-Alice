@@ -3278,6 +3278,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_primary_defender(context.defenders[0]);
 		new_war.set_is_great(context.great_war);
 		new_war.set_original_target(context.defenders[0]);
+		new_war.set_original_attacker(context.attackers[0]);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		new_war.set_name(context.outer_context.state.lookup_key(std::string_view{ "agression_war_name" }));// misspelling is intentional; DO NOT CORRECT

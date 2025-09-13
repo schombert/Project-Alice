@@ -99,28 +99,20 @@ float full_spendings_administration(sys::state& state, dcon::nation_id n, float 
 
 void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget) {
 	// admin budget is not scaled down
-
 	auto admin_budget = total_budget * float(state.world.nation_get_administrative_spending(n)) / 100.f;
-
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return;
 	}
-
 	auto budget_per_administration = admin_budget / admin_count;
-	auto admin_efficiency = population_per_admin(state, n);
-
 	{
 		auto capital = state.world.nation_get_capital(n);
 		if(state.world.province_get_nation_from_province_control(capital) == n) {
 			auto capital_state = state.world.province_get_state_membership(capital);
 			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+
 			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto demand = budget_per_administration / wage;
-			auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-			// capitals generate base amount of control to avoid death spirals
-			auto& cur_control_scale = state.world.province_get_control_scale(capital);
-			state.world.province_set_control_scale(capital, cur_control_scale + demand * sat * population_per_admin(state, n) + 10'000.f);
 			state.world.nation_set_administration_employment_target_in_capital(n, demand);
 			auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
@@ -137,14 +129,49 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n, flo
 		}
 		auto capital_state = state.world.province_get_state_membership(capital);
 		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = budget_per_administration / wage;
-		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		auto& cur_control_scale = state.world.province_get_control_scale(capital);
-		state.world.province_set_control_scale(capital, cur_control_scale + std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency));
 		state.world.province_set_administration_employment_target(capital_of_capital_state, demand);
 		auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
+	});
+}
+
+void update_production_administration(sys::state& state, dcon::nation_id n) {
+	auto admin_count = count_active_administrations(state, n);
+	if(admin_count == 0.f) {
+		return;
+	}
+
+	{
+		auto capital = state.world.nation_get_capital(n);
+		if(state.world.province_get_nation_from_province_control(capital) == n) {
+			auto capital_state = state.world.province_get_state_membership(capital);
+			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+
+			auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
+			auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+			auto& cur_control_scale = state.world.province_get_control_scale(capital);
+			// capitals generate base amount of control to avoid death spirals
+			state.world.province_set_control_scale(capital, cur_control_scale + demand * sat * population_per_admin(state, n) + 10'000.f);
+		}
+	}
+
+	state.world.nation_for_each_nation_administration(n, [&](auto naid) {
+		auto admin = state.world.nation_administration_get_administration(naid);
+		auto capital = state.world.administration_get_capital(admin);
+		if(state.world.province_get_nation_from_province_control(capital) != n) {
+			return;
+		}
+		auto capital_state = state.world.province_get_state_membership(capital);
+		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+		auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
+		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		auto& cur_control_scale = state.world.province_get_control_scale(capital);
+		// additional administrations are less efficient
+		// and require additional people to generate control
+		state.world.province_set_control_scale(capital, cur_control_scale + std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency));
 	});
 }
 
@@ -274,8 +301,30 @@ tax_information explain_tax_income(sys::state& state, dcon::nation_id n) {
 	return result;
 }
 
+
+bool non_war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+	auto leader_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_b, market_leader_a);
+	auto leader_target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_a, market_leader_b);
+	auto nation_source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+	auto nation_target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+	if(state.world.unilateral_relationship_get_embargo(leader_source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(leader_target_tariffs_rel)) {
+		return true;
+	}
+
+	return state.world.unilateral_relationship_get_embargo(nation_source_tariffs_rel) || state.world.unilateral_relationship_get_embargo(nation_target_tariffs_rel);
+}
+
+bool war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b) {
+	auto market_leaders_at_war = military::are_at_war(state, market_leader_a, market_leader_a);
+	if(market_leaders_at_war) {
+		return true;
+	}
+	return military::are_at_war(state, n_a, n_b);
+
+}
+
 bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to) {
-	// When embargo is issued, it is automatically propagated onto all subjects. Therefore, checking for direct relationship is enough
+	// Only shows if the diplomatic relationship has an embargo, and dosent show "derived" embargos from spheres and subjects
 
 	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
 	if(!rel_1) {

@@ -71,7 +71,7 @@ void form_alliances(sys::state& state) {
 						},
 						"msg_entered_automatic_alliance_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::entered_automatic_alliance
+						sys::message_base_type::entered_automatic_alliance, dcon::province_id{ }
 					});
 				}
 				nations::make_alliance(state, n, alliance_targets[0]);

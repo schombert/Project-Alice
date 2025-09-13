@@ -1065,8 +1065,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	} else if(auto dip_rel = state.world.get_diplomatic_relation_by_diplomatic_pair(prov_controller, n);
 						state.world.diplomatic_relation_get_are_allied(dip_rel)) {
 		modifier = 2.0f;
-	} else if(auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(prov_controller, n);
-						state.world.unilateral_relationship_get_military_access(uni_rel)) {
+	} else if(province::has_safe_access_to_province(state, n, p)) {
 		modifier = 2.0f;
 	} else if(bool(state.world.get_core_by_prov_tag_key(p, state.world.nation_get_identity_from_identity_holder(n)))) {
 		modifier = 2.0f;
@@ -1673,7 +1672,8 @@ void update_cbs(sys::state& state) {
 						},
 						"msg_fab_canceled_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::cb_fab_cancelled
+						sys::message_base_type::cb_fab_cancelled,
+						dcon::province_id{ }
 					});
 				}
 
@@ -1724,7 +1724,8 @@ void update_cbs(sys::state& state) {
 						},
 						"msg_fab_finished_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::cb_fab_finished
+						sys::message_base_type::cb_fab_finished,
+						dcon::province_id{ }
 					});
 				}
 
@@ -2488,7 +2489,8 @@ void execute_cb_discovery(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_fab_discovered_title",
 		n, target, dcon::nation_id{},
-		sys::message_base_type::cb_detected
+		sys::message_base_type::cb_detected,
+		dcon::province_id{ }
 	});
 }
 
@@ -2558,7 +2560,8 @@ void kill_leader(sys::state& state, dcon::leader_id l) {
 				},
 				"msg_leader_died_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::leader_dies
+				sys::message_base_type::leader_dies,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -2713,6 +2716,16 @@ bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id
 	return false;
 }
 
+sys::date truce_end_date(sys::state& state, dcon::nation_id attacker, dcon::nation_id target) {
+	auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(target, attacker);
+	if(rel) {
+		auto truce_ends = state.world.diplomatic_relation_get_truce_until(rel);
+		if(truce_ends)
+			return truce_ends;
+	}
+	return sys::date{};
+}
+
 dcon::regiment_id create_new_regiment(sys::state& state, dcon::nation_id n, dcon::unit_type_id t) {
 	auto reg = fatten(state.world, state.world.create_regiment());
 	reg.set_type(t);
@@ -2734,6 +2747,24 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	shp.set_strength(1.f);
 	shp.set_org(1.f);
 	return shp.id;
+}
+
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit) {
+	auto army_controller = state.world.army_get_controller_from_army_control(unit);
+	auto potential_overlord = state.world.nation_get_overlord_as_subject(army_controller);
+	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(army_controller)) {
+		return state.world.overlord_get_ruler(potential_overlord);
+	}
+	return army_controller;
+}
+
+dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit) {
+	auto navy_controller = state.world.navy_get_controller_from_navy_control(unit);
+	auto potential_overlord = state.world.nation_get_overlord_as_subject(navy_controller);
+	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(navy_controller)) {
+		return state.world.overlord_get_ruler(potential_overlord);
+	}
+	return navy_controller;
 }
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target) {
@@ -2762,7 +2793,7 @@ void end_wars_between(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 void populate_war_text_subsitutions(sys::state& state, dcon::war_id w, text::substitution_map& sub) {
 	auto war = fatten(state.world, w);
 
-	dcon::nation_id primary_attacker = state.world.war_get_primary_attacker(war);
+	dcon::nation_id primary_attacker = state.world.war_get_original_attacker(war);
 	dcon::nation_id primary_defender = state.world.war_get_original_target(war);
 
 	text::add_to_substitution_map(sub, text::variable_type::order, std::string_view(""));
@@ -2779,6 +2810,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	assert(n);
 	if(state.world.nation_get_owned_province_count(n) == 0)
 		return;
+
+	state.trade_route_cached_values_out_of_date = true;
 
 	auto participant = state.world.force_create_war_participant(w, n);
 	state.world.war_participant_set_is_attacker(participant, as_attacker);
@@ -2811,7 +2844,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 						},
 						"msg_wsub_end_title",
 						n, ul.get_target().id, dcon::nation_id{},
-						sys::message_base_type::war_subsidies_end
+						sys::message_base_type::war_subsidies_end,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -2830,7 +2864,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 						},
 						"msg_wsub_end_title",
 						n, ul.get_target().id, dcon::nation_id{},
-						sys::message_base_type::war_subsidies_end
+						sys::message_base_type::war_subsidies_end,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -2865,7 +2900,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 				},
 				"msg_war_becomes_great_title",
 				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::war_becomes_great
+				sys::message_base_type::war_becomes_great,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -2877,7 +2913,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 		},
 		"msg_war_join_title",
 		n, get_role(state, w, state.local_player_nation) != war_role::none ? state.local_player_nation : dcon::nation_id{}, dcon::nation_id{ },
-		sys::message_base_type::join_war
+		sys::message_base_type::join_war,
+		dcon::province_id{ }
 	});
 
 	if(!on_war_creation && state.world.nation_get_is_player_controlled(n) == false) {
@@ -2902,6 +2939,12 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	}
 }
 
+
+void give_back_units(sys::state& state, dcon::nation_id target) {
+	state.world.nation_set_overlord_commanding_units(target, false);
+}
+
+
 bool is_attacker(sys::state& state, dcon::war_id w, dcon::nation_id n) {
 	for(auto p : state.world.war_get_war_participant(w)) {
 		if(p.get_nation() == n)
@@ -2924,6 +2967,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	assert(primary_attacker);
 	assert(primary_defender);
 	auto new_war = fatten(state.world, state.world.create_war());
+	state.trade_route_cached_values_out_of_date = true;
 
 	// release puppet if subject declares on overlord or vice versa
 	{
@@ -2948,6 +2992,7 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 	new_war.set_over_state(primary_wargoal_state);
 	new_war.set_over_tag(primary_wargoal_tag);
 	new_war.set_original_target(primary_defender);
+	new_war.set_original_attacker(primary_attacker);
 	if(primary_wargoal_secondary) {
 		new_war.set_over_tag(state.world.nation_get_identity_from_identity_holder(primary_wargoal_secondary));
 	}
@@ -2980,7 +3025,8 @@ dcon::war_id create_war(sys::state& state, dcon::nation_id primary_attacker, dco
 		},
 		"msg_war_title",
 		primary_attacker, primary_defender, dcon::nation_id{},
-		sys::message_base_type::war
+		sys::message_base_type::war,
+		dcon::province_id{ }
 	});
 
 	return new_war;
@@ -3033,6 +3079,8 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 		return;
 
 	auto n = state.world.war_get_primary_defender(wfor);
+	auto sphere = state.world.nation_get_in_sphere_of(n);
+	bool called_in_sphere_early = false;
 	for(auto drel : state.world.nation_get_diplomatic_relation(n)) {
 		auto other_nation = drel.get_related_nations(0) != n ? drel.get_related_nations(0) : drel.get_related_nations(1);
 		if(drel.get_are_allied() && standard_war_joining_is_possible(state, wfor, other_nation, false)) {
@@ -3043,10 +3091,14 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
+			if(sphere == other_nation) {
+				called_in_sphere_early = true;
+			}
 		}
 	}
-	if(state.world.nation_get_in_sphere_of(n)) {
+	if(state.world.nation_get_in_sphere_of(n) && !called_in_sphere_early) {
 		if(joining_war_does_not_violate_constraints(state, state.world.nation_get_in_sphere_of(n), wfor, false)) {
 
 			diplomatic_message::message m;
@@ -3055,6 +3107,7 @@ void call_defender_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = state.world.nation_get_in_sphere_of(n);
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
 		}
 	}
@@ -3075,6 +3128,7 @@ void call_attacker_allies(sys::state& state, dcon::war_id wfor) {
 			m.to = other_nation;
 			m.type = diplomatic_message::type_t::call_ally_request;
 			m.data.war = wfor;
+			m.automatic_call = true;
 			diplomatic_message::post(state, m);
 		}
 	}
@@ -3166,7 +3220,8 @@ void add_wargoal(sys::state& state, dcon::war_id wfor, dcon::nation_id added_by,
 			},
 			"msg_wargoal_title",
 			added_by, target, state.local_player_nation,
-			sys::message_base_type::wargoal_added
+			sys::message_base_type::wargoal_added,
+			dcon::province_id{ }
 		});
 	}
 }
@@ -3232,6 +3287,10 @@ void remove_from_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool 
 	state.world.delete_war_participant(par);
 	auto rem_wars = state.world.nation_get_war_participant(n);
 	if(rem_wars.begin() == rem_wars.end()) {
+		// give back units if said nation is a puppet and there are no remaining wars
+		if(bool(state.world.nation_get_overlord_as_subject(n))) {
+			military::give_back_units(state, n);
+		}
 		state.world.nation_set_is_at_war(n, false);
 	}
 
@@ -3318,12 +3377,8 @@ void set_initial_leaders(sys::state& state) {
 void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id new_gp) {
 	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(member);
 	if(existing_sphere_leader) {
-		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(member, existing_sphere_leader);
-		assert(rel);
-		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask));
-		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) | nations::influence::level_hostile));
+		nations::remove_from_sphere(state, member, nations::influence::level_hostile);
 
-		state.world.nation_set_in_sphere_of(member, dcon::nation_id{});
 	}
 
 	if(!nations::is_great_power(state, new_gp))
@@ -3340,11 +3395,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 		nrel = state.world.force_create_gp_relationship(member, new_gp);
 	}
 
-	state.world.gp_relationship_set_status(nrel, uint8_t(state.world.gp_relationship_get_status(nrel) & ~nations::influence::level_mask));
-	state.world.gp_relationship_set_status(nrel, uint8_t(state.world.gp_relationship_get_status(nrel) | nations::influence::level_in_sphere));
-
 	state.world.gp_relationship_set_influence(nrel, state.defines.max_influence);
-	state.world.nation_set_in_sphere_of(member, new_gp);
+	nations::sphere_nation(state, member, new_gp);
 
 	notification::post(state, notification::message{
 		[member, existing_sphere_leader, new_gp](sys::state& state, text::layout_base& contents) {
@@ -3352,7 +3404,8 @@ void take_from_sphere(sys::state& state, dcon::nation_id member, dcon::nation_id
 		},
 		"msg_rem_sphere_title",
 		new_gp, existing_sphere_leader, member,
-		sys::message_base_type::rem_sphere
+		sys::message_base_type::rem_sphere,
+		dcon::province_id{ }
 	});
 }
 
@@ -3379,6 +3432,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 			rel_1 = state.world.force_create_unilateral_relationship(target, from);
 		}
 		state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+		state.trade_route_cached_values_out_of_date = true;
 	}
 
 	// po_add_to_sphere: leaves its current sphere and has its opinion of that nation set to hostile. Is added to the nation that
@@ -3623,10 +3677,7 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		}
 		// add to sphere if not existed
 		if(!target_existed && state.world.nation_get_is_great_power(from)) {
-			auto sr = state.world.force_create_gp_relationship(holder, from);
-			auto& flags = state.world.gp_relationship_get_status(sr);
-			state.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
-			state.world.nation_set_in_sphere_of(holder, from);
+			nations::sphere_nation(state, holder, from);
 		}
 		add_truce(state, holder, target, int32_t(state.defines.base_truce_months) * 30);
 
@@ -3952,9 +4003,6 @@ void add_truce_between_sides(sys::state& state, dcon::war_id w, int32_t months) 
 		auto this_par = *(wpar.begin() + i);
 		auto this_nation = this_par.get_nation();
 
-		if(this_nation.get_overlord_as_subject().get_ruler())
-			continue;
-
 		auto attacker = this_par.get_is_attacker();
 
 		for(int32_t j = i + 1; j < num_par; ++j) {
@@ -3979,8 +4027,6 @@ void add_truce_from_nation(sys::state& state, dcon::war_id w, dcon::nation_id n,
 
 	for(auto par : state.world.war_get_war_participant(w)) {
 		auto other_nation = par.get_nation();
-		if(other_nation.get_overlord_as_subject().get_ruler())
-			continue;
 
 
 		auto rel = state.world.get_diplomatic_relation_by_diplomatic_pair(n, other_nation);
@@ -4029,7 +4075,8 @@ void implement_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			},
 			"msg_peace_offer_accepted_title",
 			target, from, dcon::nation_id{},
-			sys::message_base_type::peace_accepted
+			sys::message_base_type::peace_accepted,
+			dcon::province_id{ }
 		});
 	}
 
@@ -4326,7 +4373,8 @@ void reject_peace_offer(sys::state& state, dcon::peace_offer_id offer) {
 			},
 			"msg_peace_offer_rejected_title",
 			target, from, dcon::nation_id{},
-			sys::message_base_type::peace_rejected
+			sys::message_base_type::peace_rejected,
+			dcon::province_id{ }
 		});
 	}
 
@@ -5152,6 +5200,27 @@ void add_navy_to_battle(sys::state& state, dcon::navy_id n, dcon::naval_battle_i
 
 	update_battle_leaders(state, b);
 }
+
+
+std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers) {
+	std::vector<dcon::nation_id> result;
+	if(attackers) {
+		for(auto wp : state.world.war_get_war_participant(war)) {
+			if(wp.get_is_attacker()) {
+				result.push_back(wp.get_nation().id);
+			}
+		}
+	}
+	else {
+		for(auto wp : state.world.war_get_war_participant(war)) {
+			if(!wp.get_is_attacker()) {
+				result.push_back(wp.get_nation().id);
+			}
+		}
+	}
+	return result;
+}
+
 template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);
@@ -5642,6 +5711,35 @@ void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id 
 	state.world.ship_set_experience(r, v); //from regular_experience_level to 100%
 }
 
+
+bool nation_participating_in_battle(sys::state& state, dcon::land_battle_id battle, dcon::nation_id nation) {
+	assert(state.world.land_battle_is_valid(battle));
+	std::vector<dcon::nation_id> participants{};
+	for(auto army : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army_controller = state.world.army_get_controller_from_army_control(army.get_army().id);
+		if(nation == army_controller) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+bool nation_participating_in_battle(sys::state& state, dcon::naval_battle_id battle, dcon::nation_id nation) {
+	assert(state.world.naval_battle_is_valid(battle));
+	for(auto navy : state.world.naval_battle_get_navy_battle_participation(battle)) {
+		auto navy_controller = state.world.navy_get_controller_from_navy_control(navy.get_navy().id);
+		if(nation == navy_controller) {
+			return true;
+		}
+	}
+	return false;
+}
+
+
+
+
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
@@ -5737,8 +5835,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 			if(d_nation)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_lost_score_to_leadership);
 
-			// Report
-			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+			// Report.
+			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -5807,7 +5905,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_won_score_to_leadership);
 
 			// Report
-			if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -5945,7 +6043,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				adjust_leader_prestige(state, b_leader, score / -50.f / 100.f);
 
 				// Report
-				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -5998,7 +6096,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 
 				// Report
-				if(state.local_player_nation == a_nation || state.local_player_nation == d_nation) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -6795,7 +6893,7 @@ void notify_on_new_land_battle(sys::state& state, dcon::land_battle_id battle, d
 	auto location = state.world.land_battle_get_location_from_land_battle_location(battle);
 	// notify if attacking
 	dcon::nation_id enemy_nation = (battle_role == war_role::attacker) ? get_land_battle_lead_defender(state, battle) : get_land_battle_lead_attacker(state, battle);
-	bool show_notification = (enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat || enemy_nation != dcon::nation_id{ });
+	bool show_notification = ((enemy_nation == dcon::nation_id{ } && state.user_settings.notify_rebels_defeat) || enemy_nation != dcon::nation_id{ });
 	if(battle_role == war_role::attacker && show_notification) {
 		notification::post(state, notification::message{
 			.body = [=](sys::state& state, text::layout_base& layout) {
@@ -8926,7 +9024,8 @@ void update_siege_progress(sys::state& state) {
 					},
 					"msg_siegeover_title",
 					cc, oc, dcon::nation_id{},
-					sys::message_base_type::siegeover
+					sys::message_base_type::siegeover,
+					dcon::province_id{ }
 				});
 			}
 
@@ -9689,7 +9788,8 @@ void start_mobilization(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_mobilize_start_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::mobilization_start
+		sys::message_base_type::mobilization_start,
+		dcon::province_id{ }
 	});
 }
 void end_mobilization(sys::state& state, dcon::nation_id n) {
@@ -9719,7 +9819,8 @@ void end_mobilization(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_mobilize_end_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::mobilization_end
+		sys::message_base_type::mobilization_end,
+		dcon::province_id{ }
 	});
 }
 void advance_mobilizations(sys::state& state) {

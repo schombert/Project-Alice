@@ -759,6 +759,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_navy_sailing_hours_per_day, 20.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_slowdown, 0.75) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rebel_reduction_after_reoccupation, 7.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_can_add_constructable_cbs_as_wargoals, 1.0) \
 
 
