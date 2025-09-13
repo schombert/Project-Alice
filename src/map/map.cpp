@@ -545,6 +545,8 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_sprite_texture_size] = glGetUniformLocation(shaders[i], "texture_size");
 		shader_uniforms[i][uniform_is_national_border] = glGetUniformLocation(shaders[i], "is_national_border");
 		shader_uniforms[i][uniform_graphics_mode] = glGetUniformLocation(shaders[i], "graphics_mode");
+		shader_uniforms[i][uniform_winter_scale] = glGetUniformLocation(shaders[i], "winter_scale");
+		shader_uniforms[i][uniform_terrainsheet_texture_sampler_winter] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler_winter");
 	}
 }
 
@@ -578,6 +580,22 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
 		} else {
 			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		}
+		// Winter textures
+		if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.f);
+		}
+		// Animation from winter to summer
+		else if(state.current_date.to_ymd(state.start_date).month == 3) {
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f - std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
+		}
+		// Animation from summer to winter
+		else if(state.current_date.to_ymd(state.start_date).month == 11) {
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
+		}
+		// Summer textures
+		else {
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f);
 		}
 	};
 
@@ -657,15 +675,16 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
-
 	// Summer world textures
-	if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
-	}
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	glActiveTexture(GL_TEXTURE16);
 	// Winter world textures
-	else {
-		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet_winter]);
-	}
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet_winter]);
+
+	//if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+	//}
+	//else {
+	//}
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
@@ -708,6 +727,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_terrain][uniform_province_fow], 13);
 	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_14], 14);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_diag_border_identifier], 15);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler_winter], 16);
+
+
 	{ // Land specific shader uniform
 		// get_land()
 		GLuint fragment_subroutines = 0;

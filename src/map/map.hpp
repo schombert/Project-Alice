@@ -332,7 +332,9 @@ public:
 	static constexpr uint32_t uniform_graphics_mode = 40;
 	static constexpr uint32_t uniform_light_direction = 41;
 	static constexpr uint32_t uniform_ignore_light = 42;
-	static constexpr uint32_t uniform_count = 43;
+	static constexpr uint32_t uniform_winter_scale = 43;
+	static constexpr uint32_t uniform_terrainsheet_texture_sampler_winter = 44;
+	static constexpr uint32_t uniform_count = 45;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
