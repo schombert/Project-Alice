@@ -2811,6 +2811,8 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(state.world.nation_get_owned_province_count(n) == 0)
 		return;
 
+	state.trade_route_cached_values_out_of_date = true;
+
 	auto participant = state.world.force_create_war_participant(w, n);
 	state.world.war_participant_set_is_attacker(participant, as_attacker);
 	state.world.nation_set_is_at_war(n, true);
