@@ -374,16 +374,20 @@ void remove_ai_data(sys::state& state, dcon::nation_id n) {
 
 bool unit_on_ai_control(sys::state& state, dcon::army_id a) {
 	auto fat_id = dcon::fatten(state.world, a);
+	if(fat_id.get_controller_from_army_control().get_overlord_commanding_units()) {
+		return false;
+	}
 	return fat_id.get_controller_from_army_control().get_is_player_controlled()
 		? fat_id.get_is_ai_controlled()
 		: true;
 }
-/*bool unit_on_ai_control(sys::state& state, dcon::navy_id a) {
+bool unit_on_ai_control(sys::state& state, dcon::navy_id a) {
 	auto fat_id = dcon::fatten(state.world, a);
-	return fat_id.get_controller_from_navy_control().get_is_player_controlled()
-		? fat_id.get_is_ai_controlled()
-		: true;
-}*/
+	if(fat_id.get_controller_from_navy_control().get_overlord_commanding_units()) {
+		return false;
+	}
+	return !fat_id.get_controller_from_navy_control().get_is_player_controlled();
+}
 
 bool will_upgrade_ships(sys::state& state, dcon::nation_id n) {
 	auto fid = dcon::fatten(state.world, n);
@@ -415,7 +419,7 @@ void update_ships(sys::state& state) {
 		// Landlocked nation shouldn't keep fleet
 		if(n.get_is_at_war() == false && nations::is_landlocked(state, n)) {
 			for(auto v : n.get_navy_control()) {
-				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+				if(!v.get_navy().get_battle_from_navy_battle_participation() && unit_on_ai_control(state, v.get_navy())) {
 					to_delete.push_back(v.get_navy());
 				}
 			}
@@ -425,7 +429,7 @@ void update_ships(sys::state& state) {
 			dcon::unit_type_id best_big = military::get_best_big_ship(state, n);
 			
 			for(auto v : n.get_navy_control()) {
-				if(!v.get_navy().get_battle_from_navy_battle_participation()) {
+				if(!v.get_navy().get_battle_from_navy_battle_participation() && unit_on_ai_control(state, v.get_navy())) {
 					auto trange = v.get_navy().get_army_transport();
 					bool transporting = trange.begin() != trange.end();
 
@@ -494,6 +498,9 @@ void build_ships(sys::state& state) {
 			int32_t fleet_cap_in_big = 0;
 
 			for(auto v : n.get_navy_control()) {
+				if(!unit_on_ai_control(state, v.get_navy())) {
+					continue;
+				}
 				for(auto s : v.get_navy().get_navy_membership()) {
 					auto type = s.get_ship().get_type();
 					if(state.military_definitions.unit_base_definitions[type].type == military::unit_type::transport) {
@@ -772,7 +779,7 @@ void pickup_idle_ships(sys::state& state) {
 
 		auto owner = n.get_controller_from_navy_control();
 
-		if(!owner || owner.get_is_player_controlled() || owner.get_owned_province_count() == 0)
+		if(!owner || owner.get_is_player_controlled() || owner.get_owned_province_count() == 0 || !unit_on_ai_control(state, n))
 			continue;
 
 		auto home_port = state.world.nation_get_ai_home_port(owner);
@@ -1115,7 +1122,7 @@ dcon::navy_id find_transport_fleet(sys::state& state, dcon::nation_id controller
 	dcon::navy_id transport_fleet;
 
 	for(auto v : state.world.nation_get_navy_control(controller)) {
-		if(v.get_navy().get_battle_from_navy_battle_participation())
+		if(v.get_navy().get_battle_from_navy_battle_participation() || !unit_on_ai_control(state, v.get_navy()))
 			continue;
 		auto members = v.get_navy().get_navy_membership();
 

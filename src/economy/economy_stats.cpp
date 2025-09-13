@@ -30,8 +30,8 @@ void register_demand(
 	sys::state& state,
 	dcon::market_id s,
 	dcon::commodity_id commodity_type,
-	float amount,
-	economy_reason reason
+	float amount
+	//economy_reason reason
 ) {
 	assert(amount >= 0.f);
 	auto current = state.world.market_get_demand(s, commodity_type);
@@ -44,8 +44,8 @@ void t_register_demand(
 	sys::state& state,
 	MARKETS s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
 	ve::apply(
 		[](float amount) {
@@ -68,104 +68,88 @@ void register_demand(
 	sys::state& state,
 	ve::contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	t_register_demand(state, s, commodity_type, amount, reason);
+	t_register_demand(state, s, commodity_type, amount);
 }
 void register_demand(
 	sys::state& state,
 	ve::partial_contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	t_register_demand(state, s, commodity_type, amount, reason);
+	t_register_demand(state, s, commodity_type, amount);
 }
 void register_demand(
 	sys::state& state,
 	ve::tagged_vector<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	t_register_demand(state, s, commodity_type, amount, reason);
+	t_register_demand(state, s, commodity_type, amount);
 }
 
 void register_intermediate_demand(
 	sys::state& state,
 	ve::contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	register_demand(state, s, c, amount, reason);
+	register_demand(state, s, c, amount);
 	state.world.market_set_intermediate_demand(
 		s,
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
 	ve::partial_contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	register_demand(state, s, c, amount, reason);
+	register_demand(state, s, c, amount);
 	state.world.market_set_intermediate_demand(
 		s,
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 void register_intermediate_demand(
 	sys::state& state,
 	ve::tagged_vector<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 ) {
-	register_demand(state, s, c, amount, reason);
+	register_demand(state, s, c, amount);
 	state.world.market_set_intermediate_demand(
 		s,
 		c,
 		state.world.market_get_intermediate_demand(s, c) + amount
 	);
-	auto local_price = ve_price(state, s, c);
-	auto median_price = state.world.commodity_get_median_price(c);
-	auto sat = state.world.market_get_demand_satisfaction(s, c);
-	state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 }
 
 void register_intermediate_demand(
 	sys::state& state,
 	dcon::market_id s,
 	dcon::commodity_id c,
-	float amount,
-	economy_reason reason
+	float amount
+	//economy_reason reason
 ) {
 	// check for market validity before writing data to it
 	if(s) {
-			register_demand(state, s, c, amount, reason);
+			register_demand(state, s, c, amount);
 		state.world.market_set_intermediate_demand(
 			s,
 			c,
 			state.world.market_get_intermediate_demand(s, c) + amount
 		);
-		auto local_price = price(state, s, c);
-		auto median_price = state.world.commodity_get_median_price(c);
-		auto sat = state.world.market_get_demand_satisfaction(s, c);
-		state.world.market_set_gdp(s, state.world.market_get_gdp(s) - amount * median_price * sat);
 	}
 	
 }
@@ -1278,5 +1262,4 @@ float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::m
 	auto r = tariff_efficiency * float(state.world.nation_get_tariffs_export(n)) / 100.0f;
 	return std::max(r, 0.0f);
 }
-
 }

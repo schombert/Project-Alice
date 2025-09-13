@@ -278,7 +278,7 @@ public:
 						// Hide province window when navy is clicked.
 						if(state.ui_state.province_window) {
 							state.ui_state.province_window->set_visible(state, false);
-							state.map_state.set_selected_province(dcon::province_id{});
+							state.set_selected_province(dcon::province_id{});
 						}
 					//}
 				}
@@ -385,7 +385,7 @@ public:
 				state.ui_state.army_combat_window->set_visible(state, true);
 				if(state.ui_state.province_window) {
 					state.ui_state.province_window->set_visible(state, false);
-					state.map_state.set_selected_province(dcon::province_id{});
+					state.set_selected_province(dcon::province_id{});
 				}
 				if(state.ui_state.naval_combat_window) {
 					state.ui_state.naval_combat_window->set_visible(state, false);
@@ -406,7 +406,7 @@ public:
 				state.ui_state.naval_combat_window->set_visible(state, true);
 				if(state.ui_state.province_window) {
 					state.ui_state.province_window->set_visible(state, false);
-					state.map_state.set_selected_province(dcon::province_id{});
+					state.set_selected_province(dcon::province_id{});
 				}
 				if(state.ui_state.army_combat_window) {
 					state.ui_state.army_combat_window->set_visible(state, false);
@@ -1298,7 +1298,7 @@ public:
 
 			if constexpr(std::is_same<T, dcon::navy_fat_id>()) {
 				if constexpr(Is_Top_Right) {
-					auto controller = n.get_controller_from_navy_control().id;
+					auto controller = military::get_effective_unit_commander(state, n);
 					if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 						top_right_found_enemy = true;
 					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
@@ -1306,7 +1306,7 @@ public:
 					else
 						top_right_found_other = true;
 				} else {
-					auto controller = n.get_controller_from_navy_control().id;
+					auto controller = military::get_effective_unit_commander(state, n);
 
 					if(state.is_selected(n) && controller == state.local_player_nation)
 						found_selected = true;
@@ -1321,7 +1321,7 @@ public:
 				}
 			} else {
 				if constexpr(Is_Top_Right) {
-					auto controller = n.get_controller_from_army_control().id;
+					auto controller = military::get_effective_unit_commander(state, n);
 					if(!controller || military::are_at_war(state, controller, state.local_player_nation))
 						top_right_found_enemy = true;
 					else if(military::are_allied_in_war(state, controller, state.local_player_nation))
@@ -1329,7 +1329,7 @@ public:
 					else
 						top_right_found_other = true;
 				} else {
-					auto controller = n.get_controller_from_army_control().id;
+					auto controller = military::get_effective_unit_commander(state, n);
 
 					if(state.is_selected(n) && controller == state.local_player_nation)
 						found_selected = true;
@@ -1639,13 +1639,13 @@ public:
 				std::function<bool(dcon::army_id)> filter;
 
 				if(display.colors[0] == outline_color::gold) {
-					display.top_left_nation = state.local_player_nation;
+					//display.top_left_nation = state.local_player_nation;
 					display.top_left_rebel = dcon::rebel_faction_id{};
-					filter = [&](dcon::army_id a) { return state.world.army_get_controller_from_army_control(a) == state.local_player_nation && state.is_selected(a); };
+					filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
 				} else if(display.colors[0] == outline_color::blue) {
-					display.top_left_nation = state.local_player_nation;
+					//display.top_left_nation = state.local_player_nation;
 					display.top_left_rebel = dcon::rebel_faction_id{};
-					filter = [&](dcon::army_id a) { return state.world.army_get_controller_from_army_control(a) == state.local_player_nation && !state.is_selected(a); };
+					filter = [&](dcon::army_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
 				} else if(display.colors[0] == outline_color::cyan) {
 					filter = [&](dcon::army_id a) {
 						auto n = state.world.army_get_controller_from_army_control(a);
@@ -1729,11 +1729,11 @@ public:
 				display.top_left_rebel = dcon::rebel_faction_id{};
 
 				if(display.colors[0] == outline_color::gold) {
-					display.top_left_nation = state.local_player_nation;
-					filter = [&](dcon::navy_id a) { return state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation && state.is_selected(a); };
+					//display.top_left_nation = state.local_player_nation;
+					filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && state.is_selected(a); };
 				} else if(display.colors[0] == outline_color::blue) {
-					display.top_left_nation = state.local_player_nation;
-					filter = [&](dcon::navy_id a) { return state.world.navy_get_controller_from_navy_control(a) == state.local_player_nation && !state.is_selected(a); };
+					//display.top_left_nation = state.local_player_nation;
+					filter = [&](dcon::navy_id a) { return military::get_effective_unit_commander(state, a) == state.local_player_nation && !state.is_selected(a); };
 				} else if(display.colors[0] == outline_color::cyan) {
 					filter = [&](dcon::navy_id a) {
 						auto n = state.world.navy_get_controller_from_navy_control(a);
@@ -1884,22 +1884,12 @@ public:
 					for(auto n : state.world.province_get_navy_location(prov)) {
 						// if(state.world.navy_get_controller_from_navy_control(n.get_navy()) == state.local_player_nation) {
 							state.select(n.get_navy().id);
-							// Hide province window when navy is clicked.
-							if(state.ui_state.province_window) {
-								state.ui_state.province_window->set_visible(state, false);
-								state.map_state.set_selected_province(dcon::province_id{});
-							}
 						//  }
 					}
 				} else {
 					for(auto n : state.world.province_get_army_location(prov)) {
 						if(!(n.get_army().get_navy_from_army_transport()) /* && n.get_army().get_controller_from_army_control() == state.local_player_nation */) {
 							state.select(n.get_army().id);
-							// Hide province window when army is clicked.
-							if(state.ui_state.province_window) {
-								state.ui_state.province_window->set_visible(state, false);
-								state.map_state.set_selected_province(dcon::province_id{});
-							}
 						}
 					}
 				}

@@ -753,7 +753,7 @@ ally_explain_5;你不能是附属国
 ally_explain_6;你目前不能是战时目标
 ally_explain_7;AI会接受
 ally_explain_8;目标不能是附属国
-call_ally_explain_1;你有此国盟约
+call_ally_explain_1;你有此国盟约，或是其宗主。
 call_ally_explain_2;你至少有 $x$ 外交点
 call_ally_explain_3;你处于战时
 call_ally_explain_4;现在有一场战争而这个国家可以被呼叫参与
@@ -1007,7 +1007,7 @@ macro_warn_unlocked;?R此单位尚未解锁!?!
 macro_select_province;请选一省在地图上
 macro_warn_insuff;?R不能建造 $x$ $name$（仅 $y$）?!
 macro_warn_invalid_province;?R不属于此地区的省份?!
-shortcut_tooltip;快捷键：?Y$x$?!
+shortcut_tooltip;热键：?Y$x$?!
 filter_all;选择?Y所有?!国家。
 filter_allies;选择与我们有?Y同盟?!关系的国家。\n?Y右键点击?!以选择想要与我们结盟的国家。
 filter_enemies;选择与我们?Y敌对或交战?!的国家。
@@ -1477,9 +1477,9 @@ pop_migration_bureaucracy;流动官僚管理地方：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
-revoke_trade_rights;撤销贸易权利
+revoke_trade_rights;取消贸易权利
 msg_trade_rights_revoked;国家 ?Y$y$?W 撤回了 ?Y$x$?! 在其国内的自由贸易权利。
-trade_rights_desc;贸易权利或不平等条约给予对方在贸易上的优惠待遇，忽略我国的关税。一旦实施，在 ?Y$x$ 年内无法撤销。
+trade_rights_desc;贸易权利或不平等条约给予对方在贸易上的优惠待遇，忽略我国的关税。一旦实施，在 ?Y$x$ 年内无法取消。
 revoke_trade_rights_explain_1;自贸易权利实施以来已经过了足够的时间
 free_trade_desc;如果另一方同意，我们将签订贸易协定，在 ?Y$x$?W 年内取消我们两国之间的所有关税。
 free_trade_explain_1;我们的贸易商在 ?G$date$?! 之前无需支付他们的关税！
@@ -1488,9 +1488,9 @@ free_trade_explain_3;我们正在对其进行禁运
 free_trade_explain_4;他们正在对我们进行禁运
 issue_embargo;实施禁运
 lift_embargo;解除禁运
-embargo_desc;禁运阻止我们两国之间的所有贸易。战争期间会自动对敌人实施禁运。
-embargo_explain_1;?G我们对其进行禁运。?!
-embargo_explain_2;?R他们对我们进行禁运。?!
+embargo_desc;禁运阻止我们两国之间的所有市场（领域和对象）。战争期间会自动禁运敌人。
+embargo_explain_1;$x$ 及其势力和附庸 ?G禁运?! $y$ 及其势力和附庸。
+embargo_explain_2;$x$ 及其势力和附庸 ?R禁运?! $y$ 及其势力和附庸。
 embargo_explain_3;我们在他们的国家没有贸易权利
 embargo_explain_4;他们在我们的国家没有贸易权利
 embargo_explain_5;我们不在一个势力范围内
@@ -1706,3 +1706,38 @@ ratio_to_median;%
 change_price;变化
 method_profit_margin;潜在利润率
 ratio_to_median_price;与均价比
+move_to_siege;围攻（热键：V）
+move_to_siege_desc;军队仅在完全占领当前省份时才去下一省份。
+strategic_redeployment;战略部署（热键：B）
+strategic_redeployment_desc;允许部队更快移动，但组织度归零。
+pursue_to_engage;追歼（热键：N）
+pursue_to_engage_desc;部队将追击并攻击目标省份的敌军。
+currently;（当前：?Y$x$?!）
+call_ally_explain_6;势力范围领袖不在敌方战争中，或势力范围战争限制已关闭。
+ask_access_explain_5;此国是你附庸。
+cancel_given_access_explain_2;你不是此国附庸。
+revoke_trade_rights_explain_2;我们有权取消协议
+free_trade_desc;如对方同意，我们将签署贸易协议，取消我们两国间所有关税，持续 ?Y$x$?W 年。
+free_trade_explain_5;目标不是附庸，或是我附庸。
+free_trade_explain_6;我们不在一个势力范围内
+free_trade_explain_7;目标不在势力范围内，或是在我势力范围内。
+free_trade_explain_8;$x$ 及其 势力和附庸 ?G贸易于?! $y$ 及其势力和附庸。
+embargo_explain_7;目标不在我势力范围内
+war_explain_5;在此国无驻军
+war_explain_6;在目标宗主国无驻军
+war_explain_7;不与目标结盟
+war_explain_8;不与目标宗主结盟
+war_explain_9;目标不是我势力范围领袖，并且不与我势力范围领袖结盟，并且势力战争限制已开启。
+war_explain_10;目标不是我势力范围成员。
+alice_truce_with_explain;?Y$WAR$?W：休战于 ?Y$NATION$?W。持续到 $DATE$。
+alice_declarewar_truce_with_explain;?Y$NATION$?W：休战于 ?Y$TARGET$?W。持续到 $DATE$。
+alice_command_units_condition_1;?Y$NATION$?W 是我附庸
+alice_command_units_condition_2;你和目标处于战时。
+alice_command_units_condition_3;目标是非玩家
+alice_command_units_condition_4;玩单人游戏
+free_trade_di;自由贸易协议
+free_trade_offer;$actor$ 提供了一项自由贸易协议，允许我们在 $years$ 年内免税贸易。
+alice_original_war_participant_not_in_war;?Y$NATION$?W 不再参战
+alice_original_war_participant_desc;?Y$NATION$?W 是这场战争的最初 $ACTOR$。
+alice_original_war_participant_desc_2;只有最初攻击方或防御方的停火协议才能阻止参战。
+alice_original_war_participant_notinvolved;?Y$NATION$?W ?R不再参战?W

@@ -32,7 +32,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		state.stored_map_mode = state.map_state.active_map_mode;
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
-		state.map_state.set_selected_province(dcon::province_id{});
+		state.set_selected_province(dcon::province_id{});
 
 		return;
 
@@ -431,37 +431,35 @@ void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mo
 	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) == 0) {
 		deselect_units(state);
 	}
+	// Hide selected province
+	if(state.ui_state.province_window) {
+		state.ui_state.province_window->set_visible(state, false);
+		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
+	}
 	if((int32_t(sys::key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
-		for(auto a : state.world.nation_get_army_control(state.local_player_nation)) {
-			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
-				if(army_is_in_selection(state, x, y, a.get_army())) {
-					state.select(a.get_army());
+		for(auto a : state.world.in_army) {
+			if(a.is_valid() && !a.get_navy_from_army_transport() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
+				if(army_is_in_selection(state, x, y, a)) {
+					state.select(a);
 				}
 			}
 		}
 	}
-	for(auto a : state.world.nation_get_navy_control(state.local_player_nation)) {
-		if(!a.get_navy().get_battle_from_navy_battle_participation() && !a.get_navy().get_is_retreating()) {
-			if(navy_is_in_selection(state, x, y, a.get_navy())) {
-				state.select(a.get_navy());
+	for(auto a : state.world.in_navy) {
+		if(a.is_valid() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
+			if(navy_is_in_selection(state, x, y, a)) {
+				state.select(a);
 			}
 		}
 	}
 	if(!state.selected_armies.empty() && !state.selected_navies.empty()) {
 		state.selected_navies.clear();
 	}
-	// Hide province upon selecting multiple armies / navies :)
-	if(!state.selected_armies.empty() || !state.selected_navies.empty()) {
-		if(state.ui_state.province_window) {
-			state.ui_state.province_window->set_visible(state, false);
-			state.map_state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
-		}
-		// Play selection sound effect
-		if(!state.selected_armies.empty()) {
-			sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
-		} else {
-			sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
-		}
+	// Play selection sound effect
+	if(!state.selected_armies.empty()) {
+		sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
+	} else {
+		sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
@@ -1019,13 +1017,13 @@ void clean_up_selected_armies_and_navies(sys::state& state) {
 		}
 	} else {
 		for(auto i = state.selected_armies.size(); i-- > 0; ) {
-			if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
+			if(!state.world.army_is_valid(state.selected_armies[i]) || military::get_effective_unit_commander(state, state.selected_armies[i]) != state.local_player_nation) {
 				state.selected_armies[i] = state.selected_armies.back();
 				state.selected_armies.pop_back();
 			}
 		}
 		for(auto i = state.selected_navies.size(); i-- > 0; ) {
-			if(!state.world.navy_is_valid(state.selected_navies[i]) || state.world.navy_get_controller_from_navy_control(state.selected_navies[i]) != state.local_player_nation) {
+			if(!state.world.navy_is_valid(state.selected_navies[i]) || military::get_effective_unit_commander(state, state.selected_navies[i]) != state.local_player_nation) {
 				state.selected_navies[i] = state.selected_navies.back();
 				state.selected_navies.pop_back();
 			}
