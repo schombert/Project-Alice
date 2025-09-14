@@ -1953,7 +1953,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point("create_buffers");
 
-	// This MUST run serial. It accesses a ton of economic data which will lead to race conditions if paired with anything else here
+	// This must run serial
 	populate_army_consumption(state);
 
 	concurrency::parallel_for(0, 5, [&](int32_t index) {

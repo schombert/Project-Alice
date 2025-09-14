@@ -2746,7 +2746,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto start_dir_name = std::to_string(startdate.year);
 		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
 		auto files = list_files(date_directory, NATIVE(".txt"));
-		// if it cant find a bookmark specific dir, read files from
+		// if it cant find a bookmark specific dir, read files directly from the "unit" directory
 		if(files.empty()) {
 			files = list_files(oob_dir, NATIVE(".txt"));
 		}
