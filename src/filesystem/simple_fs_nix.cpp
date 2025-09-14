@@ -418,7 +418,7 @@ native_string get_full_name(directory const& dir) {
 
 native_string get_dir_name(directory const& dir) {
 	size_t found;
-	found = dir.relative_path.find_last_of(L"/");
+	found = dir.relative_path.find_last_of(NATIVE("/"));
 	return dir.relative_path.substr(found + 1);
 }
 

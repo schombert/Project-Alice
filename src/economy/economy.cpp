@@ -1953,7 +1953,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point("create_buffers");
 
-	concurrency::parallel_for(0, 6, [&](int32_t index) {
+	// This MUST run serial. It accesses a ton of economic data which will lead to race conditions if paired with anything else here
+	populate_army_consumption(state);
+
+	concurrency::parallel_for(0, 5, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -1987,9 +1990,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			break;
 		case 4:
-			populate_army_consumption(state);
-			break;
-		case 5:
 			populate_construction_consumption(state);
 			break;
 		}
