@@ -317,6 +317,13 @@ struct pending_invention_content {
 	token_generator generator_state;
 	dcon::invention_id id;
 };
+struct rebel_regiment_parse_data {
+	dcon::province_id home_prov;
+	int32_t line_num;
+	std::string file_name;
+};
+
+
 struct pending_nat_event {
 	std::string original_file;
 	dcon::national_event_id id;
@@ -376,6 +383,8 @@ struct scenario_building_context {
 
 	sys::state& state;
 	ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
+	ankerl::unordered_dense::map<dcon::pop_id, dcon::rebel_type_id, sys::pop_hash> map_of_pop_rebel_affiliation;
+	ankerl::unordered_dense::map<dcon::province_id, dcon::rebel_type_id, sys::province_hash> map_of_province_rebel_control;
 	tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
 	ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
@@ -416,6 +425,8 @@ struct scenario_building_context {
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
+	ankerl::unordered_dense::map<dcon::regiment_id, rebel_regiment_parse_data, sys::regiment_hash> map_of_rebel_regiment_homes;
+
 
 	ankerl::unordered_dense::map<uint32_t, dcon::province_id> map_color_to_province_id;
 
@@ -1591,6 +1602,15 @@ struct province_factory_limit {
 	void finish(province_file_context&) { }
 };
 
+struct province_revolt {
+
+	dcon::rebel_type_id rebel;
+
+	void type(parsers::association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) {
+	}
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1606,6 +1626,7 @@ struct province_history_file {
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
 	void factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context);
+	void revolt(province_revolt const& rev, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };

@@ -406,10 +406,12 @@ int32_t regiments_under_construction_in_province(sys::state& state, dcon::provin
 int32_t main_culture_regiments_under_construction_in_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
-dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, bool require_accepted);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
 int32_t mobilized_regiments_pop_limit(sys::state& state, dcon::nation_id n);
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
+
+//implementation function for deciding if a specific pop with the given divisor can form another regiment. Should not be called directly except in the find_available_soldier calls
+bool can_pop_form_regiment(sys::state& state, dcon::pop_id pop, float divisor);
 
 int32_t total_regiments(sys::state& state, dcon::nation_id n);
 int32_t total_ships(sys::state& state, dcon::nation_id n);

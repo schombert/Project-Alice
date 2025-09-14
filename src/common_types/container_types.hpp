@@ -145,6 +145,30 @@ struct province_hash {
 	}
 };
 
+struct pop_hash {
+	using is_avalanching = void;
+
+	pop_hash() {
+	}
+
+	auto operator()(dcon::pop_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct regiment_hash {
+	using is_avalanching = void;
+
+	regiment_hash() {
+	}
+
+	auto operator()(dcon::regiment_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

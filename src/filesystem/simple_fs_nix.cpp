@@ -416,6 +416,13 @@ native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
 }
 
+native_string get_dir_name(directory const& dir) {
+	size_t found;
+	found = dir.relative_path.find_last_of(NATIVE("/"));
+	return dir.relative_path.substr(found + 1);
+}
+
+
 void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size) {
 	if(dir.parent_system)
 		std::abort();

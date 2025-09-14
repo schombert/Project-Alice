@@ -46,6 +46,7 @@
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
 #include "advanced_province_buildings.hpp"
+#include "military_templates.hpp"
 
 namespace ui {
 
@@ -2452,8 +2453,24 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
 		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
-		if(directory_file_count == 0)
-			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+		// // Zombie:
+		// if there is no exact match, check if any subdirs match with just the year. If none of those exist, use 1836.1.1 default (Vanilla files does this)
+		if(directory_file_count == 0) {
+			bool found_dir = false;
+			auto potential_dirs = simple_fs::list_subdirectories(pop_history);
+			for(simple_fs::directory dir : potential_dirs) {
+				auto dir_name = get_dir_name(dir);
+				auto year = to_native_string(startdate.year);
+				if(dir_name.starts_with(year.c_str())) {
+					date_directory = open_directory(pop_history, dir_name);
+					found_dir = true;
+					break;
+				}
+			}
+			if(!found_dir) {
+				date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+			}
+		}	
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -2725,47 +2742,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
 
-		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
-			auto file_name = get_full_name(oob_file);
-			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
-				continue;
-			auto last = file_name.c_str() + file_name.length();
-			auto first = file_name.c_str();
-			auto start_of_name = last;
-			for(; start_of_name >= first; --start_of_name) {
-				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
-					++start_of_name;
-					break;
-				}
-			}
-			if(last - start_of_name >= 3) {
-				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
-					// ignore REB
-				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
-					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-					if(holder) {
-						parsers::oob_file_context new_context{ context, holder };
-						auto opened_file = open_file(oob_file);
-						if(opened_file) {
-							err.file_name = utf8name;
-							auto content = view_contents(*opened_file);
-							parsers::token_generator gen(content.data, content.data + content.file_size);
-							parsers::parse_oob_file(gen, err, new_context);
-						}
-					} else {
-						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-					}
-				} else {
-					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-				}
-			}
-		}
-
 		auto startdate = current_date.to_ymd(start_date);
 		auto start_dir_name = std::to_string(startdate.year);
 		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
-		for(auto oob_file : list_files(date_directory, NATIVE(".txt"))) {
+		auto files = list_files(date_directory, NATIVE(".txt"));
+		// if it cant find a bookmark specific dir, read files directly from the "unit" directory
+		if(files.empty()) {
+			files = list_files(oob_dir, NATIVE(".txt"));
+		}
+		for(auto oob_file : files) {
 			auto file_name = get_full_name(oob_file);
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
@@ -2778,19 +2763,24 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
-					// ignore REB
-				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
-						parsers::oob_file_context new_context{ context, holder };
-						auto opened_file = open_file(oob_file);
-						if(opened_file) {
-							err.file_name = utf8name;
-							auto content = view_contents(*opened_file);
-							parsers::token_generator gen(content.data, content.data + content.file_size);
-							parsers::parse_oob_file(gen, err, new_context);
+						// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
+						if(context.state.world.nation_get_province_ownership(holder).begin() != context.state.world.nation_get_province_ownership(holder).end() || it->second == context.state.national_definitions.rebel_id) {
+							parsers::oob_file_context new_context{ context, holder };
+							auto opened_file = open_file(oob_file);
+							if(opened_file) {
+								err.file_name = utf8name;
+								auto content = view_contents(*opened_file);
+								parsers::token_generator gen(content.data, content.data + content.file_size);
+								parsers::parse_oob_file(gen, err, new_context);
+							}
 						}
+						else {
+							err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+						}
+						
 					} else {
 						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
@@ -2895,6 +2885,66 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.try_create_identity_holder(new_nation, id);
 		}
 	});
+
+	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
+	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
+		auto pop_loc = context.state.world.pop_get_province_from_pop_location(pop_reb.first);
+		auto pop_owner = context.state.world.province_get_nation_from_province_ownership(pop_loc);
+		auto reb_fac = rebel::find_or_create_faction_for_pop(context.state, pop_owner, pop_reb.second, pop_reb.first);
+		context.state.world.try_create_pop_rebellion_membership(pop_reb.first, reb_fac);
+	}
+	// apply provinces which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto prov_reb : context.map_of_province_rebel_control) {
+		auto prov = prov_reb.first;
+		auto rebel_type = prov_reb.second;
+		auto prov_owner = context.state.world.province_get_nation_from_province_ownership(prov);
+		auto matching_reb_faction = rebel::find_faction_for_prov_occupation(context.state, prov_owner, rebel_type, prov);
+		if(bool(matching_reb_faction)) {
+			context.state.world.province_set_nation_from_province_control(prov, dcon::nation_id{ });
+			context.state.world.province_set_rebel_faction_from_province_rebel_control(prov, matching_reb_faction);
+		}
+		else {
+			err.accumulated_errors += "Could not find available rebel faction for revolt in province ID " + std::to_string(context.prov_id_to_original_id_map[prov].id) + ", has any compatible pops been assigned to the rebel type yet?";
+		}
+		
+	}
+
+	// apply regiments which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto reg_prov : context.map_of_rebel_regiment_homes) {
+		auto rebel_reg = reg_prov.first;
+		auto prov = reg_prov.second.home_prov;
+		auto reb_army = context.state.world.regiment_get_army_from_army_membership(rebel_reg);
+		auto reb_army_fac = context.state.world.army_get_controller_from_army_rebel_control(reb_army);
+
+		auto rebel_pop = military::find_available_soldier_parsing(context.state, prov, [&](sys::state& state, dcon::pop_id pop) {
+
+			auto reb_fac = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
+			// if the army rebel faction is not set yet, or the pop rebel faction is the same as the army one, proceed and attempt to use this pop as pop source
+			return bool(reb_fac) && (!bool(reb_army_fac) || reb_fac == reb_army_fac);
+		});
+		if(bool(rebel_pop)) {
+			context.state.world.force_create_regiment_source(rebel_reg, rebel_pop);
+			if(!bool(reb_army_fac)) {
+				auto pop_rebel_faction = context.state.world.pop_get_rebel_faction_from_pop_rebellion_membership(rebel_pop);
+				context.state.world.army_set_controller_from_army_rebel_control(reb_army, pop_rebel_faction);
+			}
+		}
+		// no rebel pop available
+		else {
+			context.state.world.delete_regiment(rebel_reg);
+			err.accumulated_warnings +=
+				"Not enough available pops in province are a member of a rebel faction to spawn a rebel brigade (" + reg_prov.second.file_name + " line " + std::to_string(reg_prov.second.line_num) + ")\n";
+		}
+			
+	}
+
+	//cleanup regiments with no pop attached
+	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
+		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+		if(!world.regiment_get_pop_from_regiment_source(n)) {
+			world.delete_regiment(n);
+		}
+	}
 
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
@@ -3245,29 +3295,44 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
-	//Fixup armies defined on a different place
-	for(auto p : world.in_pop_location) {
-		for(const auto src : p.get_pop().get_regiment_source()) {
-			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership())
-				continue;
-			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
-			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
-			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
-			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
-			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
-				auto new_u = world.create_army();
-				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
-				src.get_regiment().set_army_from_army_membership(new_u);
-				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
-			} else {
-				src.get_regiment().set_strength(0.f);
-			}
-		}
-	}
-
 	nations::update_revanchism(*this);
 	fill_unsaved_data(); // we need this to run triggers
 
+	// Clean up and fixup armies and navies
+	for(uint32_t i = world.navy_size(); i-- > 0; ) {
+		dcon::navy_id n{ dcon::navy_id::value_base_t(i) };
+		if(world.navy_is_valid(n)) {
+			auto rng = world.navy_get_navy_membership(n);
+			if(!world.navy_get_battle_from_navy_battle_participation(n)) {
+				if(rng.begin() == rng.end() || !world.navy_get_controller_from_navy_control(n)) {
+					world.delete_navy(n);
+				}
+			}
+		}
+	}
+	for(uint32_t i = world.army_size(); i-- > 0; ) {
+		dcon::army_id n{ dcon::army_id::value_base_t(i) };
+		auto army_controller = world.army_get_controller_from_army_control(n);
+		auto army_location = world.army_get_location_from_army_location(n);
+		if(world.army_is_valid(n)) {
+			auto rng = world.army_get_army_membership(n);
+			if(!world.army_get_battle_from_army_battle_participation(n)) {
+				if(rng.begin() == rng.end() || (!world.army_get_controller_from_army_rebel_control(n) && !world.army_get_controller_from_army_control(n))) {
+					world.delete_army(n);
+				}
+				// if the defined army does not have access to its starting location, allow it to move with blackflag
+				else if(!province::has_access_to_province(*this, army_controller, army_location)) {
+					world.army_set_black_flag(n, true);
+				}
+				// if the army is defined inside enemy controlled territory, set siege to be in progress
+				else if(military::are_enemies(*this, army_controller, world.province_get_nation_from_province_control(army_location))) {
+					world.province_set_siege_progress(army_location, 0.01f);
+				}
+			}
+			
+		}
+	}
+	
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
