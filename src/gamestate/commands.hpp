@@ -119,6 +119,7 @@ enum class command_type : uint8_t {
 		stop_navy_movement = 110,
 		command_units = 111,
 		give_back_units = 112,
+		change_game_rule_setting = 113,
 
 		// network
 		notify_player_ban = 237,
@@ -530,6 +531,10 @@ struct stop_navy_movement_data {
 struct command_units_data {
 	dcon::nation_id target;
 };
+struct change_gamerule_setting_data {
+	dcon::gamerule_id gamerule;
+	uint8_t setting;
+};
 
 struct payload {
 	union dtype {
@@ -605,6 +610,7 @@ struct payload {
 		stop_army_movement_data stop_army_movement;
 		stop_navy_movement_data stop_navy_movement;
 		command_units_data command_units;
+		change_gamerule_setting_data change_gamerule_setting;
 
 		dtype() { }
 	} data;

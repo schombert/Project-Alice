@@ -5785,6 +5785,49 @@ object {
 	}
 }
 
+
+
+object {
+	name{ gamerule }
+	storage_type{ contiguous }
+	size{ 256 }
+	tag{ scenario }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ tooltip_explain }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ default_setting }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ setting_description }
+		type{ array{uint8_t}{text_key} }
+		tag{ scenario }
+	}
+	property{
+		name{ settings_count }
+		type{ uint8_t } 
+		tag{ scenario }
+	}
+	property{
+		name{ current_setting }
+		type{ uint8_t }
+		tag{ save }
+	}
+	
+}
+
+
 object {
 	name{ decision }
 	storage_type{ contiguous }

@@ -1402,6 +1402,7 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 		case command::command_type::notify_player_joins:
 		case command::command_type::save_game:
 		case command::command_type::change_ai_nation_state:
+		case command::command_type::change_game_rule_setting:
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early

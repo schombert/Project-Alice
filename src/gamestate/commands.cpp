@@ -5570,6 +5570,30 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 	// TODO: bans, kicks, mutes?
 	return true;
 }
+
+bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	return state.world.gamerule_get_settings_count(gamerule) <= new_setting;
+}
+
+void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	if(state.world.gamerule_get_settings_count(gamerule) <= new_setting) {
+		return;
+	}
+	state.world.gamerule_set_current_setting(gamerule, new_setting);
+}
+
+void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.source = source;
+	p.type = command_type::change_game_rule_setting;
+	p.data.change_gamerule_setting.setting = new_setting;
+	p.data.change_gamerule_setting.gamerule = gamerule;
+	add_to_command_queue(state, p);
+
+}
+
+
 void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password, bool needs_loading) {
 #ifndef NDEBUG
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
@@ -6468,6 +6492,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_command_units(state, c.source, c.data.command_units.target);
 	case command_type::give_back_units:
 		return can_give_back_units(state, c.source, c.data.command_units.target);
+	case command_type::change_game_rule_setting:
+		return can_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
 	}
 	return false;
 }
@@ -6886,6 +6912,9 @@ bool execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::give_back_units:
 		execute_give_back_units(state, c.source, c.data.command_units.target);
+		break;
+	case command_type::change_game_rule_setting:
+		execute_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
 		break;
 	}
 	return true;

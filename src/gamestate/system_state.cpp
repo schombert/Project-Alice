@@ -2885,6 +2885,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.try_create_identity_holder(new_nation, id);
 		}
 	});
+	// create the hardcoded gamerules
+	gamerule::load_hardcoded_gamerules(*this);
 
 	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
 	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
