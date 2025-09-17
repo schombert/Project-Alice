@@ -1039,9 +1039,9 @@ template<regiment_dmg_source damage_source>
 float get_war_exhaustion_from_land_losses(sys::state& state, float strength_losses, dcon::nation_id controller) {
 	switch(damage_source) {
 		case regiment_dmg_source::combat:
-			return state.defines.combatloss_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller));
+			return state.defines.combatloss_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller) + 1);
 		case regiment_dmg_source::attrition:
-			return state.defines.alice_attrition_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller));
+			return state.defines.alice_attrition_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller) + 1);
 		default:
 			assert(false);
 			std::abort();
@@ -2540,7 +2540,7 @@ void monthly_leaders_update(sys::state& state) {
 				} else {
 					auto too_many_generals =
 						(existing_leaders.admirals > 0 && navy_count > 0)
-						? float(existing_leaders.generals) / float(existing_leaders.admirals) > float(army_count) / float(navy_count)
+						? float(existing_leaders.generals + 1) / float(existing_leaders.admirals + 1) > float(army_count + 1) / float(navy_count + 1)
 						: false;
 					return make_new_leader(state, n, !too_many_generals);
 				}
@@ -6688,7 +6688,7 @@ float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly
 	if(state.defines.naval_combat_max_targets == 1.0f) {
 		return 1.0f;
 	}
-	float outnumber_ratio = std::clamp(float(friendly_ships) / float(enemy_ships), 1.0f, state.defines.naval_combat_max_targets);
+	float outnumber_ratio = std::clamp(float(friendly_ships + 1) / float(enemy_ships + 1), 1.0f, state.defines.naval_combat_max_targets);
 	return 1.0f - (state.defines.alice_naval_combat_stacking_damage_penalty * (outnumber_ratio - 1) / (state.defines.naval_combat_max_targets - 1));
 }
 

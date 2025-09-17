@@ -684,9 +684,9 @@ std::vector<uint32_t> workforce_map_from(sys::state& state) {
 			auto scale = std::log(gdp.total + 1.f) / (std::log(max_gdp + 1.f) + eps);
 
 			auto primary_color = sys::pack_color(
-				gdp.primary / (gdp.total + eps) * scale,
-				gdp.secondary_factory / (gdp.total + eps) * scale,
-				gdp.secondary_artisan / (gdp.total + eps) * scale
+				std::max(0.f, gdp.primary / (gdp.total + eps) * scale),
+				std::max(0.f, gdp.secondary_factory / (gdp.total + eps) * scale),
+				std::max(0.f, gdp.secondary_artisan / (gdp.total + eps) * scale)
 			);
 			auto secondary_color = primary_color;
 
