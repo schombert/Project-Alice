@@ -131,6 +131,13 @@ float estimate_additional_offensive_strength(sys::state& state, dcon::nation_id 
 	return value * state.defines.alice_ai_offensive_strength_overestimate;
 }
 
+float calculate_desired_navy_size(sys::state& state, dcon::nation_id n) {
+	if(state.world.nation_get_ai_strategy(n) == ai_strategies::naval) {
+		return state.world.nation_get_naval_supply_points(n) * 1.1f;
+	}
+	return state.world.nation_get_naval_supply_points(n) * 0.7f;
+}
+
 float estimate_naval_strength(sys::state& state, dcon::nation_id n) {
 	return (float)state.world.nation_get_used_naval_supply_points(n);
 }
