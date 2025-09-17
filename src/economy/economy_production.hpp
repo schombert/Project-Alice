@@ -286,6 +286,7 @@ struct breakdown {
 	float secondary_factory;
 	float secondary_artisan;
 	float total;
+	float total_non_negative;
 };
 
 float value_nation(sys::state& state, dcon::nation_id n);

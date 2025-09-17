@@ -2869,7 +2869,8 @@ breakdown breakdown_province(sys::state& state, dcon::province_id pid) {
 		.primary = rgo_gdp,
 		.secondary_factory = factories_gdp,
 		.secondary_artisan = artisans_gdp,
-		.total = local_gdp
+		.total = local_gdp,
+		.total_non_negative = std::max(0.f, artisans_gdp) + std::max(0.f, rgo_gdp) + std::max(0.f, factories_gdp)
 	};
 }
 }
