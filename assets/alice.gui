@@ -11,10 +11,10 @@ guiTypes = {
 	guiButtonType = {
 		name = "gamerules_button"
 		extends = "lobby"
-		position = { x = 60 y = -80 }
+		position = { x = 400 y = -60 }
 		quadTextureSprite ="GFX_button_standard_144"	
 		buttonText = "alice_gamerules_btn_text"
-		buttonFont = "vic_32_black"
+		buttonFont = "vic_18_black"
 		Orientation = "LOWER_LEFT"
 	}
 

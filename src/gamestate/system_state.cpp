@@ -3859,10 +3859,7 @@ void state::on_scenario_load() {
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
 	// reset ui gamerule settings to match the actual setting of the save
-	for(const auto& gamerule : world.in_gamerule) {
-		ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
-	}
-
+	gamerule::restore_gamerule_ui_settings(*this);
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 

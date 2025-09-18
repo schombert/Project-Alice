@@ -5577,11 +5577,11 @@ bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon
 }
 
 void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	state.world.gamerule_set_current_setting(gamerule, new_setting);
+	gamerule::set_gamerule(state, gamerule, new_setting);
 	auto sub = text::substitution_map{ };
 	text::add_to_substitution_map(sub, text::variable_type::x, state.world.gamerule_get_name(gamerule));
 	text::add_to_substitution_map(sub, text::variable_type::y, state.world.gamerule_get_setting_description(gamerule, new_setting));
-	auto str = text::resolve_string_substitution(state, "alice_gamerule_change_chat_msg", sub);
+	auto str = text::resolve_string_substitution(state, "alice_gamerules_change_chat_msg", sub);
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		execute_chat_message(state, state.local_player_nation, str, dcon::nation_id{ }, state.network_state.nickname);
 	}

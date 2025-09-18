@@ -699,9 +699,7 @@ public:
 		if(!state.current_scene.is_lobby) {
 			return;
 		}
-		for(auto gamerule : state.world.in_gamerule) {
-			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
-		}
+		gamerule::restore_gamerule_ui_settings(state);
 		if(!state.ui_state.gamerules_window) {
 			auto window = alice_ui::make_gamerules_main(state);
 			window->impl_on_update(state);
@@ -718,12 +716,7 @@ public:
 		disabled = (state.network_mode == sys::network_mode_type::client);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::tooltip;
-	}
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		if(state.network_mode == sys::network_mode_type::client) {
-			text::add_line(state, contents, "alice_gamerulebutton_nothost");
-		}	
+		return tooltip_behavior::no_tooltip;
 	}
 
 };

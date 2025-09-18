@@ -1757,6 +1757,6 @@ alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
 alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
 alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
 alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W
-alice_gamerulebutton_nothost;Only the host may change gamerules!
-alice_gamerules_btn_text;Game 
-alice_gamerule_change_chat_msg;Host has changed gamerule "$x$" to "$y$"!
+alice_gamerules_btn_text;Game Rules
+alice_gamerules_change_chat_msg;Host has changed gamerule "$x$" to "$y$"!
+alice_gamerules_nothost;Only the host may change gamerules!

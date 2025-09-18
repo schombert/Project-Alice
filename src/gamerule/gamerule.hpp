@@ -22,6 +22,12 @@ struct hardcoded_gamerules {
 
 void load_hardcoded_gamerules(sys::state& state);
 
+void restore_gamerule_ui_settings(sys::state& state);
+
+void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting);
+
+bool check_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t setting);
+
 
 }
 

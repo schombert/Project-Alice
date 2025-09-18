@@ -2,6 +2,7 @@ namespace alice_ui {
 struct gamerules_main_cancel_button_t;
 struct gamerules_main_header_text_t;
 struct gamerules_main_apply_button_t;
+struct gamerules_main_reset_defaults_t;
 struct gamerules_main_t;
 struct gamerules_gamerule_item_desc_text_t;
 struct gamerules_gamerule_item_previous_setting_t;
@@ -97,7 +98,7 @@ struct gamerules_main_apply_button_t : public ui::element_base {
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::tooltip;
+		return ui::tooltip_behavior::variable_tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		if(type == ui::mouse_probe_type::click) {
@@ -113,6 +114,44 @@ struct gamerules_main_apply_button_t : public ui::element_base {
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct gamerules_main_reset_defaults_t : public ui::element_base {
+// BEGIN main::reset_defaults::variables
+// END
+	std::string_view gfx_key;
+	dcon::gfx_object_id background_gid;
+	int32_t frame = 0;
+	bool disabled = false;
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::center;
+	std::string cached_text;
+	dcon::text_key text_key;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	dcon::text_key tooltip_key;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::variable_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
@@ -252,6 +291,7 @@ struct gamerules_main_t : public layout_window_element {
 	std::unique_ptr<gamerules_main_cancel_button_t> cancel_button;
 	std::unique_ptr<gamerules_main_header_text_t> header_text;
 	std::unique_ptr<gamerules_main_apply_button_t> apply_button;
+	std::unique_ptr<gamerules_main_reset_defaults_t> reset_defaults;
 	gamerules_main_gamerule_grid_g_t gamerule_grid_g;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
@@ -407,7 +447,7 @@ void gamerules_main_cancel_button_t::set_text(sys::state& state, std::string con
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -415,7 +455,7 @@ void gamerules_main_cancel_button_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void gamerules_main_cancel_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -432,7 +472,7 @@ void gamerules_main_cancel_button_t::render(sys::state & state, int32_t x, int32
 		}
 	}
 	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 10);
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
@@ -459,7 +499,7 @@ void gamerules_main_header_text_t::set_text(sys::state& state, std::string const
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -467,12 +507,12 @@ void gamerules_main_header_text_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void gamerules_main_header_text_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 10);
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
@@ -522,14 +562,22 @@ ui::message_result gamerules_main_apply_button_t::on_key_down(sys::state& state,
 	return ui::message_result::unseen;
 }
 void gamerules_main_apply_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	text::add_line(state, contents, tooltip_key);
+	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
+// BEGIN main::apply_button::tooltip
+	if(state.network_mode == sys::network_mode_type::client) {
+		text::add_line(state, contents, "alice_gamerules_nothost");
+	}
+	else {
+		text::add_line(state, contents, "SM_APPLY");
+	}
+// END
 }
 void gamerules_main_apply_button_t::set_text(sys::state& state, std::string const& new_text) {
 	if(new_text != cached_text) {
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -537,7 +585,7 @@ void gamerules_main_apply_button_t::on_reset_text(sys::state& state) noexcept {
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void gamerules_main_apply_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -554,7 +602,7 @@ void gamerules_main_apply_button_t::render(sys::state & state, int32_t x, int32_
 		}
 	}
 	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 10);
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
@@ -566,6 +614,7 @@ void gamerules_main_apply_button_t::render(sys::state & state, int32_t x, int32_
 void gamerules_main_apply_button_t::on_update(sys::state& state) noexcept {
 	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
 // BEGIN main::apply_button::update
+	disabled = (state.network_mode == sys::network_mode_type::client);
 // END
 }
 void gamerules_main_apply_button_t::on_create(sys::state& state) noexcept {
@@ -574,6 +623,90 @@ void gamerules_main_apply_button_t::on_create(sys::state& state) noexcept {
 	}
 	on_reset_text(state);
 // BEGIN main::apply_button::create
+// END
+}
+ui::message_result gamerules_main_reset_defaults_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(disabled) return ui::message_result::consumed;
+	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN main::reset_defaults::lbutton_action
+	for(const auto& item : main.gamerule_grid_g.values) {
+		if(std::holds_alternative<gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item)) {
+			auto item_option = std::get< gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item);
+			auto default_setting = state.world.gamerule_get_default_setting(item_option.value);
+			auto current_gr_setting = state.world.gamerule_get_current_setting(item_option.value);
+			if(current_gr_setting != default_setting && command::can_change_gamerule_setting(state, state.local_player_nation, item_option.value, default_setting)) {
+				command::change_gamerule_setting(state, state.local_player_nation, item_option.value, default_setting);
+			}
+		}
+	}
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result gamerules_main_reset_defaults_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void gamerules_main_reset_defaults_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
+// BEGIN main::reset_defaults::tooltip
+	if(state.network_mode == sys::network_mode_type::client) {
+		text::add_line(state, contents, "alice_gamerules_nothost");
+	} else {
+		text::add_line(state, contents, "MENU_MESSAGES_RESET");
+	}
+// END
+}
+void gamerules_main_reset_defaults_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void gamerules_main_reset_defaults_t::on_reset_text(sys::state& state) noexcept {
+	cached_text = text::produce_simple_string(state, text_key);
+	internal_layout.contents.clear();
+	internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, cached_text);
+}
+void gamerules_main_reset_defaults_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(background_gid) {
+		auto& gfx_def = state.ui_defs.gfx[background_gid];
+		if(gfx_def.primary_texture_handle) {
+			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
+				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			} else if(gfx_def.number_of_frames > 1) {
+				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			} else {
+				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
+			}
+		}
+	}
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void gamerules_main_reset_defaults_t::on_update(sys::state& state) noexcept {
+	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
+// BEGIN main::reset_defaults::update
+	disabled = (state.network_mode == sys::network_mode_type::client);
+// END
+}
+void gamerules_main_reset_defaults_t::on_create(sys::state& state) noexcept {
+	if(auto it = state.ui_state.gfx_by_name.find(state.lookup_key(gfx_key)); it != state.ui_state.gfx_by_name.end()) {
+		background_gid = it->second;
+	}
+	on_reset_text(state);
+// BEGIN main::reset_defaults::create
 // END
 }
 ui::message_result gamerules_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -590,9 +723,9 @@ void gamerules_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept
 		if (__item.texture_type == background_type::texture)
 			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(5), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+			ogl::render_rect_with_repeated_border(state, cmod, float(1), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(5), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+			ogl::render_rect_with_repeated_corner(state, cmod, float(1), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void gamerules_main_t::on_update(sys::state& state) noexcept {
@@ -619,8 +752,8 @@ void gamerules_main_t::create_layout_level(sys::state& state, layout_level& lvl,
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(50);
-		lvl.page_controls->base_data.size.y = int16_t(10);
+		lvl.page_controls->base_data.size.x = int16_t(10);
+		lvl.page_controls->base_data.size.y = int16_t(2);
 	}
 	auto optional_section = buffer.read_section(); // nothing
 	while(buffer) {
@@ -650,6 +783,9 @@ void gamerules_main_t::create_layout_level(sys::state& state, layout_level& lvl,
 				}
 				if(cname == "apply_button") {
 					temp.ptr = apply_button.get();
+				}
+				if(cname == "reset_defaults") {
+					temp.ptr = reset_defaults.get();
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -770,6 +906,26 @@ void gamerules_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		}
+		if(child_data.name == "reset_defaults") {
+			reset_defaults = std::make_unique<gamerules_main_reset_defaults_t>();
+			reset_defaults->parent = this;
+			auto cptr = reset_defaults.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->gfx_key = child_data.texture;
+			cptr->text_key = state.lookup_key(child_data.text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 	gamerule_grid_g.on_create(state, this);
@@ -801,7 +957,7 @@ void gamerules_gamerule_item_desc_text_t::set_text(sys::state& state, std::strin
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -809,7 +965,7 @@ void gamerules_gamerule_item_desc_text_t::on_reset_text(sys::state& state) noexc
 }
 void gamerules_gamerule_item_desc_text_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 10);
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
@@ -928,7 +1084,7 @@ void gamerules_gamerule_item_current_setting_t::set_text(sys::state& state, std:
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 10), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 2), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -936,7 +1092,7 @@ void gamerules_gamerule_item_current_setting_t::on_reset_text(sys::state& state)
 }
 void gamerules_gamerule_item_current_setting_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 10);
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 2);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	if(linesz == 0.0f) return;
 	auto ycentered = (base_data.size.y - linesz) / 2;
@@ -971,9 +1127,9 @@ void gamerules_gamerule_item_t::render(sys::state & state, int32_t x, int32_t y)
 		if (__item.texture_type == background_type::texture)
 			ogl::render_textured_rect(state, cmod, float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 		else if (__item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(5), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+			ogl::render_rect_with_repeated_border(state, cmod, float(1), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 		else if (__item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(5), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+			ogl::render_rect_with_repeated_corner(state, cmod, float(1), float(x + __item.x), float(y + __item.y), float(__item.w), float(__item.h), ogl::get_late_load_texture_handle(state, __item.texture_id, __item.texture), base_data.get_rotation(), false, state_is_rtl(state));
 	}
 }
 void gamerules_gamerule_item_t::on_update(sys::state& state) noexcept {
@@ -1003,8 +1159,8 @@ void gamerules_gamerule_item_t::create_layout_level(sys::state& state, layout_le
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(50);
-		lvl.page_controls->base_data.size.y = int16_t(10);
+		lvl.page_controls->base_data.size.x = int16_t(10);
+		lvl.page_controls->base_data.size.y = int16_t(2);
 	}
 	auto optional_section = buffer.read_section(); // nothing
 	while(buffer) {
