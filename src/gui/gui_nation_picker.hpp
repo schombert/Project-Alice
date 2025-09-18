@@ -692,6 +692,44 @@ public:
 	}
 };
 
+
+class gamerules_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.current_scene.is_lobby) {
+			return;
+		}
+		for(auto gamerule : state.world.in_gamerule) {
+			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
+		}
+		if(!state.ui_state.gamerules_window) {
+			auto window = alice_ui::make_gamerules_main(state);
+			window->impl_on_update(state);
+			state.ui_state.gamerules_window = window.get();
+			state.ui_state.nation_picker->add_child_to_front(std::move(window));
+		} else if(state.ui_state.gamerules_window->is_visible()) {
+			state.ui_state.gamerules_window->set_visible(state, false);
+		} else {
+			state.ui_state.gamerules_window->set_visible(state, true);
+			state.ui_state.nation_picker->move_child_to_front(state.ui_state.gamerules_window);
+		}
+	}
+	void on_update(sys::state& state) noexcept override {
+		disabled = (state.network_mode == sys::network_mode_type::client);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(state.network_mode == sys::network_mode_type::client) {
+			text::add_line(state, contents, "alice_gamerulebutton_nothost");
+		}	
+	}
+
+};
+
+
+
 class observer_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -946,6 +984,8 @@ public:
 		} else if(name == "observer_button") {
 			return make_element_by_type<observer_button>(state, id);
 
+		} else if(name == "gamerules_button") {
+			return make_element_by_type< gamerules_button>(state, id);
 		}
 		return nullptr;
 	}

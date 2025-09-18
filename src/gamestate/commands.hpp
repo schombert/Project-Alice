@@ -1015,6 +1015,9 @@ void post_chat_message(sys::state& state, ui::chat_message& m);
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender);
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender);
 
+void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting);
+bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting);
+
 void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 

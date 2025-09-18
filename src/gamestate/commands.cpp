@@ -47,7 +47,8 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::change_ai_nation_state:
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
-		// Notifications can be sent because it's an-always do thing
+	case command_type::change_game_rule_setting:
+		// Notifications can be sent because it's an-always do thing. Change game rule can also be sent because it is sent while in the lobby
 		break;
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
@@ -5572,14 +5573,25 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 }
 
 bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	return state.world.gamerule_get_settings_count(gamerule) <= new_setting;
+	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1;
 }
 
 void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	if(state.world.gamerule_get_settings_count(gamerule) <= new_setting) {
-		return;
-	}
 	state.world.gamerule_set_current_setting(gamerule, new_setting);
+	auto sub = text::substitution_map{ };
+	text::add_to_substitution_map(sub, text::variable_type::x, state.world.gamerule_get_name(gamerule));
+	text::add_to_substitution_map(sub, text::variable_type::y, state.world.gamerule_get_setting_description(gamerule, new_setting));
+	auto str = text::resolve_string_substitution(state, "alice_gamerule_change_chat_msg", sub);
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		execute_chat_message(state, state.local_player_nation, str, dcon::nation_id{ }, state.network_state.nickname);
+	}
+	else {
+		auto host = network::get_host_player(state);
+		auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
+		auto host_name = sys::player_name{ state.world.mp_player_get_nickname(host) };
+		execute_chat_message(state, host_nation, str, dcon::nation_id{ }, host_name);
+	}
+	
 }
 
 void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {

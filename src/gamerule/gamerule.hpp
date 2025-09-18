@@ -1,8 +1,14 @@
 #pragma once
 #include "dcon_generated.hpp"
 
+namespace sys {
+	struct state;
+}
 
 namespace gamerule {
+
+inline constexpr uint32_t MAX_GAMERULE_SETTINGS = 30;
+
 
 enum class sphereling_declare_war_settings : uint8_t {
 	no = 0,
@@ -15,4 +21,9 @@ struct hardcoded_gamerules {
 };
 
 void load_hardcoded_gamerules(sys::state& state);
+
+
 }
+
+
+

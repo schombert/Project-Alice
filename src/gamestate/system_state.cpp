@@ -2336,6 +2336,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
+	world.gamerule_resize_setting_description(gamerule::MAX_GAMERULE_SETTINGS);
+
 	// add special names
 	for(auto ident : world.in_national_identity) {
 		auto const tag = nations::int_to_tag(ident.get_identifying_int());
@@ -3856,6 +3858,11 @@ void state::on_scenario_load() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	// reset ui gamerule settings to match the actual setting of the save
+	for(const auto& gamerule : world.in_gamerule) {
+		ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
+	}
+
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 

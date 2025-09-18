@@ -535,6 +535,7 @@ struct state {
 	element_base* request_topbar_listbox = nullptr;
 	element_base* build_province_unit_window = nullptr;
 	element_base* disband_unit_window = nullptr;
+	element_base* gamerules_window = nullptr;
 
 	context_menu_window* context_menu = nullptr;
 
@@ -557,6 +558,7 @@ struct state {
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
+	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
 
 	float last_tick_investment_pool_change;
 
