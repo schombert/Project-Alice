@@ -442,7 +442,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.actually_sold_in_origin = bought;
 
 	result.expansion_multiplier = std::max(
-		std::max(0.f, min_trade_expansion_multiplier - absolute_volume),
+		std::max(0.f, min_trade_expansion_multiplier),
 		(result.actually_sold_in_origin - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign
 	);
 
@@ -609,7 +609,7 @@ void update_trade_routes_volume(
 			);
 			change = ve::select(
 				change * current_volume > 0.f, // change and volume are collinear
-				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier - absolute_volume), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
+				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
 				change
 			);
 
