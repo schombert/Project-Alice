@@ -258,7 +258,7 @@ auto inline prepare_pop_budget(
 		1.f,
 		adaptive_ve::min<VALUE>
 			(
-				10.f,
+				1000.f,
 				(1.f - old_life) * adaptive_ve::max<VALUE>(0.f, spend_on_life_needs - result.life_needs.required * 5.f) / result.life_needs.required
 			)
 	);
@@ -293,7 +293,7 @@ auto inline prepare_pop_budget(
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
-			10.f,
+			1000.f,
 			(1.f - old_everyday) * adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
 		)
 	);
@@ -328,7 +328,7 @@ auto inline prepare_pop_budget(
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
-			10.f,
+			1000.f,
 			(1.f - old_luxury) * adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
 		)
 	);
@@ -358,7 +358,7 @@ auto inline prepare_pop_budget(
 		1.f,
 		adaptive_ve::min<VALUE>
 		(
-			10.f,
+			1000.f,
 			(1.f - literacy) * adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f) / result.education.required
 		)
 	);
