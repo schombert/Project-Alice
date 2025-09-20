@@ -1966,6 +1966,9 @@ uint32_t ef_prestige(EFFECT_PARAMTERS) {
 }
 uint32_t ef_change_tag(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0) {
+		return 0;
+	}
 	culture::replace_cores(ws, tag, trigger::payload(tval[1]).tag_id);
 	auto old_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), trigger::payload(tval[1]).tag_id);

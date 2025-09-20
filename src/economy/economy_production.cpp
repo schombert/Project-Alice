@@ -1662,7 +1662,7 @@ void update_employment(sys::state& state) {
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
-	concurrency::parallel_for(uint32_t(1), state.world.commodity_size(), [&](uint32_t k) {
+	concurrency::parallel_for(uint32_t(0), state.world.commodity_size(), [&](uint32_t k) {
 		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 		auto rgo_output = state.world.commodity_get_rgo_amount(c);
 		if(rgo_output <= 0.f) {
@@ -1698,7 +1698,16 @@ void update_employment(sys::state& state) {
 				wage_per_worker * (1.f + aristocrats_greed)
 			);
 
-			auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker), 0.0f);
+			auto mult = ve::select(
+				gradient > 0.f,
+				ve::max(
+					0.f,
+					state.world.province_get_labor_demand_satisfaction(pids, labor::no_education) - 0.5f
+				),
+				1.f
+			);
+
+			auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker * mult), 0.0f);
 
 			// we don't want wages to rise way too high relatively to profits
 			// as we do not have actual budgets, we  consider that our workers budget is as follows
@@ -1897,7 +1906,7 @@ void update_employment(sys::state& state) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				// gradient = ve::select(gradient > 0.f, gradient * ve::max(0.f, inputs_data.min_available - 0.01f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.01f, inputs_data.min_available - 0.3f), gradient);
 
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
 				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_available * 0.0001f;

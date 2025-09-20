@@ -9,7 +9,12 @@ namespace economy {
 namespace pops {
 void update_consumption(
 	sys::state& state,
-	ve::vectorizable_buffer<float, dcon::nation_id>& invention_count
+	ve::vectorizable_buffer<float, dcon::nation_id>& invention_count,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_life,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_everyday,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_luxury,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_private,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public
 ) {
 	uint32_t total_commodities = state.world.commodity_size();
 
@@ -25,176 +30,138 @@ void update_consumption(
 
 	ve::fp_vector total_spendings{};
 
-	state.world.execute_serial_over_pop([&](auto ids) {
+	// temporary buffers for actual pop demand
+
+	auto demand_life = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_everyday = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_luxury = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_education_public_forbidden = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_education_public_allowed = state.world.pop_make_vectorizable_float_buffer();
+
+	auto to_bank = state.world.pop_make_vectorizable_float_buffer();
+	auto to_investments = state.world.pop_make_vectorizable_float_buffer();
+
+	state.world.execute_parallel_over_pop([&](auto ids) {
 		auto pop_size = state.world.pop_get_size(ids);
 
 		// get all data into vectors
 		vectorized_pops_budget<ve::fp_vector> data = prepare_pop_budget(state, ids);
 
-		auto base_shift = ve::fp_vector{ 1.f / 200.f };
-		auto small_shift = pop_demographics::pop_u16_scaling;
+		// "for free" in the context of life/everyday/luxury needs means subsistence/gifts
+		// so we apply it directly there, it's not registered as demand
+		// "for free" in the context of education means that someone paid for you
+		// so it will be registered as demand
 
-		ve::fp_vector shift_life = ve::select(
-			data.life_needs.satisfied_with_money_ratio + data.life_needs.satisfied_for_free_ratio > 0.9f,
-			base_shift,
-			ve::select(
-				data.life_needs.satisfied_with_money_ratio + data.life_needs.satisfied_for_free_ratio < 0.7f,
-				-base_shift,
-				ve::fp_vector{ 0.f }
-			)
-		);
-		ve::fp_vector shift_everyday = ve::select(
-			data.everyday_needs.satisfied_with_money_ratio > 0.9f,
-			base_shift,
-			ve::select(
-				data.everyday_needs.satisfied_with_money_ratio < 0.7f,
-				-base_shift,
-				ve::fp_vector{ 0.f }
-			)
-		);
-		ve::fp_vector shift_luxury = ve::select(
-			data.luxury_needs.satisfied_with_money_ratio > 0.9f,
-			base_shift,
-			ve::select(
-				data.luxury_needs.satisfied_with_money_ratio < 0.7f,
-				-base_shift,
-				ve::fp_vector{ 0.f }
-			)
-		);
-		ve::fp_vector shift_literacy = ve::select(
-			data.education.satisfied_with_money_ratio + data.education.satisfied_for_free_ratio > 0.9f,
-			small_shift,
-			ve::select(
-				data.education.satisfied_with_money_ratio + data.education.satisfied_for_free_ratio < 0.7f,
-				-small_shift,
-				ve::fp_vector{ 0.f }
-			)
-		);
+		auto base_shift = 3.f * pop_demographics::pop_u8_scaling;
+		auto small_shift = 3.f * pop_demographics::pop_u16_scaling;
 
-		// clamping for now
+
+		buffer_life.set(ids, data.life_needs.satisfied_with_money_ratio);
+		buffer_everyday.set(ids, data.everyday_needs.satisfied_with_money_ratio);
+		buffer_luxury.set(ids, data.luxury_needs.satisfied_with_money_ratio);
+		buffer_education_private.set(ids, data.education.satisfied_with_money_ratio);
+		buffer_education_public.set(ids, data.education.satisfied_for_free_ratio);
+
+		// currently subsistence is limited to life needs:
+		ve::fp_vector shift_life = base_shift * data.life_needs.satisfied_for_free_ratio;
 		auto result_life = ve::max(0.f, ve::min(1.f, pop_demographics::get_life_needs(state, ids) + shift_life));
-		auto result_everyday = ve::max(0.f, ve::min(1.f, pop_demographics::get_everyday_needs(state, ids) + shift_everyday));
-		auto result_luxury = ve::max(0.f, ve::min(1.f, pop_demographics::get_luxury_needs(state, ids) + shift_luxury));
-		auto result_literacy = ve::max(0.f, ve::min(1.f, pop_demographics::get_literacy(state, ids) + shift_literacy));
-
 		pop_demographics::set_life_needs(state, ids, result_life);
-		pop_demographics::set_everyday_needs(state, ids, result_everyday);
-		pop_demographics::set_luxury_needs(state, ids, result_luxury);
-		pop_demographics::set_literacy(state, ids, result_literacy);
 
-		auto final_demand_scale_life =
-			pop_size / state.defines.alice_needs_scaling_factor
-			* data.life_needs.demand_scale
-			* data.life_needs.satisfied_with_money_ratio;
+		auto multiplier = pop_size / state.defines.alice_needs_scaling_factor;
 
-		auto final_demand_scale_everyday =
-			pop_size / state.defines.alice_needs_scaling_factor
-			* data.everyday_needs.demand_scale
-			* data.everyday_needs.satisfied_with_money_ratio;
-
-		auto final_demand_scale_luxury =
-			pop_size / state.defines.alice_needs_scaling_factor
-			* data.luxury_needs.demand_scale
-			* data.luxury_needs.satisfied_with_money_ratio;
-
-		auto final_demand_scale_education_free_allowed =
-			data.can_use_free_services
-			* data.education.demand_scale
-			* pop_size;
-		auto final_demand_scale_education_free_not_allowed =
-			(1.f - data.can_use_free_services)
-			* data.education.demand_scale
-			* pop_size;
-
-		auto provs = state.world.pop_get_province_from_pop_location(ids);
-
-		ve::apply([&](
-			dcon::province_id pid,
-			float potentially_free,
-			float paid_only
-			) {
-				if(bool(pid)) {
-					{
-						auto old_value = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
-						state.world.province_set_service_demand_allowed_public_supply(pid, services::list::education, old_value + potentially_free);
-					}
-					{
-						auto old_value = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::education);
-						state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::education, old_value + paid_only);
-					}
-				}
-				
-		},
-			provs, final_demand_scale_education_free_allowed, final_demand_scale_education_free_not_allowed
+		demand_life.set(ids, multiplier * data.life_needs.demand_scale * data.life_needs.satisfied_with_money_ratio);
+		demand_everyday.set(ids, multiplier * data.everyday_needs.demand_scale * data.everyday_needs.satisfied_with_money_ratio);
+		demand_luxury.set(ids, multiplier * data.luxury_needs.demand_scale * data.luxury_needs.satisfied_with_money_ratio);
+		demand_education_public_forbidden.set(
+			ids,
+			pop_size
+			* (1.f - data.can_use_free_services)
+			* data.education.demand_scale * data.education.satisfied_with_money_ratio
+		);
+		demand_education_public_allowed.set(
+			ids,
+			pop_size
+			* data.can_use_free_services
+			* data.education.demand_scale * (data.education.satisfied_with_money_ratio + data.education.satisfied_for_free_ratio)
 		);
 
-		auto states = state.world.province_get_state_membership(provs);
-		auto markets = state.world.state_instance_get_market_from_local_market(states);
-		auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
-
-		ve::apply([&](
-			dcon::market_id m,
-			float scale_life,
-			float scale_everyday,
-			float scale_luxury,
-			float investment,
-			auto pop_type
-			) {
-				assert(scale_life >= 0.0f);
-				assert(scale_everyday >= 0.0f);
-				assert(scale_luxury >= 0.0f);
-				assert(!isinf(scale_life));
-				assert(!isinf(scale_everyday));
-				assert(!isinf(scale_luxury));
-				if(state.world.market_is_valid(m)) {
-					state.world.market_set_life_needs_scale(m, pop_type, state.world.market_get_life_needs_scale(m, pop_type) + scale_life);
-					state.world.market_set_everyday_needs_scale(m, pop_type, state.world.market_get_everyday_needs_scale(m, pop_type) + scale_everyday);
-					state.world.market_set_luxury_needs_scale(m, pop_type, state.world.market_get_luxury_needs_scale(m, pop_type) + scale_luxury);
-					auto zone = state.world.market_get_zone_from_local_market(m);
-					auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
-					state.world.nation_set_private_investment(nation, state.world.nation_get_private_investment(nation) + investment);
-					if(nation == state.local_player_nation) {
-						state.ui_state.last_tick_investment_pool_change += investment;
-					}
-				}
-		},
-			markets,
-			final_demand_scale_life,
-			final_demand_scale_everyday,
-			final_demand_scale_luxury,
-			data.investments.spent,
-			state.world.pop_get_poptype(ids)
-		);
-
-		auto bank_deposits = data.bank_savings.spent;
-		bank_deposits = ve::max(bank_deposits, 0.0f);
-#ifndef NDEBUG
-		ve::apply([&](float r) {
-			assert(r >= 0.f);
-		}, bank_deposits);
-#endif
-		ve::apply(
-			[&](float transfer, dcon::nation_id n) {
-				if(state.world.nation_is_valid(n)) {
-					state.world.nation_set_national_bank(n, state.world.nation_get_national_bank(n) + transfer);
-				}
-				return 0;
-			}, bank_deposits, nations
-		);
+		to_investments.set(ids, data.investments.spent);
 
 		// we do save savings here because a part of education is given for free
 		// which leads to some part of wealth not being spent most of the time
 		state.world.pop_set_savings(ids, data.remaining_savings);
-		total_spendings = total_spendings + data.spent_total;
 	});
 
-#ifndef NDEBUG
-	std::string debug_output = "Total pops spendings on needs: " + std::to_string(total_spendings.reduce());
-	state.console_log(debug_output);
-#endif // !NDEBUG
+	// services are at province level:
 
-	// iterate over all (market,pop type,trade good) triples to finalise this calculation
-	state.world.execute_serial_over_market([&](auto ids) {
+	concurrency::parallel_for(int32_t(0), state.province_definitions.first_sea_province.index(), [&](uint32_t raw_province_id) {
+		auto pid = dcon::province_id{ dcon::province_id::value_base_t(raw_province_id) };
+		state.world.province_for_each_pop_location(pid, [&](auto location) {
+			auto pop = state.world.pop_location_get_pop(location);
+
+			auto demand_allow_public = demand_education_public_allowed.get(pop);
+			auto demand_forbid_public = demand_education_public_forbidden.get(pop);
+
+			auto old_allow = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
+			auto old_forbid = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::education);
+
+			state.world.province_set_service_demand_allowed_public_supply(pid, services::list::education, old_allow + demand_allow_public);
+			state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::education, old_forbid + demand_forbid_public);
+		});
+	});
+
+	// commodities (actually groups of commodities) are at market level
+
+	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](uint32_t raw_market_id) {
+		auto m = dcon::market_id{ dcon::market_id::value_base_t(raw_market_id) };
+		if(!state.world.market_is_valid(m)) return;
+		auto zone = state.world.market_get_zone_from_local_market(m);
+		province::for_each_province_in_state_instance(state, zone, [&](auto pid) {
+			state.world.province_for_each_pop_location(pid, [&](auto location) {
+				auto pop = state.world.pop_location_get_pop(location);
+				auto pop_type = state.world.pop_get_poptype(pop);
+
+				auto life = demand_life.get(pop);
+				auto everyday = demand_everyday.get(pop);
+				auto luxury = demand_luxury.get(pop);
+
+				auto old_life = state.world.market_get_life_needs_scale(m, pop_type);
+				auto old_everyday = state.world.market_get_everyday_needs_scale(m, pop_type);
+				auto old_luxury = state.world.market_get_luxury_needs_scale(m, pop_type);
+
+				state.world.market_set_life_needs_scale(m, pop_type, old_life + life);
+				state.world.market_set_everyday_needs_scale(m, pop_type, old_everyday + everyday);
+				state.world.market_set_luxury_needs_scale(m, pop_type, old_luxury + luxury);
+			});
+		});
+	});
+
+	// investments are at national level:
+
+	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t raw_nation_id) {
+		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(raw_nation_id) };
+		if(!state.world.nation_is_valid(n)) return;
+		state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+			state.world.province_for_each_pop_location(state.world.province_ownership_get_province(poid), [&](auto location) {
+				auto pop = state.world.pop_location_get_pop(location);
+
+				auto investment = to_investments.get(pop);
+				auto current_inv = state.world.nation_get_private_investment(n);
+				state.world.nation_set_private_investment(n, current_inv + investment);
+
+				if(n == state.local_player_nation) {
+					state.ui_state.last_tick_investment_pool_change += investment;
+				}
+
+				auto banking = to_bank.get(pop);
+				auto current_bank = state.world.nation_get_national_bank(n);
+				state.world.nation_set_national_bank(n, current_bank + banking);
+			});
+		});
+	});
+
+	// iterate over all (market, pop type, trade good) triples to finalise this calculation and register demand to actual commodities
+	state.world.execute_parallel_over_market([&](auto ids) {
 		auto states = state.world.market_get_zone_from_local_market(ids);
 		auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
 		auto invention_factor = state.defines.invention_impact_on_demand * invention_count.get(nations) + 1.f;
