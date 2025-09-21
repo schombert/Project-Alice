@@ -581,9 +581,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		} else {
 			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
 		}
-		// Winter textures
+
+		// US40AC1 Winter textures
 		if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
-			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.f);
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.);
 		}
 		// Animation from winter to summer
 		else if(state.current_date.to_ymd(state.start_date).month == 3) {

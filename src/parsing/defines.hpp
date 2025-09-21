@@ -184,6 +184,7 @@
 	LUA_DEFINES_LIST_ELEMENT(siege_brigades_bonus, 0.500000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(recon_siege_effect, 0.500000)                                                                         \
 	LUA_DEFINES_LIST_ELEMENT(siege_attrition, 2.000000)                                                                            \
+	LUA_DEFINES_LIST_ELEMENT(winter_extra_siege_attrition, 2.000000)                                                               \
 	LUA_DEFINES_LIST_ELEMENT(base_military_tactics, 1.500000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(naval_low_supply_damage_supply_status, 0.100000)                                                      \
 	LUA_DEFINES_LIST_ELEMENT(naval_low_supply_damage_days_delay, 30.000000)                                                        \

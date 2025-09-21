@@ -43,6 +43,26 @@ bool province_is_deep_waters(sys::state& state, dcon::province_id prov) {
 
 }
 
+// Returns 1.f when it is full winter in the province and 0.f when it is summer
+float province_is_winter_now(sys::state& state, dcon::province_id prov) {
+	// Summer textures
+	if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+		return 0.f;
+	}
+	// Animation from winter to summer
+	else if(state.current_date.to_ymd(state.start_date).month == 3) {
+		return 1.f - std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f);
+	}
+	// Animation from summer to winter
+	else if(state.current_date.to_ymd(state.start_date).month == 11) {
+		return std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f);
+	}
+	// Winter textures
+	else {
+		return 1.f;
+	}
+}
+
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
 

@@ -6265,8 +6265,10 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 
 	auto max_attrition = state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition);
 	float siege_attrition = 0.0f;
+	// US40AC2 Winter siege attrition
 	if(state.world.province_get_siege_progress(prov) > 0.f) {
-		siege_attrition = state.defines.siege_attrition + hostile_fort * state.defines.alice_fort_siege_attrition_per_level;
+		siege_attrition = state.defines.siege_attrition + hostile_fort * state.defines.alice_fort_siege_attrition_per_level
+			+ province::province_is_winter_now(state, prov) * state.defines.winter_extra_siege_attrition;
 	}
 
 	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
