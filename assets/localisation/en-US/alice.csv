@@ -79,6 +79,8 @@ hold_election;Hold election
 issue_change;$issue$ changes to $text$
 add_relative_income;Times last income added to treasury
 make_neutral;All alliances ended and all vassals released
+pop_project;Pop project
+state_project;State construction
 pop_size;Pop size
 move_pop_to;Move pop to $text$
 change_pop_type;Change pop type to $text$
