@@ -546,7 +546,6 @@ ui::message_result gamerules_main_apply_button_t::on_lbutton_down(sys::state& st
 			}
 		}
 	}
-	main.set_visible(state, false);
 
 // END
 	return ui::message_result::consumed;
@@ -614,7 +613,22 @@ void gamerules_main_apply_button_t::render(sys::state & state, int32_t x, int32_
 void gamerules_main_apply_button_t::on_update(sys::state& state) noexcept {
 	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
 // BEGIN main::apply_button::update
-	disabled = (state.network_mode == sys::network_mode_type::client);
+	if(state.network_mode == sys::network_mode_type::client) {
+		disabled = true;
+		return;
+	}
+	for(const auto& item : main.gamerule_grid_g.values) {
+		if(std::holds_alternative<gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item)) {
+			auto item_option = std::get< gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item);
+			auto ui_gamerule_setting = state.ui_state.gamerule_ui_settings.find(item_option.value)->second;
+			auto current_gr_setting = state.world.gamerule_get_current_setting(item_option.value);
+			if(current_gr_setting != ui_gamerule_setting && command::can_change_gamerule_setting(state, state.local_player_nation, item_option.value, ui_gamerule_setting)) {
+				disabled = false;
+				return;
+			}
+		}
+	}
+	disabled = true;
 // END
 }
 void gamerules_main_apply_button_t::on_create(sys::state& state) noexcept {
@@ -698,7 +712,22 @@ void gamerules_main_reset_defaults_t::render(sys::state & state, int32_t x, int3
 void gamerules_main_reset_defaults_t::on_update(sys::state& state) noexcept {
 	gamerules_main_t& main = *((gamerules_main_t*)(parent)); 
 // BEGIN main::reset_defaults::update
-	disabled = (state.network_mode == sys::network_mode_type::client);
+	if(state.network_mode == sys::network_mode_type::client) {
+		disabled = true;
+		return;
+	}
+	for(const auto& item : main.gamerule_grid_g.values) {
+		if(std::holds_alternative<gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item)) {
+			auto item_option = std::get< gamerules_main_gamerule_grid_g_t::gamerule_item_option>(item);
+			auto current_gr_setting = state.world.gamerule_get_current_setting(item_option.value);
+			auto default_gr_setting = state.world.gamerule_get_default_setting(item_option.value);
+			if(default_gr_setting != current_gr_setting && command::can_change_gamerule_setting(state, state.local_player_nation, item_option.value, default_gr_setting)) {
+				disabled = false;
+				return;
+			}
+		}
+	}
+	disabled = true;
 // END
 }
 void gamerules_main_reset_defaults_t::on_create(sys::state& state) noexcept {

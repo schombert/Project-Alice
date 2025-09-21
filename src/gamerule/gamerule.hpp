@@ -8,8 +8,6 @@ namespace sys {
 
 namespace gamerule {
 
-inline constexpr uint32_t MAX_GAMERULE_SETTINGS = 30;
-
 struct gamerule_option {
 	dcon::text_key name;
 	dcon::effect_key on_select;

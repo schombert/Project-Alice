@@ -150,7 +150,7 @@ void create_in_game_windows(sys::state& state) {
 		new_elm->base_data.position.y += 24; // nudge
 		new_elm->impl_on_update(state);
 		state.ui_state.tl_chat_list = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
+		state.ui_state.root->add_child_to_back(std::move(new_elm));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::outliner_window>(state, "outliner");

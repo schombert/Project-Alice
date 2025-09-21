@@ -526,7 +526,6 @@ Alice adds a handful of new defines:
 - `alice_naval_base_to_colonial_distance_factor` (default 0.04): multiplier in the formula for colonial distance unlocked by 1 lvl of naval base.
 - `alice_always_available_cbs_zero_infamy` - if set to 0, then CBs with `always = yes` will have infamy cost calculated as per `badboy_factor`.
 - `alice_max_starvation_degrowth` - the maximum possible popgrowth penalty for a starving pop (below life_need_starvation_limit), reaching this maximum value when fufillment hits 0%. This penalty will not be overidden by other popgrowth techs&modifiers, so a fully starving pop will have this negative popgrowth at minimum.
-- `alice_can_goto_war_against_spherelord` - defines whether or not a sphereling can directly go to war with its spherelord or its allies. Also covers joining wars in which the spherelord is on the enemy side. This is basically the vanilla v2 sphereblock behvavoir. Set to 1.0f to disable.
 - `alice_can_add_constructable_cbs_as_wargoals` - if set to zero, then one can't add constructable (but not constructed) CBs as wargoals to the ongoing war.
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
@@ -565,6 +564,11 @@ As the above defines implies, the distances between provinces are measured in ki
 These relate to occupations
 - `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value
 - `alice_rebel_reduction_after_reoccupation = 7.0f`: When a rebel province is reoccupied by the owner, all pops which were part of the controlling rebel faction gets their militancy divided by this amount
+
+
+These relate to gamerules
+
+- `alice_can_goto_war_against_spherelord_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a sphereling can goto war against its spherelord. Can be either 1 (which means they can declare war against spherelord), or 0 (which means they cannot). Default is 1
 
 ### Support for reforms based on party issues
 

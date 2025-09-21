@@ -22,7 +22,7 @@ void load_hardcoded_gamerules(sys::state& state) {
 		std::array<sys::gamerule_option, sys::max_gamerule_settings> options;
 		options[uint8_t(sphereling_declare_war_settings::no)].name = text::find_or_add_key(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_1", false);
 		options[uint8_t(sphereling_declare_war_settings::yes)].name = text::find_or_add_key(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_2", false);
-		state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_name", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc", std::move(options), uint8_t(sphereling_declare_war_settings::yes), 2);
+		state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_name", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc", std::move(options), uint8_t(state.defines.alice_can_goto_war_against_spherelord_default_setting), uint8_t(2));
 	}
 }
 
