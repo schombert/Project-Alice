@@ -1641,19 +1641,36 @@ employment_vector<N, VALUE> get_profit_gradient(
 }
 
 template<typename VALUE>
-VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_employment) {
+VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_employment, VALUE sat) {
+
 	if constexpr(std::same_as<VALUE, float>) {
+		auto mult = 
+			gradient > 0.f
+			? std::max(
+				0.f,
+				sat - 0.5f
+			)
+			: 1.f
+		;
 		return std::min(0.01f * (current_employment + 100.f),
 			std::max(-0.04f * (current_employment + 100.f),
 				gradient / wage
 			)
-		);
+		) * mult;
 	} else {
+		auto mult = ve::select(
+			gradient > 0.f,
+			ve::max(
+				0.f,
+				sat - 0.5f
+			),
+			1.f
+		);
 		return ve::min(0.01f * (current_employment + 100.f),
 			ve::max(-0.04f * (current_employment + 100.f),
 				gradient / wage
 			)
-		);
+		) * mult;
 	}
 }
 
@@ -1722,6 +1739,14 @@ void update_employment(sys::state& state) {
 		auto sid = state.world.province_get_state_membership(pid);
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
 		auto factory_type = state.world.factory_get_building_type(facids);
+
+
+		auto min_available_input = ve::apply([&](auto ftid, auto factory_market) {
+			auto inputs = state.world.factory_type_get_inputs(ftid);
+			auto inputs_data = get_inputs_data(state, factory_market, inputs);
+			return inputs_data.min_available;
+		}, factory_type, mid);
+
 		auto output = state.world.factory_type_get_output(factory_type);
 
 		auto price_output = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
@@ -1753,7 +1778,10 @@ void update_employment(sys::state& state) {
 				primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education)
 			},
 			{ unqualified_throughput_multiplier, 1.f },
-			{ wage_no_education * (1.f + capitalists_greed), wage_basic_education * (1.f + capitalists_greed) }
+			{
+				wage_no_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)),
+				wage_basic_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education))
+			}
 		};
 
 		auto price_speed = price_properties::change(price_output, supply, demand);
@@ -1768,21 +1796,21 @@ void update_employment(sys::state& state) {
 			secondary,
 			secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
 			1.f / size * economy::secondary_employment_output_bonus,
-			wage_high_education * (1.f + capitalists_greed),
+			wage_high_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::high_education)),
 			primary_employment
 		);
 
 		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0], wage_no_education, unqualified_now);	
+			+ gradient_to_employment_change(gradient.primary[0], wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_available_input);
 
 		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1], wage_basic_education, primary_now);
+			+ gradient_to_employment_change(gradient.primary[1], wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_available_input);
 
 		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary, wage_high_education, secondary_now);
+			+ gradient_to_employment_change(gradient.secondary, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_available_input);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -2704,8 +2732,8 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		},
 		{ unqualified_throughput_multiplier, 1.f },
 		{
-			result.employment_wages_per_person.unqualified * (1.f + capitalists_greed),
-			result.employment_wages_per_person.primary * (1.f + capitalists_greed)
+			result.employment_wages_per_person.unqualified * (1.f + capitalists_greed) / (result.employment_available_ratio.unqualified + 0.01f),
+			result.employment_wages_per_person.primary * (1.f + capitalists_greed) / (result.employment_available_ratio.primary + 0.01f)
 		}
 	};
 
@@ -2725,7 +2753,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		result.employment_target.secondary,
 		result.employment.secondary,
 		1.f / fac.get_size() * economy::secondary_employment_output_bonus,
-		result.employment_wages_per_person.secondary * (1.f + capitalists_greed),
+		result.employment_wages_per_person.secondary * (1.f + capitalists_greed) / (result.employment_available_ratio.secondary + 0.01f),
 		basic_employment
 	);
 
@@ -2736,9 +2764,9 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 	};
 
 	result.employment_expected_change = {
-		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified),
-		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary),
-		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary),
+		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified, result.employment_available_ratio.unqualified * primary_inputs_data.min_available),
+		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary, result.employment_available_ratio.primary * primary_inputs_data.min_available),
+		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary, result.employment_available_ratio.secondary * primary_inputs_data.min_available),
 	};
 
 	return result;

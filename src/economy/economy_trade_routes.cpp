@@ -442,7 +442,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.actually_sold_in_origin = bought;
 
 	result.expansion_multiplier = std::max(
-		std::max(0.f, min_trade_expansion_multiplier),
+		std::max(0.f, min_trade_expansion_multiplier / (1.f + std::abs(change))),
 		(result.actually_sold_in_origin - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign
 	);
 
@@ -459,7 +459,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	result.base_change = change;
 
-	result.decay = -current_volume * trade_base_multiplicative_decay - trade_base_additive_decay * volume_soft_sign;
+	result.decay = -current_volume * trade_base_multiplicative_decay / (trade_base_multiplicative_decay * 10.f + bought) - trade_base_additive_decay * volume_soft_sign;
 
 	result.final_change = result.base_change + result.decay;
 
@@ -608,14 +608,14 @@ void update_trade_routes_volume(
 				bought_B
 			);
 			change = ve::select(
-				change * current_volume > 0.f, // change and volume are collinear
-				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
+				change * current_volume >= 0.f, // change and volume are collinear
+				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
 				change
 			);
 
 			// modifier for trade to slowly decay to create soft limit on transportation
 			// essentially, regularisation of trade weights, but can lead to weird effects
-			change = change - current_volume * trade_base_multiplicative_decay - volume_soft_sign * trade_base_additive_decay;
+			change = change - current_volume * trade_base_multiplicative_decay / (trade_base_multiplicative_decay * 10.f + bought) - volume_soft_sign * trade_base_additive_decay;
 
 			auto new_volume = ve::select(reset_route_commodity, 0.f, current_volume + change);
 

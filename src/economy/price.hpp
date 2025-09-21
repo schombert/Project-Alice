@@ -36,15 +36,17 @@ VALUE change(VALUE current_price, VALUE supply, VALUE demand) {
 	auto probability_to_keep_price_when_failed_to_buy = probability_to_buy;
 	auto probability_to_keep_price_when_failed_to_sell = probability_to_sell;
 
+	auto speed = speed_multiplier + (0.01f * (1.f - speed_multiplier) / (1.f + current_price));
+
 	auto relative_price_change =
 		(
 			(1.f - probability_to_sell)
-			* (1.f - speed_multiplier)
+			* (1.f - speed)
 			* (1.f - probability_to_keep_price_when_failed_to_sell)
 			+ (probability_to_sell + (1.f - probability_to_sell) * probability_to_keep_price_when_failed_to_sell - 1.f)
 			+
 			(1.f - probability_to_buy)
-			* (1.f + speed_multiplier)
+			* (1.f + speed)
 			* (1.f - probability_to_keep_price_when_failed_to_buy)
 			+ (probability_to_buy + (1.f - probability_to_buy) * probability_to_keep_price_when_failed_to_buy - 1.f)
 		);

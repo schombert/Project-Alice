@@ -297,11 +297,11 @@ void update_income_trade(sys::state& state) {
 
 
 	state.world.execute_parallel_over_market([&](auto markets) {
-		{
+		/* {
 			// we forgive a part of the debt to avoid monetary death spirals:
 			auto current = state.world.market_get_stockpile(markets, economy::money);
 			state.world.market_set_stockpile(markets, economy::money, current * 0.9f);
-		}
+		}*/
 
 		auto sids = state.world.market_get_zone_from_local_market(markets);
 
@@ -316,7 +316,7 @@ void update_income_trade(sys::state& state) {
 		auto total_weight = artisans_weight + clerks_weight + capis_weight;
 
 		auto balance = state.world.market_get_stockpile(markets, economy::money);
-		auto trade_dividents = ve::select(balance > 0.f, balance * 0.3f, ve::fp_vector{ 0.f });
+		auto trade_dividents = ve::select(balance > 0.f, balance * 0.001f, ve::fp_vector{ 0.f });
 		state.world.market_set_stockpile(markets, economy::money, balance - trade_dividents);
 
 		auto artisans_share = artisans_weight / total_weight * trade_dividents;
