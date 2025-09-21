@@ -1140,6 +1140,7 @@ alice_no_start_game_invalid_nations;Cannot start the game while players are on n
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
+delete_factory;Delete Factory
 cb_conditions_header;Conditions to use:
 as_a_vassal;as a vassal
 change_state_name_to;change state name to $text$

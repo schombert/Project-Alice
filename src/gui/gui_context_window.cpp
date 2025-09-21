@@ -182,6 +182,37 @@ public:
 	}
 };
 
+class context_menu_delete_factory : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		if (economy::factory_total_employment_score(state, context.factory) >= economy::factory_closed_threshold)
+			return state.lookup_key("close_and_del");
+		return state.lookup_key("delete_factory");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		return command::can_delete_factory(state, state.local_player_nation, fid);
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		auto fid = context.factory;
+		command::delete_factory(state, state.local_player_nation, fid);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		auto owner = state.world.province_get_nation_from_province_ownership(context.province);
+		if(owner == state.local_player_nation) {
+			text::add_line(state, contents, "factory_delete_header");
+			if(!command::can_delete_factory(state, state.local_player_nation, context.factory)) {
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "factory_delete_not_allowed");
+			}
+		}
+	}
+};
+
+inline static context_menu_delete_factory context_menu_delete_factory_logic;
 inline static context_menu_upgrade_factory context_menu_upgrade_factory_logic;
 inline static context_menu_build_factory context_menu_build_factory_logic;
 
@@ -265,6 +296,7 @@ void show_context_menu(sys::state& state, context_menu_context context) {
 	}
 	else if(context.factory) {
 		logics[0] = &context_menu_upgrade_factory_logic;
+		logics[1] = &context_menu_delete_factory_logic;
 	}
 
 	if(!state.ui_state.context_menu) {
