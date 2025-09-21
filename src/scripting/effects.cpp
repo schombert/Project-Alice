@@ -1988,6 +1988,9 @@ uint32_t ef_change_tag_culture(EFFECT_PARAMTERS) {
 
 	auto old_holder = ws.world.national_identity_get_nation_from_identity_holder(u);
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0) {
+		return 0;
+	}
 	culture::replace_cores(ws, tag, u);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), u);
 	politics::update_displayed_identity(ws, trigger::to_nation(primary_slot));
