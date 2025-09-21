@@ -566,7 +566,7 @@ std::string demand_view_commodity_id(sys::state& state, element_base* container,
 std::string balance_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
 	auto supply = economy::supply(state, item);
 	auto demand = economy::demand(state, item);
-	auto balance = supply - demand;
+	auto balance = (supply + 0.0001f) / (demand + 0.0001f);
 	return text::format_float(balance);
 };
 std::string stockpile_market_view_commodity_id(sys::state& state, element_base* container, dcon::commodity_id item) {
