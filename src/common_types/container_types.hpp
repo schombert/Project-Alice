@@ -122,6 +122,19 @@ static_assert(sizeof(event_option) ==
 	+ sizeof(event_option::ai_chance)
 	+ sizeof(event_option::effect));
 
+
+
+
+
+struct gamerule_option {
+	dcon::text_key name;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+};
+
+
+
 struct modifier_hash {
 	using is_avalanching = void;
 

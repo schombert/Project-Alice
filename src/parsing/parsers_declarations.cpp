@@ -40,6 +40,58 @@ void names_list::free_value(std::string_view text, error_handler& err, int32_t l
 	}
 }
 
+
+void scripted_gamerule::name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	auto name_key = text::find_or_add_key(context.outer_context.state, text, false);
+	context.outer_context.state.world.gamerule_set_name(context.id, name_key);
+}
+
+void scripted_gamerule::desc(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	auto desc_key = text::find_or_add_key(context.outer_context.state, text, false);
+	context.outer_context.state.world.gamerule_set_tooltip_explain(context.id, desc_key);
+}
+
+void scripted_gamerule::finish(scripted_gamerule_context& context) {
+	context.outer_context.state.world.gamerule_set_settings_count(context.id, uint8_t(settings_count));
+}
+
+
+void scripted_gamerule::option(gamerule_option option, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	if(settings_count >= sys::max_gamerule_settings) {
+		err.accumulated_errors += "Too many options for gamerule in file " + err.file_name + " on line " + std::to_string(line) + "\n";
+		return;
+	}
+	if(option.default_option) {
+		if(has_default) {
+			err.accumulated_warnings += "Gamerule option with name " + text::produce_simple_string(context.outer_context.state, option.name_key) + " was defined as default, but another option in the same gamerule was defined as default earlier (" + err.file_name + ") line " + std::to_string(line) + "\n";
+		}
+		context.outer_context.state.world.gamerule_set_default_setting(context.id, uint8_t(settings_count));
+		context.outer_context.state.world.gamerule_set_current_setting(context.id, uint8_t(settings_count));
+	}
+	auto& options = context.outer_context.state.world.gamerule_get_options(context.id);
+	options[settings_count] = sys::gamerule_option{ option.name_key, option.on_select, option.on_deselect };
+	settings_count += 1;
+}
+
+
+
+
+
+void gamerule_option::name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	auto name_k = text::find_or_add_key(context.outer_context.state, text, false);
+	name_key = name_k;
+}
+
+void gamerule_option::finish(scripted_gamerule_context& context) {
+
+}
+
+void gamerule_file::finish(scenario_building_context& context) {
+
+}
+
+
+
 void culture::color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) {
 	context.outer_context.state.world.culture_set_color(context.id, v.value);
 }

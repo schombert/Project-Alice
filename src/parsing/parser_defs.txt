@@ -1256,6 +1256,15 @@ history_war_goal
 	country                        value      text                              member_fn
 	state_province_id        value      int                              member_fn
 
+scripted_gamerule
+	name                           value      text                              member_fn
+	desc                            value      text                              member_fn
+	id                            value      int                            member
+	option                          group     gamerule_option                 member_fn
+
+gamerule_file
+	scripted_gamerule                   extern     make_gamerule                discard
+
 war_block
 	add_attacker                    value      text                              member_fn
 	add_defender                    value      text                              member_fn

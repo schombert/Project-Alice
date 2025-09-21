@@ -485,6 +485,47 @@ struct color_from_3i {
 	void finish(T& context) { }
 };
 
+
+struct scripted_gamerule_context {
+	dcon::gamerule_id id;
+	scenario_building_context& outer_context;
+};
+
+
+
+
+struct gamerule_option {
+	dcon::text_key name_key;
+	bool default_option = false;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context);
+	void finish(scripted_gamerule_context& context);
+
+
+};
+
+
+struct scripted_gamerule {
+	uint32_t id;
+	int32_t settings_count = 0;
+	bool has_default = false;
+
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context);
+	void desc(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context);
+	void option(gamerule_option option, error_handler& err, int32_t line, scripted_gamerule_context& context);
+
+	void finish(scripted_gamerule_context& context);
+
+};
+
+struct gamerule_file {
+	void finish(scenario_building_context& context);
+};
+
+
 struct culture_group_context {
 	dcon::culture_group_id id;
 	scenario_building_context& outer_context;
@@ -2974,6 +3015,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 } // namespace parsers
 
 #include "trigger_parsing.hpp"
+#include "gamerule_parsing.hpp"
 #include "effect_parsing.hpp"
 #include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"

@@ -994,14 +994,15 @@ ui::message_result gamerules_gamerule_item_previous_setting_t::on_lbutton_down(s
 // BEGIN gamerule_item::previous_setting::lbutton_action
 	auto setting_count = state.world.gamerule_get_settings_count(gamerule_item.value);
 	auto current_gamerule_setting = state.ui_state.gamerule_ui_settings.find(gamerule_item.value)->second;
-	if(current_gamerule_setting == 0) {
-		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = setting_count - 1);
+	if(setting_count > 1) {
+		if(current_gamerule_setting == 0) {
+			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = setting_count - 1);
+		}
+		else {
+			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = current_gamerule_setting - 1);
+			current_gamerule_setting = current_gamerule_setting - 1;
+		}
 	}
-	else {
-		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = current_gamerule_setting - 1);
-		current_gamerule_setting = current_gamerule_setting - 1;
-	}
-	//gamerule_item.current_setting->on_update(state);
 	state.game_state_updated.store(true, std::memory_order::release);
 // END
 	return ui::message_result::consumed;
@@ -1036,13 +1037,14 @@ ui::message_result gamerules_gamerule_item_next_setting_t::on_lbutton_down(sys::
 // BEGIN gamerule_item::next_setting::lbutton_action
 	auto setting_count = state.world.gamerule_get_settings_count(gamerule_item.value);
 	auto& current_gamerule_setting = state.ui_state.gamerule_ui_settings.find(gamerule_item.value)->second;
-	if(current_gamerule_setting >= setting_count - 1) {
-		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, 0);
+	if(setting_count > 1) {
+		if(current_gamerule_setting >= setting_count - 1) {
+			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, 0);
+		}
+		else {
+			state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = current_gamerule_setting + 1);
+		}
 	}
-	else {
-		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule_item.value, current_gamerule_setting = current_gamerule_setting + 1);
-	}
-	//gamerule_item.current_setting->on_update(state);
 	state.game_state_updated.store(true, std::memory_order::release);
 // END
 	return ui::message_result::consumed;
@@ -1106,7 +1108,7 @@ void gamerules_gamerule_item_current_setting_t::on_update(sys::state& state) noe
 	gamerules_main_t& main = *((gamerules_main_t*)(parent->parent)); 
 // BEGIN gamerule_item::current_setting::update
 	auto current_gamerule_setting = state.ui_state.gamerule_ui_settings.find(gamerule_item.value)->second;
-	auto desc_text_key = state.world.gamerule_get_setting_description(gamerule_item.value, current_gamerule_setting);
+	auto desc_text_key = state.world.gamerule_get_options(gamerule_item.value)[current_gamerule_setting].name;
 	set_text(state, text::produce_simple_string(state, desc_text_key));
 // END
 }

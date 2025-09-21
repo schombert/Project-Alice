@@ -1,5 +1,6 @@
 #pragma once
 #include "dcon_generated.hpp"
+#include "effects.hpp"
 
 namespace sys {
 	struct state;
@@ -8,6 +9,13 @@ namespace sys {
 namespace gamerule {
 
 inline constexpr uint32_t MAX_GAMERULE_SETTINGS = 30;
+
+struct gamerule_option {
+	dcon::text_key name;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+};
 
 
 enum class sphereling_declare_war_settings : uint8_t {

@@ -5573,14 +5573,15 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 }
 
 bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1;
+	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings;
 }
 
 void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
 	gamerule::set_gamerule(state, gamerule, new_setting);
 	auto sub = text::substitution_map{ };
 	text::add_to_substitution_map(sub, text::variable_type::x, state.world.gamerule_get_name(gamerule));
-	text::add_to_substitution_map(sub, text::variable_type::y, state.world.gamerule_get_setting_description(gamerule, new_setting));
+	auto setting_name = state.world.gamerule_get_options(gamerule)[new_setting].name;
+	text::add_to_substitution_map(sub, text::variable_type::y, setting_name);
 	auto str = text::resolve_string_substitution(state, "alice_gamerules_change_chat_msg", sub);
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		execute_chat_message(state, state.local_player_nation, str, dcon::nation_id{ }, state.network_state.nickname);

@@ -2336,8 +2336,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.national_identity_resize_government_ruler_name(world.government_type_size());
 	world.national_identity_resize_government_color(world.government_type_size());
 
-	world.gamerule_resize_setting_description(gamerule::MAX_GAMERULE_SETTINGS);
-
 	// add special names
 	for(auto ident : world.in_national_identity) {
 		auto const tag = nations::int_to_tag(ident.get_identifying_int());
@@ -2890,6 +2888,27 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	// create the hardcoded gamerules
 	gamerule::load_hardcoded_gamerules(*this);
 
+	// load scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gamerule_file(gen, err, context);
+		}
+		// some sanity checks
+		for(const auto& gamerule : context.state.world.in_gamerule) {
+			if(gamerule.get_settings_count() == uint8_t(0)) {
+				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
+			}
+		}
+		
+	}
+
+
 	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
 	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
 		auto pop_loc = context.state.world.pop_get_province_from_pop_location(pop_reb.first);
@@ -3362,6 +3381,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		if(f.get_size() > p.get_factory_max_size(f.get_building_type().get_output())) {
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
+		}
+	}
+	// apply effects from gamerule options which are on by default
+	for(const auto& gamerule : context.state.world.in_gamerule) {
+		if(gamerule.get_settings_count() > 0) {
+			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
+			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
 		}
 	}
 

@@ -1760,3 +1760,7 @@ alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved 
 alice_gamerules_btn_text;Game Rules
 alice_gamerules_change_chat_msg;Host has changed gamerule "$x$" to "$y$"!
 alice_gamerules_nothost;Only the host may change gamerules!
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_name;Allow spherelings to declare war on spherelord
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;Specifies whether spherelings are allowed to declare on their spherelord,or any nation allied to, or in the same sphere as the spherelord. Also affects joining wars against the side the spherelord is on
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_1;No
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_2;Yes

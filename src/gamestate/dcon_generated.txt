@@ -5810,8 +5810,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ setting_description }
-		type{ array{uint8_t}{text_key} }
+		name{ options }
+		type{ std::array<sys::gamerule_option,sys::max_gamerule_settings> }
 		tag{ scenario }
 	}
 	property{
