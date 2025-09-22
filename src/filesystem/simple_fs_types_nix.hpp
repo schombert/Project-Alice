@@ -42,7 +42,7 @@ public:
 
 	friend directory get_root(file_system const& fs);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
-	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names)
+	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names);
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 	friend std::vector<directory> list_subdirectories(directory const& dir);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
