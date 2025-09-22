@@ -648,7 +648,7 @@ diplomacy_wx_1;每月厌战性：
 influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
 influence_explain_3;我们无法影响与我国交战的国家
-influence_explain_4;我们每天与所有国家一起积累总计$x$的影响力。
+influence_explain_4;我们每天与所有国家一起积累总计 $x$ 影响力。
 influence_explain_5;基础影响力获得倍率（$x$）*影响力修正（$y$）*影响力科技修正（$val$）
 influence_explain_6;国家影响力修正：$x$
 influence_explain_7;修正来自科技：$x$
@@ -686,7 +686,7 @@ intervene_14;你的势力范围成员都没有站在对立面
 intervene_15;你的盟友没有站在对立方
 intervene_16;你的军队没有位于与你对立的国家所拥有的省份
 intervene_17;首要防守国对你有友好的评价
-military_score_explain_1;主力舰得分：$x$
+military_score_explain_1;主力舰分数：$x$
 military_score_explain_2;可招募部队：$x$
 military_score_explain_3;已招募部队：$x$
 military_score_explain_4;是否解除武装（惩罚因子：$x$）
@@ -1061,12 +1061,12 @@ alice_budget_scaled_15;战争援助：?R$value$
 alice_budget_scaled_16;外交投资：?G$value$
 alice_budget_scaled_17;黄金产出：?G$value$
 alice_budget_scaled_net;净收入：?Y$value$
-alice_budget_setting_percent;基于$perc$设置
-alice_spending_land_construction;陆军建设在$name$：?R$cost$?W
-alice_spending_naval_construction;海军建设在$name$：?R$cost$?W
-alice_spending_building_construction;建筑建设在$name$：?R$cost$?W
-alice_spending_factory_construction;工厂建设在$name$：?R$cost$?W
-alice_spending_unit;在此单位上的总花费共取决于$name$： ?R$cost$?W
+alice_budget_setting_percent;基于 $perc$ 设置
+alice_spending_land_construction;陆军建设在 $name$：?R$cost$?W
+alice_spending_naval_construction;海军建设在 $name$：?R$cost$?W
+alice_spending_building_construction;建筑建设在 $name$：?R$cost$?W
+alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
+alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
@@ -1741,3 +1741,11 @@ alice_original_war_participant_not_in_war;?Y$NATION$?W 不再参战
 alice_original_war_participant_desc;?Y$NATION$?W 是这场战争的最初 $ACTOR$。
 alice_original_war_participant_desc_2;只有最初攻击方或防御方的停火协议才能阻止参战。
 alice_original_war_participant_notinvolved;?Y$NATION$?W ?R不再参战?W
+pop_project;人群计划
+state_project;地区建筑
+delete_factory;摧毁工厂
+trade_route_volume_profit_score;利润评分：?Y$val$?W（取决于基础率变化）总计：
+trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W 除以 我方出口价格 ?Y$y$?W
+trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W 除以 对方出口价格 ?Y$y$?W）
+trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
+trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
