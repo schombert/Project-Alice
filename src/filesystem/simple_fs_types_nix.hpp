@@ -16,6 +16,7 @@ class file_system {
 
 public:
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
+	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names);
 	friend void reset(file_system& fs);
 	friend void add_root(file_system& fs, native_string_view root_path);
 	// will be added relative to the location that the executable file exists in
@@ -41,6 +42,7 @@ public:
 
 	friend directory get_root(file_system const& fs);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
+	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names)
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 	friend std::vector<directory> list_subdirectories(directory const& dir);
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
@@ -61,6 +63,7 @@ public:
 			: absolute_path(absolute_path), file_name(file_name) { }
 
 	friend std::optional<file> open_file(unopened_file const& f);
+	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names);
 	friend std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 	friend native_string get_full_name(unopened_file const& f);
 	friend native_string get_file_name(unopened_file const& f);
@@ -88,6 +91,7 @@ public:
 	~file();
 
 	friend std::optional<file> open_file(directory const& dir, native_string_view file_name);
+	friend std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names);
 	friend std::optional<file> open_file(unopened_file const& f);
 	friend class std::optional<file>;
 	friend file_contents view_contents(file const& f);

@@ -4,7 +4,8 @@ out vec4 frag_color;
 
 uniform sampler2D provinces_texture_sampler;
 uniform sampler2D terrain_texture_sampler;
-uniform sampler2DArray terrainsheet_texture_sampler;
+uniform sampler2D terrainsheet_texture_sampler;
+uniform sampler2DArray terrainsheet_texture_sampler_array;
 uniform sampler2D water_normal;
 uniform sampler2D colormap_water;
 uniform sampler2D colormap_terrain;
@@ -27,6 +28,8 @@ uniform float time;
 uniform float gamma;
 uniform vec3 light_direction;
 uniform float ignore_light;
+uniform int terrain_is_array;
+uniform int map_mode_is_data;
 vec4 gamma_correct(vec4 colour) {
 	return vec4(pow(colour.rgb, vec3(1.f / gamma)), colour.a);
 }
@@ -140,11 +143,17 @@ vec4 get_terrain(vec2 corner, vec2 offset) {
 	float is_water = 0.f; //step(64, index);
 
 	if (texture(provinces_sea_mask, prov_id).x > 0.0f || (prov_id.x == 0.f && prov_id.y == 0.f)) {
-        is_water = 1.f;
-    }
+		is_water = 1.f;
+	}
 
-	vec4 colour = texture(terrainsheet_texture_sampler, vec3(offset, index));
-	return mix(colour, vec4(0.), is_water);
+	if (terrain_is_array == 0) {
+		vec2 sample_from = (mod(offset, 1.f) * 255.f / 256.f + 1.f / 256.f / 2.f) / 8.f  + vec2(mod(index, 8.f), floor(index / 8.f)) / 8.f;
+		vec4 colour = texture(terrainsheet_texture_sampler, vec2(sample_from.x, sample_from.y));
+		return mix(colour, vec4(0.), is_water);
+	} else {
+		vec4 colour = texture(terrainsheet_texture_sampler_array, vec3(offset, index));
+		return mix(colour, vec4(0.), is_water);
+	}
 }
 
 vec4 get_terrain_mix() {
@@ -183,7 +192,7 @@ vec4 get_land_political_close() {
 
 	// Make the terrain a gray scale color
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
-    float grey = dot( terrain.rgb, GREYIFY );
+	float grey = dot( terrain.rgb, GREYIFY );
 
 	vec2 tex_coords = tex_coord;
 	vec2 rounded_tex_coords = (floor(tex_coord * map_size) + vec2(0.5, 0.5)) / map_size;
@@ -228,14 +237,19 @@ vec4 get_land_political_close() {
 
 	// Mix together the terrain and map mode color
 	if (int(graphics_mode) == 2) {
-		terrain.rgb = mix(terrain.rgb, political, 0.2f + (1.f - to_national_border) * 0.3f);
-		if (is_colonised) {
-			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
-			OutColor.rgb *= 1.05;
+		// if we display data, ignore pretty effects
+		if (map_mode_is_data == 0) {
+			terrain.rgb = mix(terrain.rgb, political, 0.2f + (1.f - to_national_border) * 0.3f);
+			if (is_colonised) {
+				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
+				OutColor.rgb *= 1.05;
+			} else {
+				OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+			}
+			terrain.rgb = OutColor.rgb;
 		} else {
-			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+			terrain.rgb = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
 		}
-		terrain.rgb = OutColor.rgb;
 	} else {
 		terrain.rgb = mix(vec3(grey), political, 0.3f);
 		terrain.rgb *= 1.5;
@@ -287,11 +301,15 @@ vec4 get_land_political_far() {
 	vec3 background = texture(colormap_political, get_corrected_coords(tex_coord)).rgb;
 
 	if (int(graphics_mode) == 2) {
-		if (is_colonised) {
-			OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
-			OutColor.rgb *= 1.05;
+		if (map_mode_is_data == 0) {
+			if (is_colonised) {
+				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
+				OutColor.rgb *= 1.05;
+			} else {
+				OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+			}
 		} else {
-			OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+			OutColor.rgb = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
 		}
 	} else {
 		OutColor.rgb = mix(background, OutColor.rgb, 0.3);
