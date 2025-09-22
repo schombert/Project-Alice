@@ -1466,8 +1466,7 @@ void update_rgo_consumption(
 		auto profit_derivative =
 			state.world.commodity_get_rgo_amount(c)
 			/ state.defines.alice_rgo_per_size_employment
-			* state.world.market_get_price(m, c)
-			* state.world.market_get_supply_sold_ratio(m, c);
+			* state.world.market_get_price(m, c);
 		auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
 		// we assume that we can maintain efficiency even when there is not enough goods on the market:
 		// efficiency goods are "preserved" (but still demanded to "update")
@@ -1642,19 +1641,36 @@ employment_vector<N, VALUE> get_profit_gradient(
 }
 
 template<typename VALUE>
-VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_employment) {
+VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_employment, VALUE sat) {
+
 	if constexpr(std::same_as<VALUE, float>) {
+		auto mult = 
+			gradient > 0.f
+			? std::max(
+				0.f,
+				sat - 0.5f
+			)
+			: 1.f
+		;
 		return std::min(0.01f * (current_employment + 100.f),
 			std::max(-0.04f * (current_employment + 100.f),
 				gradient / wage
 			)
-		);
+		) * mult;
 	} else {
+		auto mult = ve::select(
+			gradient > 0.f,
+			ve::max(
+				0.f,
+				sat - 0.5f
+			),
+			1.f
+		);
 		return ve::min(0.01f * (current_employment + 100.f),
 			ve::max(-0.04f * (current_employment + 100.f),
 				gradient / wage
 			)
-		);
+		) * mult;
 	}
 }
 
@@ -1662,7 +1678,7 @@ void update_employment(sys::state& state) {
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
-	concurrency::parallel_for(uint32_t(1), state.world.commodity_size(), [&](uint32_t k) {
+	concurrency::parallel_for(uint32_t(0), state.world.commodity_size(), [&](uint32_t k) {
 		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
 		auto rgo_output = state.world.commodity_get_rgo_amount(c);
 		if(rgo_output <= 0.f) {
@@ -1698,7 +1714,16 @@ void update_employment(sys::state& state) {
 				wage_per_worker * (1.f + aristocrats_greed)
 			);
 
-			auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker), 0.0f);
+			auto mult = ve::select(
+				gradient > 0.f,
+				ve::max(
+					0.f,
+					state.world.province_get_labor_demand_satisfaction(pids, labor::no_education) - 0.5f
+				),
+				1.f
+			);
+
+			auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker * mult), 0.0f);
 
 			// we don't want wages to rise way too high relatively to profits
 			// as we do not have actual budgets, we  consider that our workers budget is as follows
@@ -1714,6 +1739,14 @@ void update_employment(sys::state& state) {
 		auto sid = state.world.province_get_state_membership(pid);
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
 		auto factory_type = state.world.factory_get_building_type(facids);
+
+
+		auto min_available_input = ve::apply([&](auto ftid, auto factory_market) {
+			auto inputs = state.world.factory_type_get_inputs(ftid);
+			auto inputs_data = get_inputs_data(state, factory_market, inputs);
+			return inputs_data.min_available;
+		}, factory_type, mid);
+
 		auto output = state.world.factory_type_get_output(factory_type);
 
 		auto price_output = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
@@ -1745,7 +1778,10 @@ void update_employment(sys::state& state) {
 				primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education)
 			},
 			{ unqualified_throughput_multiplier, 1.f },
-			{ wage_no_education * (1.f + capitalists_greed), wage_basic_education * (1.f + capitalists_greed) }
+			{
+				wage_no_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)),
+				wage_basic_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education))
+			}
 		};
 
 		auto price_speed = price_properties::change(price_output, supply, demand);
@@ -1760,21 +1796,21 @@ void update_employment(sys::state& state) {
 			secondary,
 			secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
 			1.f / size * economy::secondary_employment_output_bonus,
-			wage_high_education * (1.f + capitalists_greed),
+			wage_high_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::high_education)),
 			primary_employment
 		);
 
 		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0], wage_no_education, unqualified_now);	
+			+ gradient_to_employment_change(gradient.primary[0], wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_available_input);
 
 		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1], wage_basic_education, primary_now);
+			+ gradient_to_employment_change(gradient.primary[1], wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_available_input);
 
 		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary, wage_high_education, secondary_now);
+			+ gradient_to_employment_change(gradient.secondary, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_available_input);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -1897,7 +1933,7 @@ void update_employment(sys::state& state) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				// gradient = ve::select(gradient > 0.f, gradient * ve::max(0.f, inputs_data.min_available - 0.01f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.01f, inputs_data.min_available - 0.3f), gradient);
 
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
 				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_available * 0.0001f;
@@ -2350,45 +2386,14 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 	if(size <= 0.f) {
 		return commodity_set{};
 	}
-
 	auto max_efficiency = max_rgo_efficiency<dcon::nation_id, dcon::province_id>(state, n, pid, c);
 	auto free_efficiency = max_efficiency * 0.1f;
 	auto current_efficiency = state.world.province_get_rgo_efficiency(pid, c);
 	auto e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
-	auto e_inputs_data = get_inputs_data(state, m, e_inputs);
-	// we try to update our efficiency according to current profit derivative
-	// if higher efficiency brings profit, we increase it
-	// 10% of max efficiency is free
-	auto cost_derivative = 0.f;
-	if(current_efficiency > free_efficiency) {
-		cost_derivative = e_inputs_data.total_cost;
-	}
-	auto profit_derivative =
-		state.world.commodity_get_rgo_amount(c)
-		/ state.defines.alice_rgo_per_size_employment
-		* state.world.market_get_price(m, c)
-		* state.world.market_get_supply_sold_ratio(m, c);
-	auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
-	// we assume that we can maintain efficiency even when there is not enough goods on the market:
-	// efficiency goods are "preserved" (but still demanded to "update")
-	// it's very risky to decrease efficiency depending on available efficiency goods directly
-	// because it might lead to instability cycles
-	// there is some natural decay of efficiency
-	// we decrease efficiency outside of decay only if decreasing efficiency is profitable
-	// but to increase efficiency, there should be enough of goods on the local market unless it's a free efficiency
-	if(efficiency_growth > 0.f && current_efficiency > free_efficiency) {
-		efficiency_growth = efficiency_growth * e_inputs_data.min_available;
-	}
-	auto new_efficiency = std::min(max_efficiency, std::max(0.f, current_efficiency * 0.99f + efficiency_growth));
-
-	// for some reason this was setting the rgo efficiency, even though this function is only called from the ui when creating a tooltip? Dosent make sense to me
-	/*state.world.province_set_rgo_efficiency(pid, c, new_efficiency);*/
-
 	auto workers = state.world.province_get_rgo_target_employment(pid, c)
 		* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education)
 		* mobilization_impact;
-	auto demand_scale = workers * std::max(new_efficiency - free_efficiency, 0.f);
-
+	auto demand_scale = workers * std::max(state.world.province_get_rgo_efficiency(pid, c) - free_efficiency, 0.f);
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(e_inputs.commodity_type[i]) {
 			e_inputs.commodity_amounts[i] *= demand_scale;
@@ -2727,8 +2732,8 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		},
 		{ unqualified_throughput_multiplier, 1.f },
 		{
-			result.employment_wages_per_person.unqualified * (1.f + capitalists_greed),
-			result.employment_wages_per_person.primary * (1.f + capitalists_greed)
+			result.employment_wages_per_person.unqualified * (1.f + capitalists_greed) / (result.employment_available_ratio.unqualified + 0.01f),
+			result.employment_wages_per_person.primary * (1.f + capitalists_greed) / (result.employment_available_ratio.primary + 0.01f)
 		}
 	};
 
@@ -2748,7 +2753,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		result.employment_target.secondary,
 		result.employment.secondary,
 		1.f / fac.get_size() * economy::secondary_employment_output_bonus,
-		result.employment_wages_per_person.secondary * (1.f + capitalists_greed),
+		result.employment_wages_per_person.secondary * (1.f + capitalists_greed) / (result.employment_available_ratio.secondary + 0.01f),
 		basic_employment
 	);
 
@@ -2759,9 +2764,9 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 	};
 
 	result.employment_expected_change = {
-		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified),
-		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary),
-		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary),
+		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified, result.employment_available_ratio.unqualified * primary_inputs_data.min_available),
+		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary, result.employment_available_ratio.primary * primary_inputs_data.min_available),
+		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary, result.employment_available_ratio.secondary * primary_inputs_data.min_available),
 	};
 
 	return result;
