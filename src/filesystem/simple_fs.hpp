@@ -52,6 +52,7 @@ void restore_state(file_system& fs, native_string_view data);
 std::vector<unopened_file> list_files(directory const& dir, native_char const* extension);
 std::vector<directory> list_subdirectories(directory const& dir);
 std::optional<file> open_file(directory const& dir, native_string_view file_name);
+std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names);
 std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name);
 void add_ignore_path(file_system& fs, native_string_view replaced_path);
 std::vector<native_string> list_roots(file_system const& fs);

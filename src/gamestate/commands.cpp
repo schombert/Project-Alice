@@ -4890,7 +4890,7 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
-		province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+		province::has_safe_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source == state.local_player_nation) {
