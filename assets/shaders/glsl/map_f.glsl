@@ -248,7 +248,8 @@ vec4 get_land_political_close() {
 			}
 			terrain.rgb = OutColor.rgb;
 		} else {
-			terrain.rgb = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
+			vec3 province_raw = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
+			terrain.rgb = (province_raw * 0.9f) * 0.85f + grey * 0.15f;
 		}
 	} else {
 		terrain.rgb = mix(vec3(grey), political, 0.3f);
@@ -264,7 +265,7 @@ vec4 get_land_political_far() {
 	//vec4 terrain = get_terrain(vec2(0, 0), vec2(0));
 	vec4 terrain = get_terrain_mix();
 	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
-    float grey = dot( terrain.rgb, GREYIFY );
+	float grey = dot( terrain.rgb, GREYIFY );
 
 	float is_land = terrain.a;
 
@@ -309,7 +310,8 @@ vec4 get_land_political_far() {
 				OutColor.rgb = (grey + terrain.rgb) / 1.5f;
 			}
 		} else {
-			OutColor.rgb = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
+			vec3 political_raw = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
+			OutColor.rgb = (political_raw * 0.9f) * 0.85f + grey * 0.15f;
 		}
 	} else {
 		OutColor.rgb = mix(background, OutColor.rgb, 0.3);
