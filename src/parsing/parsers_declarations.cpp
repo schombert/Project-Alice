@@ -43,11 +43,8 @@ void names_list::free_value(std::string_view text, error_handler& err, int32_t l
 
 void scripted_gamerule::name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
 	auto name_key = text::find_or_add_key(context.outer_context.state, text, false);
+	auto desc_key = text::find_or_add_key(context.outer_context.state, std::string(text) + "_desc", false);
 	context.outer_context.state.world.gamerule_set_name(context.id, name_key);
-}
-
-void scripted_gamerule::desc(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
-	auto desc_key = text::find_or_add_key(context.outer_context.state, text, false);
 	context.outer_context.state.world.gamerule_set_tooltip_explain(context.id, desc_key);
 }
 

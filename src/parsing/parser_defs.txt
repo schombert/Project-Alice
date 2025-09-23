@@ -1258,8 +1258,6 @@ history_war_goal
 
 scripted_gamerule
 	name                           value      text                              member_fn
-	desc                            value      text                              member_fn
-	id                            value      int                            member
 	option                          group     gamerule_option                 member_fn
 
 gamerule_file
