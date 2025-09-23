@@ -890,8 +890,7 @@ void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id 
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::delete_factory;
 	p.source = source;
-	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
-	p.data.factory.type = state.world.factory_get_building_type(f);
+	p.data.factory.id = f;
 	add_to_command_queue(state, p);
 }
 bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
@@ -903,27 +902,9 @@ bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory
 		return false;
 	return true;
 }
-void execute_delete_factory(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
-	if(state.world.province_get_nation_from_province_ownership(location) != source)
-		return;
-
-	auto rules = state.world.nation_get_combined_issue_rules(source);
-	if((rules & issue_rule::destroy_factory) == 0)
-		return;
-
-	for(auto sc : state.world.province_get_factory_construction(location)) {
-		if(sc.get_type() == type) {
-			state.world.delete_factory_construction(sc);
-			break;
-		}
-	}
-
-	for(auto f : state.world.province_get_factory_location(location)) {
-		if(f.get_factory().get_building_type() == type) {
-			state.world.delete_factory(f.get_factory());
-			return;
-		}
-	}
+void execute_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id fid) {
+	// Delete existing factories
+	state.world.delete_factory(fid);
 }
 
 void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
@@ -931,8 +912,7 @@ void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::fa
 	memset(&p, 0, sizeof(payload));
 	p.type = command_type::change_factory_settings;
 	p.source = source;
-	p.data.factory.location = state.world.factory_get_province_from_factory_location(f);
-	p.data.factory.type = state.world.factory_get_building_type(f);
+	p.data.factory.id = f;
 	p.data.factory.priority = priority;
 	p.data.factory.subsidize = subsidized;
 	add_to_command_queue(state, p);
@@ -959,33 +939,27 @@ bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon
 
 	return true;
 }
-void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, uint8_t priority, bool subsidized) {
-
-	if(state.world.province_get_nation_from_province_ownership(location) != source)
-		return;
-
+void execute_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id fid, uint8_t priority, bool subsidized) {
 	auto rules = state.world.nation_get_combined_issue_rules(source);
 
 	if(subsidized && (rules & issue_rule::can_subsidise) == 0) {
 		return;
 	}
 
-	for(auto f : state.world.province_get_factory_location(location)) {
-		if(f.get_factory().get_building_type() == type) {
-			auto current_priority = economy::factory_priority(state, f.get_factory());
-			if(current_priority != priority) {
-				if((rules & issue_rule::factory_priority) == 0)
-					return;
-				economy::set_factory_priority(state, f.get_factory(), priority);
-			}
-			if(subsidized && !f.get_factory().get_subsidized()) {
-				auto& scale = f.get_factory().get_primary_employment();
-				f.get_factory().set_primary_employment(std::max(scale, 0.5f));
-			}
-			f.get_factory().set_subsidized(subsidized);
+	auto f = dcon::fatten(state.world, fid);
+
+	auto current_priority = economy::factory_priority(state, f);
+	if(current_priority != priority) {
+		if((rules & issue_rule::factory_priority) == 0)
 			return;
-		}
+		economy::set_factory_priority(state, f, priority);
 	}
+	if(subsidized && !f.get_subsidized()) {
+		auto& scale = f.get_primary_employment();
+		f.set_primary_employment(std::max(scale, 0.5f));
+	}
+	f.set_subsidized(subsidized);
+	return;
 }
 
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
@@ -4917,7 +4891,7 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
-		province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+		province::has_safe_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source == state.local_player_nation) {
@@ -6161,10 +6135,10 @@ bool can_perform_command(sys::state& state, payload& c) {
 				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type);
 
 	case command_type::delete_factory:
-		return true; //can_delete_factory(state, c.source, c.data.factory.location, c.data.factory.type);
+		return can_delete_factory(state, c.source, c.data.factory.id);
 
 	case command_type::change_factory_settings:
-		return true; //can_change_factory_settings(state, c.source, c.data.factory.location, c.data.factory.type, c.data.factory.priority, c.data.factory.subsidize);
+		return can_change_factory_settings(state, c.source, c.data.factory.id, c.data.factory.priority, c.data.factory.subsidize);
 
 	case command_type::make_vassal:
 		return can_make_vassal(state, c.source, c.data.tag_target.ident);
@@ -6567,10 +6541,10 @@ bool execute_command(sys::state& state, payload& c) {
 				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type);
 		break;
 	case command_type::delete_factory:
-		execute_delete_factory(state, c.source, c.data.factory.location, c.data.factory.type);
+		execute_delete_factory(state, c.source, c.data.factory.id);
 		break;
 	case command_type::change_factory_settings:
-		execute_change_factory_settings(state, c.source, c.data.factory.location, c.data.factory.type, c.data.factory.priority,
+		execute_change_factory_settings(state, c.source, c.data.factory.id, c.data.factory.priority,
 				c.data.factory.subsidize);
 		break;
 	case command_type::make_vassal:

@@ -1,5 +1,6 @@
 #include "map.hpp"
 #include "glm/fwd.hpp"
+#include "map_modes.hpp"
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
@@ -518,6 +519,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_ignore_light] = glGetUniformLocation(shaders[i], "ignore_light");
 		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
 		shader_uniforms[i][uniform_terrainsheet_texture_sampler] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler");
+		shader_uniforms[i][uniform_terrainsheet_texture_sampler_array] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler_array");
+		shader_uniforms[i][uniform_terrain_is_array] = glGetUniformLocation(shaders[i], "terrain_is_array");
+		shader_uniforms[i][uniform_map_mode_is_data] = glGetUniformLocation(shaders[i], "map_mode_is_data");
 		shader_uniforms[i][uniform_water_normal] = glGetUniformLocation(shaders[i], "water_normal");
 		shader_uniforms[i][uniform_colormap_water] = glGetUniformLocation(shaders[i], "colormap_water");
 		shader_uniforms[i][uniform_colormap_terrain] = glGetUniformLocation(shaders[i], "colormap_terrain");
@@ -657,7 +661,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	if (state.map_state.map_data.texturesheet_is_dds) {
+		glBindTexture(GL_TEXTURE_2D, texture_arrays[texture_array_terrainsheet]);
+	} else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	}
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
@@ -687,7 +695,21 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_terrain][uniform_provinces_texture_sampler], 0);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_texture_sampler], 1);
 	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_2], 2);
-	glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler], 3);
+	if (state.map_state.map_data.texturesheet_is_dds) {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler], 3);
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 0);
+	} else {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler_array], 3);
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 1);
+	}
+	if (
+		state.map_state.active_map_mode == map_mode::mode::political
+		|| state.map_state.active_map_mode == map_mode::mode::terrain
+	) {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 0);
+	} else {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 1);
+	}
 	glUniform1i(shader_uniforms[shader_terrain][uniform_water_normal], 4);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_water], 5);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_terrain], 6);
@@ -723,7 +745,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glCullFace(GL_BACK);
 	glDisable(GL_PRIMITIVE_RESTART);
 
-	
+
 	glEnable(GL_BLEND);
 
 	// Draw the railroads and city
@@ -2438,7 +2460,7 @@ void display_data::update_sprawl(sys::state& state) {
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
 		auto km2_per_potential_settlement = 2000.f;
-		
+
 
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(
@@ -2499,7 +2521,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 		weighted_settlements.push_back({ central_settlement, 0.5f });
 
-		
+
 
 		for(size_t center = 0; center < weighted_settlements.size(); center++) {
 			//std::vector<glm::vec2> key_points{ };
@@ -2529,7 +2551,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 			a /= n2;
 			b /= n2;
- 
+
 			//auto initial_rotation = r3 * std::numbers::pi_v<float> * 2.f;
 
 			auto settlement = weighted_settlements[center];
@@ -2661,8 +2683,8 @@ void display_data::update_sprawl(sys::state& state) {
 						}
 					}
 				}
-			}			
-		}		
+			}
+		}
 	}
 
 	// connect some provs:
@@ -3363,6 +3385,7 @@ void display_data::load_map(sys::state& state) {
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
+	//auto map_texturesheet_dir = simple_fs::open_directory(root, terrain_atlas_dir_relative);
 	auto map_items_dir = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 	auto gfx_anims_dir = simple_fs::open_directory(root, NATIVE("gfx/anims"));
 
@@ -3386,14 +3409,17 @@ void display_data::load_map(sys::state& state) {
 	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
-	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.png"));
-	if(!texturesheet) {
-		texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-		if(!texturesheet) {
-			texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
+	auto texturesheet = simple_fs::open_file(map_terrain_dir, { NATIVE("texturesheet.png"), NATIVE("texturesheet.tga"), NATIVE("texturesheet.dds") });
+
+	if(texturesheet) {
+		if (simple_fs::get_full_name(texturesheet.value()).ends_with(NATIVE("dds"))) {
+			texture_arrays[texture_array_terrainsheet] = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"));
+			texturesheet_is_dds = true;
+		} else {
+			texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 		}
 	}
-	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
+
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));

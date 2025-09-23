@@ -2546,6 +2546,15 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
 
+	text::add_line(state, contents, state.world.factory_type_get_name(fat_fcid.get_type()));
+
+	if(fat_fcid.get_is_pop_project()) {
+		text::add_line(state, contents, "pop_project");
+	}
+	else {
+		text::add_line(state, contents, "state_project");
+	}
+
 	text::add_line(state, contents, "alice_construction_cost");
 
 	// List factory type construction costs

@@ -303,6 +303,35 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 	return std::optional<file>{};
 }
 
+std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names) {
+	if(dir.parent_system) {
+		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
+			native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			for(auto file_name : file_names) {
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
+				if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
+					continue;
+				}
+				HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+						FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+				if(file_handle != INVALID_HANDLE_VALUE) {
+					return std::optional<file>(file(file_handle, full_path));
+				}
+			}
+		}
+	} else {
+		for(auto file_name : file_names) {
+			native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
+			HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+					FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			if(file_handle != INVALID_HANDLE_VALUE) {
+				return std::optional<file>(file(file_handle, full_path));
+			}
+		}
+	}
+	return std::optional<file>{};
+}
+
 std::optional<unopened_file> peek_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {

@@ -207,8 +207,7 @@ struct land_unit_construction_data {
 };
 
 struct factory_data {
-	dcon::province_id location;
-	dcon::factory_type_id type;
+	dcon::factory_id id;
 	uint8_t priority;
 	bool subsidize;
 };
