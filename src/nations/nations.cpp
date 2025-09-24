@@ -356,7 +356,7 @@ void generate_sea_trade_routes(sys::state& state) {
 					capital_of_region[connected_region] = candidate;
 				}
 			}
-		}		
+		}
 	});
 
 	state.world.for_each_state_instance([&](auto candidate) {
@@ -450,7 +450,7 @@ void generate_sea_trade_routes(sys::state& state) {
 			float mult = 1.f;
 			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
-			
+
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
 
 
@@ -767,7 +767,7 @@ void update_national_administrative_efficiency(sys::state& state) {
 }
 
 void update_administrative_efficiency(sys::state& state) {
-	
+
 
 	// replaced with control ratio at capital which is doing the same thing but better
 	// prepare buffers
@@ -965,14 +965,14 @@ void update_administrative_efficiency(sys::state& state) {
 		state.world.province_set_control_ratio(
 			pids,
 			0.99f * state.world.province_get_control_ratio(pids)
-			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)			
+			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)
 		);
 		auto supply = ve::max(
-			0.f, 
+			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
 		);
 		auto movement = ve::max(
-			0.f, 
+			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
 		);
 		auto attrition = ve::max(
@@ -1763,7 +1763,7 @@ void update_monthly_points(sys::state& state) {
 	// while the other prestige modifiers are supposed to add monthly prestige
 	// they need to be separated out from each other (even though they have the same name)
 	// until we do that, removing ticking prestige is the easier fix
-	
+
 	//state.world.execute_serial_over_nation([&](auto ids) {
 	//	auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
 	//	state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
@@ -2256,12 +2256,12 @@ bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sp
 		if(source_sphere && target_sphere && target_sphere == source_sphere) {
 			return true; // cannot go to war against sphereling if source is in the same sphere as target
 		}
-	
+
 		if(are_allied(state, target, source_sphere)) {
 			return true; // cannot go to war against someone who is directly allied to the sphere leader
 		}
 	}
-	
+
 	return false;
 }
 
@@ -2335,7 +2335,7 @@ void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, boo
 				sys::message_base_type::embargo
 			});
 		}
-		
+
 	}
 }
 
@@ -2357,7 +2357,7 @@ void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool no
 					sys::message_base_type::embargo
 			});
 		}
-		
+
 	}
 }
 // removes all embargoes issued by the source nation
@@ -2728,7 +2728,7 @@ void update_influence(sys::state& state) {
 					Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of
 					the great power with the most influence (other than the influencing nation).
 					*/
-					
+
 					rel.set_influence(rel.get_influence() + std::max(0.0f, gain_amount));
 					if(rel.get_influence() > state.defines.max_influence) {
 						auto overflow = rel.get_influence() - state.defines.max_influence;
@@ -3555,7 +3555,7 @@ void update_crisis(sys::state& state) {
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
-			
+
 			/*
 			If the crisis becomes a war, any interested GP which did not take a side loses
 			(years-after-start-date x define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_YEAR +
@@ -3668,6 +3668,7 @@ void liberate_nation_from(sys::state& state, dcon::national_identity_id liberate
 	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
 		state.world.nation_set_capital(from, province::pick_capital(state, from));
 	}
+	state.military_definitions.pending_blackflag_update = true;
 }
 
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
@@ -3695,6 +3696,7 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
 		state.world.nation_set_capital(from, province::pick_capital(state, from));
 	}
+	state.military_definitions.pending_blackflag_update = true;
 }
 
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag) {
@@ -3832,7 +3834,7 @@ void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id so
 				if(rel_target != source ) {
 					revoke_free_trade_agreement_one_way(state, rel_target, rel_source);
 				}
-				
+
 			}
 		}
 		for(auto rel : state.world.nation_get_unilateral_relationship_as_target(target)) {
