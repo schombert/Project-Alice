@@ -30,8 +30,8 @@ void add_to_command_queue(sys::state& state, payload& p) {
 #endif
 
 	switch(p.type) {
-		
-	
+
+
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
 	case command_type::notify_player_picks_nation:
@@ -1186,7 +1186,7 @@ void execute_discredit_advisors(sys::state& state, dcon::nation_id source, dcon:
 	auto orel = state.world.get_gp_relationship_by_gp_influence_pair(influence_target, affected_gp);
 	if(!orel)
 		orel = state.world.force_create_gp_relationship(influence_target, affected_gp);
-	
+
 	auto& current_influence = state.world.gp_relationship_get_influence(rel);
 	state.world.gp_relationship_set_influence(rel, current_influence - state.defines.discredit_influence_cost);
 
@@ -2585,7 +2585,7 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 
 	// Cannot negotitate trade agreement if the asker is a subject, or the target is a subject of someone other than the asker
 	if(state.world.overlord_get_ruler(asker_overlord)) {
-		return false; 
+		return false;
 	}
 	if(state.world.overlord_get_ruler(target_overlord) && state.world.overlord_get_ruler(target_overlord) != asker) {
 		return false;
@@ -2672,7 +2672,7 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 		}
 	}
 
-	
+
 
 	// Can't embargo if free trade is in place
 	auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(target, asker);
@@ -2962,7 +2962,7 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 	}
 
 	// an automatic defensive call bypasses any truces there may be with the other side. Truce is checked against the original attacker or defender
-	
+
 	if(!automatic_call || (automatic_call && asker_is_attacker)) {
 		auto truce_target = military::is_attacker(state, w, asker) ? state.world.war_get_original_target(w) : state.world.war_get_original_attacker(w);
 		if(nations::nation_is_in_war(state, truce_target, w)) {
@@ -2971,7 +2971,7 @@ bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id 
 			}
 		}
 	}
-	
+
 
 	return true;
 }
@@ -3080,13 +3080,13 @@ bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source,
 		else {
 			return true;
 		}
-		
+
 	}
-		
+
 	else {
 		return false;
 	}
-		
+
 }
 void execute_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
@@ -3179,7 +3179,7 @@ bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id 
 			return false;
 		}
 	}
-		
+
 
 	if(source == target || source == real_target)
 		return false;
@@ -3825,7 +3825,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	else {
 		return !command::can_move_navy(state, source, n, dest, true).empty();
 	}
-	
+
 }
 
 void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order) {
@@ -3850,7 +3850,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 		else {
 			command::move_navy(state, source, n, dest, true);
 		}
-		
+
 	}
 }
 
@@ -3896,7 +3896,7 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 
 std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest) {
 	if(last_province == dest) {
-		return std::vector<dcon::province_id>{};	
+		return std::vector<dcon::province_id>{};
 	}
 
 	if(!can_partial_retreat_from(state, state.world.army_get_battle_from_army_battle_participation(a)))
@@ -4348,7 +4348,7 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 		state.deselect(b);
 	}
 	military::cleanup_navy(state, b);
-	
+
 }
 
 
@@ -4477,7 +4477,7 @@ bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regim
 	}
 
 	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
-	
+
 	if(ut.is_land && ships[0]) {
 		return false; // Land unit used for ships
 	}
@@ -4888,9 +4888,17 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	add_to_command_queue(state, p);
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
-		!bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
-		province::has_safe_access_to_province(state, source, state.world.army_get_location_from_army_location(a));
+	return state.world.army_get_controller_from_army_control(a) == source
+		&& !state.world.army_get_is_retreating(a)
+		&& !bool(state.world.army_get_battle_from_army_battle_participation(a))
+		&& (
+			province::has_safe_access_to_province(
+				state,
+				source,
+				state.world.army_get_location_from_army_location(a)
+			)
+			|| state.world.army_get_black_flag(a)
+		);
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source == state.local_player_nation) {
@@ -5050,7 +5058,7 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 		}
 	}
 	state.world.navy_set_moving_to_merge(navy, false);
-	
+
 }
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
@@ -5725,7 +5733,7 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	if(player) {
 		network::switch_one_player(state, target, source, player);
 	}
-	
+
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_name& name) {
@@ -5874,7 +5882,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.fill_unsaved_data();
 	state.ui_lock.unlock();
 	window::change_cursor(state, window::cursor_type::normal);
-	
+
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
 	command::notify_player_fully_loaded(state, state.local_player_nation, state.network_state.nickname); // notify we are done reloading
@@ -5884,7 +5892,7 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	std::string encodedchecksum = sha512.hash(state.session_host_checksum.to_char());
 	state.console_log("client:exec:cmd | type=notify_reload from:" + std::to_string(source.index()) + "| checksum: " + encodedchecksum);
 #endif
-	 
+
 	network::log_player_nations(state);
 }
 
@@ -5922,7 +5930,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 				military::give_back_units(state, n);
 			}
 		}
-			
+
 	state.ui_lock.lock();
 	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	state.set_selected_province(dcon::province_id{});
@@ -5958,7 +5966,7 @@ void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source,
 	// if it is a valid player
 	if(player) {
 		network::mp_player_set_fully_loaded(state, player, false);
-		
+
 	};
 }
 
