@@ -648,7 +648,7 @@ diplomacy_wx_1;每月厌战性：
 influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
 influence_explain_3;我们无法影响与我国交战的国家
-influence_explain_4;我们每天与所有国家一起积累总计 $x$ 影响力。
+influence_explain_4;我们每天与所有国家一起积累 $x$ 影响力。
 influence_explain_5;基础影响力获得倍率（$x$）*影响力修正（$y$）*影响力科技修正（$val$）
 influence_explain_6;国家影响力修正：$x$
 influence_explain_7;修正来自科技：$x$
@@ -1091,9 +1091,9 @@ colonial_points_from_naval_bases;来自海军基地：
 colonial_points_from_ships;来自舰船：
 used_colonial_maintenance;维护现有殖民地：
 topbar_pause_speed;暂停游戏，再次点击取消暂停
-att_call_will_accept;$x$会参加你的战争
-att_call_will_decline;$x$不会参加你的战争
-att_call_is_human;$x$可能加入你的战争
+att_call_will_accept;$x$ 会参加你的战争
+att_call_will_decline;$x$ 不会参加你的战争
+att_call_is_human;$x$ 可能加入你的战争
 att_call_no_allies;你没有任何盟友！
 domestic_investment_label;国内投资：
 modifier_min_domestic_investment;最小国内投资率
@@ -1241,7 +1241,7 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;生产
+produced_nation;仓储
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
@@ -1365,7 +1365,7 @@ factory_consumer_count;轻工厂：?Y$val$?!
 factory_heavy_count;重工厂：?Y$val$?!
 factory_military_count;军工厂：?Y$val$?!
 factory_processing_count;加工厂：?Y$val$?!
-factory_industrial_and_consumer_count;工厂总数：?Y$val$?!
+factory_total_size;工厂总规模：?Y$val$?!
 state_transfer_explain_7;须在附庸关系中
 alice_loan_size_mod;最大免息贷修正：?G+$x$
 capitalists_savings_ratio;资本家储蓄率：?G$x$?!
@@ -1493,8 +1493,8 @@ embargo_explain_1;$x$ 及其势力和附庸 ?G禁运?! $y$ 及其势力和附庸
 embargo_explain_2;$x$ 及其势力和附庸 ?R禁运?! $y$ 及其势力和附庸。
 embargo_explain_3;我们在他们的国家没有贸易权利
 embargo_explain_4;他们在我们的国家没有贸易权利
-embargo_explain_5;我们不在一个势力范围内
-embargo_explain_6;他们不在一个势力范围内
+embargo_explain_5;我们不在同势力范围内
+embargo_explain_6;他们不在同势力范围内
 msg_embargo_issued_title;禁运已发布
 msg_embargo_issued;国家 ?Y$y$?! 已经发布禁令，禁止与 ?Y$x$?! 进行贸易。
 msg_embargo_lifted_title;禁运已解除
@@ -1533,11 +1533,11 @@ ledger_inflation_adjusted_gdp;GDP（通胀调整）
 ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
 province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
 province_victory_points_base;?G+1 基本分?W
-province_victory_points_nb;?G+$X$ 海军基地等级积分?W
-province_victory_points_fcount;?G+$X$ 工厂积分?W
-province_victory_points_fortsize;?G+$X$ 要塞积分?W
-province_victory_points_mainlandcore;?Gx2 非海外积分?W
-province_victory_points_capital;?Gx3 首都积分?W
+province_victory_points_nb;?G+$X$ 海军基地等级分数?W
+province_victory_points_fcount;?G+$X$ 工厂分数?W
+province_victory_points_fortsize;?G+$X$ 要塞分数?W
+province_victory_points_mainlandcore;?Gx2 非海外分数?W
+province_victory_points_capital;?Gx3 首都分数?W
 per_nation;每个国家
 labour_price;工资
 labour_price_10k;一万人平均工资
@@ -1546,7 +1546,7 @@ alice_labor_no_education;非熟练
 alice_labor_basic_education;熟练
 alice_labor_high_education;专家
 alice_labor_guild;行会
-alice_labor_high_education_and_accepted;专家（已接受）
+alice_labor_high_education_and_accepted;同胞专家
 alice_invalid_value;值 无效
 alice_wages_tab;工资
 alice_trade_volume_tab;贸易量
@@ -1577,7 +1577,7 @@ local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业满足度：?Y$value$?W
 wage;工资：?Y$value$?W
-local_admin_efficiency;地方行政部是低于首都的?Y$value$?W。
+local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
 tax_collection_rate;征税率：?Y$value$?W
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
@@ -1640,7 +1640,7 @@ factory_firing_rate_secondary;我们预计工厂会尝试?R解雇?W ?Y$value$?W 
 factory_hired_unqualified;工厂雇佣了 ?Y$value$?W ?Y非熟练工人?W来处理简单的手工任务。一位?Y非熟练工人?W仅提供?Y技工?W产出的 ?R$x$?W。
 factory_hired_primary;工厂雇佣了 ?Y$value$?W ?Y技工?W。
 factory_hired_secondary;工厂雇佣了 ?Y$value$?W ?Y经理和职员?W。他们使工厂产出乘以 ?G$x$?W。
-factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，被?Y非熟练工人?W和?Y技工?W。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
+factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，由?Y非熟练工人?W和?Y技工?W生产。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
 factory_throughput_base;在 Project Alice 中，工厂只能从当地市场获得商品。这意味着，在游戏早期，有些商品难以获得。为部分补偿它，有一个?G$val$?W 基础乘数到吞吐量。
 factory_throughput_modifiers;当前技术和其他修正提供的吞吐量乘数：?G$val$?W。
 factory_input_multiplier_explanation;投入乘数是最强的行业相关乘数，因为它不受回报递减。相反，你越多推积它，它就越强。当前乘数：?G$val$?W。
@@ -1719,8 +1719,8 @@ cancel_given_access_explain_2;你不是此国附庸。
 revoke_trade_rights_explain_2;我们有权取消协议
 free_trade_desc;如对方同意，我们将签署贸易协议，取消我们两国间所有关税，持续 ?Y$x$?W 年。
 free_trade_explain_5;目标不是附庸，或是我附庸。
-free_trade_explain_6;我们不在一个势力范围内
-free_trade_explain_7;目标不在势力范围内，或是在我势力范围内。
+free_trade_explain_6;我们不在同势力范围内
+free_trade_explain_7;目标不在任何势力范围内。
 free_trade_explain_8;$x$ 及其 势力和附庸 ?G贸易于?! $y$ 及其势力和附庸。
 embargo_explain_7;目标不在我势力范围内
 war_explain_5;在此国无驻军
@@ -1749,3 +1749,13 @@ trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?
 trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W 除以 对方出口价格 ?Y$y$?W）
 trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
 trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
+export;出口额
+import;进口额
+total_volume;贸易总额
+embargo;禁运
+alice_toggle_administration;建立行政首府
+trade_route_volume_expansion_multiplier;扩张乘数：?Y$val$?W（取决于在出口市场获得商品的实际情况）
+trade_route_volume_final_change;变化预计：?Y$val$
+alice_production_name_sort_tip_province;?Y左击?W 以省份名称排序
+alice_production_name_sort_tip_state;?YShift+左击?W 以地区名称排序
+status_quo;维持现状
