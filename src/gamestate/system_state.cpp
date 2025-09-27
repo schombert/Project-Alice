@@ -1284,7 +1284,12 @@ void state::load_locale_strings(std::string_view locale_name) {
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
-		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+		// sort list of files so that it will read them in alphabetical order from A-Z, to conform with modding expactations.
+		auto loc_files = list_files(text_dir, NATIVE(".csv"));
+		std::sort(loc_files.begin(), loc_files.end(), [](const simple_fs::unopened_file& a, const simple_fs::unopened_file& b) {
+			return simple_fs::get_file_name(a) > simple_fs::get_file_name(b);
+		});
+		for(auto& file : loc_files) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				text::consume_csv_file(*this, content.data, content.file_size, column, false);
