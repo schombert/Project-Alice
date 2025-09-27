@@ -1,4 +1,5 @@
 #include "economy_trade_routes.hpp"
+#include "economy.hpp"
 #include "economy_stats.hpp"
 #include "system_state.hpp"
 #include "economy_government.hpp"
@@ -9,6 +10,11 @@
 // due to performance reasons we have to duplicate it
 
 namespace economy {
+
+// value in [0, 1] range
+// 0 means that trade profit due to price difference is pocketed by exporters
+// 1 means that trade profit due to price difference is pocketed by importers
+constexpr inline float import_profit_priority = 0.5f;
 
 
 // US3AC2 Labour demand for a single trade route
@@ -54,7 +60,7 @@ float transportation_inside_market_labor_demand(sys::state& state, dcon::market_
 	state.world.for_each_commodity([&](auto commodity) {
 		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
 			auto current_volume = state.world.trade_route_get_volume(trade_route, commodity);
-			auto origin = 
+			auto origin =
 				current_volume > 0.f
 				? state.world.trade_route_get_connected_markets(trade_route, 0)
 				: state.world.trade_route_get_connected_markets(trade_route, 1);
@@ -289,7 +295,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_B, market_leader_A);
 		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_A, market_leader_B);
 	}
-	
+
 	if(source_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 		if(enddt) {
@@ -427,7 +433,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.export_profit[0] = current_profit_A_to_B;
 	result.export_profit[1] = current_profit_B_to_A;
 
-	auto volume_sign = current_volume == 0.f ? 0 : (current_volume > 0.f, 1.f, -1.f);
+	auto volume_sign = current_volume == 0.f ? 0 : (current_volume > 0.f ? 1.f : -1.f);
 	auto volume_soft_sign = volume_sign * std::min(absolute_volume, 1.f);
 
 	result.current_volume = current_volume;
@@ -446,7 +452,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		(result.actually_sold_in_origin - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign
 	);
 
-	change = change * current_volume >= 0.f
+	change = change * (current_volume + change) >= 0.f
 		? change * result.expansion_multiplier
 		: change;
 
@@ -455,7 +461,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		result.profit = current_profit_A_to_B;
 	} else if(current_profit_B_to_A > 0.f) {
 		result.profit = current_profit_B_to_A;
-	}	
+	}
 
 	result.base_change = change;
 
@@ -541,12 +547,11 @@ void update_trade_routes_volume(
 
 		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
+
 		auto transport_cost =
-			distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good
-			* (
-				state.world.province_get_labor_price(capital_A, labor::no_education)
-				+ state.world.province_get_labor_price(capital_B, labor::no_education)
-			);
+			distance
+			/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
+			* (wage_A + wage_B);
 
 		auto reset_route = trade_closed || trade_banned
 			|| !ve::apply([&](auto r) { return state.world.trade_route_is_valid(r); }, trade_route)
@@ -566,7 +571,7 @@ void update_trade_routes_volume(
 				continue;
 			}
 
-			// US3AC20. 
+			// US3AC20.
 			auto unlocked_A = state.world.nation_get_unlocked_commodities(controller_A, c);
 			auto unlocked_B = state.world.nation_get_unlocked_commodities(controller_B, c);
 
@@ -608,7 +613,7 @@ void update_trade_routes_volume(
 				bought_B
 			);
 			change = ve::select(
-				change * current_volume >= 0.f, // change and volume are collinear
+				change * (current_volume + change) >= 0.f, // change and volume are collinear
 				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
 				change
 			);
@@ -672,7 +677,7 @@ void update_trade_routes_consumption(sys::state& state) {
 
 		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
 		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
-		
+
 		auto total_demanded_labor = trade_route_labour_demand(state, trade_route, A_capital, B_capital);
 
 		state.world.province_get_labor_demand(A_capital, labor::no_education) += total_demanded_labor;
@@ -791,13 +796,13 @@ trade_and_tariff<TRADE_ROUTE> explain_trade_route_commodity_internal(
 
 		.payment_per_unit = price_origin
 			* (1.f + export_tariff)
-			* (1 + merchant_cut)
+			* (1.f - import_profit_priority + merchant_cut)
 			+ price_target
 			* import_tariff
 			+ transport_cost,
 
 		// the rest of payment is handled as satisfaction of generic demand
-		.payment_received_per_unit = price_origin * merchant_cut
+		.payment_received_per_unit = price_origin * (merchant_cut - import_profit_priority)
 	};
 }
 
@@ -871,7 +876,7 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state&
 		source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_target, market_leader_origin);
 		target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(market_leader_origin, market_leader_target);
 	}
-	
+
 	if(source_tariffs_rel) {
 		auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
 		if(state.current_date < enddt) {
@@ -934,9 +939,9 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state&
 			.transportaion_loss = trade_good_loss_mult,
 			.distance = distance,
 
-			.payment_per_unit = price_origin * (1 + economy::merchant_cut_domestic) + transport_cost,
+			.payment_per_unit = price_origin * (1.f - import_profit_priority + economy::merchant_cut_domestic) + transport_cost,
 			// the rest of payment is handled as satisfaction of generic demand
-			.payment_received_per_unit = price_origin * economy::merchant_cut_domestic
+			.payment_received_per_unit = price_origin * (economy::merchant_cut_domestic - import_profit_priority)
 		};
 	} else {
 		return {
@@ -962,12 +967,12 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state&
 
 			.payment_per_unit = price_origin
 				* (1.f + export_tariff)
-				* (1 + economy::merchant_cut_foreign)
+				* (1.f - import_profit_priority + economy::merchant_cut_foreign)
 				+ price(state, target, cid)
 				* import_tariff
 				+ transport_cost,
 			// the rest of payment is handled as satisfaction of generic demand
-			.payment_received_per_unit = price_origin * economy::merchant_cut_foreign
+			.payment_received_per_unit = price_origin * (economy::merchant_cut_foreign - import_profit_priority)
 		};
 	}
 }

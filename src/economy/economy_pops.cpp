@@ -1,9 +1,9 @@
 #include "economy_pops.hpp"
 #include "economy_production.hpp"
 #include "price.hpp"
-#include "nations.hpp"
 #include "province_templates.hpp"
 #include "demographics.hpp"
+#include "commodities.hpp"
 
 namespace economy {
 namespace pops {
@@ -14,7 +14,11 @@ void update_consumption(
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_luxury,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_private,
-	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public,
+	ve::vectorizable_buffer<float, dcon::pop_id>& demand_life,
+	ve::vectorizable_buffer<float, dcon::pop_id>& demand_everyday,
+	ve::vectorizable_buffer<float, dcon::pop_id>& demand_luxury,
+	ve::vectorizable_buffer<float, dcon::pop_id>& subsistence_ratio
 ) {
 	uint32_t total_commodities = state.world.commodity_size();
 
@@ -31,10 +35,6 @@ void update_consumption(
 	ve::fp_vector total_spendings{};
 
 	// temporary buffers for actual pop demand
-
-	auto demand_life = state.world.pop_make_vectorizable_float_buffer();
-	auto demand_everyday = state.world.pop_make_vectorizable_float_buffer();
-	auto demand_luxury = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_education_public_forbidden = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_education_public_allowed = state.world.pop_make_vectorizable_float_buffer();
 
@@ -52,20 +52,12 @@ void update_consumption(
 		// "for free" in the context of education means that someone paid for you
 		// so it will be registered as demand
 
-		auto base_shift = 3.f * pop_demographics::pop_u8_scaling;
-		auto small_shift = 3.f * pop_demographics::pop_u16_scaling;
-
-
 		buffer_life.set(ids, data.life_needs.satisfied_with_money_ratio);
 		buffer_everyday.set(ids, data.everyday_needs.satisfied_with_money_ratio);
 		buffer_luxury.set(ids, data.luxury_needs.satisfied_with_money_ratio);
 		buffer_education_private.set(ids, data.education.satisfied_with_money_ratio);
 		buffer_education_public.set(ids, data.education.satisfied_for_free_ratio);
-
-		// currently subsistence is limited to life needs:
-		ve::fp_vector shift_life = base_shift * data.life_needs.satisfied_for_free_ratio;
-		auto result_life = ve::max(0.f, ve::min(1.f, pop_demographics::get_life_needs(state, ids) + shift_life));
-		pop_demographics::set_life_needs(state, ids, result_life);
+		subsistence_ratio.set(ids, data.life_needs.satisfied_for_free_ratio);
 
 		auto multiplier = pop_size / state.defines.alice_needs_scaling_factor;
 
@@ -85,11 +77,12 @@ void update_consumption(
 			* data.education.demand_scale * (data.education.satisfied_with_money_ratio + data.education.satisfied_for_free_ratio)
 		);
 
+		to_bank.set(ids, data.bank_savings.spent);
 		to_investments.set(ids, data.investments.spent);
 
 		// we do save savings here because a part of education is given for free
 		// which leads to some part of wealth not being spent most of the time
-		state.world.pop_set_savings(ids, data.remaining_savings);
+		state.world.pop_set_savings(ids, ve::max(0.f, data.remaining_savings));
 	});
 
 	// services are at province level:
@@ -520,7 +513,7 @@ void update_income_wages(sys::state& state){
 				state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
 				* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
-			float sum_of_wages = no_education_wage + basic_education_wage + high_education_wage + guild_education_wage + high_education_and_accepted_wage;
+			float sum_of_wages = no_education_wage + basic_education_wage + high_education_wage + high_education_and_accepted_wage;
 
 			float rgo_workers_wage =
 				state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
@@ -584,8 +577,8 @@ void update_income_wages(sys::state& state){
 				}
 			}
 
-			auto local_market_cut = local_market_cut_baseline - state.world.market_get_stockpile(market, economy::money) / (no_education_wage + 0.000001f) / 100'000'000.f;
-			local_market_cut = std::clamp(local_market_cut, 0.f, 1.f);
+			auto local_market_cut = local_market_cut_baseline - state.world.market_get_stockpile(market, economy::money) / (no_education_wage + 0.000001f) / 100'000.f;
+			local_market_cut = std::clamp(local_market_cut, 0.f, 0.1f);
 
 			auto market_rgo_activity_cut = total_rgo_profit * local_market_cut;
 			total_rgo_profit -= market_rgo_activity_cut;
@@ -600,7 +593,6 @@ void update_income_wages(sys::state& state){
 			state.world.market_set_stockpile(market, economy::money, cur_money + market_profit + market_rgo_activity_cut);
 
 			auto market_cut_from_wages = 0.f;
-			auto total_wage = 0.f;
 
 			for(auto pl : state.world.province_get_pop_location(pid)) {
 				auto pop = pl.get_pop();
@@ -612,52 +604,43 @@ void update_income_wages(sys::state& state){
 					|| state.world.nation_get_primary_culture(n) == pop.get_culture();
 
 				if(poptype.get_is_paid_rgo_worker()) {
-					pop.set_savings(pop.get_savings() + state.inflation * size * rgo_workers_wage * (1.f - local_market_cut));
-					total_wage += size * rgo_workers_wage;
+					pop.set_savings(pop.get_savings() + size * rgo_workers_wage);
 				} else if(state.culture_definitions.primary_factory_worker == poptype) {
-					pop.set_savings(pop.get_savings() + state.inflation * size * primary_workers_wage * (1.f - local_market_cut));
-					total_wage += size * primary_workers_wage;
+					pop.set_savings(pop.get_savings() + size * primary_workers_wage);
 				} else if(state.culture_definitions.secondary_factory_worker == pop.get_poptype()) {
 					if(accepted) {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
 					} else {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_not_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_not_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
 					}
 					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
 				} else if(pop.get_poptype() == state.culture_definitions.bureaucrat) {
 					if(accepted) {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
 					} else {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_not_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_not_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
 					}
 				} else if(pop.get_poptype() == state.culture_definitions.clergy) {
 					if(accepted) {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
 					} else {
-						pop.set_savings(pop.get_savings() + state.inflation * size * high_not_accepted_workers_wage * (1.f - local_market_cut));
-						total_wage += size * high_not_accepted_workers_wage;
+						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
 					}
 				} else if(state.culture_definitions.aristocrat == pop.get_poptype()) {
-					pop.set_savings(pop.get_savings() + state.inflation * size * payment_per_aristocrat);
+					pop.set_savings(pop.get_savings() + size * payment_per_aristocrat);
 				}
 
-				// all rich pops pay a "tax" to market to import expensive goods:
+				// pops pay a "tax" to market to import expensive goods:
 
-				if(pop.get_savings() / (size + 1) > 10.f * sum_of_wages) {
+				if(pop.get_savings() / (size + 1.f) > 10.f * sum_of_wages) {
 					float new_savings = pop.get_savings();
-					market_cut_from_wages += new_savings * 0.5f;
-					pop.set_savings(new_savings * 0.5f);
+					pop.set_savings(state.inflation * new_savings * (1.f - local_market_cut));
+					market_cut_from_wages += new_savings * local_market_cut;
 				}
 
 				assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
 			}
 
-			market_cut_from_wages += total_wage * local_market_cut;
 			state.world.market_set_stockpile(market, economy::money, state.world.market_get_stockpile(market, economy::money) + market_cut_from_wages);
 		}
 	}

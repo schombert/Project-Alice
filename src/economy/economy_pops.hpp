@@ -1,7 +1,6 @@
 #pragma once
 
 #include "system_state.hpp"
-#include "commodities.hpp"
 #include "advanced_province_buildings.hpp"
 #include "demographics.hpp"
 #include "adaptive_ve.hpp"
@@ -43,7 +42,7 @@ struct vectorized_pops_budget {
 	VALUE spent_total{ };
 };
 
-float constexpr inline base_qol = 0.25f;
+float constexpr inline base_qol = 0.3f;
 constexpr inline uint32_t build_factory = issue_rule::pop_build_factory;
 constexpr inline uint32_t expand_factory = issue_rule::pop_expand_factory;
 constexpr inline uint32_t can_invest = expand_factory | build_factory;
@@ -95,7 +94,7 @@ VALUE inline investment_rate(const sys::state& state, POPS ids) {
 }
 
 
-// handle bank savings 
+// handle bank savings
 // Note that farmers and middle_class don't do bank savings by default
 // - that doens't mean they don't have savings.
 // They don't use banks for savings without modifier (from tech, from example).
@@ -180,7 +179,7 @@ auto inline prepare_pop_budget(
 		result.can_use_free_services = state.world.pop_get_is_primary_or_accepted_culture(ids) ? 1.f : 0.f;
 	} else {
 		result.can_use_free_services = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), ve::fp_vector { 1.f }, ve::fp_vector { 0.f });
-	}	
+	}
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
 
@@ -215,20 +214,20 @@ auto inline prepare_pop_budget(
 	// normalize:
 
 	life_spending_ratio			= life_spending_ratio			/ total_spending_ratio;
-	everyday_spending_ratio		= everyday_spending_ratio		/ total_spending_ratio;
-	luxury_spending_ratio		= luxury_spending_ratio			/ total_spending_ratio;
-	education_spending_ratio	= education_spending_ratio		/ total_spending_ratio;
-	investment_ratio			= investment_ratio				/ total_spending_ratio;
-	banking_ratio				= banking_ratio					/ total_spending_ratio;
+	everyday_spending_ratio			= everyday_spending_ratio		/ total_spending_ratio;
+	luxury_spending_ratio			= luxury_spending_ratio			/ total_spending_ratio;
+	education_spending_ratio		= education_spending_ratio		/ total_spending_ratio;
+	investment_ratio			= investment_ratio			/ total_spending_ratio;
+	banking_ratio				= banking_ratio				/ total_spending_ratio;
 
 	// set actual budgets
 
 	VALUE spend_on_life_needs		= life_spending_ratio		* savings;
-	VALUE spend_on_everyday_needs	= everyday_spending_ratio	* savings;
+	VALUE spend_on_everyday_needs		= everyday_spending_ratio	* savings;
 	VALUE spend_on_luxury_needs		= luxury_spending_ratio		* savings;
 	VALUE spend_on_education		= education_spending_ratio	* savings;
-	VALUE spend_on_investments		= investment_ratio			* savings;
-	VALUE spend_on_bank_savings		= banking_ratio				* savings;
+	VALUE spend_on_investments		= investment_ratio		* savings;
+	VALUE spend_on_bank_savings		= banking_ratio			* savings;
 
 	// upload data to structure
 	// here we do logic which can't be made uniform
@@ -270,7 +269,7 @@ auto inline prepare_pop_budget(
 		/ result.life_needs.required
 	);
 	// subsistence gives free "level of consumption"
-	result.life_needs.satisfied_for_free_ratio = qol_from_subsistence;
+	result.life_needs.satisfied_for_free_ratio = qol_from_subsistence / (1.f + result.life_needs.demand_scale);
 	result.spent_total = result.spent_total + result.life_needs.spent;
 	savings = savings - result.life_needs.spent;
 
@@ -297,7 +296,7 @@ auto inline prepare_pop_budget(
 			(1.f - old_everyday) * adaptive_ve::max<VALUE>(0.f, spend_on_everyday_needs - result.everyday_needs.required * 5.f) / result.everyday_needs.required
 		)
 	);
-	result.everyday_needs.spent = adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + rich_but_everyday_needs_are_not_satisfied));
+	result.everyday_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + rich_but_everyday_needs_are_not_satisfied)));
 	result.everyday_needs.satisfied_with_money_ratio = ve::select(
 		zero_everyday_costs,
 		10.f,
@@ -307,7 +306,7 @@ auto inline prepare_pop_budget(
 	result.everyday_needs.satisfied_for_free_ratio = 0.f;
 	result.spent_total = result.spent_total + result.everyday_needs.spent;
 	savings = savings - result.everyday_needs.spent;
-	
+
 
 
 	// ############
@@ -332,7 +331,7 @@ auto inline prepare_pop_budget(
 			(1.f - old_luxury) * adaptive_ve::max<VALUE>(0.f, spend_on_luxury_needs - result.luxury_needs.required * 5.f) / result.luxury_needs.required
 		)
 	);
-	result.luxury_needs.spent = adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + rich_but_luxury_needs_are_not_satisfied));
+	result.luxury_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + rich_but_luxury_needs_are_not_satisfied)));
 	result.luxury_needs.satisfied_for_free_ratio = 0.f;
 	result.luxury_needs.satisfied_with_money_ratio = ve::select(
 		zero_luxury_costs,
@@ -350,7 +349,7 @@ auto inline prepare_pop_budget(
 	// #########
 
 	auto literacy = pop_demographics::get_literacy(state, ids);
-	result.education.demand_scale = literacy;
+	result.education.demand_scale = literacy * literacy / 0.1f;
 	auto required_education = result.education.demand_scale * pop_size;
 	result.education.required = required_education * state.world.province_get_service_price(provs, services::list::education);
 	auto rich_but_uneducated = ve::select(
@@ -362,10 +361,10 @@ auto inline prepare_pop_budget(
 			(1.f - literacy) * adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f) / result.education.required
 		)
 	);
-	auto supposed_to_spend = adaptive_ve::min<VALUE>(spend_on_education, result.education.required * (1.f + rich_but_uneducated));
+	auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * (1.f + rich_but_uneducated)));
 
 	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education) / (1.f + rich_but_uneducated);
-	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);	
+	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);
 	ratio_of_free_education = ve::select(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
 	result.education.satisfied_for_free_ratio = ratio_of_free_education;
 	result.education.spent = supposed_to_spend * (1.f - ratio_of_free_education);
@@ -387,7 +386,7 @@ auto inline prepare_pop_budget(
 	result.investments.required = 0.f;
 	result.investments.satisfied_with_money_ratio = 1.f;
 	result.investments.satisfied_for_free_ratio = 0.f;
-	result.investments.spent = savings * investment_ratio;
+	result.investments.spent = spend_on_investments;
 	result.investments.demand_scale = 0.f;
 	result.spent_total = result.spent_total + result.investments.spent;
 	savings = savings - result.investments.spent;
@@ -399,7 +398,7 @@ auto inline prepare_pop_budget(
 	result.bank_savings.required = 0.f;
 	result.bank_savings.satisfied_with_money_ratio = 1.f;
 	result.bank_savings.satisfied_for_free_ratio = 0.f;
-	result.bank_savings.spent = savings * banking_ratio;
+	result.bank_savings.spent = spend_on_bank_savings;
 	result.bank_savings.demand_scale = 0.f;
 	result.spent_total = result.spent_total + result.bank_savings.spent;
 	savings = savings - result.bank_savings.spent;
@@ -416,7 +415,11 @@ void update_consumption(
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_luxury,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_private,
-	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public,
+	ve::vectorizable_buffer<float, dcon::pop_id>&,
+	ve::vectorizable_buffer<float, dcon::pop_id>&,
+	ve::vectorizable_buffer<float, dcon::pop_id>&,
+	ve::vectorizable_buffer<float, dcon::pop_id>&
 );
 void update_income_artisans(sys::state& state);
 void update_income_national_subsidy(sys::state& state);
