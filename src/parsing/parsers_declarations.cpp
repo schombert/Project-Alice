@@ -41,50 +41,89 @@ void names_list::free_value(std::string_view text, error_handler& err, int32_t l
 }
 
 
-void scripted_gamerule::name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
-	auto name_key = text::find_or_add_key(context.outer_context.state, text, false);
-	auto desc_key = text::find_or_add_key(context.outer_context.state, std::string(text) + "_desc", false);
-	context.outer_context.state.world.gamerule_set_name(context.id, name_key);
-	context.outer_context.state.world.gamerule_set_tooltip_explain(context.id, desc_key);
-}
-
-void scripted_gamerule::finish(scripted_gamerule_context& context) {
-	context.outer_context.state.world.gamerule_set_settings_count(context.id, uint8_t(settings_count));
-}
-
-
-void scripted_gamerule::option(gamerule_option option, error_handler& err, int32_t line, scripted_gamerule_context& context) {
-	if(settings_count >= sys::max_gamerule_settings) {
-		err.accumulated_errors += "Too many options for gamerule in file " + err.file_name + " on line " + std::to_string(line) + "\n";
+void scripted_gamerule::name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	auto gamerule_iterator = context.map_of_gamerules.find(std::string(text));
+	if(gamerule_iterator == context.map_of_gamerules.end()) {
+		err.accumulated_errors += "Could not find previously declared gamerule " + std::string(text) + " in map (" + err.file_name + ")" + "line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
 		return;
 	}
+	else {
+		gamerule_id = gamerule_iterator->second;
+
+	}
+}
+
+void scripted_gamerule::finish(scenario_building_context& context) {
+	context.state.world.gamerule_set_default_setting(gamerule_id, default_opt);
+	context.state.world.gamerule_set_current_setting(gamerule_id, default_opt);
+	context.state.world.gamerule_set_options(gamerule_id, options);
+}
+
+
+void scripted_gamerule::option(gamerule_option option, error_handler& err, int32_t line, scenario_building_context& context) {
 	if(option.default_option) {
 		if(has_default) {
-			err.accumulated_warnings += "Gamerule option with name " + text::produce_simple_string(context.outer_context.state, option.name_key) + " was defined as default, but another option in the same gamerule was defined as default earlier (" + err.file_name + ") line " + std::to_string(line) + "\n";
+			err.accumulated_warnings += "Gamerule option with name " + std::string(option.defined_name) + " was defined as default, but another option in the same gamerule was defined as default earlier (" + err.file_name + ") line " + std::to_string(line) + "\n";
 		}
-		context.outer_context.state.world.gamerule_set_default_setting(context.id, uint8_t(settings_count));
-		context.outer_context.state.world.gamerule_set_current_setting(context.id, uint8_t(settings_count));
+		default_opt = option.default_option;
+		has_default = true;
 	}
-	auto& options = context.outer_context.state.world.gamerule_get_options(context.id);
-	options[settings_count] = sys::gamerule_option{ option.name_key, option.on_select, option.on_deselect };
-	settings_count += 1;
+	auto opt_name_key = text::find_or_add_key(context.state, option.defined_name, false);
+	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select, option.on_deselect };
 }
 
 
 
 
 
-void gamerule_option::name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
-	auto name_k = text::find_or_add_key(context.outer_context.state, text, false);
-	name_key = name_k;
+void gamerule_option::name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	defined_name = text;
+	auto gamerule_opt_it = context.map_of_gamerule_options.find(std::string(text));
+	if(gamerule_opt_it == context.map_of_gamerule_options.end()) {
+		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in map (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
+		return;
+	}
+	else {
+		option_id = gamerule_opt_it->second.option_id;
+		gamerule_id = gamerule_opt_it->second.gamerule;
+	}
 }
 
-void gamerule_option::finish(scripted_gamerule_context& context) {
+void gamerule_option::finish(scenario_building_context& context) {
 
 }
 
 void gamerule_file::finish(scenario_building_context& context) {
 
+}
+
+
+void scan_scripted_gamerule::option(scan_gamerule_option opt, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	if(opt.defined_name.empty()) {
+		err.accumulated_errors += "Gamerule option defined without name " + err.file_name + " on line " + std::to_string(line) + "\n";
+		return;
+	}
+	if(settings_count >= sys::max_gamerule_settings) {
+		err.accumulated_errors += "Too many options for gamerule in file " + err.file_name + " on line " + std::to_string(line) + "\n";
+		return;
+	}
+	if(context.outer_context.map_of_gamerule_options.contains(std::string(opt.defined_name))) {
+		err.accumulated_errors += "Gamerule option with name " + std::string(opt.defined_name) + " has already been defined earlier (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		return;
+
+	}
+	auto pending_opt = scanned_gamerule_option{ context.id, settings_count };
+	context.outer_context.map_of_gamerule_options.insert_or_assign(std::string(opt.defined_name), pending_opt);
+	settings_count += 1;
+}
+
+void scan_scripted_gamerule::finish(scripted_gamerule_context& context) {
+	auto name_key = text::find_or_add_key(context.outer_context.state, defined_name, false);
+	auto desc_key = text::find_or_add_key(context.outer_context.state, std::string(defined_name) + "_desc", false);
+	context.outer_context.state.world.gamerule_set_name(context.id, name_key);
+	context.outer_context.state.world.gamerule_set_tooltip_explain(context.id, desc_key);
+	context.outer_context.state.world.gamerule_set_settings_count(context.id, settings_count);
+	context.outer_context.map_of_gamerules.insert_or_assign(std::string(defined_name), context.id);
 }
 
 

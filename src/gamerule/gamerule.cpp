@@ -5,24 +5,27 @@
 
 namespace gamerule {
 
-dcon::gamerule_id create_hardcoded_gamerule(sys::state& state, std::string_view name, std::string_view desc, std::array<sys::gamerule_option, sys::max_gamerule_settings>&& settings, uint8_t default_setting, uint8_t setting_count ) {
-	auto game_rule = state.world.create_gamerule();
-	state.world.gamerule_set_name(game_rule, text::find_or_add_key(state, name, false));
-	state.world.gamerule_set_tooltip_explain(game_rule, text::find_or_add_key(state, desc, false));
-	state.world.gamerule_set_options(game_rule, settings);
-	state.world.gamerule_set_default_setting(game_rule, default_setting);
-	state.world.gamerule_set_current_setting(game_rule, default_setting);
-	state.world.gamerule_set_settings_count(game_rule, setting_count);
+dcon::gamerule_id create_hardcoded_gamerule(parsers::scenario_building_context& context, std::string_view name, const std::vector<std::string>& settings, uint8_t default_setting ) {
+	auto game_rule = context.state.world.create_gamerule();
+	context.state.world.gamerule_set_name(game_rule, text::find_or_add_key(context.state, name, false));
+	context.state.world.gamerule_set_tooltip_explain(game_rule, text::find_or_add_key(context.state, std::string(name) + "_desc", false));
+	for(size_t i = 0; i < settings.size(); i++) {
+		context.map_of_gamerule_options.insert_or_assign(settings[i], parsers::scanned_gamerule_option{ game_rule, uint8_t(i) });
+		auto& options = context.state.world.gamerule_get_options(game_rule);
+		options[uint8_t(i)].name = text::find_or_add_key(context.state, settings[i], false);
+	}
+	context.state.world.gamerule_set_default_setting(game_rule, default_setting);
+	context.state.world.gamerule_set_current_setting(game_rule, default_setting);
+	context.state.world.gamerule_set_settings_count(game_rule, uint8_t(settings.size()));
+	context.map_of_gamerules.insert_or_assign(std::string(name), game_rule);
 	return game_rule;
 }
 
-void load_hardcoded_gamerules(sys::state& state) {
+void load_hardcoded_gamerules(parsers::scenario_building_context& context) {
 	// create gamerule for spherelings declaring war on spherelord
 	{
-		std::array<sys::gamerule_option, sys::max_gamerule_settings> options;
-		options[uint8_t(sphereling_declare_war_settings::no)].name = text::find_or_add_key(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_1", false);
-		options[uint8_t(sphereling_declare_war_settings::yes)].name = text::find_or_add_key(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_2", false);
-		state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(state, "alice_gamerule_allow_sphereling_declare_war_on_spherelord_name", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc", std::move(options), uint8_t(state.defines.alice_can_goto_war_against_spherelord_default_setting), uint8_t(2));
+		std::vector<std::string> options = { "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes" };
+		context.state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(context, "alice_gamerule_allow_sphereling_declare_war_on_spherelord", options, uint8_t(context.state.defines.alice_can_goto_war_against_spherelord_default_setting));
 	}
 }
 

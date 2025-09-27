@@ -1966,6 +1966,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could be opened\n";
 		}
 	}
+
 	// read buildings.text
 	// world.factory_type_resize_construction_costs(world.commodity_size());
 	{
@@ -2140,6 +2141,29 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
+
+	// create the hardcoded gamerules
+	gamerule::load_hardcoded_gamerules(context);
+	// pre parse scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scan_gamerule_file(gen, err, context);
+		}
+		// some sanity checks
+		for(const auto& gamerule : context.state.world.in_gamerule) {
+			if(gamerule.get_settings_count() == uint8_t(0)) {
+				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
+			}
+		}
+
+	}
+
 	// gather names of poptypes
 	list_pop_types(*this, context);
 	// pre parse rebel_types.txt
@@ -2885,8 +2909,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.try_create_identity_holder(new_nation, id);
 		}
 	});
-	// create the hardcoded gamerules
-	gamerule::load_hardcoded_gamerules(*this);
 
 	// load scripted gamerules
 	{
@@ -2899,13 +2921,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::token_generator gen(content.data, content.data + content.file_size);
 			parsers::parse_gamerule_file(gen, err, context);
 		}
-		// some sanity checks
-		for(const auto& gamerule : context.state.world.in_gamerule) {
-			if(gamerule.get_settings_count() == uint8_t(0)) {
-				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
-			}
-		}
-		
 	}
 
 

@@ -7721,6 +7721,28 @@ void tf_party_position(TRIGGER_DISPLAY_PARAMS) {
 	}
 }
 
+
+void tf_check_gamerule(TRIGGER_DISPLAY_PARAMS) {
+	auto gamerule = trigger::payload(tval[1]).gr_id;
+	uint8_t opt_id = uint8_t(tval[2]);
+
+	if(gamerule) {
+		auto gamerule_name = ws.world.gamerule_get_name(gamerule);
+		auto opt_name = ws.world.gamerule_get_options(gamerule)[opt_id].name;
+		auto box = text::open_layout_box(layout, indentation);
+
+
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+
+		text::substitution_map s;
+		text::add_to_substitution_map(s, text::variable_type::x, gamerule_name);
+		auto left_str = text::resolve_string_substitution(ws, "gamerule_option_is", s);
+		display_with_comparison(tval[0], left_str, opt_name, ws, layout, box);
+
+		text::close_layout_box(layout, box);
+	}
+}
+
 constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_none,
 		tf_year,																			// constexpr inline uint16_t year = 0x0001;
@@ -8464,6 +8486,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_party_position, //TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2)
 		tf_diplo_points, //TRIGGER_BYTECODE_ELEMENT(0x02E4, tf_diplo_points, 2)
 		tf_suppression_points, //TRIGGER_BYTECODE_ELEMENT(0x02E5, tf_suppression_points, 2)
+		tf_check_gamerule, //TRIGGER_BYTECODE_ELEMENT(0x02E6, check_gamerule, 2)
 
 		//
 		// scopes

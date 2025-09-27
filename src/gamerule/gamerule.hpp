@@ -26,7 +26,7 @@ struct hardcoded_gamerules {
 
 };
 
-void load_hardcoded_gamerules(sys::state& state);
+void load_hardcoded_gamerules(parsers::scenario_building_context& context);
 
 void restore_gamerule_ui_settings(sys::state& state);
 

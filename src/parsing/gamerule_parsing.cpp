@@ -3,15 +3,24 @@
 
 namespace parsers {
 void make_gamerule(token_generator& gen, error_handler& err, scenario_building_context& context) {
-	auto new_id = context.state.world.create_gamerule();
-	scripted_gamerule_context new_context{ new_id, context };
-	auto gamerule = parse_scripted_gamerule(gen, err, new_context);
+	/*auto new_id = context.state.world.create_gamerule();
+	scripted_gamerule_context new_context{ new_id, context };*/
+	auto gamerule = parse_scripted_gamerule(gen, err, context);
 
 }
 
+void make_scan_gamerule(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	auto new_id = context.state.world.create_gamerule();
+	scripted_gamerule_context new_context{ new_id, context };
+	auto gamerule = parse_scan_scripted_gamerule(gen, err, new_context);
+	if(gamerule.defined_name.empty()) {
+		err.accumulated_errors += "Gamerule defined without name (" + err.file_name + ")" +  "\n";
+	}
+}
 
-dcon::effect_key make_gamerule_effect(token_generator& gen, error_handler& err, scripted_gamerule_context& context) {
-	effect_building_context e_context{ context.outer_context, trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty };
+
+dcon::effect_key make_gamerule_effect(token_generator& gen, error_handler& err, scenario_building_context& context) {
+	effect_building_context e_context{ context, trigger::slot_contents::empty, trigger::slot_contents::empty, trigger::slot_contents::empty };
 	e_context.effect_is_for_event = false;
 
 	e_context.compiled_effect.push_back(uint16_t(effect::generic_scope | effect::scope_has_limit));
@@ -25,7 +34,7 @@ dcon::effect_key make_gamerule_effect(token_generator& gen, error_handler& err, 
 	e_context.compiled_effect[payload_size_offset] = uint16_t(e_context.compiled_effect.size() - payload_size_offset);
 
 	if(e_context.compiled_effect.size() >= std::numeric_limits<uint16_t>::max()) {
-		err.accumulated_errors += "effect in gamerule " + text::produce_simple_string(context.outer_context.state, context.outer_context.state.world.gamerule_get_name(context.id)) + " is " +
+		err.accumulated_errors += "effect in gamerule is " +
 			std::to_string(e_context.compiled_effect.size()) +
 			" cells big, which exceeds 64 KB bytecode limit (" + err.file_name + ")\n";
 		return dcon::effect_key{ 0 };
@@ -38,7 +47,7 @@ dcon::effect_key make_gamerule_effect(token_generator& gen, error_handler& err, 
 		e_context.compiled_effect.clear();
 	}
 
-	auto effect_id = context.outer_context.state.commit_effect_data(e_context.compiled_effect);
+	auto effect_id = context.state.commit_effect_data(e_context.compiled_effect);
 	return effect_id;
 }
 
