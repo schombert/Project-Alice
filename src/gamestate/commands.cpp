@@ -47,9 +47,15 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::change_ai_nation_state:
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
-	case command_type::change_game_rule_setting:
-		// Notifications can be sent because it's an-always do thing. Change game rule can also be sent because it is sent while in the lobby
+		// Notifications can be sent because it's an-always do thing
 		break;
+	case command_type::change_game_rule_setting:
+	    // changing game rule can not happen whilst the game is in progress
+		if(state.current_scene.game_in_progress || network::check_any_players_loading(state))
+			return;
+		state.network_state.is_new_game = false;
+		break;
+
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
 		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
