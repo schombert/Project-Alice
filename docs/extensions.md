@@ -151,6 +151,7 @@ build_bank_in_capital = {
 ```
 - `diplo_points = ...` : This trigger condition is true if the nation in scope has saved diplomatic points greater than or equal to the given number.
 - `suppression_points = ...` : This trigger condition is true if the nation in scope has saved suppression points greater than or equal to the given number.
+- `check_gamerule_ = { ... }`: Checks if a given gamerule has a selected option. Example in gamerules section.
 
 ### New modifiers
 
@@ -820,3 +821,61 @@ shinto = {
 		}
 	}
 ```
+
+## Gamerules
+
+Custom toggleable gamerules can be defined in `gamerules.txt` file inside of the `common` folder. If you have no gamerules file, then create one.
+The selected option of each gamerule is stored in the savegame, and is thus kept persistent between game launches.
+
+A gamerule is defined like this:
+
+```
+scripted_gamerule = {
+	name = "test_gamerule"
+	option = {
+		name = "test__gameruleopt_1"
+		on_select = {
+			set_global_flag = rule_1
+		}
+		on_deselect = {
+			clr_global_flag = rule_1
+		}
+	}
+	option = {
+		name = "test__gameruleopt_2"
+		default_option = yes
+		on_select = {
+			set_global_flag = rule_2
+		}
+		on_deselect = {
+			clr_global_flag = rule_2
+		}
+	}
+	
+}
+```
+
+The `name` member is a unique string identifier for said gamerule and is mandatory. Two or more gamerules may not have the same name.
+The localization key is the same as the name (in this case test_gamerule). The loc key for the description of the gamerule (Which is displayed in a tooltip) is the name plus _desc. So the desctiption loc key for this gamerule would be `test_gamerule_desc`.
+
+Each gamerule may have one or more options. Each option also has a mandatory `name` member, which works similarly to the name of the gamerule itelf (except each option does not have a description loc key, only a name loc key). Each option name key is globally unique.
+
+Next there is the `default_option` member. This simply signals which of the options is selected by default on a new save.
+
+Lastly, there is the `on_select` and `on_deselect` members. These describe a scripted effect to run when said option is either selected or deselected respectively. In the example above it will set a global flag when enabled, and clear that same flag when disabled.
+
+You can also check the state of a gamerule directly in a trigger, with the following trigger:
+
+```
+check_gamerule = {
+	gamerule = "test_gamerule"
+	option = "test_gameruleopt_1"
+}_
+```
+Here, it evaluates if the gamerule with name `test_gamerule` is set to the option with the name `test_gameruleopt_1`.
+
+There are also some hardcoded gamerules which interact with base gameplay directly which is not present in the gamerules.txt file. These can also have their selected option checked with `check_gamerule` trigger. Below is a list of names of the hardcoded gamerules and their options:
+
+- `alice_gamerule_allow_sphereling_declare_war_on_spherelord`: Name of gamerule checking if spheres can declare wars on their spherelords directly or indirectly.
+	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no`: Option for no.
+	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes`: Option for yes.

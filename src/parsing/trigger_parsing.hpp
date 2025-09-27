@@ -5611,7 +5611,7 @@ struct trigger_body {
 				trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
 	}
 	void check_gamerule(tr_check_gamerule const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::check_gamerule | association_to_trigger_code(association_type::eq)));
+		context.compiled_trigger.push_back(uint16_t(trigger::check_gamerule | association_to_trigger_code(value.a)));
 		context.compiled_trigger.push_back(trigger::payload(value.gr_id).value);
 		context.compiled_trigger.push_back(uint16_t(value.option_id));
 	}
