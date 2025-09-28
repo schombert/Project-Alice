@@ -79,6 +79,8 @@ hold_election;Hold election
 issue_change;$issue$ changes to $text$
 add_relative_income;Times last income added to treasury
 make_neutral;All alliances ended and all vassals released
+pop_project;Pop project
+state_project;State construction
 pop_size;Pop size
 move_pop_to;Move pop to $text$
 change_pop_type;Change pop type to $text$
@@ -1140,6 +1142,7 @@ alice_no_start_game_invalid_nations;Cannot start the game while players are on n
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
+delete_factory;Delete Factory
 cb_conditions_header;Conditions to use:
 as_a_vassal;as a vassal
 change_state_name_to;change state name to $text$
