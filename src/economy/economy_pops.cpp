@@ -3,7 +3,6 @@
 #include "price.hpp"
 #include "province_templates.hpp"
 #include "demographics.hpp"
-#include "commodities.hpp"
 
 namespace economy {
 namespace pops {
@@ -207,8 +206,6 @@ void update_consumption(
 				auto base_luxury =
 					state.world.pop_type_get_luxury_needs(t, cid);
 
-				auto valid_good_mask = valid_need(state, nations, cid);
-
 				auto demand_life =
 					base_life
 					* scale_life
@@ -229,10 +226,6 @@ void update_consumption(
 					* luxury_weight
 					* state.defines.alice_lx_needs_scale
 					* invention_factor;
-
-				demand_life = ve::select(valid_good_mask, demand_life, 0.f);
-				demand_everyday = ve::select(valid_good_mask, demand_everyday, 0.f);
-				demand_luxury = ve::select(valid_good_mask, demand_luxury, 0.f);
 
 				register_demand(state, ids, cid, demand_life);
 				register_demand(state, ids, cid, demand_everyday);

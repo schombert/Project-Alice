@@ -42,7 +42,7 @@ struct vectorized_pops_budget {
 	VALUE spent_total{ };
 };
 
-float constexpr inline base_qol = 0.3f;
+float constexpr inline base_qol = 0.5f;
 constexpr inline uint32_t build_factory = issue_rule::pop_build_factory;
 constexpr inline uint32_t expand_factory = issue_rule::pop_expand_factory;
 constexpr inline uint32_t can_invest = expand_factory | build_factory;
@@ -245,7 +245,7 @@ auto inline prepare_pop_budget(
 	subsistence = subsistence - available_subsistence;
 	VALUE qol_from_subsistence = available_subsistence / subsistence_score_life;
 	VALUE demand_scale_life = old_life / base_qol;
-	result.life_needs.demand_scale = demand_scale_life * demand_scale_life;
+	result.life_needs.demand_scale = demand_scale_life * demand_scale_life + 0.01f;
 	result.life_needs.required =
 		result.life_needs.demand_scale
 		* life_costs
@@ -280,7 +280,7 @@ auto inline prepare_pop_budget(
 
 	auto old_everyday = pop_demographics::get_everyday_needs(state, ids);
 	auto demand_scale_everyday = old_everyday / base_qol;
-	result.everyday_needs.demand_scale = demand_scale_everyday * demand_scale_everyday;
+	result.everyday_needs.demand_scale = demand_scale_everyday * demand_scale_everyday + 0.01f;
 	result.everyday_needs.required =
 		result.everyday_needs.demand_scale
 		* everyday_costs
@@ -315,7 +315,7 @@ auto inline prepare_pop_budget(
 
 	auto old_luxury = pop_demographics::get_luxury_needs(state, ids);
 	auto demand_scale_luxury = old_luxury / base_qol;
-	result.luxury_needs.demand_scale = demand_scale_luxury * demand_scale_luxury;
+	result.luxury_needs.demand_scale = demand_scale_luxury * demand_scale_luxury + 0.01f;
 	result.luxury_needs.required =
 		result.luxury_needs.demand_scale
 		* luxury_costs
@@ -349,7 +349,7 @@ auto inline prepare_pop_budget(
 	// #########
 
 	auto literacy = pop_demographics::get_literacy(state, ids);
-	result.education.demand_scale = literacy * literacy / 0.1f;
+	result.education.demand_scale = literacy * literacy / 0.5f + 0.1f;
 	auto required_education = result.education.demand_scale * pop_size;
 	result.education.required = required_education * state.world.province_get_service_price(provs, services::list::education);
 	auto rich_but_uneducated = ve::select(

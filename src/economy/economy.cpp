@@ -156,102 +156,125 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			if(valid_life_need(state, nation, c)) {
-				state.world.market_set_life_needs_weights(n, c, 0.001f);
-			}
+			state.world.market_set_life_needs_weights(n, c, 0.001f);
 		});
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			if(valid_everyday_need(state, nation, c)) {
-				state.world.market_set_everyday_needs_weights(n, c, 0.001f);
-			}
+			state.world.market_set_everyday_needs_weights(n, c, 0.001f);
 		});
 	}
 	{
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			if(valid_luxury_need(state, nation, c)) {
-				state.world.market_set_luxury_needs_weights(n, c, 0.001f);
-			}
+			state.world.market_set_luxury_needs_weights(n, c, 0.001f);
 		});
 	}
 }
 
 // todo: make priority different per commodity
 float need_weight_change(sys::state& state, dcon::market_id n, dcon::commodity_id c, float base_wage, float priority, float base_amount) {
-	auto budget = base_wage;
-	auto cost_per_person = base_amount * price(state, n, c) / state.defines.alice_needs_scaling_factor + 0.01f;
+	auto budget = 0.0001f + base_wage;
+	auto cost_per_person = base_amount * price(state, n, c) / state.defines.alice_needs_scaling_factor;
 	auto score_availability = state.world.market_get_demand_satisfaction(n, c) - state.world.market_get_supply_sold_ratio(n, c);
-	auto score_price = base_wage / cost_per_person - 1.f / priority;
+	auto score_price = (1.f - cost_per_person / priority / budget);
 	return score_availability + score_price;
 }
+
+// maximize sum of w_i
+// w_i * p_i * c_i = wage
+// 0 <= w_i <= 1
+// eliminate low weights
 
 void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto zone = state.world.market_get_zone_from_local_market(n);
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 	auto capital = state.world.state_instance_get_capital(zone);
 
-	//auto t = state.culture_definitions.secondary_factory_worker;
-	state.world.for_each_pop_type([&](auto t) {
-		{
-			auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				if(valid_life_need(state, nation, c)) {
-					auto base_life = std::max(1.f, state.world.pop_type_get_life_needs(t, c));
-					auto dw = need_weight_change(state, n, c, wage, 100.f, base_life);
-					auto& w = state.world.market_get_life_needs_weights(n, c);
-					state.world.market_set_life_needs_weights(n, c, std::clamp(w + (dw + (1.f - w) * 0.5f) / float(state.world.pop_type_size()) * state.defines.alice_need_drift_speed, 0.f, 1.f));
+	auto wage = state.world.province_get_labor_price(capital, labor::no_education)
+		+ state.world.province_get_labor_price(capital, labor::basic_education);
+	{
+		auto expected_cost = 0.f;
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto needed = 0.f;
+			state.world.for_each_pop_type([&](auto t) {
+				needed += state.world.pop_type_get_life_needs(t, c);
+			});
+			needed = needed / float(state.world.pop_type_size());
 
-					assert(std::isfinite(w));
-					assert(w <= 1.f + 0.01f);
-				}
+			auto w = state.world.market_get_life_needs_weights(n, c);
+			auto dw = need_weight_change(state, n, c, wage, 1.f, needed);
+			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
+			assert(std::isfinite(w));
+			state.world.market_set_life_needs_weights(n, c, w);
+			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+		});
+
+		// scale to wage
+		if(expected_cost > 0.f) {
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				auto w = state.world.market_get_life_needs_weights(n, c);
+				w = w / expected_cost * wage;
+				w = std::clamp(w, 0.f, 1.f);
+				state.world.market_set_life_needs_weights(n, c, w);
 			});
 		}
+	}
 
-		{
-			auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	{
+		auto expected_cost = 0.f;
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto needed = 0.f;
+			state.world.for_each_pop_type([&](auto t) {
+				needed += state.world.pop_type_get_everyday_needs(t, c);
+			});
+			needed = needed / float(state.world.pop_type_size());
+
+			auto w = state.world.market_get_everyday_needs_weights(n, c);
+			auto dw = need_weight_change(state, n, c, wage, 1.f, needed);
+			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
+			assert(std::isfinite(w));
+			state.world.market_set_everyday_needs_weights(n, c, w);
+			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+		});
+
+		// scale to wage
+		if(expected_cost > 0.f) {
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				if(valid_everyday_need(state, nation, c)) {
-					auto base_everyday = std::max(1.f, state.world.pop_type_get_everyday_needs(t, c));
-					auto dw = need_weight_change(state, n, c, wage, 100.f, base_everyday);
-					auto& w = state.world.market_get_everyday_needs_weights(n, c);
-					state.world.market_set_everyday_needs_weights(n, c, std::clamp(w + (dw + (1.f - w) * 0.5f) / float(state.world.pop_type_size()) * state.defines.alice_need_drift_speed, 0.f, 1.f));
-
-					assert(std::isfinite(w));
-					assert(w <= 1.f + 0.01f);
-				}
+				auto w = state.world.market_get_everyday_needs_weights(n, c);
+				w = w / expected_cost * wage;
+				w = std::clamp(w, 0.f, 1.f);
+				state.world.market_set_everyday_needs_weights(n, c, w);
 			});
 		}
+	}
 
-		{
-			auto wage = state.world.province_get_labor_price(capital, labor::no_education);
+	{
+		auto expected_cost = 0.f;
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto needed = 0.f;
+			state.world.for_each_pop_type([&](auto t) {
+				needed += state.world.pop_type_get_luxury_needs(t, c);
+			});
+			needed = needed / float(state.world.pop_type_size());
+
+			auto w = state.world.market_get_luxury_needs_weights(n, c);
+			auto dw = need_weight_change(state, n, c, wage, 1.f, needed);
+			w = std::max(0.f, w + dw * state.defines.alice_need_drift_speed);
+			assert(std::isfinite(w));
+			state.world.market_set_luxury_needs_weights(n, c, w);
+			expected_cost += w * needed * price(state, n, c) / state.defines.alice_needs_scaling_factor;
+		});
+
+		// scale to wage
+		if(expected_cost > 0.f) {
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				if(valid_luxury_need(state, nation, c)) {
-					auto base_luxury = std::max(1.f, state.world.pop_type_get_luxury_needs(t, c));
-					auto dw = need_weight_change(state, n, c, wage, 100.f, base_luxury);
-					auto& w = state.world.market_get_luxury_needs_weights(n, c);
-					state.world.market_set_luxury_needs_weights(n, c, std::clamp(w + (dw + (1.f - w) * 0.5f) / float(state.world.pop_type_size()) * state.defines.alice_need_drift_speed, 0.f, 1.f));
-
-					assert(std::isfinite(w));
-					assert(w <= 1.f + 0.01f);
-				}
+				auto w = state.world.market_get_luxury_needs_weights(n, c);
+				w = w / expected_cost * wage;
+				w = std::clamp(w, 0.f, 1.f);
+				state.world.market_set_luxury_needs_weights(n, c, w);
 			});
 		}
-	});
-
-	/*
-	state.world.for_each_commodity([&](dcon::commodity_id c) {
-		if(valid_luxury_need(state, nation, c)) {
-			state.world.market_set_luxury_needs_weights(n, c, 1.f);
-		}
-		if(valid_everyday_need(state, nation, c)) {
-			state.world.market_set_everyday_needs_weights(n, c, 1.f);
-		}
-		if(valid_life_need(state, nation, c)) {
-			state.world.market_set_life_needs_weights(n, c, 1.f);
-		}
-	});
-	*/
+	}
 }
 
 
@@ -3139,19 +3162,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				for(uint32_t i = 1; i < total_commodities; ++i) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 					auto sat = state.world.market_get_demand_satisfaction(ids, c);
-					auto valid_mask = valid_need(state, nations, c);
 
-					auto ln_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_life_needs(pt, c) }, ve::fp_vector{ 0.f });
+					auto ln_val = state.world.pop_type_get_life_needs(pt, c) ;
+					auto en_val = state.world.pop_type_get_everyday_needs(pt, c) ;
+					auto lx_val = state.world.pop_type_get_luxury_needs(pt, c);
 
 					ln_total = ln_total + ln_val;
 					ln_max = ln_max + ln_val * sat * state.world.market_get_life_needs_weights(ids, c);
 
-					auto en_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_everyday_needs(pt, c) }, ve::fp_vector{ 0.f });
-
 					en_total = en_total + en_val;
 					en_max = en_max + en_val * sat * state.world.market_get_everyday_needs_weights(ids, c);
-
-					auto lx_val = ve::select(valid_mask, ve::fp_vector{ state.world.pop_type_get_luxury_needs(pt, c) }, ve::fp_vector{ 0.f });
 
 					lx_total = lx_total + lx_val;
 					lx_max = lx_max + lx_val * sat * state.world.market_get_luxury_needs_weights(ids, c);
@@ -3180,9 +3200,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	sanity_check(state);
 
 	// update needs satisfaction depending on actually available goods and services:
-
-	constexpr auto base_shift_satisfaction = 3.f * pop_demographics::pop_u8_scaling;
-	constexpr auto base_shift_literacy = 2.f * pop_demographics::pop_u16_scaling;
 
 	state.world.execute_parallel_over_pop([&](auto ids) {
 		auto province = state.world.pop_get_province_from_pop_location(ids);
@@ -3228,9 +3245,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto en = pop_demographics::get_everyday_needs(state, ids);
 			auto lx = pop_demographics::get_luxury_needs(state, ids);
 
-			ln = ve::min(1.f, ve::max(0.f, ln + (potential_ratio_life.get(ids) * (ln_satisfaction + satisfaction_from_subsistence.get(ids)) - 1.f) * pop_demographics::pop_u8_scaling));
-			en = ve::min(1.f, ve::max(0.f, en + (potential_ratio_everyday.get(ids) * en_satisfaction - 1.f) * pop_demographics::pop_u8_scaling));
-			lx = ve::min(1.f, ve::max(0.f, lx + (potential_ratio_luxury.get(ids) * lx_satisfaction - 1.f) * pop_demographics::pop_u8_scaling));
+			ln = ve::min(1.f, ve::max(0.f, ln + (potential_ratio_life.get(ids) * (ln_satisfaction + satisfaction_from_subsistence.get(ids)) - 2.f) * pop_demographics::pop_u8_scaling));
+			en = ve::min(1.f, ve::max(0.f, en + (potential_ratio_everyday.get(ids) * en_satisfaction - 2.f) * pop_demographics::pop_u8_scaling));
+			lx = ve::min(1.f, ve::max(0.f, lx + (potential_ratio_luxury.get(ids) * lx_satisfaction - 2.f) * pop_demographics::pop_u8_scaling));
 
 			pop_demographics::set_life_needs(state, ids, ln);
 			pop_demographics::set_everyday_needs(state, ids, en);
@@ -3250,7 +3267,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					* literacy_sat_public
 					+ potential_ratio_education_private.get(ids)
 					* literacy_sat_paid
-					- 1.f
+					- 2.f
 				)
 				* pop_demographics::pop_u16_scaling;
 			pop_demographics::set_literacy(state, ids, ve::min(1.f, ve::max(0.f, literacy)));
