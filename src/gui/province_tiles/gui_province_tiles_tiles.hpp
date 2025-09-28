@@ -301,6 +301,7 @@ public:
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		show_context_menu(state, { .province = dcon::province_id{ }, .fconstruction = target.factory_construction });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
