@@ -2,6 +2,7 @@
 
 #include "dcon_generated.hpp"
 #include "economy_stats.hpp"
+#include "adaptive_ve.hpp"
 
 namespace sys {
 struct state;
