@@ -782,7 +782,7 @@ struct int_wholenum {
 	int32_t value = 0;
 };
 enum class embedded_icon : uint8_t {
-	check, xmark, army, navy
+	check, xmark, check_desaturated, xmark_desaturated, army, navy
 };
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;

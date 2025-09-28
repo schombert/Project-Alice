@@ -124,41 +124,47 @@ void display_with_has_comparison(uint16_t trigger_code, text::substitution value
 }
 
 void make_trigger_description(sys::state& ws, text::layout_base& layout, uint16_t const* tval, int32_t primary_slot,
-		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition);
+		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition, bool desaturate);
 
 inline constexpr int32_t indentation_amount = 15;
 
 inline void display_subtriggers(uint16_t const* source, sys::state& ws, text::layout_base& layout, int32_t primary_slot,
-		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition) {
+		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition, bool desaturate) {
 
 	auto const source_size = 1 + trigger::get_trigger_payload_size(source);
 	auto sub_units_start = source + 2 + trigger::trigger_scope_data_payload(source[0]);
 	while(sub_units_start < source + source_size) {
-		make_trigger_description(ws, layout, sub_units_start, primary_slot, this_slot, from_slot, indentation, show_condition);
+		make_trigger_description(ws, layout, sub_units_start, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate);
 		sub_units_start += 1 + trigger::get_trigger_payload_size(sub_units_start);
 	}
 }
 
 #define TRIGGER_DISPLAY_PARAMS                                                                                                   \
 	uint16_t const *tval, sys::state &ws, text::layout_base &layout, int32_t primary_slot, int32_t this_slot, int32_t from_slot,   \
-			int32_t indentation, bool show_condition
+			int32_t indentation, bool show_condition, bool desaturate
+
+#define TRIGGER_DISPLAY_PARAMS_MAKE_CONDITION                                                                                                   \
+	uint16_t const *tval, sys::state &ws, text::layout_base &layout, int32_t primary_slot, int32_t this_slot, int32_t from_slot,   \
+			int32_t indentation, bool show_condition, bool& desaturate
 
 void tf_none(TRIGGER_DISPLAY_PARAMS) { }
 
 void tf_unused_1(TRIGGER_DISPLAY_PARAMS) { }
 
-void make_condition(TRIGGER_DISPLAY_PARAMS, text::layout_box& box) {
+void make_condition(TRIGGER_DISPLAY_PARAMS_MAKE_CONDITION, text::layout_box& box) {
 	if(show_condition) {
 		auto r = trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
+		desaturate = desaturate || !r;
 		if(r) {
-			text::add_to_layout_box(ws, layout, box, text::embedded_icon::check);
+			text::add_to_layout_box(ws, layout, box, desaturate ? text::embedded_icon::check_desaturated : text::embedded_icon::check);
 			text::add_space_to_layout_box(ws, layout, box);
 		} else {
-			text::add_to_layout_box(ws, layout, box, text::embedded_icon::xmark);
+			text::add_to_layout_box(ws, layout, box, desaturate ? text::embedded_icon::xmark_desaturated : text::embedded_icon::xmark);
 			text::add_space_to_layout_box(ws, layout, box);
 		}
 	} else {
-		text::add_to_layout_box(ws, layout, box, std::string_view("•"), text::text_color::white);
+		desaturate = desaturate || !trigger::evaluate(ws, tval, primary_slot, this_slot, from_slot);
+		text::add_to_layout_box(ws, layout, box, std::string_view("•"), desaturate ?  text::text_color::black : text::text_color::yellow);
 		text::add_space_to_layout_box(ws, layout, box);
 	}
 }
@@ -167,17 +173,17 @@ void tf_generic_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto st_count = ui_count_subtriggers(ws, tval);
 	if(st_count > 1) {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
 		text::close_layout_box(layout, box);
 	}
 	display_subtriggers(tval, ws, layout, primary_slot, this_slot, from_slot, indentation + (st_count > 1 ? indentation_amount : 0),
-			show_condition);
+			show_condition, desaturate);
 }
 void tf_x_neighbor_province_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
@@ -189,13 +195,13 @@ void tf_x_neighbor_province_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
 		text::close_layout_box(layout, box);
 	}
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_neighbor_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_province"));
@@ -209,12 +215,12 @@ void tf_x_neighbor_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_neighbor_country_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
@@ -227,12 +233,12 @@ void tf_x_neighbor_country_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_neighbor_country_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "neighboring_nation"));
@@ -245,12 +251,12 @@ void tf_x_neighbor_country_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_war_countries_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_at_war_against"));
@@ -263,12 +269,12 @@ void tf_x_war_countries_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_war_countries_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_at_war_against"));
@@ -281,12 +287,12 @@ void tf_x_war_countries_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_greater_power_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "great_power"));
@@ -299,12 +305,12 @@ void tf_x_greater_power_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_country_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation"));
@@ -317,12 +323,12 @@ void tf_x_country_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_owned_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
@@ -338,12 +344,12 @@ void tf_x_owned_province_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_owned_province_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owned_province"));
@@ -359,12 +365,12 @@ void tf_x_owned_province_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_core_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "core_in"));
@@ -381,12 +387,12 @@ void tf_x_core_scope_province(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_core_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "core_of"));
@@ -403,12 +409,12 @@ void tf_x_core_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_state_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "state_of"));
@@ -425,12 +431,12 @@ void tf_x_state_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_substate_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "substate_of"));
@@ -447,12 +453,12 @@ void tf_x_substate_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_sphere_member_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_in_sphere"));
@@ -469,12 +475,12 @@ void tf_x_sphere_member_scope(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_pop_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
@@ -487,12 +493,12 @@ void tf_x_pop_scope_province(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_pop_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
@@ -505,12 +511,12 @@ void tf_x_pop_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_pop_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "pop"));
@@ -523,14 +529,14 @@ void tf_x_pop_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_provinces_in_variable_region(TRIGGER_DISPLAY_PARAMS) {
 	auto region = trigger::payload(*(tval + 2)).state_id;
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "province_in"));
@@ -545,14 +551,14 @@ void tf_x_provinces_in_variable_region(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_x_provinces_in_variable_region_proper(TRIGGER_DISPLAY_PARAMS) {
 	auto region = trigger::payload(*(tval + 2)).reg_id;
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, every_any_code_to_fixed_ui(tval[0])));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "province_in"));
@@ -567,12 +573,12 @@ void tf_x_provinces_in_variable_region_proper(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+	display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 }
 void tf_owner_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -591,12 +597,12 @@ void tf_owner_scope_state(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1
 					? trigger::to_generic(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)))
 					: -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_owner_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -615,12 +621,12 @@ void tf_owner_scope_province(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1
 					? trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))
 					: -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_controller_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "controller_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -638,12 +644,12 @@ void tf_controller_scope(TRIGGER_DISPLAY_PARAMS) {
 	display_subtriggers(tval, ws, layout,
 			primary_slot != -1 ? trigger::to_generic(ws.world.province_get_nation_from_province_control(trigger::to_prov(primary_slot)))
 												 : -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_location_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "location_of_pop"));
 		text::close_layout_box(layout, box);
 	}
@@ -657,12 +663,12 @@ void tf_location_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto loc =
 			primary_slot != -1 ? trigger::to_generic(ws.world.pop_get_province_from_pop_location(trigger::to_pop(primary_slot))) : -1;
 	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount,
-			show_condition && primary_slot != -1);
+			show_condition && primary_slot != -1, desaturate);
 }
 void tf_country_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -681,12 +687,12 @@ void tf_country_scope_state(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1
 					? trigger::to_generic(ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(primary_slot)))
 					: -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_country_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "nation_of_pop"));
 		text::close_layout_box(layout, box);
 	}
@@ -699,12 +705,12 @@ void tf_country_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 
 	display_subtriggers(tval, ws, layout,
 			primary_slot != -1 ? trigger::to_generic(nations::owner_of_pop(ws, trigger::to_pop(primary_slot))) : -1, this_slot,
-			from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_capital_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -719,12 +725,12 @@ void tf_capital_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))) : -1;
-	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_capital_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -739,12 +745,12 @@ void tf_capital_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(nations::owner_of_pop(ws, trigger::to_pop(primary_slot)))) : -1;
-	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_capital_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "capital_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -761,12 +767,12 @@ void tf_capital_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	auto loc = primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_capital(trigger::to_nation(primary_slot))) : -1;
 	display_subtriggers(tval, ws, layout, loc, this_slot, from_slot, indentation + indentation_amount,
-			show_condition && primary_slot != -1);
+			show_condition && primary_slot != -1, desaturate);
 }
 void tf_this_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(this_slot)))
 												: text::produce_simple_string(ws, "this_nation"));
@@ -779,12 +785,12 @@ void tf_this_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1);
+	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1, desaturate);
 }
 void tf_this_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(this_slot))
 												: text::produce_simple_string(ws, "this_state"));
@@ -797,12 +803,12 @@ void tf_this_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1);
+	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1, desaturate);
 }
 void tf_this_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				this_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(this_slot)))
 												: text::produce_simple_string(ws, "this_province"));
@@ -815,12 +821,12 @@ void tf_this_scope_province(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1);
+	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1, desaturate);
 }
 void tf_this_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "this_pop"));
 		text::close_layout_box(layout, box);
 	}
@@ -831,12 +837,12 @@ void tf_this_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1);
+	display_subtriggers(tval, ws, layout, this_slot, this_slot, from_slot, indentation + indentation_amount, this_slot != -1, desaturate);
 }
 void tf_from_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::produce_simple_string(ws, text::get_name(ws, trigger::to_nation(from_slot)))
 												: text::produce_simple_string(ws, "from_nation"));
@@ -849,12 +855,12 @@ void tf_from_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1);
+	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1, desaturate);
 }
 void tf_from_scope_state(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::get_dynamic_state_name(ws, trigger::to_state(from_slot))
 												: text::produce_simple_string(ws, "from_state"));
@@ -867,12 +873,12 @@ void tf_from_scope_state(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1);
+	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1, desaturate);
 }
 void tf_from_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				from_slot != -1 ? text::produce_simple_string(ws, ws.world.province_get_name(trigger::to_prov(from_slot)))
 												: text::produce_simple_string(ws, "from_province"));
@@ -885,12 +891,12 @@ void tf_from_scope_province(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1);
+	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1, desaturate);
 }
 void tf_from_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "from_pop"));
 		text::close_layout_box(layout, box);
 	}
@@ -901,12 +907,12 @@ void tf_from_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	}
 
-	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1);
+	display_subtriggers(tval, ws, layout, from_slot, this_slot, from_slot, indentation + indentation_amount, from_slot != -1, desaturate);
 }
 void tf_sea_zone_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "adjacent_sea"));
 		text::close_layout_box(layout, box);
 	}
@@ -932,9 +938,9 @@ void tf_sea_zone_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	if(sea_zone) {
 		display_subtriggers(tval, ws, layout, trigger::to_generic(sea_zone), this_slot, from_slot, indentation + indentation_amount,
-				show_condition);
+				show_condition, desaturate);
 	} else {
-		display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false);
+		display_subtriggers(tval, ws, layout, -1, this_slot, from_slot, indentation + indentation_amount, false, desaturate);
 	}
 }
 void tf_cultural_union_scope(TRIGGER_DISPLAY_PARAMS) {
@@ -944,7 +950,7 @@ void tf_cultural_union_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "cultural_union_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -963,12 +969,12 @@ void tf_cultural_union_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto group_holder = ws.world.national_identity_get_nation_from_identity_holder(union_tag);
 
 	display_subtriggers(tval, ws, layout, trigger::to_generic(group_holder), this_slot, from_slot, indentation + indentation_amount,
-			show_condition);
+			show_condition, desaturate);
 }
 void tf_overlord_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "overlord_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -985,12 +991,12 @@ void tf_overlord_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	auto olr = ws.world.nation_get_overlord_as_subject(trigger::to_nation(primary_slot));
 	display_subtriggers(tval, ws, layout, trigger::to_generic(ws.world.overlord_get_ruler(olr)), this_slot, from_slot,
-			indentation + indentation_amount, show_condition && primary_slot != -1);
+			indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_sphere_owner_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "sphere_leader_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -1007,7 +1013,7 @@ void tf_sphere_owner_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	display_subtriggers(tval, ws, layout,
 			primary_slot != -1 ? trigger::to_generic(ws.world.nation_get_in_sphere_of((trigger::to_nation(primary_slot)))) : -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_independence_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto rtag =
@@ -1016,7 +1022,7 @@ void tf_independence_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "reb_independence_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -1028,7 +1034,7 @@ void tf_independence_scope(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	display_subtriggers(tval, ws, layout, r_holder ? trigger::to_generic(r_holder) : -1, this_slot, from_slot,
-			indentation + indentation_amount, show_condition && bool(r_holder));
+			indentation + indentation_amount, show_condition && bool(r_holder), desaturate);
 }
 void tf_flashpoint_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto ctag = ws.world.state_instance_get_flashpoint_tag(trigger::to_state(primary_slot));
@@ -1036,7 +1042,7 @@ void tf_flashpoint_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "flashpoint_nation"));
 		text::close_layout_box(layout, box);
 	}
@@ -1048,12 +1054,12 @@ void tf_flashpoint_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	display_subtriggers(tval, ws, layout, fp_nation ? trigger::to_generic(fp_nation) : -1, this_slot, from_slot,
-			indentation + indentation_amount, show_condition && bool(fp_nation));
+			indentation + indentation_amount, show_condition && bool(fp_nation), desaturate);
 }
 void tf_crisis_state_scope(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "crisis_state"));
 		text::close_layout_box(layout, box);
 	}
@@ -1073,16 +1079,16 @@ void tf_crisis_state_scope(TRIGGER_DISPLAY_PARAMS) {
 			if(st.get_nation_from_state_ownership() == target_nation && st.get_definition() == target_state_def) {
 				auto cstate = st ? trigger::to_generic(st.id) : -1;
 				return display_subtriggers(tval, ws, layout, cstate, this_slot, from_slot, indentation + indentation_amount,
-			show_condition && cstate != -1);
+			show_condition && cstate != -1, desaturate);
 			}
 		}
 	}
-	
+
 }
 void tf_state_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "containing_state"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -1101,12 +1107,12 @@ void tf_state_scope_province(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1 ? ws.world.province_get_state_membership(trigger::to_prov(primary_slot)) : dcon::state_instance_id{};
 
 	display_subtriggers(tval, ws, layout, st ? trigger::to_generic(st) : -1, this_slot, from_slot, indentation + indentation_amount,
-			show_condition && st);
+			show_condition && st, desaturate);
 }
 void tf_state_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "containing_state"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_pop"));
@@ -1124,7 +1130,7 @@ void tf_state_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 															 : dcon::state_instance_id{};
 
 	display_subtriggers(tval, ws, layout, st ? trigger::to_generic(st) : -1, this_slot, from_slot, indentation + indentation_amount,
-			show_condition && st);
+			show_condition && st, desaturate);
 }
 void tf_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[2]).tag_id;
@@ -1132,7 +1138,7 @@ void tf_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box,
 				text::produce_simple_string(ws,
 						tag_holder ? text::get_name(ws, tag_holder) : ws.world.national_identity_get_name(tag)));
@@ -1146,14 +1152,14 @@ void tf_tag_scope(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	display_subtriggers(tval, ws, layout, tag_holder ? trigger::to_generic(tag_holder) : -1, this_slot, from_slot,
-			indentation + indentation_amount, show_condition && tag_holder);
+			indentation + indentation_amount, show_condition && tag_holder, desaturate);
 }
 void tf_integer_scope(TRIGGER_DISPLAY_PARAMS) {
 	auto p = trigger::payload(tval[2]).prov_id;
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.province_get_name(p)));
 		text::close_layout_box(layout, box);
 	}
@@ -1165,7 +1171,7 @@ void tf_integer_scope(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	display_subtriggers(tval, ws, layout, trigger::to_generic(p), this_slot, from_slot, indentation + indentation_amount,
-			show_condition);
+			show_condition, desaturate);
 }
 void tf_country_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 	if(ui_count_subtriggers(ws, tval) > 1) {
@@ -1173,12 +1179,12 @@ void tf_country_scope_nation(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, any_all_code_to_fixed_ui(tval[0])));
 		text::close_layout_box(layout, box);
 	}
-	display_subtriggers(tval, ws, layout, primary_slot, this_slot, from_slot, indentation + indentation_amount, show_condition);
+	display_subtriggers(tval, ws, layout, primary_slot, this_slot, from_slot, indentation + indentation_amount, show_condition, desaturate);
 }
 void tf_country_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box,
@@ -1197,7 +1203,7 @@ void tf_country_scope_province(TRIGGER_DISPLAY_PARAMS) {
 			primary_slot != -1
 					? trigger::to_generic(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(primary_slot)))
 					: -1,
-			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1);
+			this_slot, from_slot, indentation + indentation_amount, show_condition && primary_slot != -1, desaturate);
 }
 void tf_cultural_union_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto cultures = primary_slot != -1 ? ws.world.pop_get_culture(trigger::to_pop(primary_slot)) : dcon::culture_id{};
@@ -1207,7 +1213,7 @@ void tf_cultural_union_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 
 	{
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "cultural_union_of"));
 		text::add_space_to_layout_box(ws, layout, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "singular_pop"));
@@ -1220,31 +1226,31 @@ void tf_cultural_union_scope_pop(TRIGGER_DISPLAY_PARAMS) {
 	}
 
 	display_subtriggers(tval, ws, layout, group_holders ? trigger::to_generic(group_holders) : -1, this_slot, from_slot,
-			indentation + indentation_amount, show_condition && bool(group_holders));
+			indentation + indentation_amount, show_condition && bool(group_holders), desaturate);
 }
 
 void tf_year(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "year"), int32_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_month(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "month"), int32_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 
 void tf_port(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_port"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rank(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_rank"), int32_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -1252,7 +1258,7 @@ void tf_technology(TRIGGER_DISPLAY_PARAMS) {
 	auto tech = trigger::payload(tval[1]).tech_id;
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "att_technology"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.technology_get_name(tech));
@@ -1262,7 +1268,7 @@ void tf_invention(TRIGGER_DISPLAY_PARAMS) {
 	auto tech = trigger::payload(tval[1]).invt_id;
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "invention"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.invention_get_name(tech));
@@ -1271,7 +1277,7 @@ void tf_invention(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_test(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq) {
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "meets_the_conditions_of"), text::text_color::white);
 	} else {
@@ -1283,53 +1289,53 @@ void tf_test(TRIGGER_DISPLAY_PARAMS) {
 
 	auto k = ws.world.stored_trigger_get_function(sid);
 	trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[k.index() + 1],
-			primary_slot, this_slot, from_slot, indentation + indentation_amount, show_condition);
+			primary_slot, this_slot, from_slot, indentation + indentation_amount, show_condition, desaturate);
 }
 
 void tf_strata_rich(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "strata"), text::produce_simple_string(ws, "rich"), ws, layout,
 			box);
 	text::close_layout_box(layout, box);
 }
 void tf_strata_middle(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "strata"), text::produce_simple_string(ws, "middle"), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_strata_poor(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "strata"), text::produce_simple_string(ws, "poor"), ws, layout,
 			box);
 	text::close_layout_box(layout, box);
 }
 void tf_life_rating_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "life_rating"),
 			int32_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_life_rating_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "minimum_state_life_rating"),
 			int32_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_empty_adjacent_state_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_empty_adj_prov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_empty_adjacent_state_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_empty_adj_prov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -1342,7 +1348,7 @@ void tf_state_id_province(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(map, text::variable_type::text, trigger::payload(tval[1]).prov_id);
 
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, it, map);
 		text::close_layout_box(layout, box);
 	}
@@ -1356,14 +1362,14 @@ void tf_state_id_state(TRIGGER_DISPLAY_PARAMS) {
 		text::add_to_substitution_map(map, text::variable_type::text, trigger::payload(tval[1]).prov_id);
 
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, it, map);
 		text::close_layout_box(layout, box);
 	}
 }
 void tf_cash_reserves(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "pop_savings"),
 			text::fp_three_places{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -1372,85 +1378,85 @@ void tf_cash_reserves(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unemployment_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_unemployment_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_unemployment_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_unemployment_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_slave_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "slavery"), text::produce_simple_string(ws, "allowed"),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_slave_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_slave_state"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_slave_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_slave_state"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_slave_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_slave"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_independant(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "an_independent_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_national_minority_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_prim_culture_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_national_minority_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_prim_culture_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_national_minority_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_prim_culture_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_government_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto gov = trigger::payload(tval[1]).gov_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "government"),
 			text::produce_simple_string(ws, ws.world.government_type_get_name(gov)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1458,7 +1464,7 @@ void tf_government_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_government_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto gov = trigger::payload(tval[1]).gov_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "government"),
 			text::produce_simple_string(ws, ws.world.government_type_get_name(gov)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1466,7 +1472,7 @@ void tf_government_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_capital(TRIGGER_DISPLAY_PARAMS) {
 	auto prov = trigger::payload(tval[1]).prov_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "capital"),
 			text::produce_simple_string(ws, ws.world.province_get_name(prov)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1474,7 +1480,7 @@ void tf_capital(TRIGGER_DISPLAY_PARAMS) {
 void tf_tech_school(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "technology_school"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1482,7 +1488,7 @@ void tf_tech_school(TRIGGER_DISPLAY_PARAMS) {
 void tf_primary_culture(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1490,7 +1496,7 @@ void tf_primary_culture(TRIGGER_DISPLAY_PARAMS) {
 void tf_primary_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture_pop"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1498,7 +1504,7 @@ void tf_primary_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_primary_culture_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	std::string sub;
 	if(from_slot != -1)
@@ -1511,7 +1517,7 @@ void tf_primary_culture_from_nation(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_primary_culture_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	std::string sub;
 	if(from_slot != -1)
@@ -1525,7 +1531,7 @@ void tf_primary_culture_from_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_accepted_culture(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(t)),
 			text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1533,7 +1539,7 @@ void tf_accepted_culture(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1541,7 +1547,7 @@ void tf_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1549,7 +1555,7 @@ void tf_culture_state(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1557,7 +1563,7 @@ void tf_culture_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).cul_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(t)),
 			text::produce_simple_string(ws, "a_primary_or_accepted"), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1566,7 +1572,7 @@ void tf_culture_pop_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"), ws,
 			layout, box);
@@ -1575,7 +1581,7 @@ void tf_culture_state_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"), ws,
 			layout, box);
@@ -1585,7 +1591,7 @@ void tf_culture_province_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"), ws,
 			layout, box);
@@ -1595,7 +1601,7 @@ void tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_primary_culture(trigger::to_rebel(from_slot)) : dcon::culture_id{};
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 			rc ? text::produce_simple_string(ws, ws.world.culture_get_name(rc)) : text::produce_simple_string(ws, "rebel_culture"),
 			text::produce_simple_string(ws, "a_primary_or_accepted"), ws, layout, box);
@@ -1603,35 +1609,35 @@ void tf_culture_nation_reb(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_culture_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "this_nation_prim_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "from_nation_prim_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "this_nation_prim_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "this_nation_prim_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "this_nation_prim_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1639,7 +1645,7 @@ void tf_culture_this_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_group_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = trigger::payload(tval[1]).culgrp_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1647,7 +1653,7 @@ void tf_culture_group_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_group_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = trigger::payload(tval[1]).culgrp_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1655,7 +1661,7 @@ void tf_culture_group_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_group_province(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = trigger::payload(tval[1]).culgrp_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1663,7 +1669,7 @@ void tf_culture_group_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_culture_group_state(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = trigger::payload(tval[1]).culgrp_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture_group"),
 			text::produce_simple_string(ws, ws.world.culture_group_get_name(cg)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1673,7 +1679,7 @@ void tf_culture_group_reb_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto rg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			rg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(rg))
 				 : text::produce_simple_string(ws, "rebel_culture_group"),
@@ -1685,7 +1691,7 @@ void tf_culture_group_reb_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto rg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			rg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(rg))
 				 : text::produce_simple_string(ws, "rebel_culture_group"),
@@ -1697,7 +1703,7 @@ void tf_culture_group_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_nation_culture_group"),
@@ -1709,7 +1715,7 @@ void tf_culture_group_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_nation_culture_group"),
@@ -1721,7 +1727,7 @@ void tf_culture_group_nation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "from_nation_culture_group"),
@@ -1733,7 +1739,7 @@ void tf_culture_group_pop_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "from_nation_culture_group"),
@@ -1747,7 +1753,7 @@ void tf_culture_group_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_province_culture_group"),
@@ -1761,7 +1767,7 @@ void tf_culture_group_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_province_culture_group"),
@@ -1775,7 +1781,7 @@ void tf_culture_group_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_state_culture_group"),
@@ -1789,7 +1795,7 @@ void tf_culture_group_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_state_culture_group"),
@@ -1802,7 +1808,7 @@ void tf_culture_group_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_pop_culture_group"),
@@ -1815,7 +1821,7 @@ void tf_culture_group_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto cg = ws.world.culture_get_group_from_culture_group_membership(rc);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture_group"),
 			cg ? text::produce_simple_string(ws, ws.world.culture_group_get_name(cg))
 				 : text::produce_simple_string(ws, "this_pop_culture_group"),
@@ -1825,7 +1831,7 @@ void tf_culture_group_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_religion(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).rel_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1833,7 +1839,7 @@ void tf_religion(TRIGGER_DISPLAY_PARAMS) {
 void tf_religion_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.rebel_faction_get_religion(trigger::to_rebel(from_slot)) : dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc)) : text::produce_simple_string(ws, "rebel_religion"),
 			ws, layout, box);
@@ -1842,7 +1848,7 @@ void tf_religion_reb(TRIGGER_DISPLAY_PARAMS) {
 void tf_religion_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = from_slot != -1 ? ws.world.nation_get_religion(trigger::to_nation(from_slot)) : dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc))
 				 : text::produce_simple_string(ws, "from_nation_religion"),
@@ -1852,7 +1858,7 @@ void tf_religion_from_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_religion_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto rc = this_slot != -1 ? ws.world.nation_get_religion(trigger::to_nation(this_slot)) : dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc))
 				 : text::produce_simple_string(ws, "this_nation_religion"),
@@ -1864,7 +1870,7 @@ void tf_religion_this_state(TRIGGER_DISPLAY_PARAMS) {
 																	ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)))
 														: dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc))
 				 : text::produce_simple_string(ws, "this_state_religion"),
@@ -1876,7 +1882,7 @@ void tf_religion_this_province(TRIGGER_DISPLAY_PARAMS) {
 								? ws.world.nation_get_religion(ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)))
 								: dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc))
 				 : text::produce_simple_string(ws, "this_province_religion"),
@@ -1887,7 +1893,7 @@ void tf_religion_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto rc =
 			this_slot != -1 ? ws.world.nation_get_religion(nations::owner_of_pop(ws, trigger::to_pop(this_slot))) : dcon::religion_id{};
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			rc ? text::produce_simple_string(ws, ws.world.religion_get_name(rc)) : text::produce_simple_string(ws, "this_pop_religion"),
 			ws, layout, box);
@@ -1896,7 +1902,7 @@ void tf_religion_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_terrain_province(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "province_terrain"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1904,7 +1910,7 @@ void tf_terrain_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_terrain_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "province_terrain"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1912,7 +1918,7 @@ void tf_terrain_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_trade_goods(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).com_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rgo_production"),
 			text::produce_simple_string(ws, ws.world.commodity_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1920,20 +1926,20 @@ void tf_trade_goods(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_is_secondary_power_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_secondary_power"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_secondary_power_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_secondary_power"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_faction_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).reb_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.rebel_type_get_name(t)),
 			text::produce_simple_string(ws, "an_active_rebel"), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -1941,7 +1947,7 @@ void tf_has_faction_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_has_faction_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).reb_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_member_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ws.world.rebel_type_get_name(t)));
@@ -1949,61 +1955,61 @@ void tf_has_faction_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_unclaimed_cores(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "unclaimed_cores"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_bool(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_cultural_union"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_self_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_pop"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_pop"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, "this_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_cultural_union_this_rebel(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, "the_rebel_ind_nation"), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -2012,7 +2018,7 @@ void tf_is_cultural_union_tag_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
@@ -2022,7 +2028,7 @@ void tf_is_cultural_union_tag_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
@@ -2032,7 +2038,7 @@ void tf_is_cultural_union_tag_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
@@ -2042,7 +2048,7 @@ void tf_is_cultural_union_tag_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
@@ -2052,7 +2058,7 @@ void tf_is_cultural_union_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto tag = trigger::payload(tval[1]).tag_id;
 	auto holder = ws.world.national_identity_get_nation_from_identity_holder(tag);
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "union_for_nation"),
 			text::produce_simple_string(ws, holder ? text::get_name(ws, holder) : ws.world.national_identity_get_name(tag)), ws,
 			layout, box);
@@ -2084,7 +2090,7 @@ void tf_have_core_in_nation_from(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_can_build_factory_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws, (tval[0] & trigger::association_mask) == trigger::association_eq
 																					? "capitalists_can_build"
@@ -2093,7 +2099,7 @@ void tf_can_build_factory_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_can_build_factory_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws, (tval[0] & trigger::association_mask) == trigger::association_eq
 																					? "capitalists_can_build"
@@ -2102,7 +2108,7 @@ void tf_can_build_factory_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_can_build_factory_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws, (tval[0] & trigger::association_mask) == trigger::association_eq
 																					? "capitalists_can_build"
@@ -2111,54 +2117,54 @@ void tf_can_build_factory_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_war_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_war_exhaustion_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "war_exhaustion"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_war_exhaustion_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "war_exhaustion"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_war_exhaustion_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "war_exhaustion"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_blockade(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "total_blockade"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_diplo_points(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "tb_diplomacy_diplopoints"),
 			text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_suppression_points(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "tb_suppression_points"),
 			text::fp_one_place{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -2167,7 +2173,7 @@ void tf_owns(TRIGGER_DISPLAY_PARAMS) {
 	auto p = trigger::payload(tval[1]).prov_id;
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws,
 					(tval[0] & trigger::association_mask) == trigger::association_eq ? "owns" : "does_not_own"));
@@ -2179,7 +2185,7 @@ void tf_controls(TRIGGER_DISPLAY_PARAMS) {
 	auto p = trigger::payload(tval[1]).prov_id;
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws,
 					(tval[0] & trigger::association_mask) == trigger::association_eq ? "controls" : "does_not_control"));
@@ -2189,7 +2195,7 @@ void tf_controls(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_integer(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_core_in"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box,
@@ -2198,7 +2204,7 @@ void tf_is_core_integer(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2209,7 +2215,7 @@ void tf_is_core_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2221,7 +2227,7 @@ void tf_is_core_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2233,7 +2239,7 @@ void tf_is_core_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2244,7 +2250,7 @@ void tf_is_core_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2255,7 +2261,7 @@ void tf_is_core_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1) {
@@ -2271,7 +2277,7 @@ void tf_is_core_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto h = ws.world.national_identity_get_nation_from_identity_holder(tg);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, h ? text::get_name(ws,h) : ws.world.national_identity_get_name(tg));
@@ -2282,7 +2288,7 @@ void tf_is_core_pop_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto h = ws.world.national_identity_get_nation_from_identity_holder(tg);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in_a_core_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, h ? text::get_name(ws, h) : ws.world.national_identity_get_name(tg));
@@ -2290,32 +2296,32 @@ void tf_is_core_pop_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_core_boolean(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_core_of_owner"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_revolts(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_reb_control"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_revolt_percentage(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage_reb_control"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_cities_int(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_cities_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"),
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2326,7 +2332,7 @@ void tf_num_of_cities_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_num_of_cities_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"),
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2337,7 +2343,7 @@ void tf_num_of_cities_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_num_of_cities_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"),
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2350,7 +2356,7 @@ void tf_num_of_cities_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_num_of_cities_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"),
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2363,7 +2369,7 @@ void tf_num_of_cities_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_num_of_cities_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_owned_provinces"),
 			text::produce_simple_string(ws, "num_provinces_owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2375,25 +2381,25 @@ void tf_num_of_cities_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_num_of_ports(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_ports_connected"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_allies(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_allies"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_vassals(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_vassals"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_owned_by_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -2401,7 +2407,7 @@ void tf_owned_by_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owned_by_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2412,7 +2418,7 @@ void tf_owned_by_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owned_by_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2423,7 +2429,7 @@ void tf_owned_by_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owned_by_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2434,7 +2440,7 @@ void tf_owned_by_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owned_by_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2446,7 +2452,7 @@ void tf_owned_by_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owned_by_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owned_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2457,7 +2463,7 @@ void tf_owned_by_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_exists_bool(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws,
 					(tval[0] & trigger::association_mask) == trigger::association_eq ? "exists" : "does_not_exist"));
@@ -2465,7 +2471,7 @@ void tf_exists_bool(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_exists_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box,
@@ -2476,7 +2482,7 @@ void tf_exists_tag(TRIGGER_DISPLAY_PARAMS) {
 void tf_has_country_flag(TRIGGER_DISPLAY_PARAMS) {
 	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		display_with_comparison(tval[0],
 				text::produce_simple_string(ws, ws.national_definitions.flag_variable_names[trigger::payload(tval[1]).natf_id]),
 				text::produce_simple_string(ws, "att_set"), ws, layout, box);
@@ -2486,7 +2492,7 @@ void tf_has_country_flag(TRIGGER_DISPLAY_PARAMS) {
 void tf_continent_province(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "continent"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -2494,7 +2500,7 @@ void tf_continent_province(TRIGGER_DISPLAY_PARAMS) {
 void tf_continent_state(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "continent"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -2502,7 +2508,7 @@ void tf_continent_state(TRIGGER_DISPLAY_PARAMS) {
 void tf_continent_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "continent"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -2510,14 +2516,14 @@ void tf_continent_nation(TRIGGER_DISPLAY_PARAMS) {
 void tf_continent_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto t = trigger::payload(tval[1]).mod_id;
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "continent"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(t)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_continent_nation_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2528,7 +2534,7 @@ void tf_continent_nation_this(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_state_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2539,7 +2545,7 @@ void tf_continent_state_this(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_province_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2550,7 +2556,7 @@ void tf_continent_province_this(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_pop_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2561,7 +2567,7 @@ void tf_continent_pop_this(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_nation_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2572,7 +2578,7 @@ void tf_continent_nation_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_state_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2583,7 +2589,7 @@ void tf_continent_state_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2594,7 +2600,7 @@ void tf_continent_province_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_continent_pop_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_continent"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2605,7 +2611,7 @@ void tf_continent_pop_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -2613,7 +2619,7 @@ void tf_casus_belli_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2624,7 +2630,7 @@ void tf_casus_belli_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2635,7 +2641,7 @@ void tf_casus_belli_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2647,7 +2653,7 @@ void tf_casus_belli_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2658,7 +2664,7 @@ void tf_casus_belli_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_casus_belli_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_casus_belli_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2669,7 +2675,7 @@ void tf_casus_belli_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -2677,7 +2683,7 @@ void tf_military_access_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -2688,7 +2694,7 @@ void tf_military_access_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2699,7 +2705,7 @@ void tf_military_access_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2711,7 +2717,7 @@ void tf_military_access_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2722,7 +2728,7 @@ void tf_military_access_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_access_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "military_access_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -2733,14 +2739,14 @@ void tf_military_access_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_prestige_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_prestige_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"), text::produce_simple_string(ws, "prestige_of"),
 			ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2752,7 +2758,7 @@ void tf_prestige_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_prestige_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"), text::produce_simple_string(ws, "prestige_of"),
 			ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2764,7 +2770,7 @@ void tf_prestige_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_prestige_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"), text::produce_simple_string(ws, "prestige_of"),
 			ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2777,7 +2783,7 @@ void tf_prestige_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_prestige_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"), text::produce_simple_string(ws, "prestige_of"),
 			ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2789,7 +2795,7 @@ void tf_prestige_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_prestige_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "prestige"), text::produce_simple_string(ws, "prestige_of"),
 			ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -2801,71 +2807,71 @@ void tf_prestige_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_badboy(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "infamy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_fort(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_fort"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_railroad(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_railroad"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_naval_base(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_naval_base"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 
 void tf_has_building_factory(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.factory_type_get_name(trigger::payload(tval[1]).fac_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_state_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.factory_type_get_name(trigger::payload(tval[1]).fac_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_factory_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_empty(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "empty"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_blockaded(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "blockaded"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_country_modifier(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "national_modifier"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
@@ -2873,7 +2879,7 @@ void tf_has_country_modifier(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_country_modifier_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "national_modifier"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
@@ -2881,7 +2887,7 @@ void tf_has_country_modifier_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_province_modifier(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "provincial_modifier"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id));
@@ -2889,7 +2895,7 @@ void tf_has_province_modifier(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_region(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "part_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
@@ -2897,7 +2903,7 @@ void tf_region(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_region_proper(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "part_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
@@ -2905,7 +2911,7 @@ void tf_region_proper(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owns_region(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "the_owner_of_region"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
@@ -2913,7 +2919,7 @@ void tf_owns_region(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_owns_region_proper(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "the_owner_of_region"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
@@ -2921,7 +2927,7 @@ void tf_owns_region_proper(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_region_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).state_id);
@@ -2929,7 +2935,7 @@ void tf_region_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_region_proper_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "located_in"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.region_get_name(trigger::payload(tval[1]).reg_id));
@@ -2937,13 +2943,13 @@ void tf_region_proper_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_tag_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], trigger::payload(tval[1]).tag_id, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], trigger::to_nation(this_slot), ws, layout, box);
 	else
@@ -2952,7 +2958,7 @@ void tf_tag_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_tag_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws,
 				layout, box);
@@ -2962,7 +2968,7 @@ void tf_tag_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_tag_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], trigger::to_nation(from_slot), ws, layout, box);
 	else
@@ -2971,7 +2977,7 @@ void tf_tag_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_tag_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], ws.world.province_get_nation_from_province_ownership(trigger::to_prov(from_slot)), ws,
 				layout, box);
@@ -2981,13 +2987,13 @@ void tf_tag_from_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_tag_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner"), trigger::payload(tval[1]).tag_id, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_neighbour_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -2995,7 +3001,7 @@ void tf_neighbour_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_neighbour_this(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3006,7 +3012,7 @@ void tf_neighbour_this(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_neighbour_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -3017,7 +3023,7 @@ void tf_neighbour_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_neighbour_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3028,7 +3034,7 @@ void tf_neighbour_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_neighbour_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_border_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -3040,7 +3046,7 @@ void tf_neighbour_from_province(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_country_units_in_state_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -3051,7 +3057,7 @@ void tf_country_units_in_state_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_country_units_in_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -3062,7 +3068,7 @@ void tf_country_units_in_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_country_units_in_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
 	else
@@ -3073,7 +3079,7 @@ void tf_country_units_in_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_country_units_in_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box,
 				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
@@ -3085,7 +3091,7 @@ void tf_country_units_in_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_country_units_in_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
 	else
@@ -3096,7 +3102,7 @@ void tf_country_units_in_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_country_units_in_state_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "units_in_the_state"), ws, layout, box);
@@ -3105,13 +3111,13 @@ void tf_country_units_in_state_tag(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_units_in_province_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "units_in_province"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_units_in_province_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "units_in_the_province"), ws, layout, box);
@@ -3119,7 +3125,7 @@ void tf_units_in_province_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_units_in_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -3130,7 +3136,7 @@ void tf_units_in_province_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_units_in_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -3141,7 +3147,7 @@ void tf_units_in_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_units_in_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)));
 	else
@@ -3152,7 +3158,7 @@ void tf_units_in_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_units_in_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box,
 				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)));
@@ -3164,7 +3170,7 @@ void tf_units_in_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_units_in_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, nations::owner_of_pop(ws, trigger::to_pop(this_slot)));
 	else
@@ -3175,7 +3181,7 @@ void tf_units_in_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -3183,7 +3189,7 @@ void tf_war_with_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -3194,7 +3200,7 @@ void tf_war_with_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3205,7 +3211,7 @@ void tf_war_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3216,7 +3222,7 @@ void tf_war_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3228,7 +3234,7 @@ void tf_war_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_war_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "at_war_against"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3239,190 +3245,190 @@ void tf_war_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unit_in_battle(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_ongoing_battle"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_unit_has_leader(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_assigned_leader"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_national_focus_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
 		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_national_focus_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "has_national_focus"),
 		text::produce_simple_string(ws, ws.world.national_focus_get_name(trigger::payload(tval[1]).nf_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_amount_of_divisions(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_divisions"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_money(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "treasury"),
 			text::fp_currency{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_money_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "o_treasury"),
 			text::fp_currency{ trigger::read_float_from_payload(tval + 1) }, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_lost_national(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage_unowned_cores"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_vassal(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_ruling_party_ideology_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "ruling_party_ideology"),
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_ruling_party(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "ruling_party"),
 			text::produce_simple_string(ws, ws.world.political_party_get_name(trigger::payload(tval[1]).par_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_ideology_enabled(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)),
 			text::produce_simple_string(ws, "enabled"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_political_reform_want_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "political_reform_desire"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_political_reform_want_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "political_reform_desire"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_social_reform_want_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_reform_desire"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_social_reform_want_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_reform_desire"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_amount_of_ships(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_ships"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_plurality(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "plurality"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1) / 10000.0f}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_plurality_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "plurality_pop"),
 			text::fp_percentage{ trigger::read_float_from_payload(tval + 1) / 10000.0f }, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_corruption(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "crime_percent"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_state_religion_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "member_of_nat_religion"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_state_religion_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 			text::produce_simple_string(ws, "dominant_religion"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_state_religion_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 			text::produce_simple_string(ws, "dominant_religion"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_primary_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, "owner_primary_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_primary_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, "owner_primary_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_primary_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, "owner_primary_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_primary_culture_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"),
 			text::produce_simple_string(ws, "this_pop_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_primary_culture_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"),
 				text::produce_simple_string(ws,
@@ -3435,7 +3441,7 @@ void tf_is_primary_culture_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"),
 				text::produce_simple_string(ws,
@@ -3449,7 +3455,7 @@ void tf_is_primary_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "primary_culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3462,7 +3468,7 @@ void tf_is_primary_culture_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws,
@@ -3475,7 +3481,7 @@ void tf_is_primary_culture_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3488,7 +3494,7 @@ void tf_is_primary_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws,
@@ -3502,7 +3508,7 @@ void tf_is_primary_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3515,7 +3521,7 @@ void tf_is_primary_culture_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws,
@@ -3528,7 +3534,7 @@ void tf_is_primary_culture_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3541,7 +3547,7 @@ void tf_is_primary_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws,
@@ -3555,7 +3561,7 @@ void tf_is_primary_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3568,7 +3574,7 @@ void tf_is_primary_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws,
@@ -3581,7 +3587,7 @@ void tf_is_primary_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3594,7 +3600,7 @@ void tf_is_primary_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws,
@@ -3608,7 +3614,7 @@ void tf_is_primary_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_primary_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3623,14 +3629,14 @@ void tf_is_primary_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_is_accepted_culture_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 			text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_accepted_culture_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))), text::produce_simple_string(ws, "an_accepted_culture"),
@@ -3642,7 +3648,7 @@ void tf_is_accepted_culture_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3655,7 +3661,7 @@ void tf_is_accepted_culture_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
 			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
@@ -3668,7 +3674,7 @@ void tf_is_accepted_culture_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))),
@@ -3681,7 +3687,7 @@ void tf_is_accepted_culture_state_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
 			nations::owner_of_pop(ws, trigger::to_pop(this_slot))))),
@@ -3694,7 +3700,7 @@ void tf_is_accepted_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3708,7 +3714,7 @@ void tf_is_accepted_culture_state_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
 			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
@@ -3721,7 +3727,7 @@ void tf_is_accepted_culture_state_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(trigger::to_nation(this_slot)))),
@@ -3734,7 +3740,7 @@ void tf_is_accepted_culture_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
 			nations::owner_of_pop(ws, trigger::to_pop(this_slot))))),
@@ -3747,7 +3753,7 @@ void tf_is_accepted_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws,
 			ws.world.culture_get_name(ws.world.nation_get_primary_culture(
@@ -3761,7 +3767,7 @@ void tf_is_accepted_culture_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.nation_get_primary_culture(
 			ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot))))),
@@ -3774,7 +3780,7 @@ void tf_is_accepted_culture_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 		text::produce_simple_string(ws, "this_nation_accepted_culture"),
@@ -3784,7 +3790,7 @@ void tf_is_accepted_culture_pop_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 		text::produce_simple_string(ws, "this_nation_accepted_culture"),
@@ -3794,7 +3800,7 @@ void tf_is_accepted_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 		text::produce_simple_string(ws, "this_nation_accepted_culture"),
@@ -3804,7 +3810,7 @@ void tf_is_accepted_culture_pop_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_accepted_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "this_pop_culture"),
 		text::produce_simple_string(ws, "this_nation_accepted_culture"),
@@ -3815,40 +3821,40 @@ void tf_is_accepted_culture_pop_this_province(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_is_accepted_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"), text::produce_simple_string(ws, "an_accepted_culture"), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_accepted_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, "an_accepted_culture"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_accepted_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, "an_accepted"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_coastal_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_coastal_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "coastal"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_in_sphere_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -3856,7 +3862,7 @@ void tf_in_sphere_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_sphere_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -3867,7 +3873,7 @@ void tf_in_sphere_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_sphere_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3878,7 +3884,7 @@ void tf_in_sphere_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_sphere_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3889,7 +3895,7 @@ void tf_in_sphere_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_sphere_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3901,7 +3907,7 @@ void tf_in_sphere_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_sphere_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -3912,7 +3918,7 @@ void tf_in_sphere_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_produces_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_producer_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
@@ -3920,7 +3926,7 @@ void tf_produces_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_produces_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_producer_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
@@ -3928,7 +3934,7 @@ void tf_produces_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_produces_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_producer_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
@@ -3937,7 +3943,7 @@ void tf_produces_state(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_produces_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_producer_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
@@ -3945,134 +3951,134 @@ void tf_produces_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_average_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_average_militancy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_average_militancy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_average_consciousness_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_average_consciousness_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_average_consciousness_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_next_reform_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "next_reform"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_next_reform_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "next_reform"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_next_rreform_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "next_reform"),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[1]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_next_rreform_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "next_reform"),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[1]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rebel_power_fraction(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws, (tval[0] & trigger::association_mask) == trigger::association_eq ? "never" : "always"));
 	text::close_layout_box(layout, box);
 }
 void tf_recruited_percentage_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage_recruited"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_recruited_percentage_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage_recruited"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_culture_core(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_cultural_core_prov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_culture_core_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_cultural_core_prov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_nationalism(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "nationalism"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_overseas(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "overseas"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_overseas_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "overseas_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_controlled_by_rebels(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by_rebel"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_controlled_by_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4080,7 +4086,7 @@ void tf_controlled_by_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4091,7 +4097,7 @@ void tf_controlled_by_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4102,7 +4108,7 @@ void tf_controlled_by_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4113,7 +4119,7 @@ void tf_controlled_by_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4125,7 +4131,7 @@ void tf_controlled_by_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4136,7 +4142,7 @@ void tf_controlled_by_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_owner(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "owner"));
@@ -4144,32 +4150,32 @@ void tf_controlled_by_owner(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_controlled_by_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "controlled_by_rebel"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_canal_enabled(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, std::string("canal_") + std::to_string(tval[1])),
 			text::produce_simple_string(ws, "enabled"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_state_capital(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "loc_state_capital"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_state_capital_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "state_capital"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_truce_with_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4177,7 +4183,7 @@ void tf_truce_with_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_truce_with_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4188,7 +4194,7 @@ void tf_truce_with_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_truce_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4199,7 +4205,7 @@ void tf_truce_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_truce_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4210,7 +4216,7 @@ void tf_truce_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_truce_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4222,7 +4228,7 @@ void tf_truce_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_truce_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_truce_with"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4233,35 +4239,35 @@ void tf_truce_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_total_pops_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "att_population"),
 			int64_t(trigger::read_float_from_payload(tval + 1)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_pops_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "att_population"),
 			int64_t(trigger::read_float_from_payload(tval + 1)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_pops_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "att_population"),
 			int64_t(trigger::read_float_from_payload(tval + 1)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_total_pops_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "att_population"),
 			int64_t(trigger::read_float_from_payload(tval + 1)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_pop_type_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "pops_of_type"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -4269,7 +4275,7 @@ void tf_has_pop_type_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_type_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "pops_of_type"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -4277,7 +4283,7 @@ void tf_has_pop_type_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_type_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "pops_of_type"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -4285,7 +4291,7 @@ void tf_has_pop_type_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_type_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "of_type_plain"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -4293,13 +4299,13 @@ void tf_has_pop_type_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_empty_adjacent_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "an_empty_adj_prov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_leader(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_leader_named"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.to_string_view(dcon::unit_name_id(dcon::unit_name_id::value_base_t(trigger::read_int32_t_from_payload(tval + 1)))));
@@ -4307,33 +4313,33 @@ void tf_has_leader(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_ai(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "ai_controlled"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_can_create_vassals(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "able_to_create_vassals"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_possible_vassal(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], trigger::payload(tval[1]).tag_id, text::produce_simple_string(ws, "a_possible_vassal"), ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_province_id(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.province_get_name(trigger::payload(tval[1]).prov_id)),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_vassal_of_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4341,7 +4347,7 @@ void tf_vassal_of_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4352,7 +4358,7 @@ void tf_vassal_of_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4363,7 +4369,7 @@ void tf_vassal_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4374,7 +4380,7 @@ void tf_vassal_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4386,7 +4392,7 @@ void tf_vassal_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4399,7 +4405,7 @@ void tf_vassal_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_vassal_of_province_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4409,7 +4415,7 @@ void tf_vassal_of_province_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4422,7 +4428,7 @@ void tf_vassal_of_province_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4435,7 +4441,7 @@ void tf_vassal_of_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4448,7 +4454,7 @@ void tf_vassal_of_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4462,7 +4468,7 @@ void tf_vassal_of_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_vassal_of_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_vassal_of"), ws, layout, box);
@@ -4476,7 +4482,7 @@ void tf_vassal_of_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_substate_of_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4484,7 +4490,7 @@ void tf_substate_of_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_substate_of_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4495,7 +4501,7 @@ void tf_substate_of_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_substate_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4506,7 +4512,7 @@ void tf_substate_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_substate_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4517,7 +4523,7 @@ void tf_substate_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_substate_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4529,7 +4535,7 @@ void tf_substate_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_substate_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4540,7 +4546,7 @@ void tf_substate_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4548,7 +4554,7 @@ void tf_alliance_with_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4559,7 +4565,7 @@ void tf_alliance_with_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4570,7 +4576,7 @@ void tf_alliance_with_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4581,7 +4587,7 @@ void tf_alliance_with_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4593,7 +4599,7 @@ void tf_alliance_with_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_alliance_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "allied_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4605,103 +4611,103 @@ void tf_alliance_with_this_pop(TRIGGER_DISPLAY_PARAMS) {
 void tf_has_recently_lost_war(TRIGGER_DISPLAY_PARAMS) {
 	if((tval[0] & trigger::association_mask) == trigger::association_eq) {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "has_recently_lost_war"));
 		text::close_layout_box(layout, box);
 	} else {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "has_not_recently_lost_war"));
 		text::close_layout_box(layout, box);
 	}
 }
 void tf_is_mobilised(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "mobilized"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_mobilisation_size(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "mobilization_size"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crime_higher_than_education_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::produce_simple_string(ws, "greater_than_edu_spending"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crime_higher_than_education_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::produce_simple_string(ws, "greater_than_edu_spending"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crime_higher_than_education_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::produce_simple_string(ws, "greater_than_edu_spending"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crime_higher_than_education_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::produce_simple_string(ws, "greater_than_edu_spending"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_agree_with_ruling_party(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support_for_rp"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_colonial_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_colonial_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_colonial_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "colonial_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_factories_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_factories_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_factory"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_in_default_bool(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_bnkrpt"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_in_default_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -4709,7 +4715,7 @@ void tf_in_default_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_default_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -4720,7 +4726,7 @@ void tf_in_default_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_default_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4731,7 +4737,7 @@ void tf_in_default_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_default_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4742,7 +4748,7 @@ void tf_in_default_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_default_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4754,7 +4760,7 @@ void tf_in_default_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_in_default_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_default_to"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -4765,13 +4771,13 @@ void tf_in_default_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_total_num_of_ports(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_of_ports"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_always(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
@@ -4782,14 +4788,14 @@ void tf_always(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_election(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "holding_an_election"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_global_flag(TRIGGER_DISPLAY_PARAMS) {
 	if(ws.user_settings.spoilers) {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		display_with_comparison(tval[0],
 				text::produce_simple_string(ws, ws.national_definitions.global_flag_variable_names[trigger::payload(tval[1]).glob_id]),
 				text::produce_simple_string(ws, "set_globally"), ws, layout, box);
@@ -4798,41 +4804,41 @@ void tf_has_global_flag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_capital(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "capital"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_nationalvalue_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_value"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_nationalvalue_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_value"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_nationalvalue_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_value"),
 			text::produce_simple_string(ws, ws.world.modifier_get_name(trigger::payload(tval[1]).mod_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_industrial_score_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4841,7 +4847,7 @@ void tf_industrial_score_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_industrial_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4853,7 +4859,7 @@ void tf_industrial_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_industrial_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4865,7 +4871,7 @@ void tf_industrial_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_industrial_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4877,7 +4883,7 @@ void tf_industrial_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_industrial_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4890,7 +4896,7 @@ void tf_industrial_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "industrial_score"),
 			text::produce_simple_string(ws, "industrial_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4902,14 +4908,14 @@ void tf_industrial_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_value(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			int64_t(trigger::payload(tval[1]).signed_value), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4918,7 +4924,7 @@ void tf_military_score_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4930,7 +4936,7 @@ void tf_military_score_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4942,7 +4948,7 @@ void tf_military_score_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4954,7 +4960,7 @@ void tf_military_score_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4967,7 +4973,7 @@ void tf_military_score_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "military_score"),
 			text::produce_simple_string(ws, "military_score_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -4979,189 +4985,189 @@ void tf_military_score_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_civilized_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_civilized_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_civilized_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "civilized"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_national_provinces_occupied(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percent_occupied"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_greater_power_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "great_power"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_tax(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_tax"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_tax(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_tax"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_tax(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_tax"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_social_spending_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_social_spending_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_social_spending_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_spending_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_spending_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_spending_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_military_spending_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "mil_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_administration_spending_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "admin_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_education_spending_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_education_spending_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_education_spending_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_education_spending_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "edu_spending"),
 			text::int_percentage{trigger::payload(tval[1]).signed_value}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_colonial_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "colonies"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
@@ -5172,208 +5178,208 @@ void tf_pop_majority_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_majority_religion_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_religion_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_issue_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_issue"),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"),
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"),
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"),
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_majority_ideology_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "dominant_ideology"),
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_militancy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_militancy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_militancy_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_militancy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_militancy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_militancy_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_militancy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_militancy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_militancy_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_tax_above_poor(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_tax"), text::produce_simple_string(ws, "gt_poor_tax"),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_has_union_tag_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_cultural_union"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_culture_has_union_tag_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "a_cultural_union"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::payload(tval[1]).tag_id, ws,
 			layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_this_culture_union_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::to_nation(from_slot), ws, layout,
 				box);
@@ -5384,7 +5390,7 @@ void tf_this_culture_union_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"), trigger::to_nation(this_slot), ws, layout,
 				box);
@@ -5395,7 +5401,7 @@ void tf_this_culture_union_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"),
 				ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws, layout, box);
@@ -5406,7 +5412,7 @@ void tf_this_culture_union_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"),
 				ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)), ws, layout, box);
@@ -5417,7 +5423,7 @@ void tf_this_culture_union_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "cultural_union"),
 				nations::owner_of_pop(ws, trigger::to_pop(this_slot)), ws, layout, box);
@@ -5428,7 +5434,7 @@ void tf_this_culture_union_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_union_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5439,7 +5445,7 @@ void tf_this_culture_union_this_union_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_union_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5450,7 +5456,7 @@ void tf_this_culture_union_this_union_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_union_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5462,7 +5468,7 @@ void tf_this_culture_union_this_union_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_this_culture_union_this_union_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "same_cultural_union"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5473,58 +5479,58 @@ void tf_this_culture_union_this_union_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_minorities_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_minorities_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_minorities_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "non_accepted_pops"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_revanchism_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "revanchism"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_revanchism_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "revanchism"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_crime(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "crime"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_substates(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_substates"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_num_of_vassals_no_substates(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_vassals_no_substates"), int64_t(tval[1]), ws, layout,
 			box);
 	text::close_layout_box(layout, box);
 }
 void tf_stronger_army_than_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5534,7 +5540,7 @@ void tf_stronger_army_than_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5547,7 +5553,7 @@ void tf_stronger_army_than_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5560,7 +5566,7 @@ void tf_stronger_army_than_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5573,7 +5579,7 @@ void tf_stronger_army_than_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5586,7 +5592,7 @@ void tf_stronger_army_than_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5599,7 +5605,7 @@ void tf_stronger_army_than_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_stronger_army_than_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 		text::produce_simple_string(ws, "num_regiments"),
 		text::produce_simple_string(ws, "num_regiments_of"), ws, layout, box);
@@ -5617,7 +5623,7 @@ void tf_brigades_compare_this(TRIGGER_DISPLAY_PARAMS) {
 	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"),
 			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -5634,7 +5640,7 @@ void tf_brigades_compare_from(TRIGGER_DISPLAY_PARAMS) {
 	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_regiments"),
 			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -5651,7 +5657,7 @@ void tf_brigades_compare_province_this(TRIGGER_DISPLAY_PARAMS) {
 	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
 			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -5668,7 +5674,7 @@ void tf_brigades_compare_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto factor_str = text::resolve_string_substitution(ws, "times_num_regiments_of", s);
 
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "owner_num_regiments"),
 			factor_str, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -5680,7 +5686,7 @@ void tf_brigades_compare_province_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -5688,7 +5694,7 @@ void tf_constructing_cb_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -5699,7 +5705,7 @@ void tf_constructing_cb_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5710,7 +5716,7 @@ void tf_constructing_cb_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5721,7 +5727,7 @@ void tf_constructing_cb_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5733,7 +5739,7 @@ void tf_constructing_cb_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "fabricating_on"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5744,7 +5750,7 @@ void tf_constructing_cb_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_discovered(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "cb_discovered"));
 	else
@@ -5753,21 +5759,21 @@ void tf_constructing_cb_discovered(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_constructing_cb_progress(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "cb_progress"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1) / 100.0f}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_civilization_progress(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "civ_progress"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_constructing_cb_type(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "constructing_a"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.cb_type_get_name(trigger::payload(tval[1]).cb_id));
@@ -5777,7 +5783,7 @@ void tf_constructing_cb_type(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], trigger::payload(tval[1]).tag_id, ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "as_a_vassal"));
@@ -5785,7 +5791,7 @@ void tf_is_our_vassal_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_has_comparison(tval[0], trigger::to_nation(from_slot), ws, layout, box);
 	else
@@ -5796,7 +5802,7 @@ void tf_is_our_vassal_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_has_comparison(tval[0], trigger::to_nation(this_slot), ws, layout, box);
 	else
@@ -5807,7 +5813,7 @@ void tf_is_our_vassal_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_has_comparison(tval[0], ws.world.province_get_nation_from_province_ownership(trigger::to_prov(this_slot)), ws,
 				layout, box);
@@ -5819,7 +5825,7 @@ void tf_is_our_vassal_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_has_comparison(tval[0], ws.world.state_instance_get_nation_from_state_ownership(trigger::to_state(this_slot)),
 				ws, layout, box);
@@ -5831,7 +5837,7 @@ void tf_is_our_vassal_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_has_comparison(tval[0], nations::owner_of_pop(ws, trigger::to_pop(this_slot)), ws, layout, box);
 	else
@@ -5844,7 +5850,7 @@ void tf_is_our_vassal_this_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_is_our_vassal_province_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_has_comparison(tval[0], trigger::payload(tval[1]).tag_id, ws, layout, box);
@@ -5854,7 +5860,7 @@ void tf_is_our_vassal_province_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_province_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -5867,7 +5873,7 @@ void tf_is_our_vassal_province_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5880,7 +5886,7 @@ void tf_is_our_vassal_province_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5894,7 +5900,7 @@ void tf_is_our_vassal_province_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5908,7 +5914,7 @@ void tf_is_our_vassal_province_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_our_vassal_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "o_of_prov"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5922,13 +5928,13 @@ void tf_is_our_vassal_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_is_substate(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_substate"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_great_wars_enabled(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "gw_enabled"));
 	else
@@ -5937,7 +5943,7 @@ void tf_great_wars_enabled(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_can_nationalize(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "can_perform_nationalization"));
 	else
@@ -5946,13 +5952,13 @@ void tf_can_nationalize(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_part_of_sphere(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "in_sphere"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_sphere_leader_of_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, trigger::payload(tval[1]).tag_id);
@@ -5960,7 +5966,7 @@ void tf_is_sphere_leader_of_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_sphere_leader_of_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -5971,7 +5977,7 @@ void tf_is_sphere_leader_of_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_sphere_leader_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5982,7 +5988,7 @@ void tf_is_sphere_leader_of_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_sphere_leader_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -5993,7 +5999,7 @@ void tf_is_sphere_leader_of_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_sphere_leader_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6005,7 +6011,7 @@ void tf_is_sphere_leader_of_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_sphere_leader_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "sphere_leader_of"), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6016,7 +6022,7 @@ void tf_is_sphere_leader_of_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_number_of_states(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_states"), int64_t(tval[1]), ws, layout, box);
 	text::substitution_map sub;
 
@@ -6028,7 +6034,7 @@ void tf_number_of_states(TRIGGER_DISPLAY_PARAMS) {
 void tf_war_score(TRIGGER_DISPLAY_PARAMS) {
 	// stub for apparently unused trigger
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -6037,7 +6043,7 @@ void tf_war_score(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_releasable_vassal_from(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], trigger::to_nation(from_slot), text::produce_simple_string(ws, "a_releasable_vassal"), ws,
 				layout, box);
@@ -6048,38 +6054,38 @@ void tf_is_releasable_vassal_from(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_is_releasable_vassal_other(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_releasable_vassal"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_recent_imigration(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "recent_immigration"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_province_control_days(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "num_control_days"), int64_t(tval[1]), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_disarmed(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "disarmed"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_disarmed_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "disarmed_pop"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_big_producer(TRIGGER_DISPLAY_PARAMS) {
 	// stub: used only rarely in ai chances and would be expensive to test
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "never"));
 	else
@@ -6089,7 +6095,7 @@ void tf_big_producer(TRIGGER_DISPLAY_PARAMS) {
 void tf_someone_can_form_union_tag_from(TRIGGER_DISPLAY_PARAMS) {
 	// stub: apparently unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "never"));
 	else
@@ -6099,7 +6105,7 @@ void tf_someone_can_form_union_tag_from(TRIGGER_DISPLAY_PARAMS) {
 void tf_someone_can_form_union_tag_other(TRIGGER_DISPLAY_PARAMS) {
 	// stub: apparently unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "never"));
 	else
@@ -6108,14 +6114,14 @@ void tf_someone_can_form_union_tag_other(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_social_movement_strength(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "social_mov_support"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_political_movement_strength(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "political_mov_support"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
@@ -6123,7 +6129,7 @@ void tf_political_movement_strength(TRIGGER_DISPLAY_PARAMS) {
 void tf_can_build_factory_in_capital_state(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -6132,20 +6138,20 @@ void tf_can_build_factory_in_capital_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_social_movement(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_member_of_social_mov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_political_movement(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "a_member_of_political_mov"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_political_movement_from_reb(TRIGGER_DISPLAY_PARAMS) {
 	// stub: implementation unclear
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "never"));
 	else
@@ -6155,7 +6161,7 @@ void tf_political_movement_from_reb(TRIGGER_DISPLAY_PARAMS) {
 void tf_social_movement_from_reb(TRIGGER_DISPLAY_PARAMS) {
 	// stub: implementation unclear
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "never"));
 	else
@@ -6164,13 +6170,13 @@ void tf_social_movement_from_reb(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_cultural_sphere(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "cultural_sphere_members"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_world_wars_enabled(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "ww_enabled"));
 	else
@@ -6179,7 +6185,7 @@ void tf_world_wars_enabled(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.pop_get_culture(trigger::to_pop(this_slot)))), ws,
@@ -6191,7 +6197,7 @@ void tf_has_pop_culture_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.pop_get_culture(trigger::to_pop(this_slot)))), ws,
@@ -6207,7 +6213,7 @@ void tf_has_pop_culture_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.pop_get_culture(trigger::to_pop(this_slot)))), ws,
@@ -6223,7 +6229,7 @@ void tf_has_pop_culture_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.culture_get_name(ws.world.pop_get_culture(trigger::to_pop(this_slot)))), ws,
@@ -6239,14 +6245,14 @@ void tf_has_pop_culture_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "culture"),
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_pop_culture_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6255,7 +6261,7 @@ void tf_has_pop_culture_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6264,7 +6270,7 @@ void tf_has_pop_culture_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_culture_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.culture_get_name(trigger::payload(tval[1]).cul_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6273,14 +6279,14 @@ void tf_has_pop_culture_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_pop_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_pop_religion_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.pop_get_religion(trigger::to_pop(this_slot)))), ws,
@@ -6296,7 +6302,7 @@ void tf_has_pop_religion_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.pop_get_religion(trigger::to_pop(this_slot)))), ws,
@@ -6312,7 +6318,7 @@ void tf_has_pop_religion_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1) {
 		display_with_has_comparison(tval[0],
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.pop_get_religion(trigger::to_pop(this_slot)))), ws,
@@ -6328,14 +6334,14 @@ void tf_has_pop_religion_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_pop_religion_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6344,7 +6350,7 @@ void tf_has_pop_religion_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6353,7 +6359,7 @@ void tf_has_pop_religion_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_has_pop_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0],
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::add_space_to_layout_box(ws, layout, box);
@@ -6362,431 +6368,431 @@ void tf_has_pop_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_life_needs(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_everyday_needs(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_luxury_needs(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_consciousness_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_consciousness_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_consciousness_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_consciousness_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "consciousness"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_literacy_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "literacy"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_literacy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "literacy"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_literacy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "literacy"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_literacy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "literacy"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_militancy_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_militancy_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_militancy_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_militancy_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "militancy"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_trade_goods_in_state_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id)),
 			text::produce_simple_string(ws, "present_in_state"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_trade_goods_in_state_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id)),
 			text::produce_simple_string(ws, "present_in_state"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_flashpoint(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "flashpoint"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_flashpoint_tension(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "flashpoint_tension"),
 			text::fp_one_place{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crisis_exist(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "there"), text::produce_simple_string(ws, "an_ongoing_crisis"),
 			ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_liberation_crisis(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "current_crisis"),
 			text::produce_simple_string(ws, "liberation_crisis"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_is_claim_crisis(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "current_crisis"),
 			text::produce_simple_string(ws, "claim_crisis"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_crisis_temperature(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "crisis_temperature_plain"),
 			int64_t(trigger::read_float_from_payload(tval + 1)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_involved_in_crisis_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "involved_in_crisis"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_involved_in_crisis_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "involved_in_crisis"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_life_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_life_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_life_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_life_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_everyday_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_everyday_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_everyday_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_everyday_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_luxury_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_luxury_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_luxury_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_rich_strata_luxury_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "rich_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_life_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_life_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_life_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_life_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_everyday_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_everyday_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_everyday_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_everyday_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_luxury_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_luxury_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_luxury_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_middle_strata_luxury_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "middle_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_life_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_life_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_life_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_life_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_life_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_everyday_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_everyday_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_everyday_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_everyday_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_everyday_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_luxury_needs_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_luxury_needs_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_luxury_needs_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_poor_strata_luxury_needs_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "poor_luxury_needs_satisfaction"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_diplomatic_influence_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "dip_influence_over"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], trigger::payload(tval[2]).tag_id, int64_t(tval[1]), ws, layout, box);
@@ -6794,7 +6800,7 @@ void tf_diplomatic_influence_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_diplomatic_influence_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "dip_influence_over"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6805,7 +6811,7 @@ void tf_diplomatic_influence_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_diplomatic_influence_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "dip_influence_over"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6817,7 +6823,7 @@ void tf_diplomatic_influence_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_diplomatic_influence_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "dip_influence_over"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -6828,7 +6834,7 @@ void tf_diplomatic_influence_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_diplomatic_influence_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "dip_influence_over"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -6840,7 +6846,7 @@ void tf_diplomatic_influence_from_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -6849,7 +6855,7 @@ void tf_pop_unemployment_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -6858,7 +6864,7 @@ void tf_pop_unemployment_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -6867,14 +6873,14 @@ void tf_pop_unemployment_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
 			text::fp_percentage{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_pop_unemployment_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(ws.world.pop_get_poptype(trigger::to_pop(this_slot))));
 	else
@@ -6886,7 +6892,7 @@ void tf_pop_unemployment_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(ws.world.pop_get_poptype(trigger::to_pop(this_slot))));
 	else
@@ -6898,7 +6904,7 @@ void tf_pop_unemployment_state_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_pop_unemployment_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(ws.world.pop_get_poptype(trigger::to_pop(this_slot))));
 	else
@@ -6910,7 +6916,7 @@ void tf_pop_unemployment_province_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_tag(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], trigger::payload(tval[2]).tag_id, int64_t(trigger::payload(tval[1]).signed_value), ws, layout,
@@ -6919,7 +6925,7 @@ void tf_relation_tag(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6932,7 +6938,7 @@ void tf_relation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6945,7 +6951,7 @@ void tf_relation_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(this_slot != -1)
@@ -6958,7 +6964,7 @@ void tf_relation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -6971,7 +6977,7 @@ void tf_relation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_relation_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "relationship_with"));
 	text::add_space_to_layout_box(ws, layout, box);
 	if(from_slot != -1)
@@ -6984,7 +6990,7 @@ void tf_relation_from_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_check_variable(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0],
 			text::produce_simple_string(ws, ws.national_definitions.variable_names[trigger::payload(tval[3]).natv_id]),
 			text::fp_two_places{trigger::read_float_from_payload(tval + 1)}, ws, layout, box);
@@ -6992,7 +6998,7 @@ void tf_check_variable(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_upper_house(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box,
 			text::produce_simple_string(ws, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id)));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7002,7 +7008,7 @@ void tf_upper_house(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unemployment_by_type_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -7011,7 +7017,7 @@ void tf_unemployment_by_type_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unemployment_by_type_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -7020,7 +7026,7 @@ void tf_unemployment_by_type_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unemployment_by_type_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment"),
@@ -7029,7 +7035,7 @@ void tf_unemployment_by_type_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_unemployment_by_type_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[3]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "unemployment_in_state"),
@@ -7038,7 +7044,7 @@ void tf_unemployment_by_type_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_nation_province_id(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7050,7 +7056,7 @@ void tf_party_loyalty_nation_province_id(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_from_nation_province_id(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7062,7 +7068,7 @@ void tf_party_loyalty_from_nation_province_id(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_province_province_id(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7074,7 +7080,7 @@ void tf_party_loyalty_province_province_id(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_from_province_province_id(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[3]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7086,7 +7092,7 @@ void tf_party_loyalty_from_province_province_id(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_nation_from_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7102,7 +7108,7 @@ void tf_party_loyalty_nation_from_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_generic(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7112,7 +7118,7 @@ void tf_party_loyalty_generic(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_from_nation_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7122,7 +7128,7 @@ void tf_party_loyalty_from_nation_scope_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_party_loyalty_from_province_scope_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[2]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
@@ -7132,7 +7138,7 @@ void tf_party_loyalty_from_province_scope_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_can_build_in_province_railroad_no_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7146,7 +7152,7 @@ void tf_can_build_in_province_railroad_no_limit_from_nation(TRIGGER_DISPLAY_PARA
 }
 void tf_can_build_in_province_railroad_yes_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7160,7 +7166,7 @@ void tf_can_build_in_province_railroad_yes_limit_from_nation(TRIGGER_DISPLAY_PAR
 }
 void tf_can_build_in_province_railroad_no_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7174,7 +7180,7 @@ void tf_can_build_in_province_railroad_no_limit_this_nation(TRIGGER_DISPLAY_PARA
 }
 void tf_can_build_in_province_railroad_yes_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7188,7 +7194,7 @@ void tf_can_build_in_province_railroad_yes_limit_this_nation(TRIGGER_DISPLAY_PAR
 }
 void tf_can_build_in_province_fort_no_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7201,7 +7207,7 @@ void tf_can_build_in_province_fort_no_limit_from_nation(TRIGGER_DISPLAY_PARAMS) 
 }
 void tf_can_build_in_province_fort_yes_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7214,7 +7220,7 @@ void tf_can_build_in_province_fort_yes_limit_from_nation(TRIGGER_DISPLAY_PARAMS)
 }
 void tf_can_build_in_province_fort_no_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7227,7 +7233,7 @@ void tf_can_build_in_province_fort_no_limit_this_nation(TRIGGER_DISPLAY_PARAMS) 
 }
 void tf_can_build_in_province_fort_yes_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7240,7 +7246,7 @@ void tf_can_build_in_province_fort_yes_limit_this_nation(TRIGGER_DISPLAY_PARAMS)
 }
 void tf_can_build_in_province_naval_base_no_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7254,7 +7260,7 @@ void tf_can_build_in_province_naval_base_no_limit_from_nation(TRIGGER_DISPLAY_PA
 }
 void tf_can_build_in_province_naval_base_yes_limit_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(from_slot));
 	else
@@ -7268,7 +7274,7 @@ void tf_can_build_in_province_naval_base_yes_limit_from_nation(TRIGGER_DISPLAY_P
 }
 void tf_can_build_in_province_naval_base_no_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7282,7 +7288,7 @@ void tf_can_build_in_province_naval_base_no_limit_this_nation(TRIGGER_DISPLAY_PA
 }
 void tf_can_build_in_province_naval_base_yes_limit_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		text::add_to_layout_box(ws, layout, box, trigger::to_nation(this_slot));
 	else
@@ -7297,7 +7303,7 @@ void tf_can_build_in_province_naval_base_yes_limit_this_nation(TRIGGER_DISPLAY_P
 void tf_can_build_railway_in_capital_yes_whole_state_yes_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7307,7 +7313,7 @@ void tf_can_build_railway_in_capital_yes_whole_state_yes_limit(TRIGGER_DISPLAY_P
 void tf_can_build_railway_in_capital_yes_whole_state_no_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7317,7 +7323,7 @@ void tf_can_build_railway_in_capital_yes_whole_state_no_limit(TRIGGER_DISPLAY_PA
 void tf_can_build_railway_in_capital_no_whole_state_yes_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7327,7 +7333,7 @@ void tf_can_build_railway_in_capital_no_whole_state_yes_limit(TRIGGER_DISPLAY_PA
 void tf_can_build_railway_in_capital_no_whole_state_no_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7337,7 +7343,7 @@ void tf_can_build_railway_in_capital_no_whole_state_no_limit(TRIGGER_DISPLAY_PAR
 void tf_can_build_fort_in_capital_yes_whole_state_yes_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7347,7 +7353,7 @@ void tf_can_build_fort_in_capital_yes_whole_state_yes_limit(TRIGGER_DISPLAY_PARA
 void tf_can_build_fort_in_capital_yes_whole_state_no_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7357,7 +7363,7 @@ void tf_can_build_fort_in_capital_yes_whole_state_no_limit(TRIGGER_DISPLAY_PARAM
 void tf_can_build_fort_in_capital_no_whole_state_yes_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7367,7 +7373,7 @@ void tf_can_build_fort_in_capital_no_whole_state_yes_limit(TRIGGER_DISPLAY_PARAM
 void tf_can_build_fort_in_capital_no_whole_state_no_limit(TRIGGER_DISPLAY_PARAMS) {
 	// stub: virtually unused
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if((tval[0] & trigger::association_mask) == trigger::association_eq)
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "always"));
 	else
@@ -7376,7 +7382,7 @@ void tf_can_build_fort_in_capital_no_whole_state_no_limit(TRIGGER_DISPLAY_PARAMS
 }
 void tf_work_available_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "work"), text::produce_simple_string(ws, "available_for"), ws,
 			layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -7385,7 +7391,7 @@ void tf_work_available_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_work_available_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "work"), text::produce_simple_string(ws, "available_for"), ws,
 			layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -7394,7 +7400,7 @@ void tf_work_available_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_work_available_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "work"), text::produce_simple_string(ws, "available_for"), ws,
 			layout, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
@@ -7403,7 +7409,7 @@ void tf_work_available_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_ideology_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7412,7 +7418,7 @@ void tf_variable_ideology_name_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_ideology_name_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7421,7 +7427,7 @@ void tf_variable_ideology_name_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_ideology_name_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7430,7 +7436,7 @@ void tf_variable_ideology_name_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_ideology_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.ideology_get_name(trigger::payload(tval[1]).ideo_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7439,7 +7445,7 @@ void tf_variable_ideology_name_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_issue_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7448,7 +7454,7 @@ void tf_variable_issue_name_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_issue_name_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7457,7 +7463,7 @@ void tf_variable_issue_name_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_issue_name_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7466,7 +7472,7 @@ void tf_variable_issue_name_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_issue_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.issue_option_get_name(trigger::payload(tval[1]).opt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "support"),
@@ -7475,63 +7481,63 @@ void tf_variable_issue_name_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_issue_group_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.issue_get_name(trigger::payload(tval[1]).iss_id)),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_issue_group_name_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.issue_get_name(trigger::payload(tval[1]).iss_id)),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_issue_group_name_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.issue_get_name(trigger::payload(tval[1]).iss_id)),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_issue_group_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.issue_get_name(trigger::payload(tval[1]).iss_id)),
 			text::produce_simple_string(ws, ws.world.issue_option_get_name(trigger::payload(tval[2]).opt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_reform_group_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.reform_get_name(trigger::payload(tval[1]).ref_id)),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[2]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_reform_group_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.reform_get_name(trigger::payload(tval[1]).ref_id)),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[2]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_reform_group_name_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.reform_get_name(trigger::payload(tval[1]).ref_id)),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[2]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_reform_group_name_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, ws.world.reform_get_name(trigger::payload(tval[1]).ref_id)),
 			text::produce_simple_string(ws, ws.world.reform_option_get_name(trigger::payload(tval[2]).ropt_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_variable_pop_type_name_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
@@ -7540,7 +7546,7 @@ void tf_variable_pop_type_name_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_pop_type_name_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
@@ -7549,7 +7555,7 @@ void tf_variable_pop_type_name_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_pop_type_name_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "percentage"),
@@ -7558,7 +7564,7 @@ void tf_variable_pop_type_name_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_pop_type_name_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.pop_type_get_name(trigger::payload(tval[1]).popt_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "province_percentage"),
@@ -7567,7 +7573,7 @@ void tf_variable_pop_type_name_pop(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_variable_good_name(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	text::add_to_layout_box(ws, layout, box, ws.world.commodity_get_name(trigger::payload(tval[1]).com_id));
 	text::add_space_to_layout_box(ws, layout, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "stockpile"),
@@ -7576,14 +7582,14 @@ void tf_variable_good_name(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 			text::produce_simple_string(ws, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id)), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_religion_nation_reb(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws,
@@ -7596,7 +7602,7 @@ void tf_religion_nation_reb(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(from_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(trigger::to_nation(from_slot)))),
@@ -7608,7 +7614,7 @@ void tf_religion_nation_from_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(trigger::to_nation(this_slot)))),
@@ -7620,7 +7626,7 @@ void tf_religion_nation_this_nation(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws,
@@ -7634,7 +7640,7 @@ void tf_religion_nation_this_state(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws, ws.world.religion_get_name(ws.world.nation_get_religion(
@@ -7647,7 +7653,7 @@ void tf_religion_nation_this_province(TRIGGER_DISPLAY_PARAMS) {
 }
 void tf_religion_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	if(this_slot != -1)
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "national_religion"),
 				text::produce_simple_string(ws,
@@ -7661,13 +7667,13 @@ void tf_religion_nation_this_pop(TRIGGER_DISPLAY_PARAMS) {
 
 void tf_has_building_bank(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "tt_a_bank"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
 void tf_has_building_university(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
-	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 	display_with_has_comparison(tval[0], text::produce_simple_string(ws, "tt_a_university"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
@@ -7680,7 +7686,7 @@ void tf_party_name(TRIGGER_DISPLAY_PARAMS) {
 		auto id_name = ws.world.ideology_get_name(ideology);
 		auto box = text::open_layout_box(layout, indentation);
 
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 		text::substitution_map s;
 		text::add_to_substitution_map(s, text::variable_type::x, id_name);
@@ -7690,7 +7696,7 @@ void tf_party_name(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	} else {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "rpname_is"), new_name, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -7705,7 +7711,7 @@ void tf_party_position(TRIGGER_DISPLAY_PARAMS) {
 		auto id_name = ws.world.ideology_get_name(ideology);
 		auto box = text::open_layout_box(layout, indentation);
 
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 		text::substitution_map s;
 		text::add_to_substitution_map(s, text::variable_type::x, id_name);
@@ -7715,7 +7721,7 @@ void tf_party_position(TRIGGER_DISPLAY_PARAMS) {
 		text::close_layout_box(layout, box);
 	} else {
 		auto box = text::open_layout_box(layout, indentation);
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 		display_with_comparison(tval[0], text::produce_simple_string(ws, "rpposition_is"), opt_name, ws, layout, box);
 		text::close_layout_box(layout, box);
 	}
@@ -8527,9 +8533,9 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 //			int32_t primary_slot, int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition
 
 void make_trigger_description(sys::state& ws, text::layout_base& layout, uint16_t const* tval, int32_t primary_slot,
-		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition) {
+		int32_t this_slot, int32_t from_slot, int32_t indentation, bool show_condition, bool desaturate) {
 	trigger_functions[*tval & trigger::code_mask](tval, ws, layout, primary_slot, this_slot, from_slot, indentation,
-			show_condition);
+			show_condition, desaturate);
 }
 
 #undef TRIGGER_DISPLAY_PARAMS
@@ -8542,7 +8548,7 @@ void trigger_description(sys::state& state, text::layout_base& layout, dcon::tri
 		return;
 
 	trigger_tooltip::make_trigger_description(state, layout, state.trigger_data.data() + state.trigger_data_indices[k.index() + 1],
-			primary_slot, this_slot, from_slot, 0, true);
+			primary_slot, this_slot, from_slot, 0, true, false);
 }
 
 void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
@@ -8570,14 +8576,15 @@ void multiplicative_value_modifier_description(sys::state& state, text::layout_b
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
-			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
-
-			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor}, seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+			auto desaturate = false;
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, desaturate, box);
+			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor}, !desaturate ? seg.factor >= 0.f ? text::text_color::green : text::text_color::red : text::text_color::light_grey);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
 				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1, desaturate);
+
 		}
 	}
 }
@@ -8616,15 +8623,15 @@ void additive_value_modifier_description(sys::state& state, text::layout_base& l
 		auto seg = state.value_modifier_segments[base.first_segment_offset + i];
 		if(seg.condition) {
 			auto box = text::open_layout_box(layout, trigger_tooltip::indentation_amount);
-			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, box);
-
+			auto desaturate = false;
+			trigger_tooltip::make_condition(state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], state, layout, primary_slot, this_slot, from_slot, trigger_tooltip::indentation_amount, false, desaturate, box);
 			text::add_to_layout_box(state, layout, box, text::fp_two_places{seg.factor},
-					seg.factor >= 0.f ? text::text_color::green : text::text_color::red);
+					!desaturate ? seg.factor >= 0.f ? text::text_color::green : text::text_color::red : text::text_color::light_grey);
 			text::close_layout_box(layout, box);
 
 			trigger_tooltip::make_trigger_description(state, layout,
 				state.trigger_data.data() + state.trigger_data_indices[seg.condition.index() + 1], primary_slot, this_slot, from_slot,
-				trigger_tooltip::indentation_amount * 2, primary_slot != -1);
+				trigger_tooltip::indentation_amount * 2, primary_slot != -1, desaturate);
 		}
 	}
 }
