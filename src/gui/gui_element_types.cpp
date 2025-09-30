@@ -646,11 +646,40 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 	return message_result::consumed;
 }
 
+void edit_box_element_base::set_temporary_text(sys::state& state, std::string const& new_text) noexcept {
+	if(new_text != cached_temporary_text) {
+		cached_temporary_text = new_text;
+		temporary_layout.contents.clear();
+		temporary_layout.number_of_lines = 0;
+		auto al = text::to_text_alignment(base_data.data.text.get_alignment());
+		text::single_line_layout sl{ temporary_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+					base_data.data.text.font_handle, 0, al, text::text_color::green, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_temporary_text);
+	}
+}
+
 void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		if(ch >= 32 && ch != U'`' && ch != 127) {
 			auto s = std::string(get_text(state));
-			s += char(ch & 0xff);
+
+			if(ch >= 0x00000800) {
+				unsigned char ch1 = (unsigned char)(0xe0 + ((ch & 0xffff) >> 12));
+				unsigned char ch2 = (unsigned char)(0x80 + ((ch >> 6) & 0x3f));
+				unsigned char ch3 = (unsigned char)(0x80 + (ch & 0x3f));
+				s += ch1;
+				s += ch2;
+				s += ch3;
+			} else if(ch >= 0x00000080) {
+				unsigned char ch1 = (unsigned char)(0xc0 + ((ch & 0xffff) >> 6));
+				unsigned char ch2 = (unsigned char)(0x80 + (ch & 0x3f));
+				s += ch1;
+				s += ch2;
+			} else {
+				s += ch & 0xff;
+			}
+
 			edit_index++;
 			set_text(state, s);
 			edit_box_update(state, s);
@@ -794,12 +823,30 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	}
 
 	// TODO: A better way to show the cursor!
-	auto old_s = std::string(get_text(state));
-	auto blink_s = std::string(get_text(state));
-	blink_s.insert(size_t(edit_index), 1, '|');
-	set_text(state, blink_s);
+	// auto old_s = std::string(get_text(state));
+	// auto blink_s = std::string(get_text(state));
+	// doesn't work with utf8
+	//blink_s.insert(size_t(edit_index), 1, '|');
+	// set_text(state, blink_s);
 	simple_text_element_base::render(state, x, y);
-	set_text(state, old_s);
+	// set_text(state, old_s);
+
+	// retrieve last pos from actual text:
+	auto max_x = 0.f;
+	for(auto& t : internal_layout.contents) {
+		max_x = std::max(t.x + t.width, max_x);
+	}
+	for(auto& t : temporary_layout.contents) {
+		render_text_chunk(
+			state,
+			t,
+			float(x + base_data.data.text.border_size.x) + t.x + max_x,
+			float(y + base_data.data.text.border_size.y),
+			base_data.data.button.font_handle,
+			get_text_color(state, t.color),
+			ogl::color_modification::none
+		);
+	}
 }
 
 void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -869,7 +916,7 @@ void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
 	} else {
 		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, r, g, b, lines);
-	}	
+	}
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {

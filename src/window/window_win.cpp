@@ -240,6 +240,26 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_mouse_wheel(state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
 		return 0;
 	}
+	case WM_IME_STARTCOMPOSITION:
+	{
+		HIMC imc = ImmGetContext(hwnd);
+
+		COMPOSITIONFORM cf;
+		cf.dwStyle = CFS_POINT;
+		cf.ptCurrentPos.x = (LONG)(state->get_edit_x());
+		cf.ptCurrentPos.y = (LONG)(state->get_edit_y());
+		ImmSetCompositionWindow(imc, &cf);
+
+		CANDIDATEFORM cand = {};
+		cand.dwStyle = CFS_EXCLUDE;
+		cand.ptCurrentPos.x = (LONG)(state->get_edit_x());
+		cand.ptCurrentPos.y = (LONG)(state->get_edit_y());
+		cand.rcArea = {state->get_edit_x(), state->get_edit_y(), state->get_edit_x() + 200, state->get_edit_y() + 49};
+		ImmSetCandidateWindow(imc, &cand);
+
+		ImmReleaseContext(hwnd, imc);
+		return 0;
+	}
 	case WM_KEYDOWN: // fallthrough
 	case WM_SYSKEYDOWN:
 	{
@@ -396,11 +416,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		} else {
 			// Run game code
 			game_state.ui_lock.lock();;
-			
+
 			game_state.render();
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
 			game_state.ui_lock.unlock();
-		}	
+		}
 	}
 }
 
