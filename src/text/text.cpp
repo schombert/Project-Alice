@@ -2537,10 +2537,12 @@ std::string resolve_string_substitution(sys::state& state, std::string_view key,
 void single_line_layout::add_text(sys::state& state, std::string_view v) {
 	add_unparsed_text_to_layout_box(state, *this, box, v);
 }
+#ifdef _WIN64
 void single_line_layout::add_text(sys::state& state, native_string_view v) {
 	auto current_color = fixed_parameters.color;
 	add_to_layout_box(state, *this, box, v, current_color, std::monostate{});
 }
+#endif
 void single_line_layout::add_text(sys::state& state, dcon::text_key source_text) {
 	add_to_layout_box(state, *this, box, source_text);
 }
