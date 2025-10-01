@@ -439,6 +439,11 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
+	std::string cached_temporary_text;
+	text::layout temporary_layout;
+
+	void set_temporary_text(sys::state& state, std::string const& new_text) noexcept override;
+
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
@@ -767,7 +772,7 @@ public:
 
 	static constexpr int32_t resolution = 200;
 	static constexpr size_t channels = 3;
-	
+
 	struct entry {
 		float value;
 		T key;

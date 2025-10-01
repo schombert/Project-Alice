@@ -484,8 +484,25 @@ void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
+void state::on_temporary_text(std::string s) {
+	if(ui_state.edit_target)
+		ui_state.edit_target->set_temporary_text(*this, s);
+}
 
 inline constexpr int32_t tooltip_width = 400;
+
+int state::get_edit_x() {
+	if (ui_state.edit_target) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target).x;
+	}
+	return 0;
+}
+int state::get_edit_y(){
+	if (ui_state.edit_target) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target).y;
+	}
+	return 0;
+}
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
@@ -2447,7 +2464,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto startdate = current_date.to_ymd(start_date);
 		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
-		// NICK: 
+		// NICK:
 		// Attempts to look through the start date as defined by the mod.
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
@@ -2470,7 +2487,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			if(!found_dir) {
 				date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
 			}
-		}	
+		}
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -2780,7 +2797,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 						else {
 							err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 						}
-						
+
 					} else {
 						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
@@ -2906,7 +2923,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		else {
 			err.accumulated_errors += "Could not find available rebel faction for revolt in province ID " + std::to_string(context.prov_id_to_original_id_map[prov].id) + ", has any compatible pops been assigned to the rebel type yet?";
 		}
-		
+
 	}
 
 	// apply regiments which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
@@ -2935,7 +2952,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_warnings +=
 				"Not enough available pops in province are a member of a rebel faction to spawn a rebel brigade (" + reg_prov.second.file_name + " line " + std::to_string(reg_prov.second.line_num) + ")\n";
 		}
-			
+
 	}
 
 	//cleanup regiments with no pop attached
@@ -3329,10 +3346,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 					world.province_set_siege_progress(army_location, 0.01f);
 				}
 			}
-			
+
 		}
 	}
-	
+
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
 		auto name = nations::int_to_tag(n.get_identity_from_identity_holder().get_identifying_int());
@@ -4341,8 +4358,8 @@ void state::single_game_tick() {
 				break;
 			}
 		});
-				
-	
+
+
 		economy::daily_update(*this, false, 1.f);
 
 		//
@@ -4627,7 +4644,7 @@ void state::single_game_tick() {
 			(*cache).population_record[current_date.value % 32] = world.nation_get_demographics(n, demographics::total);
 		}
 	}
-	
+
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
@@ -4808,7 +4825,7 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		network::send_and_receive_commands(*this);	
+		network::send_and_receive_commands(*this);
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);

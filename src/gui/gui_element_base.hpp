@@ -112,6 +112,7 @@ private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 
 public:
+	virtual void set_temporary_text(sys::state& state, std::string const& s) noexcept { }
 	// these commands are meaningful only if the element has children
 	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
 		return std::unique_ptr<element_base>{};
@@ -137,6 +138,7 @@ public:
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
 	friend void sys::state::on_text(char32_t c);
+	friend void sys::state::on_temporary_text(std::string s);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
