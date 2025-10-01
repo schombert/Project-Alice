@@ -277,7 +277,8 @@ public:
 		base_data.data.text.border_size.y += 8;
 	}
 
-	void edit_box_enter(sys::state& state, std::string_view str) noexcept override {
+	void edit_box_enter(sys::state& state, native_string_view s_in) noexcept override {
+		auto str = simple_fs::native_to_utf8(s_in);
 		auto s = parsers::remove_surrounding_whitespace(str);
 		if(s.empty())
 			return;
@@ -302,7 +303,7 @@ public:
 		impl_get(state, payload);
 	}
 
-	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
+	void edit_box_tab(sys::state& state, native_string_view s) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -452,7 +453,7 @@ inline void open_chat_window(sys::state& state) {
 	state.current_scene.open_chat(state);
 }
 
-inline void chat_edit_box::edit_box_tab(sys::state& state, std::string_view s) noexcept {
+inline void chat_edit_box::edit_box_tab(sys::state& state, native_string_view s) noexcept {
 	ui::open_chat_window(state); //close/open like if tab was pressed!
 }
 

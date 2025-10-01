@@ -782,7 +782,7 @@ struct int_wholenum {
 	int32_t value = 0;
 };
 enum class embedded_icon : uint8_t {
-	check, xmark, army, navy
+	check, xmark, check_desaturated, xmark_desaturated, army, navy
 };
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
@@ -902,6 +902,9 @@ struct single_line_layout : public layout_base {
 	}
 
 	void add_text(sys::state& state, std::string_view v);
+#ifdef _WIN64
+	void add_text(sys::state& state, native_string_view v);
+#endif
 	void add_text(sys::state& state, dcon::text_key source_text);
 };
 

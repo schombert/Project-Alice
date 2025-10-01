@@ -402,20 +402,38 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 		state.load_locale_strings(fb_name_sv);
 	}
 
-	UErrorCode errorCode = U_ZERO_ERROR;
-	UBreakIterator* lb_it = ubrk_open(UBreakIteratorType::UBRK_LINE, lang_str.c_str(), nullptr, 0, &errorCode);
-	if(!lb_it || !U_SUCCESS(errorCode)) {
-		std::abort(); // couldn't create iterator
-	}
-	auto rule_size = ubrk_getBinaryRules(lb_it, nullptr, 0, &errorCode);
-	if(rule_size == 0 || !U_SUCCESS(errorCode)) {
-		std::abort(); // couldn't get_rules
-	}
-	
-	state.font_collection.compiled_ubrk_rules.resize(uint32_t(rule_size));
-	ubrk_getBinaryRules(lb_it, state.font_collection.compiled_ubrk_rules.data(), rule_size, &errorCode);
+	{
+		UErrorCode errorCode = U_ZERO_ERROR;
+		UBreakIterator* lb_it = ubrk_open(UBreakIteratorType::UBRK_LINE, lang_str.c_str(), nullptr, 0, &errorCode);
+		if(!lb_it || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't create iterator
+		}
+		auto rule_size = ubrk_getBinaryRules(lb_it, nullptr, 0, &errorCode);
+		if(rule_size == 0 || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't get_rules
+		}
 
-	ubrk_close(lb_it);
+		state.font_collection.compiled_ubrk_rules.resize(uint32_t(rule_size));
+		ubrk_getBinaryRules(lb_it, state.font_collection.compiled_ubrk_rules.data(), rule_size, &errorCode);
+
+		ubrk_close(lb_it);
+	}
+	{
+		UErrorCode errorCode = U_ZERO_ERROR;
+		UBreakIterator* ch_it = ubrk_open(UBreakIteratorType::UBRK_LINE, lang_str.c_str(), nullptr, 0, &errorCode);
+		if(!ch_it || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't create iterator
+		}
+		auto rule_size = ubrk_getBinaryRules(ch_it, nullptr, 0, &errorCode);
+		if(rule_size == 0 || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't get_rules
+		}
+
+		state.font_collection.compiled_char_ubrk_rules.resize(uint32_t(rule_size));
+		ubrk_getBinaryRules(ch_it, state.font_collection.compiled_char_ubrk_rules.data(), rule_size, &errorCode);
+
+		ubrk_close(ch_it);
+	}
 
 	state.load_locale_strings(localename_sv);
 }

@@ -25,6 +25,27 @@
 
 namespace ui {
 
+void state::set_mouse_sensitive_target(sys::state& state, element_base* target) {
+	if(mouse_sensitive_target) {
+		mouse_sensitive_target->set_visible(state, false);
+	}
+	mouse_sensitive_target = target;
+	if(target) {
+		auto size = target->base_data.size;
+		target_ul_bounds = ui::get_absolute_location(state, *target);
+		target_lr_bounds = ui::xy_pair{ int16_t(target_ul_bounds.x + size.x), int16_t(target_ul_bounds.y + size.y) };
+
+		auto mx = int32_t(state.mouse_x_position / state.user_settings.ui_scale);
+		auto my = int32_t(state.mouse_y_position / state.user_settings.ui_scale);
+
+		auto x_distance = std::max(std::max(target_ul_bounds.x - mx, 0), std::max(mx - target_lr_bounds.x, 0));
+		auto y_distance = std::max(std::max(target_ul_bounds.y - my, 0), std::max(my - target_lr_bounds.y, 0));
+		target_distance = std::max(x_distance, y_distance);
+
+		target->set_visible(state, true);
+	}
+}
+
 inline message_result greater_result(message_result a, message_result b) {
 	if(a == message_result::consumed || b == message_result::consumed)
 		return message_result::consumed;
@@ -646,11 +667,25 @@ message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t
 	return message_result::consumed;
 }
 
+void edit_box_element_base::set_temporary_text(sys::state& state, native_string_view new_text) noexcept {
+	if(new_text != cached_temporary_text) {
+		cached_temporary_text = new_text;
+		temporary_layout.contents.clear();
+		temporary_layout.number_of_lines = 0;
+		auto al = text::to_text_alignment(base_data.data.text.get_alignment());
+		text::single_line_layout sl{ temporary_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+					base_data.data.text.font_handle, 0, al, text::text_color::green, true, true },
+			state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_temporary_text);
+	}
+}
+
 void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		if(ch >= 32 && ch != U'`' && ch != 127) {
-			auto s = std::string(get_text(state));
-			s += char(ch & 0xff);
+			auto s = native_string(get_text(state));
+			s += native_char(ch);
+
 			edit_index++;
 			set_text(state, s);
 			edit_box_update(state, s);
@@ -675,9 +710,8 @@ void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 				CloseClipboard();
 			}
 			if(return_value.size() > 0) {
-				auto utf8_val = simple_fs::native_to_utf8(return_value);
-				auto new_text = std::string(get_text(state)) + utf8_val;
-				edit_index += int32_t(utf8_val.length());
+				auto new_text = native_string(get_text(state)) + return_value;
+				edit_index += int32_t(return_value.length());
 				set_text(state, new_text);
 				edit_box_update(state, new_text);
 			}
@@ -689,7 +723,7 @@ void edit_box_element_base::on_text(sys::state& state, char32_t ch) noexcept {
 message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
 	if(state.ui_state.edit_target == this && state.ui_state.edit_target->is_visible()) {
 		// Typable keys are handled by on_text callback, we only handle control keys
-		auto s = std::string(get_text(state));
+		auto s = native_string(get_text(state));
 		switch(key) {
 		case sys::virtual_key::RETURN:
 			edit_box_enter(state, s);
@@ -758,17 +792,17 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 
 void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
+		native_text_element_base::black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
 	} else if(base_data.get_element_type() == element_type::text) {
-		simple_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
+		native_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 	}
 }
 
 void edit_box_element_base::on_create(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
-		//simple_text_element_base::text_offset = 0.0f;
+		//native_text_element_base::text_offset = 0.0f;
 	} else if(base_data.get_element_type() == element_type::text) {
-		//simple_text_element_base::text_offset = base_data.data.text.border_size.x;
+		//native_text_element_base::text_offset = base_data.data.text.border_size.x;
 	}
 	on_reset_text(state);
 }
@@ -794,12 +828,30 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 	}
 
 	// TODO: A better way to show the cursor!
-	auto old_s = std::string(get_text(state));
-	auto blink_s = std::string(get_text(state));
-	blink_s.insert(size_t(edit_index), 1, '|');
-	set_text(state, blink_s);
-	simple_text_element_base::render(state, x, y);
-	set_text(state, old_s);
+	// auto old_s = std::string(get_text(state));
+	// auto blink_s = std::string(get_text(state));
+	// doesn't work with utf8
+	//blink_s.insert(size_t(edit_index), 1, '|');
+	// set_text(state, blink_s);
+	native_text_element_base::render(state, x, y);
+	// set_text(state, old_s);
+
+	// retrieve last pos from actual text:
+	auto max_x = 0.f;
+	for(auto& t : internal_layout.contents) {
+		max_x = std::max(t.x + t.width, max_x);
+	}
+	for(auto& t : temporary_layout.contents) {
+		render_text_chunk(
+			state,
+			t,
+			float(x + base_data.data.text.border_size.x) + t.x + max_x,
+			float(y + base_data.data.text.border_size.y),
+			base_data.data.button.font_handle,
+			get_text_color(state, t.color),
+			ogl::color_modification::none
+		);
+	}
 }
 
 void tool_tip::render(sys::state& state, int32_t x, int32_t y) noexcept {
@@ -869,7 +921,7 @@ void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, lines);
 	} else {
 		ogl::render_linegraph(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, r, g, b, lines);
-	}	
+	}
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
@@ -959,10 +1011,104 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		format_text(state);
 	}
 }
+
 void simple_text_element_base::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
 }
+
 void simple_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	auto tc = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
+
+	if(base_data.get_element_type() == element_type::button) {
+		auto linesz = state.font_collection.line_height(state, base_data.data.button.font_handle);
+		if(linesz == 0.f)
+			return;
+		auto ycentered = (base_data.size.y - linesz) / 2;
+
+		for(auto& t : internal_layout.contents) {
+			render_text_chunk(
+				state,
+				t,
+				float(x) + t.x,
+				float(y + int32_t(ycentered)),
+				base_data.data.button.font_handle,
+				get_text_color(state, t.color),
+				ogl::color_modification::none
+			);
+		}
+	} else {
+		for(auto& t : internal_layout.contents) {
+			render_text_chunk(
+				state,
+				t,
+				float(x + base_data.data.text.border_size.x) + t.x,
+				float(y + base_data.data.text.border_size.y),
+				base_data.data.button.font_handle,
+				get_text_color(state, t.color),
+				ogl::color_modification::none
+			);
+		}
+	}
+}
+
+void native_text_element_base::set_text(sys::state& state, native_string const& new_text) {
+	if(base_data.get_element_type() == element_type::button) {
+		if(new_text != cached_text) {
+			cached_text = new_text;
+			{
+				internal_layout.contents.clear();
+				internal_layout.number_of_lines = 0;
+
+				auto al = text::to_text_alignment(base_data.data.button.get_alignment());
+				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+							base_data.data.button.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+				sl.add_text(state, cached_text);
+			}
+			format_text(state);
+		}
+	} else if(base_data.get_element_type() == element_type::text) {
+		if(new_text != cached_text) {
+			cached_text = new_text;
+			{
+				internal_layout.contents.clear();
+				internal_layout.number_of_lines = 0;
+
+				auto al = text::to_text_alignment(base_data.data.text.get_alignment());
+				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - base_data.data.text.border_size.x * 2), static_cast<int16_t>(base_data.size.y),
+							base_data.data.text.font_handle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+				sl.add_text(state, cached_text);
+			}
+			format_text(state);
+		}
+	}
+}
+
+void native_text_element_base::format_text(sys::state& state) {
+	float extent = 0.f;
+	uint16_t font_handle = 0;
+
+	if(base_data.get_element_type() == element_type::button)
+		font_handle = base_data.data.button.font_handle;
+	else if(base_data.get_element_type() == element_type::text)
+		font_handle = base_data.data.text.font_handle;
+
+	float x_limit = float(base_data.size.x);
+	if(base_data.get_element_type() == element_type::text) {
+		x_limit -= base_data.data.text.border_size.x;
+	}
+	auto& font = state.font_collection.get_font(state, text::font_index_from_font_id(state, font_handle));
+	auto font_size = text::size_from_font_id(font_handle);
+
+	for(size_t i = internal_layout.contents.size(); i-- > 0; ) {
+		if(internal_layout.contents[i].x >= x_limit) {
+			internal_layout.contents.resize(i);
+		}
+	}
+}
+
+void native_text_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	auto tc = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
 
 	if(base_data.get_element_type() == element_type::button) {

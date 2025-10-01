@@ -26,7 +26,6 @@ And here is a list of some more specialized console functions that you can use
 - `clear` : removes old text form the console window
 - `spectate` : switches the game to spectator mode (use `change-tag` to resume playing)
 - `true fps` : turns the visible FPS counter on. A value of `false` will instead turn it off
-- `true provid`: Turns on display of content province ids in tooltips
 - `true ui-debug`: Turns on display of UI elements debug info such as name, size, and position useful for modding
 - `false set-auto-choice` : turns off all existing auto event choices
 - `TAG change-tag` : changes who you are playing as to TAG

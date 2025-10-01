@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_unit_panel_subwindow.hpp"
@@ -181,7 +182,7 @@ public:
 			}
 		}
 		disabled = false;
-		
+
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -194,7 +195,7 @@ public:
 		for(auto unit : navies) {
 			command::delete_navy(state, state.local_player_nation, unit);
 		}
-		
+
 		parent->set_visible(state, false); // Close parent window automatically
 		//send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 
@@ -310,7 +311,7 @@ public:
 				command::delete_navy(state, state.local_player_nation, content);
 			}
 		}
-		
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -425,7 +426,7 @@ public:
 		}
 		display_leader_full(state, lid, contents, 0);
 	}
-	
+
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
@@ -985,7 +986,7 @@ public:
 					auto fat = regiment_membership.get_regiment().get_regiment_from_automation();
 					auto strenght = fat.get_strength() * state.defines.pop_size_per_regiment;
 					unitstrength_text->set_visible(state, true);
-				
+
 					dcon::unit_type_id utid = fat.get_type();
 					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
 					if constexpr(N == 0) {
@@ -1692,7 +1693,7 @@ public:
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
 
-		
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1742,8 +1743,8 @@ public:
 			commodities = military::get_required_supply(state, state.local_player_nation, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
-		
-		
+
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1760,7 +1761,7 @@ public:
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
-			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;			
+			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 		}
 
 		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
@@ -2344,7 +2345,7 @@ public:
 
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			if(parent) {
-				
+
 			}
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
 			if(parent) {
@@ -2585,7 +2586,7 @@ public:
 				unit_upgrade_win->impl_on_update(state);
 				break;
 			}
-			default: 
+			default:
 				break;
 			};
 			return message_result::consumed;
@@ -2670,14 +2671,18 @@ public:
 		}
 		else {
 			for(auto army : state.selected_armies) {
-				command::delete_army(state, state.local_player_nation, army);
+				if (command::can_delete_army(state, state.local_player_nation, army)) {
+					command::delete_army(state, state.local_player_nation, army);
+				}
 			}
 			for(auto navy : state.selected_navies) {
-				command::delete_navy(state, state.local_player_nation, navy);
+				if (command::can_delete_navy(state, state.local_player_nation, navy)) {
+					command::delete_navy(state, state.local_player_nation, navy);
+				}
 			}
 		}
-
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -2864,7 +2869,7 @@ public:
 				command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
 			}
 		}
-		
+
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -3432,7 +3437,7 @@ public:
 					if(type) {
 						regiments_by_type[type.index()] += 1;
 					}
-				}				
+				}
 			}
 		}
 
@@ -3481,7 +3486,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		xy_pair base_position = { 15, 0 }; 
+		xy_pair base_position = { 15, 0 };
 		uint16_t base_offset = 95;
 
 		{
@@ -3532,7 +3537,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_army_group_unit_listbox") {
 			return make_element_by_type<selected_army_group_land_units_list>(state, id);
-		} 
+		}
 		return nullptr;
 	}
 };
@@ -3627,7 +3632,7 @@ class add_selected_units_to_army_group_button : public button_element_base {
 		for(auto item : state.selected_armies) {
 			state.world.for_each_automated_army_group([&](dcon::automated_army_group_id group) {
 				state.remove_army_army_group_clean(group, item);
-			});			
+			});
 			state.add_army_to_army_group(state.selected_army_group, item);
 		}
 		for(auto item : state.selected_navies) {
@@ -3772,7 +3777,7 @@ public:
 		row_contents.clear();
 		state.world.for_each_automated_army_group([&](dcon::automated_army_group_id item) {
 			row_contents.push_back(item);
-		});			
+		});
 		update(state);
 	}
 };

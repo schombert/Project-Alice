@@ -151,7 +151,7 @@ void register_intermediate_demand(
 			state.world.market_get_intermediate_demand(s, c) + amount
 		);
 	}
-	
+
 }
 
 void register_domestic_supply(
@@ -575,7 +575,8 @@ float inline market_speculation_budget(
 	// todo: implement more stable money per person value, for example, median wage over the world
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
 	auto local_speculation_budget = wage * population / 100.f * state.world.market_get_demand_satisfaction(m, c);
-	return local_speculation_budget;
+	// return local_speculation_budget;
+	return 0.f;
 }
 template<typename M>
 ve::fp_vector market_speculation_budget(
@@ -588,7 +589,8 @@ ve::fp_vector market_speculation_budget(
 	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
 	auto local_speculation_budget = wage * population / 100.f * state.world.market_get_demand_satisfaction(m, c);
-	return ve::max(0.f, local_speculation_budget);
+	// return ve::max(0.f, local_speculation_budget);
+	return 0.f;
 }
 ve::fp_vector ve_market_speculation_budget(
 	sys::state const& state,
@@ -856,7 +858,7 @@ float export_value(
 	state.world.for_each_commodity([&](auto c) {
 		auto median_price = state.world.commodity_get_median_price(c);
 		auto total_volume = 0.f;
-	
+
 		state.world.market_for_each_trade_route(s, [&](auto trade_route) {
 			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
 			auto origin =
