@@ -3283,7 +3283,7 @@ TRIGGER_FUNCTION(tf_check_variable) {
 }
 
 TRIGGER_FUNCTION(tf_check_gamerule) {
-	return std::to_string(trigger::payload(tval[1]).gr_id.index()) + " >gamerule_id current_setting @ " + std::to_string(tval[2]) + " " + compare_values(tval[0]);
+	return std::to_string(trigger::payload(tval[1]).gr_id.index()) + " >gamerule_id current_setting @ " + std::to_string(tval[2]) + " " + compare_values_eq(tval[0]);
 }
 
 
