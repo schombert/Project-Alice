@@ -4481,6 +4481,11 @@ object {
 		type{ int }
 		tag{ save }
 	}
+	property {
+		name{ utility_tag }
+		type{ bitfield }
+		tag{ save }
+	}
 }
 
 object{
