@@ -5790,7 +5790,7 @@ object {
 object {
 	name{ gamerule }
 	storage_type{ contiguous }
-	size{ 256 }
+	size{ 126 }
 	tag{ scenario }
 	tag{ save }
 
