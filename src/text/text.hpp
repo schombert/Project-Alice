@@ -902,7 +902,9 @@ struct single_line_layout : public layout_base {
 	}
 
 	void add_text(sys::state& state, std::string_view v);
+#ifdef _WIN64
 	void add_text(sys::state& state, native_string_view v);
+#endif
 	void add_text(sys::state& state, dcon::text_key source_text);
 };
 
