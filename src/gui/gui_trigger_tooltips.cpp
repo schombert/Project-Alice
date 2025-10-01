@@ -7738,7 +7738,7 @@ void tf_check_gamerule(TRIGGER_DISPLAY_PARAMS) {
 		auto box = text::open_layout_box(layout, indentation);
 
 
-		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, box);
+		make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
 
 		text::substitution_map s;
 		text::add_to_substitution_map(s, text::variable_type::x, gamerule_name);
