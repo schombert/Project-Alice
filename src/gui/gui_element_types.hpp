@@ -386,8 +386,6 @@ protected:
 	text::layout internal_layout;
 public:
 	bool black_text = true;
-	int32_t data = 0;
-	int32_t casualties = 0;
 
 	void set_text(sys::state& state, std::string const& new_text);
 	void on_reset_text(sys::state& state) noexcept override;
@@ -396,6 +394,28 @@ public:
 	void format_text(sys::state& state);
 
 	std::string_view get_text(sys::state& state) const {
+		return cached_text;
+	}
+
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+			return message_result::unseen;
+		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+	}
+};
+
+class native_text_element_base : public element_base {
+protected:
+	native_string cached_text;
+	text::layout internal_layout;
+public:
+	bool black_text = true;
+
+	void set_text(sys::state& state, native_string const& new_text);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void format_text(sys::state& state);
+
+	native_string_view get_text(sys::state& state) const {
 		return cached_text;
 	}
 
@@ -420,14 +440,14 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 };
 
-class edit_box_element_base : public simple_text_element_base {
+class edit_box_element_base : public native_text_element_base {
 protected:
 	int32_t edit_index = 0;
 
 public:
-	virtual void edit_box_tab(sys::state& state, std::string_view s) noexcept { }
-	virtual void edit_box_enter(sys::state& state, std::string_view s) noexcept { }
-	virtual void edit_box_update(sys::state& state, std::string_view s) noexcept { }
+	virtual void edit_box_tab(sys::state& state, native_string_view s) noexcept { }
+	virtual void edit_box_enter(sys::state& state, native_string_view s) noexcept { }
+	virtual void edit_box_update(sys::state& state, native_string_view s) noexcept { }
 	virtual void edit_box_up(sys::state& state) noexcept { }
 	virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
@@ -439,10 +459,10 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
-	std::string cached_temporary_text;
+	native_string cached_temporary_text;
 	text::layout temporary_layout;
 
-	void set_temporary_text(sys::state& state, std::string const& new_text) noexcept override;
+	void set_temporary_text(sys::state& state, native_string_view new_text) noexcept override;
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;

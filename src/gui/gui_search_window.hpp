@@ -12,8 +12,10 @@ namespace ui {
 
 class province_search_edit : public edit_box_element_base {
 public:
-	void edit_box_update(sys::state& state, std::string_view s) noexcept override {
-		send(state, parent, s);
+	void edit_box_update(sys::state& state, native_string_view s) noexcept override {
+		auto utf8_version = simple_fs::native_to_utf8(s);
+		std::string_view v{ utf8_version };
+		send(state, parent, v);
 	}
 };
 

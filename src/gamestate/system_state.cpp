@@ -489,7 +489,7 @@ void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target)
 		ui_state.edit_target->on_text(*this, c);
 }
-void state::on_temporary_text(std::string s) {
+void state::on_temporary_text(native_string_view s) {
 	if(ui_state.edit_target)
 		ui_state.edit_target->set_temporary_text(*this, s);
 }

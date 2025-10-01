@@ -14,9 +14,9 @@ protected:
 
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void edit_box_update(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
+	void edit_box_update(sys::state& state, native_string_view s) noexcept override;
+	void edit_box_tab(sys::state& state, native_string_view s) noexcept override;
+	void edit_box_enter(sys::state& state, native_string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override;
 	void edit_box_backtick(sys::state& state) noexcept override;
 	void edit_box_back_slash(sys::state& state) noexcept override;
