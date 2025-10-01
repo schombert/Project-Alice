@@ -260,14 +260,7 @@ struct tr_check_gamerule {
 		} else {
 			option_id = option_it->second.option_id;
 		}
-		if(assoc != association_type::eq && assoc != association_type::eq_default && assoc != association_type::ne) {
-			err.accumulated_warnings += "Invalid comparision sign for option in check_gamerule. Must be either equals or not equals. (" + err.file_name + "), line " + std::to_string(line) + "\n";
-			a = association_type::eq;
-		} else {
-			a = assoc;
-		}
-
-
+		a = assoc;
 	}
 };
 
@@ -5611,7 +5604,7 @@ struct trigger_body {
 				trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
 	}
 	void check_gamerule(tr_check_gamerule const& value, error_handler& err, int32_t line, trigger_building_context& context) {
-		context.compiled_trigger.push_back(uint16_t(trigger::check_gamerule | association_to_trigger_code(value.a)));
+		context.compiled_trigger.push_back(uint16_t(trigger::check_gamerule | association_to_bool_code(value.a)));
 		context.compiled_trigger.push_back(trigger::payload(value.gr_id).value);
 		context.compiled_trigger.push_back(uint16_t(value.option_id));
 	}

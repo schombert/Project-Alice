@@ -699,7 +699,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 				++total;
 			}
 		}
-		nations::adjust_prestige(state, target_nation, p / std::max(1.0f, float(total)));
+		nations::adjust_prestige(state, target_nation, p / float(total + 1));
 	}
 }
 
