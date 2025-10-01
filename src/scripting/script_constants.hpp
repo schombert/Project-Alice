@@ -1384,13 +1384,14 @@ TRIGGER_BYTECODE_ELEMENT(0x02E2, party_name, 3) \
 TRIGGER_BYTECODE_ELEMENT(0x02E3, party_position, 2) \
 TRIGGER_BYTECODE_ELEMENT(0x02E4, diplo_points, 2) \
 TRIGGER_BYTECODE_ELEMENT(0x02E5, suppression_points, 2) \
+TRIGGER_BYTECODE_ELEMENT(0x02E6, check_gamerule, 2) \
 
 
 #define TRIGGER_BYTECODE_ELEMENT(code, name, arg) constexpr inline uint16_t name = code;
 TRIGGER_BYTECODE_LIST
 #undef TRIGGER_BYTECODE_ELEMENT
 
-constexpr inline uint16_t first_scope_code = 0x02E6;
+constexpr inline uint16_t first_scope_code = 0x02E7;
 
 // technology name -- payload 1
 // ideology name -- 4 variants payload 2
@@ -1510,6 +1511,7 @@ union payload {
 	dcon::region_id reg_id;
 	dcon::stored_trigger_id str_id;
 	dcon::national_focus_id nf_id;
+	dcon::gamerule_id gr_id;
 
 	// variables::national_variable_tag nat_var;
 	// variables::national_flag_tag nat_flag;
@@ -1655,6 +1657,10 @@ union payload {
 	payload(dcon::stored_trigger_id i) {
 		memset(this, 0, sizeof(payload));
 		str_id = i;
+	}
+	payload(dcon::gamerule_id i) {
+		memset(this, 0, sizeof(payload));
+		gr_id = i;
 	}
 };
 

@@ -359,3 +359,12 @@ event_option
 	#base    effect_body
 	name                            value      text                              member_fn
 	ai_chance                       extern     make_option_ai_chance             member
+
+
+
+
+gamerule_option
+	name                  value      text								 member_fn
+	default_option                  value      bool								 member
+	on_select						extern	   make_gamerule_effect					 member
+	on_deselect						extern	   make_gamerule_effect					 member

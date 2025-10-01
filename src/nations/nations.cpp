@@ -2239,8 +2239,8 @@ ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagg
 }
 template<war_initiation check_alliance>
 bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target) {
-	// check define if restrictions are toggled on
-	if(state.defines.alice_can_goto_war_against_spherelord == 1.0f) {
+	// check gamerule if sphereling always can declare on spherelord
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.sphereling_can_declare_spherelord, uint8_t(gamerule::sphereling_declare_war_settings::yes))) {
 		return false;
 	}
 	auto source_sphere = state.world.nation_get_in_sphere_of(sphereling);
