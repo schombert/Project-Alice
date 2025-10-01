@@ -382,10 +382,15 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.mouse_sensitive_target) {
 		auto mx = int32_t(x / user_settings.ui_scale);
 		auto my = int32_t(y / user_settings.ui_scale);
-		if(mx < ui_state.target_ul_bounds.x || mx > ui_state.target_lr_bounds.x || my < ui_state.target_ul_bounds.y || my > ui_state.target_lr_bounds.y) {
 
+		auto x_distance = std::max(std::max(ui_state.target_ul_bounds.x - mx, 0), std::max(mx - ui_state.target_lr_bounds.x, 0));
+		auto y_distance = std::max(std::max(ui_state.target_ul_bounds.y - my, 0), std::max(my - ui_state.target_lr_bounds.y, 0));
+		auto new_target_distance = std::max(x_distance, y_distance);
+		if(new_target_distance > ui_state.target_distance + 5) {
 			ui_state.mouse_sensitive_target->set_visible(*this, false);
 			ui_state.mouse_sensitive_target = nullptr;
+		} else {
+			ui_state.target_distance = std::min(ui_state.target_distance, new_target_distance);
 		}
 	}
 }

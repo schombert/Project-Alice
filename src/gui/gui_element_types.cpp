@@ -25,6 +25,27 @@
 
 namespace ui {
 
+void state::set_mouse_sensitive_target(sys::state& state, element_base* target) {
+	if(mouse_sensitive_target) {
+		mouse_sensitive_target->set_visible(state, false);
+	}
+	mouse_sensitive_target = target;
+	if(target) {
+		auto size = target->base_data.size;
+		target_ul_bounds = ui::get_absolute_location(state, *target);
+		target_lr_bounds = ui::xy_pair{ int16_t(target_ul_bounds.x + size.x), int16_t(target_ul_bounds.y + size.y) };
+
+		auto mx = int32_t(state.mouse_x_position / state.user_settings.ui_scale);
+		auto my = int32_t(state.mouse_y_position / state.user_settings.ui_scale);
+
+		auto x_distance = std::max(std::max(target_ul_bounds.x - mx, 0), std::max(mx - target_lr_bounds.x, 0));
+		auto y_distance = std::max(std::max(target_ul_bounds.y - my, 0), std::max(my - target_lr_bounds.y, 0));
+		target_distance = std::max(x_distance, y_distance);
+
+		target->set_visible(state, true);
+	}
+}
+
 inline message_result greater_result(message_result a, message_result b) {
 	if(a == message_result::consumed || b == message_result::consumed)
 		return message_result::consumed;

@@ -240,6 +240,7 @@ trigger_body
 	has_national_minority      value       bool         member_fn
 	has_province_modifier      value       text         member_fn
 	has_recent_imigration      value       int          member_fn
+	has_national_focus                 value    text      member_fn
 	has_recent_immigration     value       bool         member_fn (has_recent_imigration)
 	has_recently_lost_war      value       bool         member_fn
 	recently_lost_war      value       bool         member_fn (has_recently_lost_war)
