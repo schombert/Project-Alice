@@ -3,7 +3,7 @@ uh_support_for_blank;上议院支持 $text$
 up_to;达到
 scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备金率 $text$
+stockpile_of;储备量 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
 add_war_goal;添加 $text$ 战争目标针对 $nation$
@@ -92,7 +92,7 @@ add_crisis_interest;对当前危机感兴趣
 crisis_temperature_plain;危机热度
 militancy;斗争性
 consciousness;觉醒度
-rgo_size;原料产地规模
+rgo_size;RGO规模
 trigger_every_revolt;引发所有叛乱
 call_allies;召集盟友进入当前战争
 truce_with;与$text$签订和约，持续到 ?Y$y$?!。
@@ -1082,7 +1082,7 @@ alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?
 explain_colonial_points;列强和次强会积累殖民点。
 alice_lobby_back;返回大厅
 alice_lobby_back_tt_1;你早就在他妈的大厅
-alice_lobby_back_tt_2;只有主机才能回大厅
+alice_lobby_back_tt_2;仅主机才能回大厅
 reopen_with_tab;你可用 ?YTAB?W 切回窗口
 alice_topbar_tab_1;开关标签
 alice_topbar_tab_2;开关人口标签
@@ -1157,9 +1157,9 @@ alice_tt_wg_infamy_limit;?R此战争目标会超过恶名限制?W
 alice_wg_usage_trigger;满足以下触发条件时才能使用：
 province_id;省份ID
 nation_tag;国家tag
-alice_rgo_trade_prod_1;原料产地农业产出：$x$（$y$）
-alice_rgo_trade_prod_2;原料产地矿业产出：$x$（$y$）
-alice_rgo_trade_prod_3;原料产地铸造产出：$x$（$y$）
+alice_rgo_trade_prod_1;RGO农业产出：$x$（$y$）
+alice_rgo_trade_prod_2;RGO矿业产出：$x$（$y$）
+alice_rgo_trade_prod_3;RGO铸造产出：$x$（$y$）
 alice_artisan_trade_prod;工匠产出：$x$（$y$）
 alice_factory_trade_prod;工厂产出：$x$（$y$）
 alice_all_trade_prod;总生产量：$x$
@@ -1268,7 +1268,7 @@ rgo_desired_profit;最小
 rgo_employment;当前
 rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;原料产地细节
+rgo_details_header;RGO细节
 rgo_employment_header;雇佣
 rgo_profits_header;利润
 route_origin;路线起点
@@ -1318,7 +1318,7 @@ alice_factory_type_viewer_priority_bonus;投入（乘积）：
 alice_commodity_tab;产品
 alice_factory_type_tab;工厂类型
 alice_player_date_sync;玩家 $name$（$country$），最后指令：$date$
-alice_only_host_speed;只有主机可改速度
+alice_only_host_speed;仅主机可改速度
 alice_host_date;主机日期：$date$
 alice_budget_gold;金矿
 alice_budget_construction;建设
@@ -1681,10 +1681,10 @@ national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
 open_details;细节
-rgo;产地
-province_prices;价格（全球占比 %）
-gdp_per_sector;国内生产总值
-gdp_share;GDP占比（%）
+rgo;RGO
+province_prices;全球溢价 %
+gdp_per_sector;GDP
+gdp_share;GDP溢价 %
 province_labor;劳工
 province_artisan;工匠
 gdp_rgo;初级产业：
@@ -1759,3 +1759,11 @@ trade_route_volume_final_change;变化预计：?Y$val$
 alice_production_name_sort_tip_province;?Y左击?W 以省份名称排序
 alice_production_name_sort_tip_state;?YShift+左击?W 以地区名称排序
 status_quo;维持现状
+alice_gamerules_btn_text;游戏规则
+alice_gamerules_change_chat_msg;主机将游戏规则 "$x$" 改到 "$y$"！
+alice_gamerules_nothost;仅主机可改游戏规则。
+alice_gamerule_allow_sphereling_declare_war_on_spherelord;势力圈 允许成员向领袖宣战
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;设置势力圈成员可对其领袖及盟友或其他成员宣战，也影响加入针对其领袖所在阵营的战争。
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no;否
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes;是
+gamerule_option_is;游戏规则 ?Y$x$?W 选项
