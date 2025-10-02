@@ -2536,6 +2536,23 @@ float factory_total_employment_score(sys::state const& state, dcon::factory_id f
 	return factory_total_employment (state, f) / state.world.factory_get_size(f);
 }
 
+
+
+float estimate_intermediate_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	auto artisans = estimate_artisan_consumption(state, c, p);
+	auto factories = estimate_factory_consumption(state, c, p);
+	// todo: rgo
+	return artisans + factories;
+}
+
+float estimate_production(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	auto artisans = artisan_output(state, c, p);
+	auto factories = factory_output(state, c, p);
+	auto rgo = rgo_output(state, c, p);
+
+	return artisans + factories + rgo;
+}
+
 namespace factory_operation {
 detailed_explanation explain_everything(sys::state const& state, dcon::factory_id f) {
 	detailed_explanation result{ };

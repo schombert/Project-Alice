@@ -49,6 +49,8 @@ constexpr inline uint32_t can_invest = expand_factory | build_factory;
 
 template<typename VALUE, typename POPS>
 VALUE inline investment_rate(const sys::state& state, POPS ids) {
+	using BOOL_VALUE = typename std::conditional_t<std::same_as<POPS, dcon::pop_id>, bool, ve::mask_vector>;
+
 	auto provs = state.world.pop_get_province_from_pop_location(ids);
 	auto states = state.world.province_get_state_membership(provs);
 	auto markets = state.world.state_instance_get_market_from_local_market(states);
@@ -70,22 +72,22 @@ VALUE inline investment_rate(const sys::state& state, POPS ids) {
 	auto invest_ratio_farmers = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::farmers_reinvestment);
 
 	auto investment_ratio =
-		ve::select(
+		adaptive_ve::select<BOOL_VALUE, VALUE>(
 			nation_allows_investment && capitalists_mask,
 			invest_ratio_capitalists + state.defines.alice_invest_capitalist,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			nation_allows_investment && landowners_mask,
 			invest_ratio_landowners + state.defines.alice_invest_aristocrat,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			nation_allows_investment && middle_class_investors_mask,
 			invest_ratio_middle_class + state.defines.alice_invest_middle_class,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			nation_allows_investment && farmers_mask,
 			invest_ratio_farmers + state.defines.alice_invest_farmer,
 			0.0f
@@ -100,6 +102,8 @@ VALUE inline investment_rate(const sys::state& state, POPS ids) {
 // They don't use banks for savings without modifier (from tech, from example).
 template<typename VALUE, typename POPS>
 VALUE inline bank_saving_rate(const sys::state& state, POPS ids) {
+	using BOOL_VALUE = typename std::conditional_t<std::same_as<POPS, dcon::pop_id>, bool, ve::mask_vector>;
+
 	auto provs = state.world.pop_get_province_from_pop_location(ids);
 	auto states = state.world.province_get_state_membership(provs);
 	auto markets = state.world.state_instance_get_market_from_local_market(states);
@@ -117,22 +121,22 @@ VALUE inline bank_saving_rate(const sys::state& state, POPS ids) {
 	auto bank_saving_ratio_farmers = state.world.nation_get_modifier_values(nations, sys::national_mod_offsets::farmers_savings);
 
 	auto bank_saving_ratio =
-		ve::select(
+		adaptive_ve::select<BOOL_VALUE, VALUE>(
 			capitalists_mask,
 			bank_saving_ratio_capitalists + state.defines.alice_save_capitalist,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			landowners_mask,
 			bank_saving_ratio_landowners + state.defines.alice_save_aristocrat,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			middle_class_investors_mask,
 			bank_saving_ratio_middle_class + state.defines.alice_save_middle_class,
 			0.0f
 		)
-		+ ve::select(
+		+ adaptive_ve::select<BOOL_VALUE, VALUE>(
 			farmers_mask,
 			bank_saving_ratio_farmers + state.defines.alice_save_farmer,
 			0.0f
@@ -178,7 +182,7 @@ auto inline prepare_pop_budget(
 	if constexpr(std::same_as<POPS, dcon::pop_id>) {
 		result.can_use_free_services = state.world.pop_get_is_primary_or_accepted_culture(ids) ? 1.f : 0.f;
 	} else {
-		result.can_use_free_services = ve::select(state.world.pop_get_is_primary_or_accepted_culture(ids), ve::fp_vector { 1.f }, ve::fp_vector { 0.f });
+		result.can_use_free_services = adaptive_ve::select<BOOL_VALUE, VALUE>(state.world.pop_get_is_primary_or_accepted_culture(ids), ve::fp_vector { 1.f }, ve::fp_vector { 0.f });
 	}
 
 	// we want to focus on life needs first if we are poor AND our satisfaction is low
@@ -208,7 +212,7 @@ auto inline prepare_pop_budget(
 	if constexpr(std::same_as<POPS, dcon::pop_id>) {
 		total_spending_ratio = total_spending_ratio < 1.f ? 1.f : total_spending_ratio;
 	} else {
-		total_spending_ratio = ve::select(total_spending_ratio < 1.f, ve::fp_vector{ 1.f }, total_spending_ratio);
+		total_spending_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(total_spending_ratio < 1.f, ve::fp_vector{ 1.f }, total_spending_ratio);
 	}
 
 	// normalize:
@@ -240,7 +244,7 @@ auto inline prepare_pop_budget(
 	VALUE old_life = pop_demographics::get_life_needs(state, ids);
 	VALUE subsistence = adjusted_subsistence_score<VALUE, decltype(provs)>(state, provs);
 	BOOL_VALUE rgo_worker = state.world.pop_type_get_is_paid_rgo_worker(pop_type);
-	subsistence = ve::select(rgo_worker, subsistence, 0.f);
+	subsistence = adaptive_ve::select<BOOL_VALUE, VALUE>(rgo_worker, subsistence, 0.f);
 	VALUE available_subsistence = adaptive_ve::min<VALUE>(subsistence_score_life, subsistence);
 	subsistence = subsistence - available_subsistence;
 	VALUE qol_from_subsistence = available_subsistence / subsistence_score_life;
@@ -252,7 +256,7 @@ auto inline prepare_pop_budget(
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_life_costs = result.life_needs.required == 0;
-	auto rich_but_life_needs_are_not_satisfied = ve::select(
+	auto rich_but_life_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_life_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
@@ -262,7 +266,7 @@ auto inline prepare_pop_budget(
 			)
 	);
 	result.life_needs.spent = adaptive_ve::min<VALUE>(spend_on_life_needs, result.life_needs.required * (1.f + rich_but_life_needs_are_not_satisfied));
-	result.life_needs.satisfied_with_money_ratio = ve::select(
+	result.life_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_life_costs,
 		10.f,
 		result.life_needs.spent
@@ -287,7 +291,7 @@ auto inline prepare_pop_budget(
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_everyday_costs = result.everyday_needs.required == 0;
-	auto rich_but_everyday_needs_are_not_satisfied = ve::select(
+	auto rich_but_everyday_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_everyday_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
@@ -297,7 +301,7 @@ auto inline prepare_pop_budget(
 		)
 	);
 	result.everyday_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_everyday_needs, result.everyday_needs.required * (1.f + rich_but_everyday_needs_are_not_satisfied)));
-	result.everyday_needs.satisfied_with_money_ratio = ve::select(
+	result.everyday_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_everyday_costs,
 		10.f,
 		result.everyday_needs.spent
@@ -322,7 +326,7 @@ auto inline prepare_pop_budget(
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor;
 	auto zero_luxury_costs = result.luxury_needs.required == 0;
-	auto rich_but_luxury_needs_are_not_satisfied = ve::select(
+	auto rich_but_luxury_needs_are_not_satisfied = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_luxury_costs,
 		1.f,
 		adaptive_ve::min<VALUE>
@@ -333,7 +337,7 @@ auto inline prepare_pop_budget(
 	);
 	result.luxury_needs.spent = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_luxury_needs, result.luxury_needs.required * (1.f + rich_but_luxury_needs_are_not_satisfied)));
 	result.luxury_needs.satisfied_for_free_ratio = 0.f;
-	result.luxury_needs.satisfied_with_money_ratio = ve::select(
+	result.luxury_needs.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		zero_luxury_costs,
 		10.f,
 		result.luxury_needs.spent
@@ -352,7 +356,7 @@ auto inline prepare_pop_budget(
 	result.education.demand_scale = literacy * literacy / 0.5f + 0.1f;
 	auto required_education = result.education.demand_scale * pop_size;
 	result.education.required = required_education * state.world.province_get_service_price(provs, services::list::education);
-	auto rich_but_uneducated = ve::select(
+	auto rich_but_uneducated = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		required_education == 0.f,
 		1.f,
 		adaptive_ve::min<VALUE>
@@ -365,10 +369,10 @@ auto inline prepare_pop_budget(
 
 	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education) / (1.f + rich_but_uneducated);
 	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);
-	ratio_of_free_education = ve::select(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
+	ratio_of_free_education = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
 	result.education.satisfied_for_free_ratio = ratio_of_free_education;
 	result.education.spent = supposed_to_spend * (1.f - ratio_of_free_education);
-	result.education.satisfied_with_money_ratio = ve::select(
+	result.education.satisfied_with_money_ratio = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		required_education == 0.f,
 		1.f,
 		result.education.spent
@@ -425,8 +429,8 @@ void update_income_artisans(sys::state& state);
 void update_income_national_subsidy(sys::state& state);
 void update_income_wages(sys::state& state);
 void update_income_trade(sys::state& state);
-
 }
 
+float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 
 }

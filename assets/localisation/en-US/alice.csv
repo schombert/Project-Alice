@@ -1762,3 +1762,11 @@ alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
 alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
 alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
 alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W
+label_gdp_capita_top;Top per 1k people
+label_gdp_top;Top GDP
+label_production_top;Top producers
+label_consumption_top;Top consumers
+consumption;Consumption
+import;Import
+export;Export
+gva;GVA
