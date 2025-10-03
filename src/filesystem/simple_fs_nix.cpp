@@ -680,8 +680,8 @@ std::u16string utf8_to_utf16(std::string_view str) {
 
 	char const* read_position = str.data();
 	auto end = read_position + str.length();
-	while(read_position < length) {
-		auto cp = simple_fs::linux_fs_detail::codepoint_from_utf8(char const*& read_position, char const* end);
+	while(read_position < end) {
+		auto cp = simple_fs::linux_fs_detail::codepoint_from_utf8(read_position, end);
 		if(simple_fs::linux_fs_detail::requires_surrogate_pair(cp)) {
 			auto p = make_surrogate_pair(cp);
 			result += char16_t(p.high);
