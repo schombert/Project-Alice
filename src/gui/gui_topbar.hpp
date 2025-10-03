@@ -6,7 +6,6 @@
 #include "gui_diplomacy_window.hpp"
 #include "gui_technology_window.hpp"
 #include "gui_politics_window.hpp"
-#include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"

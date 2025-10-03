@@ -27,6 +27,7 @@ struct trade_dashboard_main_close_t;
 struct trade_dashboard_main_select_self_t;
 struct trade_dashboard_main_icon_consumption_t;
 struct trade_dashboard_main_icon_production_t;
+struct trade_dashboard_main_old_window_t;
 struct trade_dashboard_main_t;
 struct trade_dashboard_province_row_consumption_flag_t;
 struct trade_dashboard_province_row_consumption_name_t;
@@ -809,6 +810,31 @@ struct trade_dashboard_main_icon_production_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct trade_dashboard_main_old_window_t : public ui::element_base {
+// BEGIN main::old_window::variables
+// END
+	std::string_view texture_key;
+	dcon::texture_id background_texture;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct trade_dashboard_main_commodity_list_t : public layout_generator {
 // BEGIN main::commodity_list::variables
 // END
@@ -1345,6 +1371,7 @@ struct trade_dashboard_nation_selector_name_t : public ui::element_base {
 struct trade_dashboard_main_t : public layout_window_element {
 // BEGIN main::variables
 	dcon::nation_id nation_pov;
+	ui::element_base * old_window_container;
 // END
 	std::unique_ptr<trade_dashboard_main_per_commodity_details_t> per_commodity_details;
 	std::unique_ptr<trade_dashboard_main_per_nation_details_t> per_nation_details;
@@ -1374,6 +1401,7 @@ struct trade_dashboard_main_t : public layout_window_element {
 	std::unique_ptr<trade_dashboard_main_select_self_t> select_self;
 	std::unique_ptr<trade_dashboard_main_icon_consumption_t> icon_consumption;
 	std::unique_ptr<trade_dashboard_main_icon_production_t> icon_production;
+	std::unique_ptr<trade_dashboard_main_old_window_t> old_window;
 	trade_dashboard_main_commodity_list_t commodity_list;
 	trade_dashboard_main_top_production_t top_production;
 	trade_dashboard_main_top_consumption_t top_consumption;
@@ -3362,6 +3390,30 @@ void trade_dashboard_main_icon_production_t::on_create(sys::state& state) noexce
 // BEGIN main::icon_production::create
 // END
 }
+ui::message_result trade_dashboard_main_old_window_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN main::old_window::lbutton_action
+	main.old_window_container->set_visible(state, !main.old_window_container->is_visible());
+	main.old_window_container->parent->move_child_to_front(main.old_window_container);
+// END
+	return ui::message_result::consumed;
+}
+ui::message_result trade_dashboard_main_old_window_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void trade_dashboard_main_old_window_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
+}
+void trade_dashboard_main_old_window_t::on_update(sys::state& state) noexcept {
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+// BEGIN main::old_window::update
+// END
+}
+void trade_dashboard_main_old_window_t::on_create(sys::state& state) noexcept {
+// BEGIN main::old_window::create
+// END
+}
 ui::message_result trade_dashboard_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -3516,6 +3568,9 @@ void trade_dashboard_main_t::create_layout_level(sys::state& state, layout_level
 				}
 				if(cname == "icon_production") {
 					temp.ptr = icon_production.get();
+				}
+				if(cname == "old_window") {
+					temp.ptr = old_window.get();
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3999,6 +4054,20 @@ void trade_dashboard_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		}
+		if(child_data.name == "old_window") {
+			old_window = std::make_unique<trade_dashboard_main_old_window_t>();
+			old_window->parent = this;
+			auto cptr = old_window.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 	commodity_list.on_create(state, this);
@@ -4012,6 +4081,18 @@ void trade_dashboard_main_t::on_create(sys::state& state) noexcept {
 	page_text_color = win_data.page_text_color;
 	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN main::create
+	auto it = state.ui_state.defs_by_name.find(state.lookup_key("alice_country_trade"));
+	if(it != state.ui_state.defs_by_name.end()) {
+		auto uptr = std::make_unique<ui::trade_window>();
+		uptr->parent = this;
+		auto cptr = uptr.get();
+		std::memcpy(&(cptr->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
+		make_size_from_graphics(state, cptr->base_data);
+		cptr->on_create(state);
+		cptr->set_visible(state, false);
+		old_window_container = cptr;
+		state.ui_state.root->add_child_to_back(std::move(uptr));
+	}
 // END
 }
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state) {
