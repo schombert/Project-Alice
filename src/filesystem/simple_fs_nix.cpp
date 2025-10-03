@@ -646,12 +646,12 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	std::string result;
 
 	while(pos < str.length()) {
-		if(linux_fs_detail::is_low_surrogate(uint16_t(str[pos]))) {
+		if(simple_fs::linux_fs_detail::is_low_surrogate(uint16_t(str[pos]))) {
 			//ignore
 		} else {
 			uint32_t codepoint = 0;
-			if(linux_fs_detail::is_high_surrogate(uint16_t(str[pos])) && pos + 1 < str.length()) {
-				codepoint = linux_fs_detail::assemble_codepoint(uint16_t(str[pos]), uint16_t(str[pos + 1]));
+			if(simple_fs::linux_fs_detail::is_high_surrogate(uint16_t(str[pos])) && pos + 1 < str.length()) {
+				codepoint = simple_fs::linux_fs_detail::assemble_codepoint(uint16_t(str[pos]), uint16_t(str[pos + 1]));
 			} else {
 				codepoint = uint32_t(str[pos]);
 			}
@@ -681,8 +681,8 @@ std::u16string utf8_to_utf16(std::string_view str) {
 	char const* read_position = str.data();
 	auto end = read_position + str.length();
 	while(read_position < length) {
-		auto cp = linux_fs_detail::codepoint_from_utf8(char const*& read_position, char const* end);
-		if(linux_fs_detail::requires_surrogate_pair(cp)) {
+		auto cp = simple_fs::linux_fs_detail::codepoint_from_utf8(char const*& read_position, char const* end);
+		if(simple_fs::linux_fs_detail::requires_surrogate_pair(cp)) {
 			auto p = make_surrogate_pair(cp);
 			result += char16_t(p.high);
 			result += char16_t(p.low);
