@@ -640,7 +640,6 @@ namespace linux_fs_detail {
 	}
 }
 
-}
 std::string utf16_to_utf8(std::u16string_view str) {
 	size_t pos = 0;
 	std::string result;
