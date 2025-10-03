@@ -1185,8 +1185,8 @@ alice_pnt_culture;?Y主体民族：?!$x$
 alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
-ledger_ppp_gdp;购买力平价GDP
-ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
+ledger_ppp_gdp;PPP
+ledger_ppp_gdp_per_capita;百万人平均PPP
 make_province_religion;省份人群变成 ?Y$text$?W
 make_pop_religion;变成 ?Y$text$?W
 make_pop_culture;变成 ?Y$text$?W
@@ -1340,8 +1340,8 @@ alice_budget_increase_button;值多10（shift+以精确控制）
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
-alice_budget_expand_tt;显示详情
-alice_budget_contract_tt;隐藏详情
+alice_budget_expand_tt;显示细节
+alice_budget_contract_tt;隐藏细节
 alice_budget_admin_eff1;行政
 alice_budget_admin_eff2;效率：
 alice_budget_chart_top;100%
@@ -1402,7 +1402,7 @@ alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
-alice_pop_show_details;详情
+alice_pop_show_details;细节
 alice_demographics_window_header;人口统计
 alice_demographics_size_header;规模
 alice_demographics_job_header;职业
@@ -1530,7 +1530,7 @@ alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;总价预计：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
 ledger_inflation_adjusted_gdp;GDP（通胀调整）
-ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+ledger_inflation_adjusted_gdp_per_capita;百万人平均GDP（通胀调整）
 province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
 province_victory_points_base;?G+1 基本分?W
 province_victory_points_nb;?G+$X$ 海军基地等级分数?W
@@ -1540,7 +1540,7 @@ province_victory_points_mainlandcore;?Gx2 非海外分数?W
 province_victory_points_capital;?Gx3 首都分数?W
 per_nation;每个国家
 labour_price;工资
-labour_price_10k;一万人平均工资
+labour_price_10k;万人平均工资
 supply_demand_ratio;供需比
 alice_labor_no_education;非熟练
 alice_labor_basic_education;熟练
@@ -1705,7 +1705,7 @@ median_price;全球均价
 ratio_to_median;%
 change_price;变化
 method_profit_margin;潜在利润率
-ratio_to_median_price;与均价比
+ratio_to_median_price;溢价
 move_to_siege;围攻（热键：V）
 move_to_siege_desc;军队仅在完全占领当前省份时才去下一省份。
 strategic_redeployment;战略部署（热键：B）
@@ -1767,3 +1767,11 @@ alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;设置势力圈�
 alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no;否
 alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes;是
 gamerule_option_is;游戏规则 ?Y$x$?W 选项
+label_gdp_capita_top;千人平均GDP
+label_gdp_top;各省GDP排行
+label_production_top;商品生产排行
+label_consumption_top;商品消费排行
+consumption;消费
+import;进口
+export;出口
+gva;总增值
