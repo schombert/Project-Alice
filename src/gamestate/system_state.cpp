@@ -150,7 +150,7 @@ void create_in_game_windows(sys::state& state) {
 		new_elm->base_data.position.y += 24; // nudge
 		new_elm->impl_on_update(state);
 		state.ui_state.tl_chat_list = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
+		state.ui_state.root->add_child_to_back(std::move(new_elm));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::outliner_window>(state, "outliner");
@@ -350,7 +350,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
-	ui_state.edit_target = nullptr;
+	ui_state.set_focus_target(*this, nullptr);
 	map_state.on_mbuttom_down(x, y, x_size, y_size, mod);
 }
 
@@ -382,10 +382,15 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.mouse_sensitive_target) {
 		auto mx = int32_t(x / user_settings.ui_scale);
 		auto my = int32_t(y / user_settings.ui_scale);
-		if(mx < ui_state.target_ul_bounds.x || mx > ui_state.target_lr_bounds.x || my < ui_state.target_ul_bounds.y || my > ui_state.target_lr_bounds.y) {
 
+		auto x_distance = std::max(std::max(ui_state.target_ul_bounds.x - mx, 0), std::max(mx - ui_state.target_lr_bounds.x, 0));
+		auto y_distance = std::max(std::max(ui_state.target_ul_bounds.y - my, 0), std::max(my - ui_state.target_lr_bounds.y, 0));
+		auto new_target_distance = std::max(x_distance, y_distance);
+		if(new_target_distance > ui_state.target_distance + 5) {
 			ui_state.mouse_sensitive_target->set_visible(*this, false);
 			ui_state.mouse_sensitive_target = nullptr;
+		} else {
+			ui_state.target_distance = std::min(ui_state.target_distance, new_target_distance);
 		}
 	}
 }
@@ -481,25 +486,25 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char32_t c) { // c is win1250 codepage value
-	if(ui_state.edit_target)
-		ui_state.edit_target->on_text(*this, c);
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->on_text(*this, c);
 }
-void state::on_temporary_text(std::string s) {
-	if(ui_state.edit_target)
-		ui_state.edit_target->set_temporary_text(*this, s);
+void state::on_temporary_text(std::u16string_view s) {
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->set_temporary_text(*this, s);
 }
 
 inline constexpr int32_t tooltip_width = 400;
 
 int state::get_edit_x() {
-	if (ui_state.edit_target) {
-		return ui::get_absolute_location(*this, *ui_state.edit_target).x;
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).x;
 	}
 	return 0;
 }
 int state::get_edit_y(){
-	if (ui_state.edit_target) {
-		return ui::get_absolute_location(*this, *ui_state.edit_target).y;
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).y;
 	}
 	return 0;
 }
@@ -1301,7 +1306,12 @@ void state::load_locale_strings(std::string_view locale_name) {
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
-		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+		// sort list of files so that it will read them in alphabetical order from A-Z, to conform with modding expactations.
+		auto loc_files = list_files(text_dir, NATIVE(".csv"));
+		std::sort(loc_files.begin(), loc_files.end(), [](const simple_fs::unopened_file& a, const simple_fs::unopened_file& b) {
+			return simple_fs::get_file_name(a) > simple_fs::get_file_name(b);
+		});
+		for(auto& file : loc_files) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				text::consume_csv_file(*this, content.data, content.file_size, column, false);
@@ -1983,6 +1993,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could be opened\n";
 		}
 	}
+
 	// read buildings.text
 	// world.factory_type_resize_construction_costs(world.commodity_size());
 	{
@@ -2157,6 +2168,29 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
+
+	// create the hardcoded gamerules
+	gamerule::load_hardcoded_gamerules(context);
+	// pre parse scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scan_gamerule_file(gen, err, context);
+		}
+		// some sanity checks
+		for(const auto& gamerule : context.state.world.in_gamerule) {
+			if(gamerule.get_settings_count() == uint8_t(0)) {
+				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
+			}
+		}
+
+	}
+
 	// gather names of poptypes
 	list_pop_types(*this, context);
 	// pre parse rebel_types.txt
@@ -2903,6 +2937,20 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	// load scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gamerule_file(gen, err, context);
+		}
+	}
+
+
 	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
 	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
 		auto pop_loc = context.state.world.pop_get_province_from_pop_location(pop_reb.first);
@@ -3375,6 +3423,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		if(f.get_size() > p.get_factory_max_size(f.get_building_type().get_output())) {
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
+		}
+	}
+	// apply effects from gamerule options which are on by default
+	for(const auto& gamerule : context.state.world.in_gamerule) {
+		if(gamerule.get_settings_count() > 0) {
+			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
+			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
 		}
 	}
 
@@ -3871,6 +3926,8 @@ void state::on_scenario_load() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	// reset ui gamerule settings to match the actual setting of the save
+	gamerule::restore_gamerule_ui_settings(*this);
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 

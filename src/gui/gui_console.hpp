@@ -14,9 +14,9 @@ protected:
 
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void edit_box_update(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
+	void edit_box_update(sys::state& state, std::u16string_view s) noexcept override;
+	void edit_box_tab(sys::state& state, std::u16string_view s) noexcept override;
+	void edit_box_enter(sys::state& state, std::u16string_view s) noexcept override;
 	void edit_box_esc(sys::state& state) noexcept override;
 	void edit_box_backtick(sys::state& state) noexcept override;
 	void edit_box_back_slash(sys::state& state) noexcept override;
@@ -129,10 +129,10 @@ public:
 
 	void on_visible(sys::state& state) noexcept override {
 		//console_output_list->scroll_to_bottom(state);
-		state.ui_state.edit_target = edit_box;
+		state.ui_state.set_focus_target(state, edit_box);
 	}
 	void on_hide(sys::state& state) noexcept override {
-		state.ui_state.edit_target = nullptr;
+		state.ui_state.set_focus_target(state, nullptr);
 	}
 };
 

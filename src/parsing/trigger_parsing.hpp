@@ -233,6 +233,37 @@ struct tr_check_variable {
 	void finish(trigger_building_context&) { }
 };
 
+
+struct tr_check_gamerule {
+	dcon::gamerule_id gr_id;
+	uint8_t option_id = 0;
+	std::string_view gamerule_name;
+	std::string_view option_name;
+	association_type a;
+	void finish(trigger_building_context& context) {
+
+	}
+	void gamerule(association_type, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		auto gamerule_it = context.outer_context.map_of_gamerules.find(std::string(value));
+		if(gamerule_it == context.outer_context.map_of_gamerules.end()) {
+			err.accumulated_errors += "Gamerule with name " + std::string(value) + " was referenced but dosen't exist (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		}
+		else {
+			gr_id = gamerule_it->second;
+		}
+
+	}
+	void option(association_type assoc, std::string_view value, error_handler& err, int32_t line, trigger_building_context& context) {
+		auto option_it = context.outer_context.map_of_gamerule_options.find(std::string(value));
+		if(option_it == context.outer_context.map_of_gamerule_options.end()) {
+			err.accumulated_errors += "Gamerule option with name " + std::string(value) + " was referenced but dosen't exist (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		} else {
+			option_id = option_it->second.option_id;
+		}
+		a = assoc;
+	}
+};
+
 struct tr_relation {
 	std::string_view who;
 	int32_t value_ = 0;
@@ -5571,6 +5602,11 @@ struct trigger_body {
 		context.add_float_to_payload(value.value_);
 		context.compiled_trigger.push_back(
 				trigger::payload(context.outer_context.get_national_variable(std::string(value.which))).value);
+	}
+	void check_gamerule(tr_check_gamerule const& value, error_handler& err, int32_t line, trigger_building_context& context) {
+		context.compiled_trigger.push_back(uint16_t(trigger::check_gamerule | association_to_bool_code(value.a)));
+		context.compiled_trigger.push_back(trigger::payload(value.gr_id).value);
+		context.compiled_trigger.push_back(uint16_t(value.option_id));
 	}
 	void upper_house(tr_upper_house const& value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(auto it = context.outer_context.map_of_ideologies.find(std::string(value.ideology));

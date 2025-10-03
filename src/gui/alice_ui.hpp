@@ -262,6 +262,7 @@ inline static bool sort_states = true;
 
 bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 
+std::unique_ptr<ui::element_base> make_gamerules_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);

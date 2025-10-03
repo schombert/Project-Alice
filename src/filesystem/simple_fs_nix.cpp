@@ -583,6 +583,117 @@ std::string native_to_utf8(native_string_view str) {
 	return std::string(str);
 }
 
+namespace linux_fs_detail {
+	uint32_t assemble_codepoint(uint16_t high, uint16_t low) noexcept {
+		uint32_t high_bits = (high & 0x03FF) << 10;
+		uint32_t low_bits = low & 0x03FF;
+		uint32_t temp = high_bits | low_bits;
+		return temp + 0x10000;
+	}
+	bool is_low_surrogate(uint16_t char_code) noexcept {
+		return char_code >= 0xDC00 && char_code <= 0xDFFF;
+	}
+	bool is_high_surrogate(uint16_t char_code) noexcept {
+		return char_code >= 0xD800 && char_code <= 0xDBFF;
+	}
+
+
+	uint32_t codepoint_from_utf8(char const*& read_position, char const* end) {
+
+		uint8_t byte1 = read_position < end ? uint8_t(*read_position) : uint8_t(0);
+		uint8_t byte2 = read_position + 1 < end ? uint8_t(*(read_position + 1)) : uint8_t(0);
+		uint8_t byte3 = read_position + 2 < end ? uint8_t(*(read_position + 2)) : uint8_t(0);
+		uint8_t byte4 = read_position + 3 < end ? uint8_t(*(read_position + 3)) : uint8_t(0);
+
+		if((byte1 & 0x80) == 0) {
+			read_position += 1;
+			return uint32_t(byte1);
+		} else if((byte1 & 0xE0) == 0xC0) {
+			read_position += 2;
+			return uint32_t(byte2 & 0x3F) | (uint32_t(byte1 & 0x1F) << 6);
+		} else  if((byte1 & 0xF0) == 0xE0) {
+			read_position += 3;
+			return uint32_t(byte3 & 0x3F) | (uint32_t(byte2 & 0x3F) << 6) | (uint32_t(byte1 & 0x0F) << 12);
+		} else if((byte1 & 0xF8) == 0xF0) {
+			read_position += 4;
+			return uint32_t(byte4 & 0x3F) | (uint32_t(byte3 & 0x3F) << 6) | (uint32_t(byte2 & 0x3F) << 12) | (uint32_t(byte1 & 0x07) << 18);
+		} else {
+			read_position += 1;
+			return 0;
+		}
+	}
+
+	bool requires_surrogate_pair(uint32_t codepoint) {
+		return codepoint >= 0x10000;
+	}
+
+	struct surrogate_pair {
+		uint16_t high = 0; // aka leading
+		uint16_t low = 0; // aka trailing
+	};
+
+	surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
+		uint32_t v = val - 0x10000;
+		uint32_t h = ((v >> 10) & 0x03FF) | 0xD800;
+		uint32_t l = (v & 0x03FF) | 0xDC00;
+		return surrogate_pair{ uint16_t(h), uint16_t(l) };
+	}
+}
+
+}
+std::string utf16_to_utf8(std::u16string_view str) {
+	size_t pos = 0;
+	std::string result;
+
+	while(pos < str.length()) {
+		if(linux_fs_detail::is_low_surrogate(uint16_t(str[pos]))) {
+			//ignore
+		} else {
+			uint32_t codepoint = 0;
+			if(linux_fs_detail::is_high_surrogate(uint16_t(str[pos])) && pos + 1 < str.length()) {
+				codepoint = linux_fs_detail::assemble_codepoint(uint16_t(str[pos]), uint16_t(str[pos + 1]));
+			} else {
+				codepoint = uint32_t(str[pos]);
+			}
+			if(codepoint <= 0x7F) {
+				result += char(codepoint);
+			} else if(codepoint <= 0x7FF) {
+				result += char(0b11000000 | ((codepoint >> 6) & 0b00011111));
+				result += char(0b10000000 | (codepoint & 0b00111111));
+			} else if(codepoint <= 0xFFFF) {
+				result += char(0b11100000 | ((codepoint >> 12) & 0b00001111));
+				result += char(0b10000000 | ((codepoint >> 6) & 0b00111111));
+				result += char(0b10000000 | (codepoint & 0b00111111));
+			} else {
+				result += char(0b11110000 | ((codepoint >> 18) & 0b00000111));
+				result += char(0b10000000 | ((codepoint >> 12) & 0b00111111));
+				result += char(0b10000000 | ((codepoint >> 6) & 0b00111111));
+				result += char(0b10000000 | (codepoint & 0b00111111));
+			}
+		}
+		++pos;
+	}
+	return result;
+}
+std::u16string utf8_to_utf16(std::string_view str) {
+	std::u16string result;
+
+	char const* read_position = str.data();
+	auto end = read_position + str.length();
+	while(read_position < length) {
+		auto cp = linux_fs_detail::codepoint_from_utf8(char const*& read_position, char const* end);
+		if(linux_fs_detail::requires_surrogate_pair(cp)) {
+			auto p = make_surrogate_pair(cp);
+			result += char16_t(p.high);
+			result += char16_t(p.low);
+		} else {
+			result += char16_t(cp);
+		}
+	}
+
+	return result;
+}
+
 std::string remove_double_backslashes(std::string_view data_in) {
 	std::string res;
 	res.reserve(data_in.size());

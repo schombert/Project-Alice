@@ -5738,6 +5738,12 @@ TRIGGER_FUNCTION(tf_party_position) {
 	}
 }
 
+TRIGGER_FUNCTION(tf_check_gamerule) {
+	dcon::gamerule_id gamerule = trigger::payload(tval[1]).gr_id;
+	uint8_t setting = uint8_t(tval[2]);
+	return compare_to_true(tval[0], gamerule::check_gamerule(ws, gamerule, setting));
+}
+
 template<typename return_type, typename primary_type, typename this_type, typename from_type>
 struct trigger_container {
 	constexpr static return_type(

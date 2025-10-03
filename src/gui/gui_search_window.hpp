@@ -12,8 +12,10 @@ namespace ui {
 
 class province_search_edit : public edit_box_element_base {
 public:
-	void edit_box_update(sys::state& state, std::string_view s) noexcept override {
-		send(state, parent, s);
+	void edit_box_update(sys::state& state, std::u16string_view s) noexcept override {
+		auto utf8_version = simple_fs::utf16_to_utf8(s);
+		std::string_view v{ utf8_version };
+		send(state, parent, v);
 	}
 };
 
@@ -121,7 +123,6 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		move_child_to_front(search_listbox);
-		state.ui_state.edit_target = edit_box;
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -152,11 +153,11 @@ public:
 	}
 
 	void on_visible(sys::state& state) noexcept override {
-		state.ui_state.edit_target = edit_box;
+		state.ui_state.set_focus_target(state, edit_box);
 	}
 
 	void on_hide(sys::state& state) noexcept override {
-		state.ui_state.edit_target = nullptr;
+		state.ui_state.set_focus_target(state, nullptr);
 	}
 };
 

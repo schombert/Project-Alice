@@ -90,8 +90,10 @@ native_string win1250_to_native(std::string_view data_in);
 
 // necessary for reading paths out of data from inside files we may create:
 // on linux, this just has to call the string constructor
-native_string utf8_to_native(std::string_view data_in);
+ native_string utf8_to_native(std::string_view data_in);
+std::string utf16_to_utf8(std::u16string_view data_in);
 std::string native_to_utf8(native_string_view data_in);
+std::u16string utf8_to_utf16(std::string_view data_in);
 
 std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
 native_string correct_slashes(native_string_view path);

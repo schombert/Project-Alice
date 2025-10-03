@@ -19,6 +19,11 @@ tr_check_variable
 	value            value           float              member_fn
 	which            value           text               member
 
+
+tr_check_gamerule
+	gamerule            value          text              member_fn
+	option            value           text               member_fn
+
 tr_relation
 	who              value           text               member
 	value            value           int                member_fn
@@ -240,6 +245,7 @@ trigger_body
 	has_national_minority      value       bool         member_fn
 	has_province_modifier      value       text         member_fn
 	has_recent_imigration      value       int          member_fn
+	has_national_focus                 value    text      member_fn
 	has_recent_immigration     value       bool         member_fn (has_recent_imigration)
 	has_recently_lost_war      value       bool         member_fn
 	recently_lost_war      value       bool         member_fn (has_recently_lost_war)
@@ -332,6 +338,7 @@ trigger_body
 	all_sphere_member            extern tr_scope_all_sphere_member      discard
 	all_pop                      extern tr_scope_all_pop                discard
 	all_greater_power            extern tr_scope_all_greater_power      discard
+	check_gamerule               group  tr_check_gamerule              member_fn
 	#any                         extern tr_scope_variable               discard
 
 stored_condition

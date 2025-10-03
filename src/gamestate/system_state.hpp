@@ -33,6 +33,7 @@
 #include "network.hpp"
 #include "fif.hpp"
 #include "immediate_mode.hpp"
+#include "gamerule.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -499,6 +500,7 @@ struct alignas(64) state {
 	military::global_military_state military_definitions;
 	nations::global_national_state national_definitions;
 	province::global_provincial_state province_definitions;
+	gamerule::hardcoded_gamerules hardcoded_gamerules;
 
 	absolute_time_point start_date;
 	absolute_time_point end_date;
@@ -733,7 +735,7 @@ struct alignas(64) state {
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
-	void on_temporary_text(std::string s);
+	void on_temporary_text(std::u16string_view s);
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
 	               // for vsync
 
