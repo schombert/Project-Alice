@@ -640,4 +640,126 @@ void update_income_wages(sys::state& state){
 }
 
 }
+
+float estimate_pop_demand_internal_life(
+	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	pops::vectorized_pops_budget<float>& budget,
+	float mult_per_strata[3], float need_weight, float invention_factor
+) {
+	auto pop_type = state.world.pop_get_poptype(pop);
+	auto strata = state.world.pop_type_get_strata(pop_type);
+	auto pop_size = state.world.pop_get_size(pop);
+	return budget.life_needs.demand_scale
+		* budget.life_needs.satisfied_with_money_ratio
+		* need_weight
+		* mult_per_strata[strata]
+		* state.defines.alice_lf_needs_scale
+		* state.world.pop_type_get_life_needs(pop_type, c)
+		* pop_size
+		/ state.defines.alice_needs_scaling_factor;
+}
+float estimate_pop_demand_internal_everyday(
+	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	pops::vectorized_pops_budget<float>& budget,
+	float mult_per_strata[3], float need_weight, float invention_factor
+) {
+	auto pop_type = state.world.pop_get_poptype(pop);
+	auto strata = state.world.pop_type_get_strata(pop_type);
+	auto pop_size = state.world.pop_get_size(pop);
+	return budget.everyday_needs.demand_scale
+		* budget.everyday_needs.satisfied_with_money_ratio
+		* need_weight
+		* mult_per_strata[strata]
+		* state.defines.alice_ev_needs_scale
+		* state.world.pop_type_get_everyday_needs(pop_type, c)
+		* pop_size
+		/ state.defines.alice_needs_scaling_factor
+		* invention_factor;
+}
+float estimate_pop_demand_internal_luxury(
+	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	pops::vectorized_pops_budget<float>& budget,
+	float mult_per_strata[3], float need_weight, float invention_factor
+) {
+	auto pop_type = state.world.pop_get_poptype(pop);
+	auto strata = state.world.pop_type_get_strata(pop_type);
+	auto pop_size = state.world.pop_get_size(pop);
+	return budget.luxury_needs.demand_scale
+		* budget.luxury_needs.satisfied_with_money_ratio
+		* need_weight
+		* mult_per_strata[strata]
+		* state.defines.alice_lx_needs_scale
+		* state.world.pop_type_get_luxury_needs(pop_type, c)
+		* pop_size
+		/ state.defines.alice_needs_scaling_factor
+		* invention_factor;
+}
+
+float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
+	auto zone = state.world.province_get_state_membership(p);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+
+	auto satisfaction = state.world.market_get_demand_satisfaction(market, c);
+
+	auto nation = state.world.province_get_nation_from_province_ownership(p);
+
+	auto weight_life = state.world.market_get_life_needs_weights(market, c);
+	auto weight_everyday = state.world.market_get_everyday_needs_weights(market, c);
+	auto weight_luxury = state.world.market_get_luxury_needs_weights(market, c);
+
+	float life_mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_life_needs) + 1.0f
+	};
+	float everyday_mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_everyday_needs) + 1.0f
+	};
+	float luxury_mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_luxury_needs) + 1.0f,
+	};
+
+	auto invention_count = 0.f;
+	state.world.for_each_invention([&](auto iid) {
+		invention_count += state.world.nation_get_active_inventions(nation, iid) ? 1.0f : 0.0f;
+	});
+	auto invention_factor = state.defines.invention_impact_on_demand * invention_count + 1.f;
+
+	float total = 0.f;
+	state.world.province_for_each_pop_location(p, [&](auto location) {
+		dcon::pop_id pop = state.world.pop_location_get_pop(location);
+
+		auto pop_type = state.world.pop_get_poptype(pop);
+		auto strata = state.world.pop_type_get_strata(pop_type);
+
+		pops::vectorized_pops_budget<float> budget = pops::prepare_pop_budget(state, pop);
+
+		auto consumption_life = estimate_pop_demand_internal_life(
+			state, c, pop, budget, life_mul, weight_life, invention_factor
+		);
+		auto consumption_everyday = estimate_pop_demand_internal_everyday(
+			state, c, pop, budget, everyday_mul, weight_everyday, invention_factor
+		);
+		auto consumption_luxury = estimate_pop_demand_internal_luxury(
+			state, c, pop, budget, luxury_mul, weight_luxury, invention_factor
+		);
+
+		total += consumption_life + consumption_everyday + consumption_luxury;
+	});
+
+	return total * satisfaction;
+}
 }
