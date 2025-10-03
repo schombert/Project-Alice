@@ -942,9 +942,9 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		auto base_color = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
 
 		auto alpha = window::cursor_blink_ms() > 0 ? (std::cos(float(ms_count % window::cursor_blink_ms()) /  float(window::cursor_blink_ms()) * 2.0f * 3.14159) + 1.0f) / 2.0f : 1.0f;
-		ogl::render_alpha_colored_rect(state, xpos, ypos, 1, lineheight, base_color.r, base_color.g, base_color.b, alpha);
+		ogl::render_alpha_colored_rect(state, xpos, ypos, 1, lineheight, base_color.r, base_color.g, base_color.b, float(alpha));
 		if(rtl)
-			ogl::render_alpha_colored_rect(state, xpos + 1, ypos - 1, 2, 1, base_color.r, base_color.g, base_color.b, alpha);
+			ogl::render_alpha_colored_rect(state, xpos + 1, ypos - 1, 2, 1, base_color.r, base_color.g, base_color.b, float(alpha));
 	}
 }
 
