@@ -15,7 +15,29 @@ void update_ai_campaign_strategy(sys::state& state) {
 				continue;
 			}
 
-			if(nation.get_is_great_power()) {
+			// If AI has more than half provinces bordering sea and little neighbours - it follows naval strategy. In vanilla - see UK and Portugal.
+			auto total_provinces_owned = 0.f;
+			auto core_provinces_owned = 0.f;
+			auto core_provinces_sea_access = 0.f;
+			auto neighbours = 0.f;
+			for(auto p : nation.get_province_ownership()) {
+				total_provinces_owned++;
+				if(p.get_province().get_is_colonial())
+					continue;
+				core_provinces_owned++;
+				if(p.get_province().get_is_coast())
+					core_provinces_sea_access++;
+			}
+			for(auto g : state.world.nation_get_nation_adjacency(nation)) {
+				neighbours++;
+			}
+
+			if(core_provinces_sea_access / core_provinces_owned > 0.5f && total_provinces_owned / neighbours >= 3.f) {
+				auto tagname = text::produce_simple_string(state, nation.get_identity_from_identity_holder().get_name());
+				nation.set_ai_strategy(ai_strategies::naval);
+			}
+			// If AI is a GP or has a lot of neighbours - it follows military strategy
+			else if(nation.get_is_great_power() || neighbours >= 4.f) {
 				nation.set_ai_strategy(ai_strategies::militant);
 			} else {
 				nation.set_ai_strategy(ai_strategies::industrious);
@@ -144,6 +166,10 @@ void update_ai_research(sys::state& state) {
 			if(state.world.nation_get_ai_strategy(n) == ai_strategies::militant && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::army) {
 				base *= 2.0f;
 			}
+			// AI countries with naval strategy pay higher attention to naval tech
+			if(state.world.nation_get_ai_strategy(n) == ai_strategies::naval && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::navy) {
+				base *= 2.0f;
+			}
 			if(state.world.nation_get_ai_strategy(n) == ai_strategies::industrious && state.culture_definitions.tech_folders[state.world.technology_get_folder_index(pt.id)].category == culture::tech_category::industry) {
 				base *= 2.0f;
 			}
@@ -176,11 +202,24 @@ void initialize_ai_tech_weights(sys::state& state) {
 		float base = 1000.0f;
 		if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::army)
 			base *= 3.0f;
+		if(t.get_increase_building(economy::province_building_type::fort))
+			base *= 0.5f;
 
 		if(t.get_increase_building(economy::province_building_type::naval_base))
-			base *= 4.5f;
+			base *= 1.5f;
 		else if(state.culture_definitions.tech_folders[t.get_folder_index()].category == culture::tech_category::navy)
 			base *= 0.9f;
+
+		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+			if(t.get_activate_unit(uid))
+				base *= 3.0f;
+		}
+
+		for(auto ft : state.world.in_factory_type) {
+			if(t.get_activate_building(ft))
+				base *= 2.5f;
+		}
 
 		auto mod = t.get_modifier();
 		auto& vals = mod.get_national_values();
@@ -202,13 +241,13 @@ void initialize_ai_tech_weights(sys::state& state) {
 			} else if(vals.offsets[i] == sys::national_mod_offsets::rgo_output) {
 				base *= 1.2f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_output) {
-				base *= 3.0f;
+				base *= 1.5f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_throughput) {
-				base *= 5.0f;
+				base *= 3.0f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::factory_input) {
-				base *= 3.0f;
+				base *= 1.5f;
 			} else if(vals.offsets[i] == sys::national_mod_offsets::tax_efficiency) {
-				base *= 3.0f;
+				base *= 2.5f;
 			}
 		}
 
