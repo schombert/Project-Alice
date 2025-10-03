@@ -567,10 +567,28 @@ native_string utf8_to_native(std::string_view str) {
 	return native_string(NATIVE(""));
 }
 
+std::u16string utf8_to_utf16(std::string_view str) {
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
+		auto chars_written = MultiByteToWideChar(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
+		return std::u16string((char16_t*)(buffer.get()), size_t(chars_written));
+	}
+	return std::u16string(u"");
+}
+
 std::string native_to_utf8(native_string_view str) {
 	if(str.size() > 0) {
 		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
 		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
+		return std::string(buffer.get(), size_t(chars_written));
+	}
+	return std::string("");
+}
+
+std::string utf16_to_utf8(std::u16string_view str) {
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
+		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(str.data()), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
 		return std::string(buffer.get(), size_t(chars_written));
 	}
 	return std::string("");

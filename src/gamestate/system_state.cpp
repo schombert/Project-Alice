@@ -350,7 +350,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
-	ui_state.edit_target = nullptr;
+	ui_state.set_focus_target(*this, nullptr);
 	map_state.on_mbuttom_down(x, y, x_size, y_size, mod);
 }
 
@@ -486,25 +486,25 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char32_t c) { // c is win1250 codepage value
-	if(ui_state.edit_target)
-		ui_state.edit_target->on_text(*this, c);
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->on_text(*this, c);
 }
-void state::on_temporary_text(native_string_view s) {
-	if(ui_state.edit_target)
-		ui_state.edit_target->set_temporary_text(*this, s);
+void state::on_temporary_text(std::u16string_view s) {
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->set_temporary_text(*this, s);
 }
 
 inline constexpr int32_t tooltip_width = 400;
 
 int state::get_edit_x() {
-	if (ui_state.edit_target) {
-		return ui::get_absolute_location(*this, *ui_state.edit_target).x;
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).x;
 	}
 	return 0;
 }
 int state::get_edit_y(){
-	if (ui_state.edit_target) {
-		return ui::get_absolute_location(*this, *ui_state.edit_target).y;
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).y;
 	}
 	return 0;
 }

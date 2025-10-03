@@ -843,6 +843,7 @@ struct layout_base {
 	layout& base_layout;
 	layout_parameters fixed_parameters;
 	rtl_status native_rtl = rtl_status::ltr;
+	layout_details* edit_details = nullptr;
 
 	layout_base(layout& base_layout, layout_parameters const& fixed_parameters, rtl_status native_rtl)
 			: base_layout(base_layout), fixed_parameters(fixed_parameters), native_rtl(native_rtl) {
@@ -902,9 +903,7 @@ struct single_line_layout : public layout_base {
 	}
 
 	void add_text(sys::state& state, std::string_view v);
-#ifdef _WIN64
-	void add_text(sys::state& state, native_string_view v);
-#endif
+	void add_text(sys::state& state, std::u16string_view v);
 	void add_text(sys::state& state, dcon::text_key source_text);
 };
 

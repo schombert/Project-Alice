@@ -404,18 +404,18 @@ public:
 	}
 };
 
-class native_text_element_base : public element_base {
+class u16_text_element_base : public element_base {
 protected:
-	native_string cached_text;
+	std::u16string cached_text;
 	text::layout internal_layout;
 public:
 	bool black_text = true;
 
-	void set_text(sys::state& state, native_string const& new_text);
+	void set_text(sys::state& state, std::u16string const& new_text);
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void format_text(sys::state& state);
 
-	native_string_view get_text(sys::state& state) const {
+	std::u16string_view get_text(sys::state& state) const {
 		return cached_text;
 	}
 
@@ -440,14 +440,18 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 };
 
-class edit_box_element_base : public native_text_element_base {
+class edit_box_element_base : public u16_text_element_base {
 protected:
 	int32_t edit_index = 0;
-
+	text::layout_details glyph_details;
+	bool multiline = false;
+	std::chrono::time_point<std::chrono::steady_clock> activation_time;
 public:
-	virtual void edit_box_tab(sys::state& state, native_string_view s) noexcept { }
-	virtual void edit_box_enter(sys::state& state, native_string_view s) noexcept { }
-	virtual void edit_box_update(sys::state& state, native_string_view s) noexcept { }
+	void set_text(sys::state& state, std::u16string const& new_text);
+
+	virtual void edit_box_tab(sys::state& state, std::u16string_view s) noexcept { }
+	virtual void edit_box_enter(sys::state& state, std::u16string_view s) noexcept { }
+	virtual void edit_box_update(sys::state& state, std::u16string_view s) noexcept { }
 	virtual void edit_box_up(sys::state& state) noexcept { }
 	virtual void edit_box_down(sys::state& state) noexcept { }
 	virtual void edit_box_esc(sys::state& state) noexcept { }
@@ -459,10 +463,10 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
-	native_string cached_temporary_text;
+	std::u16string cached_temporary_text;
 	text::layout temporary_layout;
 
-	void set_temporary_text(sys::state& state, native_string_view new_text) noexcept override;
+	void set_temporary_text(sys::state& state, std::u16string_view new_text) noexcept override;
 
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
@@ -471,6 +475,8 @@ public:
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char32_t ch) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	focus_result on_get_focus(sys::state& state) noexcept override;
+	void on_lose_focus(sys::state& state) noexcept override;
 };
 
 class tool_tip : public element_base {

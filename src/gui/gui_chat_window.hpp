@@ -277,8 +277,8 @@ public:
 		base_data.data.text.border_size.y += 8;
 	}
 
-	void edit_box_enter(sys::state& state, native_string_view s_in) noexcept override {
-		auto str = simple_fs::native_to_utf8(s_in);
+	void edit_box_enter(sys::state& state, std::u16string_view s_in) noexcept override {
+		auto str = simple_fs::utf16_to_utf8(s_in);
 		auto s = parsers::remove_surrounding_whitespace(str);
 		if(s.empty())
 			return;
@@ -303,7 +303,7 @@ public:
 		impl_get(state, payload);
 	}
 
-	void edit_box_tab(sys::state& state, native_string_view s) noexcept override;
+	void edit_box_tab(sys::state& state, std::u16string_view s) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -435,17 +435,20 @@ public:
 			return message_result::unseen;
 		}
 	}
+	void on_hide(sys::state& state) noexcept override {
+		state.ui_state.set_focus_target(state, nullptr);
+	}
 };
 
 inline void open_chat_before_game(sys::state& state) {
 	state.ui_state.r_chat_window->set_visible(state, !state.ui_state.r_chat_window->is_visible());
-	state.ui_state.edit_target = static_cast<ui::chat_window*>(state.ui_state.r_chat_window)->chat_edit;
+	state.ui_state.set_focus_target(state, static_cast<ui::chat_window*>(state.ui_state.r_chat_window)->chat_edit);
 	state.ui_state.root->move_child_to_front(state.ui_state.r_chat_window);
 }
 
 inline void open_chat_during_game(sys::state& state) {
 	state.ui_state.chat_window->set_visible(state, !state.ui_state.chat_window->is_visible());
-	state.ui_state.edit_target = static_cast<ui::chat_window*>(state.ui_state.chat_window)->chat_edit;
+	state.ui_state.set_focus_target(state, static_cast<ui::chat_window*>(state.ui_state.r_chat_window)->chat_edit);
 	state.ui_state.root->move_child_to_front(state.ui_state.chat_window);
 }
 
@@ -453,7 +456,7 @@ inline void open_chat_window(sys::state& state) {
 	state.current_scene.open_chat(state);
 }
 
-inline void chat_edit_box::edit_box_tab(sys::state& state, native_string_view s) noexcept {
+inline void chat_edit_box::edit_box_tab(sys::state& state, std::u16string_view s) noexcept {
 	ui::open_chat_window(state); //close/open like if tab was pressed!
 }
 

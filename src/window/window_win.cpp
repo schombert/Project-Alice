@@ -285,7 +285,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
 	case WM_CHAR: {
-		if(state->ui_state.edit_target) {
+		if(state->ui_state.edit_target_internal) {
 			state->on_text(char32_t(wParam));
 		}
 		return 0;
@@ -410,7 +410,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			if(msg.message == WM_QUIT) {
 				break;
 			}
-			if(game_state.ui_state.edit_target)
+			if(game_state.ui_state.edit_target_internal)
 				TranslateMessage(&msg);
 			DispatchMessageW(&msg);
 		} else {
@@ -497,6 +497,15 @@ void change_cursor(sys::state& state, cursor_type type) {
 	}
 	SetCursor(state.win_ptr->cursors[uint8_t(type)]);
 	SetClassLongPtr(state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(state.win_ptr->cursors[uint8_t(type)]));
+}
+
+int32_t cursor_blink_ms() {
+	static int32_t ms = []() {auto t = GetCaretBlinkTime(); return t == INFINITE ? 0 : t * 2; }();
+	return ms;
+}
+int32_t double_click_ms() {
+	static int32_t ms = GetDoubleClickTime();
+	return ms;
 }
 
 void emit_error_message(std::string const& content, bool fatal) {

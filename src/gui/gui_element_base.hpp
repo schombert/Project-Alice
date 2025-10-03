@@ -80,6 +80,10 @@ public:
 
 	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
 	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
+	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
+		return focus_result::ignored;
+	}
+	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
@@ -103,16 +107,12 @@ protected:
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
 
-	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
-		return focus_result::ignored;
-	}
-	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 
 public:
-	virtual void set_temporary_text(sys::state& state, native_string_view s) noexcept { }
+	virtual void set_temporary_text(sys::state& state, std::u16string_view s) noexcept { }
 	// these commands are meaningful only if the element has children
 	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
 		return std::unique_ptr<element_base>{};
@@ -138,7 +138,7 @@ public:
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
 	friend void sys::state::on_text(char32_t c);
-	friend void sys::state::on_temporary_text(native_string_view s);
+	friend void sys::state::on_temporary_text(std::u16string_view s);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);

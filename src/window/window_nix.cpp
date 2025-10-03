@@ -6,6 +6,13 @@
 
 namespace window {
 
+int32_t cursor_blink_ms() {
+	return 1000;
+}
+int32_t double_click_ms() {
+	return 500;
+}
+
 static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key = {{GLFW_KEY_UNKNOWN, sys::virtual_key::NONE},
 		{GLFW_KEY_SPACE, sys::virtual_key::SPACE}, {GLFW_KEY_APOSTROPHE, sys::virtual_key::QUOTE},
 		{GLFW_KEY_COMMA, sys::virtual_key::COMMA}, {GLFW_KEY_EQUAL, sys::virtual_key::PLUS},

@@ -448,7 +448,7 @@ struct state {
 	bool lazy_load_in_game = false;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
-	element_base* edit_target = nullptr;
+	element_base* edit_target_internal = nullptr;
 	element_base* last_tooltip = nullptr;
 	element_base* mouse_sensitive_target = nullptr;
 	xy_pair target_ul_bounds = xy_pair{ 0, 0 };
@@ -561,6 +561,7 @@ struct state {
 	float last_tick_investment_pool_change;
 
 	void set_mouse_sensitive_target(sys::state& state, element_base* target);
+	void set_focus_target(sys::state& state, element_base* target);
 	state();
 	~state();
 };
