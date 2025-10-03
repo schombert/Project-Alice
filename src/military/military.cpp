@@ -1039,9 +1039,9 @@ template<regiment_dmg_source damage_source>
 float get_war_exhaustion_from_land_losses(sys::state& state, float strength_losses, dcon::nation_id controller) {
 	switch(damage_source) {
 		case regiment_dmg_source::combat:
-			return state.defines.combatloss_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller) + 1);
+			return state.defines.combatloss_war_exhaustion * strength_losses / std::max(1.0f, float(state.world.nation_get_recruitable_regiments(controller)));
 		case regiment_dmg_source::attrition:
-			return state.defines.alice_attrition_war_exhaustion * strength_losses / float(state.world.nation_get_recruitable_regiments(controller) + 1);
+			return state.defines.alice_attrition_war_exhaustion * strength_losses / std::max(1.0f, float(state.world.nation_get_recruitable_regiments(controller)));
 		default:
 			assert(false);
 			std::abort();

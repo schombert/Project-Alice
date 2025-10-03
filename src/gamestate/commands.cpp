@@ -49,6 +49,13 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	case command_type::notify_stop_game:
 		// Notifications can be sent because it's an-always do thing
 		break;
+	case command_type::change_game_rule_setting:
+	    // changing game rule can not happen whilst the game is in progress
+		if(state.current_scene.game_in_progress || network::check_any_players_loading(state))
+			return;
+		state.network_state.is_new_game = false;
+		break;
+
 	default:
 		// Normal commands are discarded iff we are not in the game, or if any other client is loading
 		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
@@ -5552,6 +5559,42 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::pla
 	// TODO: bans, kicks, mutes?
 	return true;
 }
+
+bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings && !gamerule::check_gamerule(state, gamerule, new_setting);
+}
+
+void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	gamerule::set_gamerule(state, gamerule, new_setting);
+	auto sub = text::substitution_map{ };
+	text::add_to_substitution_map(sub, text::variable_type::x, state.world.gamerule_get_name(gamerule));
+	auto setting_name = state.world.gamerule_get_options(gamerule)[new_setting].name;
+	text::add_to_substitution_map(sub, text::variable_type::y, setting_name);
+	auto str = text::resolve_string_substitution(state, "alice_gamerules_change_chat_msg", sub);
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		execute_chat_message(state, state.local_player_nation, str, dcon::nation_id{ }, state.network_state.nickname);
+	}
+	else {
+		auto host = network::get_host_player(state);
+		auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
+		auto host_name = sys::player_name{ state.world.mp_player_get_nickname(host) };
+		execute_chat_message(state, host_nation, str, dcon::nation_id{ }, host_name);
+	}
+	
+}
+
+void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	payload p;
+	memset(&p, 0, sizeof(payload));
+	p.source = source;
+	p.type = command_type::change_game_rule_setting;
+	p.data.change_gamerule_setting.setting = new_setting;
+	p.data.change_gamerule_setting.gamerule = gamerule;
+	add_to_command_queue(state, p);
+
+}
+
+
 void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password, bool needs_loading) {
 #ifndef NDEBUG
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
@@ -6450,6 +6493,8 @@ bool can_perform_command(sys::state& state, payload& c) {
 		return can_command_units(state, c.source, c.data.command_units.target);
 	case command_type::give_back_units:
 		return can_give_back_units(state, c.source, c.data.command_units.target);
+	case command_type::change_game_rule_setting:
+		return can_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
 	}
 	return false;
 }
@@ -6868,6 +6913,9 @@ bool execute_command(sys::state& state, payload& c) {
 		break;
 	case command_type::give_back_units:
 		execute_give_back_units(state, c.source, c.data.command_units.target);
+		break;
+	case command_type::change_game_rule_setting:
+		execute_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
 		break;
 	}
 	return true;
