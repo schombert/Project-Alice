@@ -404,7 +404,7 @@ struct trade_volume_data_detailed {
 	nation_enriched_float targets[5];
 };
 
-trade_volume_data_detailed export_volume_detailed(
+std::array<trade_volume_data_detailed, 2> export_import_volume_detailed(
 	sys::state& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
@@ -497,11 +497,6 @@ float import_volume(
 	dcon::commodity_id c
 );
 float import_volume(
-	sys::state& state,
-	dcon::nation_id s,
-	dcon::commodity_id c
-);
-trade_volume_data_detailed import_volume_detailed(
 	sys::state& state,
 	dcon::nation_id s,
 	dcon::commodity_id c
