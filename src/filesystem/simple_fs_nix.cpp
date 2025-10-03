@@ -683,7 +683,7 @@ std::u16string utf8_to_utf16(std::string_view str) {
 	while(read_position < end) {
 		auto cp = simple_fs::linux_fs_detail::codepoint_from_utf8(read_position, end);
 		if(simple_fs::linux_fs_detail::requires_surrogate_pair(cp)) {
-			auto p = make_surrogate_pair(cp);
+			auto p = simple_fs::linux_fs_detail::make_surrogate_pair(cp);
 			result += char16_t(p.high);
 			result += char16_t(p.low);
 		} else {
