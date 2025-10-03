@@ -1762,3 +1762,19 @@ alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
 alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
 alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
 alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W
+alice_gamerules_btn_text;Game Rules
+alice_gamerules_change_chat_msg;Host has changed gamerule "$x$" to "$y$"!
+alice_gamerules_nothost;Only the host may change gamerules!
+alice_gamerule_allow_sphereling_declare_war_on_spherelord;Allow spherelings to declare war on spherelord
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;Specifies whether spherelings are allowed to declare on their spherelord,or any nation allied to, or in the same sphere as the spherelord. Also affects joining wars against the side the spherelord is on
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no;No
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes;Yes
+gamerule_option_is;Gamerule ?Y$x$?W option
+label_gdp_capita_top;Top per 1k people
+label_gdp_top;Top GDP
+label_production_top;Top producers
+label_consumption_top;Top consumers
+consumption;Consumption
+import;Import
+export;Export
+gva;GVA

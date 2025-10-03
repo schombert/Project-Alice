@@ -226,7 +226,7 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "where"));
 		text::close_layout_box(layout, box);
 		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index() + 1], primary_slot,
-			this_slot, from_slot, indentation + 2 * indentation_amount, primary_slot != -1);
+			this_slot, from_slot, indentation + 2 * indentation_amount, primary_slot != -1, false);
 	}
 }
 
@@ -7333,7 +7333,7 @@ ef_religion_province, // 0x01BA
 ef_religion_pop, //0x01BB
 ef_reduce_pop_abs, //0x01BC
 ef_set_culture_pop, // 0x01BD
-ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3) 
+ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3)
 ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2)
 ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
 ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)

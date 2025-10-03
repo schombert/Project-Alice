@@ -782,7 +782,7 @@ struct int_wholenum {
 	int32_t value = 0;
 };
 enum class embedded_icon : uint8_t {
-	check, xmark, army, navy
+	check, xmark, check_desaturated, xmark_desaturated, army, navy
 };
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
@@ -843,6 +843,7 @@ struct layout_base {
 	layout& base_layout;
 	layout_parameters fixed_parameters;
 	rtl_status native_rtl = rtl_status::ltr;
+	layout_details* edit_details = nullptr;
 
 	layout_base(layout& base_layout, layout_parameters const& fixed_parameters, rtl_status native_rtl)
 			: base_layout(base_layout), fixed_parameters(fixed_parameters), native_rtl(native_rtl) {
@@ -902,6 +903,7 @@ struct single_line_layout : public layout_base {
 	}
 
 	void add_text(sys::state& state, std::string_view v);
+	void add_text(sys::state& state, std::u16string_view v);
 	void add_text(sys::state& state, dcon::text_key source_text);
 };
 
@@ -986,6 +988,7 @@ inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_i
 }
 
 std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid);
+std::string get_commodity_text_icon(sys::state& state, dcon::commodity_id cid);
 
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
 		substitution_map const& sub = substitution_map{});

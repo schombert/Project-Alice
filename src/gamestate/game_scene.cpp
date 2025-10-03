@@ -246,12 +246,15 @@ void ui_rbutton(sys::state& state, sys::key_modifiers mod) {
 	);
 }
 void ui_lbutton(sys::state& state, sys::key_modifiers mod) {
-	state.ui_state.under_mouse->impl_on_lbutton_down(
+	auto result = state.ui_state.under_mouse->impl_on_lbutton_down(
 		state,
 		state.ui_state.relative_mouse_location.x,
 		state.ui_state.relative_mouse_location.y,
 		mod
 	);
+	if(result != ui::message_result::unseen) {
+		state.ui_state.set_focus_target(state, state.ui_state.under_mouse);
+	}
 	state.ui_state.left_mouse_hold_target = state.ui_state.under_mouse;
 }
 
@@ -299,7 +302,7 @@ void handle_lbutton_down_map_interaction(sys::state& state, int32_t x, int32_t y
 
 void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	// Lose focus on text
-	state.ui_state.edit_target = nullptr;
+	state.ui_state.set_focus_target(state, nullptr);
 
 	if(state.iui_state.over_ui) {
 		return;
@@ -318,7 +321,6 @@ void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 
 void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	// Lose focus on text
-	state.ui_state.edit_target = nullptr;
 
 	if(state.iui_state.over_ui) {
 		return;
@@ -329,6 +331,7 @@ void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 		return;
 	}
 
+	state.ui_state.set_focus_target(state, nullptr);
 	handle_lbutton_down_map_interaction(state, x, y, mod);
 }
 
@@ -519,7 +522,7 @@ void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers m
 
 sys::virtual_key replace_keycodes_map_movement(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	//Emulating autohotkey
-	if(!state.ui_state.edit_target && state.user_settings.wasd_for_map_movement) {
+	if(!state.ui_state.edit_target_internal && state.user_settings.wasd_for_map_movement) {
 		if(keycode == sys::virtual_key::W)
 			return sys::virtual_key::UP;
 		else if(keycode == sys::virtual_key::A)
@@ -743,8 +746,8 @@ void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_mo
 
 void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	keycode = replace_keycodes(state, keycode, mod);
-	if(state.ui_state.edit_target) {
-		state.ui_state.edit_target->impl_on_key_down(state, keycode, mod);
+	if(state.ui_state.edit_target_internal) {
+		state.ui_state.edit_target_internal->impl_on_key_down(state, keycode, mod);
 	} else {
 		state.current_scene.handle_hotkeys(state, keycode, mod);
 	}
@@ -805,7 +808,7 @@ void render_ui_selection_screen(sys::state& state) {
 void render_ui_ingame(sys::state& state) {
 	state.iui_state.frame_start(state);
 	if(state.ui_state.tl_chat_list) {
-		state.ui_state.root->move_child_to_front(state.ui_state.tl_chat_list);
+		state.ui_state.root->move_child_to_back(state.ui_state.tl_chat_list);
 	}
 	if(state.map_state.get_zoom() > map::zoom_close) {
 		glEnable(GL_BLEND);

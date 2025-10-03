@@ -69,6 +69,8 @@ enum class cursor_type : uint8_t {
 void change_cursor(sys::state& state, cursor_type type);
 
 void get_window_size(sys::state const& game_state, int& width, int& height);
+int32_t cursor_blink_ms();
+int32_t double_click_ms();
 
 void emit_error_message(std::string const& content, bool fatal); // also terminates the program if fatal
 } // namespace window

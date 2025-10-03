@@ -154,6 +154,9 @@ float font_manager::line_height(sys::state& state, uint16_t font_id) {
 	}
 	return float(get_font(state, text::font_index_from_font_id(state, font_id)).line_height(text::size_from_font_id(font_id)));
 }
+float font_manager::scaling_factor(sys::state& state, uint16_t font_id) {
+	return float(get_font(state, text::font_index_from_font_id(state, font_id)).font_scaling_factor(text::size_from_font_id(font_id)));
+}
 
 font_manager::font_manager() {
 	FT_Init_FreeType(&ft_library);
@@ -402,20 +405,54 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 		state.load_locale_strings(fb_name_sv);
 	}
 
-	UErrorCode errorCode = U_ZERO_ERROR;
-	UBreakIterator* lb_it = ubrk_open(UBreakIteratorType::UBRK_LINE, lang_str.c_str(), nullptr, 0, &errorCode);
-	if(!lb_it || !U_SUCCESS(errorCode)) {
-		std::abort(); // couldn't create iterator
-	}
-	auto rule_size = ubrk_getBinaryRules(lb_it, nullptr, 0, &errorCode);
-	if(rule_size == 0 || !U_SUCCESS(errorCode)) {
-		std::abort(); // couldn't get_rules
-	}
-	
-	state.font_collection.compiled_ubrk_rules.resize(uint32_t(rule_size));
-	ubrk_getBinaryRules(lb_it, state.font_collection.compiled_ubrk_rules.data(), rule_size, &errorCode);
+	{
+		UErrorCode errorCode = U_ZERO_ERROR;
+		UBreakIterator* lb_it = ubrk_open(UBreakIteratorType::UBRK_LINE, lang_str.c_str(), nullptr, 0, &errorCode);
+		if(!lb_it || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't create iterator
+		}
+		auto rule_size = ubrk_getBinaryRules(lb_it, nullptr, 0, &errorCode);
+		if(rule_size == 0 || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't get_rules
+		}
 
-	ubrk_close(lb_it);
+		state.font_collection.compiled_ubrk_rules.resize(uint32_t(rule_size));
+		ubrk_getBinaryRules(lb_it, state.font_collection.compiled_ubrk_rules.data(), rule_size, &errorCode);
+
+		ubrk_close(lb_it);
+	}
+	{
+		UErrorCode errorCode = U_ZERO_ERROR;
+		UBreakIterator* ch_it = ubrk_open(UBreakIteratorType::UBRK_CHARACTER, lang_str.c_str(), nullptr, 0, &errorCode);
+		if(!ch_it || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't create iterator
+		}
+		auto rule_size = ubrk_getBinaryRules(ch_it, nullptr, 0, &errorCode);
+		if(rule_size == 0 || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't get_rules
+		}
+
+		state.font_collection.compiled_char_ubrk_rules.resize(uint32_t(rule_size));
+		ubrk_getBinaryRules(ch_it, state.font_collection.compiled_char_ubrk_rules.data(), rule_size, &errorCode);
+
+		ubrk_close(ch_it);
+	}
+	{
+		UErrorCode errorCode = U_ZERO_ERROR;
+		UBreakIterator* ch_it = ubrk_open(UBreakIteratorType::UBRK_WORD, lang_str.c_str(), nullptr, 0, &errorCode);
+		if(!ch_it || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't create iterator
+		}
+		auto rule_size = ubrk_getBinaryRules(ch_it, nullptr, 0, &errorCode);
+		if(rule_size == 0 || !U_SUCCESS(errorCode)) {
+			std::abort(); // couldn't get_rules
+		}
+
+		state.font_collection.compiled_word_ubrk_rules.resize(uint32_t(rule_size));
+		ubrk_getBinaryRules(ch_it, state.font_collection.compiled_word_ubrk_rules.data(), rule_size, &errorCode);
+
+		ubrk_close(ch_it);
+	}
 
 	state.load_locale_strings(localename_sv);
 }
@@ -451,6 +488,9 @@ void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_siz
 	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
 }
 
+float font::font_scaling_factor(int32_t size) const {
+	return float(size) / float(64 * (1 << 6) * magnification_factor);
+}
 float font::line_height(int32_t size) const {
 	return internal_line_height * size / 64.0f;
 }
@@ -562,8 +602,8 @@ stored_glyphs::stored_glyphs(std::string const& s, font& f) {
 	f.remake_cache(*this, s);
 }
 
-stored_glyphs::stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s) {
-	state.font_collection.get_font(state, type).remake_cache(state, type, *this, s);
+stored_glyphs::stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d) {
+	state.font_collection.get_font(state, type).remake_cache(state, type, *this, s, details_offset, d);
 }
 stored_glyphs::stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi) {
 	state.font_collection.get_font(state, type).remake_bidiless_cache(state, type, *this, s);
@@ -578,7 +618,7 @@ stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t cou
 	std::copy_n(other.glyph_info.data() + offset, count, glyph_info.data());
 }
 
-void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source) {
+void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset, layout_details* d) {
 	txt.glyph_info.clear();
 
 	if(source.size() == 0)
@@ -619,7 +659,12 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 
 	if(U_SUCCESS(errorCode)) {
 		auto runcount = ubidi_countRuns(para, &errorCode);
+		int64_t total_x_advance = 0;
+
 		if(U_SUCCESS(errorCode)) {
+			int32_t previous_rightmost_in_run = -1;
+			int32_t last_run_rightmost = -1;
+
 			for(int32_t i = 0; i < runcount; ++i) {
 				int32_t logical_start = 0;
 				int32_t length = 0;
@@ -639,7 +684,191 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 				hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &gcount);
 				hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &gcount);
 
+				if(d) {
+					UBreakIterator* cb_it = ubrk_openBinaryRules(state.font_collection.compiled_char_ubrk_rules.data(), int32_t(state.font_collection.compiled_char_ubrk_rules.size()), (UChar const*)(source.data() + logical_start), int32_t(length), &errorCode);
+
+					if(!cb_it || !U_SUCCESS(errorCode)) {
+						std::abort(); // couldn't create iterator
+					}
+
+					ubrk_first(cb_it);
+					int32_t start_cluster_position = 0;
+					int32_t next_cluster_position = 0;
+					int32_t previous_placed = -1;
+					size_t start_of_new_entries = d->grapheme_placement.size();
+
+					do {
+						next_cluster_position = ubrk_next(cb_it);
+
+						auto end_seq = next_cluster_position != UBRK_DONE ? next_cluster_position : int32_t(length);
+						if(end_seq == start_cluster_position) // zero sized cluster -- i.e. none found
+							continue;
+
+						d->grapheme_placement.emplace_back();
+						auto& new_exgc = d->grapheme_placement.back();
+						if(direction == UBIDI_RTL)
+							new_exgc.flags |= text::ex_grapheme_cluster_info::has_rtl_directionality;
+						new_exgc.line = d->total_lines;
+						new_exgc.source_offset = uint16_t(start_cluster_position + logical_start + details_offset);
+						new_exgc.unit_length = uint8_t(end_seq - start_cluster_position);
+
+						if(start_of_new_entries != 0 && start_cluster_position == 0) {
+							d->grapheme_placement[start_of_new_entries - 1].line = d->total_lines;
+							d->grapheme_placement[start_of_new_entries - 1].flags |= text::ex_grapheme_cluster_info::is_line_end;
+							new_exgc.flags |= text::ex_grapheme_cluster_info::is_line_start;
+						}
+
+						// link to visually left/right graphemes
+						if(direction == UBIDI_RTL) {
+							if(previous_placed == -1) {
+								previous_rightmost_in_run = int32_t(d->grapheme_placement.size() - 1);
+								new_exgc.visual_left = int16_t(previous_rightmost_in_run);
+								new_exgc.visual_right = -1;
+								if(last_run_rightmost != -1)
+									d->grapheme_placement[last_run_rightmost].visual_right = int16_t(d->grapheme_placement.size()) - int16_t(1);
+							} else {
+								new_exgc.visual_right = int16_t(previous_placed);
+								d->grapheme_placement[previous_placed].visual_left = int16_t(d->grapheme_placement.size()) - int16_t(1);
+
+								if(last_run_rightmost != -1)
+									d->grapheme_placement[last_run_rightmost].visual_right = int16_t(d->grapheme_placement.size()) - int16_t(1);
+							}
+
+							previous_placed = int32_t(d->grapheme_placement.size()) - 1;
+						} else {
+							if(previous_placed != -1) {
+								new_exgc.visual_left = int16_t(previous_placed);
+								d->grapheme_placement[previous_placed].visual_right = int16_t(d->grapheme_placement.size()) - int16_t(1);
+							} else if(last_run_rightmost != -1) {
+								new_exgc.visual_left = int16_t(last_run_rightmost);
+								d->grapheme_placement[last_run_rightmost].visual_right = int16_t(d->grapheme_placement.size()) - int16_t(1);
+							} else {
+								new_exgc.visual_left = -1;
+							}
+
+							previous_rightmost_in_run = int32_t(d->grapheme_placement.size()) - 1;
+							previous_placed = int32_t(d->grapheme_placement.size()) - 1;
+						}
+
+						// find rendered position or the rendering group it is part of
+						new_exgc.width = 0;
+						new_exgc.x_offset = 0;
+
+						start_cluster_position = next_cluster_position;
+					} while(next_cluster_position != UBRK_DONE);
+
+					last_run_rightmost = previous_rightmost_in_run;
+					ubrk_close(cb_it);
+
+					// find word breaks
+					UBreakIterator* wb_it = ubrk_openBinaryRules(state.font_collection.compiled_word_ubrk_rules.data(), int32_t(state.font_collection.compiled_word_ubrk_rules.size()), (UChar const*)(source.data() + logical_start), int32_t(length), &errorCode);
+
+					if(!wb_it || !U_SUCCESS(errorCode)) {
+						std::abort(); // couldn't create iterator
+					}
+					ubrk_first(wb_it);
+
+					int32_t start_wb_position = 0;
+					int32_t next_wb_position = 0;
+
+					do {
+						next_wb_position = ubrk_next(wb_it);
+						auto end_seq = next_wb_position != UBRK_DONE ? next_wb_position : int32_t(length);
+
+						//find word start
+						for(auto k = start_of_new_entries; k < d->grapheme_placement.size(); ++k) {
+							if(d->grapheme_placement[k].source_offset == uint16_t(start_wb_position + logical_start + details_offset)) {
+								d->grapheme_placement[k].flags |= text::ex_grapheme_cluster_info::is_word_start;
+								break;
+							}
+						}
+						//find word end
+						auto best_found = -1;
+						for(auto k = start_of_new_entries; k < d->grapheme_placement.size(); ++k) {
+							if(uint16_t(start_wb_position + logical_start + details_offset) <= d->grapheme_placement[k].source_offset
+								&& d->grapheme_placement[k].source_offset < uint16_t(end_seq + logical_start + details_offset)) {
+
+								best_found = int32_t(k);
+							}
+						}
+						if(best_found != -1) {
+							d->grapheme_placement[best_found].flags |= text::ex_grapheme_cluster_info::is_word_end;
+						}
+
+						start_wb_position = next_wb_position;
+					} while(next_wb_position != UBRK_DONE);
+					ubrk_close(wb_it);
+
+					// find visual location of graphemes
+					for(auto k = start_of_new_entries; k < d->grapheme_placement.size(); ++k) {
+						bool matched_exactly = false;
+						int32_t best_match = -1;
+						uint32_t best_match_index = 0;
+						int32_t accumulated_advance = 0;
+
+						for(unsigned int j = 0; j < gcount; j++) {
+							auto rendering_details_for = glyph_info[j].cluster + details_offset;
+							if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset) {
+								accumulated_advance += glyph_pos[j].x_advance;
+							}
+							if(uint16_t(rendering_details_for) == d->grapheme_placement[k].source_offset) {
+								matched_exactly = true;
+								d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance));
+								d->grapheme_placement[k].width = int16_t(d->scaling_factor * glyph_pos[j].x_advance);
+								break;
+							} else if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset
+								&& int32_t(rendering_details_for) > best_match) {
+								best_match = int32_t(rendering_details_for);
+								best_match_index = j;
+							}
+						}
+
+						if(!matched_exactly) {
+							if(best_match != -1) {
+								// scan added exgc to find the range associated with this grapheme cluster
+								auto rendering_details_for = glyph_info[best_match_index].cluster + details_offset;
+								accumulated_advance -= glyph_pos[best_match_index].x_advance;
+
+								int32_t start_exgc = -1;
+
+								for(auto m = start_of_new_entries; m < d->grapheme_placement.size(); ++m) {
+									if(d->grapheme_placement[m].source_offset == int16_t(rendering_details_for)) {
+										start_exgc = int32_t(m);
+										break;
+									}
+								}
+
+								if(start_exgc != -1 && start_exgc <= int32_t(k)) {
+									auto count_in_range = 1 + int32_t(k) - start_exgc;
+
+									// adjust positions and widths for entire cluster range
+									if(direction == UBIDI_RTL) {
+										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
+											d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance +
+												(glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc + 1))) / count_in_range));
+											d->grapheme_placement[k].width = int16_t(d->scaling_factor * (
+												(glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc))) / count_in_range
+												- (glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc + 1))) / count_in_range)
+											);
+										}
+									} else {
+										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
+											d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance +
+												(glyph_pos[best_match_index].x_advance * (m - start_exgc)) / count_in_range));
+											d->grapheme_placement[k].width = int16_t(d->scaling_factor * (
+												(glyph_pos[best_match_index].x_advance * (1 + m - start_exgc)) / count_in_range
+												- (glyph_pos[best_match_index].x_advance * (m - start_exgc)) / count_in_range)
+											);
+										}
+									}
+								}
+							}
+						}
+					}
+				}
+
 				for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
+					total_x_advance += glyph_pos[j].x_advance;
 					make_glyph(glyph_info[j].codepoint);
 					txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 				}

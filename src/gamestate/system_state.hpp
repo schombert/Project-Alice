@@ -33,6 +33,7 @@
 #include "network.hpp"
 #include "fif.hpp"
 #include "immediate_mode.hpp"
+#include "gamerule.hpp"
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
@@ -487,7 +488,7 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 /// <summary>
 /// Holds important data about the game world, state, and other data regarding windowing, audio, and more.
 /// </summary>
-struct alignas(64) state { 
+struct alignas(64) state {
 	dcon::data_container world; // Holds data regarding the game world. Also contains user locales.
 
 	// scenario data
@@ -499,6 +500,7 @@ struct alignas(64) state {
 	military::global_military_state military_definitions;
 	nations::global_national_state national_definitions;
 	province::global_provincial_state province_definitions;
+	gamerule::hardcoded_gamerules hardcoded_gamerules;
 
 	absolute_time_point start_date;
 	absolute_time_point end_date;
@@ -614,8 +616,8 @@ struct alignas(64) state {
 		return nullptr;
 	}
 	std::vector<dcon::army_id> selected_armies;
-	// selected regiments inside the army. 
-	std::vector<dcon::regiment_id> selected_regiments; 
+	// selected regiments inside the army.
+	std::vector<dcon::regiment_id> selected_regiments;
 
 	std::vector<dcon::navy_id> selected_navies;
 	// selected ships inside the navy. Has fixed size - to clear use sys::selected_ships_clear
@@ -692,7 +694,7 @@ struct alignas(64) state {
 
 	// data for immediate mode gui
 	iui::iui_state iui_state;
-	
+
 	// graphics data
 	ogl::data open_gl;
 
@@ -733,6 +735,7 @@ struct alignas(64) state {
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
+	void on_temporary_text(std::u16string_view s);
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
 	               // for vsync
 
@@ -795,6 +798,9 @@ struct alignas(64) state {
 	void log_player_nations();
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
+
+	int get_edit_x();
+	int get_edit_y();
 
 	bool is_selected(dcon::army_id a) {
 		return std::find(selected_armies.begin(), selected_armies.end(), a) != selected_armies.end();

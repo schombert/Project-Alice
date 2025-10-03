@@ -175,7 +175,7 @@ public:
 			return ui::message_result::unseen;
 		}
 	}
-	
+
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
 		return ui::message_result::consumed;
@@ -198,7 +198,7 @@ private:
 	void clear_pages_internal(layout_level& lvl);
 public:
 	layout_level layout;
-	
+
 	std::string_view page_left_texture_key;
 	std::string_view page_right_texture_key;
 	dcon::texture_id page_left_texture_id;
@@ -262,6 +262,7 @@ inline static bool sort_states = true;
 
 bool pop_passes_filter(sys::state& state, dcon::pop_id p);
 
+std::unique_ptr<ui::element_base> make_gamerules_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
@@ -270,6 +271,7 @@ std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
+std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 

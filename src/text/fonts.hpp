@@ -59,6 +59,24 @@ inline surrogate_pair make_surrogate_pair(uint32_t val) noexcept {
 	return surrogate_pair{ uint16_t(h), uint16_t(l) };
 }
 
+struct ex_grapheme_cluster_info {
+	uint16_t source_offset = 0; // index of first codepoint in cluster within source text
+	int16_t x_offset = 0; // ui x position of rendered grapheme cluster
+	int16_t width = 0;  // ui size of rendered grapheme cluster
+	int16_t visual_left = -1; // index of grapheme cluster to the left, or -1 if none
+	int16_t visual_right = -1; // index of grapheme cluster to the right, or -1 if none
+
+	uint8_t flags = 0;
+	uint8_t line = 0; // which line in the layout, starting at 0
+	uint8_t unit_length = 0; // how many utf16 codepoints the cluster consists of
+
+	constexpr static uint8_t is_word_start = 0x01;
+	constexpr static uint8_t is_word_end = 0x02;
+	constexpr static uint8_t is_line_start = 0x04;
+	constexpr static uint8_t is_line_end = 0x08;
+	constexpr static uint8_t has_rtl_directionality = 0x10;
+};
+
 struct stored_glyph {
 	uint32_t codepoint = 0;
 	uint32_t cluster = 0;
@@ -78,6 +96,12 @@ struct stored_glyph {
 	}
 };
 
+struct layout_details {
+	std::vector<ex_grapheme_cluster_info> grapheme_placement;
+	float scaling_factor = 0.0f;
+	uint8_t total_lines = 0;
+};
+
 struct stored_glyphs {
 	std::vector<stored_glyph> glyph_info;
 
@@ -89,7 +113,7 @@ struct stored_glyphs {
 	stored_glyphs(sys::state& state, font_selection type, std::string const& s);
 	stored_glyphs(std::string const& s, font& f);
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
-	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s);
+	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr);
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	void set_text(sys::state& state, font_selection type, std::string const& s);
@@ -130,10 +154,11 @@ public:
 	float ascender(int32_t size) const;
 	float descender(int32_t size) const;
 	float top_adjustment(int32_t size) const;
+	float font_scaling_factor(int32_t size) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
 	void remake_cache(stored_glyphs& txt, std::string const& source);
-	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
+	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr);
 	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 
 	friend class font_manager;
@@ -183,6 +208,8 @@ private:
 	dcon::locale_id current_locale;
 public:
 	std::vector<uint8_t> compiled_ubrk_rules;
+	std::vector<uint8_t> compiled_char_ubrk_rules;
+	std::vector<uint8_t> compiled_word_ubrk_rules;
 	bool map_font_is_black = false;
 
 	dcon::locale_id get_current_locale() const {
@@ -192,6 +219,7 @@ public:
 	font& get_font(sys::state& state, font_selection s = font_selection::body_font);
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);
 	float line_height(sys::state& state, uint16_t font_id);
+	float scaling_factor(sys::state& state, uint16_t font_id);
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id);
 	void set_classic_fonts(bool v);
 };

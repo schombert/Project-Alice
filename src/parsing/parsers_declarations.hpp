@@ -317,6 +317,20 @@ struct pending_invention_content {
 	token_generator generator_state;
 	dcon::invention_id id;
 };
+
+
+struct scanned_gamerule_option {
+
+	scanned_gamerule_option(dcon::gamerule_id _gamerule, uint8_t _option_id) {
+		option_id = _option_id;
+		gamerule = _gamerule;
+	}
+
+	dcon::gamerule_id gamerule;
+	uint8_t option_id = 0;
+};
+
+
 struct rebel_regiment_parse_data {
 	dcon::province_id home_prov;
 	int32_t line_num;
@@ -422,6 +436,8 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
 	ankerl::unordered_dense::map<std::string, std::vector<saved_stored_condition>> map_of_stored_triggers;
 	ankerl::unordered_dense::map<std::string, dcon::national_focus_id> map_of_national_focuses;
+	ankerl::unordered_dense::map<std::string, dcon::gamerule_id> map_of_gamerules;
+	ankerl::unordered_dense::map<std::string, scanned_gamerule_option> map_of_gamerule_options;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
@@ -484,6 +500,88 @@ struct color_from_3i {
 	template<typename T>
 	void finish(T& context) { }
 };
+
+
+struct scripted_gamerule_context {
+	dcon::gamerule_id id;
+	scenario_building_context& outer_context;
+};
+
+
+
+
+struct gamerule_option {
+	uint8_t option_id = 0;
+	dcon::gamerule_id gamerule_id;
+	bool default_option = false;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+	std::string_view defined_name;
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
+	void finish(scenario_building_context& context);
+
+
+};
+
+
+struct scripted_gamerule {
+	dcon::gamerule_id gamerule_id;
+	std::array< sys::gamerule_option, sys::max_gamerule_settings> options;
+	int32_t settings_count = 0;
+	uint8_t default_opt = 0;
+	bool has_default = false;
+
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
+	void option(gamerule_option option, error_handler& err, int32_t line, scenario_building_context& context);
+
+	void finish(scenario_building_context& context);
+
+};
+
+struct gamerule_file {
+	void finish(scenario_building_context& context);
+};
+
+struct scan_gamerule_file {
+	void finish(scenario_building_context& context) {
+
+	}
+};
+
+
+struct scan_gamerule_option {
+	std::string_view defined_name;
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+		defined_name = text;
+	}
+	void finish(scripted_gamerule_context& context) {
+
+	}
+
+
+};
+
+
+struct scan_scripted_gamerule {
+	std::string_view defined_name;
+	uint8_t settings_count = 0;
+
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+		if(context.outer_context.map_of_gamerules.contains(std::string(text))) {
+			err.accumulated_errors += "Gamerule with name " + std::string(text) + " has already been defined earlier (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		}
+		defined_name = text;
+	}
+	void option(scan_gamerule_option opt, error_handler& err, int32_t line, scripted_gamerule_context& context);
+
+	void finish(scripted_gamerule_context& context);
+};
+
+
 
 struct culture_group_context {
 	dcon::culture_group_id id;
@@ -2974,6 +3072,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 } // namespace parsers
 
 #include "trigger_parsing.hpp"
+#include "gamerule_parsing.hpp"
 #include "effect_parsing.hpp"
 #include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"
