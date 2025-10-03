@@ -122,13 +122,18 @@ vec4 stripchart(vec2 tc) {
 }
 //layout(index = 24) subroutine(font_function_class)
 vec4 triangle_strip(vec2 tc) {
+	float real_size = d_rect.z;
+	
 	vec4 cc = texture(texture_sampler, vec2(tc.x, 0.5));
-	vec4 cc_left = texture(texture_sampler, vec2(tc.x - 0.002f, 0.5));
-	vec4 cc_right = texture(texture_sampler, vec2(tc.x + 0.002f, 0.5));
+	vec4 cc_left = texture(texture_sampler, vec2(tc.x - 0.002f / real_size * 50.f, 0.5));
+	vec4 cc_right = texture(texture_sampler, vec2(tc.x + 0.002f / real_size * 50.f, 0.5));
 	cc = cc * 0.5f + cc_left * 0.25f + cc_right * 0.25f;
-	float gold_frame = max(0, abs(tc.y - 0.5f) - 0.2f) * 5.f;
-	float shadow = min(1.f, (0.5f - abs(tc.y - 0.5f)) * 2.f + 0.1f);
-	float fade = (0.5f - abs(tc.y - 0.5f)) * 6.f;
+
+	float distance_from_boundary = (0.5f - abs(tc.y - 0.5f)) * real_size / 50.f;
+
+	float gold_frame = max(0, 0.3f - distance_from_boundary) * 5.f;
+	float shadow = min(1.f, distance_from_boundary * 2.f + 0.1f);
+	float fade = distance_from_boundary * 6.f;
 	gold_frame = gold_frame * gold_frame * gold_frame;
 	return vec4(cc.xyz * shadow * (1.f - gold_frame) + vec3(1.f, 1.f, 0.f) * gold_frame, fade);
 }

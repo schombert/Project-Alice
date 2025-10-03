@@ -28,6 +28,9 @@ struct trade_dashboard_main_select_self_t;
 struct trade_dashboard_main_icon_consumption_t;
 struct trade_dashboard_main_icon_production_t;
 struct trade_dashboard_main_old_window_t;
+struct trade_dashboard_main_selected_commodity_top_provinces_t;
+struct trade_dashboard_main_selected_commodity_breakdown_t;
+struct trade_dashboard_main_selected_nation_breakdown_t;
 struct trade_dashboard_main_t;
 struct trade_dashboard_province_row_consumption_flag_t;
 struct trade_dashboard_province_row_consumption_name_t;
@@ -835,6 +838,89 @@ struct trade_dashboard_main_old_window_t : public ui::element_base {
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct trade_dashboard_main_selected_commodity_top_provinces_t : public ui::element_base {
+// BEGIN main::selected_commodity_top_provinces::variables
+// END
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::left;
+	std::string cached_text;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct trade_dashboard_main_selected_commodity_breakdown_t : public ui::element_base {
+// BEGIN main::selected_commodity_breakdown::variables
+// END
+	text::layout internal_layout;
+	text::text_color text_color = text::text_color::black;
+	float text_scale = 1.000000f; 
+	bool text_is_header = false; 
+	text::alignment text_alignment = text::alignment::left;
+	std::string cached_text;
+	void set_text(sys::state & state, std::string const& new_text);
+	void on_reset_text(sys::state & state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::unseen;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+struct trade_dashboard_main_selected_nation_breakdown_t : public ui::element_base {
+// BEGIN main::selected_nation_breakdown::variables
+// END
+	std::variant<std::monostate, dcon::national_identity_id, dcon::rebel_faction_id, dcon::nation_id> flag;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::variable_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
 struct trade_dashboard_main_commodity_list_t : public layout_generator {
 // BEGIN main::commodity_list::variables
 // END
@@ -1402,6 +1488,9 @@ struct trade_dashboard_main_t : public layout_window_element {
 	std::unique_ptr<trade_dashboard_main_icon_consumption_t> icon_consumption;
 	std::unique_ptr<trade_dashboard_main_icon_production_t> icon_production;
 	std::unique_ptr<trade_dashboard_main_old_window_t> old_window;
+	std::unique_ptr<trade_dashboard_main_selected_commodity_top_provinces_t> selected_commodity_top_provinces;
+	std::unique_ptr<trade_dashboard_main_selected_commodity_breakdown_t> selected_commodity_breakdown;
+	std::unique_ptr<trade_dashboard_main_selected_nation_breakdown_t> selected_nation_breakdown;
 	trade_dashboard_main_commodity_list_t commodity_list;
 	trade_dashboard_main_top_production_t top_production;
 	trade_dashboard_main_top_consumption_t top_consumption;
@@ -3129,9 +3218,9 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 		auto c = state.world.nation_get_color(nid);
 		auto c_parent = state.world.nation_get_color(parent_nation[nid.index()]);
 		auto c3f = ogl::color3f{
-			0.2f * sys::red_from_int(c) + 0.8f * sys::red_from_int(c_parent),
-			0.2f * sys::green_from_int(c) + 0.8f * sys::green_from_int(c_parent),
-			0.2f * sys::blue_from_int(c) + 0.8f * sys::blue_from_int(c_parent)
+			0.2f * sys::red_from_int(c) + 0.8f * sys::red_from_int(c_parent) * 0.5f,
+			0.2f * sys::green_from_int(c) + 0.8f * sys::green_from_int(c_parent) * 0.5f,
+			0.2f * sys::blue_from_int(c) + 0.8f * sys::blue_from_int(c_parent) * 0.5f
 		};
 		graph_content.push_back({
 			nid, c3f, std::max(0.f, economy::gdp::value_nation(state, nid))
@@ -3414,6 +3503,157 @@ void trade_dashboard_main_old_window_t::on_create(sys::state& state) noexcept {
 // BEGIN main::old_window::create
 // END
 }
+void trade_dashboard_main_selected_commodity_top_provinces_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 20), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void trade_dashboard_main_selected_commodity_top_provinces_t::on_reset_text(sys::state& state) noexcept {
+}
+void trade_dashboard_main_selected_commodity_top_provinces_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 20);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void trade_dashboard_main_selected_commodity_top_provinces_t::on_update(sys::state& state) noexcept {
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+// BEGIN main::selected_commodity_top_provinces::update
+	if(state.selected_trade_good) {
+		set_text(state, text::get_commodity_text_icon(state, state.selected_trade_good));
+	} else {
+		set_text(state, "");
+	}
+// END
+}
+void trade_dashboard_main_selected_commodity_top_provinces_t::on_create(sys::state& state) noexcept {
+// BEGIN main::selected_commodity_top_provinces::create
+// END
+}
+void trade_dashboard_main_selected_commodity_breakdown_t::set_text(sys::state& state, std::string const& new_text) {
+	if(new_text != cached_text) {
+		cached_text = new_text;
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 20), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.add_text(state, cached_text);
+	}
+}
+void trade_dashboard_main_selected_commodity_breakdown_t::on_reset_text(sys::state& state) noexcept {
+}
+void trade_dashboard_main_selected_commodity_breakdown_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(internal_layout.contents.empty()) return;
+	auto fh = text::make_font_id(state, text_is_header, text_scale * 20);
+	auto linesz = state.font_collection.line_height(state, fh); 
+	if(linesz == 0.0f) return;
+	auto ycentered = (base_data.size.y - linesz) / 2;
+	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
+	}
+}
+void trade_dashboard_main_selected_commodity_breakdown_t::on_update(sys::state& state) noexcept {
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+// BEGIN main::selected_commodity_breakdown::update
+	if(state.selected_trade_good) {
+		set_text(state, text::get_commodity_text_icon(state, state.selected_trade_good));
+	} else {
+		set_text(state, "");
+	}
+// END
+}
+void trade_dashboard_main_selected_commodity_breakdown_t::on_create(sys::state& state) noexcept {
+// BEGIN main::selected_commodity_breakdown::create
+// END
+}
+ui::message_result trade_dashboard_main_selected_nation_breakdown_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		if(std::get<dcon::nation_id>(flag) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) > 0) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+			state.open_diplomacy(std::get<dcon::nation_id>(flag));
+		} 
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
+		if(n_temp && state.world.nation_get_owned_province_count(n_temp) > 0) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+			state.open_diplomacy(n_temp);
+		} 
+	} 
+	return ui::message_result::consumed;
+}
+ui::message_result trade_dashboard_main_selected_nation_breakdown_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void trade_dashboard_main_selected_nation_breakdown_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		text::add_line(state, contents, text::get_name(state, std::get<dcon::nation_id>(flag)));
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		text::add_line(state, contents, nations::name_from_tag(state, std::get<dcon::national_identity_id>(flag)));
+	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, std::get<dcon::rebel_faction_id>(flag)));
+		text::close_layout_box(contents, box);
+	} 
+}
+void trade_dashboard_main_selected_nation_breakdown_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
+		auto h_temp = state.world.nation_get_identity_from_identity_holder(std::get<dcon::nation_id>(flag));
+		if(bool(std::get<dcon::nation_id>(flag)) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) != 0) {
+			flag_type = culture::get_current_flag_type(state, std::get<dcon::nation_id>(flag));
+		} else {
+			flag_type = culture::get_current_flag_type(state, h_temp);
+		}
+		auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
+		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
+		if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
+			flag_type = culture::get_current_flag_type(state, n_temp);
+		} else {
+			flag_type = culture::get_current_flag_type(state, std::get<dcon::national_identity_id>(flag));
+		}
+		auto flag_texture_handle = ogl::get_flag_handle(state, std::get<dcon::national_identity_id>(flag), flag_type);
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
+		dcon::rebel_faction_id rf_temp = std::get<dcon::rebel_faction_id>(flag);
+		if(state.world.rebel_faction_get_type(rf_temp).get_independence() != uint8_t(culture::rebel_independence::none) && state.world.rebel_faction_get_defection_target(rf_temp)) {
+			dcon::government_flag_id flag_type = dcon::government_flag_id{};
+			auto h_temp = state.world.rebel_faction_get_defection_target(rf_temp);
+			auto n_temp = state.world.national_identity_get_nation_from_identity_holder(h_temp);
+			if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
+				flag_type = culture::get_current_flag_type(state, n_temp);
+			} else {
+				flag_type = culture::get_current_flag_type(state, h_temp);
+			}
+			auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
+			ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+			ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_rebel_flag_overlay(state), base_data.get_rotation(), false,  false);
+		return;
+		}
+		ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_rebel_flag_handle(state, rf_temp), base_data.get_rotation(), false,  false);
+	} 
+}
+void trade_dashboard_main_selected_nation_breakdown_t::on_update(sys::state& state) noexcept {
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+// BEGIN main::selected_nation_breakdown::update
+	flag = main.nation_pov;
+// END
+}
+void trade_dashboard_main_selected_nation_breakdown_t::on_create(sys::state& state) noexcept {
+// BEGIN main::selected_nation_breakdown::create
+// END
+}
 ui::message_result trade_dashboard_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -3571,6 +3811,15 @@ void trade_dashboard_main_t::create_layout_level(sys::state& state, layout_level
 				}
 				if(cname == "old_window") {
 					temp.ptr = old_window.get();
+				}
+				if(cname == "selected_commodity_top_provinces") {
+					temp.ptr = selected_commodity_top_provinces.get();
+				}
+				if(cname == "selected_commodity_breakdown") {
+					temp.ptr = selected_commodity_breakdown.get();
+				}
+				if(cname == "selected_nation_breakdown") {
+					temp.ptr = selected_nation_breakdown.get();
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4063,6 +4312,53 @@ void trade_dashboard_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "selected_commodity_top_provinces") {
+			selected_commodity_top_provinces = std::make_unique<trade_dashboard_main_selected_commodity_top_provinces_t>();
+			selected_commodity_top_provinces->parent = this;
+			auto cptr = selected_commodity_top_provinces.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "selected_commodity_breakdown") {
+			selected_commodity_breakdown = std::make_unique<trade_dashboard_main_selected_commodity_breakdown_t>();
+			selected_commodity_breakdown->parent = this;
+			auto cptr = selected_commodity_breakdown.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		if(child_data.name == "selected_nation_breakdown") {
+			selected_nation_breakdown = std::make_unique<trade_dashboard_main_selected_nation_breakdown_t>();
+			selected_nation_breakdown->parent = this;
+			auto cptr = selected_nation_breakdown.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
