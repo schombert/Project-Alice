@@ -760,6 +760,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_slowdown, 0.75) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rebel_reduction_after_reoccupation, 7.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_can_add_constructable_cbs_as_wargoals, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_admin_spending_trigger_div, 2.25) \
+	LUA_DEFINES_LIST_ELEMENT(alice_education_spending_trigger_div, 2.25) \
+	LUA_DEFINES_LIST_ELEMENT(alice_military_spending_trigger_div, 1.35) \
+	LUA_DEFINES_LIST_ELEMENT(alice_social_spending_trigger_div, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord_default_setting, 1.0) \
 
 
