@@ -769,6 +769,64 @@ std::string prettify_currency(float num) {
 	return std::string("#inf");
 }
 
+std::string prettify_float(float num) {
+	constexpr static double mag[] = {
+		1.0,
+		1'000.0,
+		1'000'000.0,
+		1'000'000'000.0,
+		1'000'000'000'000.0,
+		1'000'000'000'000'000.0,
+		1'000'000'000'000'000'000.0
+	};
+	constexpr static char const* sufx_two[] = {
+		"%.2f",
+		"%.2fK",
+		"%.2fM",
+		"%.2fB",
+		"%.2fT",
+		"%.2fP",
+		"%.2fZ"
+	};
+	constexpr static char const* sufx_one[] = {
+		"%.1f",
+		"%.1fK",
+		"%.1fM",
+		"%.1fB",
+		"%.1fT",
+		"%.1fP",
+		"%.1fZ"
+	};
+	constexpr static char const* sufx_zero[] = {
+		"%.1f",
+		"%.1fK",
+		"%.1fM",
+		"%.1fB",
+		"%.1fT",
+		"%.1fP",
+		"%.1fZ"
+	};
+	char buffer[200] = { 0 };
+	double dval = double(num);
+	if(std::abs(dval) <= 1.f) {
+		snprintf(buffer, sizeof(buffer), sufx_two[0], float(dval));
+		return std::string(buffer);
+	}
+	for(size_t i = std::extent_v<decltype(mag)>; i-- > 0;) {
+		if(std::abs(dval) >= mag[i]) {
+			auto reduced = dval / mag[i];
+			if(std::abs(reduced) < 10.0) {
+				snprintf(buffer, sizeof(buffer), sufx_two[i], float(reduced));
+			} else if(std::abs(reduced) < 100.0) {
+				snprintf(buffer, sizeof(buffer), sufx_one[i], float(reduced));
+			} else {
+				snprintf(buffer, sizeof(buffer), sufx_zero[i], float(reduced));
+			}
+			return std::string(buffer);
+		}
+	}
+	return std::string("#inf");
+}
 
 std::string prettify(int64_t num) {
 	if(num == 0)

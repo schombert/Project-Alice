@@ -367,10 +367,14 @@ int main (int argc, char *argv[]) {
 		game_state.game_loop();
 	} else {
 		std::thread update_thread([&]() { game_state.game_loop(); });
+		std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
+
 		window::emit_error_message("Starting the game.\n", false);
 		window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
 		game_state.quit_signaled.store(true, std::memory_order_release);
+
 		update_thread.join();
+		ui_cache_update.join();
 	}
 	
 	network::finish(game_state, true);
