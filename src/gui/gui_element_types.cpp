@@ -1078,6 +1078,9 @@ void edit_box_element_base::on_edit_command(sys::state& state, edit_command comm
 				cursor_position = 0;
 				erase_start = glyph_details.grapheme_placement[cursor_position].source_offset;
 				erase_end = erase_start;
+			} else {
+				erase_start = glyph_details.grapheme_placement[cursor_position].source_offset;
+				erase_end = erase_start;
 			}
 
 			int32_t temp_cursor_position = cursor_position;

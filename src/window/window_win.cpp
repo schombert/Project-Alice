@@ -285,7 +285,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
 	case WM_CHAR: {
-		if(state->ui_state.edit_target_internal && wParam >= 0x20) {
+		if(state->ui_state.edit_target_internal && wParam >= 0x20 && !(wParam >= 0x7F && wParam <= 0x9F)) {
 			state->on_text(char32_t(wParam));
 		}
 		return 0;
