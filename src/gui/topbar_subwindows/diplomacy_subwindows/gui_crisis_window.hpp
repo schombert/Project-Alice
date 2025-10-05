@@ -313,7 +313,7 @@ public:
 
 class crisis_add_wargoal_window : public window_element_base {
 private:
-	wargoal_offer_setup_window* wargoal_setup_win = nullptr;
+	wargoal_offer_setup_window<true>* wargoal_setup_win = nullptr;
 	wargoal_offer_country_select_window* wargoal_country_win = nullptr;
 	wargoal_target_country_select_window* wargoal_target_win = nullptr;
 
@@ -467,7 +467,7 @@ public:
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "wargoal_country_select") {
 			{
-				auto ptr = make_element_by_type<wargoal_offer_setup_window>(state, id);
+				auto ptr = make_element_by_type<wargoal_offer_setup_window<true>>(state, id);
 				wargoal_setup_win = ptr.get();
 				ptr->set_visible(state, false);
 				add_child_to_front(std::move(ptr));
@@ -812,7 +812,7 @@ class diplomacy_crisis_subtitle_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto first_wg = state.crisis_attacker_wargoals.at(0);
-		if (first_wg.cb == state.military_definitions.liberate) {
+		if (first_wg.cb == state.military_definitions.crisis_liberate) {
 			text::substitution_map m;
 			text::add_to_substitution_map(m, text::variable_type::country, first_wg.wg_tag);
 			if(state.world.nation_get_owned_province_count(state.world.national_identity_get_nation_from_identity_holder(first_wg.wg_tag)) > 0) {

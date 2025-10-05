@@ -12,6 +12,10 @@ namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };
 
+enum class edit_command : uint8_t {
+	new_line, backspace, delete_char, backspace_word, delete_word, tab, cursor_down, cursor_up, cursor_left, cursor_right, cursor_left_word, cursor_right_word, to_line_start, to_line_end, to_text_start, to_text_end, cut, copy, paste, select_all, undo, redo, select_current_word, select_current_section, delete_selection
+};
+
 class element_base {
 public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
@@ -84,6 +88,7 @@ public:
 		return focus_result::ignored;
 	}
 	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
+	virtual void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept { };
 
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly

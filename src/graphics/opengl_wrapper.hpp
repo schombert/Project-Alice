@@ -421,6 +421,16 @@ void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint fil
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap_a, GLuint wrap_b);
 GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y);
 
+struct scissor_box {
+	const int32_t x;
+	const int32_t y;
+	const int32_t w;
+	const int32_t h;
+
+	scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t w, int32_t h);
+	~scissor_box();
+};
+
 class animation;
 
 class render_capture {

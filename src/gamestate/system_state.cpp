@@ -425,7 +425,6 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 }
 
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-	//update en demand
 	ui::element_base* root_elm = current_scene.get_root(*this);
 	auto probe_result = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
