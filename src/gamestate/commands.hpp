@@ -145,10 +145,12 @@ enum class command_type : uint8_t {
 	console_command = 255,
 };
 
+
 struct command_type_data {
 	size_t size;
 	bool (*CanPerformFuncPtr)(sys::state& state, command_data command);
 	bool (*ExecuteFuncPtr)(sys::state& state, command_data command);
+	command_data (*Deserialize)(uint8_t* ptr, size_t size);
 };
 
 static ankerl::unordered_dense::map<command_type, command_type_data> command_type_mapping = {
@@ -288,6 +290,10 @@ static ankerl::unordered_dense::map<command_type, command_type_data> command_typ
 	{ command_type::console_command, command_type_data{ sizeof(diplo_action_data) } },
 
 };
+
+
+
+
 
 
 
@@ -841,18 +847,36 @@ typedef std::variant<
 	command_units_data,
 	change_gamerule_setting_data> cmd_payload;
 
-
-struct command_data {
+struct cmd_header {
 	command_type type;
 	dcon::nation_id source;
+};
+
+struct command_data {
+	cmd_header header;
 	cmd_payload payload;
-	command_data(command_type _type) : type(_type) {
+	command_data(command_type _type)  {
+		header.type = _type;
 	};
-	command_data(command_type _type, dcon::nation_id _source) : type(_type), source(_source) {
+	command_data(command_type _type, dcon::nation_id _source) {
+		header.type = _type;
+		header.source = _source;
 	};
 	std::unique_ptr<uint8_t> serialize();
 	size_t size();
 };
+
+template<typename T>
+command_data deserialize_command(uint8_t* ptr, size_t size) {
+	command_data command;
+	// copy non std::variant stuff
+	std::memcpy(&command, ptr, sizeof(command_data) - sizeof(cmd_payload));
+	ptr += sizeof(command_data) - sizeof(cmd_payload);
+	T data{};
+	std::memcpy(&data, ptr, sizeof(T));
+	command.payload = data;
+	return command
+}
 
 
 
@@ -1286,6 +1310,8 @@ void notify_pause_game(sys::state& state, dcon::nation_id source);
 bool execute_command(sys::state& state, payload& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, payload& c);
+
+uint32_t command_size(command_type type);
 
 void notify_console_command(sys::state& state);
 void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
