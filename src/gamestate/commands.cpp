@@ -24,7 +24,7 @@ bool is_console_command(command_type t) {
 	return uint8_t(t) == 255;
 }
 
-void add_to_command_queue(sys::state& state, payload& p) {
+void add_to_command_queue(sys::state& state, command_data& p) {
 #ifndef NDEBUG
 	assert(command::can_perform_command(state, p));
 #endif
@@ -83,14 +83,38 @@ void add_to_command_queue(sys::state& state, payload& p) {
 	}
 }
 
+//size_t command_size(command_type type) {
+//	switch(type) {
+//	case command_type::change_nat_focus:
+//		return sizeof(change_nat_focus);
+//	}
+//}
+//std::unique_ptr<command> create_command(command_type type) {
+//	switch(type) {
+//	case command_type::change_nat_focus:
+//		return std::make_unique<change_nat_focus>(type);
+//	}
+//}
+//
+//std::unique_ptr<uint8_t> command_data::serialize() {
+//	std::unique_ptr<uint8_t> data(new uint8_t[size()])
+//	switch(type) {
+//	case:
+//	}
+//}
+size_t command_data::size() {
+	size_t size = sizeof(command_data) - sizeof(cmd_payload);
+	size += std::visit([](auto&& arg) {
+		using T = std::decay_t<decltype(arg)>;
+		return sizeof(T);
+	}, payload);
+	return size;
+}
+
+
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::set_rally_point;
-	p.source = source;
-	p.data.rally_point.location = location;
-	p.data.rally_point.naval = naval;
-	p.data.rally_point.enable = enable;
+	command_data p{ command_type::set_rally_point, source };
+	p.payload.emplace<rally_point_data>(location, naval, enable);
 	add_to_command_queue(state, p);
 }
 
@@ -106,11 +130,9 @@ void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::pr
 }
 
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::save_game;
-	p.source = source;
-	p.data.save_game.and_quit = and_quit;
+
+	command_data p{ command_type::save_game, source };
+	p.payload.emplace<save_game_data>(and_quit);
 	add_to_command_queue(state, p);
 }
 
@@ -124,13 +146,11 @@ void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit)
 
 void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::change_nat_focus;
-	p.source = source;
-	p.data.nat_focus.focus = focus;
-	p.data.nat_focus.target_state = target_state;
+
+	command_data p{ command_type::change_nat_focus, source };
+	p.payload.emplace<national_focus_data>(target_state, focus);
 	add_to_command_queue(state, p);
+
 }
 
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
@@ -191,11 +211,9 @@ void execute_set_national_focus(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void start_research(sys::state& state, dcon::nation_id source, dcon::technology_id tech) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::start_research;
-	p.source = source;
-	p.data.start_research.tech = tech;
+
+	command_data p{ command_type::start_research, source };
+	p.payload.emplace<start_research_data>(tech);
 	add_to_command_queue(state, p);
 }
 
@@ -231,12 +249,10 @@ void execute_start_research(sys::state& state, dcon::nation_id source, dcon::tec
 }
 
 void make_leader(sys::state& state, dcon::nation_id source, bool general) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::make_leader;
-	p.source = source;
-	p.data.make_leader.is_general = general;
+	command_data p{ command_type::make_leader, source };
+	p.payload.emplace<make_leader_data>(general);
 	add_to_command_queue(state, p);
+
 }
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
 	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
@@ -246,13 +262,11 @@ void execute_make_leader(sys::state& state, dcon::nation_id source, bool general
 }
 
 void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::set_factory_type_priority;
-	p.source = source;
-	p.data.set_factory_priority.value = value;
-	p.data.set_factory_priority.factory = ftid;
+
+	command_data p{ command_type::set_factory_type_priority, source };
+	p.payload.emplace<set_factory_priority_data>(ftid, value);
 	add_to_command_queue(state, p);
+
 };
 bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
 	return (value >= 0.f);
@@ -263,12 +277,11 @@ void execute_set_factory_type_priority(sys::state& state, dcon::nation_id source
 
 
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::war_subsidies;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::war_subsidies, source };
+	p.payload.emplace<diplo_action_data>(target);
 	add_to_command_queue(state, p);
+
 }
 bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is
@@ -310,12 +323,12 @@ void execute_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon:
 
 
 void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_war_subsidies;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+
+	command_data p{ command_type::cancel_war_subsidies, source };
+	p.payload.emplace<diplo_action_data>(target);
 	add_to_command_queue(state, p);
+
 }
 bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the nation is already being given war subsidies, and there is
@@ -353,12 +366,11 @@ void execute_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dco
 
 
 void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::increase_relations;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::increase_relations, source };
+	p.payload.emplace<diplo_action_data>(target);
 	add_to_command_queue(state, p);
+
 }
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the relation value isn't maxed out at 200, and has
@@ -394,12 +406,11 @@ void execute_increase_relations(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::decrease_relations;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::decrease_relations, source };
+	p.payload.emplace<diplo_action_data>(target);
 	add_to_command_queue(state, p);
+
 }
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has
@@ -431,12 +442,9 @@ void execute_decrease_relations(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id prov, economy::province_building_type type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::begin_province_building_construction;
-	p.source = source;
-	p.data.start_province_building.location = prov;
-	p.data.start_province_building.type = type;
+
+	command_data p{ command_type::begin_province_building_construction, source };
+	p.payload.emplace<province_building_data>(prov, type);
 	add_to_command_queue(state, p);
 }
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
@@ -482,13 +490,12 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 
 
 void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_factory_building_construction;
-	p.source = source;
-	p.data.start_factory_building.location = location;
-	p.data.start_factory_building.type = type;
+
+
+	command_data p{ command_type::cancel_factory_building_construction, source };
+	p.payload.emplace<factory_building_data>(location, type);
 	add_to_command_queue(state, p);
+
 }
 bool can_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
@@ -518,14 +525,11 @@ void execute_cancel_factory_building_construction(sys::state& state, dcon::natio
 	}
 }
 void begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::begin_factory_building_construction;
-	p.source = source;
-	p.data.start_factory_building.location = location;
-	p.data.start_factory_building.type = type;
-	p.data.start_factory_building.is_upgrade = is_upgrade;
-	p.data.start_factory_building.refit_target = refit_target;
+
+
+
+	command_data p{ command_type::begin_factory_building_construction, source };
+	p.payload.emplace<factory_building_data>(location, type, is_upgrade, refit_target);
 	add_to_command_queue(state, p);
 }
 
@@ -732,14 +736,10 @@ void execute_begin_factory_building_construction(sys::state& state, dcon::nation
 }
 
 void start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type, dcon::province_id template_province) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::begin_naval_unit_construction;
-	p.source = source;
-	p.data.naval_unit_construction.location = location;
-	p.data.naval_unit_construction.type = type;
-	p.data.naval_unit_construction.template_province = template_province;
+	command_data p{ command_type::begin_naval_unit_construction, source };
+	p.payload.emplace<naval_unit_construction_data>(location, type, template_province);
 	add_to_command_queue(state, p);
+
 }
 
 bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type, dcon::province_id template_province) {
@@ -792,14 +792,9 @@ void execute_start_naval_unit_construction(sys::state& state, dcon::nation_id so
 }
 
 void start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::begin_land_unit_construction;
-	p.source = source;
-	p.data.land_unit_construction.location = location;
-	p.data.land_unit_construction.type = type;
-	p.data.land_unit_construction.pop_culture = soldier_culture;
-	p.data.land_unit_construction.template_province = template_province;
+
+	command_data p{ command_type::begin_land_unit_construction, source };
+	p.payload.emplace<land_unit_construction_data>(location, soldier_culture, type, template_province );
 	add_to_command_queue(state, p);
 }
 bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
@@ -843,12 +838,9 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 }
 
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_naval_unit_construction;
-	p.source = source;
-	p.data.naval_unit_construction.location = location;
-	p.data.naval_unit_construction.type = type;
+
+	command_data p{ command_type::cancel_naval_unit_construction, source };
+	p.payload.emplace<naval_unit_construction_data>(location, type);
 	add_to_command_queue(state, p);
 }
 

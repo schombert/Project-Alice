@@ -659,7 +659,7 @@ struct alignas(64) state {
 	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
-	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
+	rigtorp::SPSCQueue<command::command_data> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
