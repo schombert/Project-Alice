@@ -1723,9 +1723,9 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 					};
 
 					ogl::render_alpha_colored_rect(state,
-						x + base_data.data.text.border_size.x + min_x + 1,
+						float(x + base_data.data.text.border_size.x + min_x + 1),
 						y + base_data.data.text.border_size.y + lineheight * line,
-						max_x - min_x, lineheight + 1,
+						float(max_x - min_x), float(lineheight + 1),
 						base_color.r, base_color.g, base_color.b, 1.0f);
 
 					for(auto& t : internal_layout.contents) {
