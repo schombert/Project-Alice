@@ -158,7 +158,7 @@ private:
 	bool started = false;
 public:
 	port_forwarder();
-	void start_forwarding(USHORT port);
+	void start_forwarding(uint16_t port);
 	~port_forwarder();
 };
 
