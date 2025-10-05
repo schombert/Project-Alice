@@ -745,10 +745,10 @@ void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_mo
 
 
 void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
-	keycode = replace_keycodes(state, keycode, mod);
-	if(state.ui_state.edit_target_internal) {
+	if(state.ui_state.edit_target_internal && keycode != sys::virtual_key::ESCAPE) {
 		state.ui_state.edit_target_internal->impl_on_key_down(state, keycode, mod);
 	} else {
+		keycode = replace_keycodes(state, keycode, mod);
 		state.current_scene.handle_hotkeys(state, keycode, mod);
 	}
 }

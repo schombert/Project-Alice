@@ -662,6 +662,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 		int64_t total_x_advance = 0;
 
 		if(U_SUCCESS(errorCode)) {
+			// TODO -- find any previous added to the same line
 			int32_t previous_rightmost_in_run = -1;
 			int32_t last_run_rightmost = -1;
 
@@ -707,15 +708,15 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 						d->grapheme_placement.emplace_back();
 						auto& new_exgc = d->grapheme_placement.back();
 						if(direction == UBIDI_RTL)
-							new_exgc.flags |= text::ex_grapheme_cluster_info::has_rtl_directionality;
+							new_exgc.flags |= text::ex_grapheme_cluster_info::f_has_rtl_directionality;
 						new_exgc.line = d->total_lines;
 						new_exgc.source_offset = uint16_t(start_cluster_position + logical_start + details_offset);
 						new_exgc.unit_length = uint8_t(end_seq - start_cluster_position);
 
 						if(start_of_new_entries != 0 && start_cluster_position == 0) {
 							d->grapheme_placement[start_of_new_entries - 1].line = d->total_lines;
-							d->grapheme_placement[start_of_new_entries - 1].flags |= text::ex_grapheme_cluster_info::is_line_end;
-							new_exgc.flags |= text::ex_grapheme_cluster_info::is_line_start;
+							d->grapheme_placement[start_of_new_entries - 1].flags |= text::ex_grapheme_cluster_info::f_is_line_end;
+							new_exgc.flags |= text::ex_grapheme_cluster_info::f_is_line_start;
 						}
 
 						// link to visually left/right graphemes
@@ -778,7 +779,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 						//find word start
 						for(auto k = start_of_new_entries; k < d->grapheme_placement.size(); ++k) {
 							if(d->grapheme_placement[k].source_offset == uint16_t(start_wb_position + logical_start + details_offset)) {
-								d->grapheme_placement[k].flags |= text::ex_grapheme_cluster_info::is_word_start;
+								d->grapheme_placement[k].flags |= text::ex_grapheme_cluster_info::f_is_word_start;
 								break;
 							}
 						}
@@ -792,7 +793,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 							}
 						}
 						if(best_found != -1) {
-							d->grapheme_placement[best_found].flags |= text::ex_grapheme_cluster_info::is_word_end;
+							d->grapheme_placement[best_found].flags |= text::ex_grapheme_cluster_info::f_is_word_end;
 						}
 
 						start_wb_position = next_wb_position;

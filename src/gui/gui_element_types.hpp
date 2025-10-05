@@ -442,24 +442,93 @@ public:
 
 class edit_box_element_base : public u16_text_element_base {
 protected:
-	int32_t edit_index = 0;
+
+	struct undo_item {
+		std::u16string contents;
+		int16_t anchor = 0;
+		int16_t cursor = 0;
+		bool valid = false;
+
+		bool operator==(undo_item const& o) const noexcept {
+			return contents == o.contents;
+		}
+		bool operator!=(undo_item const& o) const noexcept {
+			return !(*this == o);
+		}
+	};
+
+	struct undo_buffer {
+		constexpr static int32_t total_size = 16;
+
+		undo_item interal_buffer[total_size] = {};
+		int32_t buffer_position = 0;
+
+		std::optional<undo_item> undo(undo_item current_state) {
+			push_state(current_state);
+
+			auto temp_back = buffer_position - 1;
+			if(temp_back < 0) {
+				temp_back += total_size;
+			}
+
+			if(interal_buffer[temp_back].valid) {
+				buffer_position = temp_back;
+				return interal_buffer[temp_back];
+			}
+			return std::optional<undo_item>{};
+		}
+		std::optional<undo_item> redo(undo_item current_state) {
+			if(interal_buffer[buffer_position] == current_state) {
+				auto temp_back = buffer_position + 1;
+				if(temp_back >= total_size) {
+					temp_back -= total_size;
+				}
+				if(interal_buffer[temp_back].valid) {
+					buffer_position = temp_back;
+					return interal_buffer[buffer_position];
+				}
+			}
+			return std::optional<undo_item>{};
+		}
+		void push_state(undo_item state) {
+			if(interal_buffer[buffer_position].valid == false || interal_buffer[buffer_position] != state) {
+				++buffer_position;
+				if(buffer_position >= total_size) {
+					buffer_position -= total_size;
+				}
+				interal_buffer[buffer_position] = state;
+				interal_buffer[buffer_position].valid = true;
+
+				auto temp_next = buffer_position + 1;
+				if(temp_next >= total_size) {
+					temp_next -= total_size;
+				}
+				interal_buffer[temp_next].valid = false;
+			}
+		}
+	} edit_undo_buffer;
+
 	text::layout_details glyph_details;
-	bool multiline = false;
 	std::chrono::time_point<std::chrono::steady_clock> activation_time;
+	void* ts_obj = nullptr;
+
+	int32_t cursor_position = 0;
+	int32_t anchor_position = 0;
+	
+	bool multiline = false;
+	bool changes_made = false;
+
+	void insert_codepoint(sys::state& state, uint32_t codepoint, sys::key_modifiers mods);
+	void internal_on_text_changed(sys::state& state);
+	void internal_on_selection_changed(sys::state& state);
+	int32_t best_cursor_fit_on_line(int32_t line, int32_t xpos);
+	int32_t visually_left_on_line(int32_t line);
+	int32_t visually_right_on_line(int32_t line);
 public:
 	void set_text(sys::state& state, std::u16string const& new_text);
 
-	virtual void edit_box_tab(sys::state& state, std::u16string_view s) noexcept { }
-	virtual void edit_box_enter(sys::state& state, std::u16string_view s) noexcept { }
 	virtual void edit_box_update(sys::state& state, std::u16string_view s) noexcept { }
-	virtual void edit_box_up(sys::state& state) noexcept { }
-	virtual void edit_box_down(sys::state& state) noexcept { }
-	virtual void edit_box_esc(sys::state& state) noexcept { }
-	virtual void edit_box_backtick(sys::state& state) noexcept { }
-	virtual void edit_box_back_slash(sys::state& state) noexcept { }
-	virtual void edit_index_position(sys::state& state, int32_t index) noexcept {
-		edit_index = index;
-	}
+	
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
@@ -474,6 +543,8 @@ public:
 	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char32_t ch) noexcept override;
+	void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept override;
+	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	focus_result on_get_focus(sys::state& state) noexcept override;
 	void on_lose_focus(sys::state& state) noexcept override;

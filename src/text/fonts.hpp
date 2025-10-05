@@ -70,11 +70,27 @@ struct ex_grapheme_cluster_info {
 	uint8_t line = 0; // which line in the layout, starting at 0
 	uint8_t unit_length = 0; // how many utf16 codepoints the cluster consists of
 
-	constexpr static uint8_t is_word_start = 0x01;
-	constexpr static uint8_t is_word_end = 0x02;
-	constexpr static uint8_t is_line_start = 0x04;
-	constexpr static uint8_t is_line_end = 0x08;
-	constexpr static uint8_t has_rtl_directionality = 0x10;
+	constexpr static uint8_t f_is_word_start = 0x01;
+	constexpr static uint8_t f_is_word_end = 0x02;
+	constexpr static uint8_t f_is_line_start = 0x04;
+	constexpr static uint8_t f_is_line_end = 0x08;
+	constexpr static uint8_t f_has_rtl_directionality = 0x10;
+
+	inline bool has_rtl_directionality() {
+		return (flags & f_has_rtl_directionality) != 0;
+	}
+	inline bool is_line_end() {
+		return (flags & f_is_line_end) != 0;
+	}
+	inline bool is_line_start() {
+		return (flags & f_is_line_start) != 0;
+	}
+	inline bool is_word_start() {
+		return (flags & f_is_word_start) != 0;
+	}
+	inline bool is_word_end() {
+		return (flags & f_is_word_end) != 0;
+	}
 };
 
 struct stored_glyph {
