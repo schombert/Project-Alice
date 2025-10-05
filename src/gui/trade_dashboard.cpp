@@ -2071,7 +2071,11 @@ void trade_dashboard_main_nation_import_per_commodity_t::on_update(sys::state& s
 	state.world.for_each_commodity([&](auto cid) {
 		graph_content[cid.index()].key = cid;
 		auto median_price = state.world.commodity_get_median_price(cid);
-		graph_content[cid.index()].amount = state.ui_cached_data.nation_per_commodity.import_volume[cid.index()] * median_price;
+		if(main.nation_pov) {
+			graph_content[cid.index()].amount = state.ui_cached_data.nation_per_commodity.import_volume[cid.index()] * median_price;
+		} else {
+			graph_content[cid.index()].amount = 0.f;
+		}
 		auto c = state.world.commodity_get_color(cid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[cid.index()].color = c3f;

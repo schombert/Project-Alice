@@ -513,20 +513,6 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.nation_size()) return true;
 	if(!commodity) return true;
 
-	// validate size
-	if(export_volume.size() < state.world.nation_size()) {
-		export_volume.resize(state.world.nation_size());
-	}
-	if(import_volume.size() < state.world.nation_size()) {
-		import_volume.resize(state.world.nation_size());
-	}
-	if(consumption_volume.size() < state.world.nation_size()) {
-		consumption_volume.resize(state.world.nation_size());
-	}
-	if(production_volume.size() < state.world.nation_size()) {
-		production_volume.resize(state.world.nation_size());
-	}
-
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
@@ -557,6 +543,12 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	}
 
 	// SAFE PLACE TO STORE RESULTS
+
+	// validate size
+	export_volume.resize(std::max(export_volume.size(), (size_t)progress + 1));
+	import_volume.resize(std::max(import_volume.size(), (size_t)progress + 1));
+	consumption_volume.resize(std::max(consumption_volume.size(), (size_t)progress + 1));
+	production_volume.resize(std::max(production_volume.size(), (size_t)progress + 1));
 
 	export_volume[progress] = export_temp;
 	import_volume[progress] = import_temp;
@@ -601,14 +593,6 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.commodity_size()) return true;
 	if(!nation) return true;
 
-	// validate size
-	if(export_volume.size() < state.world.nation_size()) {
-		export_volume.resize(state.world.nation_size());
-	}
-	if(import_volume.size() < state.world.nation_size()) {
-		import_volume.resize(state.world.nation_size());
-	}
-
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
@@ -634,6 +618,9 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
+	export_volume.resize(std::max(export_volume.size(), (size_t)progress + 1));
+	import_volume.resize(std::max(import_volume.size(), (size_t)progress + 1));
+
 	export_volume[progress] = export_temp;
 	import_volume[progress] = import_temp;
 
@@ -642,6 +629,7 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 }
 
 bool per_province_cache_slot::update(sys::state& state) {
+	// we can't create provinces thankfully
 	if(progress >= state.world.province_size()) {
 		// update sorting
 		std::sort(sorted_by_gdp_per_capita.begin(), sorted_by_gdp_per_capita.end(), [&](auto a, auto b) {
@@ -714,20 +702,6 @@ bool per_province_cache_slot::update(sys::state& state) {
 bool per_nation_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
 
-	// validate size
-	if(sphere_parent.size() < state.world.nation_size()) {
-		sphere_parent.resize(state.world.nation_size());
-		reset_progress();
-	}
-	if(national_gdp.size() < state.world.nation_size()) {
-		national_gdp.resize(state.world.nation_size());
-		reset_progress();
-	}
-	if(sphere_gdp.size() < state.world.nation_size()) {
-		sphere_gdp.resize(state.world.nation_size());
-		reset_progress();
-	}
-
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
@@ -774,6 +748,9 @@ bool per_nation_cache_slot::update(sys::state& state) {
 
 		// SAFE PLACE TO STORE RESULTS
 
+		sphere_parent.resize(std::max(sphere_parent.size(), (size_t)progress + 1));
+		national_gdp.resize(std::max(national_gdp.size(), (size_t)progress + 1));
+
 		national_gdp[progress] = gdp;
 		if(sphere_parent[progress] != parent_of_current) {
 			sphere_parent[progress] = parent_of_current;
@@ -806,6 +783,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 
 		// SAFE PLACE TO STORE RESULTS
 
+		sphere_gdp.resize(std::max(sphere_gdp.size(), (size_t)progress_sphere + 1));
 		sphere_gdp[progress_sphere] = total;
 
 		progress_sphere++;
