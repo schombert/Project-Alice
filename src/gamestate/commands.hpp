@@ -148,8 +148,8 @@ enum class command_type : uint8_t {
 
 struct command_type_data {
 	size_t size;
-	bool (*CanPerformFuncPtr)(sys::state& state, command_data command);
-	bool (*ExecuteFuncPtr)(sys::state& state, command_data command);
+	bool (*CanPerformFuncPtr)(sys::state& state, command_data& command);
+	bool (*ExecuteFuncPtr)(sys::state& state, command_data& command);
 	command_data (*Deserialize)(uint8_t* ptr, size_t size);
 };
 
@@ -854,7 +854,7 @@ struct cmd_header {
 
 struct command_data {
 	cmd_header header;
-	cmd_payload payload;
+	std::vector<uint8_t> payload;
 	command_data(command_type _type)  {
 		header.type = _type;
 	};
@@ -862,6 +862,41 @@ struct command_data {
 		header.type = _type;
 		header.source = _source;
 	};
+	size_t size() const {
+		return sizeof(cmd_header) + payload.size();
+	}
+	// push data to the payload
+	template<typename data_type>
+	friend command_data& operator << (command_data& msg, data_type& data) {
+
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to push");
+		size_t curr_size = msg.payload.size();
+		msg.payload.resize(payload.size() + sizeof(data_type));
+
+		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
+		return msg;
+	}
+
+	// grab data from the payload
+	template<typename data_type>
+	friend command_data& operator >> (command_data& msg, data_type& data) {
+
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to pull");
+		size_t i = msg.payload.size() - sizeof(data_type);
+		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
+		msg.payload.resize(i);
+		return msg;
+
+	}
+	template<typename data_type>
+	data_type get_payload() const {
+		data_type output{ };
+		*this >> output;
+		return output;
+	}
+
+
+	
 	std::unique_ptr<uint8_t> serialize();
 	size_t size();
 };
