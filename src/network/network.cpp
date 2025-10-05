@@ -61,7 +61,7 @@ port_forwarder::port_forwarder() { }
 
 inline static SHA512 sha512;
 
-void port_forwarder::start_forwarding(USHORT port) {
+void port_forwarder::start_forwarding(uint16_t port) {
 #ifdef _WIN64
 	if(started)
 		return;
