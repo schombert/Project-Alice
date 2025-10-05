@@ -953,6 +953,7 @@ std::string date_to_string(sys::state& state, sys::date date);
 
 std::string prettify(int64_t num);
 std::string prettify_currency(float num);
+std::string prettify_float(float num);
 std::string format_money(float num);
 std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);

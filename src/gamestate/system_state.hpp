@@ -18,6 +18,7 @@
 #include "sound.hpp"
 #include "map_state.hpp"
 #include "economy.hpp"
+#include "economy_production.hpp"
 #include "culture.hpp"
 #include "military.hpp"
 #include "nations.hpp"
@@ -477,6 +478,161 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
 };
 
+struct ui_cache_slot {
+	std::atomic<bool> update_requested = false;
+	bool update_completed = true;
+	void reset_progress() {
+		return;
+	}
+	bool update(sys::state& state) {
+		return true;
+	}
+	// can be used outside of cache thread
+	void request_update() {
+		update_requested.store(true);
+	}
+};
+
+struct commodity_per_nation_cache_slot : ui_cache_slot {
+	dcon::commodity_id commodity{};
+	dcon::nation_id::value_base_t progress = 0;
+
+	std::vector<float> export_volume{};
+	std::vector<float> import_volume{};
+	std::vector<float> consumption_volume{};
+	std::vector<float> production_volume{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct nation_per_nation_cache_slot : ui_cache_slot {
+	dcon::nation_id nation{};
+
+	std::vector<float> export_value{};
+	std::vector<float> import_value{};
+
+	void reset_progress() {
+		update_completed = false;
+	}
+	bool update(sys::state& state);
+};
+
+struct nation_per_commodity_cache_slot : ui_cache_slot {
+	dcon::nation_id nation{};
+	dcon::commodity_id::value_base_t progress = 0;
+
+	std::vector<float> import_volume{};
+	std::vector<float> export_volume{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct commodity_per_province_cache_slot : ui_cache_slot {
+	dcon::commodity_id commodity{};
+	dcon::province_id::value_base_t progress = 0;
+
+	std::vector<float> consumption_volume{};
+	std::vector<float> production_volume{};
+	std::vector<dcon::province_id> sorted_by_consumption{ };
+	std::vector<dcon::province_id> sorted_by_production{ };
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct per_province_cache_slot : ui_cache_slot {
+	dcon::province_id::value_base_t progress = 0;
+
+	std::vector<economy::gdp::breakdown> gdp{};
+	std::vector<float> population{};
+	std::vector<dcon::province_id> sorted_by_gdp{ };
+	std::vector<dcon::province_id> sorted_by_gdp_per_capita{ };
+
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct per_nation_cache_slot : ui_cache_slot {
+	dcon::nation_id::value_base_t progress = 0;
+	dcon::nation_id::value_base_t progress_sphere = 0;
+
+	std::vector<dcon::nation_id> sphere_parent{};
+	std::vector<float> national_gdp{};
+	std::vector<float> sphere_gdp{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+		progress_sphere = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct ui_cache {
+	dcon::commodity_id commodity{};
+	dcon::nation_id nation{};
+
+	int sleep_iterations;
+
+	// slots output is read only from outside
+
+	commodity_per_nation_cache_slot commodity_per_nation{ };
+	commodity_per_province_cache_slot commodity_per_province{ };
+	per_province_cache_slot per_province{ };
+	nation_per_nation_cache_slot nation_per_nation{ };
+	nation_per_commodity_cache_slot nation_per_commodity{ };
+	per_nation_cache_slot per_nation{ };
+
+	void update_ui(sys::state& state);
+
+	void set_commodity(const sys::state& state, dcon::commodity_id cid) {
+		if(commodity == cid) return;
+		commodity = cid;
+		commodity_per_nation.commodity = cid;
+		commodity_per_province.commodity = cid;
+		commodity_per_nation.request_update();
+		commodity_per_province.request_update();
+	};
+
+	void set_nation(const sys::state& state, dcon::nation_id nid) {
+		if(nation == nid) return;
+		nation = nid;
+		nation_per_nation.nation = nid;
+		nation_per_commodity.nation = nid;
+		nation_per_nation.request_update();
+		nation_per_commodity.request_update();
+	};
+
+	void request_update() {
+		commodity_per_nation.request_update();
+		commodity_per_province.request_update();
+		per_province.request_update();
+		nation_per_nation.request_update();
+		nation_per_commodity.request_update();
+		per_nation.request_update();
+	}
+
+	template<typename SLOT>
+	void update_slot(sys::state& state, SLOT& slot, bool& updates_running);
+
+	void process_update(sys::state& state);
+};
+
 // the state struct will eventually include (at least pointers to)
 // the state of the sound system, the state of the windowing system,
 // and the game data / state itself
@@ -650,6 +806,7 @@ struct alignas(64) state {
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
 	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
 	ui::state ui_state;                                              // transient information for the state of the ui
+	ui_cache ui_cached_data;					 // cached data to do heavy UI updates in separate thread
 	ogl::animation ui_animation;
 	text::font_manager font_collection;
 
@@ -664,6 +821,9 @@ struct alignas(64) state {
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
 	std::atomic<bool> update_trade_flow = true;
+
+	std::atomic<int64_t> tick_start_counter;
+	std::atomic<int64_t> tick_end_counter;
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;
@@ -691,6 +851,10 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
+
+	// gl misc
+	std::vector<GLuint> query_frame_time_other;
+	std::vector<bool> query_frame_time_other_free;
 
 	// data for immediate mode gui
 	iui::iui_state iui_state;

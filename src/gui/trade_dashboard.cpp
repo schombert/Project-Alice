@@ -1458,6 +1458,7 @@ struct trade_dashboard_main_t : public layout_window_element {
 // BEGIN main::variables
 	dcon::nation_id nation_pov;
 	ui::element_base * old_window_container;
+	dcon::province_id::value_base_t current_index;
 // END
 	std::unique_ptr<trade_dashboard_main_per_commodity_details_t> per_commodity_details;
 	std::unique_ptr<trade_dashboard_main_per_nation_details_t> per_nation_details;
@@ -1753,30 +1754,17 @@ void  trade_dashboard_main_top_production_t::on_create(sys::state& state, layout
 void  trade_dashboard_main_top_production_t::update(sys::state& state, layout_window_element* parent) {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_production::update
+	if(state.ui_cached_data.commodity_per_province.production_volume.size() < state.world.province_size()) {
+		return;
+	}
 	values.clear();
-	std::vector<dcon::province_id> raw;
-	std::vector<float> raw_values;
-	raw_values.resize(state.world.province_size());
-	state.world.for_each_province([&](auto id) {
-		if(main.nation_pov) {
-			if(state.world.province_get_nation_from_province_ownership(id) != main.nation_pov) {
-				return;
-			}
+	size_t counter = 0;
+	while(counter < state.ui_cached_data.commodity_per_province.sorted_by_production.size() && values.size() < 8) {
+		auto pid = state.ui_cached_data.commodity_per_province.sorted_by_production[counter];
+		if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid) == main.nation_pov) {
+			add_province_row_production(pid);
 		}
-		raw_values[id.index()] = economy::estimate_production(state, state.selected_trade_good, id);
-		raw.push_back(id);
-	});
-
-	std::sort(raw.begin(), raw.end(), [&](auto a, auto b) {
-		if(raw_values[a.index()] != raw_values[b.index()]) {
-			return raw_values[a.index()] > raw_values[b.index()];
-		} else {
-			return a.index() > b.index();
-		}
-	});
-
-	for(int i = 0; i < std::min(8, (int)(raw.size())); i++) {
-		add_province_row_production(raw[i]);
+		counter++;
 	}
 // END
 }
@@ -1814,30 +1802,17 @@ void  trade_dashboard_main_top_consumption_t::on_create(sys::state& state, layou
 void  trade_dashboard_main_top_consumption_t::update(sys::state& state, layout_window_element* parent) {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_consumption::update
+	if(state.ui_cached_data.commodity_per_province.consumption_volume.size() < state.world.province_size()) {
+		return;
+	}
 	values.clear();
-	std::vector<dcon::province_id> raw;
-	std::vector<float> raw_values;
-	raw_values.resize(state.world.province_size());
-	state.world.for_each_province([&](auto id) {
-		if(main.nation_pov) {
-			if(state.world.province_get_nation_from_province_ownership(id) != main.nation_pov) {
-				return;
-			}
+	size_t counter = 0;
+	while(counter < state.ui_cached_data.commodity_per_province.sorted_by_consumption.size() && values.size() < 8) {
+		auto pid = state.ui_cached_data.commodity_per_province.sorted_by_consumption[counter];
+		if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid) == main.nation_pov) {
+			add_province_row_consumption(pid);
 		}
-		raw_values[id.index()] = economy::estimate_intermediate_consumption(state, state.selected_trade_good, id) + economy::estimate_pops_consumption(state, state.selected_trade_good, id);
-		raw.push_back(id);
-	});
-
-	std::sort(raw.begin(), raw.end(), [&](auto a, auto b) {
-		if(raw_values[a.index()] != raw_values[b.index()]) {
-			return raw_values[a.index()] > raw_values[b.index()];
-		} else {
-			return a.index() > b.index();
-		}
-	});
-
-	for(int i = 0; i < std::min(8, (int)(raw.size())); i++) {
-		add_province_row_consumption(raw[i]);
+		counter++;
 	}
 // END
 }
@@ -1927,30 +1902,17 @@ void  trade_dashboard_main_top_gdp_t::on_create(sys::state& state, layout_window
 void  trade_dashboard_main_top_gdp_t::update(sys::state& state, layout_window_element* parent) {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_gdp::update
+	if(state.ui_cached_data.per_province.gdp.size() < state.world.province_size()) {
+		return;
+	}
 	values.clear();
-	std::vector<dcon::province_id> raw;
-	std::vector<float> raw_gdp;
-	raw_gdp.resize(state.world.province_size());
-	state.world.for_each_province([&](auto id) {
-		if(main.nation_pov) {
-			if(state.world.province_get_nation_from_province_ownership(id) != main.nation_pov) {
-				return;
-			}
+	size_t counter = 0;
+	while(counter < state.ui_cached_data.per_province.sorted_by_gdp.size() && values.size() < 8) {
+		auto pid = state.ui_cached_data.per_province.sorted_by_gdp[counter];
+		if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid) == main.nation_pov) {
+			add_province_row_gdp(pid);
 		}
-		raw_gdp[id.index()] = economy::gdp::breakdown_province(state, id).total_non_negative;
-		raw.push_back(id);
-	});
-
-	std::sort(raw.begin(), raw.end(), [&](auto a, auto b) {
-		if(raw_gdp[a.index()] != raw_gdp[b.index()]) {
-			return raw_gdp[a.index()] > raw_gdp[b.index()];
-		} else {
-			return a.index() > b.index();
-		}
-	});
-
-	for(int i = 0; i < std::min(8, (int)(raw.size())); i++) {
-		add_province_row_gdp(raw[i]);
+		counter++;
 	}
 // END
 }
@@ -1988,33 +1950,17 @@ void  trade_dashboard_main_top_gdp_capita_t::on_create(sys::state& state, layout
 void  trade_dashboard_main_top_gdp_capita_t::update(sys::state& state, layout_window_element* parent) {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_gdp_capita::update
+	if(state.ui_cached_data.per_province.gdp.size() < state.world.province_size()) {
+		return;
+	}
 	values.clear();
-	std::vector<dcon::province_id> raw;
-	std::vector<float> raw_gdp;
-	raw_gdp.resize(state.world.province_size());
-	state.world.for_each_province([&](auto id) {
-		if(main.nation_pov) {
-			if(state.world.province_get_nation_from_province_ownership(id) != main.nation_pov) {
-				return;
-			}
+	size_t counter = 0;
+	while(counter < state.ui_cached_data.per_province.sorted_by_gdp_per_capita.size() && values.size() < 8) {
+		auto pid = state.ui_cached_data.per_province.sorted_by_gdp[counter];
+		if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid) == main.nation_pov) {
+			add_province_row_gdp_per_capita(pid);
 		}
-		auto population = state.world.province_get_demographics(id, demographics::total);
-		if(population > 0.f) {
-			raw_gdp[id.index()] = economy::gdp::breakdown_province(state, id).total_non_negative / population;
-			raw.push_back(id);
-		}
-	});
-
-	std::sort(raw.begin(), raw.end(), [&](auto a, auto b) {
-		if(raw_gdp[a.index()] != raw_gdp[b.index()]) {
-			return raw_gdp[a.index()] > raw_gdp[b.index()];
-		} else {
-			return a.index() > b.index();
-		}
-	});
-
-	for(int i = 0; i < std::min(8, (int)(raw.size())); i++) {
-		add_province_row_gdp_per_capita(raw[i]);
+		counter++;
 	}
 // END
 }
@@ -2117,13 +2063,15 @@ void trade_dashboard_main_nation_import_per_commodity_t::render(sys::state & sta
 void trade_dashboard_main_nation_import_per_commodity_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::nation_import_per_commodity::update
+	if(state.ui_cached_data.nation_per_commodity.import_volume.size() == 0) return;
+
 	graph_content.clear();
 	graph_content.resize(state.world.commodity_size());
 
 	state.world.for_each_commodity([&](auto cid) {
 		graph_content[cid.index()].key = cid;
 		auto median_price = state.world.commodity_get_median_price(cid);
-		graph_content[cid.index()].amount = economy::import_volume(state, main.nation_pov, cid) * median_price;
+		graph_content[cid.index()].amount = state.ui_cached_data.nation_per_commodity.import_volume[cid.index()] * median_price;
 		auto c = state.world.commodity_get_color(cid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[cid.index()].color = c3f;
@@ -2194,13 +2142,20 @@ void trade_dashboard_main_nation_export_per_commodity_t::render(sys::state & sta
 void trade_dashboard_main_nation_export_per_commodity_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::nation_export_per_commodity::update
+	if(state.ui_cached_data.nation_per_commodity.export_volume.size() == 0) {
+		return;
+	}
 	graph_content.clear();
 	graph_content.resize(state.world.commodity_size());
 
 	state.world.for_each_commodity([&](auto cid) {
 		graph_content[cid.index()].key = cid;
 		auto median_price = state.world.commodity_get_median_price(cid);
-		graph_content[cid.index()].amount = economy::export_volume(state, main.nation_pov, cid) * median_price;
+		if(main.nation_pov) {
+			graph_content[cid.index()].amount = state.ui_cached_data.nation_per_commodity.export_volume[cid.index()] * median_price;
+		} else {
+			graph_content[cid.index()].amount = 0.f;
+		}
 		auto c = state.world.commodity_get_color(cid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[cid.index()].color = c3f;
@@ -2269,17 +2224,19 @@ void trade_dashboard_main_nation_import_per_nation_t::render(sys::state & state,
 	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
 }
 void trade_dashboard_main_nation_import_per_nation_t::on_update(sys::state& state) noexcept {
-	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent));
 // BEGIN main::nation_import_per_nation::update
-	auto per_nation_data = economy::trade_value_flow_all_to_nation(state, main.nation_pov);
+	if(state.ui_cached_data.nation_per_nation.import_value.size() == 0) {
+		return;
+	}
 	graph_content.clear();
 	state.world.for_each_nation([&](auto target) {
-		if(target != main.nation_pov) {
+		if(main.nation_pov && target != main.nation_pov) {
 			auto c = state.world.nation_get_color(target);
 			graph_entry entry = {
 				target,
 				ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) },
-				per_nation_data[target.index()]
+				state.ui_cached_data.nation_per_nation.import_value[target.index()]
 			};
 			graph_content.push_back(entry);
 		}
@@ -2349,15 +2306,17 @@ void trade_dashboard_main_nation_export_per_nation_t::render(sys::state & state,
 void trade_dashboard_main_nation_export_per_nation_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::nation_export_per_nation::update
-	auto per_nation_data = economy::trade_value_flow_nation_to_all(state, main.nation_pov);
+	if(state.ui_cached_data.nation_per_nation.export_value.size() < state.world.nation_size()) {
+		return;
+	}
 	graph_content.clear();
 	state.world.for_each_nation([&](auto target) {
-		if(target != main.nation_pov) {
+		if(main.nation_pov && target != main.nation_pov) {
 			auto c = state.world.nation_get_color(target);
 			graph_entry entry = {
 				target,
 				ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) },
-				per_nation_data[target.index()]
+				state.ui_cached_data.nation_per_nation.export_value[target.index()]
 			};
 			graph_content.push_back(entry);
 		}
@@ -2537,20 +2496,21 @@ void trade_dashboard_main_commodity_import_per_nation_t::render(sys::state & sta
 void trade_dashboard_main_commodity_import_per_nation_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::commodity_import_per_nation::update
+	if(state.ui_cached_data.commodity_per_nation.import_volume.size() < state.world.nation_size()) {
+		return;
+	}
+
 	graph_content.clear();
 	graph_content.resize(state.world.nation_size());
-
 	auto cid = state.selected_trade_good;
 	auto median_price = state.world.commodity_get_median_price(cid);
-
 	state.world.for_each_nation([&](auto nid) {
 		graph_content[nid.index()].key = nid;
-		graph_content[nid.index()].amount = economy::import_volume(state, nid, cid) * median_price;
+		graph_content[nid.index()].amount = state.ui_cached_data.commodity_per_nation.import_volume[nid.index()] * median_price;
 		auto c = state.world.nation_get_color(nid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[nid.index()].color = c3f;
 	});
-
 	update_chart(state);
 // END
 }
@@ -2616,6 +2576,10 @@ void trade_dashboard_main_commodity_export_per_nation_t::render(sys::state & sta
 void trade_dashboard_main_commodity_export_per_nation_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::commodity_export_per_nation::update
+	if(state.ui_cached_data.commodity_per_nation.export_volume.size() < state.world.nation_size()) {
+		return;
+	}
+
 	graph_content.clear();
 	graph_content.resize(state.world.nation_size());
 
@@ -2624,7 +2588,7 @@ void trade_dashboard_main_commodity_export_per_nation_t::on_update(sys::state& s
 
 	state.world.for_each_nation([&](auto nid) {
 		graph_content[nid.index()].key = nid;
-		graph_content[nid.index()].amount = economy::export_volume(state, nid, cid) * median_price;
+		graph_content[nid.index()].amount = state.ui_cached_data.commodity_per_nation.export_volume[nid.index()] * median_price;
 		auto c = state.world.nation_get_color(nid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[nid.index()].color = c3f;
@@ -2695,6 +2659,9 @@ void trade_dashboard_main_commodity_production_per_nation_t::render(sys::state &
 void trade_dashboard_main_commodity_production_per_nation_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::commodity_production_per_nation::update
+	if(state.ui_cached_data.commodity_per_nation.production_volume.size() < state.world.nation_size()) {
+		return;
+	}
 	graph_content.clear();
 	graph_content.resize(state.world.nation_size());
 
@@ -2703,7 +2670,7 @@ void trade_dashboard_main_commodity_production_per_nation_t::on_update(sys::stat
 
 	state.world.for_each_nation([&](auto nid) {
 		graph_content[nid.index()].key = nid;
-		graph_content[nid.index()].amount = std::max(0.f, (economy::supply(state, nid, cid) - economy::trade_supply(state, nid, cid))) * median_price;
+		graph_content[nid.index()].amount = state.ui_cached_data.commodity_per_nation.production_volume[nid.index()] * median_price;
 		auto c = state.world.nation_get_color(nid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[nid.index()].color = c3f;
@@ -2774,6 +2741,9 @@ void trade_dashboard_main_commodity_consumption_per_nation_t::render(sys::state 
 void trade_dashboard_main_commodity_consumption_per_nation_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::commodity_consumption_per_nation::update
+	if(state.ui_cached_data.commodity_per_nation.consumption_volume.size() < state.world.nation_size()) {
+		return;
+	}
 	graph_content.clear();
 	graph_content.resize(state.world.nation_size());
 
@@ -2782,7 +2752,7 @@ void trade_dashboard_main_commodity_consumption_per_nation_t::on_update(sys::sta
 
 	state.world.for_each_nation([&](auto nid) {
 		graph_content[nid.index()].key = nid;
-		graph_content[nid.index()].amount = economy::consumption(state, nid, cid) * median_price;
+		graph_content[nid.index()].amount = state.ui_cached_data.commodity_per_nation.consumption_volume[nid.index()] * median_price;
 		auto c = state.world.nation_get_color(nid);
 		auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 		graph_content[nid.index()].color = c3f;
@@ -2937,6 +2907,7 @@ void trade_dashboard_main_gdp_per_sector_t::render(sys::state & state, int32_t x
 void trade_dashboard_main_gdp_per_sector_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::gdp_per_sector::update
+	if(state.ui_cached_data.per_province.gdp.size() < state.world.province_size()) return;
 	graph_content.resize(3);
 
 	graph_content[0].amount = 0.f;
@@ -2949,7 +2920,7 @@ void trade_dashboard_main_gdp_per_sector_t::on_update(sys::state& state) noexcep
 				return;
 			}
 		}
-		auto local_gdp = economy::gdp::breakdown_province(state, pid);
+		auto local_gdp = state.ui_cached_data.per_province.gdp[pid.index()];
 		graph_content[0].amount += std::max(0.f, std::max(0.f, local_gdp.primary));
 		graph_content[1].amount += std::max(0.f, std::max(0.f, local_gdp.secondary_factory));
 		graph_content[2].amount += std::max(0.f, std::max(0.f, local_gdp.secondary_artisan));
@@ -3059,42 +3030,32 @@ void trade_dashboard_main_gdp_sphere_t::update_tooltip(sys::state& state, int32_
 }
 void trade_dashboard_main_gdp_sphere_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	ogl::render_ui_mesh(state, ogl::color_modification::none, float(x), float(y), base_data.size.x, base_data.size.y, mesh, data_texture);
+	auto time = std::chrono::steady_clock::now();
+
 }
 void trade_dashboard_main_gdp_sphere_t::on_update(sys::state& state) noexcept {
-	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
+	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent));
 // BEGIN main::gdp_sphere::update
-	graph_content.clear();
-	std::vector<float> raw_data;
-	raw_data.resize(state.world.nation_size());
+	if(state.ui_cached_data.per_nation.sphere_gdp.size() < state.world.nation_size()) {
+		return;
+	}
+	if(graph_content.size() != state.world.nation_size()) {
+		graph_content.clear();
+	}
 
-	state.world.for_each_nation([&](auto nid) {
-		auto temp = nid;
-		auto sphere = state.world.nation_get_in_sphere_of(nid);
-		while(!sphere) {
-			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(nid));
-			if(overlord) {
-				nid = overlord;
-				sphere = state.world.nation_get_in_sphere_of(nid);
-			} else {
-				break;
-			}
-		}
-		if(sphere) {
-			raw_data[sphere.id.index()] += std::max(0.f, economy::gdp::value_nation(state, temp));
-		} else {
-			raw_data[nid.index()] += std::max(0.f, economy::gdp::value_nation(state, temp));
-		}
-	});
-
-	state.world.for_each_nation([&](auto nid) {
-		if(raw_data[nid.index()] > 0.f) {
+	if(graph_content.size() == 0) {
+		state.world.for_each_nation([&](auto nid) {
 			auto c = state.world.nation_get_color(nid);
 			auto c3f = ogl::color3f{ sys::red_from_int(c), sys::green_from_int(c), sys::blue_from_int(c) };
 			graph_content.push_back({
-				nid, c3f, raw_data[nid.index()]
+				nid, c3f, 0.f
 			});
-		}
-	});
+		});
+	}
+
+	for(auto& item : graph_content) {
+		item.amount = state.ui_cached_data.per_nation.sphere_gdp[item.key.index()];
+	}
 
 	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) {
 		if(a.amount != b.amount) {
@@ -3103,7 +3064,6 @@ void trade_dashboard_main_gdp_sphere_t::on_update(sys::state& state) noexcept {
 			return a.key.index() > b.key.index();
 		}
 	});
-
 	update_chart(state);
 // END
 }
@@ -3187,49 +3147,41 @@ void trade_dashboard_main_gdp_nations_t::render(sys::state & state, int32_t x, i
 void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::gdp_nations::update
-	graph_content.clear();
-	std::vector<float> raw_data;
-	std::vector<dcon::nation_id> parent_nation;
-	raw_data.resize(state.world.nation_size());
-	parent_nation.resize(state.world.nation_size());
+	if(state.ui_cached_data.per_nation.national_gdp.size() < state.world.nation_size()) {
+		return;
+	}
+	if(state.ui_cached_data.per_nation.sphere_gdp.size() < state.world.nation_size()) {
+		return;
+	}
+	if(graph_content.size() != state.world.nation_size()) {
+		graph_content.clear();
+	}
 
-	state.world.for_each_nation([&](auto nid) {
-		auto temp = nid;
-		auto sphere = state.world.nation_get_in_sphere_of(nid);
-		while(!sphere) {
-			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(nid));
-			if(overlord) {
-				nid = overlord;
-				sphere = state.world.nation_get_in_sphere_of(nid);
-			} else {
-				break;
-			}
-		}
-		if(sphere) {
-			raw_data[sphere.id.index()] += std::max(0.f, economy::gdp::value_nation(state, temp));
-			parent_nation[temp.index()] = sphere;
-		} else {
-			raw_data[nid.index()] += std::max(0.f, economy::gdp::value_nation(state, temp));
-			parent_nation[temp.index()] = nid;
-		}
-	});
-
-	state.world.for_each_nation([&](auto nid) {
-		auto c = state.world.nation_get_color(nid);
-		auto c_parent = state.world.nation_get_color(parent_nation[nid.index()]);
-		auto c3f = ogl::color3f{
-			0.2f * sys::red_from_int(c) + 0.8f * sys::red_from_int(c_parent) * 0.5f,
-			0.2f * sys::green_from_int(c) + 0.8f * sys::green_from_int(c_parent) * 0.5f,
-			0.2f * sys::blue_from_int(c) + 0.8f * sys::blue_from_int(c_parent) * 0.5f
-		};
-		graph_content.push_back({
-			nid, c3f, std::max(0.f, economy::gdp::value_nation(state, nid))
+	if(graph_content.size() == 0) {
+		state.world.for_each_nation([&](auto nid) {
+			auto parent = state.ui_cached_data.per_nation.sphere_parent[nid.index()];
+			auto c = state.world.nation_get_color(nid);
+			auto pc = state.world.nation_get_color(parent);
+			auto c3f = ogl::color3f{
+				sys::red_from_int(pc) * 0.6f + sys::red_from_int(c) * 0.1f,
+				sys::green_from_int(pc) * 0.6f + sys::green_from_int(c) * 0.1f,
+				sys::blue_from_int(pc) * 0.6f + sys::blue_from_int(c) * 0.1f
+			};
+			graph_content.push_back({
+				nid,
+				c3f,
+				0.f
+			});
 		});
-	});
+	}
+
+	for(auto& item : graph_content) {
+		item.amount = state.ui_cached_data.per_nation.national_gdp[item.key.index()];
+	}
 
 	std::sort(graph_content.begin(), graph_content.end(), [&](auto const& a, auto const& b) {
-		auto parent_a = parent_nation[a.key.index()];
-		auto parent_b = parent_nation[b.key.index()];
+		auto parent_a = state.ui_cached_data.per_nation.sphere_parent[a.key.index()];
+		auto parent_b = state.ui_cached_data.per_nation.sphere_parent[b.key.index()];
 
 		if(parent_a == parent_b) {
 			if(a.amount != b.amount) {
@@ -3242,11 +3194,11 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 			float value_b = 0.f;
 
 			if(parent_a) {
-				value_a = raw_data[parent_a.index()];
+				value_a = state.ui_cached_data.per_nation.sphere_gdp[parent_a.index()];
 			}
 
 			if(parent_b) {
-				value_b = raw_data[parent_b.index()];
+				value_b = state.ui_cached_data.per_nation.sphere_gdp[parent_b.index()];
 			}
 
 			if(value_a != value_b) {
@@ -3256,7 +3208,6 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 			}
 		}
 	});
-
 	update_chart(state);
 // END
 }
@@ -3374,6 +3325,7 @@ ui::message_result trade_dashboard_main_select_self_t::on_lbutton_down(sys::stat
 		main.nation_pov = { };
 	} else {
 		main.nation_pov = state.local_player_nation;
+		state.ui_cached_data.set_nation(state, state.local_player_nation);
 	}
 	main.on_update(state);
 // END
@@ -4402,7 +4354,7 @@ ui::message_result trade_dashboard_province_row_consumption_flag_t::on_lbutton_d
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN province_row_consumption::flag::lbutton_action
 	main.nation_pov = state.world.province_get_nation_from_province_ownership(province_row_consumption.pid);
-	main.on_update(state);
+	state.ui_cached_data.set_nation(state, main.nation_pov);
 // END
 	return ui::message_result::consumed;
 }
@@ -4530,9 +4482,7 @@ void trade_dashboard_province_row_consumption_value_t::on_update(sys::state& sta
 	trade_dashboard_province_row_consumption_t& province_row_consumption = *((trade_dashboard_province_row_consumption_t*)(parent)); 
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent->parent)); 
 // BEGIN province_row_consumption::value::update
-	auto intermediate = economy::estimate_intermediate_consumption(state, state.selected_trade_good, province_row_consumption.pid);
-	auto population = economy::estimate_pops_consumption(state, state.selected_trade_good, province_row_consumption.pid);
-	set_text(state, text::prettify((int64_t)(intermediate + population)));
+	set_text(state, text::prettify_float(state.ui_cached_data.commodity_per_province.consumption_volume[province_row_consumption.pid.index()]));
 // END
 }
 void trade_dashboard_province_row_consumption_value_t::on_create(sys::state& state) noexcept {
@@ -4754,7 +4704,7 @@ ui::message_result trade_dashboard_province_row_production_flag_t::on_lbutton_do
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN province_row_production::flag::lbutton_action
 	main.nation_pov = state.world.province_get_nation_from_province_ownership(province_row_production.pid);
-	main.on_update(state);
+	state.ui_cached_data.set_nation(state, main.nation_pov);
 // END
 	return ui::message_result::consumed;
 }
@@ -4882,7 +4832,7 @@ void trade_dashboard_province_row_production_value_t::on_update(sys::state& stat
 	trade_dashboard_province_row_production_t& province_row_production = *((trade_dashboard_province_row_production_t*)(parent)); 
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent->parent)); 
 // BEGIN province_row_production::value::update
-	set_text(state, text::prettify((int64_t)economy::estimate_production(state, state.selected_trade_good, province_row_production.pid)));
+	set_text(state, text::prettify_float(economy::estimate_production(state, state.selected_trade_good, province_row_production.pid)));
 // END
 }
 void trade_dashboard_province_row_production_value_t::on_create(sys::state& state) noexcept {
@@ -5104,7 +5054,7 @@ ui::message_result trade_dashboard_province_row_gdp_flag_t::on_lbutton_down(sys:
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN province_row_gdp::flag::lbutton_action
 	main.nation_pov = state.world.province_get_nation_from_province_ownership(province_row_gdp.pid);
-	main.on_update(state);
+	state.ui_cached_data.set_nation(state, main.nation_pov);
 // END
 	return ui::message_result::consumed;
 }
@@ -5454,7 +5404,7 @@ ui::message_result trade_dashboard_province_row_gdp_per_capita_flag_t::on_lbutto
 	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN province_row_gdp_per_capita::flag::lbutton_action
 	main.nation_pov = state.world.province_get_nation_from_province_ownership(province_row_gdp_per_capita.pid);
-	main.on_update(state);
+	state.ui_cached_data.set_nation(state, main.nation_pov);
 // END
 	return ui::message_result::consumed;
 }
@@ -5820,8 +5770,10 @@ ui::message_result trade_dashboard_commodity_selector_name_t::on_lbutton_down(sy
 // BEGIN commodity_selector::name::lbutton_action
 	if(state.selected_trade_good == commodity_selector.cid) {
 		state.selected_trade_good = { };
+		state.ui_cached_data.set_commodity(state, { });
 	} else {
 		state.selected_trade_good = commodity_selector.cid;
+		state.ui_cached_data.set_commodity(state, commodity_selector.cid);
 	}
 	state.update_trade_flow.store(true, std::memory_order::release);
 	main.on_update(state);
@@ -6061,6 +6013,7 @@ ui::message_result trade_dashboard_nation_selector_flag_t::on_lbutton_down(sys::
 		main.nation_pov = { };
 	} else {
 		main.nation_pov = nation_selector.nid;
+		state.ui_cached_data.set_nation(state, main.nation_pov);
 	}
 	main.on_update(state);
 // END
@@ -6140,6 +6093,7 @@ ui::message_result trade_dashboard_nation_selector_name_t::on_lbutton_down(sys::
 		main.nation_pov = { };
 	} else {
 		main.nation_pov = nation_selector.nid;
+		state.ui_cached_data.set_nation(state, main.nation_pov);
 	}
 	main.on_update(state);
 // END
