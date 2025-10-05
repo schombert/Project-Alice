@@ -957,7 +957,7 @@ inline table::column<dcon::nation_id> nation_price = {
 	}
 };
 
-inline table::column<dcon::nation_id> nation_name = {
+inline table::column<dcon::nation_id> trade_table_nation_name = {
 	.sortable = true,
 	.header = "nation_name",
 	.compare = [](sys::state& state, element_base* container, dcon::nation_id a, dcon::nation_id b) {
@@ -1639,7 +1639,7 @@ public:
 			return ptr;
 		} else if(name == "trade_good_global_stats") {
 			std::vector<table::column<dcon::nation_id>> columns = {
-				nation_name, nation_price, nation_production, nation_demand, nation_consumption
+				trade_table_nation_name, nation_price, nation_production, nation_demand, nation_consumption
 			};
 			auto ptr = make_element_by_type<table::display<dcon::nation_id>>(
 				state,

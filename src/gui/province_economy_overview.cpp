@@ -2489,9 +2489,11 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 
 	// prepare data
 	graph_content.clear();
-	graph_content.resize(15);
 
-	for(int32_t k = 0; k < 14; k++) {
+	int32_t N = 15;
+	graph_content.resize(N);
+
+	for(int32_t k = 0; k < N - 1; k++) {
 		graph_content[k].key = raw_content[k].key;
 		graph_content[k].amount = raw_content[k].value;
 
@@ -2502,14 +2504,13 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 		total_left -= raw_content[k].value;
 	}
 
-	graph_content[14].color.r = 0.f;
-	graph_content[14].color.g = 0.f;
-	graph_content[14].color.b = 0.f;
-	graph_content[14].key = { };
-	graph_content[14].amount = total_left;
+	graph_content[N - 1].color.r = 0.f;
+	graph_content[N - 1].color.g = 0.f;
+	graph_content[N - 1].color.b = 0.f;
+	graph_content[N - 1].key = { };
+	graph_content[N - 1].amount = total_left;
 
 	update_chart(state);
-
 // END
 }
 void province_economy_overview_body_import_value_graph_t::on_create(sys::state& state) noexcept {

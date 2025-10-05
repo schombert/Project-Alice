@@ -74,6 +74,11 @@ enum class war_initiation : bool {
 	join_war,
 	declare_war
 };
+enum class crisis_role : uint8_t {
+	not_involved,
+	attacker,
+	defender
+};
 
 struct global_national_state {
 	std::vector<triggered_modifier> triggered_modifiers;
@@ -337,8 +342,11 @@ int32_t national_focuses_in_use(sys::state& state, dcon::nation_id n);
 bool can_expand_colony(sys::state& state, dcon::nation_id n);
 bool is_losing_colonial_race(sys::state& state, dcon::nation_id n);
 bool sphereing_progress_is_possible(sys::state& state, dcon::nation_id n); // can increase opinion or add to sphere
+crisis_role  involved_in_crisis_state(sys::state const& state, dcon::nation_id n);
+crisis_role committed_in_crisis_state(sys::state const& state, dcon::nation_id n);
 bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n);
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n);
+
 void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n); // switches all players who are on one country to another. Can be called in either SP or MP
 
 bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b);

@@ -6,7 +6,6 @@
 #include "gui_diplomacy_window.hpp"
 #include "gui_technology_window.hpp"
 #include "gui_politics_window.hpp"
-#include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
@@ -483,7 +482,7 @@ public:
 				}
 			}
 		}
-		
+
 		text::add_line_break_to_layout(state, contents);
 		{
 			text::substitution_map sub{};
@@ -2161,7 +2160,9 @@ public:
 		} else if(name == "topbarbutton_trade") {
 			auto btn = make_element_by_type<topbar_trade_tab_button>(state, id);
 
-			auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
+			//auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
+			auto tab = alice_ui::make_trade_dashboard_main(state);
+			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 
 			state.ui_state.trade_subwindow = tab.get();

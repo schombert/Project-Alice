@@ -4,6 +4,7 @@
 #include "system_state.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
+#include "gui_trade_window.hpp"
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
 #include "demographics.hpp"
@@ -18,6 +19,7 @@
 #include "market_trade_report.cpp"
 #include "rgo_report.cpp"
 #include "market_prices_report.cpp"
+#include "trade_dashboard.cpp"
 
 namespace alice_ui {
 
@@ -138,7 +140,7 @@ ui::message_result page_buttons::on_lbutton_down(sys::state& state, int32_t x, i
 	return ui::message_result::consumed;
 }
 void page_buttons::on_update(sys::state& state) noexcept {
-	
+
 }
 
 layout_level* innermost_scroll_level(layout_level& current, int32_t x, int32_t y) {
@@ -1068,7 +1070,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 			int32_t space_used = 0;
 			int32_t fill_consumer_count = 0;
 			layout_iterator line_start_it = place_it;
-			
+
 			while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) { // line content
 
 				auto mr = place_it.measure_current(state, true, effective_y_size - total_crosswise, col_first);
@@ -1158,7 +1160,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 				line_start_it.place_current(state, this, col_first, alternate, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, remake_lists);
 
 				col_first = false;
-				
+
 				space_used += mr.x_space;
 				if(mr.other == measure_result::special::space_consumer) {
 					space_used += per_fill_consumer;
@@ -1359,7 +1361,7 @@ void describe_migration(sys::state& state, text::columnar_layout& contents, dcon
 	if(state.world.pop_get_poptype(ids) == state.culture_definitions.slaves) {
 		text::add_line(state, contents, "pop_mig_2");
 		return;
-	}	
+	}
 
 	auto migration_chance = base + std::max(trigger::evaluate_additive_modifier(state, state.culture_definitions.migration_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0), 0.0f);
 	auto prov_mod = (state.world.province_get_modifier_values(loc, sys::provincial_mod_offsets::immigrant_push) + 1.0f);
@@ -1378,7 +1380,7 @@ void describe_colonial_migration(sys::state& state, text::columnar_layout& conte
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto owner = state.world.province_get_nation_from_province_ownership(loc);
 
-	
+
 	if(state.world.nation_get_is_colonial_nation(owner) == false) {
 		text::add_line(state, contents, "pop_cmig_1");
 		return;
@@ -1862,7 +1864,7 @@ void describe_lit(sys::state& state, text::columnar_layout& contents, dcon::pop_
 		text::variable_type::x, text::format_percentage(result)
 	);
 
-	if(result > 0.9f) {		
+	if(result > 0.9f) {
 		text::add_line(state, contents, "pop_literacy_spending_result_success",
 			text::variable_type::x, text::format_percentage(result),
 			text::variable_type::y, text::format_percentage(0.9f),
