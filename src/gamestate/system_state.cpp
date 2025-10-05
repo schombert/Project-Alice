@@ -4605,7 +4605,7 @@ void state::single_game_tick() {
 	// do update logic
 
 	current_date += 1;
-	tick_start_counter.store(tick_start_counter + 1, std::memory_order::release);
+	tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
 		game_scene::switch_scene(*this, game_scene::scene_id::end_screen);
@@ -5160,7 +5160,7 @@ void state::single_game_tick() {
 
 	ui_date = current_date;
 
-	tick_end_counter.store(tick_end_counter + 1, std::memory_order::release);
+	tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
 
 	game_state_updated.store(true, std::memory_order::release);
 	ui_cached_data.request_update();
