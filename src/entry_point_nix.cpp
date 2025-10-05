@@ -268,12 +268,25 @@ int main (int argc, char *argv[]) {
 				}
 				break;
 			} else if(native_string(argv[i]) == NATIVE("-host")) {
+				network::save_host_settings(game_state);
+				network::load_host_settings(game_state);
 				game_state.network_mode = sys::network_mode_type::host;
 			} else if(native_string(argv[i]) == NATIVE("-join")) {
 				game_state.network_mode = sys::network_mode_type::client;
 				game_state.network_state.ip_address = "127.0.0.1";
+				game_state.network_state.port = "1984";
 				if(i + 1 < argc) {
-					game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+					auto native_param = native_string(argv[i + 1]);
+					auto semicolon_pos = native_param.find(NATIVE(";"));
+					if(semicolon_pos != native_string::npos) {
+						if(colon_pos + 1 >= native_param.length()) {
+							window::emit_error_message("Missing port number after semicolon", true);
+						}
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param.substr(0, semicolon_pos));
+						game_state.network_state.port = simple_fs::native_to_utf8(native_param.substr(semicolon_pos + 1));
+					} else {
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param);
+					}
 					i++;
 				}
 			} else if(native_string(argv[i]) == NATIVE("-name")) {
