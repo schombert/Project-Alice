@@ -1755,16 +1755,16 @@ void  trade_dashboard_main_top_production_t::update(sys::state& state, layout_wi
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_production::update
 	auto size = state.ui_cached_data.commodity_per_province.production_volume.size();
-	if(!size.has_value()) {
+	if(!size) {
 		return;
 	}
 	values.clear();
 	size_t counter = 0;
-	while(counter < size.value() && values.size() < 8) {
+	while(counter < *size && values.size() < 8) {
 		auto pid = state.ui_cached_data.commodity_per_province.sorted_by_production[(int)counter];
-		if(pid.has_value()) {
-			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid.value()) == main.nation_pov) {
-				add_province_row_production(pid.value());
+		if(pid) {
+			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(*pid) == main.nation_pov) {
+				add_province_row_production(*pid);
 			}
 		}
 		counter++;
@@ -1806,16 +1806,16 @@ void  trade_dashboard_main_top_consumption_t::update(sys::state& state, layout_w
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_consumption::update
 	auto size = state.ui_cached_data.commodity_per_province.sorted_by_consumption.size();
-	if(!size.has_value()) {
+	if(!size) {
 		return;
 	}
 	values.clear();
 	size_t counter = 0;
-	while(counter < size.value() && values.size() < 8) {
+	while(counter < *size && values.size() < 8) {
 		auto pid = state.ui_cached_data.commodity_per_province.sorted_by_consumption[(int)counter];
-		if(pid.has_value()) {
-			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid.value()) == main.nation_pov) {
-				add_province_row_consumption(pid.value());
+		if(pid) {
+			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(*pid) == main.nation_pov) {
+				add_province_row_consumption(*pid);
 			}
 		}
 		counter++;
@@ -1909,16 +1909,16 @@ void  trade_dashboard_main_top_gdp_t::update(sys::state& state, layout_window_el
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_gdp::update
 	auto size = state.ui_cached_data.per_province.gdp.size();
-	if(!size.has_value()) {
+	if(!size) {
 		return;
 	}
 	values.clear();
 	size_t counter = 0;
-	while(counter < size.value() && values.size() < 8) {
+	while(counter < *size && values.size() < 8) {
 		auto pid = state.ui_cached_data.per_province.sorted_by_gdp[(int)counter];
-		if(pid.has_value()) {
-			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid.value()) == main.nation_pov) {
-				add_province_row_gdp(pid.value());
+		if(pid) {
+			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(*pid) == main.nation_pov) {
+				add_province_row_gdp(*pid);
 			}
 		}
 		counter++;
@@ -1960,16 +1960,16 @@ void  trade_dashboard_main_top_gdp_capita_t::update(sys::state& state, layout_wi
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::top_gdp_capita::update
 	auto size = state.ui_cached_data.per_province.gdp.size();
-	if(!size.has_value()) {
+	if(!size) {
 		return;
 	}
 	values.clear();
 	size_t counter = 0;
-	while(counter < size.value() && values.size() < 8) {
+	while(counter < *size && values.size() < 8) {
 		auto pid = state.ui_cached_data.per_province.sorted_by_gdp[(int)counter];
-		if(pid.has_value()) {
-			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(pid.value()) == main.nation_pov) {
-				add_province_row_gdp_per_capita(pid.value());
+		if(pid) {
+			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(*pid) == main.nation_pov) {
+				add_province_row_gdp_per_capita(*pid);
 			}
 		}
 		counter++;
@@ -2076,7 +2076,7 @@ void trade_dashboard_main_nation_import_per_commodity_t::on_update(sys::state& s
 	trade_dashboard_main_t& main = *((trade_dashboard_main_t*)(parent)); 
 // BEGIN main::nation_import_per_commodity::update
 	auto size = state.ui_cached_data.nation_per_commodity.import_volume.size();
-	if(!size.has_value()) return;
+	if(!size) return;
 
 	graph_content.clear();
 	graph_content.resize(state.world.commodity_size());
@@ -2085,12 +2085,7 @@ void trade_dashboard_main_nation_import_per_commodity_t::on_update(sys::state& s
 		graph_content[cid.index()].key = cid;
 		auto median_price = state.world.commodity_get_median_price(cid);
 		if(main.nation_pov) {
-			auto value = state.ui_cached_data.nation_per_commodity.import_volume[cid.index()];
-			if(value.has_value()) {
-				graph_content[cid.index()].amount = value.value()  * median_price;
-			} else {
-				graph_content[cid.index()].amount = 0.f;
-			}
+			graph_content[cid.index()].amount = state.ui_cached_data.nation_per_commodity.import_volume[cid.index()].value_or(0.f)  * median_price;
 		} else {
 			graph_content[cid.index()].amount = 0.f;
 		}
@@ -2919,10 +2914,10 @@ void trade_dashboard_main_gdp_per_sector_t::on_update(sys::state& state) noexcep
 			}
 		}
 		auto local_gdp = state.ui_cached_data.per_province.gdp[pid.index()];
-		if(local_gdp.has_value()) {
-			graph_content[0].amount += std::max(0.f, std::max(0.f, local_gdp.value().primary));
-			graph_content[1].amount += std::max(0.f, std::max(0.f, local_gdp.value().secondary_factory));
-			graph_content[2].amount += std::max(0.f, std::max(0.f, local_gdp.value().secondary_artisan));
+		if(local_gdp) {
+			graph_content[0].amount += std::max(0.f, std::max(0.f, (*local_gdp).primary));
+			graph_content[1].amount += std::max(0.f, std::max(0.f, (*local_gdp).secondary_factory));
+			graph_content[2].amount += std::max(0.f, std::max(0.f, (*local_gdp).secondary_artisan));
 		}
 	});
 

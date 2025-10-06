@@ -47,6 +47,7 @@
 #include "gui_deserialize.hpp"
 #include "advanced_province_buildings.hpp"
 #include "military_templates.hpp"
+#include "economy_pops.hpp"
 
 namespace ui {
 
