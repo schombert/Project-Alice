@@ -514,6 +514,7 @@ protected:
 
 	int32_t cursor_position = 0;
 	int32_t anchor_position = 0;
+	int32_t mouse_entry_position = 0;
 	
 	bool multiline = false;
 	bool changes_made = false;
@@ -521,9 +522,11 @@ protected:
 	void insert_codepoint(sys::state& state, uint32_t codepoint, sys::key_modifiers mods);
 	void internal_on_text_changed(sys::state& state);
 	void internal_on_selection_changed(sys::state& state);
+	void internal_move_cursor_to_point(sys::state& state, int32_t x, int32_t y, bool extend_selection);
 	int32_t best_cursor_fit_on_line(int32_t line, int32_t xpos);
 	int32_t visually_left_on_line(int32_t line);
 	int32_t visually_right_on_line(int32_t line);
+	ui::urect get_edit_bounds(sys::state& state) const;
 public:
 	void set_text(sys::state& state, std::u16string const& new_text);
 
@@ -544,10 +547,15 @@ public:
 	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 	void on_text(sys::state& state, char32_t ch) noexcept override;
 	void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept override;
+	bool edit_consume_mouse_event(sys::state& state, int32_t x, int32_t y, uint32_t buttons) noexcept override;
 	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	focus_result on_get_focus(sys::state& state) noexcept override;
 	void on_lose_focus(sys::state& state) noexcept override;
+	void set_cursor_visibility(sys::state& state, bool visible) noexcept override;
+	void edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept override;
+	void on_hover(sys::state& state) noexcept override;
+	void on_hover_end(sys::state& state) noexcept override;
 };
 
 class tool_tip : public element_base {

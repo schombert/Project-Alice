@@ -475,7 +475,8 @@ void handle_drag_stop(sys::state& state, int32_t x, int32_t y, sys::key_modifier
 	state.ui_state.scrollbar_timer = 0;
 	if(state.ui_state.under_mouse != nullptr || !state.drag_selecting) {
 		state.drag_selecting = false;
-		window::change_cursor(state, window::cursor_type::normal);
+		if(state.ui_state.edit_target_internal == nullptr)
+			window::change_cursor(state, window::cursor_type::normal);
 	} else if(insignificant_movement) {
 		// we assume that user wanted to click
 		state.drag_selecting = false;

@@ -671,8 +671,123 @@ void button_element_base::on_create(sys::state& state) noexcept {
 	on_reset_text(state);
 }
 
+void edit_box_element_base::internal_move_cursor_to_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) {
+	auto xpos = x - base_data.data.text.border_size.x;
+	auto ypos = y - base_data.data.text.border_size.y;
+
+	auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+	auto lineheight = state.font_collection.line_height(state, fonthandle);
+
+	auto line = int32_t(ypos / lineheight);
+	if(!multiline) {
+		line = 0;
+	} else {
+		line = std::clamp(line, 0, std::max(0, int32_t(glyph_details.total_lines - 1)));
+	}
+
+	auto best_cursor_pos = best_cursor_fit_on_line(line, xpos);
+	if(best_cursor_pos != -1) {
+		cursor_position = best_cursor_pos;
+		if(!extend_selection) {
+			anchor_position = cursor_position;
+		}
+	}
+}
+
+void edit_box_element_base::edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept {
+	internal_move_cursor_to_point(state, x, y, extend_selection);
+
+	if(extend_selection == false) 
+		mouse_entry_position = cursor_position;
+
+	if(glyph_details.grapheme_placement.empty())
+		return;
+
+	if(state.ui_state.selecting_edit_text == edit_selection_mode::word) {
+		if(cursor_position < mouse_entry_position) {
+			cursor_position = std::min(cursor_position, int32_t(glyph_details.grapheme_placement.size()) - 1);
+			while(0 <= cursor_position) {
+				if(glyph_details.grapheme_placement[cursor_position].is_word_start())
+					break;
+				--cursor_position;
+			}
+			anchor_position = mouse_entry_position;
+			anchor_position = std::max(anchor_position, 0);
+			while(anchor_position < int32_t(glyph_details.grapheme_placement.size())) {
+				if(glyph_details.grapheme_placement[anchor_position].is_word_end()) {
+					++anchor_position;
+					break;
+				}
+				++anchor_position;
+			}
+		} else {
+			anchor_position = mouse_entry_position;
+			anchor_position = std::min(anchor_position, int32_t(glyph_details.grapheme_placement.size()) - 1);
+			while(0 <= anchor_position) {
+				if(glyph_details.grapheme_placement[anchor_position].is_word_start())
+					break;
+				--anchor_position;
+			}
+			cursor_position = std::max(cursor_position, 0);
+			while(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
+				if(glyph_details.grapheme_placement[cursor_position].is_word_end()) {
+					++cursor_position;
+					break;
+				}
+				++cursor_position;
+			}
+		}
+		internal_on_selection_changed(state);
+	} else if(state.ui_state.selecting_edit_text == edit_selection_mode::line) {
+		auto cursor_line = glyph_details.grapheme_placement[std::clamp(cursor_position, 0,int32_t(glyph_details.grapheme_placement.size()) -1)].line;
+		auto entry_pos_line = glyph_details.grapheme_placement[std::clamp(mouse_entry_position, 0, int32_t(glyph_details.grapheme_placement.size()) - 1)].line;
+
+		if(cursor_position < mouse_entry_position) {
+			cursor_position = std::min(cursor_position, int32_t(glyph_details.grapheme_placement.size()) - 1);
+			while(0 <= cursor_position) {
+				if(glyph_details.grapheme_placement[cursor_position].line != cursor_line) {
+					++cursor_position;
+					break;
+				}
+				--cursor_position;
+			}
+			anchor_position = mouse_entry_position;
+			anchor_position = std::max(anchor_position, 0);
+			while(anchor_position < int32_t(glyph_details.grapheme_placement.size())) {
+				if(glyph_details.grapheme_placement[anchor_position].line != entry_pos_line) {
+					break;
+				}
+				++anchor_position;
+			}
+		} else {
+			anchor_position = mouse_entry_position;
+			anchor_position = std::min(anchor_position, int32_t(glyph_details.grapheme_placement.size()) - 1);
+			while(0 <= anchor_position) {
+				if(glyph_details.grapheme_placement[anchor_position].line != entry_pos_line) {
+					++anchor_position;
+					break;
+				}
+				--anchor_position;
+			}
+			cursor_position = std::max(cursor_position, int32_t(glyph_details.grapheme_placement.size()) - 1);
+			while(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
+				if(glyph_details.grapheme_placement[cursor_position].line != cursor_line) {
+					break;
+				}
+				++cursor_position;
+			}
+		}
+	}
+	internal_on_selection_changed(state);
+}
+
 message_result edit_box_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	// TODO: place cursor
+	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mods)) != 0)
+		mouse_entry_position = cursor_position;
+	state.ui_state.selecting_edit_text = ui::edit_selection_mode::standard;
+	internal_move_cursor_to_point(state, x, y, (int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mods)) != 0);
+	mouse_entry_position = cursor_position;
+	internal_on_selection_changed(state);
 	return message_result::consumed;
 }
 
@@ -818,10 +933,31 @@ void edit_box_element_base::on_create(sys::state& state) noexcept {
 focus_result edit_box_element_base::on_get_focus(sys::state& state) noexcept {
 	activation_time = std::chrono::steady_clock::now();
 	changes_made = false;
+	set_cursor_visibility(state, true);
 	return focus_result::accepted;
 }
+void edit_box_element_base::set_cursor_visibility(sys::state& state, bool visible) noexcept {
+	// TODO: create/destroy system caret
+#ifdef _WIN64
+	if(visible) {
+		auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+		auto lineheight = state.font_collection.line_height(state, fonthandle);
+		CreateCaret(state.win_ptr->hwnd, nullptr, 1, int32_t(lineheight * state.user_settings.ui_scale));
+	} else {
+		DestroyCaret();
+	}
+#endif
+}
 void edit_box_element_base::on_lose_focus(sys::state& state) noexcept {
+	set_cursor_visibility(state, false);
+	window::change_cursor(state, window::cursor_type::normal);
 	changes_made = false;
+}
+void edit_box_element_base::on_hover(sys::state& state) noexcept {
+	window::change_cursor(state, window::cursor_type::text);
+}
+void edit_box_element_base::on_hover_end(sys::state& state) noexcept {
+	window::change_cursor(state, window::cursor_type::normal);
 }
 void edit_box_element_base::internal_on_text_changed(sys::state& state) {
 	changes_made = true;
@@ -871,7 +1007,41 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 	
 
 	if(state.ui_state.edit_target_internal == this) {
-		// TODO: move system caret to new position
+#ifdef _WIN64
+		auto location = ui::get_absolute_location(state, *this);
+
+		cursor_position = std::max(cursor_position, 0);
+		int32_t cursor_x = 0;
+		bool rtl = false;
+		int32_t line = 0;
+
+		if(glyph_details.grapheme_placement.size() == 0) {
+			rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
+			if(rtl)
+				cursor_x = base_data.size.x - base_data.data.text.border_size.x * 2;
+		} else {
+			if(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
+				rtl = glyph_details.grapheme_placement[cursor_position].has_rtl_directionality();
+				if(rtl)
+					cursor_x = glyph_details.grapheme_placement[cursor_position].x_offset + glyph_details.grapheme_placement[cursor_position].width;
+				else
+					cursor_x = glyph_details.grapheme_placement[cursor_position].x_offset;
+				line = glyph_details.grapheme_placement[cursor_position].line;
+			} else {
+				rtl = glyph_details.grapheme_placement[cursor_position - 1].has_rtl_directionality();
+				if(rtl)
+					cursor_x = glyph_details.grapheme_placement[cursor_position - 1].x_offset;
+				else
+					cursor_x = glyph_details.grapheme_placement[cursor_position - 1].x_offset + glyph_details.grapheme_placement[cursor_position - 1].width;
+				line = glyph_details.grapheme_placement[cursor_position - 1].line;
+			}
+		}
+
+		auto xpos = float(location.x + base_data.data.text.border_size.x + cursor_x);
+		auto ypos = float(location.y + base_data.data.text.border_size.y);
+
+		SetCaretPos(int32_t(xpos), int32_t(ypos));
+#endif
 	}
 
 	// for multiline
@@ -921,27 +1091,27 @@ int32_t edit_box_element_base::best_cursor_fit_on_line(int32_t line, int32_t xpo
 	for(size_t i = glyph_details.grapheme_placement.size(); i-- > 0; ) {
 		auto& gi = glyph_details.grapheme_placement[i];
 		if(gi.line == line) {
-			if(gi.x_offset <= xpos && xpos < gi.x_offset + gi.width) {
+			if(gi.x_offset <= xpos && xpos <= gi.x_offset + gi.width) {
 				if(gi.x_offset + gi.width / 2 < xpos)
-					return int32_t(gi.source_offset + (gi.has_rtl_directionality() ? 1 : 0));
+					return int32_t(i + (gi.has_rtl_directionality() ? 0 : 1));
 				else
-					return int32_t(gi.source_offset + (gi.has_rtl_directionality() ? 0 : 1));
+					return int32_t(i + (gi.has_rtl_directionality() ? 1 : 0));
 			}
 			if(xpos < gi.x_offset) {
 				if(best_fit == -1 || (gi.x_offset - xpos) < distance_from_fit) {
-					best_fit = int32_t(gi.source_offset + (gi.has_rtl_directionality() ? 1 : 0));
+					best_fit = int32_t(i + (gi.has_rtl_directionality() ? 1 : 0));
 					distance_from_fit = int32_t(gi.x_offset - xpos);
 				}
 			}
 			if(xpos >= gi.x_offset + gi.width) {
 				if(best_fit == -1 || ((xpos + 1) - (gi.x_offset + gi.width)) < distance_from_fit) {
-					best_fit = int32_t(gi.source_offset + (gi.has_rtl_directionality() ? 0 : 1));
+					best_fit = int32_t(i + (gi.has_rtl_directionality() ? 0 : 1));
 					distance_from_fit = int32_t((xpos + 1) - (gi.x_offset + gi.width));
 				}
 			}
 		}
 	}
-	return -1;
+	return best_fit;
 }
 int32_t edit_box_element_base::visually_left_on_line(int32_t line) {
 	for(size_t i = glyph_details.grapheme_placement.size(); i-- > 0; ) {
@@ -971,6 +1141,28 @@ message_result edit_box_element_base::on_scroll(sys::state& state, int32_t x, in
 	if(amount <= -1.0f)
 		on_edit_command(state, edit_command::cursor_up, mods);
 	return message_result::consumed;
+}
+ui::urect edit_box_element_base::get_edit_bounds(sys::state& state) const {
+	// TODO: narrow this to text location?
+
+	auto ui_location = get_absolute_location(state, *this);
+	urect result{ ui_location, base_data.size };
+	result.top_left.x = int16_t(state.user_settings.ui_scale * result.top_left.x);
+	result.top_left.y = int16_t(state.user_settings.ui_scale * result.top_left.y);
+	result.size.x = int16_t(state.user_settings.ui_scale * result.size.x);
+	result.size.y = int16_t(state.user_settings.ui_scale * result.size.y);
+
+	return result;
+}
+bool edit_box_element_base::edit_consume_mouse_event(sys::state& state, int32_t x, int32_t y, uint32_t buttons) noexcept {
+	auto text_bounds = get_edit_bounds(state);
+	if(x < text_bounds.top_left.x || x > text_bounds.top_left.x + text_bounds.size.x || y < text_bounds.top_left.y || y > text_bounds.top_left.y + text_bounds.size.y)
+		return false;
+	if(ts_obj) {
+		// TODO
+		// return win.text_services_interface.send_mouse_event_to_tso(ts_obj, x, y, buttons);
+	}
+	return false;
 }
 void edit_box_element_base::on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept {
 	switch(command) {

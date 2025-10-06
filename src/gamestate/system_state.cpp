@@ -488,6 +488,32 @@ void state::on_text(char32_t c) { // c is win1250 codepage value
 	if(ui_state.edit_target_internal)
 		ui_state.edit_target_internal->on_text(*this, c);
 }
+bool state::filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons) {
+	if(ui_state.edit_target_internal && ui_state.edit_target_internal->edit_consume_mouse_event(*this, x, y, buttons))
+		return true;
+	return false;
+}
+void state::pass_edit_command(ui::edit_command command, sys::key_modifiers mod) {
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->on_edit_command(*this, command, mod);
+}
+bool state::send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection) {
+	if(ui_state.edit_target_internal) {
+		auto abs_pos = ui::get_absolute_location(*this, *ui_state.edit_target_internal);
+		auto posx = int32_t(x / user_settings.ui_scale);
+		auto posy = int32_t(y / user_settings.ui_scale);
+		if(posx < abs_pos.x || posy < abs_pos.y || posx > abs_pos.x + ui_state.edit_target_internal->base_data.size.x || posy > abs_pos.y + ui_state.edit_target_internal->base_data.size.y)
+			return false;
+
+		ui_state.edit_target_internal->edit_move_cursor_to_screen_point(*this, posx - abs_pos.x, posy - abs_pos.y, extend_selection);
+		return true;
+	}
+	return false;
+}
+void state::set_cursor_visibility(bool visible) {
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->set_cursor_visibility(*this, visible);
+}
 void state::on_temporary_text(std::u16string_view s) {
 	if(ui_state.edit_target_internal)
 		ui_state.edit_target_internal->set_temporary_text(*this, s);

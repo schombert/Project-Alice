@@ -46,8 +46,7 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int left = (mi.rcWork.right - mi.rcWork.left) / 2 - game_state.win_ptr->creation_x_size / 2;
 			int top = (mi.rcWork.bottom - mi.rcWork.top) / 2 - game_state.win_ptr->creation_y_size / 2;
 
-			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU |
-												 WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 			RECT rectangle = {left, top, left + game_state.win_ptr->creation_x_size, top + game_state.win_ptr->creation_y_size};
 			AdjustWindowRectExForDpi(&rectangle, win32Style, false, 0, GetDpiForWindow(game_state.win_ptr->hwnd));
@@ -55,8 +54,7 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int32_t final_height = rectangle.bottom - rectangle.top;
 
 			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height,
-					SWP_NOREDRAW);
+			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_NOREDRAW);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
 
@@ -133,9 +131,36 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		ReleaseDC(hwnd, state->win_ptr->opengl_window_dc);
 		PostQuitMessage(0);
 		return 0;
+	case WM_APPCOMMAND:
+	{
+		auto cmd = GET_APPCOMMAND_LPARAM(lParam);
+		if(cmd == APPCOMMAND_COPY) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::copy, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_CUT) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::cut, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_PASTE) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::paste, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_REDO) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::redo, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_UNDO) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::undo, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		}
+		break;
+	}
 	case WM_SETFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
+		state->set_cursor_visibility(true);
 		if(state->user_settings.mute_on_focus_lost) {
 			sound::resume_all(*state);
 		}
@@ -143,6 +168,8 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_KILLFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		state->ui_state.selecting_edit_text = ui::edit_selection_mode::none;
+		state->set_cursor_visibility(false);
 		if(state->user_settings.mute_on_focus_lost) {
 			sound::pause_all(*state);
 		}
@@ -151,6 +178,58 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		SetCapture(hwnd);
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->ui_state.edit_target_internal) {
+			if(state->filter_tso_mouse_events(x, y, uint32_t(wParam))) {
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			}
+
+			auto duration = std::chrono::steady_clock::now() - state->win_ptr->last_dbl_click;
+			auto in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+
+			if(in_ms.count() <= window::double_click_ms()) {
+				state->pass_edit_command(ui::edit_command::select_current_section, get_current_modifiers());
+				state->ui_state.selecting_edit_text = ui::edit_selection_mode::line;
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			} else {
+				state->ui_state.selecting_edit_text = ui::edit_selection_mode::standard;
+			}
+		}
+
+		state->on_lbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		state->win_ptr->left_mouse_down = true;
+		return 0;
+	}
+	case WM_LBUTTONDBLCLK:
+	{
+		SetCapture(hwnd);
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->ui_state.edit_target_internal) {
+			if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			}
+			state->pass_edit_command(ui::edit_command::select_current_word, get_current_modifiers());
+			state->ui_state.selecting_edit_text = ui::edit_selection_mode::word;
+			state->win_ptr->last_dbl_click = std::chrono::steady_clock::now();
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			state->win_ptr->left_mouse_down = true;
+			return 0;
+		}
+
 		state->on_lbutton_down(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -165,11 +244,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		state->win_ptr->left_mouse_down = false;
+		state->ui_state.selecting_edit_text = ui::edit_selection_mode::none;
 		return 0;
 	}
 	case WM_MOUSEMOVE: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+		if(state->ui_state.edit_target_internal && state->ui_state.selecting_edit_text != ui::edit_selection_mode::none) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			state->send_edit_mouse_move(x, y, true);
+			return 0;
+		}
 		state->on_mouse_move(x, y, get_current_modifiers());
 
 		if(wParam & MK_LBUTTON)
@@ -183,7 +275,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_RBUTTONDOWN: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->on_rbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		return 0;
+	}
+	case WM_RBUTTONDBLCLK:
+	{
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		return 0;
@@ -191,6 +305,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_RBUTTONUP: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
 		state->on_rbutton_up(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -199,7 +314,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_MBUTTONDOWN: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->on_mbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		return 0;
+	}
+	case WM_MBUTTONDBLCLK:
+	{
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		return 0;
@@ -207,6 +344,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_MBUTTONUP: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
 		state->on_mbutton_up(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -319,12 +457,13 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	game_state.win_ptr->creation_x_size = params.size_x;
 	game_state.win_ptr->creation_y_size = params.size_y;
 	game_state.win_ptr->in_fullscreen = params.borderless_fullscreen;
+	game_state.win_ptr->last_dbl_click = std::chrono::steady_clock::now();
 
 	// create window
 	WNDCLASSEXW wcex = {};
 
 	wcex.cbSize = sizeof(WNDCLASSEXW);
-	wcex.style = CS_OWNDC;
+	wcex.style = CS_OWNDC | CS_DBLCLKS;
 	wcex.lpfnWndProc = WndProc;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = sizeof(LONG_PTR);
@@ -450,6 +589,11 @@ void change_cursor(sys::state& state, cursor_type type) {
 		case cursor_type::no_move:
 			fname = NATIVE("no_move.ani");
 			break;
+		case cursor_type::text:
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(NULL, IDC_IBEAM);
+			SetCursor(state.win_ptr->cursors[uint8_t(type)]);
+			SetClassLongPtr(state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(state.win_ptr->cursors[uint8_t(type)]));
+			return;
 		default:
 			fname = NATIVE("normal.cur");
 			break;

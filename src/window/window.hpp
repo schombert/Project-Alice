@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "system_state.hpp"
+#include <chrono>
 
 #ifdef _WIN64
 
@@ -12,7 +12,8 @@ class window_data_impl {
 public:
 	HWND hwnd = nullptr;
 	HDC opengl_window_dc = nullptr;
-	HCURSOR cursors[8] = { HCURSOR(NULL) };
+	HCURSOR cursors[9] = { HCURSOR(NULL) };
+	std::chrono::time_point<std::chrono::steady_clock> last_dbl_click;
 
 	int32_t creation_x_size = 600;
 	int32_t creation_y_size = 400;
@@ -64,7 +65,8 @@ enum class cursor_type : uint8_t {
 	drag_select,
 	hostile_move,
 	friendly_move,
-	no_move
+	no_move,
+	text
 };
 void change_cursor(sys::state& state, cursor_type type);
 

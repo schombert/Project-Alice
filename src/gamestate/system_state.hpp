@@ -736,8 +736,11 @@ struct alignas(64) state {
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
 	void on_temporary_text(std::u16string_view s);
-	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
-	               // for vsync
+	bool filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons);
+	void pass_edit_command(ui::edit_command command, sys::key_modifiers mod);
+	void set_cursor_visibility(bool visible);
+	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
+	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it

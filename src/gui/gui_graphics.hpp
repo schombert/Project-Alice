@@ -456,6 +456,7 @@ struct state {
 	int32_t last_tooltip_sub_index = -1;
 	uint32_t cursor_size = 16;
 	int32_t target_distance = 0;
+	edit_selection_mode selecting_edit_text = edit_selection_mode::none;
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;

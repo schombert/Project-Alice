@@ -12,10 +12,6 @@ namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };
 
-enum class edit_command : uint8_t {
-	new_line, backspace, delete_char, backspace_word, delete_word, tab, cursor_down, cursor_up, cursor_left, cursor_right, cursor_left_word, cursor_right_word, to_line_start, to_line_end, to_text_start, to_text_end, cut, copy, paste, select_all, undo, redo, select_current_word, select_current_section, delete_selection
-};
-
 class element_base {
 public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
@@ -89,7 +85,11 @@ public:
 	}
 	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 	virtual void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept { };
-
+	virtual bool edit_consume_mouse_event(sys::state& state, int32_t x, int32_t y, uint32_t buttons) noexcept {
+		return false;
+	}
+	virtual void set_cursor_visibility(sys::state& state, bool visible) noexcept { }
+	virtual void edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept { }
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
@@ -105,13 +105,11 @@ protected:
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
-	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
-			sys::key_modifiers mods) noexcept; // as drag events are generated
+	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
-
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
@@ -181,20 +179,14 @@ inline T send_and_retrieve(sys::state& state, element_base* parent, T value) {
 	}
 }
 
-void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
-		int32_t this_slot = -1, int32_t from_slot = -1);
-void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
-void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0, float scale = 1.f);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
-		dcon::national_modifier_value nmid, bool header);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
-		dcon::provincial_modifier_value nmid, bool have_header);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
-		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation, dcon::provincial_modifier_value nmid, bool have_header);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 void invention_description(sys::state& state, text::layout_base& contents, dcon::invention_id inv_id, int32_t indent) noexcept;
 void technology_description(sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept;
 
