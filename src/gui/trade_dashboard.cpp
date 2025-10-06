@@ -3147,9 +3147,9 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 
 	if(graph_content.size() == 0) {
 		state.world.for_each_nation([&](auto nid) {
-			auto parent = state.ui_cached_data.per_nation.sphere_parent[nid.index()].value_or(nid);
+			auto parent_nation = state.ui_cached_data.per_nation.sphere_parent[nid.index()].value_or(nid);
 			auto c = state.world.nation_get_color(nid);
-			auto pc = state.world.nation_get_color(parent);
+			auto pc = state.world.nation_get_color(parent_nation);
 			auto c3f = ogl::color3f{
 				sys::red_from_int(pc) * 0.6f + sys::red_from_int(c) * 0.1f,
 				sys::green_from_int(pc) * 0.6f + sys::green_from_int(c) * 0.1f,
@@ -3164,9 +3164,9 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 	}
 
 	for(auto& item : graph_content) {
-		auto parent = state.ui_cached_data.per_nation.sphere_parent[item.key.index()].value_or(item.key);
+		auto parent_nation = state.ui_cached_data.per_nation.sphere_parent[item.key.index()].value_or(item.key);
 		auto c = state.world.nation_get_color(item.key);
-		auto pc = state.world.nation_get_color(parent);
+		auto pc = state.world.nation_get_color(parent_nation);
 		auto c3f = ogl::color3f{
 			sys::red_from_int(pc) * 0.6f + sys::red_from_int(c) * 0.1f,
 			sys::green_from_int(pc) * 0.6f + sys::green_from_int(c) * 0.1f,
