@@ -6504,6 +6504,7 @@ bool can_perform_command(sys::state& state, payload& c) {
 bool execute_command(sys::state& state, payload& c) {
 	if(!can_perform_command(state, c))
 		return false;
+	state.tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 	switch(c.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
@@ -6920,6 +6921,7 @@ bool execute_command(sys::state& state, payload& c) {
 		execute_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
 		break;
 	}
+	state.tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
 	return true;
 }
 

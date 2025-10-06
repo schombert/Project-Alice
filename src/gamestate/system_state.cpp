@@ -47,6 +47,7 @@
 #include "gui_deserialize.hpp"
 #include "advanced_province_buildings.hpp"
 #include "military_templates.hpp"
+#include "economy_pops.hpp"
 
 namespace ui {
 
@@ -534,6 +535,391 @@ int state::get_edit_y(){
 	return 0;
 }
 
+
+bool commodity_per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size()) return true;
+	if(!commodity) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::nation_id current_nation{ progress };
+	
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto export_temp = economy::export_volume(state, current_nation, commodity);
+	auto import_temp = economy::import_volume(state, current_nation, commodity);
+	auto consumption_temp = economy::consumption(state, current_nation, commodity);
+	auto production_temp = std::max(0.f, economy::supply(state, current_nation, commodity) - economy::trade_supply(state, current_nation, commodity));
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
+	production_volume.set(progress, production_temp);
+	consumption_volume.set(progress, consumption_temp);
+	
+	progress++;
+	return false;
+}
+
+bool nation_per_nation_cache_slot::update(sys::state& state) {
+	if(!nation) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+	if(counter_start_before != counter_end_before) {
+		return false;
+	}
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto import_temp = economy::trade_value_flow_all_to_nation(state, nation);
+	auto export_temp = economy::trade_value_flow_nation_to_all(state, nation);
+
+	// ACTUAL CALCULATIONS END
+
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_value.assign_data(export_temp);
+	import_value.assign_data(import_temp);
+
+	return true;
+}
+
+bool nation_per_commodity_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.commodity_size()) return true;
+	if(!nation) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		progress = 0;
+		return false;
+	}
+
+	dcon::commodity_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto export_temp = economy::export_volume(state, nation, current_item);
+	auto import_temp = economy::import_volume(state, nation, current_item);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
+
+	progress++;
+	return false;
+}
+
+bool per_province_cache_slot::update(sys::state& state) {
+	// we can't create provinces thankfully
+	if(progress >= state.world.province_size()) {
+		// update sorting
+		std::sort(sorted_by_gdp_per_capita.unsafe_data.begin(), sorted_by_gdp_per_capita.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) == gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1)) {
+				return a.index() > b.index();
+			} else {
+				return gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) > gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1);
+			}
+		});
+
+		std::sort(sorted_by_gdp.unsafe_data.begin(), sorted_by_gdp.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative == gdp.unsafe_data[b.index()].total_non_negative) {
+				return a.index() > b.index();
+			} else {
+				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
+			}
+		});
+		return true;
+	}
+
+	// validate size
+	if(gdp.unsafe_data.size() < state.world.province_size()) {
+		sorted_by_gdp.clear();
+		sorted_by_gdp_per_capita.clear();
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_gdp.push_back(pid);
+		});
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_gdp_per_capita.push_back(pid);
+		});
+	}
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::province_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto gdp_value = economy::gdp::breakdown_province(state, current_item);
+	auto population_value = state.world.province_get_demographics(current_item, demographics::total);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	gdp.set(progress, gdp_value);
+	population.set(progress, population_value);
+
+	progress++;
+	return false;
+}
+
+bool per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		reset_progress();
+		return false;
+	}
+
+	if(progress < state.world.nation_size()) {
+
+		dcon::nation_id current_item{ progress };
+
+		// ACTUAL CALCULATIONS BEGIN
+
+
+		auto gdp = std::max(0.f, economy::gdp::value_nation(state, current_item));
+
+		auto temp = current_item;
+		auto sphere = state.world.nation_get_in_sphere_of(temp);
+		while(!sphere) {
+			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(temp));
+			if(overlord) {
+				temp = overlord;
+				sphere = state.world.nation_get_in_sphere_of(temp);
+			} else {
+				break;
+			}
+		}
+
+		auto parent_of_current = current_item;
+		if(sphere) {
+			parent_of_current = sphere;
+		} else {
+			parent_of_current = temp;
+		}
+
+		// ACTUAL CALCULATIONS END
+
+		int64_t counter_start_after = state.tick_start_counter.load();
+		if(counter_start_after != counter_start_before) {
+			reset_progress();
+			return false;
+		}
+
+		// SAFE PLACE TO STORE RESULTS
+
+		national_gdp.set(progress, gdp);
+		sphere_parent.set(progress, parent_of_current);
+
+		progress++;
+		return false;
+	} else {
+		dcon::nation_id current_item{ progress_sphere };
+
+		// ACTUAL CALCULATIONS BEGIN
+
+		auto total = 0.f;
+		state.world.for_each_nation([&](auto nid) {
+			if(sphere_parent.unsafe_data[nid.index()] == current_item) {
+				auto value = national_gdp.unsafe_data[nid.index()];
+				total += value;
+			}
+		});
+
+		// ACTUAL CALCULATIONS END
+
+		int64_t counter_start_after = state.tick_start_counter.load();
+		if(counter_start_after != counter_start_before) {
+			reset_progress();
+			return false;
+		}
+
+		// SAFE PLACE TO STORE RESULTS
+
+		sphere_gdp.set(progress_sphere, total);
+
+		progress_sphere++;
+		return false;
+	}
+}
+
+bool commodity_per_province_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.province_size()) {
+		// update sorting
+		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
+			if(production_volume.unsafe_data[a.index()] == production_volume.unsafe_data[b.index()]) {
+				return a.index() > b.index();
+			} else {
+				return production_volume.unsafe_data[a.index()] > production_volume.unsafe_data[b.index()];
+			}
+		});
+
+		std::sort(sorted_by_consumption.unsafe_data.begin(), sorted_by_consumption.unsafe_data.end(), [&](auto a, auto b) {
+			if(consumption_volume.unsafe_data[a.index()] == consumption_volume.unsafe_data[b.index()]) {
+				return a.index() > b.index();
+			} else {
+				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
+			}
+		});
+		return true;
+	}
+	// validate size
+	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
+		sorted_by_production.clear();
+		sorted_by_consumption.clear();
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_production.push_back(pid);
+		});
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_consumption.push_back(pid);
+		});
+	}
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::province_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto consumption_value = economy::estimate_intermediate_consumption(state, commodity, current_item) + economy::estimate_pops_consumption(state, commodity, current_item);
+	auto production_value = economy::estimate_production(state, commodity, current_item);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	production_volume.set(progress, production_value);
+	consumption_volume.set(progress, consumption_value);
+
+	progress++;
+	return false;
+}
+
+void ui_cache::update_ui(sys::state& state) {
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+template<typename SLOT>
+void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running) {
+	auto requested_update = slot.update_requested.exchange(false);
+	if(requested_update) {
+		slot.reset_progress();
+		updates_running = true;
+	}
+	if(!slot.update_completed) {
+		updates_running = true;
+		if(slot.update(state)) {
+			slot.update_completed = true;
+			update_ui(state);
+		}
+	}
+}
+
+void ui_cache::process_update(sys::state& state) {
+	while(state.quit_signaled.load(std::memory_order::acquire) == false) {
+		bool updates_running = false;
+		update_slot(state, commodity_per_nation, updates_running);
+		update_slot(state, per_province, updates_running);
+		update_slot(state, commodity_per_province, updates_running);
+		update_slot(state, nation_per_nation, updates_running);
+		update_slot(state, nation_per_commodity, updates_running);
+		update_slot(state, per_nation, updates_running);
+
+		if (!updates_running) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			sleep_iterations = std::min(1000, (sleep_iterations + 1));
+		} else {
+			sleep_iterations = 0;
+		}
+	}
+};
+
+GLuint request_query(std::vector<GLuint>& ids, std::vector<bool>& free_ids) {
+	unsigned int first_free_index = 0;
+	while(first_free_index < free_ids.size() && !free_ids[first_free_index]) first_free_index++;
+	if(first_free_index >= free_ids.size()) {
+		GLuint query_id;
+		glGenQueries(1, &query_id);
+		ids.push_back(query_id);
+		free_ids.push_back(true);
+	}
+	free_ids[first_free_index] = false;
+	return ids[first_free_index];
+}
+
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
 	/*if(!render_semaphore.try_acquire()) {
@@ -541,6 +927,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}*/
 	if(!current_scene.get_root)
 		return;
+
+
+	if(ui_state.fps_counter) {
+		if(ui_state.fps_counter->is_visible()) {
+			glBeginQuery(GL_TIME_ELAPSED, request_query(query_frame_time_other, query_frame_time_other_free));
+		}
+	}
+
 
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
@@ -1188,6 +1582,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 	}
+
+	if(ui_state.fps_counter) {
+		if(ui_state.fps_counter->is_visible()) {
+			glEndQuery(GL_TIME_ELAPSED);
+		}
+	}
+
 	/*render_semaphore.release();*/
 }
 
@@ -4189,6 +4590,7 @@ void state::single_game_tick() {
 	// do update logic
 
 	current_date += 1;
+	tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
 		game_scene::switch_scene(*this, game_scene::scene_id::end_screen);
@@ -4743,7 +5145,10 @@ void state::single_game_tick() {
 
 	ui_date = current_date;
 
+	tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
+
 	game_state_updated.store(true, std::memory_order::release);
+	ui_cached_data.request_update();
 
 	switch(user_settings.autosaves) {
 	case autosave_frequency::none:
@@ -4904,7 +5309,7 @@ void state::game_loop() {
 	game_speed[1] = int32_t(defines.alice_speed_1);
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
-	game_speed[4] = int32_t(defines.alice_speed_4);
+	game_speed[4] = int32_t(defines.alice_speed_4);	
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		network::send_and_receive_commands(*this);

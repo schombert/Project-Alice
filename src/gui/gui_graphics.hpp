@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <chrono>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
