@@ -819,7 +819,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 
 	// ACTUAL CALCULATIONS BEGIN
 
-	auto consumption_value = economy::estimate_intermediate_consumption(state, commodity, current_item);
+	auto consumption_value = economy::estimate_intermediate_consumption(state, commodity, current_item) + economy::estimate_pops_consumption(state, commodity, current_item);
 	auto production_value = economy::estimate_production(state, commodity, current_item);
 
 	// ACTUAL CALCULATIONS END
