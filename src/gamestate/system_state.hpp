@@ -478,8 +478,74 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
 };
 
+template<typename T>
+struct ui_cached_vector {
+	std::mutex resize_mutex;
+	std::vector<T> unsafe_data;
+
+	template<typename VAL>
+	void assign_data(VAL value) {
+		resize_mutex.lock();
+		unsafe_data = value;
+		resize_mutex.unlock();
+	}
+
+	template<typename VAL>
+	void set(size_t index, VAL&& value) {
+		resize_mutex.lock();
+		unsafe_data.resize(std::max(unsafe_data.size(), index + 1));
+		unsafe_data[index] = std::forward<T>(value);
+		resize_mutex.unlock();
+	}
+
+	template<typename VAL>
+	void push_back(VAL&& value) {
+		resize_mutex.lock();
+		unsafe_data.push_back(value);
+		resize_mutex.unlock();
+	}
+
+	void resize(size_t new_size) {
+		resize_mutex.lock();
+		unsafe_data.resize(new_size);
+		resize_mutex.unlock();
+	}
+
+	void clear() {
+		resize_mutex.lock();
+		unsafe_data.clear();
+		resize_mutex.unlock();
+	}
+
+	std::optional<size_t> size() {
+		if(resize_mutex.try_lock()) {
+			auto val = unsafe_data.size();
+			resize_mutex.unlock();
+			return val;
+		}
+		return { };
+	}
+
+	std::optional<T> operator[](int index) {
+		if (index < 0) {
+			return { };
+		}
+		if(resize_mutex.try_lock()) {
+			if((int)(unsafe_data.size()) <= index) {
+				resize_mutex.unlock();
+				return { };
+			}
+			auto val = unsafe_data[index];
+			resize_mutex.unlock();
+			return val;
+		}
+		return { };
+	}
+};
+
 struct ui_cache_slot {
 	std::atomic<bool> update_requested = false;
+	std::mutex update_mutex;
 	bool update_completed = true;
 	void reset_progress() {
 		return;
@@ -491,16 +557,19 @@ struct ui_cache_slot {
 	void request_update() {
 		update_requested.store(true);
 	}
+
+	template<typename F>
+	void access(F&){ }
 };
 
 struct commodity_per_nation_cache_slot : ui_cache_slot {
 	dcon::commodity_id commodity{};
 	dcon::nation_id::value_base_t progress = 0;
 
-	std::vector<float> export_volume{};
-	std::vector<float> import_volume{};
-	std::vector<float> consumption_volume{};
-	std::vector<float> production_volume{};
+	ui_cached_vector<float> export_volume{};
+	ui_cached_vector<float> import_volume{};
+	ui_cached_vector<float> consumption_volume{};
+	ui_cached_vector<float> production_volume{};
 
 	void reset_progress() {
 		update_completed = false;
@@ -512,8 +581,8 @@ struct commodity_per_nation_cache_slot : ui_cache_slot {
 struct nation_per_nation_cache_slot : ui_cache_slot {
 	dcon::nation_id nation{};
 
-	std::vector<float> export_value{};
-	std::vector<float> import_value{};
+	ui_cached_vector<float> export_value{};
+	ui_cached_vector<float> import_value{};
 
 	void reset_progress() {
 		update_completed = false;
@@ -525,8 +594,8 @@ struct nation_per_commodity_cache_slot : ui_cache_slot {
 	dcon::nation_id nation{};
 	dcon::commodity_id::value_base_t progress = 0;
 
-	std::vector<float> import_volume{};
-	std::vector<float> export_volume{};
+	ui_cached_vector<float> import_volume{};
+	ui_cached_vector<float> export_volume{};
 
 	void reset_progress() {
 		update_completed = false;
@@ -539,10 +608,10 @@ struct commodity_per_province_cache_slot : ui_cache_slot {
 	dcon::commodity_id commodity{};
 	dcon::province_id::value_base_t progress = 0;
 
-	std::vector<float> consumption_volume{};
-	std::vector<float> production_volume{};
-	std::vector<dcon::province_id> sorted_by_consumption{ };
-	std::vector<dcon::province_id> sorted_by_production{ };
+	ui_cached_vector<float> consumption_volume{};
+	ui_cached_vector<float> production_volume{};
+	ui_cached_vector<dcon::province_id> sorted_by_consumption{ };
+	ui_cached_vector<dcon::province_id> sorted_by_production{ };
 
 	void reset_progress() {
 		update_completed = false;
@@ -554,11 +623,10 @@ struct commodity_per_province_cache_slot : ui_cache_slot {
 struct per_province_cache_slot : ui_cache_slot {
 	dcon::province_id::value_base_t progress = 0;
 
-	std::vector<economy::gdp::breakdown> gdp{};
-	std::vector<float> population{};
-	std::vector<dcon::province_id> sorted_by_gdp{ };
-	std::vector<dcon::province_id> sorted_by_gdp_per_capita{ };
-
+	ui_cached_vector<economy::gdp::breakdown> gdp{};
+	ui_cached_vector<float> population{};
+	ui_cached_vector<dcon::province_id> sorted_by_gdp{ };
+	ui_cached_vector<dcon::province_id> sorted_by_gdp_per_capita{ };
 
 	void reset_progress() {
 		update_completed = false;
@@ -571,9 +639,9 @@ struct per_nation_cache_slot : ui_cache_slot {
 	dcon::nation_id::value_base_t progress = 0;
 	dcon::nation_id::value_base_t progress_sphere = 0;
 
-	std::vector<dcon::nation_id> sphere_parent{};
-	std::vector<float> national_gdp{};
-	std::vector<float> sphere_gdp{};
+	ui_cached_vector<dcon::nation_id> sphere_parent{};
+	ui_cached_vector<float> national_gdp{};
+	ui_cached_vector<float> sphere_gdp{};
 
 	void reset_progress() {
 		update_completed = false;
