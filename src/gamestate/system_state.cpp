@@ -544,16 +544,10 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
-	// validate size
-	export_volume.resize(std::max(export_volume.size(), (size_t)progress + 1));
-	import_volume.resize(std::max(import_volume.size(), (size_t)progress + 1));
-	consumption_volume.resize(std::max(consumption_volume.size(), (size_t)progress + 1));
-	production_volume.resize(std::max(production_volume.size(), (size_t)progress + 1));
-
-	export_volume[progress] = export_temp;
-	import_volume[progress] = import_temp;
-	production_volume[progress] = production_temp;
-	consumption_volume[progress] = consumption_temp;
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
+	production_volume.set(progress, production_temp);
+	consumption_volume.set(progress, consumption_temp);
 	
 	progress++;
 	return false;
@@ -583,8 +577,8 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
-	export_value = export_temp;
-	import_value = import_temp;
+	export_value.assign_data(export_temp);
+	import_value.assign_data(import_temp);
 
 	return true;
 }
@@ -618,11 +612,8 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
-	export_volume.resize(std::max(export_volume.size(), (size_t)progress + 1));
-	import_volume.resize(std::max(import_volume.size(), (size_t)progress + 1));
-
-	export_volume[progress] = export_temp;
-	import_volume[progress] = import_temp;
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
 
 	progress++;
 	return false;
@@ -632,27 +623,26 @@ bool per_province_cache_slot::update(sys::state& state) {
 	// we can't create provinces thankfully
 	if(progress >= state.world.province_size()) {
 		// update sorting
-		std::sort(sorted_by_gdp_per_capita.begin(), sorted_by_gdp_per_capita.end(), [&](auto a, auto b) {
-			if(gdp[a.index()].total_non_negative / (population[a.index()] + 1) == gdp[b.index()].total_non_negative / (population[b.index()] + 1)) {
+		std::sort(sorted_by_gdp_per_capita.unsafe_data.begin(), sorted_by_gdp_per_capita.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) == gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1)) {
 				return a.index() > b.index();
 			} else {
-				return gdp[a.index()].total_non_negative / (population[a.index()] + 1) > gdp[b.index()].total_non_negative / (population[b.index()] + 1);
+				return gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) > gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1);
 			}
 		});
 
-		std::sort(sorted_by_gdp.begin(), sorted_by_gdp.end(), [&](auto a, auto b) {
-			if(gdp[a.index()].total_non_negative == gdp[b.index()].total_non_negative) {
+		std::sort(sorted_by_gdp.unsafe_data.begin(), sorted_by_gdp.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative == gdp.unsafe_data[b.index()].total_non_negative) {
 				return a.index() > b.index();
 			} else {
-				return gdp[a.index()].total_non_negative > gdp[b.index()].total_non_negative;
+				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
 			}
 		});
 		return true;
 	}
+
 	// validate size
-	if(gdp.size() < state.world.province_size()) {
-		gdp.resize(state.world.province_size());
-		population.resize(state.world.province_size());
+	if(gdp.unsafe_data.size() < state.world.province_size()) {
 		sorted_by_gdp.clear();
 		sorted_by_gdp_per_capita.clear();
 		state.world.for_each_province([&](auto pid) {
@@ -692,8 +682,8 @@ bool per_province_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
-	gdp[progress] = gdp_value;
-	population[progress] = population_value;
+	gdp.set(progress, gdp_value);
+	population.set(progress, population_value);
 
 	progress++;
 	return false;
@@ -748,15 +738,8 @@ bool per_nation_cache_slot::update(sys::state& state) {
 
 		// SAFE PLACE TO STORE RESULTS
 
-		sphere_parent.resize(std::max(sphere_parent.size(), (size_t)progress + 1));
-		national_gdp.resize(std::max(national_gdp.size(), (size_t)progress + 1));
-
-		national_gdp[progress] = gdp;
-		if(sphere_parent[progress] != parent_of_current) {
-			sphere_parent[progress] = parent_of_current;
-			reset_progress();
-			return false;
-		}
+		national_gdp.set(progress, gdp);
+		sphere_parent.set(progress, parent_of_current);
 
 		progress++;
 		return false;
@@ -767,8 +750,8 @@ bool per_nation_cache_slot::update(sys::state& state) {
 
 		auto total = 0.f;
 		state.world.for_each_nation([&](auto nid) {
-			if(sphere_parent[nid.index()] == current_item) {
-				auto value = national_gdp[nid.index()];
+			if(sphere_parent.unsafe_data[nid.index()] == current_item) {
+				auto value = national_gdp.unsafe_data[nid.index()];
 				total += value;
 			}
 		});
@@ -783,8 +766,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 
 		// SAFE PLACE TO STORE RESULTS
 
-		sphere_gdp.resize(std::max(sphere_gdp.size(), (size_t)progress_sphere + 1));
-		sphere_gdp[progress_sphere] = total;
+		sphere_gdp.set(progress_sphere, total);
 
 		progress_sphere++;
 		return false;
@@ -794,27 +776,25 @@ bool per_nation_cache_slot::update(sys::state& state) {
 bool commodity_per_province_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.province_size()) {
 		// update sorting
-		std::sort(sorted_by_production.begin(), sorted_by_production.end(), [&](auto a, auto b) {
-			if(production_volume[a.index()] == production_volume[b.index()]) {
+		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
+			if(production_volume.unsafe_data[a.index()] == production_volume.unsafe_data[b.index()]) {
 				return a.index() > b.index();
 			} else {
-				return production_volume[a.index()] > production_volume[b.index()];
+				return production_volume.unsafe_data[a.index()] > production_volume.unsafe_data[b.index()];
 			}
 		});
 
-		std::sort(sorted_by_consumption.begin(), sorted_by_consumption.end(), [&](auto a, auto b) {
-			if(consumption_volume[a.index()] == consumption_volume[b.index()]) {
+		std::sort(sorted_by_consumption.unsafe_data.begin(), sorted_by_consumption.unsafe_data.end(), [&](auto a, auto b) {
+			if(consumption_volume.unsafe_data[a.index()] == consumption_volume.unsafe_data[b.index()]) {
 				return a.index() > b.index();
 			} else {
-				return consumption_volume[a.index()] > consumption_volume[b.index()];
+				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
 			}
 		});
 		return true;
 	}
 	// validate size
-	if(production_volume.size() < state.world.province_size()) {
-		production_volume.resize(state.world.province_size());
-		consumption_volume.resize(state.world.province_size());
+	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
 		sorted_by_production.clear();
 		sorted_by_consumption.clear();
 		state.world.for_each_province([&](auto pid) {
@@ -854,8 +834,8 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 
 	// SAFE PLACE TO STORE RESULTS
 
-	production_volume[progress] = production_value;
-	consumption_volume[progress] = consumption_value;
+	production_volume.set(progress, production_value);
+	consumption_volume.set(progress, consumption_value);
 
 	progress++;
 	return false;
