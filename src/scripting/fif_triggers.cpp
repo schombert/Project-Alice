@@ -3281,6 +3281,12 @@ TRIGGER_FUNCTION(tf_relation_from_province) {
 TRIGGER_FUNCTION(tf_check_variable) {
 	return "dup " + std::to_string(trigger::payload(tval[3]).natv_id.index()) + " >national_variable_id variables @ " + std::to_string(read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }
+
+TRIGGER_FUNCTION(tf_check_gamerule) {
+	return std::to_string(trigger::payload(tval[1]).gr_id.index()) + " >gamerule_id current_setting @ " + std::to_string(tval[2]) + " " + compare_values_eq(tval[0]);
+}
+
+
 TRIGGER_FUNCTION(tf_upper_house) {
 	return "dup " + std::to_string(trigger::payload(tval[3]).ideo_id.index()) + " >ideology_id upper_house @ " + std::to_string(100.0f * read_float_from_payload(tval + 1)) + " " + compare_values(tval[0]);
 }

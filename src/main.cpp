@@ -5,6 +5,7 @@
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
+#include "gamerule.cpp"
 #include "parsers.cpp"
 #include "text.cpp"
 #include "float_from_chars.cpp"

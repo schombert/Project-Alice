@@ -247,8 +247,10 @@ struct data {
 
 	GLuint money_icon_tex = 0;
 	GLuint cross_icon_tex = 0;
+	GLuint cross_desaturated_icon_tex = 0;
 	GLuint color_blind_cross_icon_tex = 0;
 	GLuint checkmark_icon_tex = 0;
+	GLuint checkmark_desaturated_icon_tex = 0;
 	GLuint navy_icon_tex = 0;
 	GLuint army_icon_tex = 0;
 
@@ -418,6 +420,16 @@ GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap);
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap_a, GLuint wrap_b);
 GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y);
+
+struct scissor_box {
+	const int32_t x;
+	const int32_t y;
+	const int32_t w;
+	const int32_t h;
+
+	scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t w, int32_t h);
+	~scissor_box();
+};
 
 class animation;
 

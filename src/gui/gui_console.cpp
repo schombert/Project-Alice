@@ -12,8 +12,8 @@
 #include "stb_image_write.h"
 
 
-void log_to_console(sys::state& state, ui::element_base* parent, std::string_view s) noexcept {
-	Cyto::Any output = std::string(s);
+void log_to_console(sys::state& state, ui::element_base* parent, std::u16string_view s) noexcept {
+	Cyto::Any output = simple_fs::utf16_to_utf8(s);
 	parent->impl_get(state, output);
 }
 
@@ -21,28 +21,54 @@ void ui::console_edit::render(sys::state& state, int32_t x, int32_t y) noexcept 
 	ui::edit_box_element_base::render(state, x, y);
 }
 
-void ui::console_edit::edit_box_update(sys::state& state, std::string_view s) noexcept {
+void ui::console_edit::edit_box_update(sys::state& state, std::u16string_view s) noexcept {
 }
 
-void ui::console_edit::edit_box_tab(sys::state& state, std::string_view s) noexcept {
+void ui::console_edit::on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept {
+	if(command == ui::edit_command::cursor_up) {
+		std::string up = up_history();
+		if(!up.empty()) {
+			set_text(state, simple_fs::utf8_to_utf16(up));
+		}
+		return;
+	} else if(command == ui::edit_command::cursor_down) {
+		std::string down = down_history();
+		if(!down.empty()) {
+			set_text(state, simple_fs::utf8_to_utf16(down));
+		}
+		return;
+	} else if(command == ui::edit_command::new_line) {
+		if(cached_text.empty()) {
+			return;
+		}
+
+		if(state.ui_state.shift_held_down) {
+			log_to_console(state, parent, cached_text);
+
+			std::lock_guard lg{ state.lock_console_strings };
+			state.console_command_pending += simple_fs::utf16_to_utf8(cached_text);
+			state.console_command_pending += " ";
+		} else {
+			log_to_console(state, parent, cached_text);
+
+			std::lock_guard lg{ state.lock_console_strings };
+			state.console_command_pending += simple_fs::utf16_to_utf8(cached_text);
+			add_to_history(state, state.console_command_pending);
+			command::notify_console_command(state);
+		}
+		return;
+	}
+	edit_box_element_base::on_edit_command(state, command, mods);
 }
 
-void ui::console_edit::edit_box_up(sys::state& state) noexcept {
-	std::string up = up_history();
-	if(!up.empty()) {
-		this->set_text(state, up);
-		auto index = int32_t(up.size());
-		this->edit_index_position(state, index);
+void ui::console_edit::on_text(sys::state& state, char32_t ch) noexcept {
+	if(ch == u'`' || ch == u'\\') {
+		ui::console_window::show_toggle(state);
+		return;
 	}
+	edit_box_element_base::on_text(state, ch);
 }
-void ui::console_edit::edit_box_down(sys::state& state) noexcept {
-	std::string down = down_history();
-	if(!down.empty()) {
-		this->set_text(state, down);
-		auto index = int32_t(down.size());
-		this->edit_index_position(state, index);
-	}
-}
+
 
 template<typename F>
 void write_single_component(sys::state& state, native_string_view filename, F&& func) {
@@ -549,7 +575,7 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::serialize(ptr_in, state.font_collection.font_names);
 		return ptr_in;
 	});
-	log_to_console(state, state.ui_state.console_window, "Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
+	log_to_console(state, state.ui_state.console_window, u"Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
 	window::change_cursor(state, window::cursor_type::normal);
 
 	return p + 2;
@@ -1097,7 +1123,7 @@ int32_t* f_dump_econ(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 		state->cheat_data.savings_buffer += "markets;nations;investments\n";
 	}
-	log_to_console(*state, state->ui_state.console_window, state->cheat_data.ecodump ? "✔" : "✘");
+	log_to_console(*state, state->ui_state.console_window, state->cheat_data.ecodump ? u"✔" : u"✘");
 
 	return p + 2;
 }
@@ -1504,48 +1530,14 @@ std::string ui::format_fif_value(sys::state& state, int64_t data, int32_t type) 
 		if(state.fif_environment->dict.type_array[type].decomposed_types_count >= 2) {
 			auto main_type = state.fif_environment->dict.all_stack_types[state.fif_environment->dict.type_array[type].decomposed_types_start];
 			if(main_type == fif::fif_ptr) {
-				return std::string("#ptr");
+				return "#ptr";
 			} else {
-				return std::string("#struct");
+				return "#struct";
 			}
 		} else {
 			return "#unknown";
 		}
 	}
-}
-
-void ui::console_edit::edit_box_enter(sys::state& state, std::string_view s) noexcept {
-	if(s.empty()) {
-		edit_box_update(state, s);
-		return;
-	}
-
-	if(state.ui_state.shift_held_down) {
-		log_to_console(state, parent, s);
-
-		std::lock_guard lg{ state.lock_console_strings };
-		state.console_command_pending += s;
-		state.console_command_pending += " ";
-	} else {
-		log_to_console(state, parent, s);
-
-		std::lock_guard lg{ state.lock_console_strings };
-		state.console_command_pending += s;
-		add_to_history(state, state.console_command_pending);
-		command::notify_console_command(state);
-	}
-	edit_box_update(state, s);
-	return;
-}
-
-void ui::console_edit::edit_box_esc(sys::state& state) noexcept {
-	ui::console_window::show_toggle(state);
-}
-void ui::console_edit::edit_box_backtick(sys::state& state) noexcept {
-	ui::console_window::show_toggle(state);
-}
-void ui::console_edit::edit_box_back_slash(sys::state& state) noexcept {
-	ui::console_window::show_toggle(state);
 }
 
 void ui::console_window::show_toggle(sys::state& state) {

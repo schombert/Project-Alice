@@ -579,6 +579,7 @@ enum class graphics_mode {
 };
 
 constexpr int32_t max_event_options = 8;
+constexpr uint32_t max_gamerule_settings = 15;
 constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
@@ -603,6 +604,12 @@ namespace ui {
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure, state_name };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
 constexpr inline uint32_t max_chat_message_len = 64;
+enum class edit_command : uint8_t {
+	new_line, backspace, delete_char, backspace_word, delete_word, tab, cursor_down, cursor_up, cursor_left, cursor_right, cursor_left_word, cursor_right_word, to_line_start, to_line_end, to_text_start, to_text_end, cut, copy, paste, select_all, undo, redo, select_current_word, select_current_section, delete_selection
+};
+enum class edit_selection_mode : uint8_t {
+	none, standard, word, line
+};
 
 }
 

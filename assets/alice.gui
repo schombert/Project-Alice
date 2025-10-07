@@ -8,6 +8,15 @@ guiTypes = {
 		buttonFont = "vic_32_black"
 		Orientation = "LOWER_LEFT"
 	}
+	guiButtonType = {
+		name = "gamerules_button"
+		extends = "lobby"
+		position = { x = 400 y = -60 }
+		quadTextureSprite ="GFX_button_standard_144"	
+		buttonText = "alice_gamerules_btn_text"
+		buttonFont = "vic_18_black"
+		Orientation = "LOWER_LEFT"
+	}
 
 	instantTextBoxType = { 
 			name = "state_location_name"
@@ -104,7 +113,19 @@ guiTypes = {
 		}
 		
 	}
-
+	iconType = {
+			name = "original_defender"
+			position = { x = 410 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+	}
+	iconType = {
+			name = "original_attacker"
+			position = { x = 157 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+			
+	}
 
 			
 	iconType = {

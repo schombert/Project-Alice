@@ -97,8 +97,8 @@ static void default_logfn(pcp_loglvl_e mode, const char *msg)
     }
 
     fprintf(stderr, "%3llus %03llums %03lluus %-7s: %s\n",
-            (long long int)diff / 1000000,
-            (long long int)(diff % 1000000) / 1000, (long long int)diff % 1000,
+            (long long unsigned int)diff / 1000000,
+            (long long unsigned int)(diff % 1000000) / 1000, (long long unsigned int)diff % 1000,
             prefix, msg);
 }
 

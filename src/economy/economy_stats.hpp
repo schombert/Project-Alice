@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dcon_generated.hpp"
+// #include "adaptive_ve.hpp"
 
 namespace sys {
 struct state;
@@ -113,60 +114,60 @@ void register_demand(
 	sys::state& state,
 	dcon::market_id s,
 	dcon::commodity_id commodity_type,
-	float amount,
-	economy_reason reason
+	float amount
+	//economy_reason reason
 );
 
 void register_demand(
 	sys::state& state,
 	ve::contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 void register_demand(
 	sys::state& state,
 	ve::partial_contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 void register_demand(
 	sys::state& state,
 	ve::tagged_vector<dcon::market_id> s,
 	dcon::commodity_id commodity_type,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 
 void register_intermediate_demand(
 	sys::state& state,
 	ve::contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 void register_intermediate_demand(
 	sys::state& state,
 	ve::partial_contiguous_tags<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 void register_intermediate_demand(
 	sys::state& state,
 	ve::tagged_vector<dcon::market_id> s,
 	dcon::commodity_id c,
-	ve::fp_vector amount,
-	economy_reason reason
+	ve::fp_vector amount
+	//economy_reason reason
 );
 
 void register_intermediate_demand(
 	sys::state& state,
 	dcon::market_id s,
 	dcon::commodity_id c,
-	float amount,
-	economy_reason reason
+	float amount
+	//economy_reason reason
 );
 
 void register_domestic_supply(
@@ -345,7 +346,14 @@ float market_pool(
 	sys::state& state,
 	dcon::commodity_id c
 );
-
+std::vector<float> trade_value_flow_all_to_nation(
+	sys::state& state,
+	dcon::nation_id
+);
+std::vector<float> trade_value_flow_nation_to_all(
+	sys::state& state,
+	dcon::nation_id
+);
 float trade_value_flow(
 	sys::state& state,
 	dcon::market_id origin,
@@ -409,42 +417,84 @@ trade_volume_data_detailed export_volume_detailed(
 	dcon::commodity_id c
 );
 
-struct tariff_data {
-	std::array<bool, 2> applies_tariff;
-	std::array<float, 2> export_tariff;
-	std::array<float, 2> import_tariff;
+//template <typename T, typename FROM, typename U>
+//struct switch_value_of_container{
+//	using container = typename U;
+//};
+//template <typename FROM, typename U>
+//struct switch_value_of_container<ve::tagged_vector<FROM>, FROM, U> {
+//	using container = typename ve::tagged_vector<U>;
+//};
+//template <typename FROM, typename U>
+//struct switch_value_of_container<ve::contiguous_tags<FROM>, FROM, U> {
+//	using container = typename ve::contiguous_tags<U>;
+//};
+//template <typename FROM, typename U>
+//struct switch_value_of_container<ve::unaligned_contiguous_tags<FROM>, FROM, U> {
+//	using container = typename ve::unaligned_contiguous_tags<U>;
+//};
+//template <typename FROM, typename U>
+//struct switch_value_of_container<ve::partial_contiguous_tags<FROM>, FROM, U> {
+//	using container = typename ve::partial_contiguous_tags<U>;
+//};
 
-	float distance;
-	float loss;
-	float base_distance_cost;
-	float workers_satisfaction;
+template<typename X, typename FROM, typename TO>
+using convert_value_type = typename std::conditional_t<
+	ve::is_vector_type_s<X>::value,
+	typename ve::tagged_vector<TO>,
+	TO
+>;
+
+template<typename TRADE_ROUTE>
+struct tariff_data {
+	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
+	using BOOL_VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::mask_vector, bool>;
+	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
+
+	std::array<BOOL_VALUE, 2> applies_tariff;
+	std::array<VALUE, 2> export_tariff;
+	std::array<VALUE, 2> import_tariff;
+	std::array<MARKET, 2> markets;
+
+	VALUE distance;
+	VALUE loss;
+	VALUE base_distance_cost;
+	VALUE workers_satisfaction;
+	VALUE effect_of_scale;
+	VALUE distance_cost_scaled;
 };
 
+template<typename TRADE_ROUTE>
 struct trade_and_tariff {
-	dcon::market_id origin;
-	dcon::market_id target;
+	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
+	using BOOL_VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::mask_vector, bool>;
+	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
+	using NATION = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::nation_id>;
 
-	dcon::nation_id origin_nation;
-	dcon::nation_id target_nation;
+	MARKET origin;
+	MARKET target;
 
-	float amount_origin;
-	float amount_target;
+	NATION origin_nation;
+	NATION target_nation;
 
-	float tariff_origin;
-	float tariff_target;
+	VALUE amount_origin;
+	VALUE amount_target;
 
-	float tariff_rate_origin;
-	float tariff_rate_target;
+	VALUE tariff_origin;
+	VALUE tariff_target;
 
-	float price_origin;
-	float price_target;
+	VALUE tariff_rate_origin;
+	VALUE tariff_rate_target;
 
-	float transport_cost;
-	float transportaion_loss;
-	float distance;
+	VALUE price_origin;
+	VALUE price_target;
 
-	float payment_per_unit;
-	float payment_received_per_unit;
+	VALUE transport_cost;
+	VALUE transportaion_loss;
+	VALUE distance;
+
+	VALUE payment_per_unit;
+	VALUE payment_received_per_unit;
 };
 
 

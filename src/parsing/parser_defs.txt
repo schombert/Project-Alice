@@ -608,6 +608,9 @@ province_factory_limit_desc
 province_factory_limit
 	entry             group          province_factory_limit_desc  member_fn
 
+province_revolt
+	type 		   	  value 		text 				member_fn
+
 province_history_file
 	life_rating       value          uint               member_fn
 	colony            value          uint               member_fn
@@ -621,7 +624,7 @@ province_history_file
 	party_loyalty     group          pv_party_loyalty   member_fn
 	state_building    group          pv_state_building  member_fn
 	revolt            value          none               discard
-	revolt            group          none               discard
+	revolt            group          province_revolt    member_fn
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
@@ -1252,6 +1255,30 @@ history_war_goal
 	receiver                        value      text                              member_fn
 	country                        value      text                              member_fn
 	state_province_id        value      int                              member_fn
+
+
+scan_gamerule_option
+	name                  value      text								 member_fn
+	#any						group	   none									discard
+	#any						value	   none									discard
+
+
+scan_scripted_gamerule
+	name                           value      text                              member_fn
+	option                          group     scan_gamerule_option                 member_fn
+
+scan_gamerule_file
+	scripted_gamerule                   extern     make_scan_gamerule                discard
+
+
+
+
+scripted_gamerule
+	name                           value      text                              member_fn
+	option                          group     gamerule_option                 member_fn
+
+gamerule_file
+	scripted_gamerule                   extern     make_gamerule                discard
 
 war_block
 	add_attacker                    value      text                              member_fn

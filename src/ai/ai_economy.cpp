@@ -59,6 +59,7 @@ void update_factory_types_priority(sys::state& state) {
 		});
 
 		if(state.world.nation_get_is_player_controlled(n)) {
+			// todo: if priorities are not set manually, set them in some way
 			// skip -- do not need AI
 			return;
 		}
@@ -112,38 +113,67 @@ void update_factory_types_priority(sys::state& state) {
 	});
 }
 
+void filter_factories_disjunctive(
+	sys::state& state,
+	dcon::nation_id nid,
+	dcon::market_id mid,
+	dcon::province_id pid,
+	bool pop_project,
+	std::vector<dcon::factory_type_id>& desired_types,
+	float filter_profitability,
+	float filter_output_demand_satisfaction,
+	float filter_payback_time,
+	float effective_profit
+) {
+	assert(desired_types.empty());
+
+	auto n = dcon::fatten(state.world, nid);
+	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
+
+	if(!desired_types.empty()) {
+		return;
+	}
+
+	for(auto type : state.world.in_factory_type) {
+		if(!state.world.nation_get_active_building(nid, type) && !type.get_is_available_from_start()) {
+			continue;
+		}
+		// Is particular factory type allowed to be built in colony
+		if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
+			continue;
+		}
+
+		bool output_is_in_demand = state.world.market_get_demand_satisfaction(mid, type.get_output()) < filter_output_demand_satisfaction;
+
+		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
+		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit;
+		float input = economy::factory_type_input_cost(state, n, mid, type) + 0.1f;
+		float profitability = (output - input - wage * type.get_base_workforce()) / input;
+		float payback_time = cost / std::max(0.00001f, (output - input - wage * type.get_base_workforce()));
+
+		if(
+			output_is_in_demand
+			|| profitability > filter_profitability
+			|| payback_time < filter_payback_time
+		) {
+			desired_types.push_back(type.id);
+		}
+	}
+}
 
 void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
 	assert(economy::can_build_factory_in_colony(state, pid)); // Do not call this function if building in state is impossible in principle
-	auto n = dcon::fatten(state.world, nid);
-	auto m = dcon::fatten(state.world, mid);
-	auto sid = m.get_zone_from_local_market();
 
 	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
-	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
-	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
+	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(nid)) / 100.0f);
 
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, sid, type)) {
-					continue;
-				}
-				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project);
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type);
-
-				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
-				auto roi = profit / cost;
-
-				if(profit / input > 10.f && roi > 0.01f)
-					desired_types.push_back(type.id);
-			} // END if building unlocked
-		}
-	}
+	return filter_factories_disjunctive(
+		state, nid, mid, pid, pop_project, desired_types,
+		2.f, 0.3f, 40.f, rich_effect
+	);
 }
+
 
 void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types, bool pop_project) {
 	assert(desired_types.empty());
@@ -154,253 +184,172 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 	auto const tax_eff = economy::tax_collection_rate(state, nid, pid);
 	auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
-	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
 
-	// pass zero:
-	// factories with stupid income margins
-	// which are impossible to ignore if you are sane
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
-					continue;
-				}
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+	return filter_factories_disjunctive(
+		state, nid, mid, pid, pop_project, desired_types,
+		0.3f, 0.5f, 200.f, rich_effect
+	);
+}
 
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-
-				auto& constr_cost = type.get_construction_costs();
-				auto lacking_constr = false;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(constr_cost.commodity_type[i]) {
-						// If there is absolute deficit of construction goods, don't build for now
-						// However, we're interested in this market signal only if there are any transactions happening
-						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
-							lacking_constr = true;
-					} else {
-						break;
-					}
-				}
-
-				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-
-				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
-				auto roi = profit / cost;
-
-				if(!lacking_constr && profit / input > 2.f && roi > 0.01f)
-					desired_types.push_back(type.id);
-			} // END if building unlocked
+void retrieve_list_of_provinces_for_national_construction(sys::state& state, dcon::nation_id n, std::vector<dcon::province_id>& data) {
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		// Is building in colonies is impossible in principle: don't let these provinces slip into provinces list
+		// However, we check if particular factory type is allowed to be built in colony we check later
+		if(economy::can_build_factory_in_colony(state, p.get_province().get_state_membership().get_capital())) {
+			data.push_back(p.get_province());
 		}
 	}
+	std::sort(data.begin(), data.end(), [&](auto a, auto b) {
+		auto apop = state.world.province_get_demographics(a, demographics::total);
+		auto bpop = state.world.province_get_demographics(b, demographics::total);
+		auto acontrol = state.world.province_get_control_ratio(a);
+		auto bcontrol = state.world.province_get_control_ratio(b);
+		if(apop * acontrol != bpop * bcontrol)
+			return apop * acontrol > bpop * bcontrol;
+		else
+			return a.index() < b.index();
+	});
+}
 
-	// first pass: try to create factories which will pay back investment fast - in a year at most:
-	// or have very high margins
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
-					continue;
-				}
+inline bool province_has_available_workers(sys::state& state, dcon::province_id p) {
+	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) >= 0.95f;
+}
 
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+inline bool province_has_workers(sys::state& state, dcon::province_id p) {
+	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 1000.f;
+}
 
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
+bool can_build(sys::state& state, dcon::province_id p, dcon::factory_type_id ftid) {
+	if(state.world.factory_type_get_is_coastal(ftid) && !state.world.province_get_port_to(p))
+		return false;
 
-				auto& constr_cost = type.get_construction_costs();
-				auto lacking_constr = false;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(constr_cost.commodity_type[i]) {
-						// If there is absolute deficit of construction goods, don't build for now
-						// However, we're interested in this market signal only if there are any transactions happening
-						if(m.get_demand(constr_cost.commodity_type[i]) > 0.01f && m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
-							lacking_constr = true;
-					} else {
-						break;
-					}
-				}
-
-				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
-				auto roi = profit / cost;
-
-				if((!lacking_input && !lacking_constr && (lacking_output || (profit / cost > 0.005f))) || profit / input > 1.00f)
-					desired_types.push_back(type.id);
-			} // END if building unlocked
-		}
+	// check if there is already a construction like this
+	for(auto fc : state.world.province_get_factory_construction(p)) {
+		if(fc.get_type() == ftid)
+			return false;
 	}
 
-	// second pass: try to create factories which have a good profit margin
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
-					continue;
-				}
+	return true;
+}
 
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
+bool factory_can_be_upgraded(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
+	return economy::do_resource_potentials_allow_upgrade(state, n, p, ftid);
+}
 
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
+bool have_available_slots(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
+	auto num_factories = economy::province_factory_count(state, p);
+	return num_factories < int32_t(state.defines.factories_per_state)
+		&& economy::do_resource_potentials_allow_construction(state, n, p, ftid);
+}
 
-				auto& constr_cost = type.get_construction_costs();
-				auto lacking_constr = false;
+dcon::factory_id retrieve_existing_factory(sys::state& state, dcon::province_id p, dcon::factory_type_id ftid) {
+	for(auto fac : state.world.province_get_factory_location(p)) {
+		auto type = fac.get_factory().get_building_type();
+		if(ftid == type) {
+			return fac.get_factory().id;
+		}
+	}
+	return dcon::factory_id{ };
+}
 
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(constr_cost.commodity_type[i]) {
-						if(m.get_demand_satisfaction(constr_cost.commodity_type[i]) < 0.1f)
-							lacking_constr = true;
-					} else {
-						break;
-					}
-				}
+inline bool upgrade_is_desired(sys::state& state, dcon::factory_id fac) {
+	return economy::factory_total_employment_score(state, fac) > 0.9f;
+}
 
-				float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profit = (output - input - wage * type.get_base_workforce()) * rich_effect;
-				auto roi = profit / cost;
+inline void new_national_construction(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
+	auto new_up = fatten(state.world, state.world.force_create_factory_construction(p, n));
+	new_up.set_is_pop_project(false);
+	new_up.set_is_upgrade(false);
+	new_up.set_type(ftid);
+}
 
-				if(!lacking_input && !lacking_constr && profit / input > 0.3f && roi > 0.001f)
-					desired_types.push_back(type.id);
-			} // END if building unlocked
+inline void new_national_upgrade(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
+	auto new_up = fatten(state.world, state.world.force_create_factory_construction(p, n));
+	new_up.set_is_pop_project(false);
+	new_up.set_is_upgrade(true);
+	new_up.set_type(ftid);
+}
+
+void build_or_upgrade_desired_factories(
+	sys::state& state,
+	dcon::nation_id n,
+	std::vector<dcon::province_id>& province_priority,
+	float budget, float& expenses_accumulator,
+	float filter_profitability,
+	float filter_output_demand_satisfaction,
+	float filter_payback_time
+) {
+	float days_prepaid = 0.5f;
+	static std::vector<dcon::factory_type_id> craved_types;
+
+	for(auto p : province_priority) {
+		auto sid = state.world.province_get_state_membership(p);
+		auto market = state.world.state_instance_get_market_from_local_market(sid);
+
+		if(budget - expenses_accumulator <= 0.f)
+			return;
+
+		craved_types.clear();
+		filter_factories_disjunctive(
+			state, n, market, p, false, craved_types,
+			filter_profitability, filter_output_demand_satisfaction, filter_payback_time, 1.f
+		);
+
+		if(craved_types.empty()) {
+			continue; // no craved factories
+		}
+		if(!province_has_workers(state, p)) {
+			continue; // no labor at all
+		}
+		if(!province_has_available_workers(state, p))
+			continue; // no spare workers
+
+		auto type_selection = craved_types[rng::get_random(state, uint32_t(n.index() + int32_t(budget))) % craved_types.size()];
+		assert(type_selection);
+
+		if(!can_build(state, p, type_selection))
+			continue;
+
+		auto present_factory = retrieve_existing_factory(state, p, type_selection);
+		auto time = state.world.factory_type_get_construction_time(type_selection);
+		auto expected_item_cost = economy::factory_type_build_cost(state, n, p, type_selection, false) / time * days_prepaid;
+		if(budget - expenses_accumulator - expected_item_cost <= 0.f)
+			continue;
+
+		if(present_factory) {
+			if(!upgrade_is_desired(state, present_factory)) {
+				continue;
+			}
+			if(factory_can_be_upgraded(state, n, p, type_selection)) {
+				new_national_upgrade(state, n, p, type_selection);
+				expenses_accumulator += expected_item_cost;
+			}
+			continue;
+		} else {
+			// else -- try to build -- must have room
+
+			if(have_available_slots(state, n, p, type_selection)) {
+				new_national_construction(state, n, p, type_selection);
+				expenses_accumulator += expected_item_cost;
+				continue;
+			} else {
+				// TODO: try to delete a factory here
+			}
 		}
 	}
 }
-
-void get_state_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
-	assert(desired_types.empty());
-	auto n = dcon::fatten(state.world, nid);
-	auto m = dcon::fatten(state.world, mid);
-	auto sid = m.get_zone_from_local_market();
-	auto treasury = n.get_stockpiles(economy::money);
-	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
-
-
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
-					continue;
-				}
-
-				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-
-				if((output - input - wage * type.get_base_workforce()) / input > 20.f)
-					desired_types.push_back(type.id);
-			} // END if building unlocked
-		}
-	}
-}
-
-void get_state_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id pid, std::vector<dcon::factory_type_id>& desired_types) {
-	assert(desired_types.empty());
-	auto n = dcon::fatten(state.world, nid);
-	auto m = dcon::fatten(state.world, mid);
-	auto wage = state.world.province_get_labor_price(pid, economy::labor::basic_education) * 2.f;
-
-	auto treasury = n.get_stockpiles(economy::money);
-
-	// first pass: try to create factories which will pay back investment fast - in a year at most:
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				// Is particular factory type allowed to be built in colony
-				if(!economy::can_build_factory_type_in_colony(state, pid, type)) {
-					continue;
-				}
-
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-
-				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-
-				if((lacking_output || ((output - input - wage * type.get_base_workforce()) / cost < 365.f)))
-					desired_types.push_back(type.id);
-			} // END if building unlocked
-		}
-	}
-
-	// second pass: try to create factories which have a good profit margin
-	if(desired_types.empty()) {
-		for(auto type : state.world.in_factory_type) {
-			if(n.get_active_building(type) || type.get_is_available_from_start()) {
-				auto& inputs = type.get_inputs();
-				bool lacking_input = false;
-				bool lacking_output = m.get_demand_satisfaction(type.get_output()) < 0.98f;
-
-				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(inputs.commodity_type[i]) {
-						if(m.get_demand_satisfaction(inputs.commodity_type[i]) < 0.5f)
-							lacking_input = true;
-					} else {
-						break;
-					}
-				}
-
-				float cost = economy::factory_type_build_cost(state, n, pid, type, false) + 0.1f;
-				float output = economy::factory_type_output_cost(state, n, m, type);
-				float input = economy::factory_type_input_cost(state, n, m, type) + 0.1f;
-				auto profitabilitymark = std::max(0.01f, cost * 10.f / treasury);
-
-				if((lacking_output || ((output - input - wage * type.get_base_workforce()) / input > profitabilitymark)))
-					desired_types.push_back(type.id);
-			} // END if building unlocked
-		}
-	}
-}
-
 
 void update_ai_econ_construction(sys::state& state) {
+	constexpr float days_prepaid = 0.5f;
+
+	constexpr float insanely_good_profitability = 20.f;
+	constexpr float insanely_good_demand_supply_disbalance = 0.1f;
+	constexpr float insanely_good_payback_time = 20.f;
+
+	constexpr float good_profitability = 1.5f;
+	constexpr float good_demand_supply_disbalance = 0.8f;
+	constexpr float good_payback_time = 365.f;
+
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
 		if(n.get_owned_province_count() == 0 || !n.get_is_civilized())
@@ -426,7 +375,7 @@ void update_ai_econ_construction(sys::state& state) {
 
 		float budget = treasury * (float)state.world.nation_get_construction_spending(n) / 100.f - estimated_construction_costs * 0.7f;
 		float additional_expenses = 0.f;
-		float days_prepaid = 0.5f;
+		
 		auto rules = n.get_combined_issue_rules();
 
 		if(budget < 0.f) {
@@ -437,134 +386,18 @@ void update_ai_econ_construction(sys::state& state) {
 			// prepare a list of states
 			static std::vector<dcon::province_id> ordered_provinces;
 			ordered_provinces.clear();
-			for(auto p : n.get_province_ownership()) {
-				// Is building in colonies is impossible in principle: don't let these provinces slip into provinces list
-				// However, we check if particular factory type is allowed to be built in colony we check later
-				if(economy::can_build_factory_in_colony(state, p.get_province().get_state_membership().get_capital())) {
-					ordered_provinces.push_back(p.get_province());
-				}
+			retrieve_list_of_provinces_for_national_construction(state, n, ordered_provinces);
+
+			// try to build insanely good factories
+			if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
+				build_or_upgrade_desired_factories(
+					state, n, ordered_provinces, budget, additional_expenses,
+					insanely_good_profitability, insanely_good_demand_supply_disbalance, insanely_good_payback_time
+				);
 			}
-			std::sort(ordered_provinces.begin(), ordered_provinces.end(), [&](auto a, auto b) {
-				auto apop = state.world.province_get_demographics(a, demographics::total);
-				auto bpop = state.world.province_get_demographics(b, demographics::total);
-				if(apop != bpop)
-					return apop > bpop;
-				else
-					return a.index() < b.index();
-			});
 
-			// try to build
-			static::std::vector<dcon::factory_type_id> craved_types;
-
-			// desired types filled: try to construct or upgrade
-			if(!craved_types.empty()) {
-				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
-
-				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
-					for(auto p : ordered_provinces) {
-						auto sid = state.world.province_get_state_membership(p);
-						auto market = state.world.state_instance_get_market_from_local_market(sid);
-
-						if(budget - additional_expenses <= 0.f)
-							break;
-
-						craved_types.clear();
-						get_state_craved_factory_types(state, n, market, p, craved_types);
-
-						// check -- either unemployed factory workers or no factory workers
-						auto pw_num = state.world.province_get_demographics(p,
-								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-						pw_num += state.world.province_get_demographics(p,
-								demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-						auto pw_employed = state.world.province_get_demographics(p,
-								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-						pw_employed += state.world.province_get_demographics(p,
-								demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
-
-						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
-							continue; // no spare workers
-
-						auto type_selection = craved_types[rng::get_random(state, uint32_t(n.id.index() + int32_t(budget))) % craved_types.size()];
-						assert(type_selection);
-
-						if(state.world.factory_type_get_is_coastal(type_selection) && !state.world.province_get_port_to(p))
-							continue;
-
-						bool already_in_progress = [&]() {
-							for(auto fc : state.world.province_get_factory_construction(p)) {
-								if(fc.get_type() == type_selection)
-									return true;
-							}
-							return false;
-							}();
-
-						if(already_in_progress)
-							continue;
-
-						// check: if present, try to upgrade
-						bool present_in_location = false;
-						bool under_cap = false;
-
-						for(auto fac : state.world.province_get_factory_location(p)) {
-							auto type = fac.get_factory().get_building_type();
-							if(type_selection == type) {
-								under_cap = economy::factory_total_employment_score(state, fac.get_factory()) < 0.9f;
-								present_in_location = true;
-								return;
-							}
-						}
-						if(under_cap) {
-							continue; // factory doesn't need to get larger
-						}
-
-						auto expected_item_cost = 0.f;
-						auto costs = state.world.factory_type_get_construction_costs(type_selection);
-						auto time = state.world.factory_type_get_construction_time(type_selection);
-						for(uint32_t i = 0; i < costs.set_size; ++i) {
-							if(costs.commodity_type[i]) {
-								expected_item_cost +=
-									costs.commodity_amounts[i]
-									* economy::price(state, market, costs.commodity_type[i])
-									/ float(time)
-									* days_prepaid;
-							} else {
-								break;
-							}
-						}
-
-						if(budget - additional_expenses - expected_item_cost <= 0.f)
-							continue;
-
-						if(present_in_location) {
-							if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, p, type_selection)) {
-								auto new_up = fatten(state.world, state.world.force_create_factory_construction(p, n));
-								new_up.set_is_pop_project(false);
-								new_up.set_is_upgrade(true);
-								new_up.set_type(type_selection);
-
-								additional_expenses += expected_item_cost;
-							}
-							continue;
-						}
-
-						// else -- try to build -- must have room
-						auto num_factories = economy::province_factory_count(state, p);
-						if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, p, type_selection)) {
-							auto new_up = fatten(state.world, state.world.force_create_factory_construction(p, n));
-							new_up.set_is_pop_project(false);
-							new_up.set_is_upgrade(false);
-							new_up.set_type(type_selection);
-							additional_expenses += expected_item_cost;
-							continue;
-						} else {
-							// TODO: try to delete a factory here
-						}
-					} // END for(auto si : ordered_states) {
-				} // END if((rules & issue_rule::build_factory) == 0)
-			} // END if(!desired_types.empty()) {
-
-			// try to upgrade factories first:
-			if((rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
+			// try to upgrade factories
+			if((rules & issue_rule::expand_factory) != 0) { // can upgrade
 				for(auto pid : ordered_provinces) {
 
 					auto sid = state.world.province_get_state_membership(pid);
@@ -608,11 +441,7 @@ void update_ai_econ_construction(sys::state& state) {
 								continue;
 
 							if(!ug_in_progress && economy::do_resource_potentials_allow_upgrade(state, n, pid, type)) {
-								auto new_up = fatten(state.world, state.world.force_create_factory_construction(pid, n));
-								new_up.set_is_pop_project(false);
-								new_up.set_is_upgrade(true);
-								new_up.set_type(type);
-
+								new_national_upgrade(state, n, pid, type);
 								additional_expenses += expected_item_cost;
 							}
 						}
@@ -620,116 +449,13 @@ void update_ai_econ_construction(sys::state& state) {
 				}
 			}
 
-			// try to build
-			static::std::vector<dcon::factory_type_id> desired_types;
-
-			// desired types filled: try to construct or upgrade
-			if(!desired_types.empty()) {
-				if((rules & issue_rule::build_factory) == 0 && (rules & issue_rule::expand_factory) != 0) { // can't build -- by elimination, can upgrade
-
-				} else if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
-					for(auto pid : ordered_provinces) {
-
-						auto sid = state.world.province_get_state_membership(pid);
-						auto market = state.world.state_instance_get_market_from_local_market(sid);
-
-						if(budget - additional_expenses <= 0.f)
-							break;
-
-						desired_types.clear();
-						get_state_desired_factory_types(state, n, market, pid, desired_types);
-
-						// check -- either unemployed factory workers or no factory workers
-						auto pw_num = state.world.province_get_demographics(pid,
-								demographics::to_key(state, state.culture_definitions.primary_factory_worker));
-						pw_num += state.world.province_get_demographics(pid,
-								demographics::to_key(state, state.culture_definitions.secondary_factory_worker));
-						auto pw_employed = state.world.province_get_demographics(pid,
-								demographics::to_employment_key(state, state.culture_definitions.primary_factory_worker));
-						pw_employed += state.world.province_get_demographics(pid,
-								demographics::to_employment_key(state, state.culture_definitions.secondary_factory_worker));
-
-						if(pw_employed >= float(pw_num) * 2.5f && pw_num > 0.0f)
-							continue; // no spare workers
-
-						auto type_selection = desired_types[rng::get_random(state, uint32_t(n.id.index() + int32_t(budget))) % desired_types.size()];
-						assert(type_selection);
-
-						if(state.world.factory_type_get_is_coastal(type_selection) && !state.world.province_get_port_to(pid))
-							continue;
-
-						bool already_in_progress = [&]() {
-							for(auto p : state.world.province_get_factory_construction(pid)) {
-								if(p.get_type() == type_selection)
-									return true;
-							}
-							return false;
-							}();
-
-						if(already_in_progress)
-							continue;
-
-						// check: if present, try to upgrade
-						bool present_in_location = false;
-						bool under_cap = false;
-
-						for(auto fac : state.world.province_get_factory_location(pid)) {
-							auto type = fac.get_factory().get_building_type();
-							if(type_selection == type) {
-								under_cap = economy::factory_total_employment_score(state, fac.get_factory()) < 0.9f;
-								present_in_location = true;
-								return;
-							}
-						}
-						if(under_cap) {
-							continue; // factory doesn't need to get larger
-						}
-
-						auto expected_item_cost = 0.f;
-						auto costs = state.world.factory_type_get_construction_costs(type_selection);
-						auto time = state.world.factory_type_get_construction_time(type_selection);
-						for(uint32_t i = 0; i < costs.set_size; ++i) {
-							if(costs.commodity_type[i]) {
-								expected_item_cost +=
-									costs.commodity_amounts[i]
-									* economy::price(state, market, costs.commodity_type[i])
-									/ float(time)
-									* days_prepaid;
-							} else {
-								break;
-							}
-						}
-
-						if(budget - additional_expenses - expected_item_cost <= 0.f)
-							continue;
-
-						if(present_in_location) {
-							if((rules & issue_rule::expand_factory) != 0 && economy::do_resource_potentials_allow_upgrade(state, n, pid, type_selection)) {
-								auto new_up = fatten(state.world, state.world.force_create_factory_construction(pid, n));
-								new_up.set_is_pop_project(false);
-								new_up.set_is_upgrade(true);
-								new_up.set_type(type_selection);
-
-								additional_expenses += expected_item_cost;
-							}
-							continue;
-						}
-
-						// else -- try to build -- must have room
-						int32_t num_factories = economy::province_factory_count(state, pid);
-						if(num_factories < int32_t(state.defines.factories_per_state) && economy::do_resource_potentials_allow_construction(state, n, pid, type_selection)) {
-							auto new_up = fatten(state.world, state.world.force_create_factory_construction(pid, n));
-							new_up.set_is_pop_project(false);
-							new_up.set_is_upgrade(false);
-							new_up.set_type(type_selection);
-							additional_expenses += expected_item_cost;
-							continue;
-						} else {
-							// TODO: try to delete a factory here
-						}
-					} // END for(auto si : ordered_states) {
-				} // END if((rules & issue_rule::build_factory) == 0)
-			} // END if(!desired_types.empty()) {
+			// try to build good factories
+			if((rules & issue_rule::build_factory) != 0) { // -- i.e. if building is possible
+				build_or_upgrade_desired_factories(
+					state, n, ordered_provinces, budget, additional_expenses,
+					good_profitability, good_demand_supply_disbalance, good_payback_time
+				);
+			}
 		} // END  if((rules & issue_rule::expand_factory) != 0 || (rules & issue_rule::build_factory) != 0)
 
 		// AI has smarter desired army size, this check stops economic devt.

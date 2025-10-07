@@ -12,6 +12,10 @@ inline size_t serialize_size(std::vector<T> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
+inline size_t serialize_size(native_string const& s) {
+	return sizeof(uint32_t) + sizeof(native_char) * s.size();
+}
+
 template<typename T>
 inline uint8_t* serialize(uint8_t* ptr_in, std::vector<T> const& vec) {
 	uint32_t length = uint32_t(vec.size());
@@ -27,6 +31,21 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
 	vec.resize(length);
 	memcpy(vec.data(), ptr_in + sizeof(uint32_t), sizeof(T) * length);
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
+}
+
+inline uint8_t* serialize(uint8_t* ptr_in, native_string const& s) {
+	uint32_t length = uint32_t(s.size());
+	memcpy(ptr_in, &length, sizeof(uint32_t));
+	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(native_char) * s.size());
+	return ptr_in + sizeof(uint32_t) + sizeof(native_char) * s.size();
+}
+
+inline uint8_t const* deserialize(uint8_t const* ptr_in, native_string& s) {
+	uint32_t length = 0;
+	memcpy(&length, ptr_in, sizeof(uint32_t));
+	s.resize(length);
+	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(native_char) * length);
+	return ptr_in + sizeof(uint32_t) + sizeof(native_char) * length;
 }
 
 template<typename T>

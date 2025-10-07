@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_unit_panel_subwindow.hpp"
@@ -181,7 +182,7 @@ public:
 			}
 		}
 		disabled = false;
-		
+
 	}
 
 	void button_action(sys::state& state) noexcept override {
@@ -194,7 +195,7 @@ public:
 		for(auto unit : navies) {
 			command::delete_navy(state, state.local_player_nation, unit);
 		}
-		
+
 		parent->set_visible(state, false); // Close parent window automatically
 		//send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
 
@@ -310,7 +311,7 @@ public:
 				command::delete_navy(state, state.local_player_nation, content);
 			}
 		}
-		
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -425,7 +426,7 @@ public:
 		}
 		display_leader_full(state, lid, contents, 0);
 	}
-	
+
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
@@ -781,13 +782,13 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			if(state.world.army_get_controller_from_army_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 255, 210);
 			} else {
 				color = sys::pack_color(170, 190, 170);
 			}
 		} else {
-			if(state.world.navy_get_controller_from_navy_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 210, 255);
 			} else {
 				color = sys::pack_color(170, 170, 190);
@@ -985,7 +986,7 @@ public:
 					auto fat = regiment_membership.get_regiment().get_regiment_from_automation();
 					auto strenght = fat.get_strength() * state.defines.pop_size_per_regiment;
 					unitstrength_text->set_visible(state, true);
-				
+
 					dcon::unit_type_id utid = fat.get_type();
 					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
 					if constexpr(N == 0) {
@@ -1405,14 +1406,15 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		int32_t max_cap = 0;
 		for(auto n : state.world.province_get_navy_location(p)) {
-			if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+			if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 				max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 			}
 		}
-		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+		if(!command::can_embark_army(state, state.local_player_nation, a)
 			&& max_cap > 0) { //require splitting
 			auto regs = state.world.army_get_army_membership(a);
 			int32_t army_cap = int32_t(regs.end() - regs.begin());
@@ -1447,20 +1449,21 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		visible = !bool(state.world.army_get_navy_from_army_transport(a)); //not already in ship
 		disabled = true;
 		frame = 0;
 		if(visible) {
 			int32_t max_cap = 0;
 			for(auto n : state.world.province_get_navy_location(p)) {
-				if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+				if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 					!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 					max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 				}
 			}
 			disabled = max_cap <= 0;
 			//require splitting
-			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+			if(!command::can_embark_army(state, state.local_player_nation, a)
 				&& max_cap > 0) {
 				frame = 1;
 			}
@@ -1475,7 +1478,7 @@ public:
 		auto loc = state.world.army_get_location_from_army_location(n);
 
 		text::add_line(state, contents, "uw_load_is_valid");
-		text::add_line_with_condition(state, contents, "alice_load_unload_1", military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n));
+		text::add_line_with_condition(state, contents, "alice_load_unload_1", command::can_embark_army(state, state.local_player_nation, n));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
@@ -1690,7 +1693,7 @@ public:
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
 
-		
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1740,8 +1743,8 @@ public:
 			commodities = military::get_required_supply(state, state.local_player_nation, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
-		
-		
+
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1758,7 +1761,7 @@ public:
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
-			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;			
+			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 		}
 
 		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
@@ -2342,7 +2345,7 @@ public:
 
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			if(parent) {
-				
+
 			}
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
 			if(parent) {
@@ -2583,7 +2586,7 @@ public:
 				unit_upgrade_win->impl_on_update(state);
 				break;
 			}
-			default: 
+			default:
 				break;
 			};
 			return message_result::consumed;
@@ -2668,14 +2671,18 @@ public:
 		}
 		else {
 			for(auto army : state.selected_armies) {
-				command::delete_army(state, state.local_player_nation, army);
+				if (command::can_delete_army(state, state.local_player_nation, army)) {
+					command::delete_army(state, state.local_player_nation, army);
+				}
 			}
 			for(auto navy : state.selected_navies) {
-				command::delete_navy(state, state.local_player_nation, navy);
+				if (command::can_delete_navy(state, state.local_player_nation, navy)) {
+					command::delete_navy(state, state.local_player_nation, navy);
+				}
 			}
 		}
-
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -2862,7 +2869,7 @@ public:
 				command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
 			}
 		}
-		
+
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -3430,7 +3437,7 @@ public:
 					if(type) {
 						regiments_by_type[type.index()] += 1;
 					}
-				}				
+				}
 			}
 		}
 
@@ -3479,7 +3486,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		xy_pair base_position = { 15, 0 }; 
+		xy_pair base_position = { 15, 0 };
 		uint16_t base_offset = 95;
 
 		{
@@ -3530,7 +3537,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_army_group_unit_listbox") {
 			return make_element_by_type<selected_army_group_land_units_list>(state, id);
-		} 
+		}
 		return nullptr;
 	}
 };
@@ -3625,7 +3632,7 @@ class add_selected_units_to_army_group_button : public button_element_base {
 		for(auto item : state.selected_armies) {
 			state.world.for_each_automated_army_group([&](dcon::automated_army_group_id group) {
 				state.remove_army_army_group_clean(group, item);
-			});			
+			});
 			state.add_army_to_army_group(state.selected_army_group, item);
 		}
 		for(auto item : state.selected_navies) {
@@ -3770,7 +3777,7 @@ public:
 		row_contents.clear();
 		state.world.for_each_automated_army_group([&](dcon::automated_army_group_id item) {
 			row_contents.push_back(item);
-		});			
+		});
 		update(state);
 	}
 };

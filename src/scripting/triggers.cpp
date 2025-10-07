@@ -4838,7 +4838,7 @@ TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 }
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
 	// What exactly is a claim crisis?
-	assert(false && "Claim crisis is not part of PA");
+	// assert(false && "Claim crisis is not part of PA");
 	return compare_to_true(tval[0], false);
 }
 TRIGGER_FUNCTION(tf_crisis_temperature) {
@@ -5736,6 +5736,12 @@ TRIGGER_FUNCTION(tf_party_position) {
 		auto rp = ws.world.nation_get_ruling_party(n);
 		return compare_to_true(tval[0], ws.world.political_party_get_party_issues(rp, popt) == new_opt);
 	}
+}
+
+TRIGGER_FUNCTION(tf_check_gamerule) {
+	dcon::gamerule_id gamerule = trigger::payload(tval[1]).gr_id;
+	uint8_t setting = uint8_t(tval[2]);
+	return compare_to_true(tval[0], gamerule::check_gamerule(ws, gamerule, setting));
 }
 
 template<typename return_type, typename primary_type, typename this_type, typename from_type>

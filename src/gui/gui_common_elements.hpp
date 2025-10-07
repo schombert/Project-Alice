@@ -656,7 +656,7 @@ public:
 class nation_ppp_gdp_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		return text::format_float(economy::gdp_adjusted(state, nation_id));
+		return text::format_float(economy::gdp::value_nation_adjusted(state, nation_id));
 	}
 };
 
@@ -664,7 +664,7 @@ class nation_ppp_gdp_per_capita_text : public standard_nation_text {
 public:
 	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
 		float population = state.world.nation_get_demographics(nation_id, demographics::total);
-		return text::format_float(economy::gdp_adjusted(state, nation_id) / population * 1000000.f);
+		return text::format_float(economy::gdp::value_nation_adjusted(state, nation_id) / population * 1000000.f);
 	}
 };
 
@@ -2545,6 +2545,15 @@ inline void factory_construction_tooltip(sys::state& state, text::columnar_layou
 	float factory_mod = economy::factory_build_cost_multiplier(state, fat_fcid.get_nation(), fat_fcid.get_province(), fat_fcid.get_is_pop_project());
 	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
 	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
+
+	text::add_line(state, contents, state.world.factory_type_get_name(fat_fcid.get_type()));
+
+	if(fat_fcid.get_is_pop_project()) {
+		text::add_line(state, contents, "pop_project");
+	}
+	else {
+		text::add_line(state, contents, "state_project");
+	}
 
 	text::add_line(state, contents, "alice_construction_cost");
 

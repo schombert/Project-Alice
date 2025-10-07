@@ -254,6 +254,9 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
 
+float estimate_intermediate_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float estimate_production(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+
 float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output);
 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
@@ -277,5 +280,23 @@ breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon
 breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c);
+
+
+namespace gdp {
+
+struct breakdown {
+	float primary;
+	float secondary_factory;
+	float secondary_artisan;
+	float total;
+	float total_non_negative;
+};
+
+float value_nation(sys::state& state, dcon::nation_id n);
+float value_market(sys::state& state, dcon::market_id n);
+float value_nation_adjusted(sys::state& state, dcon::nation_id n);
+
+breakdown breakdown_province(sys::state& state, dcon::province_id pid);
+}
 
 }

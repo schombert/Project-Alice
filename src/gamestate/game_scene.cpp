@@ -246,12 +246,15 @@ void ui_rbutton(sys::state& state, sys::key_modifiers mod) {
 	);
 }
 void ui_lbutton(sys::state& state, sys::key_modifiers mod) {
-	state.ui_state.under_mouse->impl_on_lbutton_down(
+	auto result = state.ui_state.under_mouse->impl_on_lbutton_down(
 		state,
 		state.ui_state.relative_mouse_location.x,
 		state.ui_state.relative_mouse_location.y,
 		mod
 	);
+	if(result != ui::message_result::unseen) {
+		state.ui_state.set_focus_target(state, state.ui_state.under_mouse);
+	}
 	state.ui_state.left_mouse_hold_target = state.ui_state.under_mouse;
 }
 
@@ -299,7 +302,7 @@ void handle_lbutton_down_map_interaction(sys::state& state, int32_t x, int32_t y
 
 void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	// Lose focus on text
-	state.ui_state.edit_target = nullptr;
+	state.ui_state.set_focus_target(state, nullptr);
 
 	if(state.iui_state.over_ui) {
 		return;
@@ -318,7 +321,6 @@ void on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 
 void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	// Lose focus on text
-	state.ui_state.edit_target = nullptr;
 
 	if(state.iui_state.over_ui) {
 		return;
@@ -329,6 +331,7 @@ void on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers
 		return;
 	}
 
+	state.ui_state.set_focus_target(state, nullptr);
 	handle_lbutton_down_map_interaction(state, x, y, mod);
 }
 
@@ -437,18 +440,18 @@ void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mo
 		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
 	}
 	if((int32_t(sys::key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
-		for(auto a : state.world.nation_get_army_control(state.local_player_nation)) {
-			if(!a.get_army().get_navy_from_army_transport() && !a.get_army().get_battle_from_army_battle_participation() && !a.get_army().get_is_retreating()) {
-				if(army_is_in_selection(state, x, y, a.get_army())) {
-					state.select(a.get_army());
+		for(auto a : state.world.in_army) {
+			if(a.is_valid() && !a.get_navy_from_army_transport() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
+				if(army_is_in_selection(state, x, y, a)) {
+					state.select(a);
 				}
 			}
 		}
 	}
-	for(auto a : state.world.nation_get_navy_control(state.local_player_nation)) {
-		if(!a.get_navy().get_battle_from_navy_battle_participation() && !a.get_navy().get_is_retreating()) {
-			if(navy_is_in_selection(state, x, y, a.get_navy())) {
-				state.select(a.get_navy());
+	for(auto a : state.world.in_navy) {
+		if(a.is_valid() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
+			if(navy_is_in_selection(state, x, y, a)) {
+				state.select(a);
 			}
 		}
 	}
@@ -472,7 +475,8 @@ void handle_drag_stop(sys::state& state, int32_t x, int32_t y, sys::key_modifier
 	state.ui_state.scrollbar_timer = 0;
 	if(state.ui_state.under_mouse != nullptr || !state.drag_selecting) {
 		state.drag_selecting = false;
-		window::change_cursor(state, window::cursor_type::normal);
+		if(state.ui_state.edit_target_internal == nullptr)
+			window::change_cursor(state, window::cursor_type::normal);
 	} else if(insignificant_movement) {
 		// we assume that user wanted to click
 		state.drag_selecting = false;
@@ -519,7 +523,7 @@ void on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers m
 
 sys::virtual_key replace_keycodes_map_movement(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	//Emulating autohotkey
-	if(!state.ui_state.edit_target && state.user_settings.wasd_for_map_movement) {
+	if(!state.ui_state.edit_target_internal && state.user_settings.wasd_for_map_movement) {
 		if(keycode == sys::virtual_key::W)
 			return sys::virtual_key::UP;
 		else if(keycode == sys::virtual_key::A)
@@ -742,10 +746,10 @@ void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_mo
 
 
 void on_key_down(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
-	keycode = replace_keycodes(state, keycode, mod);
-	if(state.ui_state.edit_target) {
-		state.ui_state.edit_target->impl_on_key_down(state, keycode, mod);
+	if(state.ui_state.edit_target_internal && keycode != sys::virtual_key::ESCAPE) {
+		state.ui_state.edit_target_internal->impl_on_key_down(state, keycode, mod);
 	} else {
+		keycode = replace_keycodes(state, keycode, mod);
 		state.current_scene.handle_hotkeys(state, keycode, mod);
 	}
 }
@@ -805,7 +809,7 @@ void render_ui_selection_screen(sys::state& state) {
 void render_ui_ingame(sys::state& state) {
 	state.iui_state.frame_start(state);
 	if(state.ui_state.tl_chat_list) {
-		state.ui_state.root->move_child_to_front(state.ui_state.tl_chat_list);
+		state.ui_state.root->move_child_to_back(state.ui_state.tl_chat_list);
 	}
 	if(state.map_state.get_zoom() > map::zoom_close) {
 		glEnable(GL_BLEND);
@@ -1017,13 +1021,13 @@ void clean_up_selected_armies_and_navies(sys::state& state) {
 		}
 	} else {
 		for(auto i = state.selected_armies.size(); i-- > 0; ) {
-			if(!state.world.army_is_valid(state.selected_armies[i]) || state.world.army_get_controller_from_army_control(state.selected_armies[i]) != state.local_player_nation) {
+			if(!state.world.army_is_valid(state.selected_armies[i]) || military::get_effective_unit_commander(state, state.selected_armies[i]) != state.local_player_nation) {
 				state.selected_armies[i] = state.selected_armies.back();
 				state.selected_armies.pop_back();
 			}
 		}
 		for(auto i = state.selected_navies.size(); i-- > 0; ) {
-			if(!state.world.navy_is_valid(state.selected_navies[i]) || state.world.navy_get_controller_from_navy_control(state.selected_navies[i]) != state.local_player_nation) {
+			if(!state.world.navy_is_valid(state.selected_navies[i]) || military::get_effective_unit_commander(state, state.selected_navies[i]) != state.local_player_nation) {
 				state.selected_navies[i] = state.selected_navies.back();
 				state.selected_navies.pop_back();
 			}

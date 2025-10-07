@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iterator>
 #include "container_types.hpp"
+#include "rebels.hpp"
 
 namespace parsers {
 void default_map_file::max_provinces(association_type, int32_t value, error_handler& err, int32_t line,
@@ -349,6 +350,22 @@ void province_history_file::rgo_distribution_add(province_rgo_ext_2 const& value
 void province_history_file::factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context) {
 	return;
 }
+void province_history_file::revolt(province_revolt const& rev, error_handler& err, int32_t line, province_file_context& context) {
+	auto rebel_type = rev.rebel;
+	auto prov_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
+	if(prov_owner) {
+		if(rebel_type) {
+			context.outer_context.map_of_province_rebel_control.insert_or_assign(context.id, rev.rebel);
+		}
+		else {
+			err.accumulated_errors += "Revolt specified on a province uses an invalid rebel type (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		
+	} else {
+		err.accumulated_warnings += "Revolt specified on a province without owner (" + err.file_name + " line " + std::to_string(line) + ")\n";
+	}
+		
+}
 
 void province_history_file::owner(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
@@ -519,6 +536,18 @@ void province_factory_limit::entry(province_factory_limit_desc const& value, err
 		auto p = context.id;
 		context.outer_context.state.world.province_set_factory_max_size(p, value.trade_good_id, value.max_level_value * 10'000.f);
 		context.outer_context.state.world.province_set_factory_limit_was_set_during_scenario_creation(p, true);
+	}
+}
+
+void province_revolt::type(parsers::association_type ,std::string_view text, error_handler& err, int32_t line, province_file_context& context) {
+	auto it = context.outer_context.map_of_rebeltypes.find(std::string(text));
+	if(it != context.outer_context.map_of_rebeltypes.end()) {
+		rebel = it->second.id;
+	}
+	else {
+		rebel = dcon::rebel_type_id{ };
+		err.accumulated_errors +=
+			"Invalid rebel type " + std::string(text) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 

@@ -3,6 +3,19 @@
 namespace ui {
 
 
+
+
+void explain_truce_blocking_single_nation(sys::state& state, text::layout_base& contents, dcon::nation_id asked_to_join, dcon::nation_id against) {
+	if(military::has_truce_with(state, asked_to_join, against)) {
+		auto truce_end_date = military::truce_end_date(state, asked_to_join, against);
+		auto against_nation_name = text::get_name(state, against);
+		auto asked_to_join_nation_name = text::get_name(state, asked_to_join);
+		text::add_line_with_condition(state, contents, "alice_declarewar_truce_with_explain", false, text::variable_type::target, against_nation_name, text::variable_type::nation, asked_to_join_nation_name, text::variable_type::date, text::date_to_string(state, truce_end_date));
+	}
+}
+
+
+
 class wargoal_cancel_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -19,6 +32,18 @@ public:
 	}
 };
 
+
+struct get_target {
+	dcon::nation_id n;
+};
+struct get_offer_to {
+	dcon::nation_id n;
+};
+struct set_target {
+	dcon::nation_id n;
+};
+
+template<bool Crisis>
 class wargoal_type_item_button : public tinted_button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
@@ -39,18 +64,32 @@ public:
 		set_button_text(state, text::produce_simple_string(state, fat_id.get_name()));
 
 		auto other_cbs = state.world.nation_get_available_cbs(state.local_player_nation);
-		auto can_declare_with_wg = [&]() {
-			if((state.world.cb_type_get_type_bits(content) & military::cb_flag::always) != 0) {
-				return true;
-			}
-			for(auto& fabbed : other_cbs) {
-				if(fabbed.cb_type == content && fabbed.target == target)
+		bool can_use = false;
+		if constexpr(Crisis) {
+			auto crisis_target = retrieve<get_target>(state, parent).n;
+			auto is_crisis = [&]() {
+				auto crisis_target_role = nations::committed_in_crisis_state(state, crisis_target);
+				auto player_role = nations::committed_in_crisis_state(state, state.local_player_nation);
+				return (crisis_target_role != nations::crisis_role::not_involved && player_role != nations::crisis_role::not_involved && crisis_target_role != player_role);
+			};
+			can_use = military::cb_conditions_satisfied(state, state.local_player_nation, crisis_target, content) && is_crisis();
+		}
+		else {
+			auto can_declare_with_wg = [&]() {
+				if((state.world.cb_type_get_type_bits(content) & military::cb_flag::always) != 0) {
 					return true;
-			}
-			return false;
-			}();
-		auto w = military::find_war_between(state, state.local_player_nation, target);
-		bool can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && (can_declare_with_wg || w);
+				}
+				for(auto& fabbed : other_cbs) {
+					if(fabbed.cb_type == content && fabbed.target == target)
+						return true;
+				}
+				return false;
+				}();
+			auto w = military::find_war_between(state, state.local_player_nation, target);
+			can_use = military::cb_conditions_satisfied(state, state.local_player_nation, target, content) && (can_declare_with_wg || w);
+		}
+
+		
 
 		disabled = !can_use;
 		if(disabled) {
@@ -122,7 +161,7 @@ public:
 		}
 	}
 };
-
+template<bool Crisis>
 class wargoal_type_item : public listbox_row_element_base<dcon::cb_type_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -133,7 +172,7 @@ public:
 		} else if(name == "select_goal_invalid") {
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "select_goal") {
-			auto ptr = make_element_by_type<wargoal_type_item_button>(state, id);
+			auto ptr = make_element_by_type<wargoal_type_item_button<Crisis>>(state, id);
 			//ptr->base_data.position.x += 16; // Nudge
 			return ptr;
 		} else {
@@ -142,7 +181,7 @@ public:
 	}
 };
 
-class wargoal_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
+class wargoal_type_listbox : public listbox_element_base<wargoal_type_item<false>, dcon::cb_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal_item";
@@ -178,7 +217,7 @@ public:
 							break;
 						}
 					}
-					if(!cb_fabbed) {
+					if(!cb_fabbed && state.defines.alice_can_add_constructable_cbs_as_wargoals != 0.f) {
 						if((state.world.cb_type_get_type_bits(cb_type) & military::cb_flag::is_not_constructing_cb) != 0)
 							continue; // can only add a constructable cb this way
 
@@ -196,6 +235,7 @@ public:
 							}
 						}
 					} else {
+						// CB has been pre-fabricated
 						row_contents.push_back(cb_type);
 						continue;
 					}
@@ -963,7 +1003,10 @@ public:
 		for(auto dr : state.world.nation_get_diplomatic_relation(state.local_player_nation)) {
 			if(dr.get_are_allied()) {
 				auto other = dr.get_related_nations(0) == state.local_player_nation ? dr.get_related_nations(1) : dr.get_related_nations(0);
-				if(other.get_is_player_controlled()) {
+				if(military::has_truce_with(state, other, target)) {
+					explain_truce_blocking_single_nation(state, contents, other, target);
+				}
+				else if(other.get_is_player_controlled()) {
 					text::add_line(state, contents, "att_call_is_human", text::variable_type::x, other.id);
 				} else {
 					if(target == other || military::are_in_common_war(state, target, other) || military::are_at_war(state, target, other) || nations::are_allied(state, target, other)) {
@@ -1291,15 +1334,6 @@ public:
 	}
 };
 
-struct get_target {
-	dcon::nation_id n;
-};
-struct get_offer_to {
-	dcon::nation_id n;
-};
-struct set_target {
-	dcon::nation_id n;
-};
 
 class wargoal_offer_description1 : public simple_multiline_body_text {
 public:
@@ -1446,8 +1480,8 @@ public:
 		}
 	}
 };
-
-class wargoal_offer_type_listbox : public listbox_element_base<wargoal_type_item, dcon::cb_type_id> {
+template<bool Crisis>
+class wargoal_offer_type_listbox : public listbox_element_base<wargoal_type_item<Crisis>, dcon::cb_type_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "wargoal_item";
@@ -1455,37 +1489,37 @@ protected:
 
 public:
 	void on_update(sys::state& state) noexcept override {
-		row_contents.clear();
+		this->row_contents.clear();
 
-		auto selected_cb = retrieve<dcon::cb_type_id>(state, parent);
+		auto selected_cb = retrieve<dcon::cb_type_id>(state, this->parent);
 		if(selected_cb) {
-			row_contents.push_back(selected_cb);
-			update(state);
+			this->row_contents.push_back(selected_cb);
+			this->update(state);
 			return;
 		}
 
-		dcon::nation_id actor = retrieve<get_offer_to>(state, parent).n;
-		dcon::nation_id content = retrieve<get_target>(state, parent).n;
+		dcon::nation_id actor = retrieve<get_offer_to>(state, this->parent).n;
+		dcon::nation_id content = retrieve<get_target>(state, this->parent).n;
 
 		for(auto cb_type : state.world.in_cb_type) {
 			
 			if(military::cb_conditions_satisfied(state, actor, content, cb_type)) {
 				if((cb_type.get_type_bits() & military::cb_flag::always) != 0)
-					row_contents.push_back(cb_type);
+					this->row_contents.push_back(cb_type);
 				else if((cb_type.get_type_bits() & military::cb_flag::is_not_constructing_cb) == 0)
-					row_contents.push_back(cb_type);
+					this->row_contents.push_back(cb_type);
 			}
 		}
 
-		update(state);
+		this->update(state);
 	}
 };
-
+template<bool Crisis>
 class wargoal_offer_setup_window : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "country_list") {
-			return make_element_by_type<wargoal_offer_type_listbox>(state, id);
+			return make_element_by_type<wargoal_offer_type_listbox<Crisis>>(state, id);
 		} else if(name == "cancel_select") {
 			return make_element_by_type<wargoal_cancel_button>(state, id);
 		} else {
@@ -1610,7 +1644,7 @@ public:
 
 class offer_war_goal_dialog : public window_element_base {
 private:
-	wargoal_offer_setup_window* wargoal_setup_win = nullptr;
+	wargoal_offer_setup_window<true>* wargoal_setup_win = nullptr;
 	wargoal_offer_country_select_window* wargoal_country_win = nullptr;
 	wargoal_target_country_select_window* wargoal_target_win = nullptr;
 
@@ -1743,7 +1777,7 @@ public:
 			return make_element_by_type<invisible_element>(state, id);
 		} else if(name == "wargoal_country_select") {
 			{
-				auto ptr = make_element_by_type<wargoal_offer_setup_window>(state, id);
+				auto ptr = make_element_by_type<wargoal_offer_setup_window<true>>(state, id);
 				wargoal_setup_win = ptr.get();
 				ptr->set_visible(state, false);
 				add_child_to_front(std::move(ptr));

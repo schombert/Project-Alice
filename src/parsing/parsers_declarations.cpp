@@ -3,6 +3,7 @@
 #include "rebels.hpp"
 #include "fonts.hpp"
 #include "demographics.hpp"
+#include "military_templates.hpp"
 
 namespace parsers {
 
@@ -38,6 +39,94 @@ void names_list::free_value(std::string_view text, error_handler& err, int32_t l
 		context.outer_context.state.world.culture_get_last_names(context.id).push_back(new_id);
 	}
 }
+
+
+void scripted_gamerule::name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	auto gamerule_iterator = context.map_of_gamerules.find(std::string(text));
+	if(gamerule_iterator == context.map_of_gamerules.end()) {
+		err.accumulated_errors += "Could not find previously declared gamerule " + std::string(text) + " in map (" + err.file_name + ")" + "line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
+		return;
+	}
+	else {
+		gamerule_id = gamerule_iterator->second;
+
+	}
+}
+
+void scripted_gamerule::finish(scenario_building_context& context) {
+	context.state.world.gamerule_set_default_setting(gamerule_id, default_opt);
+	context.state.world.gamerule_set_current_setting(gamerule_id, default_opt);
+	context.state.world.gamerule_set_options(gamerule_id, options);
+}
+
+
+void scripted_gamerule::option(gamerule_option option, error_handler& err, int32_t line, scenario_building_context& context) {
+	if(option.default_option) {
+		if(has_default) {
+			err.accumulated_warnings += "Gamerule option with name " + std::string(option.defined_name) + " was defined as default, but another option in the same gamerule was defined as default earlier (" + err.file_name + ") line " + std::to_string(line) + "\n";
+		}
+		default_opt = option.default_option;
+		has_default = true;
+	}
+	auto opt_name_key = text::find_or_add_key(context.state, option.defined_name, false);
+	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select, option.on_deselect };
+}
+
+
+
+
+
+void gamerule_option::name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	defined_name = text;
+	auto gamerule_opt_it = context.map_of_gamerule_options.find(std::string(text));
+	if(gamerule_opt_it == context.map_of_gamerule_options.end()) {
+		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in map (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
+		return;
+	}
+	else {
+		option_id = gamerule_opt_it->second.option_id;
+		gamerule_id = gamerule_opt_it->second.gamerule;
+	}
+}
+
+void gamerule_option::finish(scenario_building_context& context) {
+
+}
+
+void gamerule_file::finish(scenario_building_context& context) {
+
+}
+
+
+void scan_scripted_gamerule::option(scan_gamerule_option opt, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+	if(opt.defined_name.empty()) {
+		err.accumulated_errors += "Gamerule option defined without name " + err.file_name + " on line " + std::to_string(line) + "\n";
+		return;
+	}
+	if(settings_count >= sys::max_gamerule_settings) {
+		err.accumulated_errors += "Too many options for gamerule in file " + err.file_name + " on line " + std::to_string(line) + "\n";
+		return;
+	}
+	if(context.outer_context.map_of_gamerule_options.contains(std::string(opt.defined_name))) {
+		err.accumulated_errors += "Gamerule option with name " + std::string(opt.defined_name) + " has already been defined earlier (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		return;
+
+	}
+	auto pending_opt = scanned_gamerule_option{ context.id, settings_count };
+	context.outer_context.map_of_gamerule_options.insert_or_assign(std::string(opt.defined_name), pending_opt);
+	settings_count += 1;
+}
+
+void scan_scripted_gamerule::finish(scripted_gamerule_context& context) {
+	auto name_key = text::find_or_add_key(context.outer_context.state, defined_name, false);
+	auto desc_key = text::find_or_add_key(context.outer_context.state, std::string(defined_name) + "_desc", false);
+	context.outer_context.state.world.gamerule_set_name(context.id, name_key);
+	context.outer_context.state.world.gamerule_set_tooltip_explain(context.id, desc_key);
+	context.outer_context.state.world.gamerule_set_settings_count(context.id, settings_count);
+	context.outer_context.map_of_gamerules.insert_or_assign(std::string(defined_name), context.id);
+}
+
+
 
 void culture::color(color_from_3i v, error_handler& err, int32_t line, culture_context& context) {
 	context.outer_context.state.world.culture_set_color(context.id, v.value);
@@ -432,7 +521,8 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	}
 	for(auto pops_by_location : context.outer_context.state.world.province_get_pop_location(context.id)) {
 		auto pop_id = pops_by_location.get_pop();
-		if(pop_id.get_culture() == def.cul_id && pop_id.get_poptype() == ptype && pop_id.get_religion() == def.rel_id) {
+		if(pop_id.get_culture() == def.cul_id && pop_id.get_poptype() == ptype && pop_id.get_religion() == def.rel_id &&
+			context.outer_context.map_of_pop_rebel_affiliation.contains(pop_id) && context.outer_context.map_of_pop_rebel_affiliation.find(pop_id)->second == def.reb_id) {
 			pop_id.get_size() += float(def.size);
 			return; // done with this pop
 		}
@@ -449,23 +539,14 @@ void pop_province_list::any_group(std::string_view type, pop_history_definition 
 	// new_pop.set_rebel_group(def.reb_id);
 
 	auto pop_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
+	context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
 	if(def.reb_id) {
 		if(pop_owner) {
-			auto existing_faction = rebel::get_faction_by_type(context.outer_context.state, pop_owner, def.reb_id);
-			if(existing_faction) {
-				context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, existing_faction);
-			} else {
-				auto new_faction = fatten(context.outer_context.state.world, context.outer_context.state.world.create_rebel_faction());
-				new_faction.set_type(def.reb_id);
-				context.outer_context.state.world.try_create_rebellion_within(new_faction, pop_owner);
-				context.outer_context.state.world.try_create_pop_rebellion_membership(new_pop, new_faction);
-			}
+			context.outer_context.map_of_pop_rebel_affiliation.insert_or_assign(new_pop, def.reb_id);
 		} else {
 			err.accumulated_warnings += "Rebel specified on a province without owner (" + err.file_name + " line " + std::to_string(line) + ")\n";
 		}
 	}
-
-	context.outer_context.state.world.force_create_pop_location(new_pop, context.id);
 }
 
 void poptype_file::sprite(association_type, int32_t value, error_handler& err, int32_t line, poptype_context& context) {
@@ -2395,18 +2476,48 @@ void oob_regiment::type(association_type, std::string_view value, error_handler&
 void oob_regiment::home(association_type, int32_t value, error_handler& err, int32_t line, oob_file_regiment_context& context) {
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors +=
-				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
+		auto army = fatten(context.outer_context.state.world, context.outer_context.state.world.regiment_get_army_from_army_membership(context.id));
+		auto controller = context.outer_context.state.world.army_get_controller_from_army_control(army);
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
-		for(auto pl : context.outer_context.state.world.province_get_pop_location(province_id)) {
-			auto p = pl.get_pop();
-			if(p.get_poptype() == context.outer_context.state.culture_definitions.soldiers) {
-				context.outer_context.state.world.force_create_regiment_source(context.id, p);
-				return;
+		// if not a rebel brigade
+		if(bool(controller)) {
+			auto pop = military::find_available_soldier_parsing(context.outer_context.state, province_id, [](sys::state& state, dcon::pop_id pop) {
+				return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+			});
+			// dont spawn the brigade if home province is not owned by the army controller
+			if(context.outer_context.state.world.province_get_nation_from_province_ownership(province_id) != controller) {
+				err.accumulated_warnings += "Regiment home province is owned by someone else other than the army controller (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			else if(bool(pop)) {
+				context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+			}
+			// try to find a pop in a diffrent province if none are available in home, and log warning that this is the case
+			else {
+				err.accumulated_warnings +=
+					"Not enough soldiers in province to form a regiment, picking a pop from a diffrent province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				
+				for(auto prov : context.outer_context.state.world.nation_get_province_ownership(controller)) {
+					pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
+						return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+					});
+					if(pop) {
+						context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+						return;
+					}
+				}
+				err.accumulated_errors +=
+					"No fitting soldier pop in any owned province to form a regiment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+
+				
 			}
 		}
-		err.accumulated_warnings +=
-				"No soldiers in province regiment comes from (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		// if it is a rebel brigade. Process later after the pops rebel factions have been processed
+		else {
+			context.outer_context.map_of_rebel_regiment_homes.insert_or_assign(context.id, rebel_regiment_parse_data{ province_id, line,err.file_name });
+		}
+
 	}
 }
 
@@ -3278,6 +3389,7 @@ void war_history_file::finish(war_history_context& context) {
 		new_war.set_primary_defender(context.defenders[0]);
 		new_war.set_is_great(context.great_war);
 		new_war.set_original_target(context.defenders[0]);
+		new_war.set_original_attacker(context.attackers[0]);
 		// new_war.set_name(text::find_or_add_key(context.outer_context.state, context.name));
 
 		new_war.set_name(context.outer_context.state.lookup_key(std::string_view{ "agression_war_name" }));// misspelling is intentional; DO NOT CORRECT

@@ -424,10 +424,10 @@ inline outline_color to_color(sys::state& state, unit_var display_unit) {
 	dcon::nation_id controller;
 	bool selected = false;
 	if(std::holds_alternative<dcon::army_id>(display_unit)) {
-		controller = state.world.army_get_controller_from_army_control(std::get<dcon::army_id>(display_unit));
+		controller = military::get_effective_unit_commander(state, std::get<dcon::army_id>(display_unit));
 		selected = state.is_selected(std::get<dcon::army_id>(display_unit));
 	} else if(std::holds_alternative<dcon::navy_id>(display_unit)) {
-		controller = state.world.navy_get_controller_from_navy_control(std::get<dcon::navy_id>(display_unit));
+		controller = military::get_effective_unit_commander(state, std::get<dcon::navy_id>(display_unit));
 		selected = state.is_selected(std::get<dcon::navy_id>(display_unit));
 	} else {
 		return outline_color::gray;
@@ -707,8 +707,6 @@ public:
 
 		auto mx = int32_t(state.mouse_x_position / state.user_settings.ui_scale);
 		auto my = int32_t(state.mouse_y_position / state.user_settings.ui_scale);
-		if(state.ui_state.mouse_sensitive_target)
-			state.ui_state.mouse_sensitive_target->set_visible(state, false);
 
 		if(location.y + source_size.y + 3 + base_data.size.y < state.ui_state.root->base_data.size.y) { // position below
 			auto desired_x = location.x + source_size.x / 2 - base_data.size.x / 2;
@@ -716,11 +714,7 @@ public:
 			base_data.position.x = int16_t(actual_x);
 			base_data.position.y = int16_t(location.y + source_size.y + 3);
 
-			state.ui_state.target_ul_bounds.x = int16_t(std::min(mx - 4, actual_x));
-			state.ui_state.target_ul_bounds.y = int16_t(std::min(my - 4, location.y + source_size.y + 3));
-			state.ui_state.target_lr_bounds.x = int16_t(std::max(mx + 4, actual_x + base_data.size.x));
-			state.ui_state.target_lr_bounds.y = int16_t(std::max(my + 4, location.y + source_size.y + 3 + base_data.size.y));
-
+			state.ui_state.set_mouse_sensitive_target(state, this);
 		} else if(location.x + source_size.x + 3 + base_data.size.x < state.ui_state.root->base_data.size.x) { // position right
 			auto desired_y = location.y + source_size.y / 2 - base_data.size.y / 2;
 
@@ -728,10 +722,7 @@ public:
 			base_data.position.x = int16_t(location.x + source_size.x + 3);
 			base_data.position.y = int16_t(actual_y);
 
-			state.ui_state.target_ul_bounds.x = int16_t(std::min(mx - 4, location.x + source_size.x + 3));
-			state.ui_state.target_ul_bounds.y = int16_t(std::min(my - 4, actual_y));
-			state.ui_state.target_lr_bounds.x = int16_t(std::max(mx + 4, location.x + source_size.x + 3 + base_data.size.x));
-			state.ui_state.target_lr_bounds.y = int16_t(std::max(my + 4, actual_y + base_data.size.y));
+			state.ui_state.set_mouse_sensitive_target(state, this);
 		} else { //position left
 			auto desired_y = location.y + source_size.y / 2 - base_data.size.y / 2;
 
@@ -739,14 +730,8 @@ public:
 			base_data.position.x = int16_t(location.x - base_data.size.x - 3);
 			base_data.position.y = int16_t(actual_y);
 
-			state.ui_state.target_ul_bounds.x = int16_t(std::min(mx - 4, location.x - base_data.size.x - 3));
-			state.ui_state.target_ul_bounds.y = int16_t(std::min(my - 4, actual_y));
-			state.ui_state.target_lr_bounds.x = int16_t(std::max(mx + 4, location.x - base_data.size.x - 3));
-			state.ui_state.target_lr_bounds.y = int16_t(std::max(my + 4, actual_y + base_data.size.y));
+			state.ui_state.set_mouse_sensitive_target(state, this);
 		}
-
-		state.ui_state.mouse_sensitive_target = this;
-		set_visible(state, true);
 	}
 };
 

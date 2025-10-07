@@ -37,7 +37,10 @@ void national_identity_file::any_value(std::string_view tag, association_type, s
 	auto as_int = nations::tag_to_int(tag[0], tag[1], tag[2]);
 	auto new_ident = context.state.world.create_national_identity();
 	if(is_fixed_token_ci(tag.data(), tag.data() + tag.length(), "reb")) {
+		// create nation tag early, to be used in oob generation for rebel regiments
 		context.state.national_definitions.rebel_id = new_ident;
+		auto rebel_nation = context.state.world.create_nation();
+		context.state.world.try_create_identity_holder(rebel_nation, new_ident);
 	}
 
 	auto name_id = context.state.add_key_win1252(tag);

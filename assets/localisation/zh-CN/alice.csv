@@ -3,7 +3,7 @@ uh_support_for_blank;上议院支持 $text$
 up_to;达到
 scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备金率 $text$
+stockpile_of;储备量 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
 add_war_goal;添加 $text$ 战争目标针对 $nation$
@@ -92,7 +92,7 @@ add_crisis_interest;对当前危机感兴趣
 crisis_temperature_plain;危机热度
 militancy;斗争性
 consciousness;觉醒度
-rgo_size;原料产地规模
+rgo_size;RGO规模
 trigger_every_revolt;引发所有叛乱
 call_allies;召集盟友进入当前战争
 truce_with;与$text$签订和约，持续到 ?Y$y$?!。
@@ -648,7 +648,7 @@ diplomacy_wx_1;每月厌战性：
 influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
 influence_explain_3;我们无法影响与我国交战的国家
-influence_explain_4;我们每天与所有国家一起积累总计$x$的影响力。
+influence_explain_4;我们每天与所有国家一起积累 $x$ 影响力。
 influence_explain_5;基础影响力获得倍率（$x$）*影响力修正（$y$）*影响力科技修正（$val$）
 influence_explain_6;国家影响力修正：$x$
 influence_explain_7;修正来自科技：$x$
@@ -686,7 +686,7 @@ intervene_14;你的势力范围成员都没有站在对立面
 intervene_15;你的盟友没有站在对立方
 intervene_16;你的军队没有位于与你对立的国家所拥有的省份
 intervene_17;首要防守国对你有友好的评价
-military_score_explain_1;主力舰得分：$x$
+military_score_explain_1;主力舰分数：$x$
 military_score_explain_2;可招募部队：$x$
 military_score_explain_3;已招募部队：$x$
 military_score_explain_4;是否解除武装（惩罚因子：$x$）
@@ -753,7 +753,7 @@ ally_explain_5;你不能是附属国
 ally_explain_6;你目前不能是战时目标
 ally_explain_7;AI会接受
 ally_explain_8;目标不能是附属国
-call_ally_explain_1;你有此国盟约
+call_ally_explain_1;你有此国盟约，或是其宗主。
 call_ally_explain_2;你至少有 $x$ 外交点
 call_ally_explain_3;你处于战时
 call_ally_explain_4;现在有一场战争而这个国家可以被呼叫参与
@@ -1061,12 +1061,12 @@ alice_budget_scaled_15;战争援助：?R$value$
 alice_budget_scaled_16;外交投资：?G$value$
 alice_budget_scaled_17;黄金产出：?G$value$
 alice_budget_scaled_net;净收入：?Y$value$
-alice_budget_setting_percent;基于$perc$设置
-alice_spending_land_construction;陆军建设在$name$：?R$cost$?W
-alice_spending_naval_construction;海军建设在$name$：?R$cost$?W
-alice_spending_building_construction;建筑建设在$name$：?R$cost$?W
-alice_spending_factory_construction;工厂建设在$name$：?R$cost$?W
-alice_spending_unit;在此单位上的总花费共取决于$name$： ?R$cost$?W
+alice_budget_setting_percent;基于 $perc$ 设置
+alice_spending_land_construction;陆军建设在 $name$：?R$cost$?W
+alice_spending_naval_construction;海军建设在 $name$：?R$cost$?W
+alice_spending_building_construction;建筑建设在 $name$：?R$cost$?W
+alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
+alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
 alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
@@ -1082,7 +1082,7 @@ alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?
 explain_colonial_points;列强和次强会积累殖民点。
 alice_lobby_back;返回大厅
 alice_lobby_back_tt_1;你早就在他妈的大厅
-alice_lobby_back_tt_2;只有主机才能回大厅
+alice_lobby_back_tt_2;仅主机才能回大厅
 reopen_with_tab;你可用 ?YTAB?W 切回窗口
 alice_topbar_tab_1;开关标签
 alice_topbar_tab_2;开关人口标签
@@ -1091,9 +1091,9 @@ colonial_points_from_naval_bases;来自海军基地：
 colonial_points_from_ships;来自舰船：
 used_colonial_maintenance;维护现有殖民地：
 topbar_pause_speed;暂停游戏，再次点击取消暂停
-att_call_will_accept;$x$会参加你的战争
-att_call_will_decline;$x$不会参加你的战争
-att_call_is_human;$x$可能加入你的战争
+att_call_will_accept;$x$ 会参加你的战争
+att_call_will_decline;$x$ 不会参加你的战争
+att_call_is_human;$x$ 可能加入你的战争
 att_call_no_allies;你没有任何盟友！
 domestic_investment_label;国内投资：
 modifier_min_domestic_investment;最小国内投资率
@@ -1157,9 +1157,9 @@ alice_tt_wg_infamy_limit;?R此战争目标会超过恶名限制?W
 alice_wg_usage_trigger;满足以下触发条件时才能使用：
 province_id;省份ID
 nation_tag;国家tag
-alice_rgo_trade_prod_1;原料产地农业产出：$x$（$y$）
-alice_rgo_trade_prod_2;原料产地矿业产出：$x$（$y$）
-alice_rgo_trade_prod_3;原料产地铸造产出：$x$（$y$）
+alice_rgo_trade_prod_1;RGO农业产出：$x$（$y$）
+alice_rgo_trade_prod_2;RGO矿业产出：$x$（$y$）
+alice_rgo_trade_prod_3;RGO铸造产出：$x$（$y$）
 alice_artisan_trade_prod;工匠产出：$x$（$y$）
 alice_factory_trade_prod;工厂产出：$x$（$y$）
 alice_all_trade_prod;总生产量：$x$
@@ -1185,8 +1185,8 @@ alice_pnt_culture;?Y主体民族：?!$x$
 alice_pnt_religion;?Y国教：?! $x$
 alice_pnt_dominant_religion;?Y主要宗教：?! $x$
 alice_pnt_dominant_ideology;?Y主要意识形态：?! $x$
-ledger_ppp_gdp;购买力平价GDP
-ledger_ppp_gdp_per_capita;每百万人购买力平价GDP
+ledger_ppp_gdp;PPP
+ledger_ppp_gdp_per_capita;百万人平均PPP
 make_province_religion;省份人群变成 ?Y$text$?W
 make_pop_religion;变成 ?Y$text$?W
 make_pop_culture;变成 ?Y$text$?W
@@ -1241,7 +1241,7 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;生产
+produced_nation;仓储
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
@@ -1268,7 +1268,7 @@ rgo_desired_profit;最小
 rgo_employment;当前
 rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;原料产地细节
+rgo_details_header;RGO细节
 rgo_employment_header;雇佣
 rgo_profits_header;利润
 route_origin;路线起点
@@ -1318,7 +1318,7 @@ alice_factory_type_viewer_priority_bonus;投入（乘积）：
 alice_commodity_tab;产品
 alice_factory_type_tab;工厂类型
 alice_player_date_sync;玩家 $name$（$country$），最后指令：$date$
-alice_only_host_speed;只有主机可改速度
+alice_only_host_speed;仅主机可改速度
 alice_host_date;主机日期：$date$
 alice_budget_gold;金矿
 alice_budget_construction;建设
@@ -1340,8 +1340,8 @@ alice_budget_increase_button;值多10（shift+以精确控制）
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
-alice_budget_expand_tt;显示详情
-alice_budget_contract_tt;隐藏详情
+alice_budget_expand_tt;显示细节
+alice_budget_contract_tt;隐藏细节
 alice_budget_admin_eff1;行政
 alice_budget_admin_eff2;效率：
 alice_budget_chart_top;100%
@@ -1365,7 +1365,7 @@ factory_consumer_count;轻工厂：?Y$val$?!
 factory_heavy_count;重工厂：?Y$val$?!
 factory_military_count;军工厂：?Y$val$?!
 factory_processing_count;加工厂：?Y$val$?!
-factory_industrial_and_consumer_count;工厂总数：?Y$val$?!
+factory_total_size;工厂总规模：?Y$val$?!
 state_transfer_explain_7;须在附庸关系中
 alice_loan_size_mod;最大免息贷修正：?G+$x$
 capitalists_savings_ratio;资本家储蓄率：?G$x$?!
@@ -1402,7 +1402,7 @@ alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
-alice_pop_show_details;详情
+alice_pop_show_details;细节
 alice_demographics_window_header;人口统计
 alice_demographics_size_header;规模
 alice_demographics_job_header;职业
@@ -1477,9 +1477,9 @@ pop_migration_bureaucracy;流动官僚管理地方：$x$
 pop_migration_attraction_wage_ratio;工资差距：$x$
 pop_migration_attraction_bureaucracy;官僚基础吸引力：$x$
 ask_free_trade_agreement;贸易协定
-revoke_trade_rights;撤销贸易权利
+revoke_trade_rights;取消贸易权利
 msg_trade_rights_revoked;国家 ?Y$y$?W 撤回了 ?Y$x$?! 在其国内的自由贸易权利。
-trade_rights_desc;贸易权利或不平等条约给予对方在贸易上的优惠待遇，忽略我国的关税。一旦实施，在 ?Y$x$ 年内无法撤销。
+trade_rights_desc;贸易权利或不平等条约给予对方在贸易上的优惠待遇，忽略我国的关税。一旦实施，在 ?Y$x$ 年内无法取消。
 revoke_trade_rights_explain_1;自贸易权利实施以来已经过了足够的时间
 free_trade_desc;如果另一方同意，我们将签订贸易协定，在 ?Y$x$?W 年内取消我们两国之间的所有关税。
 free_trade_explain_1;我们的贸易商在 ?G$date$?! 之前无需支付他们的关税！
@@ -1488,13 +1488,13 @@ free_trade_explain_3;我们正在对其进行禁运
 free_trade_explain_4;他们正在对我们进行禁运
 issue_embargo;实施禁运
 lift_embargo;解除禁运
-embargo_desc;禁运阻止我们两国之间的所有贸易。战争期间会自动对敌人实施禁运。
-embargo_explain_1;?G我们对其进行禁运。?!
-embargo_explain_2;?R他们对我们进行禁运。?!
+embargo_desc;禁运阻止我们两国之间的所有市场（领域和对象）。战争期间会自动禁运敌人。
+embargo_explain_1;$x$ 及其势力和附庸 ?G禁运?! $y$ 及其势力和附庸。
+embargo_explain_2;$x$ 及其势力和附庸 ?R禁运?! $y$ 及其势力和附庸。
 embargo_explain_3;我们在他们的国家没有贸易权利
 embargo_explain_4;他们在我们的国家没有贸易权利
-embargo_explain_5;我们不在一个势力范围内
-embargo_explain_6;他们不在一个势力范围内
+embargo_explain_5;我们不在同势力范围内
+embargo_explain_6;他们不在同势力范围内
 msg_embargo_issued_title;禁运已发布
 msg_embargo_issued;国家 ?Y$y$?! 已经发布禁令，禁止与 ?Y$x$?! 进行贸易。
 msg_embargo_lifted_title;禁运已解除
@@ -1530,23 +1530,23 @@ alice_factory_construction_explain_3;购买的商品价值：?Y$x$?W
 alice_factory_construction_explain_4;总价预计：?Y$x$?W
 alice_factory_construction_explain_5;进展：?Y$x$?W
 ledger_inflation_adjusted_gdp;GDP（通胀调整）
-ledger_inflation_adjusted_gdp_per_capita;每百万人平均 GDP（通胀调整）
+ledger_inflation_adjusted_gdp_per_capita;百万人平均GDP（通胀调整）
 province_victory_points;胜利点，表示战时计算占领分，此省份相对于其他省份的价值。
 province_victory_points_base;?G+1 基本分?W
-province_victory_points_nb;?G+$X$ 海军基地等级积分?W
-province_victory_points_fcount;?G+$X$ 工厂积分?W
-province_victory_points_fortsize;?G+$X$ 要塞积分?W
-province_victory_points_mainlandcore;?Gx2 非海外积分?W
-province_victory_points_capital;?Gx3 首都积分?W
+province_victory_points_nb;?G+$X$ 海军基地等级分数?W
+province_victory_points_fcount;?G+$X$ 工厂分数?W
+province_victory_points_fortsize;?G+$X$ 要塞分数?W
+province_victory_points_mainlandcore;?Gx2 非海外分数?W
+province_victory_points_capital;?Gx3 首都分数?W
 per_nation;每个国家
 labour_price;工资
-labour_price_10k;一万人平均工资
+labour_price_10k;万人平均工资
 supply_demand_ratio;供需比
 alice_labor_no_education;非熟练
 alice_labor_basic_education;熟练
 alice_labor_high_education;专家
 alice_labor_guild;行会
-alice_labor_high_education_and_accepted;专家（已接受）
+alice_labor_high_education_and_accepted;同胞专家
 alice_invalid_value;值 无效
 alice_wages_tab;工资
 alice_trade_volume_tab;贸易量
@@ -1577,7 +1577,7 @@ local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业满足度：?Y$value$?W
 wage;工资：?Y$value$?W
-local_admin_efficiency;地方行政部是低于首都的?Y$value$?W。
+local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
 tax_collection_rate;征税率：?Y$value$?W
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
@@ -1640,7 +1640,7 @@ factory_firing_rate_secondary;我们预计工厂会尝试?R解雇?W ?Y$value$?W 
 factory_hired_unqualified;工厂雇佣了 ?Y$value$?W ?Y非熟练工人?W来处理简单的手工任务。一位?Y非熟练工人?W仅提供?Y技工?W产出的 ?R$x$?W。
 factory_hired_primary;工厂雇佣了 ?Y$value$?W ?Y技工?W。
 factory_hired_secondary;工厂雇佣了 ?Y$value$?W ?Y经理和职员?W。他们使工厂产出乘以 ?G$x$?W。
-factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，被?Y非熟练工人?W和?Y技工?W。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
+factory_throughput_explanation;吞吐量是衡量工厂原始效率的指标。它以?G产品单位?W来衡量的。吞吐量驱动了投入消耗和产品产出。吞吐量的唯一来源是?G雇佣单位?W，由?Y非熟练工人?W和?Y技工?W生产。先进技术可增加每个工人的?G产品单位?W产出。吞吐量当前修正：?G$val$?W。因此，当前 ?Y$y$?W 雇佣单位产出 ?Y$x$?W（?Y$y$?W 的 ?G$val$?W） 产品单位。根本上，吞吐量的增加使资本家在相同工资下更少雇佣工人。
 factory_throughput_base;在 Project Alice 中，工厂只能从当地市场获得商品。这意味着，在游戏早期，有些商品难以获得。为部分补偿它，有一个?G$val$?W 基础乘数到吞吐量。
 factory_throughput_modifiers;当前技术和其他修正提供的吞吐量乘数：?G$val$?W。
 factory_input_multiplier_explanation;投入乘数是最强的行业相关乘数，因为它不受回报递减。相反，你越多推积它，它就越强。当前乘数：?G$val$?W。
@@ -1681,10 +1681,10 @@ national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
 open_details;细节
-rgo;产地
-province_prices;价格（全球占比 %）
-gdp_per_sector;国内生产总值
-gdp_share;GDP占比（%）
+rgo;RGO
+province_prices;全球溢价 %
+gdp_per_sector;GDP
+gdp_share;GDP溢价 %
 province_labor;劳工
 province_artisan;工匠
 gdp_rgo;初级产业：
@@ -1705,10 +1705,73 @@ median_price;全球均价
 ratio_to_median;%
 change_price;变化
 method_profit_margin;潜在利润率
-ratio_to_median_price;与均价比
+ratio_to_median_price;溢价
 move_to_siege;围攻（热键：V）
 move_to_siege_desc;军队仅在完全占领当前省份时才去下一省份。
 strategic_redeployment;战略部署（热键：B）
 strategic_redeployment_desc;允许部队更快移动，但组织度归零。
 pursue_to_engage;追歼（热键：N）
 pursue_to_engage_desc;部队将追击并攻击目标省份的敌军。
+currently;（当前：?Y$x$?!）
+call_ally_explain_6;势力范围领袖不在敌方战争中，或势力范围战争限制已关闭。
+ask_access_explain_5;此国是你附庸。
+cancel_given_access_explain_2;你不是此国附庸。
+revoke_trade_rights_explain_2;我们有权取消协议
+free_trade_desc;如对方同意，我们将签署贸易协议，取消我们两国间所有关税，持续 ?Y$x$?W 年。
+free_trade_explain_5;目标不是附庸，或是我附庸。
+free_trade_explain_6;我们不在同势力范围内
+free_trade_explain_7;目标不在任何势力范围内。
+free_trade_explain_8;$x$ 及其 势力和附庸 ?G贸易于?! $y$ 及其势力和附庸。
+embargo_explain_7;目标不在我势力范围内
+war_explain_5;在此国无驻军
+war_explain_6;在目标宗主国无驻军
+war_explain_7;不与目标结盟
+war_explain_8;不与目标宗主结盟
+war_explain_9;目标不是我势力范围领袖，并且不与我势力范围领袖结盟，并且势力战争限制已开启。
+war_explain_10;目标不是我势力范围成员。
+alice_truce_with_explain;?Y$WAR$?W：休战于 ?Y$NATION$?W。持续到 $DATE$。
+alice_declarewar_truce_with_explain;?Y$NATION$?W：休战于 ?Y$TARGET$?W。持续到 $DATE$。
+alice_command_units_condition_1;?Y$NATION$?W 是我附庸
+alice_command_units_condition_2;你和目标处于战时。
+alice_command_units_condition_3;目标是非玩家
+alice_command_units_condition_4;玩单人游戏
+free_trade_di;自由贸易协议
+free_trade_offer;$actor$ 提供了一项自由贸易协议，允许我们在 $years$ 年内免税贸易。
+alice_original_war_participant_not_in_war;?Y$NATION$?W 不再参战
+alice_original_war_participant_desc;?Y$NATION$?W 是这场战争的最初 $ACTOR$。
+alice_original_war_participant_desc_2;只有最初攻击方或防御方的停火协议才能阻止参战。
+alice_original_war_participant_notinvolved;?Y$NATION$?W ?R不再参战?W
+pop_project;人群计划
+state_project;地区建筑
+delete_factory;摧毁工厂
+trade_route_volume_profit_score;利润评分：?Y$val$?W（取决于基础率变化）总计：
+trade_route_volume_profit_score_export;出口评分：?Y$val$?W。出口利润 ?Y$x$?W 除以 我方出口价格 ?Y$y$?W
+trade_route_volume_profit_score_import;进口评分：?Y$val$?W。减去（进口利润 ?Y$x$?W 除以 对方出口价格 ?Y$y$?W）
+trade_route_volume_base_change;基础变化预计：?Y$val$?W（利润评分 乘以 扩张乘数）
+trade_route_volume_decay;衰减：?Y$val$?W（防止贸易量偏离合理范围，逐渐减少低利润路线的贸易量。）
+export;出口额
+import;进口额
+total_volume;贸易总额
+embargo;禁运
+alice_toggle_administration;建立行政首府
+trade_route_volume_expansion_multiplier;扩张乘数：?Y$val$?W（取决于在出口市场获得商品的实际情况）
+trade_route_volume_final_change;变化预计：?Y$val$
+alice_production_name_sort_tip_province;?Y左击?W 以省份名称排序
+alice_production_name_sort_tip_state;?YShift+左击?W 以地区名称排序
+status_quo;维持现状
+alice_gamerules_btn_text;游戏规则
+alice_gamerules_change_chat_msg;主机将游戏规则 "$x$" 改到 "$y$"！
+alice_gamerules_nothost;仅主机可改游戏规则。
+alice_gamerule_allow_sphereling_declare_war_on_spherelord;势力圈 允许成员向领袖宣战
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;设置势力圈成员可对其领袖及盟友或其他成员宣战，也影响加入针对其领袖所在阵营的战争。
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no;否
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes;是
+gamerule_option_is;游戏规则 ?Y$x$?W 选项
+label_gdp_capita_top;千人平均GDP
+label_gdp_top;各省GDP排行
+label_production_top;商品生产排行
+label_consumption_top;商品消费排行
+consumption;消费
+import;进口
+export;出口
+gva;总增值

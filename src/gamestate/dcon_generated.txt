@@ -2972,6 +2972,11 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ original_attacker }
+		type{ nation_id }
+		tag{ save }
+	}
+	property{
 		name{ over_tag }
 		type{ national_identity_id }
 		tag{ save }
@@ -4397,6 +4402,10 @@ object {
 		
 	}
 	property {
+		name{ overlord_commanding_units }
+		type{ bitfield }
+	}
+	property {
 		name{ averge_land_unit_score }
 		type{ float }
 		
@@ -4714,6 +4723,25 @@ relationship{
 
 	property{
 		name{ is_land_route }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ is_trade_forbidden }
+		type{ bitfield }
+		tag{ save }
+	}
+
+
+	property{
+		name{ is_tariff_applied_0 }
+		type{ bitfield }
+		tag{ save }
+	}
+
+	property{
+		name{ is_tariff_applied_1 }
 		type{ bitfield }
 		tag{ save }
 	}
@@ -5756,6 +5784,49 @@ object {
 		tag{ scenario }
 	}
 }
+
+
+
+object {
+	name{ gamerule }
+	storage_type{ contiguous }
+	size{ 126 }
+	tag{ scenario }
+	tag{ save }
+
+	property{
+		name{ name }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ tooltip_explain }
+		type{ text_key }
+		tag{ scenario }
+	}
+	property{
+		name{ default_setting }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+	property{
+		name{ options }
+		type{ std::array<sys::gamerule_option,sys::max_gamerule_settings> }
+		tag{ scenario }
+	}
+	property{
+		name{ settings_count }
+		type{ uint8_t } 
+		tag{ scenario }
+	}
+	property{
+		name{ current_setting }
+		type{ uint8_t }
+		tag{ save }
+	}
+	
+}
+
 
 object {
 	name{ decision }

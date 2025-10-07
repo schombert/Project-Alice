@@ -529,6 +529,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 	auto old_con = state.world.province_get_nation_from_province_control(p);
 	if(old_con != n) {
 		state.world.province_set_last_control_change(p, state.current_date);
+		state.trade_route_cached_values_out_of_date = true;
 		auto rc = state.world.province_get_rebel_faction_from_province_rebel_control(p);
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(rc && owner) {
@@ -558,6 +559,7 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 	auto old_con = state.world.province_get_rebel_faction_from_province_rebel_control(p);
 	if(old_con != rf) {
 		state.world.province_set_last_control_change(p, state.current_date);
+		state.trade_route_cached_values_out_of_date = true;
 		auto owner = state.world.province_get_nation_from_province_ownership(p);
 		if(!old_con && owner) {
 			state.world.nation_set_rebel_controlled_count(owner, uint16_t(state.world.nation_get_rebel_controlled_count(owner) + uint16_t(1)));
@@ -579,6 +581,8 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel
 }
 
 void restore_cached_values(sys::state& state) {
+
+	state.trade_route_cached_values_out_of_date = true;
 	
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_province_count(ids, ve::int_vector()); });
 	state.world.execute_serial_over_nation([&](auto ids) { state.world.nation_set_central_blockaded(ids, ve::int_vector()); });
