@@ -44,6 +44,10 @@ namespace sys {
 
 enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
 enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
+struct text_mouse_test_result {
+	uint32_t position;
+	uint32_t quadrent;
+};
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -967,11 +971,10 @@ struct alignas(64) state {
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
-	void on_temporary_text(std::u16string_view s);
 	bool filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons);
 	void pass_edit_command(ui::edit_command command, sys::key_modifiers mod);
-	void set_cursor_visibility(bool visible);
 	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
+	text_mouse_test_result detailed_text_mouse_test(int32_t x, int32_t y);
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 
 	void single_game_tick();

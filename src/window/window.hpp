@@ -2,14 +2,40 @@
 
 #include <chrono>
 
-#ifdef _WIN64
+struct ITfThreadMgr;
 
+namespace window {
+struct text_services_object;
+
+struct win32_text_services {
+private:
+	ITfThreadMgr* manager_ptr = nullptr;
+	unsigned long client_id = 0;
+	bool send_notifications = true;
+public:
+	win32_text_services();
+	~win32_text_services();
+	void start_text_services();
+	void end_text_services();
+	text_services_object* create_text_service_object(sys::state&, ui::element_base& ei);
+	void on_text_change(text_services_object*, uint32_t old_start, uint32_t old_end, uint32_t new_end);
+	void on_selection_change(text_services_object*);
+	void set_focus(sys::state& win, text_services_object*);
+	void suspend_keystroke_handling();
+	void resume_keystroke_handling();
+	bool send_mouse_event_to_tso(text_services_object* ts, int32_t x, int32_t y, uint32_t buttons);
+	friend struct text_services_object;
+};
+}
+
+#ifdef _WIN64
 typedef struct HWND__* HWND;
 typedef struct HDC__* HDC;
 
 namespace window {
 class window_data_impl {
 public:
+	win32_text_services text_services;
 	HWND hwnd = nullptr;
 	HDC opengl_window_dc = nullptr;
 	HCURSOR cursors[9] = { HCURSOR(NULL) };
@@ -28,6 +54,7 @@ struct GLFWwindow;
 namespace window {
 class window_data_impl {
 public:
+	win32_text_services text_services;
 	GLFWwindow* window = nullptr;
 
 	int32_t creation_x_size = 600;
@@ -73,6 +100,7 @@ void change_cursor(sys::state& state, cursor_type type);
 void get_window_size(sys::state const& game_state, int& width, int& height);
 int32_t cursor_blink_ms();
 int32_t double_click_ms();
+void release_text_services_object(text_services_object* ptr);
 
 void emit_error_message(std::string const& content, bool fatal); // also terminates the program if fatal
 } // namespace window

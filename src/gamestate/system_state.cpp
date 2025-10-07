@@ -511,13 +511,17 @@ bool state::send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection) {
 	}
 	return false;
 }
-void state::set_cursor_visibility(bool visible) {
-	if(ui_state.edit_target_internal)
-		ui_state.edit_target_internal->set_cursor_visibility(*this, visible);
-}
-void state::on_temporary_text(std::u16string_view s) {
-	if(ui_state.edit_target_internal)
-		ui_state.edit_target_internal->set_temporary_text(*this, s);
+text_mouse_test_result state::detailed_text_mouse_test(int32_t x, int32_t y) {
+	if(ui_state.edit_target_internal) {
+		auto abs_pos = ui::get_absolute_location(*this, *ui_state.edit_target_internal);
+		auto posx = int32_t(x / user_settings.ui_scale);
+		auto posy = int32_t(y / user_settings.ui_scale);
+		if(posx < abs_pos.x || posy < abs_pos.y || posx > abs_pos.x + ui_state.edit_target_internal->base_data.size.x || posy > abs_pos.y + ui_state.edit_target_internal->base_data.size.y)
+			return text_mouse_test_result{ 0,0 };
+
+		return ui_state.edit_target_internal->detailed_text_mouse_test(*this, posx - abs_pos.x, posy - abs_pos.y);
+	}
+	return text_mouse_test_result{0,0};
 }
 
 inline constexpr int32_t tooltip_width = 400;

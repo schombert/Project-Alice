@@ -11,6 +11,7 @@ struct state;
 namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };
+enum class insertion_source { user, ui_automation, text_services, other };
 
 class element_base {
 public:
@@ -90,6 +91,18 @@ public:
 	}
 	virtual void set_cursor_visibility(sys::state& state, bool visible) noexcept { }
 	virtual void edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept { }
+	virtual sys::text_mouse_test_result detailed_text_mouse_test(sys::state& state, int32_t x, int32_t y) noexcept { return  sys::text_mouse_test_result{0,0}; }
+	virtual void set_temporary_selection(sys::state& state, int32_t start, int32_t end) noexcept { }
+	virtual void register_composition_result(sys::state& state) noexcept { }
+	virtual std::u16string_view text_content() noexcept{ return std::u16string_view{}; }
+	virtual std::pair<int32_t, int32_t> text_selection() noexcept { return std::pair<int32_t, int32_t>{ 0, 0 }; }
+	virtual void set_text_selection(sys::state& state, int32_t cursor, int32_t anchor) noexcept { }
+	virtual void insert_text(sys::state& state, int32_t position_start, int32_t position_end, std::u16string_view content, insertion_source source) noexcept { }
+	virtual bool position_is_ltr(int32_t position) noexcept { return true; }
+	virtual std::pair<int32_t, int32_t> temporary_text_range() noexcept { return std::pair<int32_t, int32_t>{ 0, 0 }; }
+	virtual ui::urect text_bounds(sys::state& state, int32_t position_start, int32_t position_end) noexcept {
+		return ui::urect{ {0,0},{0,0} };
+	};
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
@@ -115,7 +128,6 @@ private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
 
 public:
-	virtual void set_temporary_text(sys::state& state, std::u16string_view s) noexcept { }
 	// these commands are meaningful only if the element has children
 	virtual std::unique_ptr<element_base> remove_child(element_base* child) noexcept {
 		return std::unique_ptr<element_base>{};
@@ -141,7 +153,6 @@ public:
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
 	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
 	friend void sys::state::on_text(char32_t c);
-	friend void sys::state::on_temporary_text(std::u16string_view s);
 	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);

@@ -510,11 +510,13 @@ protected:
 
 	text::layout_details glyph_details;
 	std::chrono::time_point<std::chrono::steady_clock> activation_time;
-	void* ts_obj = nullptr;
+	window::text_services_object* ts_obj = nullptr;
 
 	int32_t cursor_position = 0;
 	int32_t anchor_position = 0;
 	int32_t mouse_entry_position = 0;
+	int32_t temp_selection_start = 0;
+	int32_t temp_selection_end = 0;
 	
 	bool multiline = false;
 	bool changes_made = false;
@@ -535,11 +537,6 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
-	std::u16string cached_temporary_text;
-	text::layout temporary_layout;
-
-	void set_temporary_text(sys::state& state, std::u16string_view new_text) noexcept override;
-
 	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
 		return message_result::consumed;
 	}
@@ -554,8 +551,20 @@ public:
 	void on_lose_focus(sys::state& state) noexcept override;
 	void set_cursor_visibility(sys::state& state, bool visible) noexcept override;
 	void edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept override;
+	sys::text_mouse_test_result detailed_text_mouse_test(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void set_temporary_selection(sys::state& state, int32_t start, int32_t end) noexcept override;
+	void register_composition_result(sys::state& state) noexcept override;
+	std::u16string_view text_content() noexcept override { return cached_text; }
+	std::pair<int32_t, int32_t> text_selection() noexcept override;
+	std::pair<int32_t, int32_t> temporary_text_range() noexcept override;
+	void set_text_selection(sys::state& state, int32_t cursor, int32_t anchor) noexcept override;
+	void insert_text(sys::state& state, int32_t position_start, int32_t position_end, std::u16string_view content, insertion_source source) noexcept override;
+	bool position_is_ltr(int32_t position) noexcept override;
+	ui::urect text_bounds(sys::state& state, int32_t position_start, int32_t position_end) noexcept override;
 	void on_hover(sys::state& state) noexcept override;
 	void on_hover_end(sys::state& state) noexcept override;
+
+	~edit_box_element_base();
 };
 
 class tool_tip : public element_base {
