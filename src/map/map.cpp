@@ -587,20 +587,26 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 
 		// US40AC1 Winter textures
-		if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+		if(texture_arrays[texture_array_terrainsheet_winter]) {
+			// Summer textures
+			if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
+				glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.);
+			}
+			// Animation from winter to summer
+			else if(state.current_date.to_ymd(state.start_date).month == 3) {
+				glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f - std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
+			}
+			// Animation from summer to winter
+			else if(state.current_date.to_ymd(state.start_date).month == 11) {
+				glUniform1f(shader_uniforms[program][uniform_winter_scale], std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
+			}
+			// Winter textures
+			else {
+				glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f);
+			}
+		} else {
+			// No winter textures provided
 			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.);
-		}
-		// Animation from winter to summer
-		else if(state.current_date.to_ymd(state.start_date).month == 3) {
-			glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f - std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
-		}
-		// Animation from summer to winter
-		else if(state.current_date.to_ymd(state.start_date).month == 11) {
-			glUniform1f(shader_uniforms[program][uniform_winter_scale], std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f));
-		}
-		// Summer textures
-		else {
-			glUniform1f(shader_uniforms[program][uniform_winter_scale], 1.f);
 		}
 	};
 
@@ -680,11 +686,18 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
+	// Summer world textures
 	if (state.map_state.map_data.texturesheet_is_dds) {
+		// Fix for DDS textures used in some mods instead of default TGA or new PNG formats
 		glBindTexture(GL_TEXTURE_2D, texture_arrays[texture_array_terrainsheet]);
 	} else {
 		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
 	}
+
+	glActiveTexture(GL_TEXTURE16);
+	// Winter world textures
+	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet_winter]);
+
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
@@ -3425,6 +3438,7 @@ void display_data::load_map(sys::state& state) {
 		glBindTexture(GL_TEXTURE_2D, 0);
 	}
 	ogl::set_gltex_parameters(textures[texture_diag_border_identifier], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
+	
 
 
 	textures[texture_terrain] = ogl::make_gl_texture(&terrain_id_map[0], size_x, size_y, 1);
@@ -3442,6 +3456,11 @@ void display_data::load_map(sys::state& state) {
 		}
 	}
 
+	// Winter textures support only PNG textures
+	auto texturesheet_winter = simple_fs::open_file(map_terrain_dir, NATIVE("texturesheet_winter.png"));
+	if(texturesheet_winter) {
+		texture_arrays[texture_array_terrainsheet_winter] = ogl::load_texture_array_from_file(*texturesheet_winter, 8, 8);
+	}
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));

@@ -338,7 +338,9 @@ public:
 	static constexpr uint32_t uniform_terrainsheet_texture_sampler_array = 43;
 	static constexpr uint32_t uniform_terrain_is_array = 44;
 	static constexpr uint32_t uniform_map_mode_is_data = 45;
-	static constexpr uint32_t uniform_count = 46;
+	static constexpr uint32_t uniform_winter_scale = 46;
+	static constexpr uint32_t uniform_terrainsheet_texture_sampler_winter = 47;
+	static constexpr uint32_t uniform_count = 48;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
