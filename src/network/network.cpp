@@ -681,6 +681,12 @@ void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bo
 	
 }
 
+// the way mp_player is used right now, we can safely assume the host is always the first ID
+dcon::mp_player_id get_host_player(sys::state& state) {
+	assert(state.network_mode != sys::network_mode_type::single_player);
+	return dcon::mp_player_id{ 0 };
+}
+
 bool any_player_on_invalid_nation(sys::state& state) {
 	assert(state.network_mode == sys::network_mode_type::host);
 	for(auto player : state.world.in_mp_player) {
@@ -1402,6 +1408,7 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 		case command::command_type::notify_player_joins:
 		case command::command_type::save_game:
 		case command::command_type::change_ai_nation_state:
+		case command::command_type::change_game_rule_setting:
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early

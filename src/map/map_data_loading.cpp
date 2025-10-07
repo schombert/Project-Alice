@@ -66,7 +66,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		uint32_t  bfOffBits;
 	} __attribute__((__packed__))
 	BITMAPFILEHEADER;
-	
+
 	typedef struct {
 		uint32_t  biSize;
   		int32_t   biWidth;
@@ -138,7 +138,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		uint32_t  	 bV5ProfileSize;
 		uint32_t  	 bV5Reserved;
 	} BITMAPV5HEADER;
-	
+
 	const int	BI_RGB	= 0;
 	const int	BI_RLE8	= 1;
 	const int	BI_RLE4	= 2;

@@ -683,7 +683,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 5000.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 2.00) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 5.00) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.01) \
 	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.99) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
@@ -759,7 +759,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_navy_sailing_hours_per_day, 20.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_slowdown, 0.75) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rebel_reduction_after_reoccupation, 7.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_can_add_constructable_cbs_as_wargoals, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord_default_setting, 1.0) \
+
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

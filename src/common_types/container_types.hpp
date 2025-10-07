@@ -122,6 +122,19 @@ static_assert(sizeof(event_option) ==
 	+ sizeof(event_option::ai_chance)
 	+ sizeof(event_option::effect));
 
+
+
+
+
+struct gamerule_option {
+	dcon::text_key name;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+};
+
+
+
 struct modifier_hash {
 	using is_avalanching = void;
 
@@ -140,6 +153,42 @@ struct province_hash {
 	}
 
 	auto operator()(dcon::province_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct pop_hash {
+	using is_avalanching = void;
+
+	pop_hash() {
+	}
+
+	auto operator()(dcon::pop_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct regiment_hash {
+	using is_avalanching = void;
+
+	regiment_hash() {
+	}
+
+	auto operator()(dcon::regiment_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct gamerule_hash {
+	using is_avalanching = void;
+
+	gamerule_hash() {
+	}
+
+	auto operator()(dcon::gamerule_id p) const noexcept -> uint64_t {
 		int32_t index = p.index();
 		return ankerl::unordered_dense::hash<int32_t>()(index);
 	}

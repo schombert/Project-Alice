@@ -14,14 +14,9 @@ protected:
 
 public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void edit_box_update(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_tab(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_enter(sys::state& state, std::string_view s) noexcept override;
-	void edit_box_esc(sys::state& state) noexcept override;
-	void edit_box_backtick(sys::state& state) noexcept override;
-	void edit_box_back_slash(sys::state& state) noexcept override;
-	void edit_box_up(sys::state& state) noexcept override;
-	void edit_box_down(sys::state& state) noexcept override;
+	void edit_box_update(sys::state& state, std::u16string_view s) noexcept override;
+	void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept override;
+	void on_text(sys::state& state, char32_t ch) noexcept override;
 	void add_to_history(sys::state& state, std::string s) noexcept {
 		// Add the command to the history, starting with the most recent command
 		command_history.insert(command_history.begin(), s);
@@ -129,10 +124,10 @@ public:
 
 	void on_visible(sys::state& state) noexcept override {
 		//console_output_list->scroll_to_bottom(state);
-		state.ui_state.edit_target = edit_box;
+		state.ui_state.set_focus_target(state, edit_box);
 	}
 	void on_hide(sys::state& state) noexcept override {
-		state.ui_state.edit_target = nullptr;
+		state.ui_state.set_focus_target(state, nullptr);
 	}
 };
 

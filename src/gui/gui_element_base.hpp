@@ -11,6 +11,7 @@ struct state;
 namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };
+enum class insertion_source { user, ui_automation, text_services, other };
 
 class element_base {
 public:
@@ -80,7 +81,28 @@ public:
 
 	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
 	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
-
+	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
+		return focus_result::ignored;
+	}
+	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
+	virtual void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept { };
+	virtual bool edit_consume_mouse_event(sys::state& state, int32_t x, int32_t y, uint32_t buttons) noexcept {
+		return false;
+	}
+	virtual void set_cursor_visibility(sys::state& state, bool visible) noexcept { }
+	virtual void edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept { }
+	virtual sys::text_mouse_test_result detailed_text_mouse_test(sys::state& state, int32_t x, int32_t y) noexcept { return  sys::text_mouse_test_result{0,0}; }
+	virtual void set_temporary_selection(sys::state& state, int32_t start, int32_t end) noexcept { }
+	virtual void register_composition_result(sys::state& state) noexcept { }
+	virtual std::u16string_view text_content() noexcept{ return std::u16string_view{}; }
+	virtual std::pair<int32_t, int32_t> text_selection() noexcept { return std::pair<int32_t, int32_t>{ 0, 0 }; }
+	virtual void set_text_selection(sys::state& state, int32_t cursor, int32_t anchor) noexcept { }
+	virtual void insert_text(sys::state& state, int32_t position_start, int32_t position_end, std::u16string_view content, insertion_source source) noexcept { }
+	virtual bool position_is_ltr(int32_t position) noexcept { return true; }
+	virtual std::pair<int32_t, int32_t> temporary_text_range() noexcept { return std::pair<int32_t, int32_t>{ 0, 0 }; }
+	virtual ui::urect text_bounds(sys::state& state, int32_t position_start, int32_t position_end) noexcept {
+		return ui::urect{ {0,0},{0,0} };
+	};
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
@@ -96,17 +118,11 @@ protected:
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
-	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y,
-			sys::key_modifiers mods) noexcept; // as drag events are generated
+	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
-
-	virtual focus_result on_get_focus(sys::state& state) noexcept { // used to both react to getting the focus and to accept or reject it
-		return focus_result::ignored;
-	}
-	virtual void on_lose_focus(sys::state& state) noexcept { }	// called when the focus is taken away
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
@@ -174,20 +190,14 @@ inline T send_and_retrieve(sys::state& state, element_base* parent, T value) {
 	}
 }
 
-void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1,
-		int32_t this_slot = -1, int32_t from_slot = -1);
-void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
-void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier,
-		int32_t primary, int32_t this_slot, int32_t from_slot);
+void trigger_description(sys::state& state, text::layout_base& layout, dcon::trigger_key k, int32_t primary_slot = -1, int32_t this_slot = -1, int32_t from_slot = -1);
+void multiplicative_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
+void additive_value_modifier_description(sys::state& state, text::layout_base& layout, dcon::value_modifier_key modifier, int32_t primary, int32_t this_slot, int32_t from_slot);
 
 void modifier_description(sys::state& state, text::layout_base& layout, dcon::modifier_id mid, int32_t indentation = 0, float scale = 1.f);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
-		dcon::national_modifier_value nmid, bool header);
-void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation,
-		dcon::provincial_modifier_value nmid, bool have_header);
-void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot,
-		int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation, dcon::national_modifier_value nmid, bool header);
+void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::province_id p, int32_t identation, dcon::provincial_modifier_value nmid, bool have_header);
+void effect_description(sys::state& state, text::layout_base& layout, dcon::effect_key k, int32_t primary_slot, int32_t this_slot, int32_t from_slot, uint32_t r_lo, uint32_t r_hi);
 void invention_description(sys::state& state, text::layout_base& contents, dcon::invention_id inv_id, int32_t indent) noexcept;
 void technology_description(sys::state& state, text::layout_base& contents, dcon::technology_id tech_id) noexcept;
 

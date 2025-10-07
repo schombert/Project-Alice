@@ -300,6 +300,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
 	ptr_in = deserialize(ptr_in, state.key_data);
 	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
+	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
 	{ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
@@ -483,6 +484,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.value_modifiers);
 	ptr_in = serialize(ptr_in, state.key_data);
 	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
+	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 
 	{ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
@@ -660,6 +662,7 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.value_modifiers);
 	sz += serialize_size(state.key_data);
 	sz += serialize_size(state.untrans_key_to_text_sequence);
+	sz += sizeof(state.hardcoded_gamerules);
 
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);

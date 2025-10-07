@@ -125,6 +125,13 @@ void load_special_icons(sys::state& state) {
 		state.open_gl.cross_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
 				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
+	auto cross_desat_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not_desaturated.dds"));
+	if(cross_desat_dds) {
+		auto content = simple_fs::view_contents(*cross_desat_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.cross_desaturated_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(reinterpret_cast<uint8_t const*>(content.data),
+				content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
 	auto cb_cross_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_not_cb.dds"));
 	if(cb_cross_dds) {
 		auto content = simple_fs::view_contents(*cb_cross_dds);
@@ -137,6 +144,13 @@ void load_special_icons(sys::state& state) {
 		auto content = simple_fs::view_contents(*checkmark_dds);
 		uint32_t size_x, size_y;
 		state.open_gl.checkmark_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
+				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
+	}
+	auto checkmark_desat_dds = simple_fs::open_file(assets_dir, NATIVE("trigger_yes_desaturated.dds"));
+	if(checkmark_desat_dds) {
+		auto content = simple_fs::view_contents(*checkmark_desat_dds);
+		uint32_t size_x, size_y;
+		state.open_gl.checkmark_desaturated_icon_tex = GLuint(ogl::SOIL_direct_load_DDS_from_memory(
 				reinterpret_cast<uint8_t const*>(content.data), content.file_size, size_x, size_y, ogl::SOIL_FLAG_TEXTURE_REPEATS));
 	}
 
@@ -220,7 +234,7 @@ void deinitialize_framebuffer_for_province_indices(sys::state& state) {
 		glDeleteRenderbuffers(1, &state.open_gl.province_map_depthbuffer);
 	if(state.open_gl.province_map_framebuffer)
 		glDeleteFramebuffers(1, &state.open_gl.province_map_framebuffer);
-	//state.console_log(ogl::opengl_get_error_name(glGetError()));	
+	//state.console_log(ogl::opengl_get_error_name(glGetError()));
 }
 
 void initialize_msaa(sys::state& state, int32_t size_x, int32_t size_y) {
@@ -1001,7 +1015,7 @@ void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 	glActiveTexture(GL_TEXTURE0);
-	
+
 	switch(ico) {
 	case text::embedded_icon::army:
 		scale = 1.3f;
@@ -1020,6 +1034,18 @@ void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float
 		GLuint false_icon = (state.user_settings.color_blind_mode == sys::color_blind_mode::deutan || state.user_settings.color_blind_mode == sys::color_blind_mode::protan)
 			? state.open_gl.color_blind_cross_icon_tex
 			: state.open_gl.cross_icon_tex;
+		glBindTexture(GL_TEXTURE_2D, false_icon);
+		icon_baseline += font_size * 0.1f;
+		break;
+	} case text::embedded_icon::xmark_desaturated:
+	{
+		GLuint false_icon = state.open_gl.cross_desaturated_icon_tex;
+		glBindTexture(GL_TEXTURE_2D, false_icon);
+		icon_baseline += font_size * 0.1f;
+		break;
+	} case text::embedded_icon::check_desaturated:
+	{
+		GLuint false_icon = state.open_gl.checkmark_desaturated_icon_tex;
 		glBindTexture(GL_TEXTURE_2D, false_icon);
 		icon_baseline += font_size * 0.1f;
 		break;
@@ -1625,6 +1651,14 @@ void animation::render(sys::state& state) {
 			break;
 		}
 	}
+}
+
+scissor_box::scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t w, int32_t h) : x(x), y(y), w(w), h(h) {
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(int32_t(x * state.user_settings.ui_scale), int32_t((state.ui_state.root->base_data.size.y - h - y) * state.user_settings.ui_scale), int32_t(w * state.user_settings.ui_scale), int32_t(h * state.user_settings.ui_scale));
+}
+scissor_box::~scissor_box() {
+	glDisable(GL_SCISSOR_TEST);
 }
 
 } // namespace ogl

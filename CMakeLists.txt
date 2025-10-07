@@ -97,6 +97,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/zstd/zstd.cpp"
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
+	"src/gamerule/gamerule.cpp"
 )
 
 if(WIN32)
@@ -212,6 +213,7 @@ target_link_libraries(AliceCommon INTERFACE glm)
 if (WIN32)
 	target_link_libraries(AliceCommon INTERFACE ws2_32)
 	target_link_libraries(AliceCommon INTERFACE wsock32)
+	target_link_libraries(AliceCommon INTERFACE Imm32)
 else()
 	target_link_libraries(AliceCommon INTERFACE dependency_tbb)
 	target_link_libraries(AliceCommon INTERFACE glfw)
@@ -239,6 +241,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/map
 	${PROJECT_SOURCE_DIR}/src/network
 	${PROJECT_SOURCE_DIR}/src/nations
+	${PROJECT_SOURCE_DIR}/src/gamerule
 	${PROJECT_SOURCE_DIR}/src/provinces
 	${PROJECT_SOURCE_DIR}/src/economy
 	${PROJECT_SOURCE_DIR}/src/culture

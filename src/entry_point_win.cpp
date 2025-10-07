@@ -333,10 +333,14 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			}
 		} else {
 			std::thread update_thread([&]() { game_state.game_loop(); });
+			std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
+
 			// entire game runs during this line
 			window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
-			game_state.quit_signaled.store(true, std::memory_order_release);			
+			game_state.quit_signaled.store(true, std::memory_order_release);
+
 			update_thread.join();
+			ui_cache_update.join();
 		}
 
 		network::finish(game_state, true);

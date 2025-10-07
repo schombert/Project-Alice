@@ -254,6 +254,9 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
 
+float estimate_intermediate_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+float estimate_production(sys::state& state, dcon::commodity_id c, dcon::province_id p);
+
 float estimate_artisan_gdp_intermediate_consumption(sys::state& state, dcon::province_id p, dcon::commodity_id output);
 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
@@ -286,6 +289,7 @@ struct breakdown {
 	float secondary_factory;
 	float secondary_artisan;
 	float total;
+	float total_non_negative;
 };
 
 float value_nation(sys::state& state, dcon::nation_id n);

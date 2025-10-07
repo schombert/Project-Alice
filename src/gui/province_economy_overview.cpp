@@ -2489,9 +2489,11 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 
 	// prepare data
 	graph_content.clear();
-	graph_content.resize(15);
 
-	for(int32_t k = 0; k < 14; k++) {
+	int32_t N = 15;
+	graph_content.resize(N);
+
+	for(int32_t k = 0; k < N - 1; k++) {
 		graph_content[k].key = raw_content[k].key;
 		graph_content[k].amount = raw_content[k].value;
 
@@ -2502,14 +2504,13 @@ void province_economy_overview_body_import_value_graph_t::on_update(sys::state& 
 		total_left -= raw_content[k].value;
 	}
 
-	graph_content[14].color.r = 0.f;
-	graph_content[14].color.g = 0.f;
-	graph_content[14].color.b = 0.f;
-	graph_content[14].key = { };
-	graph_content[14].amount = total_left;
+	graph_content[N - 1].color.r = 0.f;
+	graph_content[N - 1].color.g = 0.f;
+	graph_content[N - 1].color.b = 0.f;
+	graph_content[N - 1].key = { };
+	graph_content[N - 1].amount = total_left;
 
 	update_chart(state);
-
 // END
 }
 void province_economy_overview_body_import_value_graph_t::on_create(sys::state& state) noexcept {
@@ -3265,15 +3266,15 @@ void province_economy_overview_body_gdp_chart_t::on_update(sys::state& state) no
 
 	auto local_gdp = economy::gdp::breakdown_province(state, pid);
 
-	graph_content[0].amount = std::max(0.f, local_gdp.primary);
+	graph_content[0].amount = std::max(0.f, std::max(0.f, local_gdp.primary));
 	graph_content[0].color = { 1.f, 0.f, 0.f };
 	graph_content[0].key = 0;
 
-	graph_content[1].amount = std::max(0.f, local_gdp.secondary_factory);
+	graph_content[1].amount = std::max(0.f, std::max(0.f, local_gdp.secondary_factory));
 	graph_content[1].color = { 0.f, 1.f, 0.f };
 	graph_content[1].key = 1;
 
-	graph_content[2].amount = std::max(0.f, local_gdp.secondary_artisan);
+	graph_content[2].amount = std::max(0.f, std::max(0.f, local_gdp.secondary_artisan));
 	graph_content[2].color = { 0.f, 0.f, 1.f };
 	graph_content[2].key = 2;
 
@@ -3353,7 +3354,7 @@ void province_economy_overview_body_gdp_share_chart_t::on_update(sys::state& sta
 	auto pid = state.map_state.selected_province;
 
 	auto total_gdp = economy::gdp::value_nation(state, state.world.province_get_nation_from_province_ownership(pid));
-	auto local_gdp = economy::gdp::breakdown_province(state, pid).total;
+	auto local_gdp = economy::gdp::breakdown_province(state, pid).total_non_negative;
 
 	graph_content[0].amount = std::max(0.f, local_gdp);
 	graph_content[0].color = { 1.f, 1.f, 1.f };

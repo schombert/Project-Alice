@@ -1,7 +1,7 @@
 #pragma once
 
 #include "dcon_generated.hpp"
-#include "adaptive_ve.hpp"
+// #include "adaptive_ve.hpp"
 
 namespace sys {
 struct state;
@@ -346,7 +346,14 @@ float market_pool(
 	sys::state& state,
 	dcon::commodity_id c
 );
-
+std::vector<float> trade_value_flow_all_to_nation(
+	sys::state& state,
+	dcon::nation_id
+);
+std::vector<float> trade_value_flow_nation_to_all(
+	sys::state& state,
+	dcon::nation_id
+);
 float trade_value_flow(
 	sys::state& state,
 	dcon::market_id origin,

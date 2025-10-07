@@ -79,6 +79,8 @@ hold_election;Hold election
 issue_change;$issue$ changes to $text$
 add_relative_income;Times last income added to treasury
 make_neutral;All alliances ended and all vassals released
+pop_project;Pop project
+state_project;State construction
 pop_size;Pop size
 move_pop_to;Move pop to $text$
 change_pop_type;Change pop type to $text$
@@ -1140,6 +1142,7 @@ alice_no_start_game_invalid_nations;Cannot start the game while players are on n
 ai_will_accept_po;They will accept this offer
 ai_will_not_accept_po;They will NOT accept this offer
 close_and_del;Close & Delete Factory
+delete_factory;Delete Factory
 cb_conditions_header;Conditions to use:
 as_a_vassal;as a vassal
 change_state_name_to;change state name to $text$
@@ -1525,10 +1528,12 @@ transportaion_loss;Goods lost in transportation: ?Y$val$
 payment_per_unit;Buyer paid per unit: ?Y$val$
 payment_received_per_unit;Seller got per unit: ?Y$val$
 merchants_received_per_unit;Seller merchants profit per unit: ?Y$val$
-trade_route_volume_profit_score;Profit score: ?Y$val$?W (Profit ?Y$x$?W divided by import price ?Y$y$?W)
-trade_route_volume_base_change;Base expected change: ?Y$val$?W (Current volume ?Y$x$?W times profit score)
+trade_route_volume_profit_score;Profit score: ?Y$val$?W (decides base rate of change). It is calculated as a sum of the following values:
+trade_route_volume_profit_score_export;Export score: ?Y$val$?W. Export profit ?Y$x$?W divided by our export price ?Y$y$?W
+trade_route_volume_profit_score_import;Import score: ?Y$val$?W. Minus import profit ?Y$x$?W divided by their export price ?Y$y$?W
+trade_route_volume_base_change;Base expected change: ?Y$val$?W (Profit score times expansion multiplier)
 trade_route_volume_expansion_multiplier;Expansion multiplier: ?Y$val$?W (Depends on actual access to commodity in exporting market)
-trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away)
+trade_route_volume_decay;Decay: ?Y$val$?W (Prevents trade volume from running too far away and slowly decreases volume of low profit routes)
 trade_route_volume_final_change;Expected change: ?Y$val$
 trade_centre_trade_volume;Trade volume: ?Y$val$
 trade_centre_trade_value;Trade value: ?Y$val$
@@ -1757,3 +1762,19 @@ alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
 alice_original_war_participant_desc;?Y$NATION$?W is the original $ACTOR$ of this war
 alice_original_war_participant_desc_2;Only the truces of the original attacker or defender can block joining a war
 alice_original_war_participant_notinvolved;?Y$NATION$?W ?Ris no longer involved in the war?W
+alice_gamerules_btn_text;Game Rules
+alice_gamerules_change_chat_msg;Host has changed gamerule "$x$" to "$y$"!
+alice_gamerules_nothost;Only the host may change gamerules!
+alice_gamerule_allow_sphereling_declare_war_on_spherelord;Allow spherelings to declare war on spherelord
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_desc;Specifies whether spherelings are allowed to declare on their spherelord,or any nation allied to, or in the same sphere as the spherelord. Also affects joining wars against the side the spherelord is on
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no;No
+alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes;Yes
+gamerule_option_is;Gamerule ?Y$x$?W option
+label_gdp_capita_top;Top per 1k people
+label_gdp_top;Top GDP
+label_production_top;Top producers
+label_consumption_top;Top consumers
+consumption;Consumption
+import;Import
+export;Export
+gva;GVA

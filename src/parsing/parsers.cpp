@@ -394,6 +394,7 @@ std::string_view remove_surrounding_whitespace(std::string_view txt) {
 } // namespace parsers
 
 #include "defines.cpp"
+#include "gamerule_parsing.cpp"
 #include "gui_graphics_parsers.cpp"
 #include "nations_parsing.cpp"
 #include "cultures_parsing.cpp"
@@ -403,3 +404,4 @@ std::string_view remove_surrounding_whitespace(std::string_view txt) {
 #include "trigger_parsing.cpp"
 #include "effect_parsing.cpp"
 #include "parsers_declarations.cpp"
+

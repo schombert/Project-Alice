@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <chrono>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
@@ -448,14 +449,15 @@ struct state {
 	bool lazy_load_in_game = false;
 	element_base* scroll_target = nullptr;
 	element_base* drag_target = nullptr;
-	element_base* edit_target = nullptr;
+	element_base* edit_target_internal = nullptr;
 	element_base* last_tooltip = nullptr;
 	element_base* mouse_sensitive_target = nullptr;
 	xy_pair target_ul_bounds = xy_pair{ 0, 0 };
 	xy_pair target_lr_bounds = xy_pair{ 0, 0 };
 	int32_t last_tooltip_sub_index = -1;
-	
 	uint32_t cursor_size = 16;
+	int32_t target_distance = 0;
+	edit_selection_mode selecting_edit_text = edit_selection_mode::none;
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;
@@ -535,6 +537,7 @@ struct state {
 	element_base* request_topbar_listbox = nullptr;
 	element_base* build_province_unit_window = nullptr;
 	element_base* disband_unit_window = nullptr;
+	element_base* gamerules_window = nullptr;
 
 	context_menu_window* context_menu = nullptr;
 
@@ -557,9 +560,12 @@ struct state {
 	bool ctrl_held_down = false;
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
+	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
 
 	float last_tick_investment_pool_change;
 
+	void set_mouse_sensitive_target(sys::state& state, element_base* target);
+	void set_focus_target(sys::state& state, element_base* target);
 	state();
 	~state();
 };

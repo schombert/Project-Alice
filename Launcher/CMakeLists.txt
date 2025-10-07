@@ -15,6 +15,7 @@ endforeach()
 
 if (WIN32)
 	add_executable(launch_alice WIN32
+		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_win.cpp"
 		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
 		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
@@ -26,6 +27,7 @@ if (WIN32)
 		${LAUNCHER_ASSET_FILES})
 else()
 	add_executable(launch_alice
+		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_nix.cpp"
 		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
 		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
