@@ -326,6 +326,25 @@ static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) 
 }
 
 template<typename F>
+static int socket_recv_command(socket_t socket_fd, void* data, size_t* m, F&& func) {
+	// get command header
+	int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), m, []() { });
+	offset += sizeof(command::cmd_header);
+	auto cmd_mapping = command::command_type_handlers.find(command::command_type(reinterpret_cast<uint8_t*>(data)[0]));
+	// if its a valid command, read the rest
+	if(cmd_mapping != command::command_type_handlers.end()) {
+		r = socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, m, func );
+	}
+}
+
+
+
+
+
+
+
+
+template<typename F>
 static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&& func) {
 	while(*m < len) {
 		int r = internal_socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + *m, len - *m);

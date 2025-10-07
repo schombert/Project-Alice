@@ -879,7 +879,7 @@ void execute_cancel_naval_unit_construction(sys::state& state, dcon::nation_id s
 void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
 
 
-	command_data p{ command_type::begin_naval_unit_construction, source };
+	command_data p{ command_type::cancel_land_unit_construction, source };
 	auto data = land_unit_construction_data{ location, soldier_culture, type };
 	p << data;
 	add_to_command_queue(state, p);
@@ -2410,12 +2410,12 @@ void execute_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::give_military_access;
-	p.source = asker;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::give_military_access, asker };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
 	if(asker == target)
@@ -2446,11 +2446,11 @@ void execute_give_military_access(sys::state& state, dcon::nation_id asker, dcon
 }
 
 void ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::ask_for_alliance;
-	p.source = asker;
-	p.data.diplo_action.target = target;
+
+
+	command_data p{ command_type::ask_for_alliance, asker };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
@@ -2502,12 +2502,12 @@ void execute_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::na
 }
 
 void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_interested_in_alliance;
-	p.source = asker;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::toggle_interested_in_alliance, asker };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	if(asker == target)
@@ -2524,11 +2524,10 @@ void execute_toggle_interested_in_alliance(sys::state& state, dcon::nation_id as
 }
 
 void ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::ask_for_free_trade_agreement;
-	p.source = asker;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::ask_for_free_trade_agreement, asker };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
@@ -2595,11 +2594,10 @@ void execute_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id ask
 }
 
 void switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::switch_embargo_status;
-	p.source = asker;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::switch_embargo_status, asker };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
@@ -2676,11 +2674,11 @@ void execute_switch_embargo_status(sys::state& state, dcon::nation_id from, dcon
 }
 
 void revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::revoke_trade_rights;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+
+	command_data p{ command_type::revoke_trade_rights, source };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
@@ -2729,12 +2727,10 @@ void execute_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon
 }
 
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::state_transfer;
-	p.source = asker;
-	p.data.state_transfer.target = target;
-	p.data.state_transfer.state = sid;
+
+	command_data p{ command_type::state_transfer, asker };
+	auto data = state_transfer_data{ target, sid };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
@@ -2821,14 +2817,12 @@ bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id
 
 
 void command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::command_units;
-	p.source = asker;
-	p.data.command_units.target = target;
+
+	command_data p{ command_type::command_units, asker };
+	auto data = command_units_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
-
 
 
 void execute_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
@@ -2858,11 +2852,10 @@ bool can_give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_
 
 
 void give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::give_back_units;
-	p.source = asker;
-	p.data.command_units.target = target;
+
+	command_data p{ command_type::give_back_units, asker };
+	auto data = command_units_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -2872,13 +2865,10 @@ void execute_give_back_units(sys::state& state, dcon::nation_id asker, dcon::nat
 
 
 void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool automatic_call) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::call_to_arms;
-	p.source = asker;
-	p.data.call_to_arms.target = target;
-	p.data.call_to_arms.war = w;
-	p.data.call_to_arms.automatic_call = automatic_call;
+
+	command_data p{ command_type::call_to_arms, asker };
+	auto data = call_to_arms_data{ target, w, automatic_call };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost, bool automatic_call) {
@@ -2953,14 +2943,12 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 
 void respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from, diplomatic_message::type type,
 		bool accept) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::respond_to_diplomatic_message;
-	p.source = source;
-	p.data.message.accept = accept;
-	p.data.message.from = from;
-	p.data.message.type = type;
+
+	command_data p{ command_type::respond_to_diplomatic_message, source };
+	auto data = message_data{ from, type, accept };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id source, dcon::nation_id from,
 		diplomatic_message::type type, bool accept) {
@@ -2980,11 +2968,10 @@ void execute_respond_to_diplomatic_message(sys::state& state, dcon::nation_id so
 }
 
 void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_military_access;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::cancel_military_access, source };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
@@ -3020,11 +3007,10 @@ void execute_cancel_military_access(sys::state& state, dcon::nation_id source, d
 }
 
 void cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_given_military_access;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::cancel_given_military_access, source };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
@@ -3071,11 +3057,10 @@ void execute_cancel_given_military_access(sys::state& state, dcon::nation_id sou
 }
 
 void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::cancel_alliance;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::cancel_alliance, source };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
@@ -3109,17 +3094,9 @@ void execute_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::na
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
 
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::declare_war;
-	p.source = source;
-	p.data.new_war.target = target;
-	p.data.new_war.primary_cb = primary_cb;
-	p.data.new_war.cb_state = cb_state;
-	p.data.new_war.cb_tag = cb_tag;
-	p.data.new_war.cb_secondary_nation = cb_secondary_nation;
-	p.data.new_war.call_attacker_allies = call_attacker_allies;
-	p.data.new_war.run_conference = run_conference;
+	command_data p{ command_type::declare_war, source };
+	auto data = new_war_data{ target, cb_state, cb_tag, cb_secondary_nation, primary_cb, call_attacker_allies, run_conference  };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -3264,17 +3241,14 @@ void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation
 
 void add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::add_war_goal;
-	p.source = source;
-	p.data.new_war_goal.target = target;
-	p.data.new_war_goal.cb_type = cb_type;
-	p.data.new_war_goal.cb_state = cb_state;
-	p.data.new_war_goal.cb_tag = cb_tag;
-	p.data.new_war_goal.cb_secondary_nation = cb_secondary_nation;
-	p.data.new_war_goal.war = w;
+
+
+
+	command_data p{ command_type::add_war_goal, source };
+	auto data = new_war_goal_data{ target, cb_state, cb_tag,cb_secondary_nation, w, cb_type  };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w, dcon::nation_id target, dcon::cb_type_id cb_type,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
@@ -3363,13 +3337,10 @@ void execute_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_i
 }
 
 void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::start_peace_offer;
-	p.source = source;
-	p.data.new_offer.target = target;
-	p.data.new_offer.war = war;
-	p.data.new_offer.is_concession = is_concession;
+
+	command_data p{ command_type::start_peace_offer, source };
+	auto data = new_offer_data{ target, war, is_concession  };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
@@ -3422,11 +3393,12 @@ void execute_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::start_crisis_peace_offer;
-	p.source = source;
-	p.data.new_offer.is_concession = is_concession;
+
+
+	command_data p{ command_type::start_crisis_peace_offer, source };
+	auto data = new_offer_data{};
+	data.is_concession = is_concession;
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
@@ -3446,12 +3418,12 @@ void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source,
 }
 
 void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::add_peace_offer_term;
-	p.source = source;
-	p.data.offer_wargoal.wg = goal;
+
+	command_data p{ command_type::add_peace_offer_term, source };
+	auto data = offer_wargoal_data{ goal };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -3519,16 +3491,18 @@ void execute_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon:
 void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::add_wargoal_to_crisis_offer;
-	p.source = source;
-	p.data.crisis_invitation.invited = wargoal_from;
-	p.data.crisis_invitation.target = target;
-	p.data.crisis_invitation.cb_type = primary_cb;
-	p.data.crisis_invitation.cb_state = cb_state;
-	p.data.crisis_invitation.cb_tag = cb_tag;
-	p.data.crisis_invitation.cb_secondary_nation = cb_secondary_nation;
+
+
+	command_data p{ command_type::add_wargoal_to_crisis_offer, source };
+	auto data = crisis_invitation_data{ };
+	data.invited = wargoal_from;
+	data.target = target;
+	data.cb_type = primary_cb;
+	data.cb_state = cb_state;
+	data.cb_tag = cb_tag;
+	data.cb_secondary_nation = cb_secondary_nation;
+
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
@@ -3587,11 +3561,9 @@ void execute_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source
 }
 
 void send_peace_offer(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::send_peace_offer;
-	p.source = source;
+	command_data p{ command_type::send_peace_offer, source };
 	add_to_command_queue(state, p);
+
 }
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -3662,11 +3634,10 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 }
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::send_crisis_peace_offer;
-	p.source = source;
+
+	command_data p{ command_type::send_crisis_peace_offer, source };
 	add_to_command_queue(state, p);
+
 }
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
@@ -3705,12 +3676,12 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 }
 
 void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::stop_army_movement;
-	p.source = source;
-	p.data.stop_army_movement.army = army;
+
+	command_data p{ command_type::stop_army_movement, source };
+	auto data = stop_army_movement_data{ army };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 
 bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
@@ -3729,11 +3700,10 @@ void execute_stop_army_movement(sys::state& state, dcon::nation_id source, dcon:
 
 
 void stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::stop_navy_movement;
-	p.source = source;
-	p.data.stop_navy_movement.navy = navy;
+
+	command_data p{ command_type::stop_navy_movement, source };
+	auto data = stop_navy_movement_data{ navy };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -3751,16 +3721,12 @@ void execute_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon:
 }
 
 void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order order) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::move_army;
-	p.source = source;
-	p.data.army_movement.a = a;
-	p.data.army_movement.dest = dest;
-	p.data.army_movement.reset = reset;
-	p.data.army_movement.special_order = order;
 
+	command_data p{ command_type::move_army, source };
+	auto data = army_movement_data{ a, dest, reset, order };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 
 
@@ -3795,7 +3761,7 @@ void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 		command::stop_army_movement(state, source, a);
 	}
 	else {
-		move_army(state, source, a, dest, true, order);
+		command::move_army(state, source, a, dest, true, order);
 	}
 }
 
@@ -4062,13 +4028,12 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 }
 
 void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::move_navy;
-	p.source = source;
-	p.data.navy_movement.n = n;
-	p.data.navy_movement.dest = dest;
-	p.data.navy_movement.reset = reset;
+
+
+
+	command_data p{ command_type::move_navy, source };
+	auto data = navy_movement_data{ n, dest, reset };
+	p << data;
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
@@ -4144,11 +4109,10 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 }
 
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::embark_army;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+	command_data p{ command_type::embark_army, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -4202,12 +4166,10 @@ void execute_embark_army(sys::state& state, dcon::nation_id source, dcon::army_i
 }
 
 void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::merge_armies;
-	p.source = source;
-	p.data.merge_army.a = a;
-	p.data.merge_army.b = b;
+
+	command_data p{ command_type::merge_armies, source };
+	auto data = merge_army_data{ a, b };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
@@ -4267,12 +4229,10 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 }
 
 void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::merge_navies;
-	p.source = source;
-	p.data.merge_navy.a = a;
-	p.data.merge_navy.b = b;
+
+	command_data p{ command_type::merge_navies, source };
+	auto data = merge_navy_data{ a, b };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
@@ -4314,11 +4274,10 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 
 
 void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::disband_undermanned;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+	command_data p{ command_type::disband_undermanned, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4337,11 +4296,10 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 }
 
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_hunt_rebels;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+	command_data p{ command_type::toggle_hunt_rebels, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4369,11 +4327,10 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 }
 
 void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_unit_ai_control;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+	command_data p{ command_type::toggle_unit_ai_control, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4404,10 +4361,8 @@ void execute_toggle_unit_ai_control(sys::state& state, dcon::nation_id source, d
 }
 
 void toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_mobilized_is_ai_controlled;
-	p.source = source;
+
+	command_data p{ command_type::toggle_mobilized_is_ai_controlled, source };
 	add_to_command_queue(state, p);
 }
 void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_id source) {
@@ -4415,20 +4370,20 @@ void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_i
 }
 
 void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::change_unit_type;
-	p.source = source;
-	p.data.change_unit_type.new_type = new_type;
 
+
+	command_data p{ command_type::change_unit_type, source };
+	auto data = change_unit_type_data{};
+	data.new_type = new_type;
 	for(unsigned i = 0; i < num_packed_units; i++) {
 		if(regiments[i]) {
-			p.data.change_unit_type.regs[i] = regiments[i];
+			data.regs[i] = regiments[i];
 		}
 		if(ships[i]) {
-			p.data.change_unit_type.ships[i] = ships[i];
+			data.ships[i] = ships[i];
 		}
 	}
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
@@ -4517,12 +4472,12 @@ void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::r
 }
 
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_select_province;
-	p.source = source;
-	p.data.generic_location.prov = prov;
+
+	command_data p{ command_type::toggle_select_province, source };
+	auto data = generic_location_data{ prov };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 	if(state.world.province_get_nation_from_province_control(prov) != source)
@@ -4536,11 +4491,10 @@ void execute_toggle_select_province(sys::state& state, dcon::nation_id source, d
 }
 
 void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_immigrator_province;
-	p.source = source;
-	p.data.generic_location.prov = prov;
+
+	command_data p{ command_type::toggle_immigrator_province, source };
+	auto data = generic_location_data{ prov };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
@@ -4555,12 +4509,12 @@ void execute_toggle_immigrator_province(sys::state& state, dcon::nation_id sourc
 }
 
 void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::release_subject;
-	p.source = source;
-	p.data.diplo_action.target = target;
+
+	command_data p{ command_type::release_subject, source };
+	auto data = diplo_action_data{ target };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	return state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == source;
@@ -4572,10 +4526,8 @@ void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::na
 }
 
 void notify_console_command(sys::state& state) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::console_command;
-	p.source = state.local_player_nation;
+
+	command_data p{ command_type::console_command, state.local_player_nation };
 	add_to_command_queue(state, p);
 }
 
@@ -4631,11 +4583,11 @@ void execute_console_command(sys::state& state) {
 }
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::even_split_army;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+
+	command_data p{ command_type::even_split_army, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4688,12 +4640,13 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::even_split_navy;
-	p.source = source;
-	p.data.navy_movement.n = a;
+
+
+	command_data p{ command_type::even_split_navy, source };
+	auto data = navy_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	return can_split_navy(state, source, a);
@@ -4744,11 +4697,10 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::split_army;
-	p.source = source;
-	p.data.army_movement.a = a;
+
+	command_data p{ command_type::split_army, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4793,12 +4745,12 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 }
 
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::split_navy;
-	p.source = source;
-	p.data.navy_movement.n = a;
+
+	command_data p{ command_type::split_navy, source };
+	auto data = navy_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	auto embarked = state.world.navy_get_army_transport(a);
@@ -4841,12 +4793,11 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 }
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::delete_army;
-	p.source = source;
-	p.data.army_movement.a = a;
+	command_data p{ command_type::delete_army, source };
+	auto data = army_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	return state.world.army_get_controller_from_army_control(a) == source
@@ -4869,12 +4820,12 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 }
 
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::delete_navy;
-	p.source = source;
-	p.data.navy_movement.n = a;
+
+	command_data p{ command_type::delete_navy, source };
+	auto data = navy_movement_data{ a };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 
 bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
@@ -4891,12 +4842,11 @@ void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_i
 }
 
 void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::change_general;
-	p.source = source;
-	p.data.new_general.a = a;
-	p.data.new_general.l = l;
+
+
+	command_data p{ command_type::change_general, source };
+	auto data = new_general_data{ a, l };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
@@ -4910,12 +4860,11 @@ void execute_change_general(sys::state& state, dcon::nation_id source, dcon::arm
 }
 
 void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::change_admiral;
-	p.source = source;
-	p.data.new_admiral.a = a;
-	p.data.new_admiral.l = l;
+
+
+	command_data p{ command_type::change_admiral, source };
+	auto data = new_admiral_data{ a, l };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
@@ -4931,11 +4880,10 @@ void execute_change_admiral(sys::state& state, dcon::nation_id source, dcon::nav
 void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list) {
 
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::designate_split_regiments;
-	p.source = source;
-	std::copy_n(list.data(), num_packed_units, p.data.split_regiments.regs);
+	command_data p{ command_type::designate_split_regiments, source };
+	auto data = split_regiments_data{ };
+	std::copy_n(list.data(), num_packed_units, data.regs);
+	p << data;
 	add_to_command_queue(state, p);
 }
 void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, dcon::regiment_id const* regs) {
@@ -4950,12 +4898,13 @@ void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, 
 }
 
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::designate_split_ships;
-	p.source = source;
-	std::copy_n(list.data(), num_packed_units, p.data.split_ships.ships);
+
+	command_data p{ command_type::designate_split_ships, source };
+	auto data = split_ships_data{ };
+	std::copy_n(list.data(), num_packed_units, data.ships);
+	p << data;
 	add_to_command_queue(state, p);
+
 
 }
 void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon::ship_id const* regs) {
@@ -4969,13 +4918,9 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 }
 
 void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::naval_retreat;
-	p.source = source;
-	p.data.retreat_from_naval_battle.navy = navy;
-	p.data.retreat_from_naval_battle.dest = dest;
-	p.data.retreat_from_naval_battle.auto_retreat = auto_retreat;
+	command_data p{ command_type::naval_retreat, source };
+	auto data = retreat_from_naval_battle_data{ navy, dest, auto_retreat };
+	p << data;
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
@@ -5023,11 +4968,10 @@ void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source
 }
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::land_retreat;
-	p.source = source;
-	p.data.land_battle.b = b;
+
+	command_data p{ command_type::land_retreat, source };
+	auto data = land_battle_data{ b };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -5053,16 +4997,17 @@ void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source,
 void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::invite_to_crisis;
-	p.source = source;
-	p.data.crisis_invitation.invited = invitation_to;
-	p.data.crisis_invitation.target = target;
-	p.data.crisis_invitation.cb_type = primary_cb;
-	p.data.crisis_invitation.cb_state = cb_state;
-	p.data.crisis_invitation.cb_tag = cb_tag;
-	p.data.crisis_invitation.cb_secondary_nation = cb_secondary_nation;
+
+	command_data p{ command_type::invite_to_crisis, source };
+	auto data = crisis_invitation_data{ };
+	data.invited = invitation_to;
+	data.target = target;
+	data.cb_type = primary_cb;
+	data.cb_state = cb_state;
+	data.cb_tag = cb_tag;
+	data.cb_secondary_nation = cb_secondary_nation;
+
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
@@ -5156,15 +5101,15 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 }
 
 void queue_crisis_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::crisis_add_wargoal;
-	p.source = source;
-	p.data.new_war_goal.target = wg.target_nation;
-	p.data.new_war_goal.cb_type = wg.cb;
-	p.data.new_war_goal.cb_state = wg.state;
-	p.data.new_war_goal.cb_tag = wg.wg_tag;
-	p.data.new_war_goal.cb_secondary_nation = wg.secondary_nation;
+
+	command_data p{ command_type::crisis_add_wargoal, source };
+	auto data = new_war_goal_data{ };
+	data.target = wg.target_nation;
+	data.cb_type = wg.cb;
+	data.cb_state = wg.state;
+	data.cb_tag = wg.wg_tag;
+	data.cb_secondary_nation = wg.secondary_nation;
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -5237,11 +5182,10 @@ bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full
 }
 
 void toggle_mobilization(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::toggle_mobilization;
-	p.source = source;
+
+	command_data p{ command_type::toggle_mobilization, source };
 	add_to_command_queue(state, p);
+
 }
 
 void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
@@ -5253,11 +5197,10 @@ void execute_toggle_mobilization(sys::state& state, dcon::nation_id source) {
 }
 
 void enable_debt(sys::state& state, dcon::nation_id source, bool debt_is_enabled) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::enable_debt;
-	p.source = source;
-	p.data.make_leader.is_general = debt_is_enabled;
+
+	command_data p{ command_type::enable_debt, source };
+	auto data = make_leader_data{ debt_is_enabled };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -5266,12 +5209,12 @@ void execute_enable_debt(sys::state& state, dcon::nation_id source, bool debt_is
 }
 
 void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::move_capital;
-	p.source = source;
-	p.data.generic_location.prov = prov;
+
+	command_data p{ command_type::move_capital, source };
+	auto data = generic_location_data{ prov };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
@@ -5304,13 +5247,13 @@ void execute_move_capital(sys::state& state, dcon::nation_id source, dcon::provi
 	state.world.nation_set_capital(source, p);
 }
 
-void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	payload command;
-	memset(&command, 0, sizeof(payload));
-	command.type = command_type::toggle_local_administration;
-	command.source = source;
-	command.data.generic_location.prov = p;
-	add_to_command_queue(state, command);
+void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+
+	command_data p{ command_type::toggle_local_administration, source };
+	auto data = generic_location_data{ prov };
+	p << data;
+	add_to_command_queue(state, p);
+
 }
 bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
 	// allow planning future capitals
@@ -5341,12 +5284,13 @@ void execute_toggle_local_administration(sys::state& state, dcon::nation_id sour
 }
 
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::take_province;
-	p.source = source;
-	p.data.generic_location.prov = prov;
+
+
+	command_data p{ command_type::take_province, source };
+	auto data = generic_location_data{ prov };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p) {
@@ -5405,13 +5349,12 @@ void execute_take_province(sys::state& state, dcon::nation_id source, dcon::prov
 }
 
 void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id i) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::pbutton_script;
-	p.source = source;
-	p.data.pbutton.button = d;
-	p.data.pbutton.id = i;
+
+	command_data p{ command_type::pbutton_script, source };
+	auto data = pbutton_data{ d, i };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
 	auto& def = state.ui_defs.gui[d];
@@ -5430,13 +5373,12 @@ void execute_use_province_button(sys::state& state, dcon::nation_id source, dcon
 }
 
 void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::nbutton_script;
-	p.source = source;
-	p.data.nbutton.button = d;
-	p.data.nbutton.id = n;
+
+	command_data p{ command_type::nbutton_script, source };
+	auto data = nbutton_data{ d, n };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
 	auto& def = state.ui_defs.gui[d];
@@ -5477,14 +5419,16 @@ void post_chat_message(sys::state& state, ui::chat_message& m) {
 }
 
 void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::chat_message;
-	p.source = source;
-	p.data.chat_message.target = target;
-	memcpy(p.data.chat_message.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
-	p.data.chat_message.body[ui::max_chat_message_len - 1] = '\0';
-	p.data.chat_message.sender = sender;
+
+
+	command_data p{ command_type::chat_message, source };
+	auto data = chat_message_data{ };
+	data.target = target;
+	memcpy(data.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
+	data.body[ui::max_chat_message_len - 1] = '\0';
+	data.sender = sender;
+
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
@@ -5501,12 +5445,12 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 }
 
 void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, bool needs_loading) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_joins;
-	p.source = source;
-	p.data.notify_join.player_name = name;
-	p.data.notify_join.needs_loading = needs_loading;
+
+	command_data p{ command_type::notify_player_joins, source };
+	auto data = notify_joins_data{  };
+	data.player_name = name;
+	data.needs_loading = needs_loading;
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name) {
@@ -5538,12 +5482,10 @@ void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, 
 }
 
 void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.source = source;
-	p.type = command_type::change_game_rule_setting;
-	p.data.change_gamerule_setting.setting = new_setting;
-	p.data.change_gamerule_setting.gamerule = gamerule;
+
+	command_data p{ command_type::change_game_rule_setting, source };
+	auto data = change_gamerule_setting_data{ gamerule, new_setting };
+	p << data;
 	add_to_command_queue(state, p);
 
 }
@@ -5581,12 +5523,10 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 }
 
 void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& player_name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_leaves;
-	p.source = source;
-	p.data.notify_leave.make_ai = make_ai;
-	p.data.notify_leave.player_name = player_name;
+
+	command_data p{ command_type::notify_player_leaves, source };
+	auto data = notify_leaves_data{ make_ai, player_name };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& player_name) {
@@ -5622,12 +5562,9 @@ void execute_change_ai_nation_state(sys::state& state, dcon::nation_id source, b
 	state.world.nation_set_is_player_controlled(source, no_ai);
 }
 void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_ban;
-	p.source = source;
-	p.data.notify_player_ban.make_ai = make_ai;
-	p.data.notify_player_ban.player_name = name;
+	command_data p{ command_type::notify_player_ban, source };
+	auto data = notify_player_ban_data{ make_ai, name };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, sys::player_name& name) {
@@ -5663,13 +5600,12 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 }
 
 void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_kick;
-	p.source = source;
-	p.data.notify_player_kick.make_ai = make_ai;
-	p.data.notify_player_kick.player_name = name;
+
+	command_data p{ command_type::notify_player_kick, source };
+	auto data = notify_player_kick_data{ make_ai, name };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, sys::player_name& name) {
 	if(state.network_state.nickname.is_equal(name)) // can't perform on self
@@ -5702,12 +5638,10 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 }
 
 void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_picks_nation;
-	p.source = source;
-	p.data.nation_pick.target = target;
-	p.data.nation_pick.player_name = name;
+
+	command_data p{ command_type::notify_player_picks_nation, source };
+	auto data = nation_pick_data{ target, name };
+	p << data;
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name) {
@@ -5734,11 +5668,10 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command_type::notify_player_oos;
-	p.source = source;
-	p.data.notify_player_oos.player_name = name;
+
+	command_data p{ command_type::notify_player_oos, source };
+	auto data = notify_player_oos_data{ name };
+	p << data;
 	add_to_command_queue(state, p);
 
 #ifndef NDEBUG
@@ -5783,14 +5716,12 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, sys::p
 }
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::advance_tick;
-	p.source = source;
-	// Postponed until it is sent!
-	//p.data.advance_tick.checksum = state.get_save_checksum();
-	p.data.advance_tick.speed = state.actual_game_speed.load(std::memory_order::acquire);
-	p.data.advance_tick.date = state.current_date;
+
+	command_data p{ command_type::advance_tick, source };
+	auto data = advance_tick_data{ };
+	data.speed = state.actual_game_speed.load(std::memory_order::acquire);
+	data.date = state.current_date;
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -5828,11 +5759,11 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 }
 
 void notify_save_loaded(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_save_loaded;
-	p.source = source;
-	p.data.notify_save_loaded.target = dcon::nation_id{};
+
+	command_data p{ command_type::notify_save_loaded, source };
+	auto data = notify_save_loaded_data{ };
+	data.target = dcon::nation_id{};
+	p << data;
 	add_to_command_queue(state, p);
 }
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
@@ -5846,11 +5777,11 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 }
 
 void notify_reload(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_reload;
-	p.source = source;
+	command_data p{ command_type::notify_reload, source };
+	auto data = notify_reload_data{ };
+	p << data;
 	add_to_command_queue(state, p);
+
 }
 void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
 	state.session_host_checksum = k;
@@ -5941,19 +5872,16 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_start_game;
-	p.source = source;
+
+	command_data p{ command_type::notify_start_game, source };
 	add_to_command_queue(state, p);
 }
 
 void notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_player_is_loading;
-	p.source = source;
-	p.data.notify_player_is_loading.name = name;
+
+	command_data p{ command_type::notify_player_is_loading, source };
+	auto data = notify_player_is_loading_data{ name };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -5970,11 +5898,10 @@ void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source,
 
 
 void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_player_fully_loaded;
-	p.source = source;
-	p.data.notify_player_fully_loaded.name = name;
+
+	command_data p{ command_type::notify_player_fully_loaded, source };
+	auto data = notify_player_fully_loaded_data{ name };
+	p << data;
 	add_to_command_queue(state, p);
 }
 
@@ -6010,10 +5937,8 @@ void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_stop_game;
-	p.source = source;
+
+	command_data p{ command_type::notify_stop_game, source };
 	add_to_command_queue(state, p);
 }
 
@@ -6022,19 +5947,18 @@ void execute_notify_pause_game(sys::state& state, dcon::nation_id source) {
 }
 
 void notify_pause_game(sys::state& state, dcon::nation_id source) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::notify_pause_game;
-	p.source = source;
+
+	command_data p{ command_type::notify_pause_game, source };
 	add_to_command_queue(state, p);
+
 }
 
 void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
-	payload p;
-	memset(&p, 0, sizeof(payload));
-	p.type = command::command_type::network_inactivity_ping;
-	p.source = source;
-	p.data.advance_tick.date = date;
+
+	command_data p{ command_type::network_inactivity_ping, source };
+	auto data = advance_tick_data{ };
+	data.date = date;
+	p << data;
 	add_to_command_queue(state, p);
 }
 void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date) {
@@ -6049,7 +5973,7 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 	return;
 }
 
-bool can_perform_command(sys::state& state, payload& c) {
+bool can_perform_command(sys::state& state, command_data& c) {
 	switch(c.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
@@ -6868,392 +6792,501 @@ uint32_t command_size(command_type type) {
 	}
 }
 
-bool execute_command(sys::state& state, payload& c) {
+bool execute_command(sys::state& state, command_data& c) {
 	if(!can_perform_command(state, c))
 		return false;
-	switch(c.type) {
+	switch(c.header.type) {
 	case command_type::invalid:
 		std::abort(); // invalid command
 
 	case command_type::change_nat_focus:
-		execute_set_national_focus(state, c.source, c.data.nat_focus.target_state, c.data.nat_focus.focus);
+		auto data = c.get_payload<national_focus_data>();
+		execute_set_national_focus(state, c.header.source, data.target_state, data.focus);
 		break;
 	case command_type::start_research:
-		execute_start_research(state, c.source, c.data.start_research.tech);
+		auto data = c.get_payload<start_research_data>();
+		execute_start_research(state, c.header.source, data.tech);
 		break;
 	case command_type::make_leader:
-		execute_make_leader(state, c.source, c.data.make_leader.is_general);
+		auto data = c.get_payload<make_leader_data>();
+		execute_make_leader(state, c.header.source, data.is_general);
 		break;
 	case command_type::set_factory_type_priority:
-		execute_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
+		auto data = c.get_payload<set_factory_priority_data>();
+		execute_set_factory_type_priority(state, c.header.source, data.factory, data.value);
 		break;
 	case command_type::begin_province_building_construction:
-		execute_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
-				c.data.start_province_building.type);
+		auto data = c.get_payload<province_building_data>();
+		execute_begin_province_building_construction(state, c.header.source, data.location,
+				data.type);
 		break;
 	case command_type::war_subsidies:
-		execute_give_war_subsidies(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_give_war_subsidies(state, c.header.source, data.target);
 		break;
 	case command_type::cancel_war_subsidies:
-		execute_cancel_war_subsidies(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_cancel_war_subsidies(state, c.header.source, data.target);
 		break;
 	case command_type::increase_relations:
-		execute_increase_relations(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_increase_relations(state, c.header.source, data.target);
 		break;
 	case command_type::decrease_relations:
-		execute_decrease_relations(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_decrease_relations(state, c.header.source, data.target);
 		break;
 	case command_type::begin_factory_building_construction:
-		execute_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
+		auto data = c.get_payload<factory_building_data>();
+		execute_begin_factory_building_construction(state, c.header.source, data.location,
+				data.type, data.is_upgrade, data.refit_target);
 		break;
 	case command_type::begin_naval_unit_construction:
-		execute_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
-				c.data.naval_unit_construction.type, c.data.naval_unit_construction.template_province);
+		auto data = c.get_payload<naval_unit_construction_data>();
+		execute_start_naval_unit_construction(state, c.header.source, data.location,
+				data.type, data.template_province);
 		break;
 	case command_type::cancel_naval_unit_construction:
-		execute_cancel_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
-				c.data.naval_unit_construction.type);
+		auto data = c.get_payload<naval_unit_construction_data>();
+		execute_cancel_naval_unit_construction(state, c.header.source, data.location,
+				data.type);
 		break;
 	case command_type::begin_land_unit_construction:
-		execute_start_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type, c.data.land_unit_construction.template_province);
+		auto data = c.get_payload<land_unit_construction_data>();
+		execute_start_land_unit_construction(state, c.header.source, data.location,
+				data.pop_culture, data.type, data.template_province);
 		break;
 	case command_type::cancel_land_unit_construction:
-		execute_cancel_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type);
+		auto data = c.get_payload<land_unit_construction_data>();
+		execute_cancel_land_unit_construction(state, c.header.source, data.location,
+				data.pop_culture, data.type);
 		break;
 	case command_type::delete_factory:
-		execute_delete_factory(state, c.source, c.data.factory.id);
+		auto data = c.get_payload<factory_data>();
+		execute_delete_factory(state, c.header.source, data.id);
 		break;
 	case command_type::change_factory_settings:
-		execute_change_factory_settings(state, c.source, c.data.factory.id, c.data.factory.priority,
-				c.data.factory.subsidize);
+		auto data = c.get_payload<factory_data>();
+		execute_change_factory_settings(state, c.header.source, data.id, data.priority,
+				data.subsidize);
 		break;
 	case command_type::make_vassal:
-		execute_make_vassal(state, c.source, c.data.tag_target.ident);
+		auto data = c.get_payload<tag_target_data>();
+		execute_make_vassal(state, c.header.source, data.ident);
 		break;
 	case command_type::release_and_play_nation:
-		execute_release_and_play_as(state, c.source, c.data.tag_target.ident, c.data.tag_target.player_name);
+		auto data = c.get_payload<tag_target_data>();
+		execute_release_and_play_as(state, c.header.source, data.ident, data.player_name);
 		break;
 	case command_type::change_budget:
-		execute_change_budget_settings(state, c.source, c.data.budget_data);
+		auto data = c.get_payload<budget_settings_data>();
+		execute_change_budget_settings(state, c.header.source, data.budget_data);
 		break;
-	case command_type::start_election:
-		execute_start_election(state, c.source);
+	case command_type::start_election:;
+		execute_start_election(state, c.header.source);
 		break;
 	case command_type::change_influence_priority:
-		execute_change_influence_priority(state, c.source, c.data.influence_priority.influence_target,
-				c.data.influence_priority.priority);
+		auto data = c.get_payload<influence_priority_data>();
+		execute_change_influence_priority(state, c.header.source, data.influence_target,
+				data.priority);
 		break;
 	case command_type::expel_advisors:
-		execute_expel_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_expel_advisors(state, c.header.source, data.influence_target, data.gp_target);
 		break;
 	case command_type::ban_embassy:
-		execute_ban_embassy(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_ban_embassy(state, c.header.source, data.influence_target, data.gp_target);
 		break;
 	case command_type::discredit_advisors:
-		execute_discredit_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_discredit_advisors(state, c.header.source, data.influence_target, data.gp_target);
 		break;
 	case command_type::decrease_opinion:
-		execute_decrease_opinion(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_decrease_opinion(state, c.header.source, data.influence_target, data.gp_target);
 		break;
 	case command_type::remove_from_sphere:
-		execute_remove_from_sphere(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_remove_from_sphere(state, c.header.source, data.influence_target, data.gp_target);
 		break;
 	case command_type::increase_opinion:
-		execute_increase_opinion(state, c.source, c.data.influence_action.influence_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_increase_opinion(state, c.header.source, data.influence_target);
 		break;
 	case command_type::add_to_sphere:
-		execute_add_to_sphere(state, c.source, c.data.influence_action.influence_target);
+		auto data = c.get_payload<influence_action_data>();
+		execute_add_to_sphere(state, c.header.source, data.influence_target);
 		break;
 	case command_type::upgrade_colony_to_state:
-		execute_upgrade_colony_to_state(state, c.source, state.world.province_get_state_membership(c.data.generic_location.prov));
+		auto data = c.get_payload<generic_location_data>();
+		execute_upgrade_colony_to_state(state, c.header.source, state.world.province_get_state_membership(data.prov));
 		break;
 	case command_type::invest_in_colony:
-		execute_invest_in_colony(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_invest_in_colony(state, c.header.source, data.prov);
 		break;
 	case command_type::abandon_colony:
-		execute_abandon_colony(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_abandon_colony(state, c.header.source, data.prov);
 		break;
 	case command_type::finish_colonization:
-		execute_finish_colonization(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_finish_colonization(state, c.header.source, data.prov);
 		break;
 	case command_type::intervene_in_war:
-		execute_intervene_in_war(state, c.source, c.data.war_target.war, c.data.war_target.for_attacker);
+		auto data = c.get_payload<war_target_data>();
+		execute_intervene_in_war(state, c.header.source, data.war, data.for_attacker);
 		break;
 	case command_type::suppress_movement:
-		execute_suppress_movement(state, c.source, c.data.movement.iopt, c.data.movement.tag);
+		auto data = c.get_payload<movement_data>();
+		execute_suppress_movement(state, c.header.source, data.iopt, data.tag);
 		break;
 	case command_type::civilize_nation:
-		execute_civilize_nation(state, c.source);
+		execute_civilize_nation(state, c.header.source);
 		break;
 	case command_type::appoint_ruling_party:
-		execute_appoint_ruling_party(state, c.source, c.data.political_party.p);
+		auto data = c.get_payload<political_party_data>();
+		execute_appoint_ruling_party(state, c.header.source, data.p);
 		break;
 	case command_type::change_issue_option:
-		execute_enact_issue(state, c.source, c.data.issue_selection.r);
+		auto data = c.get_payload<issue_selection_data>();
+		execute_enact_issue(state, c.header.source, data.r);
 		break;
 	case command_type::change_reform_option:
-		execute_enact_reform(state, c.source, c.data.reform_selection.r);
+		auto data = c.get_payload<reform_selection_data>();
+		execute_enact_reform(state, c.header.source, data.r);
 		break;
 	case command_type::become_interested_in_crisis:
-		execute_become_interested_in_crisis(state, c.source);
+		execute_become_interested_in_crisis(state, c.header.source);
 		break;
 	case command_type::take_sides_in_crisis:
-		execute_take_sides_in_crisis(state, c.source, c.data.crisis_join.join_attackers);
+		auto data = c.get_payload<crisis_join_data>();
+		execute_take_sides_in_crisis(state, c.header.source, data.join_attackers);
 		break;
 	case command_type::change_stockpile_settings:
-		execute_change_stockpile_settings(state, c.source, c.data.stockpile_settings.c, c.data.stockpile_settings.amount,
-				c.data.stockpile_settings.draw_on_stockpiles);
+		auto data = c.get_payload<stockpile_settings_data>();
+		execute_change_stockpile_settings(state, c.header.source, data.c, data.amount,
+				data.draw_on_stockpiles);
 		break;
 	case command_type::take_decision:
-		execute_take_decision(state, c.source, c.data.decision.d);
+		auto data = c.get_payload<decision_data>();
+		execute_take_decision(state, c.header.source, data.d);
 		break;
 	case command_type::make_n_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_n_event);
+		auto data = c.get_payload<pending_human_n_event_data>();
+		execute_make_event_choice(state, c.header.source, data.pending_human_n_event);
 		break;
 	case command_type::make_f_n_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_f_n_event);
+		auto data = c.get_payload<pending_human_f_n_event_data>();
+		execute_make_event_choice(state, c.header.source, data.pending_human_f_n_event);
 		break;
 	case command_type::make_p_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_p_event);
+		auto data = c.get_payload<pending_human_p_event_data>();
+		execute_make_event_choice(state, c.header.source, data.pending_human_p_event);
 		break;
 	case command_type::make_f_p_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_f_p_event);
+		auto data = c.get_payload<pending_human_f_p_event_data>();
+		execute_make_event_choice(state, c.header.source, data.pending_human_f_p_event);
 		break;
 	case command_type::cancel_cb_fabrication:
-		execute_cancel_cb_fabrication(state, c.source);
+		execute_cancel_cb_fabrication(state, c.header.source);
 		break;
 	case command_type::fabricate_cb:
-		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type, c.data.cb_fabrication.target_state);
+		auto data = c.get_payload<cb_fabrication_data>();
+		execute_fabricate_cb(state, c.header.source, data.target, data.type, data.target_state);
 		break;
 	case command_type::ask_for_military_access:
-		execute_ask_for_access(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_ask_for_access(state, c.header.source, data.target);
 		break;
 	case command_type::ask_for_alliance:
-		execute_ask_for_alliance(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_ask_for_alliance(state, c.header.source, data.target);
 		break;
 	case command_type::ask_for_free_trade_agreement:
-		execute_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_ask_for_free_trade_agreement(state, c.header.source, data.target);
 		break;
 	case command_type::switch_embargo_status:
-		execute_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_switch_embargo_status(state, c.header.source, data.target);
 		break;
 	case command_type::revoke_trade_rights:
-		execute_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_revoke_trade_rights(state, c.header.source, data.target);
 		break;
 	case command_type::call_to_arms:
-		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war, c.data.call_to_arms.automatic_call);
+		auto data = c.get_payload<call_to_arms_data>();
+		execute_call_to_arms(state, c.header.source, data.target, data.war, data.automatic_call);
 		break;
 	case command_type::respond_to_diplomatic_message:
-		execute_respond_to_diplomatic_message(state, c.source, c.data.message.from, c.data.message.type, c.data.message.accept);
+		auto data = c.get_payload<message_data>();
+		execute_respond_to_diplomatic_message(state, c.header.source, data.from, data.type, data.accept);
 		break;
 	case command_type::cancel_military_access:
-		execute_cancel_military_access(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_cancel_military_access(state, c.header.source, data.target);
 		break;
 	case command_type::cancel_alliance:
-		execute_cancel_alliance(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_cancel_alliance(state, c.header.source, data.target);
 		break;
 	case command_type::cancel_given_military_access:
-		execute_cancel_given_military_access(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_cancel_given_military_access(state, c.header.source, data.target);
 		break;
 	case command_type::declare_war:
-		execute_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies, c.data.new_war.run_conference);
+		auto data = c.get_payload<new_war_data>();
+		execute_declare_war(state, c.header.source, data.target, data.primary_cb, data.cb_state,
+				data.cb_tag, data.cb_secondary_nation, data.call_attacker_allies, data.run_conference);
 		break;
 	case command_type::add_war_goal:
-		execute_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,
-				c.data.new_war_goal.cb_state, c.data.new_war_goal.cb_tag, c.data.new_war_goal.cb_secondary_nation);
+		auto data = c.get_payload<new_war_goal_data>();
+		execute_add_war_goal(state, c.header.source, data.war, data.target, data.cb_type,
+				data.cb_state, data.cb_tag, data.cb_secondary_nation);
 		break;
 	case command_type::start_peace_offer:
-		execute_start_peace_offer(state, c.source, c.data.new_offer.target, c.data.new_offer.war,
-				c.data.new_offer.is_concession);
+		auto data = c.get_payload<new_offer_data>();
+		execute_start_peace_offer(state, c.header.source, data.target, data.war,
+				data.is_concession);
 		break;
 	case command_type::add_peace_offer_term:
-		execute_add_to_peace_offer(state, c.source, c.data.offer_wargoal.wg);
+		auto data = c.get_payload<offer_wargoal_data>();
+		execute_add_to_peace_offer(state, c.header.source, data.wg);
 		break;
 	case command_type::send_peace_offer:
-		execute_send_peace_offer(state, c.source);
+		execute_send_peace_offer(state, c.header.source);
 		break;
 	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.special_order);
+		auto data = c.get_payload<army_movement_data>();
+		execute_move_army(state, c.header.source, data.a, data.dest, data.reset, data.special_order);
 		break;
 	case command_type::move_navy:
-		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);
+		auto data = c.get_payload<navy_movement_data>();
+		execute_move_navy(state, c.header.source, data.n, data.dest, data.reset);
 		break;
 	case command_type::embark_army:
-		execute_embark_army(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_embark_army(state, c.header.source, data.a);
 		break;
 	case command_type::merge_armies:
-		execute_merge_armies(state, c.source, c.data.merge_army.a, c.data.merge_army.b);
+		auto data = c.get_payload<merge_army_data>();
+		execute_merge_armies(state, c.header.source, data.a, data.b);
 		break;
 	case command_type::merge_navies:
-		execute_merge_navies(state, c.source, c.data.merge_navy.a, c.data.merge_navy.b);
+		auto data = c.get_payload<merge_navy_data>();
+		execute_merge_navies(state, c.header.source, data.a, data.b);
 		break;
 	case command_type::split_army:
-		execute_split_army(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_split_army(state, c.header.source, data.a);
 		break;
 	case command_type::split_navy:
-		execute_split_navy(state, c.source, c.data.navy_movement.n);
+		auto data = c.get_payload<navy_movement_data>();
+		execute_split_navy(state, c.header.source, data.n);
 		break;
 	case command_type::change_unit_type:
-		execute_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
+		auto data = c.get_payload<change_unit_type_data>();
+		execute_change_unit_type(state, c.header.source, data.regs, data.ships, data.new_type);
 		break;
 	case command_type::delete_army:
-		execute_delete_army(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_delete_army(state, c.header.source, data.a);
 		break;
 	case command_type::delete_navy:
-		execute_delete_navy(state, c.source, c.data.navy_movement.n);
+		auto data = c.get_payload<navy_movement_data>();
+		execute_delete_navy(state, c.header.source, data.n);
 		break;
 	case command_type::designate_split_regiments:
-		execute_mark_regiments_to_split(state, c.source, c.data.split_regiments.regs);
+		auto data = c.get_payload<split_regiments_data>();
+		execute_mark_regiments_to_split(state, c.header.source, data.regs);
 		break;
 	case command_type::designate_split_ships:
-		execute_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
+		auto data = c.get_payload<split_ships_data>();
+		execute_mark_ships_to_split(state, c.header.source, data.ships);
 		break;
 	case command_type::naval_retreat:
-		execute_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy,c.data.retreat_from_naval_battle.auto_retreat, c.data.retreat_from_naval_battle.dest);
+		auto data = c.get_payload<retreat_from_naval_battle_data>();
+		execute_retreat_from_naval_battle(state, c.header.source, data.navy, data.auto_retreat, data.dest);
 		break;
 	case command_type::land_retreat:
-		execute_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
+		auto data = c.get_payload<land_battle_data>();
+		execute_retreat_from_land_battle(state, c.header.source, data.b);
 		break;
 	case command_type::start_crisis_peace_offer:
-		execute_start_crisis_peace_offer(state, c.source, c.data.new_offer.is_concession);
+		auto data = c.get_payload<new_offer_data>();
+		execute_start_crisis_peace_offer(state, c.header.source, data.is_concession);
 		break;
 	case command_type::invite_to_crisis:
-		execute_invite_to_crisis(state, c.source, c.data.crisis_invitation);
+		auto data = c.get_payload<crisis_invitation_data>();
+		execute_invite_to_crisis(state, c.header.source, data.crisis_invitation);
 		break;
 	case command_type::add_wargoal_to_crisis_offer:
-		execute_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+		auto data = c.get_payload<crisis_invitation_data>();
+		execute_add_to_crisis_peace_offer(state, c.header.source, data.crisis_invitation);
 		break;
 	case command_type::crisis_add_wargoal:
-		execute_crisis_add_wargoal(state, c.source, c.data.new_war_goal);
+		auto data = c.get_payload<new_war_goal_data>();
+		execute_crisis_add_wargoal(state, c.header.source, data.new_war_goal);
 		break;
 	case command_type::send_crisis_peace_offer:
-		execute_send_crisis_peace_offer(state, c.source);
+		execute_send_crisis_peace_offer(state, c.header.source);
 		break;
 	case command_type::change_admiral:
-		execute_change_admiral(state, c.source, c.data.new_admiral.a, c.data.new_admiral.l);
+		auto data = c.get_payload<new_admiral_data>();
+		execute_change_admiral(state, c.header.source, data.a, data.l);
 		break;
 	case command_type::change_general:
-		execute_change_general(state, c.source, c.data.new_general.a, c.data.new_general.l);
+		auto data = c.get_payload<new_general_data>();
+		execute_change_general(state, c.header.source, data.a, data.l);
 		break;
 	case command_type::toggle_mobilization:
-		execute_toggle_mobilization(state, c.source);
+		execute_toggle_mobilization(state, c.header.source);
 		break;
 	case command_type::give_military_access:
-		execute_give_military_access(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_give_military_access(state, c.header.source, data.target);
 		break;
 	case command_type::set_rally_point:
-		execute_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
+		auto data = c.get_payload<rally_point_data>();
+		execute_set_rally_point(state, c.header.source, data.location, data.naval, data.enable);
 		break;
 	case command_type::save_game:
-		execute_save_game(state, c.source, c.data.save_game.and_quit);
+		auto data = c.get_payload<save_game_data>();
+		execute_save_game(state, c.header.source, data.and_quit);
 		break;
 	case command_type::cancel_factory_building_construction:
-		execute_cancel_factory_building_construction(state, c.source, c.data.start_factory_building.location, c.data.start_factory_building.type);
+		auto data = c.get_payload<factory_building_data>();
+		execute_cancel_factory_building_construction(state, c.header.source, data.location, data.type);
 		break;
 	case command_type::disband_undermanned:
-		execute_disband_undermanned_regiments(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data();
+		execute_disband_undermanned_regiments(state, c.header.source, data.a);
 		break;
 	case command_type::even_split_army:
-		execute_evenly_split_army(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_evenly_split_army(state, c.header.source, data.a);
 		break;
 	case command_type::even_split_navy:
-		execute_evenly_split_navy(state, c.source, c.data.navy_movement.n);
+		auto data = c.get_payload<navy_movement_data>();
+		execute_evenly_split_navy(state, c.header.source, data.n);
 		break;
 	case command_type::toggle_hunt_rebels:
-		execute_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_toggle_rebel_hunting(state, c.header.source, data.a);
 		break;
 	case command_type::toggle_select_province:
-		execute_toggle_select_province(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_toggle_select_province(state, c.header.source, data.prov);
 		break;
 	case command_type::toggle_immigrator_province:
-		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_toggle_immigrator_province(state, c.header.source, data.prov);
 		break;
 	case command_type::state_transfer:
-		execute_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
+		auto data = c.get_payload<state_transfer_data>();
+		execute_state_transfer(state, c.header.source, data.target, data.state);
 		break;
 	case command_type::release_subject:
-		execute_release_subject(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_release_subject(state, c.header.source, data.target);
 		break;
 	case command_type::enable_debt:
-		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
+		auto data = c.get_payload<make_leader_data>();
+		execute_enable_debt(state, c.header.source, data.is_general);
 		break;
 	case command_type::move_capital:
-		execute_move_capital(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_move_capital(state, c.header.source, data.prov);
 		break;
 	case command_type::toggle_local_administration:
-		execute_toggle_local_administration(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_toggle_local_administration(state, c.header.source, data.prov);
 		break;
 	case command_type::take_province:
-		execute_take_province(state, c.source, c.data.generic_location.prov);
+		auto data = c.get_payload<generic_location_data>();
+		execute_take_province(state, c.header.source, data.prov);
 		break;
 	case command_type::toggle_unit_ai_control:
-		execute_toggle_unit_ai_control(state, c.source, c.data.army_movement.a);
+		auto data = c.get_payload<army_movement_data>();
+		execute_toggle_unit_ai_control(state, c.header.source, data.a);
 		break;
 	case command_type::toggle_mobilized_is_ai_controlled:
-		execute_toggle_mobilized_is_ai_controlled(state, c.source);
+		execute_toggle_mobilized_is_ai_controlled(state, c.header.source);
 		break;
 	case command_type::toggle_interested_in_alliance:
-		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
+		auto data = c.get_payload<diplo_action_data>();
+		execute_toggle_interested_in_alliance(state, c.header.source, data.target);
 		break;
 	case command_type::pbutton_script:
-		execute_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+		auto data = c.get_payload<pbutton_data>();
+		execute_use_province_button(state, c.header.source, data.pbutton.button, data.id);
 		break;
 	case command_type::nbutton_script:
-		execute_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
+		auto data = c.get_payload<nbutton_data>();
+		execute_use_nation_button(state, c.header.source, data.button, data.id);
 		break;
 		// common mp commands
 	case command_type::chat_message:
 	{
+		auto data = c.get_payload<chat_message_data>();
 		size_t count = 0;
-		for(count = 0; count < sizeof(c.data.chat_message.body); count++)
-			if(c.data.chat_message.body[count] == '\0')
+		for(count = 0; count < sizeof(data.body); count++)
+			if(data.body[count] == '\0')
 				break;
-		std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
-		execute_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target, c.data.chat_message.sender);
+		std::string_view sv(data.body, data.body + count);
+		execute_chat_message(state, c.header.source, data.body, data.target, data.sender);
 		break;
 	}
 	case command_type::notify_player_ban:
-		execute_notify_player_ban(state, c.source, c.data.notify_player_ban.make_ai, c.data.notify_player_ban.player_name);
+		auto data = c.get_payload<notify_player_ban_data>();
+		execute_notify_player_ban(state, c.header.source, data.make_ai, data.player_name);
 		break;
 	case command_type::notify_player_kick:
-		execute_notify_player_kick(state, c.source, c.data.notify_player_kick.make_ai, c.data.notify_player_kick.player_name);
+		auto data = c.get_payload<notify_player_kick_data>();
+		execute_notify_player_kick(state, c.header.source, data.make_ai, data.player_name);
 		break;
 	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source, c.data.notify_join.player_name, c.data.notify_join.player_password, c.data.notify_join.needs_loading);
+		auto data = c.get_payload<notify_joins_data>();
+		execute_notify_player_joins(state, c.header.source, data.player_name, data.player_password, data.needs_loading);
 		break;
 	case command_type::notify_player_leaves:
-		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai, c.data.notify_leave.player_name);
+		auto data = c.get_payload<notify_leaves_data>();
+		execute_notify_player_leaves(state, c.header.source, data.make_ai, data.player_name);
 		break;
 	case command_type::notify_player_picks_nation:
-		execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target, c.data.nation_pick.player_name);
+		auto data = c.get_payload<nation_pick_data>();
+		execute_notify_player_picks_nation(state, c.header.source, data.target, data.player_name);
 		break;
 	case command_type::notify_player_oos:
-		execute_notify_player_oos(state, c.source, c.data.notify_player_oos.player_name);
+		auto data = c.get_payload<notify_player_oos_data();
+		execute_notify_player_oos(state, c.header.source, data.player_name);
 		break;
 	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
+		auto data = c.get_payload<advance_tick_data>();
+		execute_advance_tick(state, c.header.source, data.checksum, data.speed, data.date);
 		break;
 	case command_type::notify_save_loaded:
-		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
+		auto data = c.get_payload<notify_save_loaded_data>();
+		execute_notify_save_loaded(state, c.header.source, data.checksum);
 		break;
 	case command_type::notify_reload:
-		execute_notify_reload(state, c.source, c.data.notify_reload.checksum);
+		auto data = c.get_payload<notify_reload_data>();
+		execute_notify_reload(state, c.header.source, data.checksum);
 		break;
 	case command_type::notify_start_game:
-		execute_notify_start_game(state, c.source);
+		execute_notify_start_game(state, c.header.source);
 		break;
 	case command_type::notify_stop_game:
-		execute_notify_stop_game(state, c.source);
+		execute_notify_stop_game(state, c.header.source);
 		break;
 	case command_type::notify_pause_game:
-		execute_notify_pause_game(state, c.source);
+		execute_notify_pause_game(state, c.header.source);
 		break;
 	case command_type::network_inactivity_ping:
-		execute_network_inactivity_ping(state, c.source, c.data.advance_tick.date);
+		auto data = c.get_payload<advance_tick_data>();
+		execute_network_inactivity_ping(state, c.header.source, data.date);
 		break;
 	case command_type::console_command:
 		execute_console_command(state);
@@ -7263,28 +7296,36 @@ bool execute_command(sys::state& state, payload& c) {
 	case command_type::network_populate:
 		break;
 	case command_type::notify_player_fully_loaded:
-		execute_notify_player_fully_loaded(state, c.source, c.data.notify_player_fully_loaded.name);
+		auto data = c.get_payload<notify_player_fully_loaded_data>();
+		execute_notify_player_fully_loaded(state, c.header.source, data.name);
 		break;
 	case command_type::notify_player_is_loading:
-		execute_notify_player_is_loading(state, c.source, c.data.notify_player_fully_loaded.name);
+		auto data = c.get_payload<notify_player_is_loading_data>();
+		execute_notify_player_is_loading(state, c.header.source, data.name);
 		break;
 	case command_type::change_ai_nation_state:
-		execute_change_ai_nation_state(state, c.source, c.data.change_ai_nation_state.no_ai);
+		auto data = c.get_payload<change_ai_nation_state_data>();
+		execute_change_ai_nation_state(state, c.header.source, data.no_ai);
 		break;
 	case command_type::stop_army_movement:
-		execute_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
+		auto data = c.get_payload<stop_army_movement_data>();
+		execute_stop_army_movement(state, c.header.source, data.army);
 		break;
 	case command_type::stop_navy_movement:
-		execute_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
+		auto data = c.get_payload<stop_navy_movement_data>();
+		execute_stop_navy_movement(state, c.header.source, data.navy);
 		break;
 	case command_type::command_units:
-		execute_command_units(state, c.source, c.data.command_units.target);
+		auto data = c.get_payload<command_units_data>();
+		execute_command_units(state, c.header.source, data.target);
 		break;
 	case command_type::give_back_units:
-		execute_give_back_units(state, c.source, c.data.command_units.target);
+		auto data = c.get_payload<command_units_data>();
+		execute_give_back_units(state, c.header.source, data.target);
 		break;
 	case command_type::change_game_rule_setting:
-		execute_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
+		auto data = c.get_payload<change_gamerule_setting_data>();
+		execute_change_gamerule_setting(state, c.header.source, data.gamerule, data.setting);
 		break;
 	}
 	return true;
