@@ -3,6 +3,7 @@
 #include "opengl_wrapper.hpp"
 #include "resource.h"
 #include "system_state.hpp"
+#include "gui_element_base.hpp"
 
 #ifndef UNICODE
 #define UNICODE
