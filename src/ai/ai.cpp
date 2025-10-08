@@ -228,9 +228,11 @@ void update_ai_colony_starting(sys::state& state) {
 		states.push_back(sd);
 	}
 	// Shuffle the vector
-	auto rnd = rng::get_random(state, state.current_date.to_raw_value());
-	for(int i = (int) states.size() - 1; i >= 0; i--) {
-		int j = rnd % (int) states.size();
+	auto seed = (uint64_t) state.current_date.to_raw_value();
+	for(int i = (int)states.size() - 1; i > 0; i--) {
+		auto rnd = rng::get_random(state, (uint32_t) seed);
+		seed = rnd; // Update seed for next call
+		int j = rnd % (i + 1);
 		std::swap(states[i], states[j]);
 	}
 	// Iterate every colonizeable state and find colonizer
