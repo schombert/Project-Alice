@@ -441,7 +441,7 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.crisis_colony);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.crisis_liberate);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.irregular);
-		ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.infantry);
+		//ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.infantry);
 		ptr_in = sys::memcpy_serialize(ptr_in, state.military_definitions.artillery);
 		return ptr_in;
 	});
