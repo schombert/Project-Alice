@@ -715,9 +715,6 @@ public:
 			state.ui_state.nation_picker->move_child_to_front(state.ui_state.gamerules_window);
 		}
 	}
-	void on_update(sys::state& state) noexcept override {
-		disabled = (state.network_mode == sys::network_mode_type::client);
-	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::no_tooltip;
 	}

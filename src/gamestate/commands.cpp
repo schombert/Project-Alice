@@ -1019,7 +1019,12 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 	}
 	else {
 		auto player = network::find_mp_player(state, player_name);
-		network::switch_one_player(state, holder, source, player);
+		if(player) {
+			network::switch_one_player(state, holder, source, player);
+		}
+		else {
+			return;
+		}
 	}
 
 

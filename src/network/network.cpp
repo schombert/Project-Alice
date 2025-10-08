@@ -346,7 +346,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 			break;
 		}
 	}
-	// Did we receive a command?
+	// Did we receive the amount of data?
 	if(*m >= len) {
 		assert(*m <= len);
 		*m = 0; // reset
