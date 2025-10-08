@@ -217,39 +217,18 @@ public:
 	}
 };
 
-
+bool factory_refit_button_active(sys::state& state, dcon::factory_id fid, dcon::province_id pid, dcon::state_instance_id sid, dcon::nation_id n);
+void factory_refit_button_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::factory_id fid);
 
 class factory_refit_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-		auto fat = dcon::fatten(state.world, fid);
 		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
 		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
 		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = state.world.factory_get_building_type(fid);
 
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.province_get_factory_construction(pid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-		if(!is_not_upgrading) {
-			disabled = true; return;
-		}
-
-		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
-		if(!is_civ) {
-			disabled = true; return;
-		}
-
-		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-		if(!state_is_not_colonial) {
-			disabled = true; return;
-		}
-
-		disabled = false;
+		disabled = !factory_refit_button_active(state, fid, pid, sid, n);
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		auto fid = retrieve<dcon::factory_id>(state, parent);
@@ -282,34 +261,8 @@ public:
 
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-		auto fat = dcon::fatten(state.world, fid);
-		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
-		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = state.world.factory_get_building_type(fid);
-
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.province_get_factory_construction(pid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-
-		text::add_line(state, contents, "production_refit_factory_tooltip_1", text::variable_type::what, state.world.factory_type_get_name(type));
-
-		text::add_line_break_to_layout(state, contents);
-
-		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_1", is_civ);
-
-		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_2", state_is_not_colonial);
-
-		bool is_activated = state.world.nation_get_active_building(n, type) || state.world.factory_type_get_is_available_from_start(type);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
-
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		factory_refit_button_tooltip(state, x, y, contents, fid);
 	}
 };
 
