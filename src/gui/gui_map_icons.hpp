@@ -326,6 +326,7 @@ struct top_display_parameters {
 	float defender_casualties = 0.0f;
 	bool player_involved_battle = false;
 	bool player_is_attacker = false;
+	dcon::army_id top_army_id;
 };
 
 class prov_map_siege_bar : public progress_bar {
@@ -739,6 +740,46 @@ public:
 	}
 };
 
+class tl_map_general_icon : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
+		// frame = int32_t(params->colors[0]);
+		auto army = params->top_army_id;
+		if(army) {
+			auto loc = state.world.army_get_location_from_army_location(army);
+			auto map_pos = state.world.province_get_mid_point(loc);
+
+			if(state.world.army_get_arrival_time(army) && state.world.army_get_path(army).size() > 0) {
+				auto dest = state.world.army_get_path(army)[0];
+
+				if(dest == loc) {
+					return;
+				}
+				auto dest_pos = state.world.province_get_mid_point(dest);
+
+				float dx = dest_pos.x - map_pos.x;
+				float dy = dest_pos.y - map_pos.y;
+				float angle = std::atan2(dy, dx) * (180.0f / std::numbers::pi_v<float>);
+				// 8 directional segments starting from right and up
+				frame = static_cast<int>(std::fmod(angle + 360.0f + 22.5f, 360.0f) / 45.0f);
+			}
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		send(state, parent, toggle_unit_grid{ false });
+	}
+	void button_shift_action(sys::state& state) noexcept override {
+		send(state, parent, toggle_unit_grid{ true });
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		populate_unit_tooltip(state, contents, retrieve<dcon::province_id>(state, parent));
+	}
+};
+
 class tl_org_bar : public progress_bar {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -896,6 +937,7 @@ public:
 	}
 };
 
+// A component for a singular standing army
 class top_unit_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
@@ -930,6 +972,8 @@ class top_unit_icon : public window_element_base {
 			return ptr;
 		} else if(name == "frame_bg") {
 			return make_element_by_type<tl_frame_bg>(state, id);
+		} else if(name == "map_general") {
+			return make_element_by_type<tl_map_general_icon>(state, id);
 		} else {
 			return nullptr;
 		}
@@ -1140,9 +1184,9 @@ public:
 	bool populated = false;
 
 	dcon::province_id prov;
-	element_base* top_icon = nullptr;
+	element_base* top_icon = nullptr; // Displayed exclusively in land and naval battles
 	element_base* top_right_icon = nullptr;
-	element_base* small_top_icon = nullptr;
+	element_base* small_top_icon = nullptr; // Displayed exclusively in land and naval battles
 	element_base* small_top_right_icon = nullptr;
 	element_base* siege = nullptr;
 	element_base* battle = nullptr;
@@ -1578,7 +1622,7 @@ public:
 					if(!(a.get_army().get_navy_from_army_transport())) {
 
 						set_flags.template operator() < dcon::army_fat_id, false > (a.get_army());
-
+						display.top_army_id = a.get_army();
 					}
 				}
 			} else { // if land province
