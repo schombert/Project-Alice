@@ -29,8 +29,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	assert(command::can_perform_command(state, p));
 #endif
 
-	switch(p.type) {
-
+	switch(p.header.type) {
 
 	case command_type::notify_player_joins:
 	case command_type::notify_player_leaves:
@@ -73,7 +72,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case sys::network_mode_type::client:
 	case sys::network_mode_type::host:
 	{
-		if(is_console_command(p.type))
+		if(is_console_command(p.header.type))
 			break;
 		state.network_state.outgoing_commands.push(p);
 		break;
@@ -5499,11 +5498,13 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	network::create_mp_player(state, name, password, !needs_loading, false, source);
 
 	if(needs_loading) {
-		payload cmd;
-		memset(&cmd, 0, sizeof(cmd));
-		cmd.type = command::command_type::notify_player_is_loading;
-		cmd.source = source;
-		cmd.data.notify_player_is_loading.name = name;
+
+		command::command_data cmd{ command::command_type::notify_player_is_loading, source };
+
+		command::notify_player_is_loading_data payload{ name };
+
+		cmd << payload;
+
 		execute_command(state, cmd);
 	}
 
@@ -5974,822 +5975,767 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 }
 
 bool can_perform_command(sys::state& state, command_data& c) {
-	switch(c.type) {
+	auto source = c.header.source;
+	switch(c.header.type) {
 	case command_type::invalid:
-		std::abort(); // invalid command
-
+		assert(false && "Invalid command received"); // invalid command
+		break;
 	case command_type::change_nat_focus:
-		return can_set_national_focus(state, c.source, c.data.nat_focus.target_state, c.data.nat_focus.focus);
+	{
+		auto& data = c.get_payload<command::national_focus_data>();
+		return can_set_national_focus(state, source, data.target_state, data.focus);
+	}
 
 	case command_type::start_research:
-		return can_start_research(state, c.source, c.data.start_research.tech);
+	{
+		auto& data = c.get_payload<command::start_research_data>();
+		return can_start_research(state, source, data.tech);
+	}
 
 	case command_type::make_leader:
-		return can_make_leader(state, c.source, c.data.make_leader.is_general);
+	{
+		auto& data = c.get_payload<command::make_leader_data>();
+		return can_make_leader(state, source, data.is_general);
+	}
 
 	case command_type::set_factory_type_priority:
-		return can_set_factory_type_priority(state, c.source, c.data.set_factory_priority.factory, c.data.set_factory_priority.value);
+	{
+		auto& data = c.get_payload<command::set_factory_priority_data>();
+		return can_set_factory_type_priority(state, source, data.factory, data.value);
+	}
 
 	case command_type::begin_province_building_construction:
-		return can_begin_province_building_construction(state, c.source, c.data.start_province_building.location,
-				c.data.start_province_building.type);
+	{
+		auto& data = c.get_payload<command::province_building_data>();
+		return can_begin_province_building_construction(state, source, data.location,
+				data.type);
+	}
 
 	case command_type::war_subsidies:
-		return can_give_war_subsidies(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_give_war_subsidies(state, source, data.target);
+	}
 
 	case command_type::cancel_war_subsidies:
-		return can_cancel_war_subsidies(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_cancel_war_subsidies(state, source, data.target);
+	}
 
 	case command_type::increase_relations:
-		return can_increase_relations(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_increase_relations(state, source, data.target);
+	}
 
 	case command_type::decrease_relations:
-		return can_decrease_relations(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_decrease_relations(state, source, data.target);
+	}
 
 	case command_type::begin_factory_building_construction:
-		return can_begin_factory_building_construction(state, c.source, c.data.start_factory_building.location,
-				c.data.start_factory_building.type, c.data.start_factory_building.is_upgrade, c.data.start_factory_building.refit_target);
+	{
+		auto& data = c.get_payload<command::factory_building_data>();
+		return can_begin_factory_building_construction(state, source, data.location,
+				data.type, data.is_upgrade, data.refit_target);
+	}
 
 	case command_type::begin_naval_unit_construction:
-		return can_start_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
-				c.data.naval_unit_construction.type, c.data.naval_unit_construction.template_province);
+	{
+		auto& data = c.get_payload<command::naval_unit_construction_data>();
+		return can_start_naval_unit_construction(state, source, data.location,
+				data.type, data.template_province);
+	}
 
 	case command_type::cancel_naval_unit_construction:
-		return can_cancel_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
-				c.data.naval_unit_construction.type);
+	{
+		auto& data = c.get_payload<command::naval_unit_construction_data>();
+		return can_cancel_naval_unit_construction(state, source, data.location,
+				data.type);
+	}
 
 	case command_type::begin_land_unit_construction:
-		return can_start_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type, c.data.land_unit_construction.template_province);
+	{
+		auto& data = c.get_payload<command::land_unit_construction_data>();
+		return can_start_land_unit_construction(state, source, data.location,
+				data.pop_culture, data.type, data.template_province);
+	}
 
 	case command_type::cancel_land_unit_construction:
-		return can_cancel_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type);
+	{
+		auto& data = c.get_payload<command::land_unit_construction_data>();
+		return can_cancel_land_unit_construction(state, source, data.location,
+				data.pop_culture, data.type);
+	}
 
 	case command_type::delete_factory:
-		return can_delete_factory(state, c.source, c.data.factory.id);
+	{
+		auto& data = c.get_payload<command::factory_data>();
+		return can_delete_factory(state, source, data.id);
+	}
 
 	case command_type::change_factory_settings:
-		return can_change_factory_settings(state, c.source, c.data.factory.id, c.data.factory.priority, c.data.factory.subsidize);
+	{
+		auto& data = c.get_payload<command::factory_data>();
+		return can_change_factory_settings(state, source, data.id, data.priority, data.subsidize);
+	}
 
 	case command_type::make_vassal:
-		return can_make_vassal(state, c.source, c.data.tag_target.ident);
+	{
+		auto& data = c.get_payload<command::tag_target_data>();
+		return can_make_vassal(state, source, data.ident);
+	}
 
 	case command_type::release_and_play_nation:
-		return can_release_and_play_as(state, c.source, c.data.tag_target.ident, c.data.tag_target.player_name);
+	{
+		auto& data = c.get_payload<command::tag_target_data>();
+		return can_release_and_play_as(state, source, data.ident, data.player_name);
+	}
 
 	case command_type::change_budget:
-		return can_change_budget_settings(state, c.source, c.data.budget_data);
+	{
+		auto& data = c.get_payload<command::budget_settings_data>();
+		return can_change_budget_settings(state, source, data);
+	}
 
 	case command_type::start_election:
-		return can_start_election(state, c.source);
+	{
+		return can_start_election(state, source);
+	}
 
 	case command_type::change_influence_priority:
-		return can_change_influence_priority(state, c.source, c.data.influence_priority.influence_target,
-				c.data.influence_priority.priority);
+	{
+		auto& data = c.get_payload<command::influence_priority_data>();
+		return can_change_influence_priority(state, source, data.influence_target,
+				data.priority);
+	}
 
 	case command_type::expel_advisors:
-		return can_expel_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_expel_advisors(state, source, data.influence_target, data.gp_target);
+	}
 
 	case command_type::ban_embassy:
-		return can_ban_embassy(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_ban_embassy(state, source, data.influence_target, data.gp_target);
+	}
 
 	case command_type::discredit_advisors:
-		return can_discredit_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_discredit_advisors(state, source, data.influence_target, data.gp_target);
+	}
 
 	case command_type::decrease_opinion:
-		return can_decrease_opinion(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_decrease_opinion(state, source, data.influence_target, data.gp_target);
+	}
 
 	case command_type::remove_from_sphere:
-		return can_remove_from_sphere(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_remove_from_sphere(state, source, data.influence_target, data.gp_target);
+	}
 
 	case command_type::increase_opinion:
-		return can_increase_opinion(state, c.source, c.data.influence_action.influence_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_increase_opinion(state, source, data.influence_target);
+	}
 
 	case command_type::add_to_sphere:
-		return can_add_to_sphere(state, c.source, c.data.influence_action.influence_target);
+	{
+		auto& data = c.get_payload<command::influence_action_data>();
+		return can_add_to_sphere(state, source, data.influence_target);
+	}
 
 	case command_type::upgrade_colony_to_state:
-		return can_upgrade_colony_to_state(state, c.source, state.world.province_get_state_membership(c.data.generic_location.prov));
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_upgrade_colony_to_state(state, source, state.world.province_get_state_membership(data.prov));
+	}
 
 	case command_type::invest_in_colony:
-		return can_invest_in_colony(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_invest_in_colony(state, source, data.prov);
+	}
 
 	case command_type::abandon_colony:
-		return can_abandon_colony(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_abandon_colony(state, source, data.prov);
+	}
 
 	case command_type::finish_colonization:
-		return can_finish_colonization(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_finish_colonization(state, source, data.prov);
+	}
 
 	case command_type::intervene_in_war:
-		return can_intervene_in_war(state, c.source, c.data.war_target.war, c.data.war_target.for_attacker);
+	{
+		auto& data = c.get_payload<command::war_target_data>();
+		return can_intervene_in_war(state, source, data.war, data.for_attacker);
+	}
 
 	case command_type::suppress_movement:
+	{
 		return true; //can_suppress_movement(state, c.source, c.data.movement.iopt);
+	}
 
 	case command_type::civilize_nation:
-		return can_civilize_nation(state, c.source);
+	{
+		return can_civilize_nation(state, source);
+	}
 
 	case command_type::appoint_ruling_party:
-		return can_appoint_ruling_party(state, c.source, c.data.political_party.p);
+	{
+		auto& data = c.get_payload<command::political_party_data>();
+		return can_appoint_ruling_party(state, source, data.p);
+	}
 
 	case command_type::change_issue_option:
-		return can_enact_issue(state, c.source, c.data.issue_selection.r);
+	{
+		auto& data = c.get_payload<command::issue_selection_data>();
+		return can_enact_issue(state, source, data.r);
+	}
 
 	case command_type::change_reform_option:
-		return can_enact_reform(state, c.source, c.data.reform_selection.r);
+	{
+		auto& data = c.get_payload<command::reform_selection_data>();
+		return can_enact_reform(state, source, data.r);
+	}
 
 	case command_type::become_interested_in_crisis:
-		return can_become_interested_in_crisis(state, c.source);
+	{
+		return can_become_interested_in_crisis(state, source);
+	}
 
 	case command_type::take_sides_in_crisis:
-		return can_take_sides_in_crisis(state, c.source, c.data.crisis_join.join_attackers);
+	{
+		auto& data = c.get_payload<command::crisis_join_data>();
+		return can_take_sides_in_crisis(state, source, data.join_attackers);
+	}
 
 	case command_type::change_stockpile_settings:
-		return can_change_stockpile_settings(state, c.source, c.data.stockpile_settings.c, c.data.stockpile_settings.amount,
-				c.data.stockpile_settings.draw_on_stockpiles);
+	{
+		auto& data = c.get_payload<command::stockpile_settings_data>();
+		return can_change_stockpile_settings(state, source, data.c, data.amount,
+				data.draw_on_stockpiles);
+	}
 
 	case command_type::take_decision:
-		return can_take_decision(state, c.source, c.data.decision.d);
+	{
+		auto& data = c.get_payload<command::decision_data>();
+		return can_take_decision(state, source, data.d);
+	}
 
 	case command_type::make_n_event_choice:
-		return can_make_event_choice(state, c.source, c.data.pending_human_n_event);
-
+	{
+		auto& data = c.get_payload<command::pending_human_n_event_data>();
+		return can_make_event_choice(state, source, data);
+	}
 	case command_type::make_f_n_event_choice:
-		return can_make_event_choice(state, c.source, c.data.pending_human_f_n_event);
-
+	{
+		auto& data = c.get_payload<command::pending_human_f_n_event_data>();
+		return can_make_event_choice(state, source, data);
+	}
 	case command_type::make_p_event_choice:
-		return can_make_event_choice(state, c.source, c.data.pending_human_p_event);
+	{
+		auto& data = c.get_payload<command::pending_human_p_event_data>();
+		return can_make_event_choice(state, source, data);
+	}
 
 	case command_type::make_f_p_event_choice:
-		return can_make_event_choice(state, c.source, c.data.pending_human_f_p_event);
+	{
+		auto& data = c.get_payload<command::pending_human_f_p_event_data>();
+		return can_make_event_choice(state, source, data);
+	}
 
 	case command_type::cancel_cb_fabrication:
-		return can_cancel_cb_fabrication(state, c.source);
+	{
+		return can_cancel_cb_fabrication(state, source);
+	}
 
 	case command_type::fabricate_cb:
-		return can_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type);
+	{
+		auto& data = c.get_payload<command::cb_fabrication_data>();
+		return can_fabricate_cb(state, source, data.target, data.type);
+	}
 
 	case command_type::ask_for_military_access:
-		return can_ask_for_access(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_ask_for_access(state, source, data.target);
+	}
 
 	case command_type::ask_for_alliance:
-		return can_ask_for_alliance(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_ask_for_alliance(state, source, data.target);
+	}
 
 	case command_type::ask_for_free_trade_agreement:
-		return can_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_ask_for_free_trade_agreement(state, source, data.target);
+	}
 
 	case command_type::switch_embargo_status:
-		return can_switch_embargo_status(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_switch_embargo_status(state, source, data.target);
+	}
 
 	case command_type::revoke_trade_rights:
-		return can_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_revoke_trade_rights(state, source, data.target);
+	}
 
 	case command_type::call_to_arms:
-		return can_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war, false, c.data.call_to_arms.automatic_call);
+	{
+		auto& data = c.get_payload<command::call_to_arms_data>();
+		return can_call_to_arms(state, source, data.target, data.war, false, data.automatic_call);
+	}
 
 	case command_type::respond_to_diplomatic_message:
+	{
 		return true; //can_respond_to_diplomatic_message(state, c.source, c.data.message.from, c.data.message.type, c.data.message.accept);
+	}
 
 	case command_type::cancel_military_access:
-		return can_cancel_military_access(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_cancel_military_access(state, source, data.target);
+	}
 
 	case command_type::cancel_alliance:
-		return can_cancel_alliance(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_cancel_alliance(state, source, data.target);
+	}
 
 	case command_type::cancel_given_military_access:
-		return can_cancel_given_military_access(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_cancel_given_military_access(state, source, data.target);
+	}
 
 	case command_type::declare_war:
-		return can_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation);
+	{
+		auto& data = c.get_payload<command::new_war_data>();
+		return can_declare_war(state, source, data.target, data.primary_cb, data.cb_state,
+				data.cb_tag, data.cb_secondary_nation);
+	}
 
 	case command_type::add_war_goal:
-		return can_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,
-				c.data.new_war_goal.cb_state, c.data.new_war_goal.cb_tag, c.data.new_war_goal.cb_secondary_nation);
+	{
+		auto& data = c.get_payload<command::new_war_goal_data>();
+		return can_add_war_goal(state, source, data.war, data.target, data.cb_type,
+				data.cb_state, data.cb_tag, data.cb_secondary_nation);
+	}
 
 	case command_type::start_peace_offer:
-		return can_start_peace_offer(state, c.source, c.data.new_offer.target, c.data.new_offer.war,
-				c.data.new_offer.is_concession);
+	{
+		auto& data = c.get_payload<command::new_offer_data>();
+		return can_start_peace_offer(state, source, data.target, data.war,
+				data.is_concession);
+	}
 
 	case command_type::add_peace_offer_term:
-		return can_add_to_peace_offer(state, c.source, c.data.offer_wargoal.wg);
+	{
+		auto& data = c.get_payload<command::offer_wargoal_data>();
+		return can_add_to_peace_offer(state, source, data.wg);
+	}
 
 	case command_type::send_peace_offer:
-		return can_send_peace_offer(state, c.source);
+	{
+		return can_send_peace_offer(state, source);
+	}
 
 	case command_type::move_army:
-		return can_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset).size() != 0;
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_move_army(state, source, data.a, data.dest, data.reset).size() != 0;
+	}
 
 	case command_type::move_navy:
-		return can_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset).size() != 0;
+	{
+		auto& data = c.get_payload<command::navy_movement_data>();
+		return can_move_navy(state, source, data.n, data.dest, data.reset).size() != 0;
+	}
 
 	case command_type::embark_army:
-		return can_embark_army(state, c.source, c.data.army_movement.a);
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_embark_army(state, source, data.a);
+	}
 
 	case command_type::merge_armies:
-		return can_merge_armies(state, c.source, c.data.merge_army.a, c.data.merge_army.b);
+	{
+		auto& data = c.get_payload<command::merge_army_data>();
+		return can_merge_armies(state, source, data.a, data.b);
+	}
 
 	case command_type::merge_navies:
-		return can_merge_navies(state, c.source, c.data.merge_navy.a, c.data.merge_navy.b);
+	{
+		auto& data = c.get_payload<command::merge_navy_data>();
+		return can_merge_navies(state, source, data.a, data.b);
+	}
 
 	case command_type::split_army:
-		return can_split_army(state, c.source, c.data.army_movement.a);
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_split_army(state, source, data.a);
+	}
 
 	case command_type::split_navy:
-		return can_split_navy(state, c.source, c.data.navy_movement.n);
+	{
+		auto& data = c.get_payload<command::navy_movement_data>();
+		return can_split_navy(state, source, data.n);
+	}
 
 	case command_type::change_unit_type:
-		return can_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
+	{
+		auto& data = c.get_payload<command::change_unit_type_data>();
+		return can_change_unit_type(state, source, data.regs, data.ships, data.new_type);
+	}
 
 	case command_type::delete_army:
-		return can_delete_army(state, c.source, c.data.army_movement.a);
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_delete_army(state, source, data.a);
+	}
 
 	case command_type::delete_navy:
-		return can_delete_navy(state, c.source, c.data.navy_movement.n);
+	{
+		auto& data = c.get_payload<command::navy_movement_data>();
+		return can_delete_navy(state, source, data.n);
+	}
 
 	case command_type::designate_split_regiments:
+	{
 		return true; //can_mark_regiments_to_split(state, c.source, c.data.split_regiments.regs);
+	}
 
 	case command_type::designate_split_ships:
+	{
 		return true; //can_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
+	}
 
 	case command_type::naval_retreat:
-		return can_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy, c.data.retreat_from_naval_battle.auto_retreat, c.data.retreat_from_naval_battle.dest).size() != 0;
+	{
+		auto& data = c.get_payload<command::retreat_from_naval_battle_data>();
+		return can_retreat_from_naval_battle(state, source, data.navy, data.auto_retreat, data.dest).size() != 0;
+	}
 
 	case command_type::land_retreat:
-		return can_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
+	{
+		auto& data = c.get_payload<command::land_battle_data>();
+		return can_retreat_from_land_battle(state, source, data.b);
+	}
 
 	case command_type::start_crisis_peace_offer:
-		return can_start_crisis_peace_offer(state, c.source, c.data.new_offer.is_concession);
+	{
+		auto& data = c.get_payload<command::new_offer_data>();
+		return can_start_crisis_peace_offer(state, source, data.is_concession);
+	}
 
 	case command_type::invite_to_crisis:
+	{
 		return true; // can_invite_to_crisis(state, c.source, c.data.crisis_invitation);
+	}
 
 	case command_type::add_wargoal_to_crisis_offer:
+	{
 		return true; // can_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
+	}
 
 	case command_type::crisis_add_wargoal:
-		return crisis_can_add_wargoal(state, c.source, sys::full_wg{
-		c.source, // added_by;
-		c.data.new_war_goal.target, // target_nation;
-		c.data.new_war_goal.cb_secondary_nation, //  secondary_nation;
-		c.data.new_war_goal.cb_tag, // wg_tag;
-		c.data.new_war_goal.cb_state, // state;
-		c.data.new_war_goal.cb_type // cb
-	});
+	{
+		auto& data = c.get_payload<command::new_war_goal_data>();
+		return crisis_can_add_wargoal(state, source, sys::full_wg{
+		source, // added_by;
+		data.target, // target_nation;
+		data.cb_secondary_nation, //  secondary_nation;
+		data.cb_tag, // wg_tag;
+		data.cb_state, // state;
+		data.cb_type // cb
+		});
+
+	}
 
 	case command_type::send_crisis_peace_offer:
-		return can_send_crisis_peace_offer(state, c.source);
+	{
+		return can_send_crisis_peace_offer(state, source);
+	}
 
 	case command_type::change_admiral:
-		return can_change_admiral(state, c.source, c.data.new_admiral.a, c.data.new_admiral.l);
+	{
+		auto& data = c.get_payload<command::new_admiral_data>();
+		return can_change_admiral(state, source, data.a, data.l);
+	}
 
 	case command_type::change_general:
-		return can_change_general(state, c.source, c.data.new_general.a, c.data.new_general.l);
+	{
+		auto& data = c.get_payload<command::new_general_data>();
+		return can_change_general(state, source, data.a, data.l);
+	}
 
 	case command_type::toggle_mobilization:
+	{
 		return true; //can_toggle_mobilization(state, c.source);
+	}
 
 	case command_type::give_military_access:
-		return can_give_military_access(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_give_military_access(state, source, data.target);
+	}
 
 	case command_type::set_rally_point:
+	{
 		return true; //can_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
+	}
 
 	case command_type::save_game:
+	{
 		return true; //can_save_game(state, c.source, c.data.save_game.and_quit);
+	}
 
 	case command_type::cancel_factory_building_construction:
-		return can_cancel_factory_building_construction(state, c.source, c.data.start_factory_building.location, c.data.start_factory_building.type);
+	{
+		auto& data = c.get_payload<command::factory_building_data>();
+		return can_cancel_factory_building_construction(state, source, data.location, data.type);
+	}
 
 	case command_type::disband_undermanned:
-		return can_disband_undermanned_regiments(state, c.source, c.data.army_movement.a);
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_disband_undermanned_regiments(state, source, data.a);
+	}
 
 	case command_type::even_split_army:
-		return can_evenly_split_army(state, c.source, c.data.army_movement.a);
+	{
+		auto& data = c.get_payload<command::army_movement_data>();
+		return can_evenly_split_army(state, source, data.a);
+	}
 
 	case command_type::even_split_navy:
-		return can_evenly_split_navy(state, c.source, c.data.navy_movement.n);
+	{
+		auto& data = c.get_payload<command::navy_movement_data>();
+		return can_evenly_split_navy(state, source, data.n);
+	}
 
 	case command_type::toggle_hunt_rebels:
+	{
 		return true; //can_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
+	}
 
 	case command_type::toggle_select_province:
-		return can_toggle_select_province(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_toggle_select_province(state, source, data.prov);
+	}
 
 	case command_type::toggle_immigrator_province:
-		return can_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_toggle_immigrator_province(state, source, data.prov);
+	}
 
 	case command_type::state_transfer:
-		return can_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
+	{
+		auto& data = c.get_payload<command::state_transfer_data>();
+		return can_state_transfer(state, source, data.target, data.state);
+	}
 
 	case command_type::enable_debt:
+	{
 		return true;
+	}
 
 	case command_type::move_capital:
-		return can_move_capital(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_move_capital(state, source, data.prov);
+	}
 
 	case command_type::toggle_local_administration:
-		return can_toggle_local_administration(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_toggle_local_administration(state, source, data.prov);
+	}
 
 	case command_type::take_province:
-		return can_take_province(state, c.source, c.data.generic_location.prov);
+	{
+		auto& data = c.get_payload<command::generic_location_data>();
+		return can_take_province(state, source, data.prov);
+	}
 
 	case command_type::toggle_unit_ai_control:
+	{
 		return true;
+	}
 	case command_type::toggle_mobilized_is_ai_controlled:
+	{
 		return true;
+	}
 	case command_type::toggle_interested_in_alliance:
-		return can_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_toggle_interested_in_alliance(state, source, data.target);
+	}
 	case command_type::pbutton_script:
-		return can_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
+	{
+		auto& data = c.get_payload<command::pbutton_data>();
+		return can_use_province_button(state, source, data.button, data.id);
+	}
 	case command_type::nbutton_script:
-		return can_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
+	{
+		auto& data = c.get_payload<command::nbutton_data>();
+		return can_use_nation_button(state, source, data.button, data.id);
+	}
 
 		// common mp commands
 	case command_type::chat_message:
 	{
-		size_t count = 0;
-		for(count = 0; count < sizeof(c.data.chat_message.body); count++)
-			if(c.data.chat_message.body[count] == '\0')
+		auto& data = c.get_payload<command::chat_message_data>();
+		{
+			size_t count = 0;
+			for(count = 0; count < sizeof(data.body); count++)
+				if(data.body[count] == '\0')
 
-				std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
-		return can_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target, c.data.chat_message.sender);
+					std::string_view sv(data.body, data.body + count);
+			return can_chat_message(state, source, data.body, data.target, data.sender);
 
+		}
 	}
 	case command_type::notify_player_ban:
-		return can_notify_player_ban(state, c.source, c.data.notify_player_ban.player_name);
+	{
+		auto& data = c.get_payload<command::notify_player_ban_data>();
+		return can_notify_player_ban(state, source, data.player_name);
+	}
 
 	case command_type::notify_player_kick:
-		return can_notify_player_kick(state, c.source, c.data.notify_player_kick.player_name);
+	{
+		auto& data = c.get_payload<command::notify_player_kick_data>();
+		return can_notify_player_kick(state, source, data.player_name);
+	}
 
 	case command_type::notify_player_joins:
-		return can_notify_player_joins(state, c.source, c.data.notify_join.player_name);
+	{
+		auto& data = c.get_payload<command::notify_joins_data>();
+		return can_notify_player_joins(state, source, data.player_name);
+	}
 
 	case command_type::notify_player_leaves:
-		return can_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai, c.data.notify_leave.player_name);
+	{
+		auto& data = c.get_payload<command::notify_leaves_data>();
+		return can_notify_player_leaves(state, source, data.make_ai, data.player_name);
+	}
 
 	case command_type::notify_player_picks_nation:
-		return can_notify_player_picks_nation(state, c.source, c.data.nation_pick.target, c.data.nation_pick.player_name);
+	{
+		auto& data = c.get_payload<command::nation_pick_data>();
+		return can_notify_player_picks_nation(state, source, data.target, data.player_name);
+	}
 
 	case command_type::notify_player_oos:
+	{
 		return true; //return can_notify_player_oos(state, c.source);
+	}
 	case command_type::advance_tick:
+	{
 		return true; //return can_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed);
+	}
 	case command_type::notify_save_loaded:
+	{
 		return true; //return can_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+	}
 	case command_type::notify_reload:
+	{
 		return true;
+	}
 	case command_type::notify_start_game:
-		return can_notify_start_game(state, c.source);
+	{
+		return can_notify_start_game(state, source);
+	}
 	case command_type::notify_stop_game:
-		return can_notify_stop_game(state, c.source);
+	{
+		return can_notify_stop_game(state, source);
+	}
 	case command_type::notify_pause_game:
+	{
 		return true; //return can_notify_pause_game(state, c.source);
+	}
 	case command_type::release_subject:
-		return can_release_subject(state, c.source, c.data.diplo_action.target);
+	{
+		auto& data = c.get_payload<command::diplo_action_data>();
+		return can_release_subject(state, source, data.target);
+	}
 	case command_type::network_inactivity_ping:
+	{
 		return true;
+	}
 	case command_type::console_command:
+	{
 		return true;
+	}
 	case command_type::grant_province:
+	{
 		return false;
+	}
 	case command_type::network_populate:
+	{
 		return false;
+	}
 	case command_type::notify_player_fully_loaded:
+	{
 		return true;
+	}
 	case command_type::notify_player_is_loading:
+	{
 		return true;
+	}
 	case command_type::change_ai_nation_state:
+	{
 		return true;
+	}
 	case command_type::stop_army_movement:
-		return can_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
+	{
+		auto& data = c.get_payload<command::stop_army_movement_data>();
+		return can_stop_army_movement(state, source, data.army);
+	}
 	case command_type::stop_navy_movement:
-		return can_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
+	{
+		auto& data = c.get_payload<command::stop_navy_movement_data>();
+		return can_stop_navy_movement(state, source, data.navy);
+	}
 	case command_type::command_units:
-		return can_command_units(state, c.source, c.data.command_units.target);
+	{
+		auto& data = c.get_payload<command::command_units_data>();
+		return can_command_units(state, source, data.target);
+	}
 	case command_type::give_back_units:
-		return can_give_back_units(state, c.source, c.data.command_units.target);
+	{
+		auto& data = c.get_payload<command::command_units_data>();
+		return can_give_back_units(state, source, data.target);
+	}
 	case command_type::change_game_rule_setting:
-		return can_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
+	{
+		auto& data = c.get_payload<command::change_gamerule_setting_data>();
+		return can_change_gamerule_setting(state, source, data.gamerule, data.setting);
+	}
 	}
 	return false;
-}
-
-uint32_t command_size(command_type type) {
-	uint32_t size = sizeof(cmd_header);
-	switch(type) {
-	case command_type::invalid:
-		return 0;
-
-	case command_type::change_nat_focus:
-		size += sizeof(national_focus_data);
-		return size;
-	case command_type::start_research:
-		size += sizeof(start_research_data);
-		return size;
-	case command_type::make_leader:
-		size += sizeof(make_leader_data);
-		return size;
-	case command_type::set_factory_type_priority:
-		size += sizeof(set_factory_priority_data);
-		return size;
-	case command_type::begin_province_building_construction:
-		size += sizeof(province_building_data);
-		return size;
-	case command_type::war_subsidies:
-		size += sizeof(diplo_action_data);
-		return size;
-	case command_type::cancel_war_subsidies:
-		size += sizeof(diplo_action_data);
-		return size;
-	case command_type::increase_relations:
-		size += sizeof(diplo_action_data);
-		return size;
-	case command_type::decrease_relations:
-		size += sizeof(diplo_action_data);
-		return size;
-	case command_type::begin_factory_building_construction:
-		return sizeof(factory_building_data);
-	case command_type::begin_naval_unit_construction:
-		return sizeof(naval_unit_construction_data);
-	case command_type::cancel_naval_unit_construction:
-		execute_cancel_naval_unit_construction(state, c.source, c.data.naval_unit_construction.location,
-				c.data.naval_unit_construction.type);
-		break;
-	case command_type::begin_land_unit_construction:
-		execute_start_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type, c.data.land_unit_construction.template_province);
-		break;
-	case command_type::cancel_land_unit_construction:
-		execute_cancel_land_unit_construction(state, c.source, c.data.land_unit_construction.location,
-				c.data.land_unit_construction.pop_culture, c.data.land_unit_construction.type);
-		break;
-	case command_type::delete_factory:
-		execute_delete_factory(state, c.source, c.data.factory.id);
-		break;
-	case command_type::change_factory_settings:
-		execute_change_factory_settings(state, c.source, c.data.factory.id, c.data.factory.priority,
-				c.data.factory.subsidize);
-		break;
-	case command_type::make_vassal:
-		execute_make_vassal(state, c.source, c.data.tag_target.ident);
-		break;
-	case command_type::release_and_play_nation:
-		execute_release_and_play_as(state, c.source, c.data.tag_target.ident, c.data.tag_target.player_name);
-		break;
-	case command_type::change_budget:
-		execute_change_budget_settings(state, c.source, c.data.budget_data);
-		break;
-	case command_type::start_election:
-		execute_start_election(state, c.source);
-		break;
-	case command_type::change_influence_priority:
-		execute_change_influence_priority(state, c.source, c.data.influence_priority.influence_target,
-				c.data.influence_priority.priority);
-		break;
-	case command_type::expel_advisors:
-		execute_expel_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
-		break;
-	case command_type::ban_embassy:
-		execute_ban_embassy(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
-		break;
-	case command_type::discredit_advisors:
-		execute_discredit_advisors(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
-		break;
-	case command_type::decrease_opinion:
-		execute_decrease_opinion(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
-		break;
-	case command_type::remove_from_sphere:
-		execute_remove_from_sphere(state, c.source, c.data.influence_action.influence_target, c.data.influence_action.gp_target);
-		break;
-	case command_type::increase_opinion:
-		execute_increase_opinion(state, c.source, c.data.influence_action.influence_target);
-		break;
-	case command_type::add_to_sphere:
-		execute_add_to_sphere(state, c.source, c.data.influence_action.influence_target);
-		break;
-	case command_type::upgrade_colony_to_state:
-		execute_upgrade_colony_to_state(state, c.source, state.world.province_get_state_membership(c.data.generic_location.prov));
-		break;
-	case command_type::invest_in_colony:
-		execute_invest_in_colony(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::abandon_colony:
-		execute_abandon_colony(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::finish_colonization:
-		execute_finish_colonization(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::intervene_in_war:
-		execute_intervene_in_war(state, c.source, c.data.war_target.war, c.data.war_target.for_attacker);
-		break;
-	case command_type::suppress_movement:
-		execute_suppress_movement(state, c.source, c.data.movement.iopt, c.data.movement.tag);
-		break;
-	case command_type::civilize_nation:
-		execute_civilize_nation(state, c.source);
-		break;
-	case command_type::appoint_ruling_party:
-		execute_appoint_ruling_party(state, c.source, c.data.political_party.p);
-		break;
-	case command_type::change_issue_option:
-		execute_enact_issue(state, c.source, c.data.issue_selection.r);
-		break;
-	case command_type::change_reform_option:
-		execute_enact_reform(state, c.source, c.data.reform_selection.r);
-		break;
-	case command_type::become_interested_in_crisis:
-		execute_become_interested_in_crisis(state, c.source);
-		break;
-	case command_type::take_sides_in_crisis:
-		execute_take_sides_in_crisis(state, c.source, c.data.crisis_join.join_attackers);
-		break;
-	case command_type::change_stockpile_settings:
-		execute_change_stockpile_settings(state, c.source, c.data.stockpile_settings.c, c.data.stockpile_settings.amount,
-				c.data.stockpile_settings.draw_on_stockpiles);
-		break;
-	case command_type::take_decision:
-		execute_take_decision(state, c.source, c.data.decision.d);
-		break;
-	case command_type::make_n_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_n_event);
-		break;
-	case command_type::make_f_n_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_f_n_event);
-		break;
-	case command_type::make_p_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_p_event);
-		break;
-	case command_type::make_f_p_event_choice:
-		execute_make_event_choice(state, c.source, c.data.pending_human_f_p_event);
-		break;
-	case command_type::cancel_cb_fabrication:
-		execute_cancel_cb_fabrication(state, c.source);
-		break;
-	case command_type::fabricate_cb:
-		execute_fabricate_cb(state, c.source, c.data.cb_fabrication.target, c.data.cb_fabrication.type, c.data.cb_fabrication.target_state);
-		break;
-	case command_type::ask_for_military_access:
-		execute_ask_for_access(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::ask_for_alliance:
-		execute_ask_for_alliance(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::ask_for_free_trade_agreement:
-		execute_ask_for_free_trade_agreement(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::switch_embargo_status:
-		execute_switch_embargo_status(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::revoke_trade_rights:
-		execute_revoke_trade_rights(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::call_to_arms:
-		execute_call_to_arms(state, c.source, c.data.call_to_arms.target, c.data.call_to_arms.war, c.data.call_to_arms.automatic_call);
-		break;
-	case command_type::respond_to_diplomatic_message:
-		execute_respond_to_diplomatic_message(state, c.source, c.data.message.from, c.data.message.type, c.data.message.accept);
-		break;
-	case command_type::cancel_military_access:
-		execute_cancel_military_access(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::cancel_alliance:
-		execute_cancel_alliance(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::cancel_given_military_access:
-		execute_cancel_given_military_access(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::declare_war:
-		execute_declare_war(state, c.source, c.data.new_war.target, c.data.new_war.primary_cb, c.data.new_war.cb_state,
-				c.data.new_war.cb_tag, c.data.new_war.cb_secondary_nation, c.data.new_war.call_attacker_allies, c.data.new_war.run_conference);
-		break;
-	case command_type::add_war_goal:
-		execute_add_war_goal(state, c.source, c.data.new_war_goal.war, c.data.new_war_goal.target, c.data.new_war_goal.cb_type,
-				c.data.new_war_goal.cb_state, c.data.new_war_goal.cb_tag, c.data.new_war_goal.cb_secondary_nation);
-		break;
-	case command_type::start_peace_offer:
-		execute_start_peace_offer(state, c.source, c.data.new_offer.target, c.data.new_offer.war,
-				c.data.new_offer.is_concession);
-		break;
-	case command_type::add_peace_offer_term:
-		execute_add_to_peace_offer(state, c.source, c.data.offer_wargoal.wg);
-		break;
-	case command_type::send_peace_offer:
-		execute_send_peace_offer(state, c.source);
-		break;
-	case command_type::move_army:
-		execute_move_army(state, c.source, c.data.army_movement.a, c.data.army_movement.dest, c.data.army_movement.reset, c.data.army_movement.special_order);
-		break;
-	case command_type::move_navy:
-		execute_move_navy(state, c.source, c.data.navy_movement.n, c.data.navy_movement.dest, c.data.navy_movement.reset);
-		break;
-	case command_type::embark_army:
-		execute_embark_army(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::merge_armies:
-		execute_merge_armies(state, c.source, c.data.merge_army.a, c.data.merge_army.b);
-		break;
-	case command_type::merge_navies:
-		execute_merge_navies(state, c.source, c.data.merge_navy.a, c.data.merge_navy.b);
-		break;
-	case command_type::split_army:
-		execute_split_army(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::split_navy:
-		execute_split_navy(state, c.source, c.data.navy_movement.n);
-		break;
-	case command_type::change_unit_type:
-		execute_change_unit_type(state, c.source, c.data.change_unit_type.regs, c.data.change_unit_type.ships, c.data.change_unit_type.new_type);
-		break;
-	case command_type::delete_army:
-		execute_delete_army(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::delete_navy:
-		execute_delete_navy(state, c.source, c.data.navy_movement.n);
-		break;
-	case command_type::designate_split_regiments:
-		execute_mark_regiments_to_split(state, c.source, c.data.split_regiments.regs);
-		break;
-	case command_type::designate_split_ships:
-		execute_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
-		break;
-	case command_type::naval_retreat:
-		execute_retreat_from_naval_battle(state, c.source, c.data.retreat_from_naval_battle.navy, c.data.retreat_from_naval_battle.auto_retreat, c.data.retreat_from_naval_battle.dest);
-		break;
-	case command_type::land_retreat:
-		execute_retreat_from_land_battle(state, c.source, c.data.land_battle.b);
-		break;
-	case command_type::start_crisis_peace_offer:
-		execute_start_crisis_peace_offer(state, c.source, c.data.new_offer.is_concession);
-		break;
-	case command_type::invite_to_crisis:
-		execute_invite_to_crisis(state, c.source, c.data.crisis_invitation);
-		break;
-	case command_type::add_wargoal_to_crisis_offer:
-		execute_add_to_crisis_peace_offer(state, c.source, c.data.crisis_invitation);
-		break;
-	case command_type::crisis_add_wargoal:
-		execute_crisis_add_wargoal(state, c.source, c.data.new_war_goal);
-		break;
-	case command_type::send_crisis_peace_offer:
-		execute_send_crisis_peace_offer(state, c.source);
-		break;
-	case command_type::change_admiral:
-		execute_change_admiral(state, c.source, c.data.new_admiral.a, c.data.new_admiral.l);
-		break;
-	case command_type::change_general:
-		execute_change_general(state, c.source, c.data.new_general.a, c.data.new_general.l);
-		break;
-	case command_type::toggle_mobilization:
-		execute_toggle_mobilization(state, c.source);
-		break;
-	case command_type::give_military_access:
-		execute_give_military_access(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::set_rally_point:
-		execute_set_rally_point(state, c.source, c.data.rally_point.location, c.data.rally_point.naval, c.data.rally_point.enable);
-		break;
-	case command_type::save_game:
-		execute_save_game(state, c.source, c.data.save_game.and_quit);
-		break;
-	case command_type::cancel_factory_building_construction:
-		execute_cancel_factory_building_construction(state, c.source, c.data.start_factory_building.location, c.data.start_factory_building.type);
-		break;
-	case command_type::disband_undermanned:
-		execute_disband_undermanned_regiments(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::even_split_army:
-		execute_evenly_split_army(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::even_split_navy:
-		execute_evenly_split_navy(state, c.source, c.data.navy_movement.n);
-		break;
-	case command_type::toggle_hunt_rebels:
-		execute_toggle_rebel_hunting(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::toggle_select_province:
-		execute_toggle_select_province(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::toggle_immigrator_province:
-		execute_toggle_immigrator_province(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::state_transfer:
-		execute_state_transfer(state, c.source, c.data.state_transfer.target, c.data.state_transfer.state);
-		break;
-	case command_type::release_subject:
-		execute_release_subject(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::enable_debt:
-		execute_enable_debt(state, c.source, c.data.make_leader.is_general);
-		break;
-	case command_type::move_capital:
-		execute_move_capital(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::toggle_local_administration:
-		execute_toggle_local_administration(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::take_province:
-		execute_take_province(state, c.source, c.data.generic_location.prov);
-		break;
-	case command_type::toggle_unit_ai_control:
-		execute_toggle_unit_ai_control(state, c.source, c.data.army_movement.a);
-		break;
-	case command_type::toggle_mobilized_is_ai_controlled:
-		execute_toggle_mobilized_is_ai_controlled(state, c.source);
-		break;
-	case command_type::toggle_interested_in_alliance:
-		execute_toggle_interested_in_alliance(state, c.source, c.data.diplo_action.target);
-		break;
-	case command_type::pbutton_script:
-		execute_use_province_button(state, c.source, c.data.pbutton.button, c.data.pbutton.id);
-		break;
-	case command_type::nbutton_script:
-		execute_use_nation_button(state, c.source, c.data.nbutton.button, c.data.nbutton.id);
-		break;
-		// common mp commands
-	case command_type::chat_message:
-	{
-		size_t count = 0;
-		for(count = 0; count < sizeof(c.data.chat_message.body); count++)
-			if(c.data.chat_message.body[count] == '\0')
-				break;
-		std::string_view sv(c.data.chat_message.body, c.data.chat_message.body + count);
-		execute_chat_message(state, c.source, c.data.chat_message.body, c.data.chat_message.target, c.data.chat_message.sender);
-		break;
-	}
-	case command_type::notify_player_ban:
-		execute_notify_player_ban(state, c.source, c.data.notify_player_ban.make_ai, c.data.notify_player_ban.player_name);
-		break;
-	case command_type::notify_player_kick:
-		execute_notify_player_kick(state, c.source, c.data.notify_player_kick.make_ai, c.data.notify_player_kick.player_name);
-		break;
-	case command_type::notify_player_joins:
-		execute_notify_player_joins(state, c.source, c.data.notify_join.player_name, c.data.notify_join.player_password, c.data.notify_join.needs_loading);
-		break;
-	case command_type::notify_player_leaves:
-		execute_notify_player_leaves(state, c.source, c.data.notify_leave.make_ai, c.data.notify_leave.player_name);
-		break;
-	case command_type::notify_player_picks_nation:
-		execute_notify_player_picks_nation(state, c.source, c.data.nation_pick.target, c.data.nation_pick.player_name);
-		break;
-	case command_type::notify_player_oos:
-		execute_notify_player_oos(state, c.source, c.data.notify_player_oos.player_name);
-		break;
-	case command_type::advance_tick:
-		execute_advance_tick(state, c.source, c.data.advance_tick.checksum, c.data.advance_tick.speed, c.data.advance_tick.date);
-		break;
-	case command_type::notify_save_loaded:
-		execute_notify_save_loaded(state, c.source, c.data.notify_save_loaded.checksum);
-		break;
-	case command_type::notify_reload:
-		execute_notify_reload(state, c.source, c.data.notify_reload.checksum);
-		break;
-	case command_type::notify_start_game:
-		execute_notify_start_game(state, c.source);
-		break;
-	case command_type::notify_stop_game:
-		execute_notify_stop_game(state, c.source);
-		break;
-	case command_type::notify_pause_game:
-		execute_notify_pause_game(state, c.source);
-		break;
-	case command_type::network_inactivity_ping:
-		execute_network_inactivity_ping(state, c.source, c.data.advance_tick.date);
-		break;
-	case command_type::console_command:
-		execute_console_command(state);
-		break;
-	case command_type::grant_province:
-		break;
-	case command_type::network_populate:
-		break;
-	case command_type::notify_player_fully_loaded:
-		execute_notify_player_fully_loaded(state, c.source, c.data.notify_player_fully_loaded.name);
-		break;
-	case command_type::notify_player_is_loading:
-		execute_notify_player_is_loading(state, c.source, c.data.notify_player_fully_loaded.name);
-		break;
-	case command_type::change_ai_nation_state:
-		execute_change_ai_nation_state(state, c.source, c.data.change_ai_nation_state.no_ai);
-		break;
-	case command_type::stop_army_movement:
-		execute_stop_army_movement(state, c.source, c.data.stop_army_movement.army);
-		break;
-	case command_type::stop_navy_movement:
-		execute_stop_navy_movement(state, c.source, c.data.stop_navy_movement.navy);
-		break;
-	case command_type::command_units:
-		execute_command_units(state, c.source, c.data.command_units.target);
-		break;
-	case command_type::give_back_units:
-		execute_give_back_units(state, c.source, c.data.command_units.target);
-		break;
-	case command_type::change_game_rule_setting:
-		execute_change_gamerule_setting(state, c.source, c.data.change_gamerule_setting.gamerule, c.data.change_gamerule_setting.setting);
-		break;
-	}
 }
 
 bool execute_command(sys::state& state, command_data& c) {
@@ -6797,440 +6743,654 @@ bool execute_command(sys::state& state, command_data& c) {
 		return false;
 	switch(c.header.type) {
 	case command_type::invalid:
-		std::abort(); // invalid command
-
+	{
+		assert(false && "Invalid command received"); // invalid command
+		break;
+	}
 	case command_type::change_nat_focus:
-		auto data = c.get_payload<national_focus_data>();
+	{
+		auto& data = c.get_payload<command::national_focus_data>();
 		execute_set_national_focus(state, c.header.source, data.target_state, data.focus);
 		break;
+	}
 	case command_type::start_research:
-		auto data = c.get_payload<start_research_data>();
+	{
+		auto& data = c.get_payload<start_research_data>();
 		execute_start_research(state, c.header.source, data.tech);
 		break;
+	}
 	case command_type::make_leader:
-		auto data = c.get_payload<make_leader_data>();
+	{
+		auto& data = c.get_payload<make_leader_data>();
 		execute_make_leader(state, c.header.source, data.is_general);
 		break;
+	}
 	case command_type::set_factory_type_priority:
-		auto data = c.get_payload<set_factory_priority_data>();
+	{
+		auto& data = c.get_payload<set_factory_priority_data>();
 		execute_set_factory_type_priority(state, c.header.source, data.factory, data.value);
 		break;
+	}
 	case command_type::begin_province_building_construction:
-		auto data = c.get_payload<province_building_data>();
+	{
+		auto& data = c.get_payload<province_building_data>();
 		execute_begin_province_building_construction(state, c.header.source, data.location,
 				data.type);
 		break;
+	}
 	case command_type::war_subsidies:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_give_war_subsidies(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::cancel_war_subsidies:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_cancel_war_subsidies(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::increase_relations:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_increase_relations(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::decrease_relations:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_decrease_relations(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::begin_factory_building_construction:
-		auto data = c.get_payload<factory_building_data>();
+	{
+		auto& data = c.get_payload<factory_building_data>();
 		execute_begin_factory_building_construction(state, c.header.source, data.location,
 				data.type, data.is_upgrade, data.refit_target);
 		break;
+	}
 	case command_type::begin_naval_unit_construction:
-		auto data = c.get_payload<naval_unit_construction_data>();
+	{
+		auto& data = c.get_payload<naval_unit_construction_data>();
 		execute_start_naval_unit_construction(state, c.header.source, data.location,
 				data.type, data.template_province);
 		break;
+	}
 	case command_type::cancel_naval_unit_construction:
-		auto data = c.get_payload<naval_unit_construction_data>();
+	{
+		auto& data = c.get_payload<naval_unit_construction_data>();
 		execute_cancel_naval_unit_construction(state, c.header.source, data.location,
 				data.type);
 		break;
+	}
 	case command_type::begin_land_unit_construction:
-		auto data = c.get_payload<land_unit_construction_data>();
+	{
+		auto& data = c.get_payload<land_unit_construction_data>();
 		execute_start_land_unit_construction(state, c.header.source, data.location,
 				data.pop_culture, data.type, data.template_province);
 		break;
+	}
 	case command_type::cancel_land_unit_construction:
-		auto data = c.get_payload<land_unit_construction_data>();
+	{
+		auto& data = c.get_payload<land_unit_construction_data>();
 		execute_cancel_land_unit_construction(state, c.header.source, data.location,
 				data.pop_culture, data.type);
 		break;
+	}
 	case command_type::delete_factory:
-		auto data = c.get_payload<factory_data>();
+	{
+		auto& data = c.get_payload<factory_data>();
 		execute_delete_factory(state, c.header.source, data.id);
 		break;
+	}
 	case command_type::change_factory_settings:
-		auto data = c.get_payload<factory_data>();
+	{
+		auto& data = c.get_payload<factory_data>();
 		execute_change_factory_settings(state, c.header.source, data.id, data.priority,
 				data.subsidize);
 		break;
+	}
 	case command_type::make_vassal:
-		auto data = c.get_payload<tag_target_data>();
+	{
+		auto& data = c.get_payload<tag_target_data>();
 		execute_make_vassal(state, c.header.source, data.ident);
 		break;
+	}
 	case command_type::release_and_play_nation:
-		auto data = c.get_payload<tag_target_data>();
+	{
+		auto& data = c.get_payload<tag_target_data>();
 		execute_release_and_play_as(state, c.header.source, data.ident, data.player_name);
 		break;
+	}
 	case command_type::change_budget:
-		auto data = c.get_payload<budget_settings_data>();
-		execute_change_budget_settings(state, c.header.source, data.budget_data);
+	{
+		auto& data = c.get_payload<budget_settings_data>();
+		execute_change_budget_settings(state, c.header.source, data);
 		break;
+	}
 	case command_type::start_election:;
+	{
 		execute_start_election(state, c.header.source);
 		break;
+	}
 	case command_type::change_influence_priority:
-		auto data = c.get_payload<influence_priority_data>();
+	{
+		auto& data = c.get_payload<influence_priority_data>();
 		execute_change_influence_priority(state, c.header.source, data.influence_target,
 				data.priority);
 		break;
+	}
 	case command_type::expel_advisors:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_expel_advisors(state, c.header.source, data.influence_target, data.gp_target);
 		break;
+	}
 	case command_type::ban_embassy:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_ban_embassy(state, c.header.source, data.influence_target, data.gp_target);
 		break;
+	}
 	case command_type::discredit_advisors:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_discredit_advisors(state, c.header.source, data.influence_target, data.gp_target);
 		break;
+	}
 	case command_type::decrease_opinion:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_decrease_opinion(state, c.header.source, data.influence_target, data.gp_target);
 		break;
+	}
 	case command_type::remove_from_sphere:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_remove_from_sphere(state, c.header.source, data.influence_target, data.gp_target);
 		break;
+	}
 	case command_type::increase_opinion:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_increase_opinion(state, c.header.source, data.influence_target);
 		break;
+	}
 	case command_type::add_to_sphere:
-		auto data = c.get_payload<influence_action_data>();
+	{
+		auto& data = c.get_payload<influence_action_data>();
 		execute_add_to_sphere(state, c.header.source, data.influence_target);
 		break;
+	}
 	case command_type::upgrade_colony_to_state:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_upgrade_colony_to_state(state, c.header.source, state.world.province_get_state_membership(data.prov));
 		break;
+	}
 	case command_type::invest_in_colony:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_invest_in_colony(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::abandon_colony:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_abandon_colony(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::finish_colonization:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_finish_colonization(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::intervene_in_war:
-		auto data = c.get_payload<war_target_data>();
+	{
+		auto& data = c.get_payload<war_target_data>();
 		execute_intervene_in_war(state, c.header.source, data.war, data.for_attacker);
 		break;
+	}
 	case command_type::suppress_movement:
-		auto data = c.get_payload<movement_data>();
+	{
+		auto& data = c.get_payload<movement_data>();
 		execute_suppress_movement(state, c.header.source, data.iopt, data.tag);
 		break;
+	}
 	case command_type::civilize_nation:
+	{
 		execute_civilize_nation(state, c.header.source);
 		break;
+	}
 	case command_type::appoint_ruling_party:
-		auto data = c.get_payload<political_party_data>();
+	{
+		auto& data = c.get_payload<political_party_data>();
 		execute_appoint_ruling_party(state, c.header.source, data.p);
 		break;
+	}
 	case command_type::change_issue_option:
-		auto data = c.get_payload<issue_selection_data>();
+	{
+		auto& data = c.get_payload<issue_selection_data>();
 		execute_enact_issue(state, c.header.source, data.r);
 		break;
+	}
 	case command_type::change_reform_option:
-		auto data = c.get_payload<reform_selection_data>();
+	{
+		auto& data = c.get_payload<reform_selection_data>();
 		execute_enact_reform(state, c.header.source, data.r);
 		break;
+	}
 	case command_type::become_interested_in_crisis:
+	{
 		execute_become_interested_in_crisis(state, c.header.source);
 		break;
+	}
 	case command_type::take_sides_in_crisis:
-		auto data = c.get_payload<crisis_join_data>();
+	{
+		auto& data = c.get_payload<crisis_join_data>();
 		execute_take_sides_in_crisis(state, c.header.source, data.join_attackers);
 		break;
+	}
 	case command_type::change_stockpile_settings:
-		auto data = c.get_payload<stockpile_settings_data>();
+	{
+		auto& data = c.get_payload<stockpile_settings_data>();
 		execute_change_stockpile_settings(state, c.header.source, data.c, data.amount,
 				data.draw_on_stockpiles);
 		break;
+	}
 	case command_type::take_decision:
-		auto data = c.get_payload<decision_data>();
+	{
+		auto& data = c.get_payload<decision_data>();
 		execute_take_decision(state, c.header.source, data.d);
 		break;
+	}
 	case command_type::make_n_event_choice:
-		auto data = c.get_payload<pending_human_n_event_data>();
-		execute_make_event_choice(state, c.header.source, data.pending_human_n_event);
+	{
+		auto& data = c.get_payload<pending_human_n_event_data>();
+		execute_make_event_choice(state, c.header.source, data);
 		break;
+	}
 	case command_type::make_f_n_event_choice:
-		auto data = c.get_payload<pending_human_f_n_event_data>();
-		execute_make_event_choice(state, c.header.source, data.pending_human_f_n_event);
+	{
+		auto& data = c.get_payload<pending_human_f_n_event_data>();
+		execute_make_event_choice(state, c.header.source, data);
 		break;
+	}
 	case command_type::make_p_event_choice:
-		auto data = c.get_payload<pending_human_p_event_data>();
-		execute_make_event_choice(state, c.header.source, data.pending_human_p_event);
+	{
+		auto& data = c.get_payload<pending_human_p_event_data>();
+		execute_make_event_choice(state, c.header.source, data);
 		break;
+	}
 	case command_type::make_f_p_event_choice:
-		auto data = c.get_payload<pending_human_f_p_event_data>();
-		execute_make_event_choice(state, c.header.source, data.pending_human_f_p_event);
+	{
+		auto& data = c.get_payload<pending_human_f_p_event_data>();
+		execute_make_event_choice(state, c.header.source, data);
 		break;
+	}
 	case command_type::cancel_cb_fabrication:
+	{
 		execute_cancel_cb_fabrication(state, c.header.source);
 		break;
+	}
 	case command_type::fabricate_cb:
-		auto data = c.get_payload<cb_fabrication_data>();
+	{
+		auto& data = c.get_payload<cb_fabrication_data>();
 		execute_fabricate_cb(state, c.header.source, data.target, data.type, data.target_state);
 		break;
+	}
 	case command_type::ask_for_military_access:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_ask_for_access(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::ask_for_alliance:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_ask_for_alliance(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::ask_for_free_trade_agreement:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_ask_for_free_trade_agreement(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::switch_embargo_status:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_switch_embargo_status(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::revoke_trade_rights:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_revoke_trade_rights(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::call_to_arms:
-		auto data = c.get_payload<call_to_arms_data>();
+	{
+		auto& data = c.get_payload<call_to_arms_data>();
 		execute_call_to_arms(state, c.header.source, data.target, data.war, data.automatic_call);
 		break;
+	}
 	case command_type::respond_to_diplomatic_message:
-		auto data = c.get_payload<message_data>();
+	{
+		auto& data = c.get_payload<message_data>();
 		execute_respond_to_diplomatic_message(state, c.header.source, data.from, data.type, data.accept);
 		break;
+	}
 	case command_type::cancel_military_access:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_cancel_military_access(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::cancel_alliance:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_cancel_alliance(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::cancel_given_military_access:
-		auto data = c.get_payload<diplo_action_data>();
-		execute_cancel_given_military_access(state, c.header.source, data.target);
+	{
+		auto& data = c.get_payload<diplo_action_data>();
+		execute_cancel_military_access(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::declare_war:
-		auto data = c.get_payload<new_war_data>();
+	{
+		auto& data = c.get_payload<new_war_data>();
 		execute_declare_war(state, c.header.source, data.target, data.primary_cb, data.cb_state,
 				data.cb_tag, data.cb_secondary_nation, data.call_attacker_allies, data.run_conference);
 		break;
+	}
 	case command_type::add_war_goal:
-		auto data = c.get_payload<new_war_goal_data>();
+	{
+		auto& data = c.get_payload<new_war_goal_data>();
 		execute_add_war_goal(state, c.header.source, data.war, data.target, data.cb_type,
 				data.cb_state, data.cb_tag, data.cb_secondary_nation);
 		break;
+	}
 	case command_type::start_peace_offer:
-		auto data = c.get_payload<new_offer_data>();
+	{
+		auto& data = c.get_payload<new_offer_data>();
 		execute_start_peace_offer(state, c.header.source, data.target, data.war,
 				data.is_concession);
 		break;
+	}
 	case command_type::add_peace_offer_term:
-		auto data = c.get_payload<offer_wargoal_data>();
+	{
+		auto& data = c.get_payload<offer_wargoal_data>();
 		execute_add_to_peace_offer(state, c.header.source, data.wg);
 		break;
+	}
 	case command_type::send_peace_offer:
+	{
 		execute_send_peace_offer(state, c.header.source);
 		break;
+	}
 	case command_type::move_army:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_move_army(state, c.header.source, data.a, data.dest, data.reset, data.special_order);
 		break;
+	}
 	case command_type::move_navy:
-		auto data = c.get_payload<navy_movement_data>();
+	{
+		auto& data = c.get_payload<navy_movement_data>();
 		execute_move_navy(state, c.header.source, data.n, data.dest, data.reset);
 		break;
+	}
 	case command_type::embark_army:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_embark_army(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::merge_armies:
-		auto data = c.get_payload<merge_army_data>();
+	{
+		auto& data = c.get_payload<merge_army_data>();
 		execute_merge_armies(state, c.header.source, data.a, data.b);
 		break;
+	}
 	case command_type::merge_navies:
-		auto data = c.get_payload<merge_navy_data>();
+	{
+		auto& data = c.get_payload<merge_navy_data>();
 		execute_merge_navies(state, c.header.source, data.a, data.b);
 		break;
+	}
 	case command_type::split_army:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_split_army(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::split_navy:
-		auto data = c.get_payload<navy_movement_data>();
+	{
+		auto& data = c.get_payload<navy_movement_data>();
 		execute_split_navy(state, c.header.source, data.n);
 		break;
+	}
 	case command_type::change_unit_type:
-		auto data = c.get_payload<change_unit_type_data>();
+	{
+		auto& data = c.get_payload<change_unit_type_data>();
 		execute_change_unit_type(state, c.header.source, data.regs, data.ships, data.new_type);
 		break;
+	}
 	case command_type::delete_army:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_delete_army(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::delete_navy:
-		auto data = c.get_payload<navy_movement_data>();
+	{
+		auto& data = c.get_payload<navy_movement_data>();
 		execute_delete_navy(state, c.header.source, data.n);
 		break;
+	}
 	case command_type::designate_split_regiments:
-		auto data = c.get_payload<split_regiments_data>();
+	{
+		auto& data = c.get_payload<split_regiments_data>();
 		execute_mark_regiments_to_split(state, c.header.source, data.regs);
 		break;
+	}
 	case command_type::designate_split_ships:
-		auto data = c.get_payload<split_ships_data>();
+	{
+		auto& data = c.get_payload<split_ships_data>();
 		execute_mark_ships_to_split(state, c.header.source, data.ships);
 		break;
+	}
 	case command_type::naval_retreat:
-		auto data = c.get_payload<retreat_from_naval_battle_data>();
+	{
+		auto& data = c.get_payload<retreat_from_naval_battle_data>();
 		execute_retreat_from_naval_battle(state, c.header.source, data.navy, data.auto_retreat, data.dest);
 		break;
+	}
 	case command_type::land_retreat:
-		auto data = c.get_payload<land_battle_data>();
+	{
+		auto& data = c.get_payload<land_battle_data>();
 		execute_retreat_from_land_battle(state, c.header.source, data.b);
 		break;
+	}
 	case command_type::start_crisis_peace_offer:
-		auto data = c.get_payload<new_offer_data>();
+	{
+		auto& data = c.get_payload<new_offer_data>();
 		execute_start_crisis_peace_offer(state, c.header.source, data.is_concession);
 		break;
+	}
 	case command_type::invite_to_crisis:
-		auto data = c.get_payload<crisis_invitation_data>();
-		execute_invite_to_crisis(state, c.header.source, data.crisis_invitation);
+	{
+		auto& data = c.get_payload<crisis_invitation_data>();
+		execute_invite_to_crisis(state, c.header.source, data);
 		break;
+	}
 	case command_type::add_wargoal_to_crisis_offer:
-		auto data = c.get_payload<crisis_invitation_data>();
-		execute_add_to_crisis_peace_offer(state, c.header.source, data.crisis_invitation);
+	{
+		auto& data = c.get_payload<crisis_invitation_data>();
+		execute_add_to_crisis_peace_offer(state, c.header.source, data);
 		break;
+	}
 	case command_type::crisis_add_wargoal:
-		auto data = c.get_payload<new_war_goal_data>();
-		execute_crisis_add_wargoal(state, c.header.source, data.new_war_goal);
+	{
+		auto& data = c.get_payload<new_war_goal_data>();
+		execute_crisis_add_wargoal(state, c.header.source, data);
 		break;
+	}
 	case command_type::send_crisis_peace_offer:
+	{
 		execute_send_crisis_peace_offer(state, c.header.source);
 		break;
+	}
 	case command_type::change_admiral:
-		auto data = c.get_payload<new_admiral_data>();
+	{
+		auto& data = c.get_payload<new_admiral_data>();
 		execute_change_admiral(state, c.header.source, data.a, data.l);
 		break;
+	}
 	case command_type::change_general:
-		auto data = c.get_payload<new_general_data>();
+	{
+		auto& data = c.get_payload<new_general_data>();
 		execute_change_general(state, c.header.source, data.a, data.l);
 		break;
+	}
 	case command_type::toggle_mobilization:
+	{
 		execute_toggle_mobilization(state, c.header.source);
 		break;
+	}
 	case command_type::give_military_access:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_give_military_access(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::set_rally_point:
-		auto data = c.get_payload<rally_point_data>();
+	{
+		auto& data = c.get_payload<rally_point_data>();
 		execute_set_rally_point(state, c.header.source, data.location, data.naval, data.enable);
 		break;
+	}
 	case command_type::save_game:
-		auto data = c.get_payload<save_game_data>();
+	{
+		auto& data = c.get_payload<save_game_data>();
 		execute_save_game(state, c.header.source, data.and_quit);
 		break;
+	}
 	case command_type::cancel_factory_building_construction:
-		auto data = c.get_payload<factory_building_data>();
+	{
+		auto& data = c.get_payload<factory_building_data>();
 		execute_cancel_factory_building_construction(state, c.header.source, data.location, data.type);
 		break;
+	}
 	case command_type::disband_undermanned:
-		auto data = c.get_payload<army_movement_data();
+	{
+		auto& data = c.get_payload < army_movement_data>();
 		execute_disband_undermanned_regiments(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::even_split_army:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_evenly_split_army(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::even_split_navy:
-		auto data = c.get_payload<navy_movement_data>();
+	{
+		auto& data = c.get_payload<navy_movement_data>();
 		execute_evenly_split_navy(state, c.header.source, data.n);
 		break;
+	}
 	case command_type::toggle_hunt_rebels:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_toggle_rebel_hunting(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::toggle_select_province:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_toggle_select_province(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::toggle_immigrator_province:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_toggle_immigrator_province(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::state_transfer:
-		auto data = c.get_payload<state_transfer_data>();
+	{
+		auto& data = c.get_payload<state_transfer_data>();
 		execute_state_transfer(state, c.header.source, data.target, data.state);
 		break;
+	}
 	case command_type::release_subject:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_release_subject(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::enable_debt:
-		auto data = c.get_payload<make_leader_data>();
+	{
+		auto& data = c.get_payload<make_leader_data>();
 		execute_enable_debt(state, c.header.source, data.is_general);
 		break;
+	}
 	case command_type::move_capital:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_move_capital(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::toggle_local_administration:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_toggle_local_administration(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::take_province:
-		auto data = c.get_payload<generic_location_data>();
+	{
+		auto& data = c.get_payload<generic_location_data>();
 		execute_take_province(state, c.header.source, data.prov);
 		break;
+	}
 	case command_type::toggle_unit_ai_control:
-		auto data = c.get_payload<army_movement_data>();
+	{
+		auto& data = c.get_payload<army_movement_data>();
 		execute_toggle_unit_ai_control(state, c.header.source, data.a);
 		break;
+	}
 	case command_type::toggle_mobilized_is_ai_controlled:
+	{
 		execute_toggle_mobilized_is_ai_controlled(state, c.header.source);
 		break;
+	}
 	case command_type::toggle_interested_in_alliance:
-		auto data = c.get_payload<diplo_action_data>();
+	{
+		auto& data = c.get_payload<diplo_action_data>();
 		execute_toggle_interested_in_alliance(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::pbutton_script:
-		auto data = c.get_payload<pbutton_data>();
-		execute_use_province_button(state, c.header.source, data.pbutton.button, data.id);
+	{
+		auto& data = c.get_payload<pbutton_data>();
+		execute_use_province_button(state, c.header.source, data.button, data.id);
 		break;
+	}
 	case command_type::nbutton_script:
-		auto data = c.get_payload<nbutton_data>();
+	{
+		auto& data = c.get_payload<nbutton_data>();
 		execute_use_nation_button(state, c.header.source, data.button, data.id);
 		break;
+	}
 		// common mp commands
 	case command_type::chat_message:
 	{
-		auto data = c.get_payload<chat_message_data>();
+		auto& data = c.get_payload<chat_message_data>();
 		size_t count = 0;
 		for(count = 0; count < sizeof(data.body); count++)
 			if(data.body[count] == '\0')
@@ -7240,93 +7400,137 @@ bool execute_command(sys::state& state, command_data& c) {
 		break;
 	}
 	case command_type::notify_player_ban:
-		auto data = c.get_payload<notify_player_ban_data>();
+	{
+		auto& data = c.get_payload<notify_player_ban_data>();
 		execute_notify_player_ban(state, c.header.source, data.make_ai, data.player_name);
 		break;
+	}
 	case command_type::notify_player_kick:
-		auto data = c.get_payload<notify_player_kick_data>();
+	{
+		auto& data = c.get_payload<notify_player_kick_data>();
 		execute_notify_player_kick(state, c.header.source, data.make_ai, data.player_name);
 		break;
+	}
 	case command_type::notify_player_joins:
-		auto data = c.get_payload<notify_joins_data>();
+	{
+		auto& data = c.get_payload<notify_joins_data>();
 		execute_notify_player_joins(state, c.header.source, data.player_name, data.player_password, data.needs_loading);
 		break;
+	}
 	case command_type::notify_player_leaves:
-		auto data = c.get_payload<notify_leaves_data>();
+	{
+		auto& data = c.get_payload<notify_leaves_data>();
 		execute_notify_player_leaves(state, c.header.source, data.make_ai, data.player_name);
 		break;
+	}
 	case command_type::notify_player_picks_nation:
-		auto data = c.get_payload<nation_pick_data>();
+	{
+		auto& data = c.get_payload<nation_pick_data>();
 		execute_notify_player_picks_nation(state, c.header.source, data.target, data.player_name);
 		break;
+	}
 	case command_type::notify_player_oos:
-		auto data = c.get_payload<notify_player_oos_data();
+	{
+		auto& data = c.get_payload < notify_player_oos_data>();
 		execute_notify_player_oos(state, c.header.source, data.player_name);
 		break;
+	}
 	case command_type::advance_tick:
-		auto data = c.get_payload<advance_tick_data>();
+	{
+		auto& data = c.get_payload<advance_tick_data>();
 		execute_advance_tick(state, c.header.source, data.checksum, data.speed, data.date);
 		break;
+	}
 	case command_type::notify_save_loaded:
-		auto data = c.get_payload<notify_save_loaded_data>();
+	{
+		auto& data = c.get_payload<notify_save_loaded_data>();
 		execute_notify_save_loaded(state, c.header.source, data.checksum);
 		break;
+	}
 	case command_type::notify_reload:
-		auto data = c.get_payload<notify_reload_data>();
+	{
+		auto& data = c.get_payload<notify_reload_data>();
 		execute_notify_reload(state, c.header.source, data.checksum);
 		break;
+	}
 	case command_type::notify_start_game:
+	{
 		execute_notify_start_game(state, c.header.source);
 		break;
+	}
 	case command_type::notify_stop_game:
+	{
 		execute_notify_stop_game(state, c.header.source);
 		break;
+	}
 	case command_type::notify_pause_game:
+	{
 		execute_notify_pause_game(state, c.header.source);
 		break;
+	}
 	case command_type::network_inactivity_ping:
-		auto data = c.get_payload<advance_tick_data>();
+	{
+		auto& data = c.get_payload<advance_tick_data>();
 		execute_network_inactivity_ping(state, c.header.source, data.date);
 		break;
+	}
 	case command_type::console_command:
+	{
 		execute_console_command(state);
 		break;
+	}
 	case command_type::grant_province:
 		break;
 	case command_type::network_populate:
 		break;
 	case command_type::notify_player_fully_loaded:
-		auto data = c.get_payload<notify_player_fully_loaded_data>();
+	{
+		auto& data = c.get_payload<notify_player_fully_loaded_data>();
 		execute_notify_player_fully_loaded(state, c.header.source, data.name);
 		break;
+	}
 	case command_type::notify_player_is_loading:
-		auto data = c.get_payload<notify_player_is_loading_data>();
+	{
+		auto& data = c.get_payload<notify_player_is_loading_data>();
 		execute_notify_player_is_loading(state, c.header.source, data.name);
 		break;
+	}
 	case command_type::change_ai_nation_state:
-		auto data = c.get_payload<change_ai_nation_state_data>();
+	{
+		auto& data = c.get_payload<change_ai_nation_state_data>();
 		execute_change_ai_nation_state(state, c.header.source, data.no_ai);
 		break;
+	}
 	case command_type::stop_army_movement:
-		auto data = c.get_payload<stop_army_movement_data>();
+	{
+		auto& data = c.get_payload<stop_army_movement_data>();
 		execute_stop_army_movement(state, c.header.source, data.army);
 		break;
+	}
 	case command_type::stop_navy_movement:
-		auto data = c.get_payload<stop_navy_movement_data>();
+	{
+		auto& data = c.get_payload<stop_navy_movement_data>();
 		execute_stop_navy_movement(state, c.header.source, data.navy);
 		break;
+	}
 	case command_type::command_units:
-		auto data = c.get_payload<command_units_data>();
+	{
+		auto& data = c.get_payload<command_units_data>();
 		execute_command_units(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::give_back_units:
-		auto data = c.get_payload<command_units_data>();
+	{
+		auto& data = c.get_payload<command_units_data>();
 		execute_give_back_units(state, c.header.source, data.target);
 		break;
+	}
 	case command_type::change_game_rule_setting:
-		auto data = c.get_payload<change_gamerule_setting_data>();
+	{
+		auto& data = c.get_payload<change_gamerule_setting_data>();
 		execute_change_gamerule_setting(state, c.header.source, data.gamerule, data.setting);
 		break;
+	}
 	}
 	return true;
 }

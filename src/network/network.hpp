@@ -53,7 +53,7 @@ struct client_data {
 	struct sockaddr_storage address;
 
 	client_handshake_data hshake_buffer;
-	command::payload recv_buffer;
+	command::command_data recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
@@ -85,7 +85,7 @@ struct network_state {
 	std::string ip_address = "127.0.0.1";
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
-	command::payload recv_buffer;
+	command::command_data recv_buffer;
 	std::vector<uint8_t> save_data; //client
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
@@ -118,9 +118,9 @@ void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
-void broadcast_save_to_clients(sys::state& state, command::payload& c, uint8_t const* buffer, uint32_t length, sys::checksum_key const& k);
-void broadcast_save_to_single_client(sys::state& state, command::payload& c, client_data& client, uint8_t const* buffer, uint32_t length);
-void broadcast_to_clients(sys::state& state, command::payload& c);
+void broadcast_save_to_clients(sys::state& state, command::command_data& c, uint8_t const* buffer);
+void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer, uint32_t length);
+void broadcast_to_clients(sys::state& state, command::command_data& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
@@ -132,7 +132,7 @@ bool check_any_players_loading(sys::state& state); // returns true if any player
 void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai);
 void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded); // wrapper for setting a mp player to being fully loaded or not
 dcon::mp_player_id create_mp_player(sys::state& state, sys::player_name& name, sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play = dcon::nation_id{} );
-void notify_player_is_loading(sys::state& state, sys::player_name name, dcon::nation_id nation, bool execute_self); // wrapper for notiying clients are loading
+void notify_player_is_loading(sys::state& state, sys::player_name& name, dcon::nation_id nation, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
@@ -144,8 +144,8 @@ void log_player_nations(sys::state& state);
 void place_host_player_after_saveload(sys::state& state);
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
-void notify_player_joins(sys::state& state, network::client_data& client);
-void notify_player_joins(sys::state& state, sys::player_name name, dcon::nation_id nation);
+void notify_player_joins(sys::state& state, network::client_data& client, bool needs_loading);
+void notify_player_joins(sys::state& state, sys::player_name& name, dcon::nation_id nation, bool needs_loading);
 
 void load_host_settings(sys::state& state);
 void save_host_settings(sys::state& state);

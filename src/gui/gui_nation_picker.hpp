@@ -237,12 +237,15 @@ public:
 				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 				/* Now send the saved buffer before filling the unsaved data to the clients
 				henceforth. */
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
-				c.type = command::command_type::notify_save_loaded;
-				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
+
+				command::command_data c{ command::command_type::notify_save_loaded, state.local_player_nation };
+				command::notify_save_loaded_data payload{ };
+				payload.target = dcon::nation_id{ };
+				payload.length = state.network_state.current_save_length;
+				payload.checksum = state.network_state.current_mp_state_checksum;
+
+				c << payload;
+				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get());
 			} else {
 				state.fill_unsaved_data();
 			}
