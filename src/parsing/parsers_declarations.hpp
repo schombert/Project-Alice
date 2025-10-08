@@ -1194,6 +1194,7 @@ struct building_definition : public modifier_base {
 	int32_t time = 0;
 	int32_t cost = 0;
 	bool can_be_built_in_colonies = false;
+	int8_t factory_tier = 0;
 	economy::province_building_type stored_type = economy::province_building_type::factory;
 
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context);
