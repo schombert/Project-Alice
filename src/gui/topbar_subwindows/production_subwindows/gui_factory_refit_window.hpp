@@ -111,8 +111,7 @@ public:
 			set_button_text(state, text::produce_simple_string(state, state.world.factory_type_get_name(refit_target_id)));
 		}
 
-		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid,
-			fat.get_building_type().id, false, refit_target_id);
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid, fat.get_building_type(), false, refit_target_id);
 
 	}
 
@@ -251,19 +250,42 @@ public:
 
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		auto type = state.world.factory_get_building_type(fid);
+		auto pid = state.world.factory_get_province_from_factory_location(fid);
 
-		auto is_land = true;
+		std::vector<dcon::factory_type_id> types;
+		for(auto t : state.world.in_factory_type) {
+			types.push_back(t);
+		}
 
-		for(auto ftid : state.world.in_factory_type) {
-			if(type == ftid) {
-				continue;
+		std::sort(types.begin(), types.end(), [&](auto a, auto b) {
+			// Constructable first
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, a) != command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, b)) {
+				return (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, a) > (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, b);
 			}
-			row_contents.push_back(ftid);
+			// Then sort by commodity
+			if(state.world.factory_type_get_output(a).id.index() != state.world.factory_type_get_output(b).id.index()) {
+				// First show types with the same output
+				if(state.world.factory_type_get_output(type) == state.world.factory_type_get_output(a) && state.world.factory_type_get_output(type) != state.world.factory_type_get_output(b)) {
+					return false;
+				}
+				if(state.world.factory_type_get_output(type) == state.world.factory_type_get_output(b) && state.world.factory_type_get_output(type) != state.world.factory_type_get_output(a)) {
+					return true;
+				}
+				return state.world.factory_type_get_output(a).id.index() < state.world.factory_type_get_output(b).id.index();
+			}
+			// Then sort by tier
+			if(state.world.factory_type_get_factory_tier(a) != state.world.factory_type_get_factory_tier(b)) {
+				return state.world.factory_type_get_factory_tier(a) < state.world.factory_type_get_factory_tier(b);
+			}
+			return a.value > b.value;
+		});
+
+		for(auto t : types) {
+			row_contents.push_back(t);
 		}
 
 		update(state);
 	}
-
 };
 
 class factory_refit_window : public window_element_base {
