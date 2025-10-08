@@ -1810,11 +1810,6 @@ public:
 		project_window = win2.get();
 		add_child_to_front(std::move(win2));
 
-		auto win3 = make_element_by_type<factory_refit_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("factory_refit_window"))->second.definition);
-		factory_refit_win = win3.get();
-		factory_refit_win->set_visible(state, false);
-		add_child_to_front(std::move(win3));
-
 		show_output_commodity = std::unique_ptr<bool[]>(new bool[state.world.commodity_size()]);
 		set_visible(state, false);
 	}
@@ -1961,11 +1956,6 @@ public:
 			return message_result::consumed;
 		} else if(payload.holds_type<production_foreign_invest_target>()) {
 			payload.emplace<production_foreign_invest_target>(production_foreign_invest_target{foreign_invest_win->curr_nation});
-			return message_result::consumed;
-		} else if(payload.holds_type<open_factory_refit>()) {
-			auto val = any_cast<open_factory_refit>(payload);
-			selected_factory = val.factory_selection;
-			factory_refit_win->set_visible(state, factory_refit_win->is_visible() ? false : true);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::factory_id>()) {
 			payload.emplace<dcon::factory_id>(selected_factory);
