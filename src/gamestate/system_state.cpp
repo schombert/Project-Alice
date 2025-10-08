@@ -2766,9 +2766,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 
-		if(!bool(military_definitions.infantry)) {
-			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
-		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}

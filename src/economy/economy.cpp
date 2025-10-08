@@ -2880,7 +2880,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.nation_get_stockpiles(nations, c),
 				0.f
 			);
-			auto total_supply = production + national_stockpile;
+			auto total_supply = national_stockpile + production;
+			auto supply_from_nation_ratio = ve::select(total_supply == 0.f, 0.f, national_stockpile / total_supply);
 			auto total_demand = state.world.market_get_demand(ids, c) + merchants_demand;
 			auto old_saturation = state.world.market_get_demand_satisfaction(ids, c);
 			auto new_saturation = ve::select(total_demand == 0.f, 0.f, total_supply / total_demand);
@@ -2917,8 +2918,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				ids, c,
 				ve::max(0.f, (
 					state.world.market_get_stockpile(ids, c) * (1.f - stockpile_spoilage)
-					+ total_supply - merchants_supply
-					- total_demand * new_saturation
+					+ total_supply - merchants_supply - national_stockpile
+					- total_demand * new_saturation * (1.f - supply_from_nation_ratio)
 				))
 			);
 
@@ -2952,19 +2953,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// there is only one capital in a country!,
 			// which means that we can safely pay back for siphoned stockpile
 			// and change national stockpile at the same time
-			ve::apply([&](bool do_it, float total_demand_i, float national_stockpile_i, float supply_sold_ratio_i, dcon::nation_id nations_i, dcon::market_id ids_i) {
+			ve::apply([&](bool do_it, float bought_from_nation, float national_stockpile_i, dcon::nation_id nations_i, dcon::market_id ids_i) {
 				if(do_it) {
-					auto buy_from_nation = ve::min(national_stockpile_i, total_demand_i * supply_sold_ratio_i);
 					auto bought_from_nation_cost =
-						buy_from_nation
+						bought_from_nation
 						* state.world.market_get_price(ids_i, c)
 						* state.inflation;
-					state.world.nation_set_stockpiles(nations_i, c, national_stockpile_i - buy_from_nation);
+					state.world.nation_set_stockpiles(nations_i, c, national_stockpile_i - bought_from_nation);
 					auto treasury = state.world.nation_get_stockpiles(nations_i, economy::money);
-					state.world.nation_set_stockpiles(
-						nations_i, economy::money, treasury + bought_from_nation_cost);
+					state.world.nation_set_stockpiles(nations_i, economy::money, treasury + bought_from_nation_cost);
 				}
-			}, capital_mask && draw_from_stockpile, total_demand, national_stockpile, supply_sold_ratio, nations, ids);
+			}, capital_mask && draw_from_stockpile, national_stockpile * supply_sold_ratio, national_stockpile, nations, ids);
 		}
 	});
 
