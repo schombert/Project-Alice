@@ -211,6 +211,7 @@ void update_ai_colony_starting(sys::state& state) {
 	static std::vector<int32_t> free_points;
 	free_points.clear();
 	free_points.resize(uint32_t(state.defines.colonial_rank), -1);
+	uint64_t seed = 0; // Seed for random shuffle below
 	for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
 		if(state.world.nation_get_is_player_controlled(state.nations_by_rank[i])) {
 			free_points[i] = 0;
@@ -219,6 +220,7 @@ void update_ai_colony_starting(sys::state& state) {
 				free_points[i] = 0;
 			} else {
 				free_points[i] = nations::free_colonial_points(state, state.nations_by_rank[i]);
+				seed += (uint64_t) state.nations_by_rank[i].index();
 			}
 		}
 	}
@@ -227,14 +229,15 @@ void update_ai_colony_starting(sys::state& state) {
 	for(auto sd : state.world.in_state_definition) {
 		states.push_back(sd);
 	}
-	// Shuffle the vector
-	auto seed = (uint64_t) state.current_date.to_raw_value();
-	for(int i = (int)states.size() - 1; i > 0; i--) {
-		auto rnd = rng::get_random(state, (uint32_t) seed);
-		seed = rnd; // Update seed for next call
+	// Fisher-Yates shuffle implementation
+	const int size = static_cast<int>(states.size());
+	for(int i = size - 1; i > 0; i--) {
+		auto rnd = rng::get_random(state, static_cast<uint32_t>(seed));
+		seed = rnd;
 		int j = rnd % (i + 1);
 		std::swap(states[i], states[j]);
 	}
+
 	// Iterate every colonizeable state and find colonizer
 	for(auto sdid : states) {
 		auto sd = dcon::fatten(state.world, sdid);
