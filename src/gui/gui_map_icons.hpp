@@ -740,6 +740,7 @@ public:
 	}
 };
 
+// GUI component for map_general element of top_unit_icon, use together with alice_render_on_map_generals define
 class tl_map_general_icon : public button_element_base {
 public:
 	bool visible = true;
@@ -853,7 +854,7 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
 		// If the army has a general - don't display unit previews
-		if(params->common_unit_1 >= 0 && !state.world.army_get_general_from_army_leadership(params->top_army_id)) {
+		if(params->common_unit_1 >= 0 && (state.defines.alice_render_on_map_generals == 0.f || !state.world.army_get_general_from_army_leadership(params->top_army_id))) {
 			frame = params->common_unit_1;
 			visible = true;
 		} else {
@@ -872,7 +873,7 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		top_display_parameters* params = retrieve<top_display_parameters*>(state, parent);
-		if(params->common_unit_2 >= 0 && !state.world.army_get_general_from_army_leadership(params->top_army_id)) {
+		if(params->common_unit_2 >= 0 && (state.defines.alice_render_on_map_generals == 0.f || !state.world.army_get_general_from_army_leadership(params->top_army_id))) {
 			frame = params->common_unit_2;
 			visible = true;
 		} else {
@@ -951,7 +952,6 @@ public:
 
 // A component for a singular standing army
 class top_unit_icon : public window_element_base {
-	tl_map_general_icon* general_icon;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
 			return make_element_by_type<tl_controller_flag>(state, id);
@@ -986,9 +986,7 @@ class top_unit_icon : public window_element_base {
 		} else if(name == "frame_bg") {
 			return make_element_by_type<tl_frame_bg>(state, id);
 		} else if(name == "map_general") {
-			auto ptr = make_element_by_type<tl_map_general_icon>(state, id);
-			general_icon = ptr.get();
-			return ptr;
+			return make_element_by_type<tl_map_general_icon>(state, id);
 		} else {
 			return nullptr;
 		}
