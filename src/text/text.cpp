@@ -1459,6 +1459,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				--m;
 				if(m >= next_glyph_position) m = next_glyph_position - 1;
 
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
@@ -1591,6 +1592,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				--m;
 				if(m >= next_glyph_position) m = next_glyph_position - 1;
 
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
