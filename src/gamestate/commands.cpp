@@ -5798,23 +5798,24 @@ void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::check
 	state.network_state.reported_oos = false;
 
 	window::change_cursor(state, window::cursor_type::busy);
-	state.ui_lock.lock();
-	std::vector<dcon::nation_id> no_ai_nations;
-	for(const auto n : state.world.in_nation)
-		if(state.world.nation_get_is_player_controlled(n))
-			no_ai_nations.push_back(n);
-	dcon::nation_id old_local_player_nation = state.local_player_nation;
-	/* Save the buffer before we fill the unsaved data */
-	size_t length = sizeof_save_section(state);
-	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
-	sys::write_save_section(save_buffer.get(), state);
-	state.local_player_nation = dcon::nation_id{ };
-	/* Then reload as if we loaded the save data */
-	state.reset_state();
-	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-	network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
-	state.fill_unsaved_data();
-	state.ui_lock.unlock();
+	{
+		std::scoped_lock lock{ state.ui_lock };
+		std::vector<dcon::nation_id> no_ai_nations;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				no_ai_nations.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+		/* Save the buffer before we fill the unsaved data */
+		size_t length = sizeof_save_section(state);
+		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+		sys::write_save_section(save_buffer.get(), state);
+		state.local_player_nation = dcon::nation_id{ };
+		/* Then reload as if we loaded the save data */
+		state.reset_state();
+		sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+		network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
+		state.fill_unsaved_data();
+	}
 	window::change_cursor(state, window::cursor_type::normal);
 
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
@@ -5856,7 +5857,7 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	state.network_state.current_save_length = 0;
 	state.network_state.last_save_checksum = sys::checksum_key{ };
 	/* Clear AI data */
-	for(const auto n : state.world.in_nation)
+	for(const auto n : state.world.in_nation) {
 		if(state.world.nation_get_is_player_controlled(n)) {
 			ai::remove_ai_data(state, n);
 			// give back units if puppet becomes player controlled
@@ -5864,17 +5865,17 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 				military::give_back_units(state, n);
 			}
 		}
+	}
+	{
+		std::scoped_lock lock{ state.ui_lock };
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
+		state.set_selected_province(dcon::province_id{});
+		state.map_state.unhandled_province_selection = true;
 
-	state.ui_lock.lock();
-	game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
-	state.set_selected_province(dcon::province_id{});
-	state.map_state.unhandled_province_selection = true;
-
-	auto cache = sys::player_data{};
-	cache.nation = state.local_player_nation;
-	state.player_data_cache.push_back(cache);
-
-	state.ui_lock.unlock();
+		auto cache = sys::player_data{};
+		cache.nation = state.local_player_nation;
+		state.player_data_cache.push_back(cache);
+	}
 }
 
 void notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -5935,11 +5936,12 @@ bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
-	state.ui_lock.lock();
-	game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
-	state.set_selected_province(dcon::province_id{});
-	state.map_state.unhandled_province_selection = true;
-	state.ui_lock.unlock();
+	{
+		std::scoped_lock lock{ state.ui_lock };
+		game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
+		state.set_selected_province(dcon::province_id{});
+		state.map_state.unhandled_province_selection = true;
+	}
 }
 
 void notify_stop_game(sys::state& state, dcon::nation_id source) {

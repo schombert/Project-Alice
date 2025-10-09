@@ -93,7 +93,7 @@ struct network_state {
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
-	std::mutex save_slock;
+	std::mutex command_lock; // when this lock is held, the command thread will be blocked. Used on the UI thread to ensure no commands are executed in the meantime
 	bool as_v6 = false;
 	bool as_server = false;
 	bool save_stream = false; //client
@@ -119,7 +119,7 @@ void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 void broadcast_save_to_clients(sys::state& state, command::command_data& c, uint8_t const* buffer);
-void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer, uint32_t length);
+void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer);
 void broadcast_to_clients(sys::state& state, command::command_data& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);

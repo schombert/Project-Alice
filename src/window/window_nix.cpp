@@ -345,13 +345,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 		glfwPollEvents();
 		// Run game code
 
-
-
-
-		game_state.ui_lock.lock();
-		game_state.render();
-		glfwSwapBuffers(window);
-		game_state.ui_lock.unlock();
+		{
+			std::scoped_lock lock{ game_state.ui_lock };
+			game_state.render();
+			glfwSwapBuffers(window);
+		}
 
 		sound::update_music_track(game_state);
 	}
