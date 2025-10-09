@@ -38,8 +38,7 @@ void take_ai_decisions(sys::state& state) {
 			auto ai_will_do = state.world.decision_get_ai_will_do(d);
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 				// AI-only, not dead nations
-				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids)
-					&& state.world.nation_get_owned_province_count(ids) != 0;
+				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids) && nations::exists_or_is_utility_tag(state, ids);
 				if(ve::compress_mask(filter_a).v != 0) {
 					// empty allow assumed to be an "always = yes"
 					ve::mask_vector filter_b = potential
