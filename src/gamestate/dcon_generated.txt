@@ -576,6 +576,11 @@ object {
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ factory_tier }
+		type{ uint8_t }
+		tag{ scenario }
+	}
 }
 
 

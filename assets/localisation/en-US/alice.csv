@@ -1272,6 +1272,7 @@ production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production li
 production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
 production_refit_factory_tooltip_3;Ruling party allows building factories
 production_refit_factory_tooltip_4;Old and new types have the same inputs or the same outputs
+factory_refit;Refit factory
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$
@@ -1299,6 +1300,7 @@ alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
 alice_factory_construction_explain_5;Progress: ?Y$x$?W
 alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
+factory_tier;Tier: ?Y$x$?W
 alice_factory_base_workforce;Base workforce ?Y$x$?W
 alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
