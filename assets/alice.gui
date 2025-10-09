@@ -1709,6 +1709,12 @@ guiTypes = {
 			Orientation = "UPPER_LEFT"
 
 			iconType = {
+				name = "map_general"
+				spriteType = "GFX_alice_map_general"
+				position = { 4 0 }
+			}
+
+			iconType = {
 				name ="frame_bg"
 				spriteType = "GFX_alice_unit_frames"
 				position = { 4 0 }
