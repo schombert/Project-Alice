@@ -836,6 +836,7 @@ struct command_data {
 	friend command_data& operator << (command_data& msg, data_type& data) {
 
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		std::memset(&msg.payload, 0, sizeof(msg.payload));
 
 		std::memcpy(&msg.payload, &data, sizeof(data_type));
@@ -847,6 +848,7 @@ struct command_data {
 	friend command_data& operator >> (command_data& msg, data_type& data) {
 
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		std::memcpy(&data, &msg.payload, sizeof(data_type));
 		std::memset(&msg.payload, 0, sizeof(msg.payload));
 		return msg;
@@ -857,6 +859,7 @@ struct command_data {
 	data_type copy_payload() const {
 
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 
 		data_type output{ };
 		std::memcpy(&output, &payload, sizeof(data_type));
@@ -866,6 +869,7 @@ struct command_data {
 	template<typename data_type>
 	data_type& get_payload() {
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		auto ptr = &payload;
 		return reinterpret_cast<data_type&>(*ptr);
 	}

@@ -5978,6 +5978,10 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 	}
 	return;
 }
+// make sure that ALL command cases are handles explicitly
+#pragma warning( push )
+#pragma warning( error : 4061 )
+#pragma warning( error : 4062 )
 
 bool can_perform_command(sys::state& state, command_data& c) {
 	auto source = c.header.source;
@@ -7539,6 +7543,8 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	return true;
 }
+
+#pragma warning( pop )
 
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
