@@ -77,6 +77,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/economy_viewer.cpp"
 	"src/gui/unit_tooltip.cpp"
 	"src/gui/gui_context_window.cpp"
+	"src/gui/topbar_subwindows/production_subwindows/gui_factory_refit_window.cpp"
 	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
