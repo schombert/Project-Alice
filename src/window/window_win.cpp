@@ -406,6 +406,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	MSG msg;
 	// pump message loop
 	while(true) {
+		std::unique_lock lock(game_state.ui_lock);
+		game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
 		if(PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
 			if(msg.message == WM_QUIT) {
 				break;
@@ -415,7 +417,6 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			DispatchMessageW(&msg);
 		} else {
 			// Run game code
-			std::scoped_lock lock{ game_state.ui_lock };
 			game_state.render();
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
 		}

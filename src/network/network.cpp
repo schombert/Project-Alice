@@ -1142,7 +1142,9 @@ void notify_player_joins_discovery(sys::state& state, network::client_data& clie
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	{
-		std::scoped_lock lock{ state.ui_lock };
+		state.yield_ui_lock = true;
+		std::unique_lock lock(state.ui_lock);
+
 		std::vector<dcon::nation_id> no_ai_nations;
 		for(const auto n : state.world.in_nation)
 			if(state.world.nation_get_is_player_controlled(n))
@@ -1157,6 +1159,10 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 		network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
 		state.fill_unsaved_data();
 		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+
+		state.yield_ui_lock = false;
+		lock.unlock();
+		state.ui_lock_cv.notify_one();
 	}
 }
 
@@ -1309,7 +1315,8 @@ void full_reset_after_oos(sys::state& state) {
 		}
 		// lock the command lock here as this is being called from the ui thread! And we do not want any other commands queued or executed during this time
 		{
-			std::scoped_lock lock{ state.network_state.command_lock };
+			state.network_state.yield_command_lock = true;
+			std::unique_lock lock{ state.network_state.command_lock };
 			// if the save state has changed, write a new network save
 			if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
 				network::write_network_save(state);
@@ -1319,6 +1326,9 @@ void full_reset_after_oos(sys::state& state) {
 			load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+			state.network_state.yield_command_lock = false;
+			lock.unlock();
+			state.network_state.command_lock_cv.notify_one();
 
 		}
 		{ // set up commands, one for reload, one for save load
@@ -1639,7 +1649,6 @@ void send_and_receive_commands(sys::state& state) {
 	   The slock is only locked here in the host section as it is redundant to lock it in singleplayer, and clients in a mp game cannot load the save via the ui anyway */
 
 
-		if(state.network_state.command_lock.try_lock()) {
 
 			accept_new_clients(state); // accept new connections
 			receive_from_clients(state); // receive new commands
@@ -1729,9 +1738,7 @@ void send_and_receive_commands(sys::state& state) {
 #endif
 				}
 			}
-			state.network_state.command_lock.unlock();
-		}
-		
+
 	} else if(state.network_mode == sys::network_mode_type::client) {
 		if(state.network_state.handshake) {
 			int r = client_process_handshake(state);

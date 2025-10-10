@@ -178,7 +178,8 @@ public:
 		ui::clear_event_windows(state);
 
 		{
-			std::scoped_lock lock{ state.network_state.command_lock };
+			state.network_state.yield_command_lock = true;
+			std::unique_lock lock{ state.network_state.command_lock };
 			std::vector<dcon::nation_id> no_ai_nations;
 			for(const auto n : state.world.in_nation)
 				if(state.world.nation_get_is_player_controlled(n))
@@ -257,6 +258,9 @@ public:
 			state.map_state.unhandled_province_selection = true;
 			state.railroad_built.store(true, std::memory_order::release);
 			state.sprawl_update_requested.store(true, std::memory_order::release);
+			state.network_state.yield_command_lock = false;
+			lock.unlock();
+			state.network_state.command_lock_cv.notify_one();
 		}
 		state.game_state_updated.store(true, std::memory_order_release);
 		/*state.render_semaphore.release();*/

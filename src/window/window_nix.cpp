@@ -342,11 +342,11 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	change_cursor(game_state, cursor_type::normal);
 
 	while(!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
-		// Run game code
-
 		{
-			std::scoped_lock lock{ game_state.ui_lock };
+			std::unique_lock lock(game_state.ui_lock);
+			game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
+			glfwPollEvents();
+			// Run game code
 			game_state.render();
 			glfwSwapBuffers(window);
 		}

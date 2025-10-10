@@ -94,6 +94,8 @@ struct network_state {
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
 	std::mutex command_lock; // when this lock is held, the command thread will be blocked. Used on the UI thread to ensure no commands are executed in the meantime
+	std::condition_variable command_lock_cv; // condition variable for command lock
+	bool yield_command_lock = false;
 	bool as_v6 = false;
 	bool as_server = false;
 	bool save_stream = false; //client
@@ -103,11 +105,10 @@ struct network_state {
 	bool handshake = true; // if in handshake mode -> expect handshake data
 	bool finished = false; //game can run after disconnection but only to show error messages
 	sys::checksum_key last_save_checksum; // the last save checksum which was written to the network
-	bool full_reload_needed = true; // whether or not a full host&lobby reload is needed when a new client connects, or a partial reload. Generally after an ingame command is issued a full reload becomes needed
 	std::atomic<bool> clients_loading_state_changed; // flag to indicate if any client loading state has changed (client has started loading, finished loading, or left the game)
 	std::atomic<bool> any_client_loading_flag; // flag to signal if any clients are currently loading. If "clients_loading_state_changed" is false, it will use this instead, otherwise compute it manually by iterating over the players.
 
-	network_state() : outgoing_commands(1024) {}
+	network_state() : outgoing_commands(4096) {}
 	~network_state() {}
 };
 inline void write_player_nations(sys::state& state) noexcept;
