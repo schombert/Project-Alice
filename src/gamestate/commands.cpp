@@ -502,7 +502,9 @@ void execute_begin_province_building_construction(sys::state& state, dcon::natio
 
 void cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
 	command_data p{ command_type::cancel_factory_building_construction, source };
-	auto data = factory_building_data{ location, type };
+	auto data = factory_building_data{ };
+	data.location = location;
+	data.type = type;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -856,7 +858,9 @@ void execute_start_land_unit_construction(sys::state& state, dcon::nation_id sou
 void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
 
 	command_data p{ command_type::cancel_naval_unit_construction, source };
-	auto data = naval_unit_construction_data{ location, type };
+	auto data = naval_unit_construction_data{  };
+	data.location = location;
+	data.type = type;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -879,7 +883,10 @@ void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dc
 
 
 	command_data p{ command_type::cancel_land_unit_construction, source };
-	auto data = land_unit_construction_data{ location, soldier_culture, type };
+	auto data = land_unit_construction_data{ };
+	data.location = location;
+	data.pop_culture = soldier_culture;
+	data.type = type;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -903,7 +910,8 @@ void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id 
 
 
 	command_data p{ command_type::delete_factory, source };
-	auto data = factory_data{ f };
+	auto data = factory_data{  };
+	data.id = f;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -977,7 +985,8 @@ void execute_change_factory_settings(sys::state& state, dcon::nation_id source, 
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t) {
 
 	command_data p{ command_type::make_vassal, source };
-	auto data = tag_target_data{ t };
+	auto data = tag_target_data{  };
+	data.ident = t;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -1363,7 +1372,8 @@ void execute_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation
 void increase_opinion(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
 
 	command_data p{ command_type::increase_opinion, source };
-	auto data = influence_action_data{ influence_target };
+	auto data = influence_action_data{ };
+	data.influence_target = influence_target;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -1500,7 +1510,8 @@ void execute_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::n
 void add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target) {
 
 	command_data p{ command_type::add_to_sphere, source };
-	auto data = influence_action_data{ influence_target };
+	auto data = influence_action_data{ };
+	data.influence_target = influence_target;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -4115,7 +4126,8 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::embark_army, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4280,7 +4292,8 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::disband_undermanned, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4302,7 +4315,8 @@ void execute_disband_undermanned_regiments(sys::state& state, dcon::nation_id so
 void toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::toggle_hunt_rebels, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{  };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4333,7 +4347,8 @@ void execute_toggle_rebel_hunting(sys::state& state, dcon::nation_id source, dco
 void toggle_unit_ai_control(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::toggle_unit_ai_control, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4590,7 +4605,8 @@ void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 
 
 	command_data p{ command_type::even_split_army, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4647,7 +4663,8 @@ void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 
 
 	command_data p{ command_type::even_split_navy, source };
-	auto data = navy_movement_data{ a };
+	auto data = navy_movement_data{ };
+	data.n = a;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -4703,7 +4720,8 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 	command_data p{ command_type::split_army, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -4751,7 +4769,8 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 
 	command_data p{ command_type::split_navy, source };
-	auto data = navy_movement_data{ a };
+	auto data = navy_movement_data{ };
+	data.n = a;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -4798,7 +4817,8 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	command_data p{ command_type::delete_army, source };
-	auto data = army_movement_data{ a };
+	auto data = army_movement_data{ };
+	data.a = a;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -4826,7 +4846,8 @@ void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_i
 void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 
 	command_data p{ command_type::delete_navy, source };
-	auto data = navy_movement_data{ a };
+	auto data = navy_movement_data{  };
+	data.n = a;
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -5998,10 +6019,6 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 	}
 	return;
 }
-// make sure that ALL command cases are handles explicitly
-#pragma warning( push )
-#pragma warning( error : 4061 )
-#pragma warning( error : 4062 )
 
 bool can_perform_command(sys::state& state, command_data& c) {
 	auto source = c.header.source;
@@ -7564,7 +7581,6 @@ bool execute_command(sys::state& state, command_data& c) {
 	return true;
 }
 
-#pragma warning( pop )
 
 void execute_pending_commands(sys::state& state) {
 	auto* c = state.incoming_commands.front();
