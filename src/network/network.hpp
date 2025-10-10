@@ -131,7 +131,6 @@ void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
 
-static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data);
 void load_network_save(sys::state& state, const uint8_t* save_buffer);
 
 // gets the host player in the current lobby. Shouldn't be used in single-player mode
