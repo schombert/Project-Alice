@@ -759,6 +759,7 @@ public:
 				visible = false;
 				return;
 			}
+			visible = true;
 			auto loc = state.world.army_get_location_from_army_location(army);
 			auto map_pos = state.world.province_get_mid_point(loc);
 
@@ -954,7 +955,8 @@ public:
 class top_unit_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "controller_flag") {
-			return make_element_by_type<tl_controller_flag>(state, id);
+			// return make_element_by_type<tl_controller_flag>(state, id);
+			return nullptr;
 		} else if(name == "strength") {
 			return make_element_by_type<tl_strength>(state, id);
 		} else if(name == "unit_1") {
@@ -1690,7 +1692,7 @@ public:
 		}
 
 
-
+		// There is no battle
 		if(!nbattle && !lbattle) {
 			if(prov.index() < state.province_definitions.first_sea_province.index()) {
 				std::function<bool(dcon::army_id)> filter;
@@ -1861,25 +1863,26 @@ public:
 			}
 		}
 
-		if(display.top_left_nation == state.local_player_nation) {
-			int32_t max_index = 0;
+		// Display common units for owned and unowned armies
+		// if(display.top_left_nation == state.local_player_nation) {
+		int32_t max_index = 0;
+		for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
+			if(by_icon_count[i] > by_icon_count[max_index])
+				max_index = int32_t(i);
+		}
+		display.common_unit_1 = int8_t(max_index);
+
+		if(by_icon_count.size() > 0) {
+			by_icon_count[max_index] = 0;
+			max_index = 0;
 			for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
 				if(by_icon_count[i] > by_icon_count[max_index])
 					max_index = int32_t(i);
 			}
-			display.common_unit_1 = int8_t(max_index);
-
-			if(by_icon_count.size() > 0) {
-				by_icon_count[max_index] = 0;
-				max_index = 0;
-				for(uint32_t i = 1; i < by_icon_count.size(); ++i) {
-					if(by_icon_count[i] > by_icon_count[max_index])
-						max_index = int32_t(i);
-				}
-				if(by_icon_count[max_index] > 0)
-					display.common_unit_2 = int8_t(max_index);
-			}
+			if(by_icon_count[max_index] > 0)
+				display.common_unit_2 = int8_t(max_index);
 		}
+		// }
 	}
 
 
