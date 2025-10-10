@@ -17,6 +17,7 @@
 #include "gui_console.hpp"
 #include "network.hpp"
 #include "economy_government.hpp"
+#include "gui_error_window.hpp"
 
 namespace command {
 
@@ -46,6 +47,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::change_ai_nation_state:
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
+	case command_type::resync_lobby:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	case command_type::change_game_rule_setting:
@@ -5801,6 +5803,19 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
+	// if client, enable save stream mode and set up other variables
+	if(state.network_mode == sys::network_mode_type::client) {
+		auto& payload = state.network_state.recv_buffer.get_payload<command::notify_save_loaded_data>();
+		uint32_t save_size = payload.length;
+		state.network_state.save_stream = true;
+		assert(save_size > 0);
+		if(save_size >= 32 * 1000 * 1000) { // 32 MB
+			ui::popup_error_window(state, "Network Error", "Network client save stream too big: " + network::get_last_error_msg());
+			network::finish(state, false);
+			return;
+		}
+		state.network_state.save_data.resize(static_cast<size_t>(save_size));
+	}
 }
 
 void notify_reload(sys::state& state, dcon::nation_id source) {
@@ -6019,6 +6034,20 @@ void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, 
 	}
 	return;
 }
+
+// host only. Sends commands to other clients to handle the resync
+void resync_lobby(sys::state& state, dcon::nation_id source) {
+	command_data p{ command_type::resync_lobby, source };
+	add_to_command_queue(state, p);
+}
+
+
+void execute_resync_lobby(sys::state& state, dcon::nation_id source) {
+	network::full_reset_after_oos(state);
+	state.ui_state.recently_pressed_resync = false;
+}
+
+
 
 bool can_perform_command(sys::state& state, command_data& c) {
 	auto source = c.header.source;
@@ -6779,6 +6808,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<command::change_gamerule_setting_data>();
 		return can_change_gamerule_setting(state, source, data.gamerule, data.setting);
+	}
+	case command_type::resync_lobby:
+	{
+		return true;
 	}
 	}
 	return false;
@@ -7577,8 +7610,21 @@ bool execute_command(sys::state& state, command_data& c) {
 		execute_change_gamerule_setting(state, c.header.source, data.gamerule, data.setting);
 		break;
 	}
+	case command_type::resync_lobby:
+	{
+		execute_resync_lobby(state, c.header.source);
+	}
 	}
 	return true;
+}
+
+bool should_broadcast_command(sys::state& state, const command_data& command) {
+	switch(command.header.type) {
+	case command_type::resync_lobby:
+		return false;
+	default:
+		return true;
+	}
 }
 
 

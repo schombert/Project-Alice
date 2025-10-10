@@ -122,6 +122,7 @@ enum class command_type : uint8_t {
 		change_game_rule_setting = 113,
 
 		// network
+		resync_lobby = 236,
 		notify_player_ban = 237,
 		notify_player_kick = 238,
 		notify_player_picks_nation = 239,
@@ -677,6 +678,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::change_ai_nation_state, command_type_data{ sizeof(command::change_ai_nation_state_data) } },
 	{ command_type::network_populate, command_type_data{ 0 } },
 	{ command_type::console_command, command_type_data{ 0 } },
+	{ command_type::resync_lobby, command_type_data{ 0 } },
 
 };
 
@@ -877,8 +879,8 @@ struct command_data {
 };
 static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(command_data::payload));
 
-
-
+// decides whether the host should broadcast the command or execute it only for themself
+bool should_broadcast_command(sys::state& state, const command_data& command);
 
 void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
 
@@ -1306,12 +1308,13 @@ void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::
 bool can_notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
+void resync_lobby(sys::state& state, dcon::nation_id source);
+
 // returns true if the command was performed, false if not
 bool execute_command(sys::state& state, command_data& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, command_data& c);
 
-uint32_t command_size(command_type type);
 
 void notify_console_command(sys::state& state);
 void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);

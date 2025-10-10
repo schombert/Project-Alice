@@ -59,7 +59,6 @@ struct local_addresses {
 
 port_forwarder::port_forwarder() { }
 
-inline static SHA512 sha512;
 
 void port_forwarder::start_forwarding() {
 #ifdef _WIN64
@@ -1256,7 +1255,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		notify_player_joins_discovery(state, client);
 		if(!state.network_state.is_new_game) {
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
-			if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
+			if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
 				network::write_network_save(state);
 			}
 			// load the save which was just written
@@ -1274,7 +1273,7 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			if(!state.network_state.is_new_game) {
 				paused = pause_game(state);
 				// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
-				if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
+				if(!state.network_state.last_save_checksum.is_equal( state.get_save_checksum())) {
 					network::write_network_save(state);
 				}
 				// load the save which was just written
@@ -1313,22 +1312,19 @@ void full_reset_after_oos(sys::state& state) {
 				network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
 			}
 		}
-		// lock the command lock here as this is being called from the ui thread! And we do not want any other commands queued or executed during this time
 		{
-			state.network_state.yield_command_lock = true;
-			std::unique_lock lock{ state.network_state.command_lock };
+			// update UI signal so it displays everyone as loading
+			state.game_state_updated.store(true, std::memory_order_release);
+
 			// if the save state has changed, write a new network save
-			if(state.network_state.last_save_checksum.to_string() != state.get_save_checksum().to_string()) {
+			if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
 				network::write_network_save(state);
 			}
 
-			/* Then reload as if we loaded the save data */
 			load_network_save(state, state.network_state.current_save_buffer.get());
+
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			state.network_state.yield_command_lock = false;
-			lock.unlock();
-			state.network_state.command_lock_cv.notify_one();
 
 		}
 		{ // set up commands, one for reload, one for save load
@@ -1463,6 +1459,7 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 		case command::command_type::save_game:
 		case command::command_type::change_ai_nation_state:
 		case command::command_type::change_game_rule_setting:
+		case command::command_type::resync_lobby:
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early
@@ -1668,8 +1665,8 @@ void send_and_receive_commands(sys::state& state) {
 					const auto now = std::chrono::system_clock::now();
 					state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->header.source.index()) + " type:" + readableCommandTypes[(uint32_t(c->header.type))]);
 #endif
-					// if the command could not be performed on the host, don't bother sending it to the clients
-					if(command::execute_command(state, *c)) {
+					// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
+					if(command::execute_command(state, *c) && command::should_broadcast_command(state, *c)) {
 						broadcast_to_clients(state, *c);
 					}
 					command_executed = true;
@@ -1795,19 +1792,6 @@ void send_and_receive_commands(sys::state& state) {
 
 				command::execute_command(state, state.network_state.recv_buffer);
 				command_executed = true;
-				// start save stream!
-				if(state.network_state.recv_buffer.header.type == command::command_type::notify_save_loaded) {
-					auto& payload = state.network_state.recv_buffer.get_payload<command::notify_save_loaded_data>();
-					uint32_t save_size = payload.length;
-					state.network_state.save_stream = true;
-					assert(save_size > 0);
-					if(save_size >= 32 * 1000 * 1000) { // 32 MB
-						ui::popup_error_window(state, "Network Error", "Network client save stream too big: " + get_last_error_msg());
-						network::finish(state, false);
-						return;
-					}
-					state.network_state.save_data.resize(static_cast<size_t>(save_size));
-				}
 
 			});
 			if(r > 0) { // error

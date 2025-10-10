@@ -27,6 +27,8 @@ namespace network {
 
 inline constexpr short default_server_port = 1984;
 
+inline static SHA512 sha512;
+
 #ifdef _WIN64
 typedef SOCKET socket_t;
 #else
@@ -112,6 +114,8 @@ struct network_state {
 	network_state() : outgoing_commands(4096) {}
 	~network_state() {}
 };
+
+std::string get_last_error_msg();
 inline void write_player_nations(sys::state& state) noexcept;
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
@@ -125,6 +129,10 @@ void broadcast_save_to_single_client(sys::state& state, command::command_data& c
 void broadcast_to_clients(sys::state& state, command::command_data& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
+
+
+static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data);
+void load_network_save(sys::state& state, const uint8_t* save_buffer);
 
 // gets the host player in the current lobby. Shouldn't be used in single-player mode
 dcon::mp_player_id get_host_player(sys::state& state);
