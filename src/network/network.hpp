@@ -8,6 +8,7 @@
 #define WINSOCK2_IMPORTED
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <condition_variable>
 #endif
 #else // NIX
 #include <netinet/in.h>

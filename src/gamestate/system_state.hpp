@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
-#include <semaphore>
+#include <condition_variable>
 
 #include "window.hpp"
 #include "constants.hpp"
