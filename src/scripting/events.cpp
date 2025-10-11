@@ -537,8 +537,8 @@ void update_events(sys::state& state) {
 				event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
 				*/
 				auto some_exist = t
-					? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
-					: (state.world.nation_get_owned_province_count(ids) != 0);
+					? (nations::exists_or_is_utility_tag(state, ids)) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
+					: (nations::exists_or_is_utility_tag(state, ids));
 				if(ve::compress_mask(some_exist).v != 0) {
 					auto chances = mod ?
 						trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0) : ve::fp_vector{ 1.0f };
@@ -550,8 +550,7 @@ void update_events(sys::state& state) {
 
 					ve::apply(
 							[&](dcon::nation_id n, float c, bool condition) {
-								auto owned_range = state.world.nation_get_province_ownership(n);
-								if(condition && owned_range.begin() != owned_range.end()) {
+								if(condition && nations::exists_or_is_utility_tag(state, n)) {
 									if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= c) {
 										events_triggered.local().push_back(event_nation_pair{n, id});
 									}

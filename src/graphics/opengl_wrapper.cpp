@@ -1653,4 +1653,12 @@ void animation::render(sys::state& state) {
 	}
 }
 
+scissor_box::scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t w, int32_t h) : x(x), y(y), w(w), h(h) {
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(int32_t(x * state.user_settings.ui_scale), int32_t((state.ui_state.root->base_data.size.y - h - y) * state.user_settings.ui_scale), int32_t(w * state.user_settings.ui_scale), int32_t(h * state.user_settings.ui_scale));
+}
+scissor_box::~scissor_box() {
+	glDisable(GL_SCISSOR_TEST);
+}
+
 } // namespace ogl

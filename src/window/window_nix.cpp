@@ -369,4 +369,31 @@ void emit_error_message(std::string const& content, bool fatal) {
 	}
 }
 
+win32_text_services::win32_text_services() {
+}
+win32_text_services::~win32_text_services() {
+}
+void win32_text_services::start_text_services() {
+}
+void win32_text_services::end_text_services() {
+}
+void win32_text_services::on_text_change(text_services_object* ts, uint32_t old_start, uint32_t old_end, uint32_t new_end) {
+}
+void win32_text_services::on_selection_change(text_services_object* ts) {
+}
+bool win32_text_services::send_mouse_event_to_tso(text_services_object* ts, int32_t x, int32_t y, uint32_t buttons) {
+	return false;
+}
+void win32_text_services::set_focus(sys::state& win, text_services_object* o) {
+}
+void win32_text_services::suspend_keystroke_handling() {
+}
+void win32_text_services::resume_keystroke_handling() {
+}
+text_services_object* win32_text_services::create_text_service_object(sys::state& win, ui::element_base& ei) {
+	return nullptr;
+}
+void release_text_services_object(text_services_object* ptr) {
+}
+
 } // namespace window

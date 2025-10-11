@@ -1880,33 +1880,41 @@ float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.01f, 1.f);
 }
 
-bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
+crisis_role involved_in_crisis_state(sys::state const& state, dcon::nation_id n) {
 	if(n == state.primary_crisis_attacker)
-		return true;
+		return crisis_role::attacker;
 	if(n == state.primary_crisis_defender)
-		return true;
+		return crisis_role::defender;
 	for(auto& par : state.crisis_participants) {
 		if(!par.id)
-			return false;
+			return crisis_role::not_involved;
 		if(par.id == n)
-			return true;
+			return (par.supports_attacker) ? crisis_role::attacker : crisis_role::defender;
 	}
+	return crisis_role::not_involved;
+}
+crisis_role committed_in_crisis_state(sys::state const& state, dcon::nation_id n) {
+	if(n == state.primary_crisis_attacker)
+		return crisis_role::attacker;
+	if(n == state.primary_crisis_defender)
+		return crisis_role::defender;
+	for(auto& par : state.crisis_participants) {
+		if(!par.id)
+			return crisis_role::not_involved;
+		if(par.id == n && !par.merely_interested)
+			return (par.supports_attacker) ? crisis_role::attacker : crisis_role::defender;
+	}
+	return crisis_role::not_involved;
+}
 
-	return false;
-}
 bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
-	if(n == state.primary_crisis_attacker)
-		return true;
-	if(n == state.primary_crisis_defender)
-		return true;
-	for(auto& par : state.crisis_participants) {
-		if(!par.id)
-			return false;
-		if(par.id == n)
-			return !par.merely_interested;
-	}
-	return false;
+	return committed_in_crisis_state(state, n) != crisis_role::not_involved;
 }
+
+bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
+	return involved_in_crisis_state(state, n) != crisis_role::not_involved;
+}
+
 void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		state.world.nation_set_is_player_controlled(new_n, true);
@@ -2083,6 +2091,16 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 	politics::update_displayed_identity(state, n);
 }
+
+bool exists_or_is_utility_tag(sys::state& state, dcon::nation_id nation) {
+	return state.world.nation_get_owned_province_count(nation) > 0 || state.world.nation_get_utility_tag(nation);
+}
+
+ve::mask_vector exists_or_is_utility_tag(sys::state& state, ve::contiguous_tags<dcon::nation_id> nations) {
+	return (state.world.nation_get_owned_province_count(nations) != 0) || state.world.nation_get_utility_tag(nations);
+}
+
+
 
 void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)
@@ -3047,6 +3065,10 @@ void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
 
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 	state.primary_crisis_attacker = n;
+	// if it is liberation crisis and the attacker dosen't exist, add the new primary attacker as the owner of the currently added liberation wargoal. Else, if the nation is liberated by agreement, it will not be properly created from a template as no one will own the wargoal
+	if(state.current_crisis == sys::crisis_type::liberation && !state.crisis_attacker) {
+		state.crisis_attacker_wargoals.at(0).added_by = n;
+	}
 
 	notification::post(state, notification::message{
 		[n](sys::state& state, text::layout_base& contents) {
@@ -3514,16 +3536,29 @@ void update_crisis(sys::state& state) {
 			assert(state.crisis_attacker_wargoals.size() > 0);
 
 			auto first_wg = state.crisis_attacker_wargoals.at(0);
-			war = military::create_war(state, state.crisis_attacker,
-						state.crisis_defender,
+
+			// check that the crisis attacker or defender actually exists before creating a war with them. In a liberation crisis, it is possible that the crisis_attacker or crisis_defender will not exist.
+			// If they don't exist, use the primary defender/attacker instead (which is the GP backing their side)
+			auto find_actual_crisis_actor = [&](dcon::nation_id crisis_actor, dcon::nation_id primary_crisis_actor) {
+				if(crisis_actor && state.world.nation_get_owned_province_count(crisis_actor) != 0) {
+					return crisis_actor;
+				} else {
+					return primary_crisis_actor;
+				}
+			};
+			auto actual_defender = find_actual_crisis_actor(state.crisis_defender, state.primary_crisis_defender);
+			auto actual_attacker = find_actual_crisis_actor(state.crisis_attacker, state.primary_crisis_attacker);
+
+			war = military::create_war(state, actual_attacker,
+						actual_defender,
 						first_wg.cb, first_wg.state,
 						first_wg.wg_tag, first_wg.secondary_nation);
 
-			if(state.crisis_attacker != state.primary_crisis_attacker) {
+			if(actual_attacker != state.primary_crisis_attacker) {
 				military::add_to_war(state, war, state.primary_crisis_attacker, true);
 				state.world.war_set_primary_attacker(war, state.primary_crisis_attacker);
 			}
-			if(state.crisis_defender != state.primary_crisis_defender) {
+			if(actual_defender != state.primary_crisis_defender) {
 				military::add_to_war(state, war, state.primary_crisis_defender, false);
 				state.world.war_set_primary_defender(war, state.primary_crisis_defender);
 			}

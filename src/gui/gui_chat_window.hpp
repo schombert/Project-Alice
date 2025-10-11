@@ -277,33 +277,7 @@ public:
 		base_data.data.text.border_size.y += 8;
 	}
 
-	void edit_box_enter(sys::state& state, std::u16string_view s_in) noexcept override {
-		auto str = simple_fs::utf16_to_utf8(s_in);
-		auto s = parsers::remove_surrounding_whitespace(str);
-		if(s.empty())
-			return;
-
-		dcon::nation_id target{};
-		if(s.length() > 4 && s[0] == '@') {
-			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-				auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-				if(curr == std::string(s).substr(1, 3))
-					target = state.world.national_identity_get_nation_from_identity_holder(id);
-			});
-		}
-
-		char body[max_chat_message_len + 1];
-		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
-		memcpy(body, s.data(), len);
-		body[len] = '\0';
-
-		command::chat_message(state, state.local_player_nation, body, target, state.network_state.nickname);
-
-		Cyto::Any payload = this;
-		impl_get(state, payload);
-	}
-
-	void edit_box_tab(sys::state& state, std::u16string_view s) noexcept override;
+	void on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept override;
 };
 
 class chat_return_to_lobby_button : public button_element_base {
@@ -457,8 +431,38 @@ inline void open_chat_window(sys::state& state) {
 	state.current_scene.open_chat(state);
 }
 
-inline void chat_edit_box::edit_box_tab(sys::state& state, std::u16string_view s) noexcept {
-	ui::open_chat_window(state); //close/open like if tab was pressed!
+inline void chat_edit_box::on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept {
+	if(command == ui::edit_command::tab) {
+		ui::open_chat_window(state); //close/open like if tab was pressed!
+		return;
+	} else if(command == ui::edit_command::new_line) {
+		auto str = simple_fs::utf16_to_utf8(cached_text);
+		auto s = parsers::remove_surrounding_whitespace(str);
+		if(s.empty())
+			return;
+
+		dcon::nation_id target{};
+		if(s.length() > 4 && s[0] == '@') {
+			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
+				auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
+				if(curr == std::string(s).substr(1, 3))
+					target = state.world.national_identity_get_nation_from_identity_holder(id);
+			});
+		}
+
+		char body[max_chat_message_len + 1];
+		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
+		memcpy(body, s.data(), len);
+		body[len] = '\0';
+
+		command::chat_message(state, state.local_player_nation, body, target, state.network_state.nickname);
+
+		Cyto::Any payload = this;
+		impl_get(state, payload);
+		set_text(state, u"");
+		return;
+	}
+	ui::edit_box_element_base::on_edit_command(state, command, mods);
 }
 
 }

@@ -3,6 +3,7 @@
 #include "opengl_wrapper.hpp"
 #include "resource.h"
 #include "system_state.hpp"
+#include "gui_element_base.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -14,6 +15,14 @@
 #include "Windowsx.h"
 #include "wglew.h"
 #include "sound.hpp"
+#include <Shlobj.h>
+#include <usp10.h>
+#include <initguid.h>
+#include <inputscope.h>
+#include <Textstor.h>
+#include <tsattrs.h>
+#include <msctf.h>
+#include <olectl.h>
 
 #define WM_GRAPHNOTIFY (WM_APP + 1)
 
@@ -46,8 +55,7 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int left = (mi.rcWork.right - mi.rcWork.left) / 2 - game_state.win_ptr->creation_x_size / 2;
 			int top = (mi.rcWork.bottom - mi.rcWork.top) / 2 - game_state.win_ptr->creation_y_size / 2;
 
-			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU |
-												 WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
+			DWORD win32Style = WS_VISIBLE | WS_CAPTION | WS_MINIMIZEBOX | WS_THICKFRAME | WS_MAXIMIZEBOX | WS_SYSMENU | WS_CLIPCHILDREN | WS_CLIPSIBLINGS;
 
 			RECT rectangle = {left, top, left + game_state.win_ptr->creation_x_size, top + game_state.win_ptr->creation_y_size};
 			AdjustWindowRectExForDpi(&rectangle, win32Style, false, 0, GetDpiForWindow(game_state.win_ptr->hwnd));
@@ -55,8 +63,7 @@ void set_borderless_full_screen(sys::state& game_state, bool fullscreen) {
 			int32_t final_height = rectangle.bottom - rectangle.top;
 
 			SetWindowLongW(game_state.win_ptr->hwnd, GWL_STYLE, win32Style);
-			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height,
-					SWP_NOREDRAW);
+			SetWindowPos(game_state.win_ptr->hwnd, HWND_NOTOPMOST, rectangle.left, rectangle.top, final_width, final_height, SWP_NOREDRAW);
 			SetWindowRgn(game_state.win_ptr->hwnd, NULL, TRUE);
 			ShowWindow(game_state.win_ptr->hwnd, SW_MAXIMIZE);
 
@@ -133,9 +140,37 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		ReleaseDC(hwnd, state->win_ptr->opengl_window_dc);
 		PostQuitMessage(0);
 		return 0;
+	case WM_APPCOMMAND:
+	{
+		auto cmd = GET_APPCOMMAND_LPARAM(lParam);
+		if(cmd == APPCOMMAND_COPY) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::copy, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_CUT) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::cut, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_PASTE) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::paste, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_REDO) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::redo, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		} else if(cmd == APPCOMMAND_UNDO) {
+			if(state->ui_state.edit_target_internal)
+				state->pass_edit_command(ui::edit_command::undo, sys::key_modifiers::modifiers_none);
+			return TRUE;
+		}
+		break;
+	}
 	case WM_SETFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOSIZE | SWP_NOMOVE);
+		if(state->ui_state.edit_target_internal)
+			state->ui_state.edit_target_internal->set_cursor_visibility(*state, true);
 		if(state->user_settings.mute_on_focus_lost) {
 			sound::resume_all(*state);
 		}
@@ -143,6 +178,9 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_KILLFOCUS:
 		if(state->win_ptr->in_fullscreen)
 			SetWindowPos(hwnd, HWND_NOTOPMOST, 0, 0, 0, 0, SWP_NOREDRAW | SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
+		state->ui_state.selecting_edit_text = ui::edit_selection_mode::none;
+		if(state->ui_state.edit_target_internal)
+			state->ui_state.edit_target_internal->set_cursor_visibility(*state, false);
 		if(state->user_settings.mute_on_focus_lost) {
 			sound::pause_all(*state);
 		}
@@ -151,6 +189,58 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		SetCapture(hwnd);
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->ui_state.edit_target_internal) {
+			if(state->filter_tso_mouse_events(x, y, uint32_t(wParam))) {
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			}
+
+			auto duration = std::chrono::steady_clock::now() - state->win_ptr->last_dbl_click;
+			auto in_ms = std::chrono::duration_cast<std::chrono::milliseconds>(duration);
+
+			if(in_ms.count() <= window::double_click_ms()) {
+				state->pass_edit_command(ui::edit_command::select_current_section, get_current_modifiers());
+				state->ui_state.selecting_edit_text = ui::edit_selection_mode::line;
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			} else {
+				state->ui_state.selecting_edit_text = ui::edit_selection_mode::standard;
+			}
+		}
+
+		state->on_lbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		state->win_ptr->left_mouse_down = true;
+		return 0;
+	}
+	case WM_LBUTTONDBLCLK:
+	{
+		SetCapture(hwnd);
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->ui_state.edit_target_internal) {
+			if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+				state->mouse_x_position = x;
+				state->mouse_y_position = y;
+				state->win_ptr->left_mouse_down = true;
+				return 0;
+			}
+			state->pass_edit_command(ui::edit_command::select_current_word, get_current_modifiers());
+			state->ui_state.selecting_edit_text = ui::edit_selection_mode::word;
+			state->win_ptr->last_dbl_click = std::chrono::steady_clock::now();
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			state->win_ptr->left_mouse_down = true;
+			return 0;
+		}
+
 		state->on_lbutton_down(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -165,11 +255,24 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		state->win_ptr->left_mouse_down = false;
+		state->ui_state.selecting_edit_text = ui::edit_selection_mode::none;
 		return 0;
 	}
 	case WM_MOUSEMOVE: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+		if(state->ui_state.edit_target_internal && state->ui_state.selecting_edit_text != ui::edit_selection_mode::none) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			state->send_edit_mouse_move(x, y, true);
+			return 0;
+		}
 		state->on_mouse_move(x, y, get_current_modifiers());
 
 		if(wParam & MK_LBUTTON)
@@ -183,7 +286,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_RBUTTONDOWN: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->on_rbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		return 0;
+	}
+	case WM_RBUTTONDBLCLK:
+	{
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		return 0;
@@ -191,6 +316,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_RBUTTONUP: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
 		state->on_rbutton_up(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -199,7 +325,29 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_MBUTTONDOWN: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->on_mbutton_down(x, y, get_current_modifiers());
+		state->mouse_x_position = x;
+		state->mouse_y_position = y;
+		return 0;
+	}
+	case WM_MBUTTONDBLCLK:
+	{
+		auto x = GET_X_LPARAM(lParam);
+		auto y = GET_Y_LPARAM(lParam);
+
+		if(state->filter_tso_mouse_events(GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam), uint32_t(wParam))) {
+			state->mouse_x_position = x;
+			state->mouse_y_position = y;
+			return 0;
+		}
+
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
 		return 0;
@@ -207,6 +355,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 	case WM_MBUTTONUP: {
 		auto x = GET_X_LPARAM(lParam);
 		auto y = GET_Y_LPARAM(lParam);
+
 		state->on_mbutton_up(x, y, get_current_modifiers());
 		state->mouse_x_position = x;
 		state->mouse_y_position = y;
@@ -240,29 +389,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_mouse_wheel(state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
 		return 0;
 	}
-	case WM_IME_STARTCOMPOSITION:
-	{
-		HIMC imc = ImmGetContext(hwnd);
-
-		COMPOSITIONFORM cf;
-		cf.dwStyle = CFS_POINT;
-		cf.ptCurrentPos.x = (LONG)(state->get_edit_x());
-		cf.ptCurrentPos.y = (LONG)(state->get_edit_y());
-		ImmSetCompositionWindow(imc, &cf);
-
-		CANDIDATEFORM cand = {};
-		cand.dwStyle = CFS_EXCLUDE;
-		cand.ptCurrentPos.x = (LONG)(state->get_edit_x());
-		cand.ptCurrentPos.y = (LONG)(state->get_edit_y());
-		cand.rcArea = {state->get_edit_x(), state->get_edit_y(), state->get_edit_x() + 200, state->get_edit_y() + 49};
-		ImmSetCandidateWindow(imc, &cand);
-
-		ImmReleaseContext(hwnd, imc);
-		return 0;
-	}
 	case WM_KEYDOWN: // fallthrough
 	case WM_SYSKEYDOWN:
 	{
+		if(wParam == VK_PROCESSKEY) {
+			wParam = ImmGetVirtualKey(hwnd);
+		}
 		sys::virtual_key key = sys::virtual_key(wParam);
 		switch(key) {
 		case sys::virtual_key::RETURN: [[fallthrough]];
@@ -285,7 +417,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		state->on_key_up(sys::virtual_key(wParam), get_current_modifiers());
 		return 0;
 	case WM_CHAR: {
-		if(state->ui_state.edit_target_internal) {
+		if(state->ui_state.edit_target_internal && wParam >= 0x20 && !(wParam >= 0x7F && wParam <= 0x9F)) {
 			state->on_text(char32_t(wParam));
 		}
 		return 0;
@@ -319,12 +451,15 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	game_state.win_ptr->creation_x_size = params.size_x;
 	game_state.win_ptr->creation_y_size = params.size_y;
 	game_state.win_ptr->in_fullscreen = params.borderless_fullscreen;
+	game_state.win_ptr->last_dbl_click = std::chrono::steady_clock::now();
+
+	game_state.win_ptr->text_services.start_text_services();
 
 	// create window
 	WNDCLASSEXW wcex = {};
 
 	wcex.cbSize = sizeof(WNDCLASSEXW);
-	wcex.style = CS_OWNDC;
+	wcex.style = CS_OWNDC | CS_DBLCLKS;
 	wcex.lpfnWndProc = WndProc;
 	wcex.cbClsExtra = 0;
 	wcex.cbWndExtra = sizeof(LONG_PTR);
@@ -403,6 +538,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	game_state.on_create();
 	change_cursor(game_state, cursor_type::normal);
 
+	
+
 	MSG msg;
 	// pump message loop
 	while(true) {
@@ -421,6 +558,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
 		}
 	}
+
+	game_state.win_ptr->text_services.end_text_services();
 }
 
 void change_cursor(sys::state& state, cursor_type type) {
@@ -449,6 +588,11 @@ void change_cursor(sys::state& state, cursor_type type) {
 		case cursor_type::no_move:
 			fname = NATIVE("no_move.ani");
 			break;
+		case cursor_type::text:
+			state.win_ptr->cursors[uint8_t(type)] = LoadCursor(NULL, IDC_IBEAM);
+			SetCursor(state.win_ptr->cursors[uint8_t(type)]);
+			SetClassLongPtr(state.win_ptr->hwnd, GCLP_HCURSOR, reinterpret_cast<LONG_PTR>(state.win_ptr->cursors[uint8_t(type)]));
+			return;
 		default:
 			fname = NATIVE("normal.cur");
 			break;
@@ -514,5 +658,951 @@ void emit_error_message(std::string const& content, bool fatal) {
 	if(fatal) {
 		std::exit(EXIT_FAILURE);
 	}
+}
+
+enum class lock_state : uint8_t {
+	unlocked, locked_read, locked_readwrite
+};
+
+struct mouse_sink {
+	ITfMouseSink* sink;
+	LONG range_start;
+	LONG range_length;
+};
+
+template<class Interface>
+inline void safe_release(Interface*& i) {
+	if(i) {
+		i->Release();
+		i = nullptr;
+	}
+}
+
+struct text_services_object : public ITextStoreACP2, public ITfInputScope, public ITfContextOwnerCompositionSink, public ITfMouseTrackerACP {
+	std::vector<TS_ATTRVAL> gathered_attributes;
+	std::vector<mouse_sink> installed_mouse_sinks;
+	sys::state& win;
+	ui::element_base* ei = nullptr;
+	ITfDocumentMgr* document = nullptr;
+	ITfContext* primary_context = nullptr;
+	TfEditCookie content_identifier = 0;
+	ITextStoreACPSink* advise_sink = nullptr;
+	lock_state document_lock_state = lock_state::unlocked;
+	bool notify_on_text_change = false;
+	bool notify_on_selection_change = false;
+	bool relock_pending = false;
+	bool in_composition = false;
+
+	ULONG m_refCount;
+
+	void free_gathered_attributes() {
+		for(auto& i : gathered_attributes) {
+			VariantClear(&(i.varValue));
+		}
+		gathered_attributes.clear();
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) {
+		if(riid == __uuidof(IUnknown))
+			*ppvObject = static_cast<ITextStoreACP2*>(this);
+		else if(riid == __uuidof(ITextStoreACP2))
+			*ppvObject = static_cast<ITextStoreACP2*>(this);
+		else if(riid == __uuidof(ITfInputScope))
+			*ppvObject = static_cast<ITfInputScope*>(this);
+		else if(riid == __uuidof(ITfContextOwnerCompositionSink))
+			*ppvObject = static_cast<ITfContextOwnerCompositionSink*>(this);
+		else if(riid == __uuidof(ITfMouseTrackerACP))
+			*ppvObject = static_cast<ITfMouseTrackerACP*>(this);
+		else {
+			*ppvObject = NULL;
+			return E_NOINTERFACE;
+		}
+		(static_cast<IUnknown*>(*ppvObject))->AddRef();
+		return S_OK;
+	}
+	virtual ULONG STDMETHODCALLTYPE AddRef() {
+		return InterlockedIncrement(&m_refCount);
+	}
+	virtual ULONG STDMETHODCALLTYPE Release() {
+		long val = InterlockedDecrement(&m_refCount);
+		if(val == 0) {
+			delete this;
+		}
+		return val;
+	}
+
+	//ITfMouseTrackerACP
+	virtual HRESULT STDMETHODCALLTYPE AdviseMouseSink(__RPC__in_opt ITfRangeACP* range, __RPC__in_opt ITfMouseSink* pSink, __RPC__out DWORD* pdwCookie) {
+		if(!range || !pSink || !pdwCookie)
+			return E_INVALIDARG;
+		for(uint32_t i = 0; i < installed_mouse_sinks.size(); ++i) {
+			if(installed_mouse_sinks[i].sink == nullptr) {
+				installed_mouse_sinks[i].sink = pSink;
+				pSink->AddRef();
+				installed_mouse_sinks[i].range_start = 0;
+				installed_mouse_sinks[i].range_length = 0;
+				range->GetExtent(&(installed_mouse_sinks[i].range_start), &(installed_mouse_sinks[i].range_length));
+				*pdwCookie = DWORD(i);
+				return S_OK;
+			}
+		}
+		installed_mouse_sinks.emplace_back();
+		installed_mouse_sinks.back().sink = pSink;
+		pSink->AddRef();
+		installed_mouse_sinks.back().range_start = 0;
+		installed_mouse_sinks.back().range_length = 0;
+		range->GetExtent(&(installed_mouse_sinks.back().range_start), &(installed_mouse_sinks.back().range_length));
+		*pdwCookie = DWORD(installed_mouse_sinks.size() - 1);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE UnadviseMouseSink(DWORD dwCookie) {
+		if(dwCookie < installed_mouse_sinks.size()) {
+			safe_release(installed_mouse_sinks[dwCookie].sink);
+		}
+		return S_OK;
+	}
+
+	bool send_mouse_event(int32_t x, int32_t y, uint32_t buttons) {
+		if(installed_mouse_sinks.empty())
+			return false;
+		if(!ei)
+			return false;
+
+		auto detailed_pos = win.detailed_text_mouse_test(x, y);
+		for(auto& ms : installed_mouse_sinks) {
+			if(ms.sink && int32_t(detailed_pos.position) >= ms.range_start && int32_t(detailed_pos.position) <= ms.range_start + ms.range_length) {
+				BOOL eaten = false;
+				ms.sink->OnMouseEvent(detailed_pos.position, detailed_pos.quadrent, buttons, &eaten);
+				if(eaten)
+					return true;
+			}
+		}
+		return false;
+	}
+
+	//ITfContextOwnerCompositionSink
+	virtual HRESULT STDMETHODCALLTYPE OnStartComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/, __RPC__out BOOL* pfOk) {
+		*pfOk = TRUE;
+		in_composition = true;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE OnUpdateComposition(__RPC__in_opt ITfCompositionView* pComposition, __RPC__in_opt ITfRange* /*pRangeNew*/) {
+		ITfRange* view_range = nullptr;
+		pComposition->GetRange(&view_range);
+		if(view_range) {
+			ITfRangeACP* acp_range = nullptr;
+			view_range->QueryInterface(IID_PPV_ARGS(&acp_range));
+			if(ei && acp_range) {
+				LONG start = 0;
+				LONG count = 0;
+				acp_range->GetExtent(&start, &count);
+				if(count > 0) {
+					ei->set_temporary_selection(win, int32_t(start), int32_t(start + count));
+				}
+			}
+			safe_release(acp_range);
+		}
+		safe_release(view_range);
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE OnEndComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/) {
+		if(ei) {
+			ei->register_composition_result(win);
+		}
+		in_composition = false;
+		return S_OK;
+	}
+
+	// ITextStoreACP2
+	virtual HRESULT STDMETHODCALLTYPE AdviseSink(__RPC__in REFIID riid, __RPC__in_opt IUnknown* punk, DWORD dwMask) {
+		if(!IsEqualGUID(riid, IID_ITextStoreACPSink)) {
+			return E_INVALIDARG;
+		}
+		ITextStoreACPSink* temp = nullptr;
+		if(FAILED(punk->QueryInterface(IID_ITextStoreACPSink, (void**)&temp))) {
+			return E_NOINTERFACE;
+		}
+		if(advise_sink) {
+			if(advise_sink == temp) {
+				safe_release(temp);
+			} else {
+				return CONNECT_E_ADVISELIMIT;
+			}
+		} else {
+			advise_sink = temp;
+		}
+		notify_on_text_change = (TS_AS_TEXT_CHANGE & dwMask) != 0;
+		notify_on_selection_change = (TS_AS_SEL_CHANGE & dwMask) != 0;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE UnadviseSink(__RPC__in_opt IUnknown* /*punk*/) {
+		safe_release(advise_sink);
+		notify_on_text_change = false;
+		notify_on_selection_change = false;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE RequestLock(DWORD dwLockFlags, __RPC__out HRESULT* phrSession) {
+		if(!advise_sink) {
+			*phrSession = E_FAIL;
+			return E_UNEXPECTED;
+		}
+
+		relock_pending = false;
+
+		if(document_lock_state != lock_state::unlocked) {
+			if(dwLockFlags & TS_LF_SYNC) {
+				*phrSession = TS_E_SYNCHRONOUS;
+				return S_OK;
+			} else {
+				if(document_lock_state == lock_state::locked_read && (dwLockFlags & TS_LF_READWRITE) == TS_LF_READWRITE) {
+					relock_pending = true;
+					*phrSession = TS_S_ASYNC;
+					return S_OK;
+				}
+			}
+			return E_FAIL;
+		}
+
+		if((TS_LF_READ & dwLockFlags) != 0) {
+			document_lock_state = lock_state::locked_read;
+		}
+		if((TS_LF_READWRITE & dwLockFlags) != 0) {
+			document_lock_state = lock_state::locked_readwrite;
+		}
+
+		*phrSession = advise_sink->OnLockGranted(dwLockFlags);
+		document_lock_state = lock_state::unlocked;
+
+		if(relock_pending) {
+			relock_pending = false;
+			HRESULT hr = S_OK;
+			RequestLock(TS_LF_READWRITE, &hr);
+		}
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetStatus(__RPC__out TS_STATUS* pdcs) {
+		if(!pdcs)
+			return E_INVALIDARG;
+		pdcs->dwStaticFlags = TS_SS_NOHIDDENTEXT;
+		pdcs->dwDynamicFlags = 0;
+		//pdcs->dwDynamicFlags = (ei && ei->is_read_only() ? TS_SD_READONLY : 0);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE QueryInsert(LONG acpTestStart, LONG acpTestEnd, ULONG /*cch*/, __RPC__out LONG* pacpResultStart, __RPC__out LONG* pacpResultEnd) {
+		if(!pacpResultStart || !pacpResultEnd || acpTestStart > acpTestEnd)
+			return E_INVALIDARG;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+		*pacpResultStart = std::min(acpTestStart, LONG(ei->text_content().length()));
+		*pacpResultEnd = std::min(acpTestEnd, LONG(ei->text_content().length()));
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetSelection(ULONG ulIndex, ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_SELECTION_ACP* pSelection, __RPC__out ULONG* pcFetched) {
+		if(!pcFetched)
+			return E_INVALIDARG;
+		if(document_lock_state == lock_state::unlocked)
+			return TS_E_NOLOCK;
+
+		if(ei && ulCount > 0 && (ulIndex == 0 || ulIndex == TF_DEFAULT_SELECTION)) {
+			if(!pSelection)
+				return E_INVALIDARG;
+			auto range = ei->text_selection();
+			pSelection[0].acpStart = int32_t(std::min(range.first, range.second));
+			pSelection[0].acpEnd = int32_t(std::max(range.first, range.second));
+			pSelection[0].style.ase = range.first < range.second ? TS_AE_START : TS_AE_END;
+			pSelection[0].style.fInterimChar = FALSE;
+			*pcFetched = 1;
+		} else {
+			*pcFetched = 0;
+		}
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE SetSelection(ULONG ulCount, __RPC__in_ecount_full(ulCount) const TS_SELECTION_ACP* pSelection) {
+		if(document_lock_state != lock_state::locked_readwrite)
+			return TF_E_NOLOCK;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+		if(ulCount > 0) {
+			if(!pSelection)
+				return E_INVALIDARG;
+
+			auto start = pSelection->style.ase == TS_AE_START ? pSelection->acpEnd : pSelection->acpStart;
+			auto end = pSelection->style.ase == TS_AE_START ? pSelection->acpStart : pSelection->acpEnd;
+			ei->set_text_selection(win, start, end);
+		}
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetText(LONG acpStart, LONG acpEnd, __RPC__out_ecount_part(cchPlainReq, *pcchPlainRet) WCHAR* pchPlain, ULONG cchPlainReq, __RPC__out ULONG* pcchPlainRet, __RPC__out_ecount_part(cRunInfoReq, *pcRunInfoRet) TS_RUNINFO* prgRunInfo, ULONG cRunInfoReq, __RPC__out ULONG* pcRunInfoRet, __RPC__out LONG* pacpNext) {
+
+		if(!pcchPlainRet || !pcRunInfoRet)
+			return E_INVALIDARG;
+		if(!pchPlain && cchPlainReq != 0)
+			return E_INVALIDARG;
+		if(!prgRunInfo && cRunInfoReq != 0)
+			return E_INVALIDARG;
+		if(!pacpNext)
+			return E_INVALIDARG;
+		if(document_lock_state == lock_state::unlocked)
+			return TF_E_NOLOCK;
+
+		*pcchPlainRet = 0;
+
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		if((cchPlainReq == 0) && (cRunInfoReq == 0)) {
+			return S_OK;
+		}
+		auto len = LONG(ei->text_content().length());
+		acpEnd = std::min(acpEnd, len);
+		if(acpEnd == -1)
+			acpEnd = len;
+
+		acpEnd = std::min(acpEnd, acpStart + LONG(cchPlainReq));
+		if(acpStart != acpEnd) {
+			auto text = ei->text_content();
+			std::copy(text.data() + acpStart, text.data() + acpEnd, pchPlain);
+			*pcchPlainRet = (acpEnd - acpStart);
+		}
+		if(*pcchPlainRet < cchPlainReq) {
+			*(pchPlain + *pcchPlainRet) = 0;
+		}
+		if(cRunInfoReq != 0) {
+			prgRunInfo[0].uCount = acpEnd - acpStart;
+			prgRunInfo[0].type = TS_RT_PLAIN;
+			*pcRunInfoRet = 1;
+		} else {
+			*pcRunInfoRet = 0;
+		}
+
+		*pacpNext = acpEnd;
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE SetText(DWORD /*dwFlags*/, LONG acpStart, LONG acpEnd, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out TS_TEXTCHANGE* pChange) {
+		if(document_lock_state != lock_state::locked_readwrite)
+			return TF_E_NOLOCK;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+		if(!pChange)
+			return E_INVALIDARG;
+		if(!pchText && cch > 0)
+			return E_INVALIDARG;
+
+		auto len = LONG(ei->text_content().length());
+
+		if(acpStart > len)
+			return E_INVALIDARG;
+
+		LONG acpRemovingEnd = acpEnd >= acpStart ? std::min(acpEnd, len) : acpStart;
+
+
+		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpRemovingEnd), std::u16string_view((char16_t*)pchText, cch), ui::insertion_source::text_services);
+
+		pChange->acpStart = acpStart;
+		pChange->acpOldEnd = acpRemovingEnd;
+		pChange->acpNewEnd = acpStart + cch;
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetFormattedText(LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__deref_out_opt IDataObject** /*ppDataObject*/) {
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetEmbedded(LONG /*acpPos*/, __RPC__in REFGUID /*rguidService*/, __RPC__in REFIID /*riid*/, __RPC__deref_out_opt IUnknown** ppunk) {
+		if(!ppunk)
+			return E_INVALIDARG;
+		*ppunk = nullptr;
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE QueryInsertEmbedded(__RPC__in const GUID* /*pguidService*/, __RPC__in const FORMATETC* pFormatEtc, __RPC__out BOOL* pfInsertable) {
+		if(!pFormatEtc || !pfInsertable)
+			return E_INVALIDARG;
+		if(pfInsertable)
+			*pfInsertable = FALSE;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE InsertEmbedded(DWORD /*dwFlags*/, LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) {
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE InsertTextAtSelection(DWORD dwFlags, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out LONG* pacpStart, __RPC__out LONG* pacpEnd, __RPC__out TS_TEXTCHANGE* pChange) {
+
+
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		auto range = ei->text_selection();
+		LONG acpStart = LONG(std::min(range.first, range.second));
+		LONG acpEnd = LONG(std::max(range.first, range.second));
+
+		if((dwFlags & TS_IAS_QUERYONLY) != 0) {
+			if(document_lock_state == lock_state::unlocked)
+				return TS_E_NOLOCK;
+			if(pacpStart)
+				*pacpStart = acpStart;
+			if(pacpEnd)
+				*pacpEnd = acpStart + cch;
+			return S_OK;
+		}
+
+		if(document_lock_state != lock_state::locked_readwrite)
+			return TF_E_NOLOCK;
+		if(!pchText)
+			return E_INVALIDARG;
+
+
+		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpEnd), std::u16string_view((char16_t*)pchText, cch), ui::insertion_source::text_services);
+
+		if(pacpStart)
+			*pacpStart = acpStart;
+		if(pacpEnd)
+			*pacpEnd = acpStart + cch;
+
+		if(pChange) {
+			pChange->acpStart = acpStart;
+			pChange->acpOldEnd = acpEnd;
+			pChange->acpNewEnd = acpStart + cch;
+		}
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE InsertEmbeddedAtSelection(DWORD /*dwFlags*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out LONG* /*pacpStart*/, __RPC__out LONG* /*pacpEnd*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) {
+
+		return E_NOTIMPL;
+	}
+
+	void fill_gathered_attributes(ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, bool fill_variants, int32_t position) {
+		free_gathered_attributes();
+
+		for(uint32_t i = 0; i < cFilterAttrs; ++i) {
+			if(IsEqualGUID(paFilterAttrs[i], GUID_PROP_INPUTSCOPE)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_UNKNOWN;
+					ITfInputScope* is = nullptr;
+					this->QueryInterface(IID_PPV_ARGS(&is));
+					gathered_attributes.back().varValue.punkVal = is;
+				}
+			/* } else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_FaceName)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BSTR;
+					gathered_attributes.back().varValue.bstrVal = SysAllocString(win.dynamic_settings.primary_font.name.c_str());
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_SizePts)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_I4;
+					gathered_attributes.back().varValue.lVal = int32_t(win.dynamic_settings.primary_font.font_size * 96.0f / win.dpi);
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_Style_Bold)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = win.dynamic_settings.primary_font.weight > 400 ? VARIANT_TRUE : VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_Style_Height)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_I4;
+					gathered_attributes.back().varValue.lVal = int32_t(win.dynamic_settings.primary_font.font_size);
+				} */
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_Style_Hidden)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_Style_Italic)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Font_Style_Weight)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_I4;
+					gathered_attributes.back().varValue.lVal = 400;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_Alignment_Center)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_Alignment_Justify)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_Alignment_Left)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_TRUE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_Alignment_Right)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_Orientation)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_I4;
+					gathered_attributes.back().varValue.lVal = 0;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_ReadOnly)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_RightToLeft)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					if(position >= 0) {
+						gathered_attributes.back().varValue.boolVal = ei && ei->position_is_ltr(position) ? VARIANT_FALSE : VARIANT_TRUE;
+					} else {
+						gathered_attributes.back().varValue.boolVal = win.world.locale_get_native_rtl(win.font_collection.get_current_locale()) ? VARIANT_TRUE : VARIANT_FALSE;
+					}
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_VerticalWriting)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], GUID_PROP_COMPOSING)) {
+				gathered_attributes.emplace_back();
+				gathered_attributes.back().idAttr = paFilterAttrs[i];
+				gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+				if(fill_variants) {
+					gathered_attributes.back().varValue.vt = VT_BOOL;
+					if(position >= 0) {
+						auto range = ei->temporary_text_range();
+						gathered_attributes.back().varValue.boolVal = ei && (position >= range.first) && (position < range.second) ? VARIANT_TRUE : VARIANT_FALSE;
+					} else {
+						gathered_attributes.back().varValue.boolVal = VARIANT_FALSE;
+					}
+				}
+			}
+		}
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE RequestSupportedAttrs(DWORD dwFlags, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs) {
+		if(!paFilterAttrs && cFilterAttrs > 0)
+			return E_INVALIDARG;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		bool fill_variants = (TS_ATTR_FIND_WANT_VALUE & dwFlags) != 0;
+		fill_gathered_attributes(cFilterAttrs, paFilterAttrs, fill_variants, -1);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE RequestAttrsAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) {
+		if(!paFilterAttrs && cFilterAttrs > 0)
+			return E_INVALIDARG;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		bool fill_variants = (TS_ATTR_FIND_WANT_VALUE & dwFlags) != 0;
+		fill_gathered_attributes(cFilterAttrs, paFilterAttrs, fill_variants, acpPos);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE RequestAttrsTransitioningAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) {
+		if(!paFilterAttrs && cFilterAttrs > 0)
+			return E_INVALIDARG;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		free_gathered_attributes();
+		bool fill_variants = (TS_ATTR_FIND_WANT_VALUE & dwFlags) != 0;
+		bool attributes_that_end = (TS_ATTR_FIND_WANT_END & dwFlags) != 0;
+		for(uint32_t i = 0; i < cFilterAttrs; ++i) {
+			if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_RightToLeft)) {
+				if(acpPos > 0 && ei && ei->position_is_ltr(uint32_t(acpPos - 1)) != ei->position_is_ltr(uint32_t(acpPos))) {
+
+					gathered_attributes.emplace_back();
+					gathered_attributes.back().idAttr = paFilterAttrs[i];
+					gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+					if(fill_variants) {
+						gathered_attributes.back().varValue.vt = VT_BOOL;
+
+						if(attributes_that_end)
+							gathered_attributes.back().varValue.boolVal = ei && ei->position_is_ltr(uint32_t(acpPos - 1)) ? VARIANT_FALSE : VARIANT_TRUE;
+						else
+							gathered_attributes.back().varValue.boolVal = ei && ei->position_is_ltr(uint32_t(acpPos)) ? VARIANT_FALSE : VARIANT_TRUE;
+					}
+				}
+			} else if(IsEqualGUID(paFilterAttrs[i], GUID_PROP_COMPOSING)) {
+				auto range = ei->temporary_text_range();
+				if(acpPos > 0 && ei &&
+					(((acpPos - 1 >= range.first) && (acpPos - 1 < range.second))
+						!=
+						((acpPos >= range.first) && (acpPos < range.second)))) {
+
+					gathered_attributes.emplace_back();
+					gathered_attributes.back().idAttr = paFilterAttrs[i];
+					gathered_attributes.back().dwOverlapId = int32_t(gathered_attributes.size());
+					if(fill_variants) {
+						gathered_attributes.back().varValue.vt = VT_BOOL;
+						if(attributes_that_end)
+							gathered_attributes.back().varValue.boolVal = ei && (acpPos - 1 >= range.first) && (acpPos - 1 < range.second) ? VARIANT_TRUE : VARIANT_FALSE;
+						else
+							gathered_attributes.back().varValue.boolVal = ei && (acpPos >= range.first) && (acpPos < range.second) ? VARIANT_TRUE : VARIANT_FALSE;
+
+					}
+				}
+			}
+		}
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE FindNextAttrTransition(LONG acpStart, LONG acpHalt, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags, __RPC__out LONG* pacpNext, __RPC__out BOOL* pfFound, __RPC__out LONG* plFoundOffset) {
+		if(!pacpNext || !pfFound || !plFoundOffset)
+			return E_INVALIDARG;
+
+		*pfFound = FALSE;
+		if(plFoundOffset)
+			*plFoundOffset = 0;
+		*pacpNext = acpStart;
+
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		LONG initial_position = std::max(acpStart, LONG(1));
+		LONG end_position = std::min(acpHalt, LONG(ei->text_content().length() - 1));
+		end_position = std::max(initial_position, end_position);
+
+		if((TS_ATTR_FIND_BACKWARDS & dwFlags) != 0) {
+			std::swap(initial_position, end_position);
+		}
+		while(initial_position != end_position) {
+			for(uint32_t i = 0; i < cFilterAttrs; ++i) {
+				if(IsEqualGUID(paFilterAttrs[i], TSATTRID_Text_RightToLeft)) {
+					if(ei->position_is_ltr(uint32_t(initial_position - 1)) != ei->position_is_ltr(uint32_t(initial_position))) {
+						*pfFound = TRUE;
+						if(plFoundOffset)
+							*plFoundOffset = initial_position;
+						*pacpNext = initial_position;
+						return S_OK;
+					}
+				} else if(IsEqualGUID(paFilterAttrs[i], GUID_PROP_COMPOSING)) {
+					auto range = ei->temporary_text_range();
+					if(((initial_position - 1 >= range.first) && (initial_position - 1 < range.second))
+						!=
+						((initial_position >= range.first) && (initial_position < range.second))) {
+						*pfFound = TRUE;
+						if(plFoundOffset)
+							*plFoundOffset = initial_position;
+						*pacpNext = initial_position;
+						return S_OK;
+					}
+				}
+			}
+			if((TS_ATTR_FIND_BACKWARDS & dwFlags) != 0) {
+				--initial_position;
+			} else {
+				++initial_position;
+			}
+		}
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE RetrieveRequestedAttrs(ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_ATTRVAL* paAttrVals, __RPC__out ULONG* pcFetched) {
+
+		*pcFetched = 0;
+		uint32_t i = 0;
+		for(; i < ulCount && i < gathered_attributes.size(); ++i) {
+			paAttrVals[i] = gathered_attributes[i];
+			*pcFetched++;
+		}
+		for(; i < gathered_attributes.size(); ++i) {
+			VariantClear(&(gathered_attributes[i].varValue));
+		}
+		gathered_attributes.clear();
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetEndACP(__RPC__out LONG* pacp) {
+		if(!pacp)
+			return E_INVALIDARG;
+		if(document_lock_state == lock_state::unlocked)
+			return TS_E_NOLOCK;
+		*pacp = 0;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+		*pacp = LONG(ei->text_content().length());
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetActiveView(__RPC__out TsViewCookie* pvcView) {
+		if(!pvcView)
+			return E_INVALIDARG;
+		*pvcView = 0;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetACPFromPoint(TsViewCookie /*vcView*/, __RPC__in const POINT* ptScreen, DWORD dwFlags, __RPC__out LONG* pacp) {
+
+		*pacp = 0;
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		POINT client_space;
+		ScreenToClient(win.win_ptr->hwnd, &client_space);
+		auto client_pos = ui::get_absolute_location(win, *ei);
+		auto client_size = ei->base_data.size;
+
+		if((GXFPF_NEAREST & dwFlags) == 0) {
+			if(client_space.x <  int32_t(client_pos.x * win.user_settings.ui_scale) || client_space.y < int32_t(client_pos.y * win.user_settings.ui_scale)
+				|| client_space.x > int32_t((client_pos.x + client_size.x) * win.user_settings.ui_scale) || client_space.y > int32_t((client_pos.y + client_size.y) * win.user_settings.ui_scale)) {
+				return TS_E_INVALIDPOINT;
+			}
+		}
+
+		auto from_point = ei->detailed_text_mouse_test(win, client_space.x - int32_t(client_pos.x * win.user_settings.ui_scale), client_space.y - int32_t(client_pos.y * win.user_settings.ui_scale)).position;
+		*pacp = LONG(from_point);
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetTextExt(TsViewCookie /*vcView*/, LONG acpStart, LONG acpEnd, __RPC__out RECT* prc, __RPC__out BOOL* pfClipped) {
+		if(!pfClipped || !prc)
+			return E_INVALIDARG;
+		if(document_lock_state == lock_state::unlocked)
+			return TS_E_NOLOCK;
+
+		*pfClipped = FALSE;
+		*prc = RECT{ 0,0,0,0 };
+
+		if(IsIconic(win.win_ptr->hwnd)) {
+			*pfClipped = TRUE;
+			return S_OK;
+		}
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		auto raw_bounds = ei->text_bounds(win, acpStart, acpEnd);
+		POINT top_left;
+		top_left.x = int32_t(raw_bounds.top_left.x * win.user_settings.ui_scale);
+		top_left.y = int32_t(raw_bounds.top_left.y * win.user_settings.ui_scale);
+		ClientToScreen(win.win_ptr->hwnd, &top_left);
+
+		prc->left = top_left.x;
+		prc->top = top_left.y;
+		prc->right = top_left.x + int32_t(raw_bounds.size.x * win.user_settings.ui_scale);
+		prc->bottom = top_left.y + int32_t(raw_bounds.size.y * win.user_settings.ui_scale);
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetScreenExt(TsViewCookie /*vcView*/, __RPC__out RECT* prc) {
+		if(!prc)
+			return E_INVALIDARG;
+
+		*prc = RECT{ 0,0,0,0 };
+
+		if(!ei)
+			return TF_E_DISCONNECTED;
+
+		if(IsIconic(win.win_ptr->hwnd))
+			return S_OK;
+
+		POINT top_left;
+		auto pos = ui::get_absolute_location(win, *ei);
+		top_left.x = int32_t(pos.x * win.user_settings.ui_scale);
+		top_left.y = int32_t(pos.y * win.user_settings.ui_scale);
+		ClientToScreen(win.win_ptr->hwnd, &top_left);
+
+		prc->left = top_left.x;
+		prc->top = top_left.y;
+		prc->right = top_left.x + int32_t(ei->base_data.size.x * win.user_settings.ui_scale);
+		prc->bottom = top_left.y + int32_t(ei->base_data.size.y * win.user_settings.ui_scale);
+
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetInputScopes(__RPC__deref_out_ecount_full_opt(*pcCount) InputScope** pprgInputScopes, __RPC__out UINT* pcCount) {
+		*pprgInputScopes = (InputScope*)CoTaskMemAlloc(sizeof(InputScope));
+		*(*pprgInputScopes) = IS_TEXT;
+		/*
+		if(ei) {
+			switch(ei->get_type()) {
+			case edit_contents::generic_text:
+				*(*pprgInputScopes) = IS_TEXT;
+				break;
+			case edit_contents::number:
+				*(*pprgInputScopes) = IS_NUMBER;
+				break;
+			case edit_contents::single_char:
+				*(*pprgInputScopes) = IS_ONECHAR;
+				break;
+			case edit_contents::email:
+				*(*pprgInputScopes) = IS_EMAIL_SMTPEMAILADDRESS;
+				break;
+			case edit_contents::date:
+				*(*pprgInputScopes) = IS_DATE_FULLDATE;
+				break;
+			case edit_contents::time:
+				*(*pprgInputScopes) = IS_TIME_FULLTIME;
+				break;
+			case edit_contents::url:
+				*(*pprgInputScopes) = IS_URL;
+				break;
+			}
+		} else {
+			*(*pprgInputScopes) = IS_DEFAULT;
+		}
+		*/
+		*pcCount = 1;
+		return S_OK;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetPhrase(__RPC__deref_out_ecount_full_opt(*pcCount) BSTR** ppbstrPhrases, __RPC__out UINT* pcCount) {
+		*ppbstrPhrases = nullptr;
+		*pcCount = 0;
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetRegularExpression(__RPC__deref_out_opt BSTR* pbstrRegExp) {
+		*pbstrRegExp = nullptr;
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetSRGS(__RPC__deref_out_opt BSTR* pbstrSRGS) {
+		*pbstrSRGS = nullptr;
+		return E_NOTIMPL;
+	}
+
+	virtual HRESULT STDMETHODCALLTYPE GetXML(__RPC__deref_out_opt BSTR* pbstrXML) {
+		*pbstrXML = nullptr;
+		return E_NOTIMPL;
+	}
+
+	text_services_object(ITfThreadMgr* manager_ptr, TfClientId owner, sys::state& win, ui::element_base* ei) : win(win), ei(ei), m_refCount(1) {
+		manager_ptr->CreateDocumentMgr(&document);
+		auto hr = document->CreateContext(owner, 0, static_cast<ITextStoreACP2*>(this), &primary_context, &content_identifier);
+		hr = document->Push(primary_context);
+	}
+	virtual ~text_services_object() {
+		free_gathered_attributes();
+	}
+};
+
+
+void release_text_services_object(text_services_object* ptr) {
+	ptr->ei = nullptr;
+	safe_release(ptr->primary_context);
+	safe_release(ptr->document);
+	ptr->Release();
+}
+
+
+win32_text_services::win32_text_services() {
+	CoCreateInstance(CLSID_TF_ThreadMgr, NULL, CLSCTX_INPROC_SERVER,
+		IID_ITfThreadMgr, (void**)&manager_ptr);
+}
+win32_text_services::~win32_text_services() {
+	safe_release(manager_ptr);
+}
+
+void win32_text_services::start_text_services() {
+	manager_ptr->Activate(&client_id);
+	//manager_ptr->SuspendKeystrokeHandling();
+}
+void win32_text_services::end_text_services() {
+	manager_ptr->Deactivate();
+}
+void win32_text_services::on_text_change(text_services_object* ts, uint32_t old_start, uint32_t old_end, uint32_t new_end) {
+	if(send_notifications && ts->advise_sink && ts->notify_on_text_change) {
+		TS_TEXTCHANGE chng{ LONG(old_start), LONG(old_end), LONG(new_end) };
+		ts->advise_sink->OnTextChange(0, &chng);
+	}
+}
+void win32_text_services::on_selection_change(text_services_object* ts) {
+	if(send_notifications && ts->advise_sink && ts->notify_on_selection_change) {
+		ts->advise_sink->OnSelectionChange();
+	}
+}
+bool win32_text_services::send_mouse_event_to_tso(text_services_object* ts, int32_t x, int32_t y, uint32_t buttons) {
+	return ts->send_mouse_event(x, y, buttons);
+}
+
+void win32_text_services::set_focus(sys::state& win, text_services_object* o) {
+	//manager_ptr->SetFocus(o->document);
+
+	auto hwnd = win.win_ptr->hwnd;
+	if(hwnd) {
+		ITfDocumentMgr* old_doc = nullptr;
+		manager_ptr->AssociateFocus((HWND)hwnd, o ? o->document : nullptr, &old_doc);
+		safe_release(old_doc);
+	}
+}
+void win32_text_services::suspend_keystroke_handling() {
+	//manager_ptr->SuspendKeystrokeHandling();
+}
+void win32_text_services::resume_keystroke_handling() {
+	//manager_ptr->ResumeKeystrokeHandling();
+}
+
+text_services_object* win32_text_services::create_text_service_object(sys::state& win, ui::element_base& ei) {
+	return new text_services_object(manager_ptr, client_id, win, &ei);
 }
 } // namespace window

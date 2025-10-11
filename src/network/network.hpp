@@ -86,6 +86,7 @@ struct network_state {
 	std::vector<struct in6_addr> v6_banlist;
 	std::vector<struct in_addr> v4_banlist;
 	std::string ip_address = "127.0.0.1";
+	std::string port = "1984";
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
@@ -166,7 +167,7 @@ private:
 	bool started = false;
 public:
 	port_forwarder();
-	void start_forwarding();
+	void start_forwarding(uint16_t port);
 	~port_forwarder();
 };
 

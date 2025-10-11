@@ -18,6 +18,7 @@
 #include "sound.hpp"
 #include "map_state.hpp"
 #include "economy.hpp"
+#include "economy_production.hpp"
 #include "culture.hpp"
 #include "military.hpp"
 #include "nations.hpp"
@@ -43,6 +44,10 @@ namespace sys {
 
 enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
 enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
+struct text_mouse_test_result {
+	uint32_t position;
+	uint32_t quadrent;
+};
 
 struct user_settings_s {
 	float ui_scale = 1.0f;
@@ -405,6 +410,7 @@ struct host_settings_s {
 	float alice_place_ai_upon_disconnection = 1.0f;
 	float alice_lagging_behind_days_to_slow_down = 30.f;
 	float alice_lagging_behind_days_to_drop = 90.f;
+	uint16_t alice_host_port = 1984;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -475,6 +481,229 @@ struct player_data { // currently this data is serialized via memcpy, to make su
 	dcon::nation_id nation;
 	std::array<float, 32> treasury_record = {0.0f}; // current day's value = date.value & 31
 	std::array<float, 32> population_record = { 0.0f }; // current day's value = date.value & 31
+};
+
+template<typename T>
+struct ui_cached_vector {
+	std::mutex resize_mutex;
+	std::vector<T> unsafe_data;
+
+	template<typename VAL>
+	void assign_data(VAL value) {
+		resize_mutex.lock();
+		unsafe_data = value;
+		resize_mutex.unlock();
+	}
+
+	template<typename VAL>
+	void set(size_t index, VAL&& value) {
+		resize_mutex.lock();
+		unsafe_data.resize(std::max(unsafe_data.size(), index + 1));
+		unsafe_data[index] = std::forward<T>(value);
+		resize_mutex.unlock();
+	}
+
+	template<typename VAL>
+	void push_back(VAL&& value) {
+		resize_mutex.lock();
+		unsafe_data.push_back(value);
+		resize_mutex.unlock();
+	}
+
+	void resize(size_t new_size) {
+		resize_mutex.lock();
+		unsafe_data.resize(new_size);
+		resize_mutex.unlock();
+	}
+
+	void clear() {
+		resize_mutex.lock();
+		unsafe_data.clear();
+		resize_mutex.unlock();
+	}
+
+	std::optional<size_t> size() {
+		if(resize_mutex.try_lock()) {
+			auto val = unsafe_data.size();
+			resize_mutex.unlock();
+			return val;
+		}
+		return { };
+	}
+
+	std::optional<T> operator[](int index) {
+		if (index < 0) {
+			return { };
+		}
+		if(resize_mutex.try_lock()) {
+			if((int)(unsafe_data.size()) <= index) {
+				resize_mutex.unlock();
+				return { };
+			}
+			auto val = unsafe_data[index];
+			resize_mutex.unlock();
+			return val;
+		}
+		return { };
+	}
+};
+
+struct ui_cache_slot {
+	std::atomic<bool> update_requested = false;
+	std::mutex update_mutex;
+	bool update_completed = true;
+	void reset_progress() {
+		return;
+	}
+	bool update(sys::state& state) {
+		return true;
+	}
+	// can be used outside of cache thread
+	void request_update() {
+		update_requested.store(true);
+	}
+
+	template<typename F>
+	void access(F&){ }
+};
+
+struct commodity_per_nation_cache_slot : ui_cache_slot {
+	dcon::commodity_id commodity{};
+	dcon::nation_id::value_base_t progress = 0;
+
+	ui_cached_vector<float> export_volume{};
+	ui_cached_vector<float> import_volume{};
+	ui_cached_vector<float> consumption_volume{};
+	ui_cached_vector<float> production_volume{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct nation_per_nation_cache_slot : ui_cache_slot {
+	dcon::nation_id nation{};
+
+	ui_cached_vector<float> export_value{};
+	ui_cached_vector<float> import_value{};
+
+	void reset_progress() {
+		update_completed = false;
+	}
+	bool update(sys::state& state);
+};
+
+struct nation_per_commodity_cache_slot : ui_cache_slot {
+	dcon::nation_id nation{};
+	dcon::commodity_id::value_base_t progress = 0;
+
+	ui_cached_vector<float> import_volume{};
+	ui_cached_vector<float> export_volume{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct commodity_per_province_cache_slot : ui_cache_slot {
+	dcon::commodity_id commodity{};
+	dcon::province_id::value_base_t progress = 0;
+
+	ui_cached_vector<float> consumption_volume{};
+	ui_cached_vector<float> production_volume{};
+	ui_cached_vector<dcon::province_id> sorted_by_consumption{ };
+	ui_cached_vector<dcon::province_id> sorted_by_production{ };
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct per_province_cache_slot : ui_cache_slot {
+	dcon::province_id::value_base_t progress = 0;
+
+	ui_cached_vector<economy::gdp::breakdown> gdp{};
+	ui_cached_vector<float> population{};
+	ui_cached_vector<dcon::province_id> sorted_by_gdp{ };
+	ui_cached_vector<dcon::province_id> sorted_by_gdp_per_capita{ };
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct per_nation_cache_slot : ui_cache_slot {
+	dcon::nation_id::value_base_t progress = 0;
+	dcon::nation_id::value_base_t progress_sphere = 0;
+
+	ui_cached_vector<dcon::nation_id> sphere_parent{};
+	ui_cached_vector<float> national_gdp{};
+	ui_cached_vector<float> sphere_gdp{};
+
+	void reset_progress() {
+		update_completed = false;
+		progress = 0;
+		progress_sphere = 0;
+	}
+	bool update(sys::state& state);
+};
+
+struct ui_cache {
+	dcon::commodity_id commodity{};
+	dcon::nation_id nation{};
+
+	int sleep_iterations;
+
+	// slots output is read only from outside
+
+	commodity_per_nation_cache_slot commodity_per_nation{ };
+	commodity_per_province_cache_slot commodity_per_province{ };
+	per_province_cache_slot per_province{ };
+	nation_per_nation_cache_slot nation_per_nation{ };
+	nation_per_commodity_cache_slot nation_per_commodity{ };
+	per_nation_cache_slot per_nation{ };
+
+	void update_ui(sys::state& state);
+
+	void set_commodity(const sys::state& state, dcon::commodity_id cid) {
+		if(commodity == cid) return;
+		commodity = cid;
+		commodity_per_nation.commodity = cid;
+		commodity_per_province.commodity = cid;
+		commodity_per_nation.request_update();
+		commodity_per_province.request_update();
+	};
+
+	void set_nation(const sys::state& state, dcon::nation_id nid) {
+		if(nation == nid) return;
+		nation = nid;
+		nation_per_nation.nation = nid;
+		nation_per_commodity.nation = nid;
+		nation_per_nation.request_update();
+		nation_per_commodity.request_update();
+	};
+
+	void request_update() {
+		commodity_per_nation.request_update();
+		commodity_per_province.request_update();
+		per_province.request_update();
+		nation_per_nation.request_update();
+		nation_per_commodity.request_update();
+		per_nation.request_update();
+	}
+
+	template<typename SLOT>
+	void update_slot(sys::state& state, SLOT& slot, bool& updates_running);
+
+	void process_update(sys::state& state);
 };
 
 // the state struct will eventually include (at least pointers to)
@@ -650,6 +879,7 @@ struct alignas(64) state {
 	std::unique_ptr<window::window_data_impl> win_ptr = nullptr;     // platform-dependent window information
 	std::unique_ptr<sound::sound_impl> sound_ptr = nullptr;          // platform-dependent sound information
 	ui::state ui_state;                                              // transient information for the state of the ui
+	ui_cache ui_cached_data;					 // cached data to do heavy UI updates in separate thread
 	ogl::animation ui_animation;
 	text::font_manager font_collection;
 
@@ -664,6 +894,9 @@ struct alignas(64) state {
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
 	std::atomic<bool> update_trade_flow = true;
+
+	std::atomic<int64_t> tick_start_counter;
+	std::atomic<int64_t> tick_end_counter;
 
 	// synchronization: notifications from the gamestate to ui
 	rigtorp::SPSCQueue<event::pending_human_n_event> new_n_event;
@@ -691,6 +924,10 @@ struct alignas(64) state {
 
 	// map data
 	map::map_state map_state;
+
+	// gl misc
+	std::vector<GLuint> query_frame_time_other;
+	std::vector<bool> query_frame_time_other_free;
 
 	// data for immediate mode gui
 	iui::iui_state iui_state;
@@ -739,9 +976,11 @@ struct alignas(64) state {
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
-	void on_temporary_text(std::u16string_view s);
-	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting
-	               // for vsync
+	bool filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons);
+	void pass_edit_command(ui::edit_command command, sys::key_modifiers mod);
+	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
+	text_mouse_test_result detailed_text_mouse_test(int32_t x, int32_t y);
+	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
 
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it

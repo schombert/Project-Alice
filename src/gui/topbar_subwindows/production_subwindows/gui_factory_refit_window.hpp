@@ -1,103 +1,13 @@
+#pragma once
+
 #include "gui_element_types.hpp"
+#include "gui_common_elements.hpp"
 #include "construction.hpp"
 
 namespace ui {
 
-struct open_factory_refit {
-	dcon::factory_id factory_selection;
-};
-
-class factory_refit_button : public button_element_base {
-public:
-	void on_update(sys::state& state) noexcept override {
-		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-		auto fat = dcon::fatten(state.world, fid);
-		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
-		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = state.world.factory_get_building_type(fid);
-
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.province_get_factory_construction(pid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-		if(!is_not_upgrading) {
-			disabled = true; return;
-		}
-
-		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
-		if(!is_civ) {
-			disabled = true; return;
-		}
-
-		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-		if(!state_is_not_colonial) {
-			disabled = true; return;
-		}
-
-		disabled = false;
-	}
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		auto fid = retrieve<dcon::factory_id>(state, parent);
-		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-		auto sid = retrieve<dcon::state_instance_id>(state, parent);
-		auto type = state.world.factory_get_building_type(fid);
-
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.province_get_factory_construction(pid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-		if(is_not_upgrading) {
-			button_element_base::render(state, x, y);
-		}
-	}
-	void button_action(sys::state& state) noexcept override {
-		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-
-		send(state, parent, open_factory_refit{fid});
-	}
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::variable_tooltip;
-	}
-
-
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
-		auto fat = dcon::fatten(state.world, fid);
-		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
-		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
-		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
-		auto type = state.world.factory_get_building_type(fid);
-
-		// no double upgrade
-		bool is_not_upgrading = true;
-		for(auto p : state.world.province_get_factory_construction(pid)) {
-			if(p.get_type() == type)
-				is_not_upgrading = false;
-		}
-		
-		text::add_line(state, contents, "production_refit_factory_tooltip_1", text::variable_type::what, state.world.factory_type_get_name(type));
-
-		text::add_line_break_to_layout(state, contents);
-
-		bool is_civ = state.world.nation_get_is_civilized(state.local_player_nation);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_1", is_civ);
-
-		bool state_is_not_colonial = !state.world.province_get_is_colonial(state.world.state_instance_get_capital(sid));
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_2", state_is_not_colonial);
-
-		bool is_activated = state.world.nation_get_active_building(n, type) || state.world.factory_type_get_is_available_from_start(type);
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_3", is_activated);
-
-		text::add_line_with_condition(state, contents, "factory_upgrade_condition_9", is_not_upgrading);
-	}
-};
-
+void hide_factory_refit_menu(sys::state& state);
+void show_factory_refit_menu(sys::state& state, dcon::factory_id selected_factory);
 
 class factory_refit_type_listbox_entry_label : public button_element_base {
 public:
@@ -111,8 +21,7 @@ public:
 			set_button_text(state, text::produce_simple_string(state, state.world.factory_type_get_name(refit_target_id)));
 		}
 
-		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid,
-			fat.get_building_type().id, false, refit_target_id);
+		disabled = !command::can_begin_factory_building_construction(state, state.local_player_nation, pid, fat.get_building_type(), false, refit_target_id);
 
 	}
 
@@ -122,8 +31,8 @@ public:
 		auto fat = dcon::fatten(state.world, fid);
 		auto pid = fat.get_factory_location().get_province();
 		command::begin_factory_building_construction(state, state.local_player_nation, pid, fat.get_building_type().id, false, refit_target_id);
-		// Close the window and reset selected factory
-		send(state, parent, open_factory_refit{ dcon::factory_id{} });
+		// Close the window
+		hide_factory_refit_menu(state);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -251,23 +160,47 @@ public:
 
 		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
 		auto type = state.world.factory_get_building_type(fid);
+		auto pid = state.world.factory_get_province_from_factory_location(fid);
 
-		auto is_land = true;
+		std::vector<dcon::factory_type_id> types;
+		for(auto t : state.world.in_factory_type) {
+			types.push_back(t);
+		}
 
-		for(auto ftid : state.world.in_factory_type) {
-			if(type == ftid) {
-				continue;
+		std::sort(types.begin(), types.end(), [&](auto a, auto b) {
+			// Constructable first
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, a) != command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, b)) {
+				return (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, a) > (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, type, false, b);
 			}
-			row_contents.push_back(ftid);
+			// Then sort by commodity
+			if(state.world.factory_type_get_output(a).id.index() != state.world.factory_type_get_output(b).id.index()) {
+				// First show types with the same output
+				if(state.world.factory_type_get_output(type) == state.world.factory_type_get_output(a) && state.world.factory_type_get_output(type) != state.world.factory_type_get_output(b)) {
+					return false;
+				}
+				if(state.world.factory_type_get_output(type) == state.world.factory_type_get_output(b) && state.world.factory_type_get_output(type) != state.world.factory_type_get_output(a)) {
+					return true;
+				}
+				return state.world.factory_type_get_output(a).id.index() < state.world.factory_type_get_output(b).id.index();
+			}
+			// Then sort by tier
+			if(state.world.factory_type_get_factory_tier(a) != state.world.factory_type_get_factory_tier(b)) {
+				return state.world.factory_type_get_factory_tier(a) < state.world.factory_type_get_factory_tier(b);
+			}
+			return a.value > b.value;
+		});
+
+		for(auto t : types) {
+			row_contents.push_back(t);
 		}
 
 		update(state);
 	}
-
 };
 
 class factory_refit_window : public window_element_base {
 public:
+	dcon::factory_id selected_factory;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "factory_refit_type_list") {
 			return make_element_by_type<factory_refit_type_listbox>(state, id);
@@ -275,7 +208,63 @@ public:
 			return nullptr;
 		}
 	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::factory_id>()) {
+			payload.emplace<dcon::factory_id>(selected_factory);
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
 };
 
+bool factory_refit_button_active(sys::state& state, dcon::factory_id fid, dcon::province_id pid, dcon::state_instance_id sid, dcon::nation_id n);
+void factory_refit_button_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, dcon::factory_id fid);
+
+class factory_refit_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
+		const dcon::state_instance_id sid = retrieve<dcon::state_instance_id>(state, parent);
+		const dcon::nation_id n = retrieve<dcon::nation_id>(state, parent);
+
+		disabled = !factory_refit_button_active(state, fid, pid, sid, n);
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		const dcon::province_id pid = retrieve<dcon::province_id>(state, parent);
+		auto sid = retrieve<dcon::state_instance_id>(state, parent);
+		auto type = state.world.factory_get_building_type(fid);
+
+		// no double upgrade
+		bool is_not_upgrading = true;
+		for(auto p : state.world.province_get_factory_construction(pid)) {
+			if(p.get_type() == type)
+				is_not_upgrading = false;
+		}
+		if(is_not_upgrading) {
+			button_element_base::render(state, x, y);
+		}
+	}
+	void button_action(sys::state& state) noexcept override {
+		const dcon::factory_id fid = retrieve<dcon::factory_id>(state, parent);
+		if(state.ui_state.factory_refit_win && state.ui_state.factory_refit_win->is_visible()) {
+			hide_factory_refit_menu(state);
+		} else {
+			show_factory_refit_menu(state, fid);
+		}
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto fid = retrieve<dcon::factory_id>(state, parent);
+		factory_refit_button_tooltip(state, x, y, contents, fid);
+	}
+};
 
 }

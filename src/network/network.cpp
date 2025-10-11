@@ -60,7 +60,7 @@ struct local_addresses {
 port_forwarder::port_forwarder() { }
 
 
-void port_forwarder::start_forwarding() {
+void port_forwarder::start_forwarding(uint16_t port) {
 #ifdef _WIN64
 	if(started)
 		return;
@@ -191,7 +191,7 @@ void port_forwarder::start_forwarding() {
 
 			if(SUCCEEDED(CoCreateInstance(__uuidof(UPnPNAT), NULL, CLSCTX_ALL, __uuidof(IUPnPNAT), (void**)&nat_interface)) && nat_interface) {
 				if(SUCCEEDED(nat_interface->get_StaticPortMappingCollection(&port_mappings)) && port_mappings) {
-					if(SUCCEEDED(port_mappings->Add(default_server_port, proto, default_server_port, local_host, enabled, desc, &opened_port)) && opened_port) {
+					if(SUCCEEDED(port_mappings->Add(port, proto, port, local_host, enabled, desc, &opened_port)) && opened_port) {
 						mapped_ports_with_upnp = true;
 					}
 				}
@@ -214,19 +214,19 @@ void port_forwarder::start_forwarding() {
 				memset(&ext_ip, 0, sizeof(ext_ip));
 
 				if(found_locals[0].ipv6 == false) {
-					((sockaddr_in*)(&source_ip))->sin_port = 1984;
+					((sockaddr_in*)(&source_ip))->sin_port = port;
 					((sockaddr_in*)(&source_ip))->sin_addr.s_addr = inet_addr(found_locals[0].address.c_str());
 					((sockaddr_in*)(&source_ip))->sin_family = AF_INET;
 
-					((sockaddr_in*)(&ext_ip))->sin_port = 1984;
+					((sockaddr_in*)(&ext_ip))->sin_port = port;
 					((sockaddr_in*)(&ext_ip))->sin_family = AF_INET;
 				} else {
-					((sockaddr_in6*)(&source_ip))->sin6_port = 1984;
+					((sockaddr_in6*)(&source_ip))->sin6_port = port;
 					PCSTR term = nullptr;
 					RtlIpv6StringToAddressA(found_locals[0].address.c_str(), &term, &(((sockaddr_in6*)(&source_ip))->sin6_addr));
 					((sockaddr_in6*)(&source_ip))->sin6_family = AF_INET6;
 
-					((sockaddr_in6*)(&ext_ip))->sin6_port = 1984;
+					((sockaddr_in6*)(&ext_ip))->sin6_port = port;
 					((sockaddr_in6*)(&ext_ip))->sin6_family = AF_INET6;
 				}
 
@@ -245,7 +245,7 @@ void port_forwarder::start_forwarding() {
 
 			//cleanup forwarding
 			if(port_mappings)
-				port_mappings->Remove(default_server_port, proto);
+				port_mappings->Remove(port, proto);
 
 			if(opened_port)
 				opened_port->Release();
@@ -430,7 +430,7 @@ static void socket_shutdown(socket_t socket_fd) {
 	}
 }
 
-static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_address) {
+static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_address, uint16_t port) {
 	socket_t socket_fd = static_cast<socket_t>(socket(as_v6 ? AF_INET6 : AF_INET, SOCK_STREAM, IPPROTO_TCP));
 #ifdef _WIN64
 	if(socket_fd == static_cast<socket_t>(INVALID_SOCKET)) {
@@ -469,13 +469,13 @@ static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_a
 		struct sockaddr_in6 v6_server_address;
 		v6_server_address.sin6_addr = IN6ADDR_ANY_INIT;
 		v6_server_address.sin6_family = AF_INET6;
-		v6_server_address.sin6_port = htons(default_server_port);
+		v6_server_address.sin6_port = htons(port);
 		std::memcpy(&server_address, &v6_server_address, sizeof(v6_server_address));
 	} else {
 		struct sockaddr_in v4_server_address;
 		v4_server_address.sin_addr.s_addr = INADDR_ANY;
 		v4_server_address.sin_family = AF_INET;
-		v4_server_address.sin_port = htons(default_server_port);
+		v4_server_address.sin_port = htons(port);
 		std::memcpy(&server_address, &v4_server_address, sizeof(v4_server_address));
 	}
 	if(bind(socket_fd, (struct sockaddr*)&server_address, as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in)) < 0) {
@@ -491,14 +491,14 @@ static socket_t socket_init_server(bool as_v6, struct sockaddr_storage& server_a
 	return socket_fd;
 }
 
-static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_address, const char *ip_address) {
+static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_address, const char *ip_address, const char* port) {
 	struct addrinfo hints;
 	std::memset(&hints, 0, sizeof(hints));
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
 	struct addrinfo* result = NULL;
-	if(getaddrinfo(ip_address, "1984", &hints, &result) != 0) {
+	if(getaddrinfo(ip_address, port, &hints, &result) != 0) {
 		window::emit_error_message("Network getaddrinfo error: " + get_last_error_msg(), true);
 	}
 	as_v6 = false;
@@ -992,10 +992,10 @@ void init(sys::state& state) {
 	}
 #endif
 	if(state.network_mode == sys::network_mode_type::host) {
-		state.network_state.socket_fd = socket_init_server(state.network_state.as_v6, state.network_state.address);
+		state.network_state.socket_fd = socket_init_server(state.network_state.as_v6, state.network_state.address, state.host_settings.alice_host_port);
 	} else {
 		assert(state.network_state.ip_address.size() > 0);
-		state.network_state.socket_fd = socket_init_client(state.network_state.as_v6, state.network_state.address, state.network_state.ip_address.c_str());
+		state.network_state.socket_fd = socket_init_client(state.network_state.as_v6, state.network_state.address, state.network_state.ip_address.c_str(), state.network_state.port.c_str());
 	}
 
 	// Host must have an already selected nation, to prevent issues...
@@ -2000,6 +2000,7 @@ state.host_settings.y = data[x]
 		HS_LOAD("alice_place_ai_upon_disconnection", alice_place_ai_upon_disconnection);
 		HS_LOAD("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_LOAD("alice_persistent_server_unpause", alice_persistent_server_unpause);
+		HS_LOAD("alice_host_port", alice_host_port);
 	}
 }
 
@@ -2020,6 +2021,7 @@ data[x] = state.host_settings.y
 		HS_SAVE("alice_place_ai_upon_disconnection", alice_place_ai_upon_disconnection);
 		HS_SAVE("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_SAVE("alice_persistent_server_unpause", alice_persistent_server_unpause);
+		HS_SAVE("alice_host_port", alice_host_port);
 
 		std::string res = data.dump();
 

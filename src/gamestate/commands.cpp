@@ -5153,6 +5153,8 @@ void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_w
 		data.cb_state, // state;
 		data.cb_type // cb
 	});
+	auto infamy = military::crisis_cb_addition_infamy_cost(state, data.cb_type, source, data.target, data.cb_state);
+	state.world.nation_set_infamy(source, state.world.nation_get_infamy(source) + infamy);
 
 	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
 	state.world.nation_set_diplomatic_points(source, current_diplo - 1.0f);
@@ -6820,6 +6822,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 bool execute_command(sys::state& state, command_data& c) {
 	if(!can_perform_command(state, c))
 		return false;
+	state.tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 	switch(c.header.type) {
 	case command_type::invalid:
 	{
@@ -7615,6 +7618,7 @@ bool execute_command(sys::state& state, command_data& c) {
 		execute_resync_lobby(state, c.header.source);
 	}
 	}
+	state.tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
 	return true;
 }
 

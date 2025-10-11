@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <array>
+#include <chrono>
 #include "constants.hpp"
 #include "dcon_generated.hpp"
 #include "unordered_dense.h"
@@ -18,6 +19,7 @@ struct building_gfx_context;
 namespace ui {
 
 class context_menu_window;
+class factory_refit_window;
 
 enum class object_type : uint8_t {
 	generic_sprite = 0x00,
@@ -456,6 +458,7 @@ struct state {
 	int32_t last_tooltip_sub_index = -1;
 	uint32_t cursor_size = 16;
 	int32_t target_distance = 0;
+	edit_selection_mode selecting_edit_text = edit_selection_mode::none;
 
 	xy_pair relative_mouse_location = xy_pair{0, 0};
 	std::unique_ptr<element_base> units_root;
@@ -538,6 +541,7 @@ struct state {
 	element_base* gamerules_window = nullptr;
 
 	context_menu_window* context_menu = nullptr;
+	factory_refit_window* factory_refit_win = nullptr;
 
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;

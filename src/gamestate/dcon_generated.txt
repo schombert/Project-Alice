@@ -576,6 +576,11 @@ object {
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ factory_tier }
+		type{ uint8_t }
+		tag{ scenario }
+	}
 }
 
 
@@ -4479,6 +4484,11 @@ object {
 	property {
 		name{ ai_strategy }
 		type{ int }
+		tag{ save }
+	}
+	property {
+		name{ utility_tag }
+		type{ bitfield }
 		tag{ save }
 	}
 }

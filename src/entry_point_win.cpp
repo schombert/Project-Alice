@@ -226,13 +226,27 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		} else {
 			for(int i = 1; i < num_params; ++i) {
 				if(native_string(parsed_cmd[i]) == NATIVE("-host")) {
-					forwarding_apparatus.start_forwarding();
+					network::save_host_settings(game_state);
+					network::load_host_settings(game_state);
+					forwarding_apparatus.start_forwarding(game_state.host_settings.alice_host_port);
 					game_state.network_mode = sys::network_mode_type::host;
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-join")) {
 					game_state.network_mode = sys::network_mode_type::client;
 					game_state.network_state.ip_address = "127.0.0.1";
+					game_state.network_state.port = "1984";
 					if(i + 1 < num_params) {
-						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(parsed_cmd[i + 1]));
+						auto native_param = native_string(parsed_cmd[i + 1]);
+						auto semicolon_pos = native_param.find(NATIVE(";"));
+						if(semicolon_pos != native_string::npos) {
+							if(semicolon_pos + 1 >= native_param.length()) {
+								window::emit_error_message("Missing port number after semicolon", true);
+							}
+							game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param.substr(0, semicolon_pos));
+							game_state.network_state.port = simple_fs::native_to_utf8(native_param.substr(semicolon_pos + 1));
+						}
+						else {
+							game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param);
+						}
 						i++;
 					}
 				} else if(native_string(parsed_cmd[i]) == NATIVE("-name")) {
@@ -289,8 +303,6 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 		ui::populate_definitions_map(game_state);
 
 		if(game_state.network_mode == sys::network_mode_type::host) {
-			network::save_host_settings(game_state);
-			network::load_host_settings(game_state);
 
 			if(game_state.host_settings.alice_expose_webui != 0) {
 				std::thread web_thread([&]() { webui::init(game_state); });
@@ -333,10 +345,14 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 			}
 		} else {
 			std::thread update_thread([&]() { game_state.game_loop(); });
+			std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
+
 			// entire game runs during this line
 			window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
-			game_state.quit_signaled.store(true, std::memory_order_release);			
+			game_state.quit_signaled.store(true, std::memory_order_release);
+
 			update_thread.join();
+			ui_cache_update.join();
 		}
 
 		network::finish(game_state, true);
