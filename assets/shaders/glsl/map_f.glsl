@@ -135,12 +135,12 @@ vec4 get_water_political() {
 
 // The terrain color from the current texture coordinate offset with one pixel in the "corner" direction
 vec4 get_terrain(vec2 corner, vec2 offset) {
-	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-	vec2 prov_id = sample.xy;
-	float index = texture(terrain_texture_sampler, floor(tex_coord * map_size + vec2(0.5, 0.5)) / map_size + 0.5 * pix * corner).r;
-	index = floor(index * 256);
+    vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+    vec2 prov_id = sample.xy;
+    float index = texture(terrain_texture_sampler, floor(tex_coord * map_size + vec2(0.5, 0.5)) / map_size + 0.5 * pix * corner).r;
+    index = floor(index * 256);
 
-	float is_water = 0.f; //step(64, index);
+    float is_water = 0.f;
 
 	if (texture(provinces_sea_mask, prov_id).x > 0.0f || (prov_id.x == 0.f && prov_id.y == 0.f)) {
 		is_water = 1.f;
@@ -157,29 +157,29 @@ vec4 get_terrain(vec2 corner, vec2 offset) {
 }
 
 vec4 get_terrain_mix() {
-	if (int(graphics_mode) == 0) {
-		return get_terrain(vec2(0.f, 0.f), vec2(0.f, 0.f));
-	}
+    if (int(graphics_mode) == 0) {
+        return get_terrain(vec2(0.f, 0.f), vec2(0.f, 0.f));
+    }
 
-	// Pixel size on map texture
-	vec2 scaling = fract(tex_coord * map_size + vec2(0.5, 0.5));
+    // Pixel size on map texture
+    vec2 scaling = fract(tex_coord * map_size + vec2(0.5, 0.5));
 
-	vec2 offset = tex_coord / (16. * pix);
+    vec2 offset = tex_coord / (16. * pix);
 
-	vec4 colourlu = get_terrain(vec2(-1, -1), offset);
-	vec4 colourld = get_terrain(vec2(-1, +1), offset);
-	vec4 colourru = get_terrain(vec2(+1, -1), offset);
-	vec4 colourrd = get_terrain(vec2(+1, +1), offset);
+    vec4 colourlu = get_terrain(vec2(-1, -1), offset);
+    vec4 colourld = get_terrain(vec2(-1, +1), offset);
+    vec4 colourru = get_terrain(vec2(+1, -1), offset);
+    vec4 colourrd = get_terrain(vec2(+1, +1), offset);
 
-	// Mix together the terrains based on close they are to the current texture coordinate
-	vec4 colour_u = mix(colourlu, colourru, scaling.x);
-	vec4 colour_d = mix(colourld, colourrd, scaling.x);
-	vec4 terrain = mix(colour_u, colour_d, scaling.y);
+    // Mix together the terrains based on how close they are to the current texture coordinate
+    vec4 colour_u = mix(colourlu, colourru, scaling.x);
+    vec4 colour_d = mix(colourld, colourrd, scaling.x);
+    vec4 terrain = mix(colour_u, colour_d, scaling.y);
 
 	// Mixes the terrains from "texturesheet.tga" with the "colormap.dds" background color.
 	vec4 terrain_background = texture(colormap_terrain, get_corrected_coords(tex_coord));
-	terrain.rgb = (terrain.rgb * 2. + terrain_background.rgb) / 3.;
-	return terrain;
+    terrain.rgb = (terrain.rgb * 2. + terrain_background.rgb) / 3.;
+    return terrain;
 }
 
 vec4 get_land_terrain() {
