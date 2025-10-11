@@ -328,12 +328,13 @@ public:
 		if(network::check_any_players_loading(state) || state.network_mode != sys::network_mode_type::host) {
 			return;
 		}
-		disabled = !network::any_player_oos(state);
+		disabled = !network::any_player_oos(state) || state.ui_state.recently_pressed_resync;
 	}
 	void button_action(sys::state& state) noexcept override {
-		if(state.network_mode == sys::network_mode_type::host) {
+		if(state.network_mode == sys::network_mode_type::host && !network::check_any_players_loading(state) && !state.ui_state.recently_pressed_resync) {
+			state.ui_state.recently_pressed_resync = true;
 			disabled = true;
-			network::full_reset_after_oos(state);
+			command::resync_lobby(state, state.local_player_nation);
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
