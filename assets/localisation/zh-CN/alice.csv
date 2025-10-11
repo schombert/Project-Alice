@@ -1260,7 +1260,7 @@ pname_is;$x$ 党派名称
 rpname_is;执政党名称
 pposition_is;$x$ 政党位置
 rpposition_is;执政党位置
-topbar_budget_warning;你无法完全负担昨天的目标预算支出
+topbar_budget_warning;我们无法承担昨天目标预算支出，被迫削减支出。
 rgo_output;产出
 rgo_profit;总量
 rgo_expected_profit;当前
@@ -1557,7 +1557,7 @@ embargo_reason_origin_join_embargo;来源加入禁运
 embargo_reason_target_embargo;目标宣布禁运
 embargo_reason_target_join_embargo;目标加入禁运
 alice_no_start_game_invalid_nations;在玩家游玩不存在的国家时无法开始游戏
-alice_observer_btn_text;作为观察者游玩
+alice_observer_btn_text;观察
 alice_observer_already_observer_tooltip;你已是观察者。
 open_economy_scene;查看经济指示器
 admin_employment;行政雇员：?Y$value$?W
@@ -1775,3 +1775,5 @@ consumption;消费
 import;进口
 export;出口
 gva;总增值
+factory_refit;工厂改装
+factory_tier;等级：?Y$x$?W
