@@ -830,6 +830,17 @@ size_t sizeof_save_section(sys::state& state) {
 	return sz;
 }
 
+void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record) {
+
+	uint8_t* write_ptr = reinterpret_cast<uint8_t*>(&affected_record);
+	const uint8_t* read_ptr = reinterpret_cast<const uint8_t*>(&other_record);
+	for(auto i = 0; i < sizeof(dcon::load_record); i++) {
+		write_ptr[i] = write_ptr[i] | read_ptr[i];
+	}
+
+}
+
+
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count) {
 	scenario_header header;
 	header.count = count;
