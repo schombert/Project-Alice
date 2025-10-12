@@ -834,7 +834,7 @@ void combine_load_records(dcon::load_record& affected_record, const dcon::load_r
 
 	uint8_t* write_ptr = reinterpret_cast<uint8_t*>(&affected_record);
 	const uint8_t* read_ptr = reinterpret_cast<const uint8_t*>(&other_record);
-	for(auto i = 0; i < sizeof(dcon::load_record); i++) {
+	for(uint32_t i = 0; i < sizeof(dcon::load_record); i++) {
 		write_ptr[i] = write_ptr[i] | read_ptr[i];
 	}
 

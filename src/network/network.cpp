@@ -359,19 +359,41 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* m, F&& func) {
-	// get command header
-	int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), m, [&]() {
-		// if it received the whole header, we run this lambda to get the payload
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload , F&& func) {
+	// check flag to see if the receiving payload flag is off, an thus should read the header
+	if(!(*receiving_payload)) {
+		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() { *receiving_payload = true; });
+	}
+	// otherwise, start receiving the payload
+	else {
+		auto payload_sz = data->header.payload_size;
 		auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-		// if its a valid command, read the rest
-		if(cmd_mapping != command::command_type_handlers.end()) {
-			r = socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, m, func);
+		// command must have a defined maximum size, and the specified size in the header must be equal to or less than the max size
+		if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.payload_size >= payload_sz) {
+			data->payload.resize(payload_sz);
+			return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data->payload.data()), payload_sz, recv_count, [&]() { func(); *receiving_payload = false; });
 		}
+		// if the command does not fit these requirements, discard it and reset recv count
+		else {
+			*recv_count = 0;
+			*receiving_payload = false;
+			return -1;
+		}
+	}
 
 
-	});
-	return r;
+	//int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
+	//	// if it received the whole header, we run this lambda to get the payload
+	//	auto payload_sz = data->header.payload_size;
+	//	auto cmd_mapping = command::command_type_handlers.find(data->header.type);
+	//	// if its a valid command, read the rest
+	//	if(cmd_mapping != command::command_type_handlers.end()) {
+	//		r = socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, recv_count, func);
+	//	}
+
+
+	//});
+	//return r;
 }
 
 
@@ -407,10 +429,14 @@ static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data
 }
 
 static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data) {
+	auto payload_sz = data->header.payload_size;
+	assert(payload_sz == data->payload.size());
 	auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-	if(cmd_mapping != command::command_type_handlers.end()) {
-		// Send the header + the payload for that specific command
-		socket_add_to_send_queue(buffer, data, sizeof(command::cmd_header) + cmd_mapping->second.payload_size);
+	if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.payload_size >= payload_sz) {
+		// Send the header
+		socket_add_to_send_queue(buffer, data, sizeof(command::cmd_header));
+		// Then the payload
+		socket_add_to_send_queue(buffer, data->payload.data(), payload_sz);
 	}
 
 }
@@ -548,6 +574,7 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.recv_count = 0;
 	client.handshake = true;
 	client.last_seen = sys::date{};
+	client.receiving_payload_flag = false;
 }
 
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
@@ -1438,7 +1465,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 }
 
 int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command(client.socket_fd, &client.recv_buffer, &client.recv_count, [&]() {
+	int r = socket_recv_command(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag , [&]() {
 		switch(client.recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
@@ -1783,7 +1810,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, [&]() {
+			int r = socket_recv_command(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();

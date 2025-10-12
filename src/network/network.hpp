@@ -66,6 +66,7 @@ struct client_data {
 	size_t save_stream_offset = 0;
 	size_t save_stream_size = 0;
 	bool handshake = true;
+	bool receiving_payload_flag = false;
 
 	sys::date last_seen;
 
@@ -90,6 +91,7 @@ struct network_state {
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
+	bool receiving_payload_flag = false;
 	std::vector<uint8_t> save_data; //client
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
