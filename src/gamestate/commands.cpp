@@ -5453,15 +5453,25 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	command_data p{ command_type::chat_message, source };
 	auto data = chat_message_data{ };
 	data.target = target;
-	memcpy(data.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
-	data.body[ui::max_chat_message_len - 1] = '\0';
+	/*memcpy(data.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
+	data.body[ui::max_chat_message_len - 1] = '\0';*/
 	data.sender = sender;
+	data.msg_len = std::min<uint16_t>(uint16_t(body.length()), ui::max_chat_message_len);
 
 	p << data;
+	p.push_ptr(std::string(body).c_str(), std::min<uint16_t>(uint16_t(body.length()), ui::max_chat_message_len));
 	add_to_command_queue(state, p);
 }
-bool can_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
+bool can_chat_message(sys::state& state, command_data& command) {
 	// TODO: bans, kicks, mutes?
+
+	auto& payload = command.get_payload<chat_message_data_recv>();
+
+	// check that the message length is correct before reading from it
+	if(payload.data.msg_len != (command.payload.size() - sizeof(chat_message_data))) {
+		return false;
+	}
+
 	return true;
 }
 void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender) {
@@ -6684,14 +6694,14 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		// common mp commands
 	case command_type::chat_message:
 	{
-		auto& data = c.get_payload<command::chat_message_data>();
+		//auto& data = c.get_payload<command::chat_message_data>();
 		{
-			size_t count = 0;
+			/*size_t count = 0;
 			for(count = 0; count < sizeof(data.body); count++)
 				if(data.body[count] == '\0')
 
-					std::string_view sv(data.body, data.body + count);
-			return can_chat_message(state, source, data.body, data.target, data.sender);
+					std::string_view sv(data.body, data.body + count);*/
+			return can_chat_message(state, c);
 
 		}
 	}
@@ -7472,13 +7482,14 @@ bool execute_command(sys::state& state, command_data& c) {
 		// common mp commands
 	case command_type::chat_message:
 	{
-		auto& data = c.get_payload<chat_message_data>();
-		size_t count = 0;
+		// by this time we know that the msg_len is legit, after can_perform_command
+		auto& data = c.get_payload<chat_message_data_recv>();
+		/*size_t count = 0;
 		for(count = 0; count < sizeof(data.body); count++)
 			if(data.body[count] == '\0')
-				break;
-		std::string_view sv(data.body, data.body + count);
-		execute_chat_message(state, c.header.source, data.body, data.target, data.sender);
+				break;*/
+		std::string_view sv(data.body, data.data.msg_len);
+		execute_chat_message(state, c.header.source, sv, data.data.target, data.data.sender);
 		break;
 	}
 	case command_type::notify_player_ban:

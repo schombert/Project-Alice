@@ -368,8 +368,8 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 	else {
 		auto payload_sz = data->header.payload_size;
 		auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-		// command must have a defined maximum size, and the specified size in the header must be equal to or less than the max size
-		if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.payload_size >= payload_sz) {
+		// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
+		if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.min_payload_size <= payload_sz && cmd_mapping->second.max_payload_size >= payload_sz) {
 			data->payload.resize(payload_sz);
 			return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data->payload.data()), payload_sz, recv_count, [&]() { func(); *receiving_payload = false; });
 		}
@@ -432,7 +432,7 @@ static void socket_add_command_to_send_queue(std::vector<char>& buffer, const co
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
 	auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-	if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.payload_size >= payload_sz) {
+	if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.min_payload_size <= payload_sz && cmd_mapping->second.max_payload_size >= payload_sz) {
 		// Send the header
 		socket_add_to_send_queue(buffer, data, sizeof(command::cmd_header));
 		// Then the payload
