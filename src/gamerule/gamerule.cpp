@@ -36,6 +36,9 @@ void restore_gamerule_ui_settings(sys::state& state) {
 	}
 }
 void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	if(check_gamerule(state, gamerule, new_setting)) {
+		return;
+	}
 	auto old_setting = state.world.gamerule_get_current_setting(gamerule);
 	auto& options = state.world.gamerule_get_options(gamerule);
 	auto on_deselect_effect = options[old_setting].on_deselect;
@@ -48,6 +51,8 @@ void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_set
 	}
 	state.world.gamerule_set_current_setting(gamerule, new_setting);
 	state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule, new_setting);
+	// if its being called from somewhere not in a command, set new_game to false
+	state.network_state.is_new_game = false;
 }
 
 

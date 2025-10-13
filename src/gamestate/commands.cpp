@@ -5507,6 +5507,11 @@ void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, 
 		auto host_name = sys::player_name{ state.world.mp_player_get_nickname(host) };
 		execute_chat_message(state, host_nation, str, dcon::nation_id{ }, host_name);
 	}
+	// if you are in control of the gamerules (either host, or single player), then save the current gamerules as your default preferances in file
+	if(state.network_mode == sys::network_mode_type::single_player || state.network_mode == sys::network_mode_type::host) {
+
+		state.save_gamerule_settings();
+	}
 	
 }
 

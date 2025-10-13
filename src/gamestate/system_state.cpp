@@ -2218,6 +2218,40 @@ void state::load_user_settings() {
 	}
 }
 
+void state::load_gamerule_settings() {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	auto f = simple_fs::open_file(sdir, loaded_scenario_file);
+	if(f) {
+		auto contents = simple_fs::view_contents(*f);
+		auto data_ptr = reinterpret_cast<const uint8_t*>(contents.data);
+		uint32_t num_gamerule_settings = contents.file_size / sizeof(uint8_t);
+		//Corruption protection
+		if(num_gamerule_settings >= 8192 * 4)
+			num_gamerule_settings = 8192 * 4;
+
+		for(uint32_t i = 0; i < num_gamerule_settings; i++) {
+			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
+			if(world.gamerule_is_valid(gamerule)) {
+				uint8_t setting = data_ptr[i];
+				gamerule::set_gamerule(*this, gamerule, setting);
+			}
+		}
+	}
+}
+
+
+void state::save_gamerule_settings() const {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	std::vector<uint8_t> current_gamerule_settings;
+	current_gamerule_settings.reserve(world.gamerule_size());
+	for(auto gr : world.in_gamerule) {
+		current_gamerule_settings.push_back(gr.get_current_setting());
+	}
+	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
+	
+}
+
+
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
 	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);

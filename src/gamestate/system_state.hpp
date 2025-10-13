@@ -1029,6 +1029,8 @@ struct alignas(64) state {
 
 	void save_user_settings() const;
 	void load_user_settings();
+	void load_gamerule_settings();
+	void save_gamerule_settings() const;
 	void update_ui_scale(float new_scale);
 
 	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data

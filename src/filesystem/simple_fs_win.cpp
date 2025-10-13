@@ -475,6 +475,22 @@ directory get_or_create_templates_directory() {
 	return directory(nullptr, base_path);
 }
 
+directory get_or_create_gamerules_directory() {
+	native_char* local_path_out = nullptr;
+	native_string base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\gamerules");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
+
 directory get_or_create_oos_directory() {
 	native_char* local_path_out = nullptr;
 	native_string base_path;
