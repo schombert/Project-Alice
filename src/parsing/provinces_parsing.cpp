@@ -320,16 +320,34 @@ dcon::nation_id prov_parse_force_tag_owner(dcon::national_identity_id tag, dcon:
 
 void province_history_file::life_rating(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Liferating specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	context.outer_context.state.world.province_set_life_rating(context.id, uint8_t(value));
 }
 
 void province_history_file::colony(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Colony specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
 	context.outer_context.state.world.province_set_is_colonial(context.id, value != 0);
 }
 
 void province_history_file::trade_goods(association_type, std::string_view text, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Trade goods specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	if(auto it = context.outer_context.map_of_commodity_names.find(std::string(text));
 			it != context.outer_context.map_of_commodity_names.end()) {
 		context.outer_context.state.world.province_set_rgo(context.id, it->second);
@@ -351,6 +369,10 @@ void province_history_file::factory_limit(province_factory_limit const& value, e
 	return;
 }
 void province_history_file::revolt(province_revolt const& rev, error_handler& err, int32_t line, province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Revolt specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
 	auto rebel_type = rev.rebel;
 	auto prov_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(context.id);
 	if(prov_owner) {
@@ -371,13 +393,28 @@ void province_history_file::owner(association_type, uint32_t value, error_handle
 		province_file_context& context) {
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto holder = prov_parse_force_tag_owner(it->second, context.outer_context.state.world);
-		context.outer_context.state.world.force_create_province_ownership(context.id, holder);
+		if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+			// if the nation owns a sea province, we will then treat this nation as a utility tag going forward to keep legacy mod compat with mods that use utility tags that own a sea prov.
+			// crucially, we dont NOT give ownership of the sea province to said nation.
+			context.outer_context.state.world.nation_set_utility_tag(holder, true);
+			err.accumulated_warnings += "Sea province was given an owner, setting the owner tag to be a utility tag (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		}
+		else {
+			context.outer_context.state.world.force_create_province_ownership(context.id, holder);
+		}
 	} else {
 		err.accumulated_errors += "Invalid tag " + nations::int_to_tag(value) + " (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
 }
 void province_history_file::controller(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Controller specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	if(value == nations::tag_to_int('R', 'E', 'B')) {
 		// context.outer_context.state.world.province_set_nation_from_province_control(context.id, dcon::nation_id{});
 	} else if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
@@ -390,6 +427,13 @@ void province_history_file::controller(association_type, uint32_t value, error_h
 
 void province_history_file::terrain(association_type, std::string_view text, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Terrain specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	if(auto it = context.outer_context.map_of_terrain_types.find(std::string(text));
 			it != context.outer_context.map_of_terrain_types.end()) {
 		context.outer_context.state.world.province_set_terrain(context.id, it->second.id);
@@ -400,6 +444,11 @@ void province_history_file::terrain(association_type, std::string_view text, err
 
 void province_history_file::add_core(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Core specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		context.outer_context.state.world.try_create_core(context.id, it->second);
 	} else {
@@ -409,6 +458,13 @@ void province_history_file::add_core(association_type, uint32_t value, error_han
 
 void province_history_file::remove_core(association_type, uint32_t value, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Remove core specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	if(auto it = context.outer_context.map_of_ident_names.find(value); it != context.outer_context.map_of_ident_names.end()) {
 		auto core = context.outer_context.state.world.get_core_by_prov_tag_key(context.id, it->second);
 		if(core) {
@@ -423,6 +479,10 @@ void province_history_file::remove_core(association_type, uint32_t value, error_
 
 void province_history_file::party_loyalty(pv_party_loyalty const& value, error_handler& err, int32_t line,
 		province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Party loyalty specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
 	if(value.id) {
 		context.outer_context.state.world.province_set_party_loyalty(context.id, value.id, float(value.loyalty_value) / 100.0f);
 	}
@@ -430,6 +490,10 @@ void province_history_file::party_loyalty(pv_party_loyalty const& value, error_h
 
 void province_history_file::state_building(pv_state_building const& value, error_handler& err, int32_t line,
 		province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "State building specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
 	if(value.id) {
 		auto new_fac = context.outer_context.state.world.create_factory();
 		auto base_size = 10'000.f;
@@ -446,11 +510,23 @@ void province_history_file::state_building(pv_state_building const& value, error
 
 void province_history_file::is_slave(association_type, bool value, error_handler& err, int32_t line,
 		province_file_context& context) {
+
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "is_slave specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
 	context.outer_context.state.world.province_set_is_slave(context.id, value);
 }
 
 void province_history_file::any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line,
 			province_file_context& context) {
+	if(context.outer_context.state.province_definitions.first_sea_province.index() <= context.id.index()) {
+		err.accumulated_errors += "Province history key specified on a sea province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+		return;
+	}
+
+
 	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
 		if(name == economy::province_building_type_get_name(t)) {
 			context.outer_context.state.world.province_set_building_level(context.id, uint8_t(t), uint8_t(value));

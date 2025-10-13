@@ -528,6 +528,9 @@ Alice adds a handful of new defines:
 - `alice_always_available_cbs_zero_infamy` - if set to 0, then CBs with `always = yes` will have infamy cost calculated as per `badboy_factor`.
 - `alice_max_starvation_degrowth` - the maximum possible popgrowth penalty for a starving pop (below life_need_starvation_limit), reaching this maximum value when fufillment hits 0%. This penalty will not be overidden by other popgrowth techs&modifiers, so a fully starving pop will have this negative popgrowth at minimum.
 - `alice_can_add_constructable_cbs_as_wargoals` - if set to zero, then one can't add constructable (but not constructed) CBs as wargoals to the ongoing war.
+- `alice_render_on_map_generals` - if non-zero, then `map_general` element of `top_unit_icon` GUI is rendered with an on-map general icon
+
+
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
 - `alice_crisis_necessary_base_fast_win_ratio = 3.5f`: Strength Ratio at which AI submits to demands before 80 temperature

@@ -38,8 +38,7 @@ void take_ai_decisions(sys::state& state) {
 			auto ai_will_do = state.world.decision_get_ai_will_do(d);
 			ve::execute_serial_fast<dcon::nation_id>(state.world.nation_size(), [&](auto ids) {
 				// AI-only, not dead nations
-				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids)
-					&& state.world.nation_get_owned_province_count(ids) != 0;
+				ve::mask_vector filter_a = !state.world.nation_get_is_player_controlled(ids) && nations::exists_or_is_utility_tag(state, ids);
 				if(ve::compress_mask(filter_a).v != 0) {
 					// empty allow assumed to be an "always = yes"
 					ve::mask_vector filter_b = potential
@@ -211,6 +210,7 @@ void update_ai_colony_starting(sys::state& state) {
 	static std::vector<int32_t> free_points;
 	free_points.clear();
 	free_points.resize(uint32_t(state.defines.colonial_rank), -1);
+	uint64_t seed = 0; // Seed for random shuffle below
 	for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
 		if(state.world.nation_get_is_player_controlled(state.nations_by_rank[i])) {
 			free_points[i] = 0;
@@ -219,38 +219,58 @@ void update_ai_colony_starting(sys::state& state) {
 				free_points[i] = 0;
 			} else {
 				free_points[i] = nations::free_colonial_points(state, state.nations_by_rank[i]);
+				seed += (uint64_t) state.nations_by_rank[i].index();
 			}
 		}
 	}
+	// Randomize colonization target to avoid colonization along map patterns
+	std::vector<dcon::state_definition_id> states;
 	for(auto sd : state.world.in_state_definition) {
-		if(sd.get_colonization_stage() <= 1) {
-			bool has_unowned_land = false;
+		states.push_back(sd);
+	}
+	// Fisher-Yates shuffle implementation
+	const int size = static_cast<int>(states.size());
+	for(int i = size - 1; i > 0; i--) {
+		auto rnd = rng::get_random(state, static_cast<uint32_t>(seed));
+		seed = rnd;
+		int j = rnd % (i + 1);
+		std::swap(states[i], states[j]);
+	}
 
-			dcon::province_id coastal_target;
-			for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
-				if(!p.get_province().get_nation_from_province_ownership()) {
-					if(p.get_province().get_is_coast() && !coastal_target) {
-						coastal_target = p.get_province();
-					}
-					if(p.get_province().id.index() < state.province_definitions.first_sea_province.index())
-						has_unowned_land = true;
+	// Iterate every colonizeable state and find colonizer
+	for(auto sdid : states) {
+		auto sd = dcon::fatten(state.world, sdid);
+
+		if(sd.get_colonization_stage() > 1) {
+			continue;
+		}
+		bool has_unowned_land = false;
+
+		dcon::province_id coastal_target;
+		for(auto p : state.world.state_definition_get_abstract_state_membership(sd)) {
+			if(!p.get_province().get_nation_from_province_ownership()) {
+				if(p.get_province().get_is_coast() && !coastal_target) {
+					coastal_target = p.get_province();
 				}
+				if(p.get_province().id.index() < state.province_definitions.first_sea_province.index())
+					has_unowned_land = true;
 			}
-			if(has_unowned_land) {
-				for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
-					if(free_points[i] > 0) {
-						bool adjacent = false;
-						if(province::fast_can_start_colony(state, state.nations_by_rank[i], sd, free_points[i], coastal_target, adjacent)) {
-							free_points[i] -= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
+		}
+		if(!has_unowned_land) {
+			continue;
+		}
+		for(int32_t i = 0; i < int32_t(state.defines.colonial_rank); ++i) {
+			if(free_points[i] > 0) {
+				bool adjacent = false;
+				if(province::fast_can_start_colony(state, state.nations_by_rank[i], sd, free_points[i], coastal_target, adjacent)) {
+					free_points[i] -= int32_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f));
 
-							auto new_rel = fatten(state.world, state.world.force_create_colonization(sd, state.nations_by_rank[i]));
-							new_rel.set_level(uint8_t(1));
-							new_rel.set_last_investment(state.current_date);
-							new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
+					auto new_rel = fatten(state.world, state.world.force_create_colonization(sd, state.nations_by_rank[i]));
+					new_rel.set_level(uint8_t(1));
+					new_rel.set_last_investment(state.current_date);
+					new_rel.set_points_invested(uint16_t(state.defines.colonization_interest_cost_initial + (adjacent ? state.defines.colonization_interest_cost_neighbor_modifier : 0.0f)));
 
-							state.world.state_definition_set_colonization_stage(sd, uint8_t(1));
-						}
-					}
+					state.world.state_definition_set_colonization_stage(sd, uint8_t(1));
 				}
 			}
 		}
@@ -516,14 +536,17 @@ void build_ships(sys::state& state) {
 					return a.index() < b.index();
 			});
 
+			// Depending on the strategy, the AI will prioritize different fleet size
+			auto target_naval_supply_points = calculate_desired_navy_size(state, n);
+
 			int32_t constructing_fleet_cap = 0;
 			if(best_transport) {
-				if(fleet_cap_in_transports * 3 < n.get_naval_supply_points()) {
+				if(fleet_cap_in_transports * 3 < target_naval_supply_points) {
 					auto overseas_allowed = state.military_definitions.unit_base_definitions[best_transport].can_build_overseas;
 					auto level_req = state.military_definitions.unit_base_definitions[best_transport].min_port_level;
 					auto supply_pts = state.military_definitions.unit_base_definitions[best_transport].supply_consumption_score;
 
-					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < n.get_naval_supply_points(); ++j) {
+					for(uint32_t j = 0; j < owned_ports.size() && (fleet_cap_in_transports + constructing_fleet_cap) * 3 < target_naval_supply_points; ++j) {
 						if((overseas_allowed || !province::is_overseas(state, owned_ports[j]))
 							&& state.world.province_get_building_level(owned_ports[j], uint8_t(economy::province_building_type::naval_base)) >= level_req) {
 							assert(command::can_start_naval_unit_construction(state, n, owned_ports[j], best_transport));
@@ -549,7 +572,7 @@ void build_ships(sys::state& state) {
 			}
 
 			int32_t used_points = n.get_used_naval_supply_points();
-			auto rem_free = n.get_naval_supply_points() - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
+			auto rem_free = target_naval_supply_points - (fleet_cap_in_transports + fleet_cap_in_small + fleet_cap_in_big + constructing_fleet_cap);
 			fleet_cap_in_small = std::max(fleet_cap_in_small, 1);
 			fleet_cap_in_big = std::max(fleet_cap_in_big, 1);
 

@@ -2,10 +2,10 @@ guiTypes = {
 	guiButtonType = {
 		name = "observer_button"
 		extends = "lobby"
-		position = { x = 17 y = -200 }
-		quadTextureSprite ="GFX_frontend_play_button"	
+		position = { x = 28 y = -200 }
+		quadTextureSprite ="GFX_button_standard_144"	
 		buttonText = "alice_observer_btn_text"
-		buttonFont = "vic_32_black"
+		buttonFont = "vic_18_black"
 		Orientation = "LOWER_LEFT"
 	}
 	guiButtonType = {
@@ -1707,6 +1707,12 @@ guiTypes = {
 			size = { 1 1 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
+
+			iconType = {
+				name = "map_general"
+				spriteType = "GFX_alice_map_general"
+				position = { 4 0 }
+			}
 
 			iconType = {
 				name ="frame_bg"

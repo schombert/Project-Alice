@@ -1272,6 +1272,7 @@ production_refit_factory_tooltip_1;Refit ?Y$what$?! to a different production li
 production_refit_factory_tooltip_2;Refit ?Y$what$?! into ?Y$name$?!
 production_refit_factory_tooltip_3;Ruling party allows building factories
 production_refit_factory_tooltip_4;Old and new types have the same inputs or the same outputs
+factory_refit;Refit factory
 factory_refit_cost;$what$: ?Y$val$?! (?Y$value$?!)
 factory_refit_cost_total;Total: ?Y$value$?!
 alice_budget_scaled_16;Diplomatic interest: ?G$value$
@@ -1299,6 +1300,7 @@ alice_factory_construction_explain_3;Purchased goods worth: ?Y$x$?W
 alice_factory_construction_explain_4;Total estimated price: ?Y$x$?W
 alice_factory_construction_explain_5;Progress: ?Y$x$?W
 alice_factory_input_item;?R$cost$?W - Needs $need$ of $name$ ($val$)
+factory_tier;Tier: ?Y$x$?W
 alice_factory_base_workforce;Base workforce ?Y$x$?W
 alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
@@ -1492,7 +1494,7 @@ pname_is;$x$ party name
 rpname_is;ruling party name
 pposition_is;$x$ party position
 rpposition_is;ruling party position
-topbar_budget_warning;You were unable to fully afford yesterday's target budget spending
+topbar_budget_warning;We were unable to fully afford yesterday's target budget spending and had to scale them down
 provinceview_goodsprofit;With Profit of: ?Y$value$
 provinceview_max_employment;Potential max employment: ?Y$value$
 province_rgo_efficiency_inputs;Efficiency inputs:
@@ -1687,7 +1689,7 @@ alice_host_has_resync;Host has resynced the lobby
 alice_naval_coordination_penalty;The $x$ are receiving a naval coordination penalty of ?R$y$?W from outnumbering their enemy, which reduces their target selection by ?R$val$?W
 alice_naval_coordination_bonus;The $x$ are receiving a naval coordination bonus of ?G$y$?W from being outnumbered, which increases their target selection by ?G$val$?W
 alice_naval_stacking_penalty;The $x$ are receiving a damage multiplier of ?R$y$?W from stacking penalties.
-alice_observer_btn_text;Play as observer
+alice_observer_btn_text;Observe
 alice_observer_already_observer_tooltip;You are already on the observer tag.
 alice_labor_no_education;Unskilled
 alice_labor_basic_education;Skilled

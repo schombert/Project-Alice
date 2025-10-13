@@ -2766,9 +2766,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 
-		if(!bool(military_definitions.infantry)) {
-			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
-		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
@@ -5316,6 +5313,9 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);	
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::unique_lock lock(network_state.command_lock);
+		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
 		network::send_and_receive_commands(*this);
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };

@@ -78,9 +78,11 @@ public:
 		}
 
 		hide_context_menu(state);
+		hide_factory_refit_menu(state);
 	}
 	void button_action(sys::state& state) noexcept override {
 		hide_context_menu(state);
+		hide_factory_refit_menu(state);
 		auto tile = retrieve_nth_province_tile(state, state.map_state.selected_province, ind);
 		tile_logic->button_action(state, tile, parent);
 	}

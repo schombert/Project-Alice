@@ -27,6 +27,11 @@ spriteTypes = {
 		noOfFrames = 5
 	}
 	spriteType = {
+		name = "GFX_alice_map_general"
+		texturefile = "assets\\map_general.png"
+		noOfFrames = 8
+	}
+	spriteType = {
 		name = "GFX_alice_small_unit_frames"
 		texturefile = "assets\\small_uframes.png"
 		noOfFrames = 5
