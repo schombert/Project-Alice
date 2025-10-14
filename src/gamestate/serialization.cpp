@@ -951,6 +951,11 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 		state.on_scenario_load();
 
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
 		return true;
 	} else {
 		return false;
@@ -993,6 +998,13 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 			});
 
 		state.game_seed = uint32_t(std::random_device()());
+
+
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
 
 		return true;
 	} else {
