@@ -507,6 +507,11 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto old_con = state.world.province_get_nation_from_province_control(p);
+	auto curr_owner = state.world.province_get_nation_from_province_ownership(p);
+	// don't switch controllership on an uncolonized province
+	if(!curr_owner) {
+		return;
+	}
 	if(old_con != n) {
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;
@@ -537,6 +542,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel_faction_id rf) {
 	auto old_con = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+	auto curr_owner = state.world.province_get_nation_from_province_ownership(p);
+	// don't switch controllership on an uncolonized province
+	if(!curr_owner) {
+		return;
+	}
 	if(old_con != rf) {
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;

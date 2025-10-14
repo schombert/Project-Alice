@@ -359,19 +359,25 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* m, F&& func) {
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* m, bool& receiving_payload, F&& func) {
 	// get command header
-	int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), m, [&]() {
-		// if it received the whole header, we run this lambda to get the payload
+	if(!receiving_payload) {
+		int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), m, [&]() { receiving_payload = true; });
+		return r;
+	}
+	else {
 		auto cmd_mapping = command::command_type_handlers.find(data->header.type);
 		// if its a valid command, read the rest
 		if(cmd_mapping != command::command_type_handlers.end()) {
-			r = socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, m, func);
+			return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, m, [&]() { func(); receiving_payload = false; });
 		}
-
-
-	});
-	return r;
+		// if not a valid command, reset recv count to 0 and discard command
+		else {
+			*m = 0;
+			receiving_payload = false;
+			return -1;
+		}
+	}
 }
 
 
@@ -548,6 +554,7 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.recv_count = 0;
 	client.handshake = true;
 	client.last_seen = sys::date{};
+	client.receiving_payload = false;
 }
 
 static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
@@ -1371,12 +1378,6 @@ void full_reset_after_oos(sys::state& state) {
 		}
 	}
 	{
-
-		command::command_data start_cmd{ command::command_type::notify_start_game, state.local_player_nation };
-
-
-		broadcast_to_clients(state, start_cmd);
-
 		// send message to everyone letting them know that the lobby has been resync'd
 		command::chat_message(state, state.local_player_nation, text::produce_simple_string(state, "alice_host_has_resync"), dcon::nation_id{ }, state.network_state.nickname);
 #ifndef NDEBUG
@@ -1438,7 +1439,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 }
 
 int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command(client.socket_fd, &client.recv_buffer, &client.recv_count, [&]() {
+	int r = socket_recv_command(client.socket_fd, &client.recv_buffer, &client.recv_count,client.receiving_payload, [&]() {
 		switch(client.recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
@@ -1783,7 +1784,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, [&]() {
+			int r = socket_recv_command(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, state.network_state.receiving_payload , [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();

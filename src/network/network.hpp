@@ -66,6 +66,7 @@ struct client_data {
 	size_t save_stream_offset = 0;
 	size_t save_stream_size = 0;
 	bool handshake = true;
+	bool receiving_payload = false; // flag indicating whether this client is currently awaiting a payload for a command, or if its awaiting a header for a command
 
 	sys::date last_seen;
 
@@ -94,6 +95,7 @@ struct network_state {
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
+	bool receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
