@@ -3597,46 +3597,9 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 	}
 
 	auto target = state.world.peace_offer_get_target(pending_offer);
-
-	// A concession offer must be accepted when target concedes all wargoals
-	if(military::directed_warscore(state, in_war, source, target) < 0.0f && state.world.peace_offer_get_is_concession(pending_offer)) {
-		if(military::cost_of_peace_offer(state, pending_offer) >= 100) {
-			military::implement_peace_offer(state, pending_offer);
-			return;
-		}
-
-		auto containseverywargoal = true;
-		for(auto poi : state.world.peace_offer_get_peace_offer_item(pending_offer)) {
-
-			auto foundmatch = false;
-			for(auto wg : state.world.war_get_wargoals_attached(in_war)) {
-				if(wg.get_wargoal().id == poi.get_wargoal().id) {
-					foundmatch = true;
-					break;
-				}
-			}
-
-			if(!foundmatch) {
-				containseverywargoal = false;
-				break;
-			}
-		}
-
-		if(containseverywargoal) {
-			military::implement_peace_offer(state, pending_offer);
-
-			if(target == state.local_player_nation) {
-				sound::play_interface_sound(state, sound::get_enemycapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			}
-		}
-	}
-	// A peace offer must be accepted when war score reaches 100.
-	else if(military::directed_warscore(state, in_war, source, target) >= 100.0f && (!target.get_is_player_controlled() || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
-		military::implement_peace_offer(state, pending_offer);
-
-		if(target == state.local_player_nation) {
-			sound::play_interface_sound(state, sound::get_wecapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-		}
+	// If the war was force peaced, dont sent the diplo message
+	if(military::try_force_peace(state, source, target, in_war, pending_offer)) {
+		return;
 	}
 	else {
 		diplomatic_message::message m;
@@ -3804,14 +3767,14 @@ bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 		return true;
 	if(!military::can_retreat_from_battle(state, b))
 		return false;
-	return state.network_mode != sys::network_mode_type::single_player;
+	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
 }
 bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	if(!b)
 		return true;
 	if(!military::can_retreat_from_battle(state, b))
 		return false;
-	return state.network_mode != sys::network_mode_type::single_player;
+	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
 }
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {

@@ -378,7 +378,6 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool fow_enabled = false;
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;

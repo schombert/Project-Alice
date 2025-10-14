@@ -27,6 +27,18 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context) {
 		std::vector<std::string> options = { "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes" };
 		context.state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(context, "alice_gamerule_allow_sphereling_declare_war_on_spherelord", options, uint8_t(context.state.defines.alice_can_goto_war_against_spherelord_default_setting));
 	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_allow_partial_retreat_opt_disabled", "alice_gamerule_allow_partial_retreat_opt_enabled" };
+		context.state.hardcoded_gamerules.allow_partial_retreat = create_hardcoded_gamerule(context, "alice_gamerule_allow_partial_retreat", options, uint8_t(context.state.defines.alice_allow_partial_retreat_default_setting));
+	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_fog_of_war_opt_disabled", "alice_gamerule_fog_of_war_opt_enabled" };
+		context.state.hardcoded_gamerules.fog_of_war = create_hardcoded_gamerule(context, "alice_gamerule_fog_of_war", options, uint8_t(context.state.defines.alice_fog_of_war_default_setting));
+	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_auto_concession_peace_opt_cannot_reject", "alice_gamerule_auto_concession_peace_opt_can_reject" };
+		context.state.hardcoded_gamerules.auto_concession_peace = create_hardcoded_gamerule(context, "alice_gamerule_auto_concession_peace", options, uint8_t(context.state.defines.alice_auto_concession_peace_default_setting));
+	}
 }
 
 void restore_gamerule_ui_settings(sys::state& state) {

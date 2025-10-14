@@ -380,6 +380,9 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w);
 // defender
 float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary);
 
+// Goes though checks to see if the war shall be force peaced when a peaceoffer is sent, and force peaces the war if applicable. Returns true if the war was force-peaced, false if not.
+bool try_force_peace(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id in_war, dcon::peace_offer_id pending_offer);
+
 bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg);
 
 enum class war_role {

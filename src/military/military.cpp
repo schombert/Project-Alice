@@ -4659,6 +4659,63 @@ float directed_warscore(
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
+
+bool try_force_peace(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id in_war, dcon::peace_offer_id pending_offer) {
+	auto directed_warscore = military::directed_warscore(state, in_war, source, target);
+	// check gamerule to see if auto concession peaces can be rejected
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.auto_concession_peace, uint8_t(gamerule::auto_concession_peace_settings::cannot_reject))) {
+		// A concession offer must be accepted when target concedes all wargoals
+		if(directed_warscore < 0.0f && state.world.peace_offer_get_is_concession(pending_offer)) {
+			if(military::cost_of_peace_offer(state, pending_offer) >= 100) {
+				military::implement_peace_offer(state, pending_offer);
+				return true;
+			}
+
+			auto containseverywargoal = true;
+			for(auto poi : state.world.peace_offer_get_peace_offer_item(pending_offer)) {
+
+				auto foundmatch = false;
+				for(auto wg : state.world.war_get_wargoals_attached(in_war)) {
+					if(wg.get_wargoal().id == poi.get_wargoal().id) {
+						foundmatch = true;
+						break;
+					}
+				}
+
+				if(!foundmatch) {
+					containseverywargoal = false;
+					break;
+				}
+			}
+
+			if(containseverywargoal) {
+				military::implement_peace_offer(state, pending_offer);
+
+				if(target == state.local_player_nation) {
+					sound::play_interface_sound(state, sound::get_enemycapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				}
+				return true;
+			}
+		}
+	}
+
+	
+	// A peace offer must be accepted when war score reaches 100.
+	if(directed_warscore >= 100.0f && (!state.world.nation_get_is_player_controlled(target) || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
+		military::implement_peace_offer(state, pending_offer);
+
+		if(target == state.local_player_nation) {
+			sound::play_interface_sound(state, sound::get_wecapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
 void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type) {
 	state.world.ship_set_type(ship, new_type);
 	state.world.ship_set_strength(ship, 0.01f);

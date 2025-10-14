@@ -637,7 +637,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 		// Exclude if out of FOW
-		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
 			auto pc = map_army.get_army_location().get_location().id;
 			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
 				continue;
@@ -680,7 +680,7 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 		// Exclude if out of FOW
-		if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
 			auto pc = map_navy.get_navy_location().get_location().id;
 			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
 				continue;

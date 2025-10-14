@@ -315,19 +315,6 @@ void zoom_speed_scrollbar::on_update(sys::state& state) noexcept {
 	update_raw_value(state, int32_t(state.user_settings.zoom_speed));
 }
 
-void fow_checkbox::on_create(sys::state& state) noexcept {
-	checkbox_button::on_create(state);
-	disabled = (state.network_mode != sys::network_mode_type::single_player);
-}
-bool fow_checkbox::is_active(sys::state& state) noexcept {
-	return state.user_settings.fow_enabled;
-}
-void fow_checkbox::button_action(sys::state& state) noexcept {
-	state.user_settings.fow_enabled = !state.user_settings.fow_enabled;
-	state.map_state.map_data.update_fog_of_war(state);
-	send(state, parent, notify_setting_update{});
-}
-
 bool render_models_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.render_models;
 }

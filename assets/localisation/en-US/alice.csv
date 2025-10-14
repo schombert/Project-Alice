@@ -1780,3 +1780,15 @@ consumption;Consumption
 import;Import
 export;Export
 gva;GVA
+alice_gamerule_allow_partial_retreat;Partial retreating of military units
+alice_gamerule_allow_partial_retreat_desc;Specifes whether to enable armies and navies to retreat out of a battle one at a time. Also known as "cycling"
+alice_gamerule_allow_partial_retreat_opt_disabled;Cannot partial retreat
+alice_gamerule_allow_partial_retreat_opt_enabled;Can partial retreat
+alice_gamerule_fog_of_war;Fog of war
+alice_gamerule_fog_of_war_desc;Specifies whether to enable fog of war (FoW) to obscure vision of neutral/enemy provinces&units
+alice_gamerule_fog_of_war_opt_disabled;Fog of war is OFF
+alice_gamerule_fog_of_war_opt_enabled;Fog of war is ON
+alice_gamerule_auto_concession_peace;Auto-peace when conceding wargoals
+alice_gamerule_auto_concession_peace_desc;Specifies whether a conceding peacedeal (ie one side surrenders to ALL added wargoals, or 100 warscore) will always be accepted no matter what
+alice_gamerule_auto_concession_peace_opt_cannot_reject;Conceding peace offers cannot be rejected
+alice_gamerule_auto_concession_peace_opt_can_reject;Conceding peace offers can be rejected

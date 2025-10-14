@@ -2026,7 +2026,6 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(fow_enabled);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -2096,7 +2095,6 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(fow_enabled);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -2230,9 +2228,9 @@ void state::load_gamerule_settings() {
 			num_gamerule_settings = 8192 * 4;
 
 		for(uint32_t i = 0; i < num_gamerule_settings; i++) {
+			uint8_t setting = data_ptr[i];
 			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
-			if(world.gamerule_is_valid(gamerule)) {
-				uint8_t setting = data_ptr[i];
+			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
 				gamerule::set_gamerule(*this, gamerule, setting);
 			}
 		}

@@ -369,10 +369,6 @@ int main (int argc, char *argv[]) {
 	network::init(game_state);
 
 	game_state.load_user_settings();
-	// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
-	if(game_state.network_mode == sys::network_mode_type::host || game_state.network_mode == sys::network_mode_type::single_player) {
-		game_state.load_gamerule_settings();
-	}
 	ui::populate_definitions_map(game_state);
 
 	if(headless) {
