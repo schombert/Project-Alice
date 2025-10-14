@@ -455,16 +455,19 @@ public:
 		}
 
 		auto unit = retrieve<T>(state, parent);
+		dcon::nation_id controller;
 		dcon::leader_id lid;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			lid = state.world.army_get_general_from_army_leadership(unit);
+			controller = state.world.army_get_controller_from_army_control(unit);
 			disabled = !command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{});
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+			controller = state.world.navy_get_controller_from_navy_control(unit);
 			disabled = !command::can_change_admiral(state, state.local_player_nation, unit, dcon::leader_id{});
 		}
 
-		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto pculture = state.world.nation_get_primary_culture(controller);
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
 		if(ltype && lid) {
@@ -1678,7 +1681,14 @@ public:
 
 		economy::commodity_set commodities;
 
-		auto owner = state.local_player_nation;
+		dcon::nation_id owner{};
+
+		if(army) {
+			owner = state.world.army_get_controller_from_army_control(army);
+		} else if (navy) {
+			owner = state.world.navy_get_controller_from_navy_control(navy);
+		}
+
 		auto capital = state.world.nation_get_capital(owner);
 		auto s = state.world.province_get_state_membership(capital);
 		auto m = state.world.state_instance_get_market_from_local_market(s);
@@ -1686,10 +1696,10 @@ public:
 		float spending_level = .0f;
 
 		if(army) {
-			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			commodities = military::get_required_supply(state, owner, army);
 			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
 		} else if(navy) {
-			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			commodities = military::get_required_supply(state, owner, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
 
@@ -1731,16 +1741,21 @@ public:
 		economy::commodity_set commodities;
 
 		float spending_level = .0f;
-		auto owner = state.local_player_nation;
+		dcon::nation_id owner{};
+		if(army) {
+			owner = state.world.army_get_controller_from_army_control(army);
+		} else if(navy) {
+			owner = state.world.navy_get_controller_from_navy_control(navy);
+		}
 		auto capital = state.world.nation_get_capital(owner);
 		auto s = state.world.province_get_state_membership(capital);
 		auto m = state.world.state_instance_get_market_from_local_market(s);
 
 		if(army) {
-			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			commodities = military::get_required_supply(state, owner, army);
 			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
 		} else if(navy) {
-			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			commodities = military::get_required_supply(state, owner, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
 
