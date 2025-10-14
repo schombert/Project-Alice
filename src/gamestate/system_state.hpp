@@ -33,6 +33,7 @@
 #include "notifications.hpp"
 #include "network.hpp"
 #include "fif.hpp"
+#include "lua.hpp"
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
 
@@ -768,6 +769,9 @@ struct alignas(64) state {
 #ifdef USE_LLVM
 	std::unique_ptr<fif::environment> jit_environment;
 #endif
+
+	//std::unique_ptr<lua_State> lua_environment;
+	lua_State* lua_environment;
 
 	//
 	// Crisis data

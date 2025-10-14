@@ -212,10 +212,12 @@ target_link_libraries(AliceCommon INTERFACE freetype)
 target_link_libraries(AliceCommon INTERFACE harfbuzz)
 target_link_libraries(AliceCommon INTERFACE glm)
 if (WIN32)
+	target_link_libraries(AliceCommon INTERFACE ${PROJECT_SOURCE_DIR}/libs/luajit.lib)
 	target_link_libraries(AliceCommon INTERFACE ws2_32)
 	target_link_libraries(AliceCommon INTERFACE wsock32)
 	target_link_libraries(AliceCommon INTERFACE Imm32)
 else()
+	target_link_libraries(AliceCommon INTERFACE ${PROJECT_SOURCE_DIR}/libs/luajit.lib)
 	target_link_libraries(AliceCommon INTERFACE dependency_tbb)
 	target_link_libraries(AliceCommon INTERFACE glfw)
 	target_link_libraries(AliceCommon INTERFACE miniaudio)
@@ -248,6 +250,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
+	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")

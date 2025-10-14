@@ -961,12 +961,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(ui_state.last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
 		ui_state.last_render_time = now;
 	}
+	auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
+	auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
+	ui_state.last_render_time = now;
+
 	if(ui_state.fps_timer > 20) {
-		auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
-		auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
 		ui_state.last_fps = frames_per_second;
 		ui_state.fps_timer = 0;
-		ui_state.last_render_time = now;
 	}
 	ui_state.fps_timer += 1;
 
@@ -1587,6 +1588,19 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
+	lua_getfield(lua_environment, LUA_GLOBALSINDEX, "alice");
+	lua_getfield(lua_environment, -1, "on_ui_thread_update");
+	lua_remove(lua_environment, -2);
+	lua_pushinteger(lua_environment, microseconds_since_last_render.count());
+	lua_pushinteger(lua_environment, x_size);
+	lua_pushinteger(lua_environment, y_size);
+	//lua_call(lua_environment, 3, 0);
+	auto result = lua_pcall(lua_environment, 3, 0, 0);
+	if(result) {
+		fprintf(stderr, "Failed to run script: %s\n", lua_tostring(lua_environment, -1));
+	}
+
+
 	if(ui_state.fps_counter) {
 		if(ui_state.fps_counter->is_visible()) {
 			glEndQuery(GL_TIME_ELAPSED);
@@ -1596,7 +1610,69 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
+
+static int draw_rectangle(lua_State* L) {
+	// get amount of arguments
+	int n = lua_gettop(L);
+
+	// validation
+	if(n != 4) {
+		lua_pushstring(L, "incorrect count of arguments");
+		lua_error(L);
+	}
+	for(int i = 1; i <= n; i++) {
+		if(!lua_isnumber(L, i)) {
+			lua_pushstring(L, "incorrect argument");
+			lua_error(L);
+		}
+	}
+
+
+	auto x = lua_tonumber(L, 1);
+	auto y = lua_tonumber(L, 2);
+	auto width = lua_tonumber(L, 3);
+	auto height = lua_tonumber(L, 4);
+
+	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
+	state* alice_state = (state*)(lua_touserdata(L, -1));
+
+	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
+
+	// return number of results
+	return 0;
+}
+
 void state::on_create() {
+	// lua
+	//lua_environment = std::make_unique<lua_State>(luaL_newstate());
+
+	lua_environment = luaL_newstate();
+	luaL_openlibs(lua_environment);
+
+	// pointer to alice state
+	lua_pushlightuserdata(lua_environment, (void*)(this));
+	lua_setfield(lua_environment, LUA_GLOBALSINDEX, "alice_state");
+
+	// alice table
+	lua_newtable(lua_environment);
+	lua_setglobal(lua_environment, "alice");
+
+	// graphics subsystem
+	lua_getfield(lua_environment, LUA_GLOBALSINDEX, "alice");
+	lua_newtable(lua_environment);
+	lua_setfield(lua_environment, -2, "graphics");
+
+	// rectangle
+	lua_getfield(lua_environment, LUA_GLOBALSINDEX, "alice");
+	lua_getfield(lua_environment, -1, "graphics");
+	lua_remove(lua_environment, -2);
+	lua_pushcfunction(lua_environment, draw_rectangle);
+	lua_setfield(lua_environment, -2, "rect");
+
+	// populate the table with scripted functions
+	int status;
+	status = luaL_dofile(lua_environment, "loader.lua");
+
 	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	ui_state.default_header_font = text::name_into_font_id(*this, "vic_22");
 	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
