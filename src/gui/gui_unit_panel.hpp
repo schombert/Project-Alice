@@ -468,6 +468,12 @@ public:
 		}
 
 		auto pculture = state.world.nation_get_primary_culture(controller);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(!controller) {
+				auto rebel = state.world.army_get_controller_from_army_rebel_control(unit);
+				pculture = state.world.rebel_faction_get_primary_culture(rebel);
+			}
+		}
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
 		if(ltype && lid) {
@@ -3091,15 +3097,28 @@ public:
 
 		auto foru = retrieve<unit_var>(state, parent);
 		dcon::leader_id lid;
+		dcon::nation_id owner;
 		if(std::holds_alternative<dcon::army_id>(foru)) {
-			lid = state.world.army_get_general_from_army_leadership(std::get<dcon::army_id>(foru));
-			disabled = !command::can_change_general(state, state.local_player_nation, std::get<dcon::army_id>(foru), dcon::leader_id{});
+			auto army = std::get<dcon::army_id>(foru);
+			lid = state.world.army_get_general_from_army_leadership(army);
+			owner = state.world.army_get_controller_from_army_control(army);
+			disabled = !command::can_change_general(state, state.local_player_nation, army, dcon::leader_id{});
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
+			owner = state.world.navy_get_controller_from_navy_control(std::get<dcon::navy_id>(foru));
 			disabled = !command::can_change_admiral(state, state.local_player_nation, std::get<dcon::navy_id>(foru), dcon::leader_id{});
 		}
 
+
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			if(!owner) {
+				auto army = std::get<dcon::army_id>(foru);
+				auto rebel = state.world.army_get_controller_from_army_rebel_control(army);
+				pculture = state.world.rebel_faction_get_primary_culture(rebel);
+			}
+		}
+
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
 		if(ltype && lid) {
