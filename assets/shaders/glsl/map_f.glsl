@@ -151,7 +151,12 @@ vec4 get_terrain(vec2 corner, vec2 offset) {
 		vec4 colour = texture(terrainsheet_texture_sampler, vec2(sample_from.x, sample_from.y));
 		return mix(colour, vec4(0.), is_water);
 	} else {
-		vec4 colour = texture(terrainsheet_texture_sampler_array, vec3(offset, index));
+		// Sample both summer and winter terrain sheets
+		vec4 summer_colour = texture(terrainsheet_texture_sampler_array, vec3(offset, index));
+		vec4 winter_colour = texture(terrainsheet_texture_sampler_winter, vec3(offset, index));
+    
+		// Mix between summer and winter based on winter_scale
+		vec4 colour = mix(summer_colour, winter_colour, winter_scale);
 		return mix(colour, vec4(0.), is_water);
 	}
 }

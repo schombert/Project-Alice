@@ -606,7 +606,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			}
 		} else {
 			// No winter textures provided
-			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.);
+			glUniform1f(shader_uniforms[program][uniform_winter_scale], 0.f);
 		}
 	};
 
