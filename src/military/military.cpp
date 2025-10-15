@@ -8442,7 +8442,7 @@ void update_movement(sys::state& state) {
 					} else {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
-							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
+							if(province::is_crossing_blocked(state, a.get_controller_from_army_control(), from, dest)) {
 								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
 								stop_army_movement(state, a);
 								a.set_is_retreating(false);
@@ -8591,7 +8591,7 @@ void update_movement(sys::state& state) {
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
-				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
 					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
 					n.set_is_retreating(false);
@@ -9288,7 +9288,7 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, our_nation, location, prov) ||
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_crossing_blocked(state, our_nation, location, prov) ||
 			!state.world.province_get_nation_from_province_ownership(prov)) {
 			// if its a sea province, a blockaded sea strait or uncolonized
 			return false;
@@ -9383,7 +9383,7 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, in_nation, location, prov)) {
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_crossing_blocked(state, in_nation, location, prov)) {
 			// if it is a sea province, or a blockaded sea strait, ignore it
 			continue;
 		}
