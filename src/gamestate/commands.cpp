@@ -5469,6 +5469,7 @@ bool can_chat_message(sys::state& state, command_data& command) {
 
 	// check that the message length is correct before reading from it
 	if(payload.data.msg_len != (command.payload.size() - sizeof(chat_message_data))) {
+		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
 
@@ -6057,6 +6058,24 @@ void resync_lobby(sys::state& state, dcon::nation_id source) {
 void execute_resync_lobby(sys::state& state, dcon::nation_id source) {
 	network::full_reset_after_oos(state);
 	state.ui_state.recently_pressed_resync = false;
+}
+
+void execute_notify_mp_data(sys::state& state, const notify_mp_data_data_recv& data) {
+	// size boundary is checked in can_notify_mp_data so we can safely do this
+	sys::read_mp_data(&data.mp_data[0], &data.mp_data[data.base.data_len], state);
+}
+
+bool can_notify_mp_data(sys::state& state, command_data& command) {
+
+		auto& payload = command.get_payload<notify_mp_data_data_recv>();
+
+	// check that the data length is correct before reading from it
+	if(payload.base.data_len != (command.payload.size() - sizeof(notify_mp_data_data))) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+
+	return true;
 }
 
 
@@ -6824,6 +6843,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::resync_lobby:
 	{
 		return true;
+	}
+	case command_type::notify_mp_data:
+	{
+		return can_notify_mp_data(state, c);
 	}
 	}
 	return false;
@@ -7627,6 +7650,13 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::resync_lobby:
 	{
 		execute_resync_lobby(state, c.header.source);
+		break;
+	}
+	case command_type::notify_mp_data:
+	{
+		auto& data = c.get_payload<notify_mp_data_data_recv>();
+		execute_notify_mp_data(state, data);
+		break;
 	}
 	}
 	state.tick_end_counter.fetch_add(1, std::memory_order::seq_cst);

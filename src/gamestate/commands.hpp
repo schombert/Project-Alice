@@ -122,6 +122,7 @@ enum class command_type : uint8_t {
 		change_game_rule_setting = 113,
 
 		// network
+		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
 		resync_lobby = 236,
 		notify_player_ban = 237,
 		notify_player_kick = 238,
@@ -548,6 +549,14 @@ struct change_gamerule_setting_data {
 	uint8_t setting;
 };
 
+struct notify_mp_data_data {
+	uint32_t data_len = 0;
+};
+struct notify_mp_data_data_recv {
+	notify_mp_data_data base;
+	uint8_t mp_data[1];
+};
+
 
 static ankerl::unordered_dense::map<command::command_type, command::command_type_data> command_type_handlers = {
 	{command_type::change_nat_focus, command_type_data{ sizeof(command::national_focus_data), sizeof(command::national_focus_data) } },
@@ -684,6 +693,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::network_populate, command_type_data{ 0, 0 } },
 	{ command_type::console_command, command_type_data{ 0, 0 } },
 	{ command_type::resync_lobby, command_type_data{ 0, 0 } },
+	{ command_type::notify_mp_data, command_type_data{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), } },
 
 };
 
@@ -765,6 +775,8 @@ const size_t MAX_PAYLOAD_SIZE = biggest_type_size<
 	command::stop_army_movement_data,
 	command::stop_navy_movement_data,
 	command::command_units_data,
+	command::notify_mp_data_data,
+	command::notify_mp_data_data_recv,
 	command::change_gamerule_setting_data>;
 
 struct cmd_header {

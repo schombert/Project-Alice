@@ -1124,47 +1124,6 @@ void notify_player_joins(sys::state& state, network::client_data& client, bool n
 	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as, needs_loading);
 }
 
-void notify_player_joins_discovery(sys::state& state, network::client_data& client) {
-	for(const auto player : state.world.in_mp_player) {
-			// Tell new client about all other clients
-		if(!player) {
-			continue;
-		}
-
-		auto& nickname = state.world.mp_player_get_nickname(player);
-		command::command_data c{ command::command_type::notify_player_joins, state.world.mp_player_get_nation_from_player_nation(player) };
-		command::notify_joins_data payload{ };
-
-
-		payload.player_name = sys::player_name{ nickname };
-		// if the player in question is not fully loaded, tell the other clients they have to load first
-		payload.needs_loading = !state.world.mp_player_get_fully_loaded(player);
-
-		c << payload;
-
-		socket_add_command_to_send_queue(client.send_buffer, &c);
-#ifndef NDEBUG
-		const auto now = std::chrono::system_clock::now();
-		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | type:notify_player_joins | to:" + std::to_string(client.playing_as.index()) + " | target nation:" + std::to_string(state.world.mp_player_get_nation_from_player_nation(player).index())
-		+ " | nickname: " + payload.player_name.to_string());
-#endif
-		
-	}
-	// tell the new client about all no-ai countries which arent players
-	for(auto nation : state.world.in_nation) {
-		if(!nation) {
-			continue;
-		}
-		if(nation.get_is_player_controlled()) {
-			command::command_data c{ command::command_type::change_ai_nation_state, nation };
-			command::change_ai_nation_state_data payload{ true };
-
-			c << payload;
-
-			socket_add_command_to_send_queue(client.send_buffer, &c);
-		}
-	}
-}
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	{
@@ -1206,6 +1165,25 @@ void send_savegame(sys::state& state, network::client_data& client, sys::checksu
 		payload.length = size_t(state.network_state.current_save_length);
 
 		c << payload;
+
+
+
+		// write MP data in buffer
+		auto mp_data_sz = uint32_t(sys::sizeof_mp_data(state));
+		auto mp_data_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[mp_data_sz]);
+		sys::write_mp_data(mp_data_buffer.get(), state);
+
+		command::command_data mp_data_cmd{ command::command_type::notify_mp_data, state.local_player_nation };
+		command::notify_mp_data_data mp_data_payload{ };
+
+		mp_data_payload.data_len = mp_data_sz;
+
+		mp_data_cmd << mp_data_payload;
+		mp_data_cmd.push_ptr(mp_data_buffer.get(), mp_data_sz);
+		
+
+		socket_add_command_to_send_queue(client.send_buffer, &mp_data_cmd);
+
 
 		network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get());
 #ifndef NDEBUG
@@ -1279,7 +1257,6 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 	if(state.current_scene.starting_scene) {
 		/* Lobby - existing savegame */
 		notify_player_joins(state, client, !state.network_state.is_new_game);
-		notify_player_joins_discovery(state, client);
 		if(!state.network_state.is_new_game) {
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
 			if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
@@ -1296,21 +1273,20 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 	} else if(state.current_scene.game_in_progress) {
 		notify_player_joins(state, client, !state.network_state.is_new_game);
-		notify_player_joins_discovery(state, client);
-			if(!state.network_state.is_new_game) {
-				paused = pause_game(state);
-				// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
-				if(!state.network_state.last_save_checksum.is_equal( state.get_save_checksum())) {
-					network::write_network_save(state);
-				}
-				// load the save which was just written
-				window::change_cursor(state, window::cursor_type::busy);
-				load_network_save(state, state.network_state.current_save_buffer.get());
-				window::change_cursor(state, window::cursor_type::normal);
-				// generate checksum for the entire mp state
-				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-				send_savegame(state, client, state.network_state.current_mp_state_checksum, true);
+		if(!state.network_state.is_new_game) {
+			paused = pause_game(state);
+			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
+			if(!state.network_state.last_save_checksum.is_equal( state.get_save_checksum())) {
+				network::write_network_save(state);
 			}
+			// load the save which was just written
+			window::change_cursor(state, window::cursor_type::busy);
+			load_network_save(state, state.network_state.current_save_buffer.get());
+			window::change_cursor(state, window::cursor_type::normal);
+			// generate checksum for the entire mp state
+			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+			send_savegame(state, client, state.network_state.current_mp_state_checksum, true);
+		}
 		
 		notify_start_game(state, client);
 	}
@@ -1354,7 +1330,13 @@ void full_reset_after_oos(sys::state& state) {
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 		}
-		{ // set up commands, one for reload, one for save load
+		{ // set up commands, one for reload, one for save load, and one for loading other MP data
+
+			// write MP data in buffer
+			auto mp_data_sz = uint32_t(sys::sizeof_mp_data(state));
+			auto mp_data_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[mp_data_sz]);
+			sys::write_mp_data(mp_data_buffer.get(), state);
+
 
 			command::command_data reload_cmd{ command::command_type::notify_reload, state.local_player_nation };
 			command::notify_reload_data reload_payload{ state.network_state.current_mp_state_checksum };
@@ -1369,14 +1351,28 @@ void full_reset_after_oos(sys::state& state) {
 
 			saveload_cmd << saveload_payload;
 
+
+			command::command_data mp_data_cmd{ command::command_type::notify_mp_data, state.local_player_nation };
+			command::notify_mp_data_data mp_data_payload{ };
+			mp_data_payload.data_len = mp_data_sz;
+			
+
+			mp_data_cmd << mp_data_payload;
+			mp_data_cmd.push_ptr(mp_data_buffer.get(), mp_data_sz);
+
+
+
 			// iterate over clients and send command to the non-oos ones to reload their own gamestate, and send a save load command to each of the oos'd clients
 			for(auto& other_client : state.network_state.clients) {
 				for(auto player : state.world.in_mp_player) {
 					// if the client is active, has the same nation as the player, and said player is NOT oos, then notify reload
 					if(other_client.is_active() && other_client.playing_as == player.get_nation_from_player_nation()) {
-						// if the client is oos, send the save load command
+						// if the client is oos, send the save load command AND the player data (incase the OOS caused that to desync)
 						if(player.get_is_oos()) {
+							socket_add_command_to_send_queue(other_client.send_buffer, &mp_data_cmd);
+
 							broadcast_save_to_single_client(state, saveload_cmd, other_client, state.network_state.current_save_buffer.get());
+
 #ifndef NDEBUG
 							state.console_log("host:broadcast save to player " + other_client.hshake_buffer.nickname.to_string() + ":cmd | (new->save_loaded)");
 #endif
@@ -1487,6 +1483,7 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 		case command::command_type::change_ai_nation_state:
 		case command::command_type::change_game_rule_setting:
 		case command::command_type::resync_lobby:
+		case command::command_type::notify_mp_data:
 			break; // has to be valid/sendable by client
 		default:
 			/* Has to be from the nation of the client proper - and early
