@@ -5536,7 +5536,10 @@ void execute_notify_player_joins(sys::state& state, dcon::nation_id source, sys:
 	state.console_log("client:receive:cmd | type:notify_player_joins | nation: " + std::to_string(source.index()) + " | name: " + name.to_string());
 #endif
 
-	network::create_mp_player(state, name, password, !needs_loading, false, source);
+	// Don't create MP player as the host, cause it will already have been created in the handshake
+	if(state.network_mode != sys::network_mode_type::host) {
+		network::create_mp_player(state, name, password, !needs_loading, false, source);
+	}
 
 	if(needs_loading) {
 

@@ -984,12 +984,12 @@ int client_process_handshake(sys::state& state) {
 void server_send_handshake(sys::state& state, network::client_data& client) {
 	/* Tell the client their assigned nation */
 	auto plnation = get_player_nation(state, client.hshake_buffer.nickname);
-	if(plnation) {
-		client.playing_as = plnation;
-	} else {
-		client.playing_as = choose_nation_for_player(state);
+	if(!plnation) {
+		plnation = choose_nation_for_player(state);
+
 	}
-	assert(client.playing_as);
+	client.player_id = create_mp_player(state, client.hshake_buffer.nickname, client.hshake_buffer.player_password, state.network_state.is_new_game, false, plnation);
+
 
 	/* Send it data so the client is in sync with everyone else! */
 	server_handshake_data hshake;
@@ -998,6 +998,8 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.scenario_checksum = state.scenario_checksum;
 	hshake.save_checksum = state.get_save_checksum();
 	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+
+
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
 	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now)+ " host:send:handshake | assignednation:" + std::to_string(client.playing_as.index()));
@@ -1095,19 +1097,21 @@ void notify_player_is_loading(sys::state& state, sys::player_name& name, dcon::n
 	write_player_nations(state);
 }
 
-void notify_player_joins(sys::state& state, sys::player_name& name, dcon::nation_id nation, bool needs_loading) {
+void notify_player_joins(sys::state& state, const client_data& joining_client) {
 	// Tell all clients about this client. Don't include passwords
+
+	auto player_id = joining_client.player_id;
 
 	command::command_data c{ command::command_type::notify_player_joins, nation };
 	command::notify_joins_data payload{ };
-	payload.player_name = name;
-	payload.needs_loading = needs_loading;
+	payload.player_name = joining_client.hshake_buffer.nickname;
+	payload.needs_loading = !state.world.mp_player_get_fully_loaded(player_id);
 
 	c << payload;
 
 
 	for(auto& cl : state.network_state.clients) {
-		if(!cl.is_active() || cl.playing_as == nation) {
+		if(!cl.is_active() || cl.player_id == player_id) {
 			continue;
 		}
 		socket_add_command_to_send_queue(cl.send_buffer, &c);
@@ -1118,10 +1122,6 @@ void notify_player_joins(sys::state& state, sys::player_name& name, dcon::nation
 	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins nation:" + std::to_string(nation.index()));
 #endif
 	write_player_nations(state);
-}
-
-void notify_player_joins(sys::state& state, network::client_data& client, bool needs_loading) {
-	notify_player_joins(state, client.hshake_buffer.nickname, client.playing_as, needs_loading);
 }
 
 // loads the save from network which is currently in the save buffer
@@ -1254,9 +1254,10 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 	bool paused = false;
 
+	notify_player_joins(state, client);
+
 	if(state.current_scene.starting_scene) {
 		/* Lobby - existing savegame */
-		notify_player_joins(state, client, !state.network_state.is_new_game);
 		if(!state.network_state.is_new_game) {
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
 			if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
@@ -1272,7 +1273,6 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 		}
 
 	} else if(state.current_scene.game_in_progress) {
-		notify_player_joins(state, client, !state.network_state.is_new_game);
 		if(!state.network_state.is_new_game) {
 			paused = pause_game(state);
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer

@@ -52,6 +52,7 @@ struct server_handshake_data {
 
 struct client_data {
 	dcon::nation_id playing_as{};
+	dcon::mp_player_id player_id{ };
 	socket_t socket_fd = 0;
 	struct sockaddr_storage address;
 
@@ -156,7 +157,6 @@ void log_player_nations(sys::state& state);
 void place_host_player_after_saveload(sys::state& state);
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
-void notify_player_joins(sys::state& state, network::client_data& client, bool needs_loading);
 void notify_player_joins(sys::state& state, sys::player_name& name, dcon::nation_id nation, bool needs_loading);
 
 void load_host_settings(sys::state& state);
