@@ -269,7 +269,8 @@ public:
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
 	static constexpr uint32_t texture_array_province_color = 1;
-	static constexpr uint32_t texture_array_count = 2;
+	static constexpr uint32_t texture_array_terrainsheet_winter = 2;
+	static constexpr uint32_t texture_array_count = 3;
 	GLuint texture_arrays[texture_array_count] = { 0 };
 	// Shaders
 	static constexpr uint32_t shader_terrain = 0;
@@ -337,7 +338,9 @@ public:
 	static constexpr uint32_t uniform_terrainsheet_texture_sampler_array = 43;
 	static constexpr uint32_t uniform_terrain_is_array = 44;
 	static constexpr uint32_t uniform_map_mode_is_data = 45;
-	static constexpr uint32_t uniform_count = 46;
+	static constexpr uint32_t uniform_winter_scale = 46;
+	static constexpr uint32_t uniform_terrainsheet_texture_sampler_winter = 47;
+	static constexpr uint32_t uniform_count = 48;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
