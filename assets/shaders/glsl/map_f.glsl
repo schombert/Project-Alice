@@ -244,7 +244,7 @@ vec4 get_land_political_close() {
 				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
 				OutColor.rgb *= 1.05;
 			} else {
-				OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+				OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.1f;
 			}
 			terrain.rgb = OutColor.rgb;
 		} else {
@@ -307,7 +307,7 @@ vec4 get_land_political_far() {
 				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
 				OutColor.rgb *= 1.05;
 			} else {
-				OutColor.rgb = (grey + terrain.rgb) / 1.5f;
+				OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.1f;
 			}
 		} else {
 			vec3 political_raw = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;

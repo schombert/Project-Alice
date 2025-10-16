@@ -934,13 +934,13 @@ void ef_scope_this(token_generator& gen, error_handler& err, effect_building_con
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	if(context.main_slot == trigger::slot_contents::state) {
+	if(context.this_slot == trigger::slot_contents::state) {
 		context.compiled_effect.push_back(uint16_t(effect::this_scope_state | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::province) {
+	} else if(context.this_slot == trigger::slot_contents::province) {
 		context.compiled_effect.push_back(uint16_t(effect::this_scope_province | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::pop) {
+	} else if(context.this_slot == trigger::slot_contents::pop) {
 		context.compiled_effect.push_back(uint16_t(effect::this_scope_pop | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::nation) {
+	} else if(context.this_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::this_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
@@ -966,13 +966,13 @@ void ef_scope_from(token_generator& gen, error_handler& err, effect_building_con
 	auto old_limit_offset = context.limit_position;
 	auto old_main = context.main_slot;
 
-	if(context.main_slot == trigger::slot_contents::state) {
+	if(context.from_slot == trigger::slot_contents::state) {
 		context.compiled_effect.push_back(uint16_t(effect::from_scope_state | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::province) {
+	} else if(context.from_slot == trigger::slot_contents::province) {
 		context.compiled_effect.push_back(uint16_t(effect::from_scope_province | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::pop) {
+	} else if(context.from_slot == trigger::slot_contents::pop) {
 		context.compiled_effect.push_back(uint16_t(effect::from_scope_pop | effect::scope_has_limit));
-	} else if(context.main_slot == trigger::slot_contents::nation) {
+	} else if(context.from_slot == trigger::slot_contents::nation) {
 		context.compiled_effect.push_back(uint16_t(effect::from_scope_nation | effect::scope_has_limit));
 	} else {
 		gen.discard_group();
