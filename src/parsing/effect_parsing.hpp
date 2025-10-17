@@ -2464,6 +2464,24 @@ struct effect_body {
 			return;
 		}
 	}
+	void build_factory(association_type t, std::string_view value, error_handler& err, int32_t line,
+			effect_building_context& context) {
+		if(auto it = context.outer_context.map_of_factory_names.find(std::string(value));
+				it != context.outer_context.map_of_factory_names.end()) {
+			if(context.main_slot == trigger::slot_contents::province) {
+				context.compiled_effect.push_back(uint16_t(effect::build_factory));
+				context.compiled_effect.push_back(trigger::payload(it->second).value);
+			} else {
+				err.accumulated_errors += "build_factory effect used in an incorrect scope type " + slot_contents_to_string(context.main_slot) + " (" + err.file_name +
+					", line " + std::to_string(line) + ")\n";
+				return;
+			}
+		} else {
+			err.accumulated_errors += "build_factory effect supplied with invalid factory name " + std::string(value) +
+				" (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+			return;
+		}
+	}
 	void activate_technology(association_type t, std::string_view value, error_handler& err, int32_t line,
 			effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_technologies.find(std::string(value));

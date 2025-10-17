@@ -3213,6 +3213,14 @@ uint32_t ef_build_factory_in_capital_state(EFFECT_PARAMTERS) {
 	economy::try_add_factory_to_state(ws, cs, trigger::payload(tval[1]).fac_id);
 	return 0;
 }
+uint32_t ef_build_factory(EFFECT_PARAMTERS) {
+	auto p = trigger::to_prov(primary_slot);
+	auto cs = ws.world.province_get_state_membership(p);
+	if(!cs)
+		return 0;
+	economy::try_add_factory_to_state(ws, cs, trigger::payload(tval[1]).fac_id);
+	return 0;
+}
 uint32_t ef_activate_technology(EFFECT_PARAMTERS) {
 	if(ws.world.nation_get_active_technologies(trigger::to_nation(primary_slot), trigger::payload(tval[1]).tech_id) == false)
 		culture::apply_technology(ws, trigger::to_nation(primary_slot), trigger::payload(tval[1]).tech_id);

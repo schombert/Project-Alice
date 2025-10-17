@@ -3586,6 +3586,16 @@ uint32_t ef_build_factory_in_capital_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
+uint32_t ef_build_factorye(EFFECT_DISPLAY_PARAMS) {
+	{
+		auto box = text::open_layout_box(layout, indentation);
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.factory_type_get_name(trigger::payload(tval[1]).fac_id));
+		text::localised_format_box(ws, layout, box, "build_factory", m);
+		text::close_layout_box(layout, box);
+	}
+	return 0;
+}
 uint32_t ef_activate_technology(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
@@ -7338,6 +7348,7 @@ ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_positio
 ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
 ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)
 ef_change_factory_limit, // EFFECT_BYTECODE_ELEMENT(0x01C2, change_factory_limit, 2)
+ef_build_factory, // 0x01C3
 
 //
 // SCOPES
