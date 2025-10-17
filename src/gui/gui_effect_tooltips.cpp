@@ -3586,7 +3586,7 @@ uint32_t ef_build_factory_in_capital_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	return 0;
 }
-uint32_t ef_build_factorye(EFFECT_DISPLAY_PARAMS) {
+uint32_t ef_build_factory(EFFECT_DISPLAY_PARAMS) {
 	{
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
