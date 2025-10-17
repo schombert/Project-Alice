@@ -224,7 +224,6 @@ struct factory_data {
 
 struct tag_target_data {
 	dcon::national_identity_id ident;
-	sys::player_name player_name;
 };
 
 struct influence_action_data {
@@ -476,7 +475,6 @@ struct set_factory_priority_data {
 
 struct chat_message_data {
 	dcon::nation_id target;
-	sys::player_name sender;
 	uint16_t msg_len = 0;
 };
 struct chat_message_data_recv {
@@ -486,7 +484,6 @@ struct chat_message_data_recv {
 
 struct nation_pick_data {
 	dcon::nation_id target;
-	sys::player_name player_name;
 };
 
 struct advance_tick_data {
@@ -496,8 +493,9 @@ struct advance_tick_data {
 };
 
 struct notify_joins_data {
-	sys::player_name player_name;
 	sys::player_password_raw player_password;
+	sys::player_name player_name;
+	dcon::nation_id player_nation;
 	bool needs_loading;
 };
 struct notify_save_loaded_data {
@@ -510,25 +508,22 @@ struct notify_reload_data {
 };
 struct notify_leaves_data {
 	bool make_ai;
-	sys::player_name player_name;
 };
-struct notify_player_fully_loaded_data {
-	sys::player_name name;
-};
-struct notify_player_is_loading_data {
-	sys::player_name name;
-};
+//struct notify_player_fully_loaded_data {
+//	sys::player_name name;
+//};
+//struct notify_player_is_loading_data {
+//	dcon::mp_player_id loading_player;
+//};
 struct notify_player_ban_data {
 	bool make_ai;
-	sys::player_name player_name;
 };
 struct notify_player_kick_data {
 	bool make_ai;
-	sys::player_name player_name;
 };
-struct notify_player_oos_data {
-	sys::player_name player_name;
-};
+//struct notify_player_oos_data {
+//	sys::player_name player_name;
+//};
 struct change_ai_nation_state_data {
 	bool no_ai;
 };
@@ -678,7 +673,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::notify_player_picks_nation, command_type_data{ sizeof(command::nation_pick_data), sizeof(command::nation_pick_data) } },
 	{ command_type::notify_player_joins, command_type_data{ sizeof(command::notify_joins_data), sizeof(command::notify_joins_data) } },
 	{ command_type::notify_player_leaves, command_type_data{ sizeof(command::notify_leaves_data), sizeof(command::notify_leaves_data) } },
-	{ command_type::notify_player_oos, command_type_data{ sizeof(command::notify_player_oos_data), sizeof(command::notify_player_oos_data) } },
+	{ command_type::notify_player_oos, command_type_data{ 0, 0 } },
 	{ command_type::notify_save_loaded, command_type_data{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) } },
 	{ command_type::notify_start_game, command_type_data{ 0, 0 } },
 	{ command_type::notify_stop_game, command_type_data{ 0, 0 } },
@@ -687,8 +682,8 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::advance_tick, command_type_data{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data) } },
 	{ command_type::chat_message, command_type_data{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len } },
 	{ command_type::network_inactivity_ping, command_type_data{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data) } },
-	{ command_type::notify_player_fully_loaded, command_type_data{ sizeof(command::notify_player_fully_loaded_data), sizeof(command::notify_player_fully_loaded_data) } },
-	{ command_type::notify_player_is_loading, command_type_data{ sizeof(command::notify_player_is_loading_data), sizeof(command::notify_player_is_loading_data) } },
+	{ command_type::notify_player_fully_loaded, command_type_data{ 0, 0 } },
+	{ command_type::notify_player_is_loading, command_type_data{ 0, 0 } },
 	{ command_type::change_ai_nation_state, command_type_data{ sizeof(command::change_ai_nation_state_data), sizeof(command::change_ai_nation_state_data) } },
 	{ command_type::network_populate, command_type_data{ 0, 0 } },
 	{ command_type::console_command, command_type_data{ 0, 0 } },
@@ -759,8 +754,8 @@ const size_t MAX_PAYLOAD_SIZE = biggest_type_size<
 	command::save_game_data,
 	command::notify_save_loaded_data,
 	command::notify_reload_data,
-	command::notify_player_fully_loaded_data,
-	command::notify_player_is_loading_data,
+	//command::notify_player_fully_loaded_data,
+	//command::notify_player_is_loading_data,
 	command::cheat_location_data,
 	command::notify_joins_data,
 	command::notify_leaves_data,
@@ -770,7 +765,7 @@ const size_t MAX_PAYLOAD_SIZE = biggest_type_size<
 	command::set_factory_priority_data,
 	command::notify_player_ban_data,
 	command::notify_player_kick_data,
-	command::notify_player_oos_data,
+	//command::notify_player_oos_data,
 	command::change_ai_nation_state_data,
 	command::stop_army_movement_data,
 	command::stop_navy_movement_data,
@@ -779,14 +774,15 @@ const size_t MAX_PAYLOAD_SIZE = biggest_type_size<
 	command::notify_mp_data_data_recv,
 	command::change_gamerule_setting_data>;
 
+// padding due to alignment
 struct cmd_header {
 	command_type type;
 	uint8_t padding = 0;
-	dcon::nation_id source{};
+	dcon::mp_player_id player_id;
 	uint32_t payload_size = 0;
 
 };
-static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::source) + sizeof(command::cmd_header::payload_size));
+static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
 
 //struct command_data_vec {
 //	cmd_header header;
@@ -847,9 +843,9 @@ struct command_data {
 	command_data(command_type _type) {
 		header.type = _type;
 	};
-	command_data(command_type _type, dcon::nation_id _source) {
+	command_data(command_type _type, dcon::mp_player_id _player_id) {
 		header.type = _type;
-		header.source = _source;
+		header.player_id = _player_id;
 	};
 	// add data to the payload
 	template<typename data_type>
@@ -975,8 +971,8 @@ bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon
 void make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 bool can_make_vassal(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
 
-void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name);
-bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, sys::player_name& player_name);
+void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t);
+bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, dcon::mp_player_id player);
 
 void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target);
@@ -1314,7 +1310,7 @@ void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon:
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void post_chat_message(sys::state& state, ui::chat_message& m);
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, sys::player_name& sender);
+void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
 bool can_chat_message(sys::state& state, command_data& command);
 
 void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting);
@@ -1327,28 +1323,30 @@ void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id ta
 bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 
 void advance_tick(sys::state& state, dcon::nation_id source);
-void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& name);
-bool can_notify_player_ban(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& name);
-bool can_notify_player_kick(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name, sys::player_password_raw& password);
-bool can_notify_player_joins(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& player_name);
-bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, sys::player_name& player_name);
-void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name);
-bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, sys::player_name& name);
-void notify_player_oos(sys::state& state, dcon::nation_id source, sys::player_name& name);
+void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player);
+bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player);
+void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player);
+bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player);
+void notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
+bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
+void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
+bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
+void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player);
+void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
 void notify_reload(sys::state& state, dcon::nation_id source);
 bool can_notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
-void notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, sys::player_name& name);
-void notify_player_fully_loaded(sys::state& state, dcon::nation_id source, sys::player_name& name);
+void notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player);
+void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player);
+void notify_player_fully_loaded(sys::state& state, dcon::nation_id source);
 bool can_notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
 void resync_lobby(sys::state& state, dcon::nation_id source);
+
+dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 
 // returns true if the command was performed, false if not
 bool execute_command(sys::state& state, command_data& c);
@@ -1358,7 +1356,7 @@ bool can_perform_command(sys::state& state, command_data& c);
 
 void notify_console_command(sys::state& state);
 void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
-void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date);
+void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date, dcon::mp_player_id player);
 
 } // namespace command
 

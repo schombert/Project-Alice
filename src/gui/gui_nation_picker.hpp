@@ -223,7 +223,7 @@ public:
 					// notfy every client that every client is now loading (loading the save)
 					for(auto& loading_client : state.network_state.clients) {
 						if(loading_client.is_active()) {
-							network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
+							network::notify_player_is_loading(state, loading_client.player_id, true);
 						}
 					}
 
@@ -240,14 +240,15 @@ public:
 					/* Now send the saved buffer before filling the unsaved data to the clients
 					henceforth. */
 
-					command::command_data c{ command::command_type::notify_save_loaded, state.local_player_nation };
+					/*command::command_data c{ command::command_type::notify_save_loaded, state.local_player_id };
 					command::notify_save_loaded_data payload{ };
 					payload.target = dcon::nation_id{ };
 					payload.length = state.network_state.current_save_length;
 					payload.checksum = state.network_state.current_mp_state_checksum;
 
-					c << payload;
-					network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get());
+					c << payload;*/
+					//network::send_savegame(state, [](const network::client_data& d) { return true; });
+					network::broadcast_save_to_clients(state);
 				} else {
 					state.fill_unsaved_data();
 				}
@@ -456,23 +457,14 @@ class pick_nation_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto nation = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			disabled = nation == state.local_player_nation;
-		} else {
-			// Prevent (via UI) the player from selecting a nation already selected by someone
-			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, nation, state.network_state.nickname);
-		}
+		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, nation, state.local_player_id);
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			state.local_player_nation = n;
-			state.world.nation_set_is_player_controlled(n, true);
-			state.ui_state.nation_picker->impl_on_update(state);
-		} else {
-			command::notify_player_picks_nation(state, state.local_player_nation, n, state.network_state.nickname);
-		}
+		command::notify_player_picks_nation(state, state.local_player_nation, n);
+		
 	}
 };
 
@@ -675,7 +667,7 @@ public:
 				if(client.is_active()) {
 					if(!client.send_buffer.empty()) {
 						text::substitution_map sub;
-						text::add_to_substitution_map(sub, text::variable_type::playername, client.playing_as);
+						text::add_to_substitution_map(sub, text::variable_type::playername, client.hshake_buffer.nickname.to_string_view());
 						text::localised_format_box(state, contents, box, std::string_view("alice_play_pending_client"), sub);
 					}
 				}
@@ -732,28 +724,15 @@ class observer_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			auto previous_nation = state.local_player_nation;
-			state.local_player_nation = observer_nation;
-			state.world.nation_set_is_player_controlled(observer_nation, true);
-			if(previous_nation) {
-				state.world.nation_set_is_player_controlled(previous_nation, false);
-			}
-			state.ui_state.nation_picker->impl_on_update(state);
-		} else {
-			if(command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname)) {
-				command::notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
-			}
+		if(command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.local_player_id)) {
+			command::notify_player_picks_nation(state, state.local_player_nation, observer_nation);
 		}
+		
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			disabled = state.local_player_nation == observer_nation;
-		}
-		else {
-			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.network_state.nickname);
-		}
+		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.local_player_id);
+		
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
