@@ -4481,6 +4481,7 @@ float unit_construction_progress(sys::state& state, dcon::province_naval_constru
 	return total > 0.0f ? purchased / total : 0.0f;
 }
 
+// If no factory of type T present - builds one. Otherwise - adds one level.
 void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon::factory_type_id t) {
 
 	// Since construction may be queued together with refit, check if there is factory to add level to
@@ -4807,6 +4808,7 @@ float estimate_daily_income(sys::state& state, dcon::nation_id n) {
 	return tax.mid + tax.poor + tax.rich;
 }
 
+// Only used in ef_build_factory_in_capital_state and ef_build_factory effects.
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t) {
 	auto province = state.world.state_instance_get_capital(s);
 
@@ -4827,8 +4829,9 @@ void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon
 	// is there an upgrade target ?
 	for(auto f : state.world.province_get_factory_location(province)) {
 		++num_factories;
-		if(f.get_factory().get_building_type() == t)
-			return; // can't build another of this type
+		// Let the effect add a level to the factory if it is already present.
+		//if(f.get_factory().get_building_type() == t)
+		//	return; // can't build another of this type
 	}
 
 	if(num_factories < int32_t(state.defines.factories_per_state)) {
