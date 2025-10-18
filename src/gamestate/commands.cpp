@@ -5552,6 +5552,8 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_i
 		ai::remove_ai_data(state, player_nation);
 
 	network::log_player_nations(state);
+	// update UI immediately incase alot of long commands (ie loading save) is queued up
+	state.game_state_updated.store(true, std::memory_order::release);
 	return player_id;
 }
 
@@ -5691,8 +5693,8 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 		return false;
 	if(!bool(target)) //Invalid nation
 		return false;
-	// Should support co-op now. Make sure the source nation for the player is the same as the one being sent
-	return state.world.mp_player_get_nation_from_player_nation(player) == source;
+	// Should support co-op now.
+	return true;
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player) {
 	network::switch_one_player(state, target, source, player);
@@ -5941,6 +5943,8 @@ void notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::m
 void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player) {
 	assert(loading_player);
 	network::mp_player_set_fully_loaded(state, loading_player, false);
+	// update UI immediately incase alot of long commands (ie loading save) is queued up
+	state.game_state_updated.store(true, std::memory_order::release);
 
 	
 }
@@ -5957,6 +5961,8 @@ void execute_notify_player_fully_loaded(sys::state& state, dcon::nation_id sourc
 	assert(loaded_player);
 	network::mp_player_set_fully_loaded(state, loaded_player, true);
 	state.world.mp_player_set_is_oos(loaded_player, false);
+	// update UI immediately incase alot of long commands (ie loading save) is queued up
+	state.game_state_updated.store(true, std::memory_order::release);
 	
 }
 
@@ -6040,6 +6046,8 @@ void execute_resync_lobby(sys::state& state, dcon::nation_id source) {
 void execute_notify_mp_data(sys::state& state, const notify_mp_data_data_recv& data) {
 	// size boundary is checked in can_notify_mp_data so we can safely do this
 	sys::read_mp_data(&data.mp_data[0], &data.mp_data[data.base.data_len], state);
+	// update UI immediately incase alot of long commands (ie loading save) is queued up
+	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 bool can_notify_mp_data(sys::state& state, command_data& command) {

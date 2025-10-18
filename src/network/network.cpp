@@ -1165,6 +1165,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, [&](const client_data& other_client) { return client.player_id == other_client.player_id; });
+			command::command_data reload_cmd{ command::command_type::notify_reload, state.local_player_id };
+			send_network_command(state, [&](const client_data& other_client) {return client.player_id != other_client.player_id; }, reload_cmd);
 		}
 
 	} else if(state.current_scene.game_in_progress) {
@@ -1181,6 +1183,8 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, [&](const client_data& other_client) { return client.player_id == other_client.player_id; });
+			command::command_data reload_cmd{ command::command_type::notify_reload, state.local_player_id };
+			send_network_command(state, [&](const client_data& other_client) {return client.player_id != other_client.player_id; }, reload_cmd );
 		}
 		
 		notify_start_game(state, client);
