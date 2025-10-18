@@ -44,7 +44,7 @@ float priority_multiplier(sys::state const& state, dcon::factory_type_id fac_typ
 float nation_factory_input_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 
-void update_employment(sys::state& state);
+void update_employment(sys::state& state, float presim_employment_mult = 1.0f);
 
 void update_artisan_production(sys::state& state);
 void update_production_consumption(sys::state& state);

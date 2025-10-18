@@ -1674,7 +1674,7 @@ VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_em
 	}
 }
 
-void update_employment(sys::state& state) {
+void update_employment(sys::state& state, float presim_employment_mult) {
 	// note: markets are independent, so nations are independent:
 	// so we can execute in parallel over nations but not over provinces
 
@@ -1723,7 +1723,7 @@ void update_employment(sys::state& state) {
 				1.f
 			);
 
-			auto new_employment = ve::max((current_employment_target + 10.f * gradient / wage_per_worker * mult), 0.0f);
+			auto new_employment = ve::max((current_employment_target + 10.f * presim_employment_mult * gradient / wage_per_worker * mult), 0.0f);
 
 			// we don't want wages to rise way too high relatively to profits
 			// as we do not have actual budgets, we  consider that our workers budget is as follows
@@ -1802,15 +1802,15 @@ void update_employment(sys::state& state) {
 
 		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0], wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_available_input);
 
 		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1], wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_available_input);
 
 		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_available_input);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
