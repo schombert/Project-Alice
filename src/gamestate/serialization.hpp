@@ -226,6 +226,13 @@ struct scenario_size {
 scenario_size sizeof_scenario_section(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
+size_t sizeof_mp_data(sys::state& state);
+uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
+uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
+
+// combines load record settings by OR-ing them together
+void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record);
+
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
 bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
