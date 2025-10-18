@@ -2233,7 +2233,7 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 }
 
 void enable_canal(sys::state& state, int32_t id) {
-	if(auto can_id = state.province_definitions.canals[id]) {
+	if(auto can_id = state.province_definitions.canals[id]; can_id) {
 		auto current = state.world.province_adjacency_get_type(can_id);
 		state.world.province_adjacency_set_type(can_id, uint8_t(current & ~province::border::impassible_bit));
 	}
