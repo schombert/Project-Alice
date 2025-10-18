@@ -378,7 +378,7 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool fow_enabled = false;
+	bool UNUSED_BOOL = false; // used to be fow == on/off
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -1029,6 +1029,8 @@ struct alignas(64) state {
 
 	void save_user_settings() const;
 	void load_user_settings();
+	void load_gamerule_settings();
+	void save_gamerule_settings() const;
 	void update_ui_scale(float new_scale);
 
 	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data

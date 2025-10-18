@@ -230,14 +230,14 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 	}
 }
 
-void show_full_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, text::substitution val, int32_t indentation) {
+void show_full_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, text::substitution picked, int32_t indentation) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval)));
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, loc_key));
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "("));
-	text::add_to_layout_box(ws, layout, box, val);
+	text::add_to_layout_box(ws, layout, box, picked);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ")"));
 	text::close_layout_box(layout, box);
 }
@@ -725,10 +725,13 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
+
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -778,10 +781,12 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -801,9 +806,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 
-	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
 }
 uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -828,10 +831,12 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "core_of", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -879,10 +884,12 @@ uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "core_in", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -923,7 +930,10 @@ uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-			show_full_random_tooltip(ws, tval[0], "substate_of", layout, rlist[r], indentation);
+			auto box = text::open_layout_box(layout, indentation);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
+			text::close_layout_box(layout, box);
+
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 		}
@@ -967,10 +977,12 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "state_of", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
