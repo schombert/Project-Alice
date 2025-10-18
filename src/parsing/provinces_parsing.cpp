@@ -81,53 +81,78 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 				} else if(size_t(first_value) >= context.original_id_to_prov_id_map.size()) {
 					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large (" + err.file_name + ")\n";
 				} else if(size_t(second_value) >= context.original_id_to_prov_id_map.size()) {
-					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large (" + err.file_name + ")\n";
+					err.accumulated_errors += "Province id " + std::to_string(second_value) + " is too large (" + err.file_name + ")\n";
 				} else {
 					auto province_id_a = context.original_id_to_prov_id_map[first_value];
 					auto province_id_b = context.original_id_to_prov_id_map[second_value];
 
+					auto existing_rel = context.state.world.get_province_adjacency_by_province_pair(province_id_a, province_id_b);
+					if(!existing_rel) {
+						if((province_id_a.index() < context.state.province_definitions.first_sea_province.index() && province_id_b.index() >= context.state.province_definitions.first_sea_province.index()) ||
+							(province_id_a.index() >= context.state.province_definitions.first_sea_province.index() && province_id_b.index() < context.state.province_definitions.first_sea_province.index())) {
+
+							err.accumulated_warnings += "mod attempts to create a connection between non-adjacent land and sea provinces " + std::to_string(first_value) + " and " + std::to_string(second_value) + " which is ignored because displaying docked ships would be impossible (" + err.file_name + ")\n";
+
+							// stop processing this entry, except in case it is a canal, in which case we need to add a dummy canal entry
+							auto ttex = parsers::remove_surrounding_whitespace(values[2]);
+							if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "canal")) {
+								auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
+								if(canal_id > 0) {
+									if(context.state.province_definitions.canals.size() < canal_id) {
+										context.state.province_definitions.canals.resize(canal_id);
+									}
+									context.state.province_definitions.canals[canal_id - 1] = dcon::province_adjacency_id{};
+								}
+							}
+							return;
+						}
+					}
+
 					auto ttex = parsers::remove_surrounding_whitespace(values[2]);
 					if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "sea")) {
-						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
-						context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit);
-						// parse prov id of sea province to be blockaded to block adjacency
-						auto blockade_prov_text = parsers::remove_surrounding_whitespace(values[3]);
-						auto blockade_prov_value = parsers::parse_int(blockade_prov_text, 0, err);
-						if(blockade_prov_value > 0) {
-							auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
-							context.state.world.province_adjacency_set_canal_or_blockade_province( new_rel, blockadeable_prov );
+						if(!existing_rel) {
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit);
+
+							// parse prov id of sea province to be blockaded to block adjacency
+							auto blockade_prov_text = parsers::remove_surrounding_whitespace(values[3]);
+							auto blockade_prov_value = parsers::parse_int(blockade_prov_text, 0, err);
+							if(blockade_prov_value > 0) {
+								auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
+								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, blockadeable_prov);
+							}
 						}
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
 						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
 						context.state.world.province_adjacency_set_type(new_rel, province::border::impassible_bit);
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "canal")) {
-						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
-						context.state.world.province_adjacency_set_type(new_rel,
-								province::border::non_adjacent_bit | province::border::impassible_bit);
-
 						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
+						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
 
-						if(province_id_a.index() < context.state.province_definitions.first_sea_province.index()) {
-							err.accumulated_errors += "Canal adjacency province ID " + std::to_string(first_value) + " in Canal ID " + std::to_string(canal_id) + " is a land province ("  + err.file_name + ")\n";
+						if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
+							err.accumulated_warnings += "Canal province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a sea province (" + err.file_name + ")\n";
 						}
-						if(province_id_b.index() < context.state.province_definitions.first_sea_province.index()) {
-							err.accumulated_errors += "Canal adjacency province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a land province (" + err.file_name + ")\n";
+						if(canal_id <= 0) {
+							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
+							return;
 						}
 
-						if(canal_id > 0) {
+						if(!existing_rel) {
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit | province::border::impassible_bit);
+							context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
+
 							if(context.state.province_definitions.canals.size() < canal_id) {
 								context.state.province_definitions.canals.resize(canal_id);
 							}
 							context.state.province_definitions.canals[canal_id - 1] = new_rel;
-
-							auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
-							if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
-								err.accumulated_errors += "Canal province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a sea province (" + err.file_name + ")\n";
-							}
-
-							context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
 						} else {
-							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
+							context.state.world.province_adjacency_set_type(existing_rel, context.state.world.province_adjacency_get_type(existing_rel) | province::border::impassible_bit);
+
+							if(context.state.province_definitions.canals.size() < canal_id) {
+								context.state.province_definitions.canals.resize(canal_id);
+							}
+							context.state.province_definitions.canals[canal_id - 1] = existing_rel;
 						}
 					}
 				}

@@ -541,6 +541,12 @@ directory get_or_create_templates_directory() {
 
 	return directory(nullptr, path);
 }
+directory get_or_create_gamerules_directory() {
+	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/gamerules/";
+	make_directories(path);
+
+	return directory(nullptr, path);
+}
 
 directory get_or_create_oos_directory() {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/oos/";
