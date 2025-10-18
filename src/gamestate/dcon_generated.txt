@@ -5883,7 +5883,7 @@ object {
 	property{
 		name{ hide_notification }
 		type{ bitfield }
-		tag{ save }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5997,14 +5997,12 @@ object{
 	storage_type{ erasable }
 	size{ 200 }
 	tag { keep_after_state_reload }
-	tag { mp_checksum_excluded }
 	tag { mp_data }
 
 	property{
 		name{ nickname }
 		type{ std::array<uint8_t,24> }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
 		tag { mp_data }
 	}
 	property{
@@ -6023,14 +6021,12 @@ object{
 		name{ fully_loaded }
 		type{ bitfield }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
 		tag { mp_data }
 	}
 	property{
 		name{ is_oos }
 		type{ bitfield }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
 		tag { mp_data }
 	}
 }
@@ -6038,7 +6034,6 @@ object{
 relationship{
 	name{ player_nation }
 	tag { keep_after_state_reload }
-	tag { mp_checksum_excluded }
 	tag { mp_data }
 	link{
 		object{nation}

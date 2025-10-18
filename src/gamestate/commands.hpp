@@ -697,87 +697,6 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 };
 
 
-template <typename ... Ts>
-const size_t biggest_type_size = std::max({ sizeof(Ts)... });
-
-
-const size_t MAX_PAYLOAD_SIZE = biggest_type_size<
-	command::national_focus_data,
-	command::start_research_data,
-	command::make_leader_data,
-	command::province_building_data,
-	command::diplo_action_data,
-	command::factory_building_data,
-	command::naval_unit_construction_data,
-	command::land_unit_construction_data,
-	command::tag_target_data,
-	command::factory_data,
-	command::budget_settings_data,
-	command::influence_action_data,
-	command::influence_priority_data,
-	command::generic_location_data,
-	command::war_target_data,
-	command::movement_data,
-	command::political_party_data,
-	command::reform_selection_data,
-	command::issue_selection_data,
-	command::crisis_join_data,
-	command::stockpile_settings_data,
-	command::decision_data,
-	command::pending_human_n_event_data,
-	command::pending_human_f_n_event_data,
-	command::pending_human_p_event_data,
-	command::pending_human_f_p_event_data,
-	command::cb_fabrication_data,
-	command::message_data,
-	command::state_transfer_data,
-	command::call_to_arms_data,
-	command::new_war_data,
-	command::new_war_goal_data,
-	command::new_offer_data,
-	command::offer_wargoal_data,
-	command::cheat_data,
-	command::army_movement_data,
-	command::navy_movement_data,
-	command::merge_army_data,
-	command::merge_navy_data,
-	command::split_regiments_data,
-	command::split_ships_data,
-	command::change_unit_type_data,
-	command::retreat_from_naval_battle_data,
-	command::land_battle_data,
-	command::crisis_invitation_data,
-	command::new_general_data,
-	command::new_admiral_data,
-	command::nation_pick_data,
-	command::chat_message_data,
-	command::rally_point_data,
-	command::cheat_data_int,
-	command::cheat_event_data,
-	command::advance_tick_data,
-	command::save_game_data,
-	command::notify_save_loaded_data,
-	command::notify_reload_data,
-	//command::notify_player_fully_loaded_data,
-	//command::notify_player_is_loading_data,
-	command::cheat_location_data,
-	command::notify_joins_data,
-	command::notify_leaves_data,
-	command::nbutton_data,
-	command::pbutton_data,
-	command::cheat_invention_data_t,
-	command::set_factory_priority_data,
-	command::notify_player_ban_data,
-	command::notify_player_kick_data,
-	//command::notify_player_oos_data,
-	command::change_ai_nation_state_data,
-	command::stop_army_movement_data,
-	command::stop_navy_movement_data,
-	command::command_units_data,
-	command::notify_mp_data_data,
-	command::notify_mp_data_data_recv,
-	command::change_gamerule_setting_data>;
-
 // padding due to alignment
 struct cmd_header {
 	command_type type;
@@ -856,7 +775,6 @@ struct command_data {
 	friend command_data& operator << (command_data& msg, data_type& data) {
 
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		size_t curr_size = msg.payload.size();
 		msg.payload.resize(msg.payload.size() + sizeof(data_type));
 		
@@ -883,7 +801,6 @@ struct command_data {
 	friend command_data& operator >> (command_data& msg, data_type& data) {
 
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 
 		size_t i = msg.payload.size() - sizeof(data_type);
 		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
@@ -911,7 +828,6 @@ struct command_data {
 	template<typename data_type>
 	data_type& get_payload() {
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		uint8_t* ptr = payload.data();
 		return reinterpret_cast<data_type&>(*ptr);
 	}
