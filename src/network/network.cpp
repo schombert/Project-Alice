@@ -358,11 +358,24 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 
-template<typename F>
+template<sys::network_mode_type NetworkType, typename F>
 static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload , F&& func) {
 	// check flag to see if the receiving payload flag is off, an thus should read the header
 	if(!(*receiving_payload)) {
-		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() { *receiving_payload = true; });
+		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
+			// if this is being run as host, early discard commands which the host aren't meant to receive
+			if constexpr(NetworkType == sys::network_mode_type::host) {
+				if(command::valid_host_receive_commands(data->header.type)) {
+					*receiving_payload = true;
+				}
+				else {
+					*receiving_payload = false;
+				}
+			}
+			else {
+				*receiving_payload = true;
+			}
+		});
 	}
 	// otherwise, start receiving the payload
 	else {
@@ -380,20 +393,6 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 			return -1;
 		}
 	}
-
-
-	//int r = socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
-	//	// if it received the whole header, we run this lambda to get the payload
-	//	auto payload_sz = data->header.payload_size;
-	//	auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-	//	// if its a valid command, read the rest
-	//	if(cmd_mapping != command::command_type_handlers.end()) {
-	//		r = socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data) + sizeof(command::cmd_header), cmd_mapping->second.payload_size, recv_count, func);
-	//	}
-
-
-	//});
-	//return r;
 }
 
 
@@ -1092,6 +1091,7 @@ void player_joins(sys::state& state, client_data& joining_client, dcon::nation_i
 
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
+	window::change_cursor(state, window::cursor_type::busy);
 	{
 		state.yield_ui_lock = true;
 		std::unique_lock lock(state.ui_lock);
@@ -1115,6 +1115,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 		lock.unlock();
 		state.ui_lock_cv.notify_one();
 	}
+	window::change_cursor(state, window::cursor_type::normal);
 }
 
 
@@ -1159,13 +1160,13 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				network::write_network_save(state);
 			}
 			// load the save which was just written
-			window::change_cursor(state, window::cursor_type::busy);
 			load_network_save(state, state.network_state.current_save_buffer.get());
-			window::change_cursor(state, window::cursor_type::normal);
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, [&](const client_data& other_client) { return client.player_id == other_client.player_id; });
 			command::command_data reload_cmd{ command::command_type::notify_reload, state.local_player_id };
+			command::notify_reload_data reload_payload{ state.network_state.current_mp_state_checksum };
+			reload_cmd << reload_payload;
 			send_network_command(state, [&](const client_data& other_client) {return client.player_id != other_client.player_id; }, reload_cmd);
 		}
 
@@ -1177,13 +1178,13 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 				network::write_network_save(state);
 			}
 			// load the save which was just written
-			window::change_cursor(state, window::cursor_type::busy);
 			load_network_save(state, state.network_state.current_save_buffer.get());
-			window::change_cursor(state, window::cursor_type::normal);
 			// generate checksum for the entire mp state
 			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 			send_savegame(state, [&](const client_data& other_client) { return client.player_id == other_client.player_id; });
 			command::command_data reload_cmd{ command::command_type::notify_reload, state.local_player_id };
+			command::notify_reload_data reload_payload{ state.network_state.current_mp_state_checksum };
+			reload_cmd << reload_payload;
 			send_network_command(state, [&](const client_data& other_client) {return client.player_id != other_client.player_id; }, reload_cmd );
 		}
 		
@@ -1301,7 +1302,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 }
 
 int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag , [&]() {
+	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag , [&]() {
 		switch(client.recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
@@ -1309,25 +1310,8 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 				state.network_state.outgoing_commands.push(client.recv_buffer);
 			}
 			break;
-		case command::command_type::invalid:
-		case command::command_type::notify_player_ban:
-		case command::command_type::notify_player_kick:
-		case command::command_type::notify_save_loaded:
-		case command::command_type::notify_reload:
-		case command::command_type::advance_tick:
-		case command::command_type::notify_start_game:
-		case command::command_type::notify_stop_game:
-		case command::command_type::notify_pause_game:
-		case command::command_type::notify_player_joins:
-		case command::command_type::save_game:
-		case command::command_type::change_ai_nation_state:
-		case command::command_type::change_game_rule_setting:
-		case command::command_type::resync_lobby:
-		case command::command_type::notify_mp_data:
-			break; // has to be valid/sendable by client
 		default:
-			/* Has to be from the client proper - and early
-			discard invalid commands, and no clients must be currently loading */
+			/* Has to be from the client proper and no clients must be currently loading */
 			if(client.recv_buffer.header.player_id == client.player_id
 			&& !network::check_any_players_loading(state)) {
 				state.network_state.outgoing_commands.push(client.recv_buffer);
@@ -1605,7 +1589,6 @@ void send_and_receive_commands(sys::state& state) {
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
-				window::change_cursor(state, window::cursor_type::busy);
 				load_network_save(state, state.network_state.save_data.data());
 				auto mp_state_checksum = state.get_mp_state_checksum();
 
@@ -1622,7 +1605,6 @@ void send_and_receive_commands(sys::state& state) {
 				state.sprawl_update_requested.store(true, std::memory_order::release);
 				state.network_state.save_data.clear();
 				state.network_state.save_stream = false; // go back to normal command loop stuff
-				window::change_cursor(state, window::cursor_type::normal);
 				// check that the client gamestate is equal to the gamestate of the host, otherwise oos
 				if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
 					state.network_state.out_of_sync = true;
@@ -1637,7 +1619,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, [&]() {
+			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();

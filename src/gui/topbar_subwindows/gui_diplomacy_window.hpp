@@ -281,7 +281,11 @@ public:
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<element_selection_wrapper<dcon::cb_type_id>>()) {
 			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
-			wargoal_decided_upon = true;
+			if(military::cb_requires_selection_of_a_state(state, root_cb)) {
+				select_state(state);
+			} else {
+				wargoal_decided_upon = true;
+			}
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<bool>()) {

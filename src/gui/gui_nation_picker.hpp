@@ -233,21 +233,16 @@ public:
 
 					network::write_network_save(state);
 					network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
+					/* Now fill unsaved data, take checksum of gamestate and send the save + checksum all clients. */
 					state.fill_unsaved_data();
 					state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-					/* Now send the saved buffer before filling the unsaved data to the clients
-					henceforth. */
 
-					/*command::command_data c{ command::command_type::notify_save_loaded, state.local_player_id };
-					command::notify_save_loaded_data payload{ };
-					payload.target = dcon::nation_id{ };
-					payload.length = state.network_state.current_save_length;
-					payload.checksum = state.network_state.current_mp_state_checksum;
-
-					c << payload;*/
-					//network::send_savegame(state, [](const network::client_data& d) { return true; });
+					// set last_seen to current date for all clients, as the save may have a diffrent date than the current one
+					for(auto& client : state.network_state.clients) {
+						client.last_seen = state.current_date;
+					}
 					network::broadcast_save_to_clients(state);
 				} else {
 					state.fill_unsaved_data();

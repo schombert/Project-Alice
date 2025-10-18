@@ -5447,8 +5447,7 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 	command_data p{ command_type::chat_message, state.local_player_id };
 	auto data = chat_message_data{ };
 	data.target = target;
-	/*memcpy(data.body, std::string(body).c_str(), std::min<size_t>(body.length() + 1, size_t(ui::max_chat_message_len)));
-	data.body[ui::max_chat_message_len - 1] = '\0';*/
+
 	data.msg_len = std::min<uint16_t>(uint16_t(body.length()), ui::max_chat_message_len);
 
 	p << data;
@@ -5461,7 +5460,7 @@ bool can_chat_message(sys::state& state, command_data& command) {
 	auto& payload = command.get_payload<chat_message_data_recv>();
 
 	// check that the message length is correct before reading from it
-	if(payload.data.msg_len != (command.payload.size() - sizeof(chat_message_data))) {
+	if(!command.check_variable_size_payload<chat_message_data>(payload.data.msg_len)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
@@ -5820,9 +5819,9 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	}
 }
 
-void notify_reload(sys::state& state, dcon::nation_id source) {
+void notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& mp_state_checksum) {
 	command_data p{ command_type::notify_reload, state.local_player_id };
-	auto data = notify_reload_data{ };
+	auto data = notify_reload_data{ mp_state_checksum };
 	p << data;
 	add_to_command_queue(state, p);
 
@@ -6055,7 +6054,7 @@ bool can_notify_mp_data(sys::state& state, command_data& command) {
 		auto& payload = command.get_payload<notify_mp_data_data_recv>();
 
 	// check that the data length is correct before reading from it
-	if(payload.base.data_len != (command.payload.size() - sizeof(notify_mp_data_data))) {
+	if(!command.check_variable_size_payload<notify_mp_data_data>(payload.base.data_len)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
@@ -7644,6 +7643,29 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	state.tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
 	return true;
+}
+
+bool valid_host_receive_commands(command_type type) {
+	switch(type) {
+	case command::command_type::invalid:
+	case command::command_type::notify_player_ban:
+	case command::command_type::notify_player_kick:
+	case command::command_type::notify_save_loaded:
+	case command::command_type::notify_reload:
+	case command::command_type::advance_tick:
+	case command::command_type::notify_start_game:
+	case command::command_type::notify_stop_game:
+	case command::command_type::notify_pause_game:
+	case command::command_type::notify_player_joins:
+	case command::command_type::save_game:
+	case command::command_type::change_ai_nation_state:
+	case command::command_type::change_game_rule_setting:
+	case command::command_type::resync_lobby:
+	case command::command_type::notify_mp_data:
+		return false;
+	default:
+		return true;
+	}
 }
 
 bool should_broadcast_command(sys::state& state, const command_data& command) {

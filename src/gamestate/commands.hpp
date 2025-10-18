@@ -151,6 +151,10 @@ enum class command_type : uint8_t {
 struct command_type_data {
 	uint32_t min_payload_size;
 	uint32_t max_payload_size;
+	command_type_data(uint32_t _min_payload_size, uint32_t _max_payload_size) {
+		min_payload_size = _min_payload_size;
+		max_payload_size = _max_payload_size;
+	}
 };
 
 
@@ -557,7 +561,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{command_type::change_nat_focus, command_type_data{ sizeof(command::national_focus_data), sizeof(command::national_focus_data) } },
 	{command_type::start_research, command_type_data{ sizeof(command::start_research_data), sizeof(command::start_research_data) } },
 	{command_type::make_leader, command_type_data{ sizeof(command::make_leader_data), sizeof(command::make_leader_data) } },
-	{command_type::begin_province_building_construction, command_type_data{ sizeof(command::province_building_data) } },
+	{command_type::begin_province_building_construction, command_type_data{ sizeof(command::province_building_data), sizeof(command::province_building_data) } },
 	{command_type::increase_relations, command_type_data{ sizeof(command::diplo_action_data),  sizeof(command::diplo_action_data) } },
 	{command_type::decrease_relations, command_type_data{ sizeof(command::diplo_action_data),  sizeof(command::diplo_action_data) } },
 	{command_type::begin_factory_building_construction, command_type_data{ sizeof(command::factory_building_data), sizeof(command::factory_building_data) } },
@@ -910,6 +914,11 @@ struct command_data {
 		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
 		uint8_t* ptr = payload.data();
 		return reinterpret_cast<data_type&>(*ptr);
+	}
+	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes). Returns true if that is the case, false otherwise
+	template<typename data_type>
+	bool check_variable_size_payload(uint32_t expected_size) {
+		return expected_size == (payload.size() - sizeof(data_type));
 	}
 
 };
@@ -1335,7 +1344,7 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
 void notify_save_loaded(sys::state& state, dcon::nation_id source);
-void notify_reload(sys::state& state, dcon::nation_id source);
+void notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& mp_state_checksum);
 bool can_notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player);
@@ -1352,6 +1361,8 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_i
 bool execute_command(sys::state& state, command_data& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, command_data& c);
+// Returns true if the command type can be recevied by the host FROM a client. False otherwise
+bool valid_host_receive_commands(command_type type);
 
 
 void notify_console_command(sys::state& state);
