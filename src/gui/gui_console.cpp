@@ -7,6 +7,7 @@
 #include "nations.hpp"
 #include "fif_dcon_generated.hpp"
 #include "fif_common.hpp"
+#include "prng.hpp"
 
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
@@ -1159,6 +1160,69 @@ int32_t* f_uidebug(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	state->cheat_data.ui_debug_mode = toggle_state;
 	return p + 2;
 }
+int32_t* f_forever_reload(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		return p + 2;
+	}
+
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	state->current_date = sys::date(); // Reset date
+	// Reset unlocked tech
+	for(auto tech : state->world.in_technology) {
+		for(auto n : state->world.in_nation) {
+			n.set_active_technologies(tech, false);
+		}
+	}
+	for(auto n : state->world.in_nation) {
+		n.set_current_research(dcon::technology_id{ });
+	}
+	culture::repopulate_technology_effects(*state);
+	culture::repopulate_invention_effects(*state);
+
+	// Delete all units
+	for(auto army : state->world.in_army) {
+		for(auto am : army.get_army_membership()) {
+			auto reg = am.get_regiment();
+			military::delete_regiment_safe_wrapper(*state, reg);
+		}
+		state->world.delete_army(army);
+	}
+	for(auto navy : state->world.in_navy) {
+		for(auto nm : navy.get_navy_membership()) {
+			auto ship = nm.get_ship();
+			state->world.delete_ship(ship);
+		}
+		state->world.delete_navy(navy);
+	}
+
+	// Reduce factories to a single level, and delete some
+	for(auto fc : state->world.in_factory_construction) {
+		state->world.delete_factory_construction(fc);
+	}
+	for (auto f : state->world.in_factory) {
+		if(rng::get_random(*state, f.id.value * state->current_date.to_raw_value()) % 2 > 1.f) {
+			f.set_size(0.1f);
+		}
+		else {
+			state->world.delete_factory(f);
+		}
+	}
+
+	// Downscale world population
+	for(auto pop : state->world.in_pop) {
+		pop.set_umilitancy(0);
+		pop.set_uconsciousness(0);
+		pop.set_uliteracy(pop.get_uliteracy() / 2);
+		pop.set_size(std::max(1000.f, pop.get_size() * 0.5f));
+	}
+
+	return p + 2;
+}
+
 int32_t* f_fire_event(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(fif::typechecking_mode(e->mode)) {
 		if(fif::typechecking_failed(e->mode))
@@ -1466,6 +1530,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
 	fif::add_import("load-file", nullptr, load_file, {}, {}, * state.fif_environment);
+	fif::add_import("forever-reload", nullptr, f_forever_reload, { }, {}, * state.fif_environment);
 
 	fif::add_import("compile-mod", nullptr, compile_modifier, { fif::fif_i32 }, { }, * state.fif_environment);
 
