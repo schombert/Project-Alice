@@ -283,8 +283,7 @@ public:
 			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
 			if(military::cb_requires_selection_of_a_state(state, root_cb)) {
 				select_state(state);
-			}
-			else {
+			} else {
 				wargoal_decided_upon = true;
 			}
 			impl_on_update(state);

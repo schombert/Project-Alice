@@ -831,6 +831,7 @@ struct alignas(64) state {
 
 	network_mode_type network_mode = network_mode_type::single_player;
 	dcon::nation_id local_player_nation;
+	dcon::mp_player_id local_player_id;
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever

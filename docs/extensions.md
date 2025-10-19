@@ -882,3 +882,15 @@ There are also some hardcoded gamerules which interact with base gameplay direct
 - `alice_gamerule_allow_sphereling_declare_war_on_spherelord`: Name of gamerule checking if spheres can declare wars on their spherelords directly or indirectly.
 	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no`: Option for no.
 	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes`: Option for yes.
+
+- `alice_gamerule_allow_partial_retreat`: Name of gamerule for enabling/disabling partial retreats.
+	- `alice_gamerule_allow_partial_retreat_opt_disabled`: Option for disabled
+	- `alice_gamerule_allow_partial_retreat_opt_enabled`: Option for yes.
+
+- `alice_gamerule_fog_of_war`: Name of gamerule for enabling/disabling fog of war
+	- `alice_gamerule_fog_of_war_opt_disabled`: Option for disabled fog of war
+	- `alice_gamerule_fog_of_war_opt_enabled`: Option for enabled fog of war
+	
+- `alice_gamerule_auto_concession_peace`: Name of gamerule for enabling/disabling auto peacing in cases of the enemy conceding all wargoals
+	- `alice_gamerule_auto_concession_peace_opt_cannot_reject`: Option for the auto-peace being enabled
+	- `alice_gamerule_auto_concession_peace_opt_can_reject`: Option for the auto-peace being disabled
