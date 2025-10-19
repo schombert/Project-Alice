@@ -674,7 +674,7 @@ void update_ai_econ_construction(sys::state& state) {
 	}
 }
 
-void update_budget(sys::state& state) {
+void update_budget(sys::state& state, bool presim) {
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id nid{ dcon::nation_id::value_base_t(i) };
 		auto n = fatten(state.world, nid);
@@ -730,8 +730,15 @@ void update_budget(sys::state& state) {
 			ratio_land /= 10.f;
 			ratio_naval /= 10.f;
 		}
-		n.set_land_spending(int8_t(ratio_land));
-		n.set_naval_spending(int8_t(ratio_naval));
+		if(presim) {
+			// set military supply sliders high in presim to simulate demand
+			n.set_land_spending(100);
+			n.set_naval_spending(50);
+		}
+		else {
+			n.set_land_spending(int8_t(ratio_land));
+			n.set_naval_spending(int8_t(ratio_naval));
+		}
 
 		n.set_administrative_spending(35);
 

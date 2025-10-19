@@ -380,7 +380,7 @@ void presimulate(sys::state& state) {
 		float employment_gradient_mult = 1000.0f / (presim_completion * 1000.0f + 1.0f);
 		update_employment(state, employment_gradient_mult);
 		daily_update(state, true, (float)i / (float)steps);
-		ai::update_budget(state);
+		ai::update_budget(state, true);
 	}
 }
 
