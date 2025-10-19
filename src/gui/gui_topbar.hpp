@@ -998,7 +998,7 @@ public:
 				text::substitution_map sub{};
 
 				text::add_to_substitution_map(sub, text::variable_type::name, pl.hshake_buffer.nickname.to_string_view());
-				text::add_to_substitution_map(sub, text::variable_type::country, pl.playing_as);
+				text::add_to_substitution_map(sub, text::variable_type::country, state.world.mp_player_get_nation_from_player_nation(pl.player_id));
 				text::add_to_substitution_map(sub, text::variable_type::date, pl.last_seen);
 
 				auto box = text::open_layout_box(contents);

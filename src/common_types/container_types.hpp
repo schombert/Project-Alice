@@ -348,7 +348,7 @@ template<size_t _Size>
 struct player_value {
 	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	std::string_view to_string_view() noexcept {
+	std::string_view to_string_view() const noexcept {
 		for(uint32_t i = 0; i < sizeof(data); i++) {
 			if(data[i] == ' ' || data[i] == '\0') {
 				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
@@ -367,7 +367,7 @@ struct player_value {
 		return other.data == data;
 	}
 
-	std::string to_string() noexcept {
+	std::string to_string() const noexcept {
 		return std::string(to_string_view());
 	}
 
