@@ -2,6 +2,7 @@ include(FetchContent)
 set(CMAKE_POLICY_DEFAULT_CMP0077 NEW)
 
 add_subdirectory(DataContainerGenerator)
+add_subdirectory(DataContainerLuaGenerator)
 add_subdirectory(catch2)
 add_subdirectory(glew)
 add_subdirectory(stb)

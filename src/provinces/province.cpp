@@ -1098,20 +1098,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			state.world.state_instance_set_definition(new_si, state_def);
 			state.world.try_create_state_ownership(new_si, new_owner);
 
-			// sanity check
-			auto owner_has_administration = false;
-			state.world.nation_for_each_nation_administration(new_owner, [&](auto id) { owner_has_administration = true; });
-
-			if(owner_has_administration) {
-				auto new_owner_capital = state.world.nation_get_capital(new_owner);
-				auto capital_sid = state.world.province_get_state_membership(new_owner_capital);
-				auto new_administration = state.world.state_instance_get_administration_from_local_administration(capital_sid);
-				state.world.force_create_local_administration(new_si, new_administration);
-			}
-			// if nation does not have a central admin,
-			// it doesn't have a capital either,
-			// so we don't create central admin here to avoid out of bounds errors later			
-
 			state.world.state_instance_set_capital(new_si, id);
 			state.world.province_set_is_colonial(id, will_be_colonial);
 			state.world.province_set_is_slave(id, false);
@@ -1361,21 +1347,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
 
-			auto local_administration = state.world.state_instance_get_administration_from_local_administration(old_si);
 			state.world.delete_market(local_market);
 			state.world.delete_state_instance(old_si);
-
-			if(local_administration) {
-				// count states in local administration
-				bool more_than_zero = false;
-				state.world.administration_for_each_local_administration(local_administration, [&](auto ids) {
-					more_than_zero = true;
-				});
-				if(!more_than_zero) {
-					state.world.delete_administration(local_administration);
-				}
-			}
-
 		} else if(state.world.state_instance_get_capital(old_si) == id) {
 			state.world.state_instance_set_capital(old_si, a_province);
 		}

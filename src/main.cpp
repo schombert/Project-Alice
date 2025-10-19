@@ -5,6 +5,7 @@
 #include "common_types.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
+#include "lua_alice_api.cpp"
 #include "gamerule.cpp"
 #include "parsers.cpp"
 #include "text.cpp"

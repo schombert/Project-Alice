@@ -18,7 +18,9 @@ test_fs_support_case_sensitivity
 
 # Generated parsers
 *_generated.hpp
+*lua_dcon_generated.cpp
 */local_user_settings.hpp
+*/lua/engine/*
 
 DartConfiguration.tcl
 

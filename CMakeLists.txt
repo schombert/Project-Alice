@@ -99,6 +99,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
 	"src/gamerule/gamerule.cpp"
+	"src/gamestate/lua_alice_api.cpp"
 )
 
 if(WIN32)
@@ -206,6 +207,7 @@ else() # GCC or CLANG
 	endif()
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
+target_link_libraries(AliceCommon INTERFACE dependency_DataContainerLua)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
 target_link_libraries(AliceCommon INTERFACE freetype)
@@ -397,6 +399,14 @@ add_custom_command(
 	DEPENDS ${CONTAINER_PATH}.txt
 	VERBATIM)
 
+add_custom_command(
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp
+	COMMAND DataContainer-Lua alice alice_state_ptr->world. ${CONTAINER_PATH}.txt ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.cpp ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp ${PROJECT_SOURCE_DIR}/assets/lua/engine
+	DEPENDS ${CONTAINER_PATH}.txt
+	DEPENDS DataContainer-Lua
+	VERBATIM
+)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
@@ -405,6 +415,10 @@ add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
 add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINERIFACE)
 add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
+
+add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
+add_dependencies(Alice GENERATE_CONTAINER_LUA)
+add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
 
 # The command to build the generated parsers file
 add_custom_command(

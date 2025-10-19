@@ -771,7 +771,10 @@ struct alignas(64) state {
 #endif
 
 	//std::unique_ptr<lua_State> lua_environment;
-	lua_State* lua_environment;
+	lua_State* lua_ui_environment;
+	lua_State* lua_game_loop_environment;
+	std::vector<int> lua_on_daily_tick;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_functions;
 
 	//
 	// Crisis data
