@@ -195,13 +195,17 @@ public:
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
+	// Stores terrain map color for each pixel of the terrain map at [y * size_x + x]
 	std::vector<uint8_t> terrain_id_map;
+	// Stores the most common terrain ID for each province
 	std::vector<uint8_t> median_terrain_type;
+	// Stores pixel count for each province
 	std::vector<uint32_t> province_area;
+	// Stores actual area in square kilometers
 	std::vector<float> province_area_km2;
 	std::vector<uint8_t> diagonal_borders;
 
-	// map pixel -> province id
+	// Maps map pixel at [y * size_x + x] to province id 
 	std::vector<uint16_t> province_id_map;
 	std::vector<uint16_t> map_indices;
 

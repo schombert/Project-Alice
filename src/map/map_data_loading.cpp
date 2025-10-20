@@ -284,6 +284,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	return output_data;
 }
 
+// maps packed RGB colors to terrain type IDs (color index from BPM file)
 ankerl::unordered_dense::map<uint32_t, uint8_t> internal_make_index_map() {
 	ankerl::unordered_dense::map<uint32_t, uint8_t> m;
 
@@ -357,6 +358,7 @@ ankerl::unordered_dense::map<uint32_t, uint8_t> internal_make_index_map() {
 	return m;
 }
 
+// Converts artist-created terrain images into a integer-based terrain map for game rendering.
 void display_data::load_terrain_data(parsers::scenario_building_context& context) {
 	if(!context.new_maps) {
 		terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255, nullptr);
@@ -367,6 +369,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		if(!terrain_file) {
 			terrain_file = open_file(map_dir, NATIVE("terrain.png"));
 		}
+		// In BMP format, water has color index 254, thus default color here is 255.
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
 		ogl::image terrain_data;
@@ -374,20 +377,23 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 			terrain_data = ogl::load_stb_image(*terrain_file);
 		}
 
+		// maps packed RGB colors to terrain type IDs (BMP color indexes)
 		auto terrain_resolution = internal_make_index_map();
 
 		if(terrain_data.size_x == int32_t(size_x) && terrain_data.size_y == int32_t(size_y)) {
 			for(uint32_t ty = 0; ty < size_y; ++ty) {
+				// Flip the Y-axis (image coordinates vs. world coordinates)
 				uint32_t y = size_y - ty - 1;
 				for(uint32_t x = 0; x < size_x; ++x) {
 
-
+					// Extract color from the image with corrected Y-axis (south is down)
 					uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
 					auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
-
+					// If the exact color of the pixel exists in the terrain map, use that terrain ID
 					if(auto it = terrain_resolution.find(color); it != terrain_resolution.end()) {
 						terrain_id_map[ty * size_x + x] = it->second;
 					} else {
+					// If direct mapping fails, check adjacent pixels. Uses first valid neighbor's terrain ID to handle color variations at terrain boundaries
 						bool found_neightbor = false;
 
 						if(x > 0) {
@@ -427,6 +433,9 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 						}
 
+						// If no neighbors have valid terrain IDs:
+						// Finds the closest matching color using squared Euclidean distance in RGB color space
+						// Uses the terrain ID of the closest color in the palette
 						if(!found_neightbor) {
 							uint8_t resolved_index = 255;
 							int32_t min_distance = std::numeric_limits<int32_t>::max();
@@ -452,7 +461,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		}
 	}
 
-	// Gets rid of any stray land terrain that has been painted outside the borders
+	// Gets rid of any stray land terrain that has been painted outside the borders of provinces
 	for(uint32_t y = 0; y < size_y; ++y) {
 		for(uint32_t x = 0; x < size_x; ++x) {
 			if(province_id_map[y * size_x + x] == 0) { // If there is no province define at that location
@@ -471,31 +480,42 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 	load_median_terrain_type(context);
 }
 
-
+// if not specified in the history files, the province terrain is whatever is the most common value found in the terrain map within the borders of the province
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
 	province_area.resize(context.state.world.province_size() + 1);
 	province_area_km2.resize(context.state.world.province_size() + 1);
 
+	// Earth's mean radius for area calculations on a spherical projection
 	float R = context.state.defines.alice_globe_mean_radius_km;
 
 	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
+	// Iterate through every pixel in the map (in reverse order)
 	for(int i = size_x * size_y - 1; i-- > 0;) {
+		// Process each pixel to build terrain histograms and calculate areas
+
+		// Calculate # of pixels of particular terrain type per province (terrain histogram)
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
+		// Terrain IDs beyond 64 are invalid
 		if(terrain_id < 64)
 			terrain_histogram[prov_id][terrain_id] += 1;
+
+		// Spherical Area Calculation (km2 area of a province)
 		auto x = i % size_x;
 		auto y = i / size_x;
 		// 0.5f is added to shift us to the center of the pixel;
 		// float s = (((float)x + 0.5f) / (float) size_x) * 2 * math::pi;
-		float t = (((float)y + 0.5f) / (float) size_y - 0.5f) * math::pi;
-		auto area_form = R * R * math::cos(t);
-		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi);
+		float t = (((float)y + 0.5f) / (float) size_y - 0.5f) * math::pi; // latitude in radians 
+		auto area_form = R * R * math::cos(t); // area form factor (accounts for Mercator projection distortion)
+		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi); // convert pixel to km2 size
 		province_area_km2[prov_id] += pixel_size;
 	}
 
+	// Terrain Mode Calculation
+	// For each province
 	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+		// Find most common terrain from terrain histogram
 		int max_index = 64;
 		int max = 0;
 		province_area[i] = 0;
@@ -507,6 +527,7 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 			}
 		}
 		median_terrain_type[i] = uint8_t(max_index);
+		// Ensure each province has at least one pixel area
 		province_area[i] = std::max(province_area[i], uint32_t(1));
 	}
 }

@@ -20,6 +20,7 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 struct global_provincial_state {
 	std::vector<dcon::province_adjacency_id> canals;
 	std::vector<dcon::province_id> canal_provinces;
+	// Maps terrain modifier of the province to a GFX displayed in province window.
 	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
 	std::vector<bool> connected_region_is_coastal;
 	dcon::province_id first_sea_province;

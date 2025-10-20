@@ -28,6 +28,8 @@ inline int32_t int_green_from_int(uint32_t v) {
 inline int32_t int_blue_from_int(uint32_t v) {
 	return int32_t((v >> 16) & 0xFF);
 }
+
+// Encodes three RGB 0-255 integers into a single uint32_t with (b << 16) | (g << 8) | r. Max value is 0x00FFFFFF
 inline uint32_t pack_color(int32_t r, int32_t g, int32_t b) {
 	return ((uint32_t(r) & 0xFF) << 0) | ((uint32_t(g) & 0xFF) << 8) | ((uint32_t(b) & 0xFF) << 16);
 }
