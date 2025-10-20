@@ -481,7 +481,7 @@ EFFECT_BYTECODE_ELEMENT(0x01C3, build_factory, 3) \
 
 // invalid
 /* This value must be changed if more effects are added. */
-constexpr inline uint16_t first_scope_code = 0x01C3;
+constexpr inline uint16_t first_scope_code = 0x01C4;
 
 // scopes
 constexpr inline uint16_t generic_scope = first_scope_code + 0x0000; // default grouping of effects (or hidden_tooltip)
