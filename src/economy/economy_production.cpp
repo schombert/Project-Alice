@@ -1940,7 +1940,7 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 				auto decay = decay_lack * decay_profit;
 
-				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * gradient, 0.0f), 0.f);
+				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + 10.f * presim_employment_mult * gradient, 0.0f), 0.f);
 				state.world.province_set_artisan_score(ids, cid, ve::min(local_population, new_employment));
 				ve::apply(
 					[](float x) {
