@@ -52,7 +52,6 @@ public:
 	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
 
 	dcon::province_id get_selected_province();
-	void set_selected_province(dcon::province_id prov_id);
 
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 	dcon::province_id selected_province = dcon::province_id{};
@@ -75,6 +74,11 @@ public:
 	glm::vec2 last_camera_drag_pos = glm::vec2(0.5f, 0.5f);
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
+
+	// lighting
+	glm::vec3 light_direction {1.f, 0.f, -0.3f};
+	bool light_on = false;
+	bool light_rotate = false;
 
 	float zoom = 1.f;
 	float zoom_change = 1.f;

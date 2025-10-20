@@ -1,5 +1,7 @@
 #include "gui_element_types.hpp"
 #include "gui_context_window.hpp"
+#include "gui_common_elements.hpp"
+#include "gui_factory_refit_window.hpp"
 
 namespace ui {
 
@@ -30,15 +32,66 @@ public:
 	}
 
 	bool is_available(sys::state& state, context_menu_context context) noexcept override  {
-		return true;
+		auto pid = context.province;
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+
+		bool can_build = false;
+		state.world.for_each_factory_type([&](dcon::factory_type_id ftid) {
+			can_build =
+				can_build || command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false);
+		});
+		return can_build;
 	}
 
 	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
-
+		open_build_factory(state, context.province);
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override  {
+		text::add_line(state, contents, "build_factory");
 
+		auto pid = context.province;
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+
+		int32_t num_factories = economy::state_factory_count(state, sid, n);
+
+		text::add_line(state, contents, "production_build_new_factory_tooltip");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line_with_condition(state, contents, "factory_condition_1", state.world.nation_get_is_civilized(n));
+		// Disallow building in colonies unless define flag is set
+		if(state.defines.alice_allow_factories_in_colonies == 0.f) {
+			text::add_line_with_condition(state, contents, "factory_condition_2", economy::can_build_factory_in_colony(state, sid));
+		}
+
+		if(n == state.local_player_nation) {
+			auto rules = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_condition_3", (rules & issue_rule::build_factory) != 0);
+		} else {
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_4", state.world.nation_get_is_great_power(state.local_player_nation) && !state.world.nation_get_is_great_power(n));
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_5", state.world.nation_get_is_civilized(n));
+
+			auto target = state.world.nation_get_combined_issue_rules(n);
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_6",
+					(target & issue_rule::allow_foreign_investment) != 0);
+
+			text::add_line_with_condition(state, contents, "factory_upgrade_condition_7", !military::are_at_war(state, state.local_player_nation, n));
+		}
+
+		{
+			auto box = text::open_layout_box(contents);
+			auto r = num_factories < int32_t(state.defines.factories_per_state);
+			if(r) {
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::check);
+			} else {
+				text::add_to_layout_box(state, contents, box, text::embedded_icon::xmark);
+			}
+			text::add_space_to_layout_box(state, contents, box);
+			text::localised_single_sub_box(state, contents, box, "factory_condition_4", text::variable_type::val, int64_t(state.defines.factories_per_state));
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -130,8 +183,91 @@ public:
 	}
 };
 
+class context_menu_refit_factory : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		return state.lookup_key("factory_refit");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		auto pid = state.world.factory_get_province_from_factory_location(context.factory);
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+		return factory_refit_button_active(state, context.factory, pid, sid, n);
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		show_factory_refit_menu(state, context.factory);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		factory_refit_button_tooltip(state, x, y, contents, fid);
+	}
+};
+
+
+class context_menu_delete_factory : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		if (economy::factory_total_employment_score(state, context.factory) >= economy::factory_closed_threshold)
+			return state.lookup_key("close_and_del");
+		return state.lookup_key("delete_factory");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		return command::can_delete_factory(state, state.local_player_nation, fid);
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		auto fid = context.factory;
+		command::delete_factory(state, state.local_player_nation, fid);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		auto owner = state.world.province_get_nation_from_province_ownership(context.province);
+		if(owner == state.local_player_nation) {
+			text::add_line(state, contents, "factory_delete_header");
+			if(!command::can_delete_factory(state, state.local_player_nation, context.factory)) {
+				text::add_line_break_to_layout(state, contents);
+				text::add_line(state, contents, "factory_delete_not_allowed");
+			}
+		}
+	}
+};
+
+class context_menu_cancel_factory_construction : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		return state.lookup_key("cancel_fac_construction");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.fconstruction;
+		auto type = state.world.factory_construction_get_type(fid);
+		auto prov = state.world.factory_construction_get_province(fid);
+		return command::can_cancel_factory_building_construction(state, state.local_player_nation, prov, type);
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		auto fid = context.fconstruction;
+		auto type = state.world.factory_construction_get_type(fid);
+		auto prov = state.world.factory_construction_get_province(fid);
+		command::cancel_factory_building_construction(state, state.local_player_nation, prov, type);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		text::add_line(state, contents, "cancel_fac_construction");
+	}
+};
+
+inline static context_menu_delete_factory context_menu_delete_factory_logic;
 inline static context_menu_upgrade_factory context_menu_upgrade_factory_logic;
+inline static context_menu_refit_factory context_menu_refit_factory_logic;
 inline static context_menu_build_factory context_menu_build_factory_logic;
+inline static context_menu_cancel_factory_construction context_menu_cancel_factory_construction_logic;
 
 class context_window_entry : public button_element_base {
 public:
@@ -213,6 +349,11 @@ void show_context_menu(sys::state& state, context_menu_context context) {
 	}
 	else if(context.factory) {
 		logics[0] = &context_menu_upgrade_factory_logic;
+		logics[1] = &context_menu_refit_factory_logic;
+		logics[2] = &context_menu_delete_factory_logic;
+	}
+	else if(context.fconstruction) {
+		logics[0] = &context_menu_cancel_factory_construction_logic;
 	}
 
 	if(!state.ui_state.context_menu) {

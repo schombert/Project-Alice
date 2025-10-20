@@ -151,6 +151,7 @@ build_bank_in_capital = {
 ```
 - `diplo_points = ...` : This trigger condition is true if the nation in scope has saved diplomatic points greater than or equal to the given number.
 - `suppression_points = ...` : This trigger condition is true if the nation in scope has saved suppression points greater than or equal to the given number.
+- `check_gamerule_ = { ... }`: Checks if a given gamerule has a selected option. Example in gamerules section.
 
 ### New modifiers
 
@@ -525,6 +526,10 @@ Alice adds a handful of new defines:
 - `alice_allow_factories_in_colonies`: if set to 1, allows to build factories that have `can_be_built_in_colonies = yes` flag in colonies
 - `alice_naval_base_to_colonial_distance_factor` (default 0.04): multiplier in the formula for colonial distance unlocked by 1 lvl of naval base.
 - `alice_always_available_cbs_zero_infamy` - if set to 0, then CBs with `always = yes` will have infamy cost calculated as per `badboy_factor`.
+- `alice_max_starvation_degrowth` - the maximum possible popgrowth penalty for a starving pop (below life_need_starvation_limit), reaching this maximum value when fufillment hits 0%. This penalty will not be overidden by other popgrowth techs&modifiers, so a fully starving pop will have this negative popgrowth at minimum.
+- `alice_can_add_constructable_cbs_as_wargoals` - if set to zero, then one can't add constructable (but not constructed) CBs as wargoals to the ongoing war.
+- `alice_render_on_map_generals` - if non-zero, then `map_general` element of `top_unit_icon` GUI is rendered with an on-map general icon
+
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
@@ -542,8 +547,32 @@ These relate to the added ability for reserve regiments to reinforce while in ba
 
 
 These relate to naval battles:
-`alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
-`alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
+- `alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
+- `alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
+
+
+These relate to army attrition
+- `alice_army_sea_transport_attrition = 2.5f`: The monthly attrition (in percent) for armies on the sea in transports to take. Can be reduced by national "land_attrition" modifiers
+- `alice_fort_siege_attrition_per_level = 0.35f`: Additional attrition (in percent) per fort level for armies sieging the province, stacking with the base siege attrition.
+- `alice_attrition_war_exhaustion = 1.5`: Multiplier to the war exhaustion gained from taking attrition losses. Works similar to the "COMBATLOSS_WAR_EXHAUSTION" define, but for attrition losses instead. Set to 0 to disable all attrition war exhaustion.
+
+
+These relate to unit movement
+- `alice_army_marching_hours_per_day = 5.0f`: The amount of hours an army marches per day on average. Effectively this is a multiplier to the army's km/hour stat deciding how far an army can move in a single day
+- `alice_navy_sailing_hours_per_day = 20.0f`: The amount of hours a navy sails per day on average. Effectively this is a multiplier to the navy's km/hour stat deciding how far a navy can sail in a single day
+As the above defines implies, the distances between provinces are measured in kilometers now when it comes to unit-movement, and maps directly onto the km/hour stat.
+- `strategic_redeployment_speed_modifier = 1.3f`: base speed increase from strategic redeployment special army order
+- `strategic_redeployment_infrastructure_factor = 1.0f`: factor for infrastructure effect on speed increase from strategic redeployment special army order
+
+
+These relate to occupations
+- `alice_fort_siege_slowdown = 0.75f`: Slowdown modifier to siege speed for each fort level in the province. 0.75 = takes 75% of base siege time longer per fort level. 0.75 is the default vanilla value
+- `alice_rebel_reduction_after_reoccupation = 7.0f`: When a rebel province is reoccupied by the owner, all pops which were part of the controlling rebel faction gets their militancy divided by this amount
+
+
+These relate to gamerules
+
+- `alice_can_goto_war_against_spherelord_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a sphereling can goto war against its spherelord. Can be either 1 (which means they can declare war against spherelord), or 0 (which means they cannot). Default is 1
 
 ### Support for reforms based on party issues
 
@@ -779,3 +808,89 @@ change_factory_limit = {
     value = 15
 }
 ```
+
+
+## Religion
+
+State Religion can give a national modifier like this:
+
+```
+shinto = {
+		color = { 0.8 0 0 }
+		icon = 12
+
+		nation_modifier = {
+			education_efficiency = 0.05
+		}
+	}
+```
+
+## Gamerules
+
+Custom toggleable gamerules can be defined in `gamerules.txt` file inside of the `common` folder. If you have no gamerules file, then create one.
+The selected option of each gamerule is stored in the savegame, and is thus kept persistent between game launches.
+
+A gamerule is defined like this:
+
+```
+scripted_gamerule = {
+	name = "test_gamerule"
+	option = {
+		name = "test__gameruleopt_1"
+		on_select = {
+			set_global_flag = rule_1
+		}
+		on_deselect = {
+			clr_global_flag = rule_1
+		}
+	}
+	option = {
+		name = "test__gameruleopt_2"
+		default_option = yes
+		on_select = {
+			set_global_flag = rule_2
+		}
+		on_deselect = {
+			clr_global_flag = rule_2
+		}
+	}
+	
+}
+```
+
+The `name` member is a unique string identifier for said gamerule and is mandatory. Two or more gamerules may not have the same name.
+The localization key is the same as the name (in this case test_gamerule). The loc key for the description of the gamerule (Which is displayed in a tooltip) is the name plus _desc. So the desctiption loc key for this gamerule would be `test_gamerule_desc`.
+
+Each gamerule may have one or more options. Each option also has a mandatory `name` member, which works similarly to the name of the gamerule itelf (except each option does not have a description loc key, only a name loc key). Each option name key is globally unique.
+
+Next there is the `default_option` member. This simply signals which of the options is selected by default on a new save.
+
+Lastly, there is the `on_select` and `on_deselect` members. These describe a scripted effect to run when said option is either selected or deselected respectively. In the example above it will set a global flag when enabled, and clear that same flag when disabled.
+
+You can also check the state of a gamerule directly in a trigger, with the following trigger:
+
+```
+check_gamerule = {
+	gamerule = "test_gamerule"
+	option = "test_gameruleopt_1"
+}_
+```
+Here, it evaluates if the gamerule with name `test_gamerule` is set to the option with the name `test_gameruleopt_1`.
+
+There are also some hardcoded gamerules which interact with base gameplay directly which is not present in the gamerules.txt file. These can also have their selected option checked with `check_gamerule` trigger. Below is a list of names of the hardcoded gamerules and their options:
+
+- `alice_gamerule_allow_sphereling_declare_war_on_spherelord`: Name of gamerule checking if spheres can declare wars on their spherelords directly or indirectly.
+	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no`: Option for no.
+	- `alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes`: Option for yes.
+
+- `alice_gamerule_allow_partial_retreat`: Name of gamerule for enabling/disabling partial retreats.
+	- `alice_gamerule_allow_partial_retreat_opt_disabled`: Option for disabled
+	- `alice_gamerule_allow_partial_retreat_opt_enabled`: Option for yes.
+
+- `alice_gamerule_fog_of_war`: Name of gamerule for enabling/disabling fog of war
+	- `alice_gamerule_fog_of_war_opt_disabled`: Option for disabled fog of war
+	- `alice_gamerule_fog_of_war_opt_enabled`: Option for enabled fog of war
+	
+- `alice_gamerule_auto_concession_peace`: Name of gamerule for enabling/disabling auto peacing in cases of the enemy conceding all wargoals
+	- `alice_gamerule_auto_concession_peace_opt_cannot_reject`: Option for the auto-peace being enabled
+	- `alice_gamerule_auto_concession_peace_opt_can_reject`: Option for the auto-peace being disabled

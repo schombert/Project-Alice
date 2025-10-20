@@ -1,5 +1,6 @@
 #include "map.hpp"
 #include "glm/fwd.hpp"
+#include "map_modes.hpp"
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
@@ -85,7 +86,7 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {
@@ -514,8 +515,13 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_gamma] = glGetUniformLocation(shaders[i], "gamma");
 		shader_uniforms[i][uniform_subroutines_index] = glGetUniformLocation(shaders[i], "subroutines_index");
 		shader_uniforms[i][uniform_time] = glGetUniformLocation(shaders[i], "time");
+		shader_uniforms[i][uniform_light_direction] = glGetUniformLocation(shaders[i], "light_direction");
+		shader_uniforms[i][uniform_ignore_light] = glGetUniformLocation(shaders[i], "ignore_light");
 		shader_uniforms[i][uniform_terrain_texture_sampler] = glGetUniformLocation(shaders[i], "terrain_texture_sampler");
 		shader_uniforms[i][uniform_terrainsheet_texture_sampler] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler");
+		shader_uniforms[i][uniform_terrainsheet_texture_sampler_array] = glGetUniformLocation(shaders[i], "terrainsheet_texture_sampler_array");
+		shader_uniforms[i][uniform_terrain_is_array] = glGetUniformLocation(shaders[i], "terrain_is_array");
+		shader_uniforms[i][uniform_map_mode_is_data] = glGetUniformLocation(shaders[i], "map_mode_is_data");
 		shader_uniforms[i][uniform_water_normal] = glGetUniformLocation(shaders[i], "water_normal");
 		shader_uniforms[i][uniform_colormap_water] = glGetUniformLocation(shaders[i], "colormap_water");
 		shader_uniforms[i][uniform_colormap_terrain] = glGetUniformLocation(shaders[i], "colormap_terrain");
@@ -546,8 +552,12 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	}
 }
 
+// assume the fixed position on the orbit
+constexpr float axial_tilt_angle = 0.409f;
+const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { -1.f, 0.f, 0.f });
+
 void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
-	if(!screen_size.x || !screen_size.y) {
+	if(screen_size.x == 0.f || screen_size.y == 0.f) {
 		return;
 	}
 
@@ -563,7 +573,24 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
 		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
 		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-		};
+		glUniform3f(shader_uniforms[program][uniform_light_direction],
+			state.map_state.light_direction.x,
+			state.map_state.light_direction.y,
+			state.map_state.light_direction.z
+		);
+		if(state.map_state.light_on) {
+			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
+		} else {
+			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		}
+	};
+
+	if(state.map_state.light_rotate) {
+		state.map_state.light_direction.x = cos(-time_counter);
+		state.map_state.light_direction.y = sin(-time_counter);
+		state.map_state.light_direction.z = 0.f;
+		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
+	}
 
 	glEnable(GL_PRIMITIVE_RESTART);
 	glPrimitiveRestartIndex(std::numeric_limits<uint16_t>::max());
@@ -634,7 +661,11 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_terrain]);
 	glActiveTexture(GL_TEXTURE3);
-	glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	if (state.map_state.map_data.texturesheet_is_dds) {
+		glBindTexture(GL_TEXTURE_2D, texture_arrays[texture_array_terrainsheet]);
+	} else {
+		glBindTexture(GL_TEXTURE_2D_ARRAY, texture_arrays[texture_array_terrainsheet]);
+	}
 	glActiveTexture(GL_TEXTURE4);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_water_normal]);
 	glActiveTexture(GL_TEXTURE5);
@@ -664,7 +695,21 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_terrain][uniform_provinces_texture_sampler], 0);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_texture_sampler], 1);
 	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_2], 2);
-	glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler], 3);
+	if (state.map_state.map_data.texturesheet_is_dds) {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler], 3);
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 0);
+	} else {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrainsheet_texture_sampler_array], 3);
+		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 1);
+	}
+	if (
+		state.map_state.active_map_mode == map_mode::mode::political
+		|| state.map_state.active_map_mode == map_mode::mode::terrain
+	) {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 0);
+	} else {
+		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 1);
+	}
 	glUniform1i(shader_uniforms[shader_terrain][uniform_water_normal], 4);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_water], 5);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_colormap_terrain], 6);
@@ -700,13 +745,14 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glCullFace(GL_BACK);
 	glDisable(GL_PRIMITIVE_RESTART);
 
-	
+
 	glEnable(GL_BLEND);
 
 	// Draw the railroads and city
-	if(zoom > map::zoom_close && !city_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(//zoom > map::zoom_close &&
+		!city_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 		{
 			load_shader(shader_textured_triangle);
@@ -746,9 +792,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glMultiDrawArrays(GL_TRIANGLE_STRIP, river_starts.data(), river_counts.data(), GLsizei(river_starts.size()));
 	}
 
-	if(zoom > map::zoom_close && !railroad_vertices.empty() && state.user_settings.railroads_enabled) {
+	if(/*zoom > map::zoom_close && */!railroad_vertices.empty() && state.user_settings.railroads_enabled) {
 		glEnable(GL_BLEND);
-		glBlendFuncSeparate(GL_DST_COLOR, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_railroad]);
@@ -2059,7 +2105,7 @@ void make_sea_path(
 	float shift_x,
 	float shift_y
 ) {
-	auto path = province::make_naval_path(state, origin, target);
+	auto path = province::make_unowned_naval_path(state, origin, target);
 	float distance = 0.0f;
 
 	auto shift = glm::vec2(shift_x, shift_y) / glm::vec2(size_x, size_y);
@@ -2378,7 +2424,9 @@ void display_data::update_sprawl(sys::state& state) {
 		}
 		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
 		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.clergy));
-
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)) * 0.9f;
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.soldiers));
+		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.aristocrat));
 		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
 
 		if(urban_pop < minimal_population_per_visible_settlement) {
@@ -2391,7 +2439,7 @@ void display_data::update_sprawl(sys::state& state) {
 			continue;
 		}
 
-		auto population_level = int(sqrt(urban_pop / 100'000.f) * 10.f) + 1.f;
+		auto population_level = int(sqrt(urban_pop / 100'000.f) * 5.f) + 1.f;
 
 		if(population_level < 3.f) {
 			population_level = 1.f;
@@ -2412,7 +2460,7 @@ void display_data::update_sprawl(sys::state& state) {
 		std::vector<std::pair<glm::vec2, float>> weighted_settlements;
 
 		auto km2_per_potential_settlement = 2000.f;
-		
+
 
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(
@@ -2473,7 +2521,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 		weighted_settlements.push_back({ central_settlement, 0.5f });
 
-		
+
 
 		for(size_t center = 0; center < weighted_settlements.size(); center++) {
 			//std::vector<glm::vec2> key_points{ };
@@ -2503,7 +2551,7 @@ void display_data::update_sprawl(sys::state& state) {
 
 			a /= n2;
 			b /= n2;
- 
+
 			//auto initial_rotation = r3 * std::numbers::pi_v<float> * 2.f;
 
 			auto settlement = weighted_settlements[center];
@@ -2635,8 +2683,8 @@ void display_data::update_sprawl(sys::state& state) {
 						}
 					}
 				}
-			}			
-		}		
+			}
+		}
 	}
 
 	// connect some provs:
@@ -3337,6 +3385,7 @@ void display_data::load_map(sys::state& state) {
 	auto assets_dir = simple_fs::open_directory(root, NATIVE("assets"));
 	auto map_dir = simple_fs::open_directory(root, NATIVE("map"));
 	auto map_terrain_dir = simple_fs::open_directory(map_dir, NATIVE("terrain"));
+	//auto map_texturesheet_dir = simple_fs::open_directory(root, terrain_atlas_dir_relative);
 	auto map_items_dir = simple_fs::open_directory(root, NATIVE("gfx/mapitems"));
 	auto gfx_anims_dir = simple_fs::open_directory(root, NATIVE("gfx/anims"));
 
@@ -3360,14 +3409,17 @@ void display_data::load_map(sys::state& state) {
 	ogl::set_gltex_parameters(textures[texture_terrain], GL_TEXTURE_2D, GL_NEAREST, GL_CLAMP_TO_EDGE);
 
 	textures[texture_provinces] = load_province_map(province_id_map, size_x, size_y);
-	auto texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.png"));
-	if(!texturesheet) {
-		texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.tga"));
-		if(!texturesheet) {
-			texturesheet = open_file(map_terrain_dir, NATIVE("texturesheet.dds"));
+	auto texturesheet = simple_fs::open_file(map_terrain_dir, { NATIVE("texturesheet.png"), NATIVE("texturesheet.tga"), NATIVE("texturesheet.dds") });
+
+	if(texturesheet) {
+		if (simple_fs::get_full_name(texturesheet.value()).ends_with(NATIVE("dds"))) {
+			texture_arrays[texture_array_terrainsheet] = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"));
+			texturesheet_is_dds = true;
+		} else {
+			texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 		}
 	}
-	texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
+
 
 	textures[texture_water_normal] = load_dds_texture(map_terrain_dir, NATIVE("sea_normal.dds"));
 	if(!textures[texture_water_normal]) textures[texture_water_normal] = ogl::make_gl_texture(map_items_dir, NATIVE("sea_normal.png"));

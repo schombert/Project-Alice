@@ -13,10 +13,7 @@ bool is_valid_option(sys::event_option const& opt) {
 
 void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
-		if(state.pending_n_event[i].date == e.date && state.pending_n_event[i].e == e.e &&
-				state.pending_n_event[i].from_slot == e.from_slot && state.pending_n_event[i].n == e.n &&
-				state.pending_n_event[i].primary_slot == e.primary_slot && state.pending_n_event[i].r_hi == e.r_hi &&
-				state.pending_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_n_event[i] == e) {
 
 			if(opt > state.world.national_event_get_options(e.e).size() || !is_valid_option(state.world.national_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -35,8 +32,7 @@ void take_option(sys::state& state, pending_human_n_event const& e, uint8_t opt)
 
 void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
-		if(state.pending_f_n_event[i].date == e.date && state.pending_f_n_event[i].e == e.e && state.pending_f_n_event[i].n == e.n &&
-				state.pending_f_n_event[i].r_hi == e.r_hi && state.pending_f_n_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_n_event[i] == e) {
 
 			if(opt > state.world.free_national_event_get_options(e.e).size() || !is_valid_option(state.world.free_national_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -55,9 +51,7 @@ void take_option(sys::state& state, pending_human_f_n_event const& e, uint8_t op
 
 void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_p_event.size(); i-- > 0;) {
-		if(state.pending_p_event[i].date == e.date && state.pending_p_event[i].e == e.e &&
-				state.pending_p_event[i].from_slot == e.from_slot && state.pending_p_event[i].p == e.p &&
-				state.pending_p_event[i].r_hi == e.r_hi && state.pending_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_p_event[i] == e) {
 
 			if(opt > state.world.provincial_event_get_options(e.e).size() || !is_valid_option(state.world.provincial_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -76,8 +70,7 @@ void take_option(sys::state& state, pending_human_p_event const& e, uint8_t opt)
 }
 void take_option(sys::state& state, pending_human_f_p_event const& e, uint8_t opt) {
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
-		if(state.pending_f_p_event[i].date == e.date && state.pending_f_p_event[i].e == e.e && state.pending_f_p_event[i].p == e.p &&
-				state.pending_f_p_event[i].r_hi == e.r_hi && state.pending_f_p_event[i].r_lo == e.r_lo) {
+		if(state.pending_f_p_event[i] == e) {
 
 			if(opt > state.world.free_provincial_event_get_options(e.e).size() || !is_valid_option(state.world.free_provincial_event_get_options(e.e)[opt]))
 				return; // invalid option
@@ -133,7 +126,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			},
 			"msg_m_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::major_event
+			sys::message_base_type::major_event,
+			dcon::province_id{ }
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -155,7 +149,8 @@ void trigger_national_event(sys::state& state, dcon::national_event_id e, dcon::
 			},
 			"msg_n_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::national_event
+			sys::message_base_type::national_event,
+			dcon::province_id{ }
 		});
 	}
 
@@ -228,7 +223,8 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			},
 			"msg_m_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::major_event
+			sys::message_base_type::major_event,
+			dcon::province_id{ }
 		});
 	} else if(n == state.local_player_nation) {
 		notification::post(state, notification::message{
@@ -250,7 +246,8 @@ void trigger_national_event(sys::state& state, dcon::free_national_event_id e, d
 			},
 			"msg_n_event_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::national_event
+			sys::message_base_type::national_event,
+			dcon::province_id{ }
 		});
 	}
 	if(auto immediate = state.world.free_national_event_get_immediate_effect(e); immediate) {
@@ -323,7 +320,8 @@ void trigger_provincial_event(sys::state& state, dcon::provincial_event_id e, dc
 			},
 			"msg_p_event_title",
 			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
+			sys::message_base_type::province_event,
+			p
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
@@ -395,7 +393,8 @@ void trigger_provincial_event(sys::state& state, dcon::free_provincial_event_id 
 			},
 			"msg_p_event_title",
 			owner, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::province_event
+			sys::message_base_type::province_event,
+			p
 		});
 	}
 	if(state.world.nation_get_is_player_controlled(owner)) {
@@ -538,8 +537,8 @@ void update_events(sys::state& state) {
 				event is guaranteed to happen. Otherwise, the probability is the multiplicative inverse of the value.
 				*/
 				auto some_exist = t
-					? (state.world.nation_get_owned_province_count(ids) != 0) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
-					: (state.world.nation_get_owned_province_count(ids) != 0);
+					? (nations::exists_or_is_utility_tag(state, ids)) && trigger::evaluate(state, t, trigger::to_generic(ids), trigger::to_generic(ids), 0)
+					: (nations::exists_or_is_utility_tag(state, ids));
 				if(ve::compress_mask(some_exist).v != 0) {
 					auto chances = mod ?
 						trigger::evaluate_multiplicative_modifier(state, mod, trigger::to_generic(ids), trigger::to_generic(ids), 0) : ve::fp_vector{ 1.0f };
@@ -551,8 +550,7 @@ void update_events(sys::state& state) {
 
 					ve::apply(
 							[&](dcon::nation_id n, float c, bool condition) {
-								auto owned_range = state.world.nation_get_province_ownership(n);
-								if(condition && owned_range.begin() != owned_range.end()) {
+								if(condition && nations::exists_or_is_utility_tag(state, n)) {
 									if(float(rng::get_random(state, uint32_t((i << 1) ^ n.index())) & 0xFFFFFF) / float(0xFFFFFF + 1) >= c) {
 										events_triggered.local().push_back(event_nation_pair{n, id});
 									}

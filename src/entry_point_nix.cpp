@@ -67,14 +67,14 @@ void check_scenario_folder() {
 }
 
 native_string to_hex(uint64_t v) {
-		native_string ret;
-		constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
-		do {
-		 ret += digits[v & 0x0F];
-		 v = v >> 4;
-		} while(v != 0);
-		 	return ret;
-	};
+	native_string ret;
+	constexpr native_char digits[] = NATIVE("0123456789ABCDEF");
+	do {
+		ret += digits[v & 0x0F];
+		v = v >> 4;
+	} while(v != 0);
+	return ret;
+};
 
 // Original is void make_mod_file(). This function can also be used to create
 // vanilla scenario, though when there are two bookmarks dates, it will also create
@@ -205,12 +205,17 @@ int main (int argc, char *argv[]) {
 	add_root(game_state.common_fs, NATIVE("."));
 	check_mods_folder();
 	check_scenario_folder();
+
+	bool headless = false;
+	int headless_speed = 1;
+
 	if ( argc >= 2) {
 		//TODO: Get all argv as vector and process them before running any codes
 		//for (int args = 1; args < argc; ++args){
 		//	arguments.push_back(args);
 		//}
-		for ( int i = 1; i < argc; ++i ) {
+
+		for (int i = 1; i < argc; ++i ) {
 			if (native_string(argv[i]) == NATIVE("--mod")) {
 				//Use closest to standard v2game.exe args structure, i.e. --mod mod/modname.mod
 				//We don't need powerful do-it-all entry point, scenario generation is enough
@@ -247,7 +252,7 @@ int main (int argc, char *argv[]) {
 					}
 					i++;
 				}
-			} else if ( native_string(argv[i]) == NATIVE("--test")) {
+			} else if (native_string(argv[i]) == NATIVE("-test")) {
 				if (sys::try_read_scenario_and_save_file(game_state, "development_test_file.bin")){
 					selected_scenario_file = "development_test_file.bin";
 				} else {
@@ -263,12 +268,25 @@ int main (int argc, char *argv[]) {
 				}
 				break;
 			} else if(native_string(argv[i]) == NATIVE("-host")) {
+				network::save_host_settings(game_state);
+				network::load_host_settings(game_state);
 				game_state.network_mode = sys::network_mode_type::host;
 			} else if(native_string(argv[i]) == NATIVE("-join")) {
 				game_state.network_mode = sys::network_mode_type::client;
 				game_state.network_state.ip_address = "127.0.0.1";
+				game_state.network_state.port = "1984";
 				if(i + 1 < argc) {
-					game_state.network_state.ip_address = simple_fs::native_to_utf8(native_string(argv[i + 1]));
+					auto native_param = native_string(argv[i + 1]);
+					auto semicolon_pos = native_param.find(NATIVE(";"));
+					if(semicolon_pos != native_string::npos) {
+						if(semicolon_pos + 1 >= native_param.length()) {
+							window::emit_error_message("Missing port number after semicolon", true);
+						}
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param.substr(0, semicolon_pos));
+						game_state.network_state.port = simple_fs::native_to_utf8(native_param.substr(semicolon_pos + 1));
+					} else {
+						game_state.network_state.ip_address = simple_fs::native_to_utf8(native_param);
+					}
 					i++;
 				}
 			} else if(native_string(argv[i]) == NATIVE("-name")) {
@@ -296,25 +314,33 @@ int main (int argc, char *argv[]) {
 				game_state.network_state.as_v6 = true;
 			} else if(native_string(argv[i]) == NATIVE("-v4")) {
 				game_state.network_state.as_v6 = false;
+			} else if(native_string(argv[i]) == NATIVE("-headless")) {
+				headless = true;
 			}
 		}
+
 		enforce_list_order();
 		for (int32_t modindex = 0; modindex < int32_t(mod_list.size()); ++modindex){
-			if(mod_list[modindex].mod_selected){
+			if(mod_list[modindex].mod_selected) {
 				window::emit_error_message("Selected mod: " + NATIVE(mod_list[modindex].name_) + "\n", false);
 			}
 		}
 		//Trying to find the corresponding scenario file before attempting to build
 		//Sacred scenario file = "development_test_file.bin"
 		//Some parts below felt redundant, may not fix
-		if (selected_scenario_file == NATIVE("development_test_file.bin")){
+		if (selected_scenario_file == NATIVE("development_test_file.bin")) {
+			window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
 		} else {
 			//Checking the scenario folder
-			find_scenario_file();
+			if (argc > 2) {
+				selected_scenario_file = argv[1];
+			} else {
+				find_scenario_file();
+			}
 			//If any file fits the criteria, then don't build
 			if (!selected_scenario_file.empty()) {
 				window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
-			//If no file fits the critertia, then build
+				//If no file fits the critertia, then build
 			} else {
 				window::emit_error_message("Scenario file with selected mods cannot be found. Proceeding to build.\nThis process may take a few minutes to finish.\n", false);
 				build_scenario_file();
@@ -332,22 +358,38 @@ int main (int argc, char *argv[]) {
 	}
 
 	if (sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
-			auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
-			window::emit_error_message(msg, false);
-			game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
-			game_state.fill_unsaved_data();
+		auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
+		window::emit_error_message(msg, false);
+		game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
+		game_state.fill_unsaved_data();
 	} else {
 		window::emit_error_message("Scenario file could not be read.", true);
 	}
 
 	network::init(game_state);
+
 	game_state.load_user_settings();
 	ui::populate_definitions_map(game_state);
-	std::thread update_thread([&]() { game_state.game_loop(); });
-	window::emit_error_message("Starting the game.\n", false);
-	window::create_window(game_state, window::creation_parameters{1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen});
-	game_state.quit_signaled.store(true, std::memory_order_release);
-	update_thread.join();
+
+	if(headless) {
+		window::emit_error_message("Starting in headless mode.\n", false);
+		game_state.actual_game_speed = headless_speed;
+		game_state.ui_pause.store(false, std::memory_order::release);
+		game_scene::switch_scene(game_state, game_scene::scene_id::in_game_basic);
+		game_state.local_player_nation = dcon::nation_id{};
+		game_state.game_loop();
+	} else {
+		std::thread update_thread([&]() { game_state.game_loop(); });
+		std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
+
+		window::emit_error_message("Starting the game.\n", false);
+		window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
+		game_state.quit_signaled.store(true, std::memory_order_release);
+
+		update_thread.join();
+		ui_cache_update.join();
+	}
+	
 	network::finish(game_state, true);
 
 	return EXIT_SUCCESS;

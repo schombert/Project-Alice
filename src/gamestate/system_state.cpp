@@ -45,6 +45,9 @@
 #include "blake2.h"
 #include "fif_common.hpp"
 #include "gui_deserialize.hpp"
+#include "advanced_province_buildings.hpp"
+#include "military_templates.hpp"
+#include "economy_pops.hpp"
 
 namespace ui {
 
@@ -148,7 +151,7 @@ void create_in_game_windows(sys::state& state) {
 		new_elm->base_data.position.y += 24; // nudge
 		new_elm->impl_on_update(state);
 		state.ui_state.tl_chat_list = new_elm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_elm));
+		state.ui_state.root->add_child_to_back(std::move(new_elm));
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::outliner_window>(state, "outliner");
@@ -238,6 +241,15 @@ void create_in_game_windows(sys::state& state) {
 		auto new_elm = ui::make_element_by_type<ui::land_combat_window>(state, "alice_land_combat");
 		new_elm->set_visible(state, false);
 		state.ui_state.root->add_child_to_front(std::move(new_elm));
+	}
+	{
+		auto new_elem = make_element_by_type<disband_unit_confirmation>(state, "disband_window");
+		// set window to be movable
+		new_elem->base_data.data.window.flags |= new_elem->base_data.data.window.is_moveable_mask;
+		new_elem->set_visible(state, false);
+		state.ui_state.disband_unit_window = new_elem.get();
+		state.ui_state.root->add_child_to_front(std::move(new_elem));
+
 	}
 	{
 		auto new_elm = ui::make_element_by_type<ui::topbar_window>(state, "topbar");
@@ -339,7 +351,7 @@ void state::on_rbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 
 void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 	// Lose focus on text
-	ui_state.edit_target = nullptr;
+	ui_state.set_focus_target(*this, nullptr);
 	map_state.on_mbuttom_down(x, y, x_size, y_size, mod);
 }
 
@@ -371,10 +383,15 @@ void state::on_mouse_move(int32_t x, int32_t y, key_modifiers mod) {
 	if(ui_state.mouse_sensitive_target) {
 		auto mx = int32_t(x / user_settings.ui_scale);
 		auto my = int32_t(y / user_settings.ui_scale);
-		if(mx < ui_state.target_ul_bounds.x || mx > ui_state.target_lr_bounds.x || my < ui_state.target_ul_bounds.y || my > ui_state.target_lr_bounds.y) {
 
+		auto x_distance = std::max(std::max(ui_state.target_ul_bounds.x - mx, 0), std::max(mx - ui_state.target_lr_bounds.x, 0));
+		auto y_distance = std::max(std::max(ui_state.target_ul_bounds.y - my, 0), std::max(my - ui_state.target_lr_bounds.y, 0));
+		auto new_target_distance = std::max(x_distance, y_distance);
+		if(new_target_distance > ui_state.target_distance + 5) {
 			ui_state.mouse_sensitive_target->set_visible(*this, false);
 			ui_state.mouse_sensitive_target = nullptr;
+		} else {
+			ui_state.target_distance = std::min(ui_state.target_distance, new_target_distance);
 		}
 	}
 }
@@ -409,7 +426,6 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 }
 
 void state::on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount) { // an amount of 1.0 is one "click" of the wheel
-	//update en demand
 	ui::element_base* root_elm = current_scene.get_root(*this);
 	auto probe_result = root_elm->impl_probe_mouse(*this,
 		int32_t(mouse_x_position / user_settings.ui_scale),
@@ -470,11 +486,443 @@ void state::on_key_up(virtual_key keycode, key_modifiers mod) {
 	map_state.on_key_up(keycode, mod);
 }
 void state::on_text(char32_t c) { // c is win1250 codepage value
-	if(ui_state.edit_target)
-		ui_state.edit_target->on_text(*this, c);
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->on_text(*this, c);
+}
+bool state::filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons) {
+	if(ui_state.edit_target_internal && ui_state.edit_target_internal->edit_consume_mouse_event(*this, x, y, buttons))
+		return true;
+	return false;
+}
+void state::pass_edit_command(ui::edit_command command, sys::key_modifiers mod) {
+	if(ui_state.edit_target_internal)
+		ui_state.edit_target_internal->on_edit_command(*this, command, mod);
+}
+bool state::send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection) {
+	if(ui_state.edit_target_internal) {
+		auto abs_pos = ui::get_absolute_location(*this, *ui_state.edit_target_internal);
+		auto posx = int32_t(x / user_settings.ui_scale);
+		auto posy = int32_t(y / user_settings.ui_scale);
+		if(posx < abs_pos.x || posy < abs_pos.y || posx > abs_pos.x + ui_state.edit_target_internal->base_data.size.x || posy > abs_pos.y + ui_state.edit_target_internal->base_data.size.y)
+			return false;
+
+		ui_state.edit_target_internal->edit_move_cursor_to_screen_point(*this, posx - abs_pos.x, posy - abs_pos.y, extend_selection);
+		return true;
+	}
+	return false;
+}
+text_mouse_test_result state::detailed_text_mouse_test(int32_t x, int32_t y) {
+	if(ui_state.edit_target_internal) {
+		auto abs_pos = ui::get_absolute_location(*this, *ui_state.edit_target_internal);
+		auto posx = int32_t(x / user_settings.ui_scale);
+		auto posy = int32_t(y / user_settings.ui_scale);
+		if(posx < abs_pos.x || posy < abs_pos.y || posx > abs_pos.x + ui_state.edit_target_internal->base_data.size.x || posy > abs_pos.y + ui_state.edit_target_internal->base_data.size.y)
+			return text_mouse_test_result{ 0,0 };
+
+		return ui_state.edit_target_internal->detailed_text_mouse_test(*this, posx - abs_pos.x, posy - abs_pos.y);
+	}
+	return text_mouse_test_result{0,0};
 }
 
 inline constexpr int32_t tooltip_width = 400;
+
+int state::get_edit_x() {
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).x;
+	}
+	return 0;
+}
+int state::get_edit_y(){
+	if (ui_state.edit_target_internal) {
+		return ui::get_absolute_location(*this, *ui_state.edit_target_internal).y;
+	}
+	return 0;
+}
+
+
+bool commodity_per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size()) return true;
+	if(!commodity) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::nation_id current_nation{ progress };
+	
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto export_temp = economy::export_volume(state, current_nation, commodity);
+	auto import_temp = economy::import_volume(state, current_nation, commodity);
+	auto consumption_temp = economy::consumption(state, current_nation, commodity);
+	auto production_temp = std::max(0.f, economy::supply(state, current_nation, commodity) - economy::trade_supply(state, current_nation, commodity));
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
+	production_volume.set(progress, production_temp);
+	consumption_volume.set(progress, consumption_temp);
+	
+	progress++;
+	return false;
+}
+
+bool nation_per_nation_cache_slot::update(sys::state& state) {
+	if(!nation) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+	if(counter_start_before != counter_end_before) {
+		return false;
+	}
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto import_temp = economy::trade_value_flow_all_to_nation(state, nation);
+	auto export_temp = economy::trade_value_flow_nation_to_all(state, nation);
+
+	// ACTUAL CALCULATIONS END
+
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_value.assign_data(export_temp);
+	import_value.assign_data(import_temp);
+
+	return true;
+}
+
+bool nation_per_commodity_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.commodity_size()) return true;
+	if(!nation) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		progress = 0;
+		return false;
+	}
+
+	dcon::commodity_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto export_temp = economy::export_volume(state, nation, current_item);
+	auto import_temp = economy::import_volume(state, nation, current_item);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	export_volume.set(progress, export_temp);
+	import_volume.set(progress, import_temp);
+
+	progress++;
+	return false;
+}
+
+bool per_province_cache_slot::update(sys::state& state) {
+	// we can't create provinces thankfully
+	if(progress >= state.world.province_size()) {
+		// update sorting
+		std::sort(sorted_by_gdp_per_capita.unsafe_data.begin(), sorted_by_gdp_per_capita.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) == gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1)) {
+				return a.index() > b.index();
+			} else {
+				return gdp.unsafe_data[a.index()].total_non_negative / (population.unsafe_data[a.index()] + 1) > gdp.unsafe_data[b.index()].total_non_negative / (population.unsafe_data[b.index()] + 1);
+			}
+		});
+
+		std::sort(sorted_by_gdp.unsafe_data.begin(), sorted_by_gdp.unsafe_data.end(), [&](auto a, auto b) {
+			if(gdp.unsafe_data[a.index()].total_non_negative == gdp.unsafe_data[b.index()].total_non_negative) {
+				return a.index() > b.index();
+			} else {
+				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
+			}
+		});
+		return true;
+	}
+
+	// validate size
+	if(gdp.unsafe_data.size() < state.world.province_size()) {
+		sorted_by_gdp.clear();
+		sorted_by_gdp_per_capita.clear();
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_gdp.push_back(pid);
+		});
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_gdp_per_capita.push_back(pid);
+		});
+	}
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::province_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto gdp_value = economy::gdp::breakdown_province(state, current_item);
+	auto population_value = state.world.province_get_demographics(current_item, demographics::total);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	gdp.set(progress, gdp_value);
+	population.set(progress, population_value);
+
+	progress++;
+	return false;
+}
+
+bool per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		reset_progress();
+		return false;
+	}
+
+	if(progress < state.world.nation_size()) {
+
+		dcon::nation_id current_item{ progress };
+
+		// ACTUAL CALCULATIONS BEGIN
+
+
+		auto gdp = std::max(0.f, economy::gdp::value_nation(state, current_item));
+
+		auto temp = current_item;
+		auto sphere = state.world.nation_get_in_sphere_of(temp);
+		while(!sphere) {
+			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(temp));
+			if(overlord) {
+				temp = overlord;
+				sphere = state.world.nation_get_in_sphere_of(temp);
+			} else {
+				break;
+			}
+		}
+
+		auto parent_of_current = current_item;
+		if(sphere) {
+			parent_of_current = sphere;
+		} else {
+			parent_of_current = temp;
+		}
+
+		// ACTUAL CALCULATIONS END
+
+		int64_t counter_start_after = state.tick_start_counter.load();
+		if(counter_start_after != counter_start_before) {
+			reset_progress();
+			return false;
+		}
+
+		// SAFE PLACE TO STORE RESULTS
+
+		national_gdp.set(progress, gdp);
+		sphere_parent.set(progress, parent_of_current);
+
+		progress++;
+		return false;
+	} else {
+		dcon::nation_id current_item{ progress_sphere };
+
+		// ACTUAL CALCULATIONS BEGIN
+
+		auto total = 0.f;
+		state.world.for_each_nation([&](auto nid) {
+			if(sphere_parent.unsafe_data[nid.index()] == current_item) {
+				auto value = national_gdp.unsafe_data[nid.index()];
+				total += value;
+			}
+		});
+
+		// ACTUAL CALCULATIONS END
+
+		int64_t counter_start_after = state.tick_start_counter.load();
+		if(counter_start_after != counter_start_before) {
+			reset_progress();
+			return false;
+		}
+
+		// SAFE PLACE TO STORE RESULTS
+
+		sphere_gdp.set(progress_sphere, total);
+
+		progress_sphere++;
+		return false;
+	}
+}
+
+bool commodity_per_province_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.province_size()) {
+		// update sorting
+		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
+			if(production_volume.unsafe_data[a.index()] == production_volume.unsafe_data[b.index()]) {
+				return a.index() > b.index();
+			} else {
+				return production_volume.unsafe_data[a.index()] > production_volume.unsafe_data[b.index()];
+			}
+		});
+
+		std::sort(sorted_by_consumption.unsafe_data.begin(), sorted_by_consumption.unsafe_data.end(), [&](auto a, auto b) {
+			if(consumption_volume.unsafe_data[a.index()] == consumption_volume.unsafe_data[b.index()]) {
+				return a.index() > b.index();
+			} else {
+				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
+			}
+		});
+		return true;
+	}
+	// validate size
+	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
+		sorted_by_production.clear();
+		sorted_by_consumption.clear();
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_production.push_back(pid);
+		});
+		state.world.for_each_province([&](auto pid) {
+			sorted_by_consumption.push_back(pid);
+		});
+	}
+
+	int64_t counter_start_before = state.tick_start_counter.load();
+	int64_t counter_end_before = state.tick_end_counter.load();
+
+	if(counter_start_before != counter_end_before) {
+		// check that we are not in the update
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	dcon::province_id current_item{ progress };
+
+	// ACTUAL CALCULATIONS BEGIN
+
+	auto consumption_value = economy::estimate_intermediate_consumption(state, commodity, current_item) + economy::estimate_pops_consumption(state, commodity, current_item);
+	auto production_value = economy::estimate_production(state, commodity, current_item);
+
+	// ACTUAL CALCULATIONS END
+
+	int64_t counter_start_after = state.tick_start_counter.load();
+	if(counter_start_after != counter_start_before) {
+		// check that new update haven't started yet
+		// otherwise redo the work later
+		progress = 0;
+		return false;
+	}
+
+	// SAFE PLACE TO STORE RESULTS
+
+	production_volume.set(progress, production_value);
+	consumption_volume.set(progress, consumption_value);
+
+	progress++;
+	return false;
+}
+
+void ui_cache::update_ui(sys::state& state) {
+	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+template<typename SLOT>
+void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running) {
+	auto requested_update = slot.update_requested.exchange(false);
+	if(requested_update) {
+		slot.reset_progress();
+		updates_running = true;
+	}
+	if(!slot.update_completed) {
+		updates_running = true;
+		if(slot.update(state)) {
+			slot.update_completed = true;
+			update_ui(state);
+		}
+	}
+}
+
+void ui_cache::process_update(sys::state& state) {
+	while(state.quit_signaled.load(std::memory_order::acquire) == false) {
+		bool updates_running = false;
+		update_slot(state, commodity_per_nation, updates_running);
+		update_slot(state, per_province, updates_running);
+		update_slot(state, commodity_per_province, updates_running);
+		update_slot(state, nation_per_nation, updates_running);
+		update_slot(state, nation_per_commodity, updates_running);
+		update_slot(state, per_nation, updates_running);
+
+		if (!updates_running) {
+			std::this_thread::sleep_for(std::chrono::milliseconds(1));
+			sleep_iterations = std::min(1000, (sleep_iterations + 1));
+		} else {
+			sleep_iterations = 0;
+		}
+	}
+};
+
+GLuint request_query(std::vector<GLuint>& ids, std::vector<bool>& free_ids) {
+	unsigned int first_free_index = 0;
+	while(first_free_index < free_ids.size() && !free_ids[first_free_index]) first_free_index++;
+	if(first_free_index >= free_ids.size()) {
+		GLuint query_id;
+		glGenQueries(1, &query_id);
+		ids.push_back(query_id);
+		free_ids.push_back(true);
+	}
+	free_ids[first_free_index] = false;
+	return ids[first_free_index];
+}
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
@@ -483,6 +931,14 @@ void state::render() { // called to render the frame may (and should) delay retu
 	}*/
 	if(!current_scene.get_root)
 		return;
+
+
+	if(ui_state.fps_counter) {
+		if(ui_state.fps_counter->is_visible()) {
+			glBeginQuery(GL_TIME_ELAPSED, request_query(query_frame_time_other, query_frame_time_other_free));
+		}
+	}
+
 
 	auto game_state_was_updated = game_state_updated.exchange(false, std::memory_order::acq_rel);
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
@@ -965,18 +1421,24 @@ void state::render() { // called to render the frame may (and should) delay retu
 			prov = dcon::province_id{};
 		if(prov) {
 			if(!drag_selecting && (selected_armies.size() > 0 || selected_navies.size() > 0)) {
-				bool fail = false;
-				for(auto a : selected_armies) {
-					if(command::can_move_army(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+				bool can_move = [this, prov]() {
+					for(auto a : selected_armies) {
+						auto army_loc = world.army_get_location_from_army_location(a);
+						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				for(auto a : selected_navies) {
-					if(command::can_move_navy(*this, local_player_nation, a, prov).empty()) {
-						fail = true;
+					for(auto a : selected_navies) {
+						auto navy_loc = world.navy_get_location_from_navy_location(a);
+						if(!command::can_move_retreat_or_stop_navy(*this, local_player_nation, a, prov)) {
+							return false;
+						}
 					}
-				}
-				if(!fail) {
+					return true;
+
+				}();
+
+				if(can_move) {
 					auto c = world.province_get_nation_from_province_control(prov);
 					if(c != local_player_nation && military::are_at_war(*this, c, local_player_nation)) {
 						window::change_cursor(*this, window::cursor_type::hostile_move);
@@ -1124,6 +1586,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 			ui_state.tooltip->impl_render(*this, ui_state.tooltip->base_data.position.x, ui_state.tooltip->base_data.position.y);
 		}
 	}
+
+	if(ui_state.fps_counter) {
+		if(ui_state.fps_counter->is_visible()) {
+			glEndQuery(GL_TIME_ELAPSED);
+		}
+	}
+
 	/*render_semaphore.release();*/
 }
 
@@ -1185,6 +1654,7 @@ void state::on_create() {
 			"endofnavalcombatpopup",
 			"endoflandcombatpopup",
 			"ingame_lobby_window",
+			"build_factory"
 		};
 		for(const auto& elem_name : elem_names) {
 			auto it = ui_state.defs_by_name.find(lookup_key(elem_name));
@@ -1198,8 +1668,16 @@ void state::on_create() {
 	}
 	// Nudge, overriden by V2 to be 0 always
 	ui_defs.gui[ui_state.defs_by_name.find(lookup_key("decision_entry"))->second.definition].position = ui::xy_pair{ 0, 0 };
-	// Find the object id for the main_bg displayed (so we display it before the map)
-	ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	// Find the object id for the main_bg displayed (so we display it before the map).
+	// It is the background from topbar windows
+	if(ui_state.defs_by_name.find(lookup_key("bg_main_menus")) != ui_state.defs_by_name.end()) {
+		ui_state.bg_gfx_id = ui_defs.gui[ui_state.defs_by_name.find(lookup_key("bg_main_menus"))->second.definition].data.image.gfx_object;
+	}
+	else if (ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus")) != ui_state.gfx_by_name.end()){
+		// If some mod has removed the GUI element of background in topbar windows, resort to searching for the GFX by name
+		ui_state.bg_gfx_id = ui_state.gfx_by_name.find(lookup_key("GFX_bg_main_menus"))->second;
+	}
+	// Otherwise the map will be floating in the void
 
 	ui_state.nation_picker = ui::make_element_by_type<ui::nation_picker_container>(*this, ui_state.defs_by_name.find(lookup_key("lobby"))->second.definition);
 	{
@@ -1258,7 +1736,12 @@ void state::load_locale_strings(std::string_view locale_name) {
 
 	auto load_base_files = [&](int32_t column) {
 		auto text_dir = open_directory(root_dir, NATIVE("localisation"));
-		for(auto& file : list_files(text_dir, NATIVE(".csv"))) {
+		// sort list of files so that it will read them in alphabetical order from A-Z, to conform with modding expactations.
+		auto loc_files = list_files(text_dir, NATIVE(".csv"));
+		std::sort(loc_files.begin(), loc_files.end(), [](const simple_fs::unopened_file& a, const simple_fs::unopened_file& b) {
+			return simple_fs::get_file_name(a) > simple_fs::get_file_name(b);
+		});
+		for(auto& file : loc_files) {
 			if(auto ofile = open_file(file); ofile) {
 				auto content = view_contents(*ofile);
 				text::consume_csv_file(*this, content.data, content.file_size, column, false);
@@ -1543,7 +2026,7 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(fow_enabled);
+	US_SAVE(UNUSED_BOOL);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -1573,6 +2056,7 @@ void state::save_user_settings() const {
 	US_SAVE(UNUSED_UINT32_T);
 	US_SAVE(locale);
 	US_SAVE(graphics_mode);
+	US_SAVE(unit_disband_confirmation);
 #undef US_SAVE
 
 	simple_fs::write_file(settings_location, NATIVE("user_settings.dat"), &buffer[0], uint32_t(ptr - buffer));
@@ -1612,7 +2096,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(fow_enabled);
+			US_LOAD(UNUSED_BOOL);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -1642,6 +2126,7 @@ void state::load_user_settings() {
 			US_LOAD(UNUSED_UINT32_T);
 			US_LOAD(locale);
 			US_LOAD(graphics_mode);
+			US_LOAD(unit_disband_confirmation);
 #undef US_LOAD
 		} while(false);
 
@@ -1732,6 +2217,40 @@ void state::load_user_settings() {
 		font_collection.change_locale(*this, dcon::locale_id{ 0 });
 	}
 }
+
+void state::load_gamerule_settings() {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	auto f = simple_fs::open_file(sdir, loaded_scenario_file);
+	if(f) {
+		auto contents = simple_fs::view_contents(*f);
+		auto data_ptr = reinterpret_cast<const uint8_t*>(contents.data);
+		uint32_t num_gamerule_settings = contents.file_size / sizeof(uint8_t);
+		//Corruption protection
+		if(num_gamerule_settings >= 8192 * 4)
+			num_gamerule_settings = 8192 * 4;
+
+		for(uint32_t i = 0; i < num_gamerule_settings; i++) {
+			uint8_t setting = data_ptr[i];
+			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
+			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
+				gamerule::set_gamerule(*this, gamerule, setting);
+			}
+		}
+	}
+}
+
+
+void state::save_gamerule_settings() const {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	std::vector<uint8_t> current_gamerule_settings;
+	current_gamerule_settings.reserve(world.gamerule_size());
+	for(auto gr : world.in_gamerule) {
+		current_gamerule_settings.push_back(gr.get_current_setting());
+	}
+	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
+	
+}
+
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
@@ -1938,6 +2457,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_errors += "File common/goods.txt nor common/tradegoods.txt could be opened\n";
 		}
 	}
+
 	// read buildings.text
 	// world.factory_type_resize_construction_costs(world.commodity_size());
 	{
@@ -2112,6 +2632,29 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 		current_date = sys::date(bookmark_date, start_date); //relative to start date
 	}
+
+	// create the hardcoded gamerules
+	gamerule::load_hardcoded_gamerules(context);
+	// pre parse scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_scan_gamerule_file(gen, err, context);
+		}
+		// some sanity checks
+		for(const auto& gamerule : context.state.world.in_gamerule) {
+			if(gamerule.get_settings_count() == uint8_t(0)) {
+				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
+			}
+		}
+
+	}
+
 	// gather names of poptypes
 	list_pop_types(*this, context);
 	// pre parse rebel_types.txt
@@ -2257,9 +2800,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 
-		if(!bool(military_definitions.infantry)) {
-			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
-		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
@@ -2419,13 +2959,30 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		auto startdate = current_date.to_ymd(start_date);
 		auto start_dir_name = std::to_string(startdate.year) + "." + std::to_string(startdate.month) + "." + std::to_string(startdate.day);
 		auto date_directory = open_directory(pop_history, simple_fs::utf8_to_native(start_dir_name));
-		// NICK: 
+		// NICK:
 		// Attempts to look through the start date as defined by the mod.
 		// If it does not find any pop files there, it defaults to looking through 1836.1.1
 		// This is to deal with mods that have their start date defined as something else, but have pop history within 1836.1.1 (converters).
 		auto directory_file_count = list_files(date_directory, NATIVE(".txt")).size();
-		if(directory_file_count == 0)
-			date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+		// assert(directory_file_count > 0); // Since we expect to test on vanilla and proper mods - this is a useful test.
+		// // Zombie:
+		// if there is no exact match, check if any subdirs match with just the year. If none of those exist, use 1836.1.1 default (Vanilla files does this)
+		if(directory_file_count == 0) {
+			bool found_dir = false;
+			auto potential_dirs = simple_fs::list_subdirectories(pop_history);
+			for(simple_fs::directory dir : potential_dirs) {
+				auto dir_name = get_dir_name(dir);
+				auto year = to_native_string(startdate.year);
+				if(dir_name.starts_with(year.c_str())) {
+					date_directory = open_directory(pop_history, dir_name);
+					found_dir = true;
+					break;
+				}
+			}
+			if(!found_dir) {
+				date_directory = open_directory(pop_history, simple_fs::utf8_to_native("1836.1.1"));
+			}
+		}
 		for(auto pop_file : list_files(date_directory, NATIVE(".txt"))) {
 			auto opened_file = open_file(pop_file);
 			if(opened_file) {
@@ -2697,47 +3254,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	{
 		auto oob_dir = open_directory(history, NATIVE("units"));
 
-		for(auto oob_file : list_files(oob_dir, NATIVE(".txt"))) {
-			auto file_name = get_full_name(oob_file);
-			if(file_name == NATIVE("v2dd2.txt")) // discard junk file
-				continue;
-			auto last = file_name.c_str() + file_name.length();
-			auto first = file_name.c_str();
-			auto start_of_name = last;
-			for(; start_of_name >= first; --start_of_name) {
-				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
-					++start_of_name;
-					break;
-				}
-			}
-			if(last - start_of_name >= 3) {
-				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
-					// ignore REB
-				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
-					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-					if(holder) {
-						parsers::oob_file_context new_context{ context, holder };
-						auto opened_file = open_file(oob_file);
-						if(opened_file) {
-							err.file_name = utf8name;
-							auto content = view_contents(*opened_file);
-							parsers::token_generator gen(content.data, content.data + content.file_size);
-							parsers::parse_oob_file(gen, err, new_context);
-						}
-					} else {
-						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-					}
-				} else {
-					err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-				}
-			}
-		}
-
 		auto startdate = current_date.to_ymd(start_date);
 		auto start_dir_name = std::to_string(startdate.year);
 		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
-		for(auto oob_file : list_files(date_directory, NATIVE(".txt"))) {
+		auto files = list_files(date_directory, NATIVE(".txt"));
+		// if it cant find a bookmark specific dir, read files directly from the "unit" directory
+		if(files.empty()) {
+			files = list_files(oob_dir, NATIVE(".txt"));
+		}
+		for(auto oob_file : files) {
 			auto file_name = get_full_name(oob_file);
 			auto last = file_name.c_str() + file_name.length();
 			auto first = file_name.c_str();
@@ -2750,19 +3275,24 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 			if(last - start_of_name >= 3) {
 				auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-				if(utf8name[0] == 'R' && utf8name[1] == 'E' && utf8name[2] == 'B') {
-					// ignore REB
-				} else if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
+				if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
 					auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
 					if(holder) {
-						parsers::oob_file_context new_context{ context, holder };
-						auto opened_file = open_file(oob_file);
-						if(opened_file) {
-							err.file_name = utf8name;
-							auto content = view_contents(*opened_file);
-							parsers::token_generator gen(content.data, content.data + content.file_size);
-							parsers::parse_oob_file(gen, err, new_context);
+						// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
+						if(context.state.world.nation_get_province_ownership(holder).begin() != context.state.world.nation_get_province_ownership(holder).end() || it->second == context.state.national_definitions.rebel_id) {
+							parsers::oob_file_context new_context{ context, holder };
+							auto opened_file = open_file(oob_file);
+							if(opened_file) {
+								err.file_name = utf8name;
+								auto content = view_contents(*opened_file);
+								parsers::token_generator gen(content.data, content.data + content.file_size);
+								parsers::parse_oob_file(gen, err, new_context);
+							}
 						}
+						else {
+							err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
+						}
+
 					} else {
 						err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
 					}
@@ -2868,6 +3398,80 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	});
 
+	// load scripted gamerules
+	{
+
+		auto gamerule_file = open_file(common, NATIVE("gamerules.txt"));
+		if(gamerule_file) {
+
+			err.file_name = simple_fs::native_to_utf8(simple_fs::get_full_name(*gamerule_file));
+			auto content = view_contents(*gamerule_file);
+			parsers::token_generator gen(content.data, content.data + content.file_size);
+			parsers::parse_gamerule_file(gen, err, context);
+		}
+	}
+
+
+	// apply pops which are set to start in a rebel facion, and create those rebel factions if needed
+	for(auto pop_reb : context.map_of_pop_rebel_affiliation) {
+		auto pop_loc = context.state.world.pop_get_province_from_pop_location(pop_reb.first);
+		auto pop_owner = context.state.world.province_get_nation_from_province_ownership(pop_loc);
+		auto reb_fac = rebel::find_or_create_faction_for_pop(context.state, pop_owner, pop_reb.second, pop_reb.first);
+		context.state.world.try_create_pop_rebellion_membership(pop_reb.first, reb_fac);
+	}
+	// apply provinces which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto prov_reb : context.map_of_province_rebel_control) {
+		auto prov = prov_reb.first;
+		auto rebel_type = prov_reb.second;
+		auto prov_owner = context.state.world.province_get_nation_from_province_ownership(prov);
+		auto matching_reb_faction = rebel::find_faction_for_prov_occupation(context.state, prov_owner, rebel_type, prov);
+		if(bool(matching_reb_faction)) {
+			context.state.world.province_set_nation_from_province_control(prov, dcon::nation_id{ });
+			context.state.world.province_set_rebel_faction_from_province_rebel_control(prov, matching_reb_faction);
+		}
+		else {
+			err.accumulated_errors += "Could not find available rebel faction for revolt in province ID " + std::to_string(context.prov_id_to_original_id_map[prov].id) + ", has any compatible pops been assigned to the rebel type yet?";
+		}
+
+	}
+
+	// apply regiments which are set to be under rebel control at start date. Does not create new rebel factions, but uses existing ones
+	for(auto reg_prov : context.map_of_rebel_regiment_homes) {
+		auto rebel_reg = reg_prov.first;
+		auto prov = reg_prov.second.home_prov;
+		auto reb_army = context.state.world.regiment_get_army_from_army_membership(rebel_reg);
+		auto reb_army_fac = context.state.world.army_get_controller_from_army_rebel_control(reb_army);
+
+		auto rebel_pop = military::find_available_soldier_parsing(context.state, prov, [&](sys::state& state, dcon::pop_id pop) {
+
+			auto reb_fac = state.world.pop_get_rebel_faction_from_pop_rebellion_membership(pop);
+			// if the army rebel faction is not set yet, or the pop rebel faction is the same as the army one, proceed and attempt to use this pop as pop source
+			return bool(reb_fac) && (!bool(reb_army_fac) || reb_fac == reb_army_fac);
+		});
+		if(bool(rebel_pop)) {
+			context.state.world.force_create_regiment_source(rebel_reg, rebel_pop);
+			if(!bool(reb_army_fac)) {
+				auto pop_rebel_faction = context.state.world.pop_get_rebel_faction_from_pop_rebellion_membership(rebel_pop);
+				context.state.world.army_set_controller_from_army_rebel_control(reb_army, pop_rebel_faction);
+			}
+		}
+		// no rebel pop available
+		else {
+			context.state.world.delete_regiment(rebel_reg);
+			err.accumulated_warnings +=
+				"Not enough available pops in province are a member of a rebel faction to spawn a rebel brigade (" + reg_prov.second.file_name + " line " + std::to_string(reg_prov.second.line_num) + ")\n";
+		}
+
+	}
+
+	//cleanup regiments with no pop attached
+	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
+		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+		if(!world.regiment_get_pop_from_regiment_source(n)) {
+			world.delete_regiment(n);
+		}
+	}
+
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
 	world.nation_resize_factory_goods_output(world.commodity_size());
@@ -2926,6 +3530,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_labor_demand_satisfaction(economy::labor::total);
 	world.province_resize_labor_supply_sold(economy::labor::total);
 	world.province_resize_pop_labor_distribution(economy::pop_labor::total);
+
+	services::initialize_size_of_dcon_arrays(*this);
+	advanced_province_buildings::initialize_size_of_dcon_arrays(*this);
 
 	world.nation_resize_stockpile_targets(world.commodity_size());
 	world.nation_resize_drawing_on_stockpiles(world.commodity_size());
@@ -3214,28 +3821,43 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
-	//Fixup armies defined on a different place
-	for(auto p : world.in_pop_location) {
-		for(const auto src : p.get_pop().get_regiment_source()) {
-			if(src.get_regiment().get_army_from_army_membership().get_controller_from_army_control() == p.get_province().get_nation_from_province_ownership())
-				continue;
-			err.accumulated_warnings += "Army defined in " + text::produce_simple_string(*this, p.get_province().get_name()) + "; but regiment comes from a province owned by someone else\n";
-			if(!src.get_regiment().get_army_from_army_membership().get_is_retreating()
-			&& !src.get_regiment().get_army_from_army_membership().get_navy_from_army_transport()
-			&& !src.get_regiment().get_army_from_army_membership().get_battle_from_army_battle_participation()
-			&& !src.get_regiment().get_army_from_army_membership().get_controller_from_army_rebel_control()) {
-				auto new_u = world.create_army();
-				world.army_set_controller_from_army_control(new_u, p.get_province().get_nation_from_province_ownership());
-				src.get_regiment().set_army_from_army_membership(new_u);
-				military::army_arrives_in_province(*this, new_u, p.get_province(), military::crossing_type::none);
-			} else {
-				src.get_regiment().set_strength(0.f);
+	nations::update_revanchism(*this);
+	fill_unsaved_data(); // we need this to run triggers
+
+	// Clean up and fixup armies and navies
+	for(uint32_t i = world.navy_size(); i-- > 0; ) {
+		dcon::navy_id n{ dcon::navy_id::value_base_t(i) };
+		if(world.navy_is_valid(n)) {
+			auto rng = world.navy_get_navy_membership(n);
+			if(!world.navy_get_battle_from_navy_battle_participation(n)) {
+				if(rng.begin() == rng.end() || !world.navy_get_controller_from_navy_control(n)) {
+					world.delete_navy(n);
+				}
 			}
 		}
 	}
+	for(uint32_t i = world.army_size(); i-- > 0; ) {
+		dcon::army_id n{ dcon::army_id::value_base_t(i) };
+		auto army_controller = world.army_get_controller_from_army_control(n);
+		auto army_location = world.army_get_location_from_army_location(n);
+		if(world.army_is_valid(n)) {
+			auto rng = world.army_get_army_membership(n);
+			if(!world.army_get_battle_from_army_battle_participation(n)) {
+				if(rng.begin() == rng.end() || (!world.army_get_controller_from_army_rebel_control(n) && !world.army_get_controller_from_army_control(n))) {
+					world.delete_army(n);
+				}
+				// if the defined army does not have access to its starting location, allow it to move with blackflag
+				else if(!province::has_access_to_province(*this, army_controller, army_location)) {
+					world.army_set_black_flag(n, true);
+				}
+				// if the army is defined inside enemy controlled territory, set siege to be in progress
+				else if(military::are_enemies(*this, army_controller, world.province_get_nation_from_province_control(army_location))) {
+					world.province_set_siege_progress(army_location, 0.01f);
+				}
+			}
 
-	nations::update_revanchism(*this);
-	fill_unsaved_data(); // we need this to run triggers
+		}
+	}
 
 	for(auto n : world.in_nation) {
 		auto g = n.get_government_type();
@@ -3262,6 +3884,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 		if(f.get_size() > p.get_factory_max_size(f.get_building_type().get_output())) {
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
+		}
+	}
+	// apply effects from gamerule options which are on by default
+	for(const auto& gamerule : context.state.world.in_gamerule) {
+		if(gamerule.get_settings_count() > 0) {
+			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
+			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
 		}
 	}
 
@@ -3758,6 +4387,8 @@ void state::on_scenario_load() {
 }
 
 void state::fill_unsaved_data() { // reconstructs derived values that are not directly saved after a save has been loaded
+	// reset ui gamerule settings to match the actual setting of the save
+	gamerule::restore_gamerule_ui_settings(*this);
 	great_nations.reserve(int32_t(defines.great_nations_count));
 
 
@@ -3994,6 +4625,7 @@ void state::single_game_tick() {
 	// do update logic
 
 	current_date += 1;
+	tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 
 	if(!is_playable_date(current_date, start_date, end_date)) {
 		game_scene::switch_scene(*this, game_scene::scene_id::end_screen);
@@ -4084,7 +4716,7 @@ void state::single_game_tick() {
 	});
 
 	// apply in parallel where we can
-	concurrency::parallel_for(0, 8, [&](int32_t index) {
+	concurrency::parallel_for(0, 7, [&](int32_t index) {
 		switch(index) {
 		case 0:
 		{
@@ -4120,25 +4752,17 @@ void state::single_game_tick() {
 		}
 		case 4:
 		{
-			auto o = uint32_t(ymd_date.day + 4);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_literacy(*this, o, days_in_month);
-			break;
-		}
-		case 5:
-		{
 			auto o = uint32_t(ymd_date.day + 5);
 			if(o >= days_in_month)
 				o -= days_in_month;
 			demographics::update_growth(*this, o, days_in_month);
 			break;
 		}
-		case 6:
+		case 5:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
 			break;
-		case 7:
+		case 6:
 			province::ve_for_each_land_province(*this,
 					[&](auto ids) { world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
 			break;
@@ -4253,8 +4877,8 @@ void state::single_game_tick() {
 				break;
 			}
 		});
-				
-	
+
+
 		economy::daily_update(*this, false, 1.f);
 
 		//
@@ -4294,6 +4918,7 @@ void state::single_game_tick() {
 			ai::make_attacks(*this);
 			ai::update_ships(*this);
 		}
+
 		ai::take_ai_decisions(*this);
 
 		// Once per month updates, spread out over the month
@@ -4376,6 +5001,7 @@ void state::single_game_tick() {
 			break;
 		case 21:
 			ai::update_ai_colony_starting(*this);
+			ai::update_ai_embargoes(*this);
 			break;
 		case 22:
 			ai::take_reforms(*this);
@@ -4520,11 +5146,24 @@ void state::single_game_tick() {
 	}
 
 	/*
-	 * END OF DAY: update cached data
-	 */
+	* END OF DAY: update cached data
+	*/
 
-	player_data_cache.treasury_record[current_date.value % 32] = nations::get_treasury(*this, local_player_nation);
-	player_data_cache.population_record[current_date.value % 32] = world.nation_get_demographics(local_player_nation, demographics::total);
+	for(auto n : world.in_nation) {
+		if(!n.get_is_player_controlled())
+			continue;
+
+		if(!find_player_data_cache(n)) {
+			auto cache = sys::player_data{};
+			cache.nation = n;
+			player_data_cache.push_back(cache);
+		}
+		if(auto* cache = find_player_data_cache(n)) {
+			(*cache).treasury_record[current_date.value % 32] = nations::get_treasury(*this, n);
+			(*cache).population_record[current_date.value % 32] = world.nation_get_demographics(n, demographics::total);
+		}
+	}
+
 	if((current_date.value % 16) == 0) {
 		auto index = economy::most_recent_price_record_index(*this);
 		for(auto c : world.in_commodity) {
@@ -4535,13 +5174,16 @@ void state::single_game_tick() {
 	if(((ymd_date.month % 3) == 0) && (ymd_date.day == 1)) {
 		auto index = economy::most_recent_gdp_record_index(*this);
 		for(auto n : world.in_nation) {
-			n.set_gdp_record(index, economy::gdp_adjusted(*this, n));
+			n.set_gdp_record(index, economy::gdp::value_nation_adjusted(*this, n));
 		}
 	}
 
 	ui_date = current_date;
 
+	tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
+
 	game_state_updated.store(true, std::memory_order::release);
+	ui_cached_data.request_update();
 
 	switch(user_settings.autosaves) {
 	case autosave_frequency::none:
@@ -4616,54 +5258,8 @@ sys::checksum_key state::get_scenario_checksum() {
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
-	// TODO later refactor this to use datacontainer directly somehow
-	// seralizes everything except for the "keep_after_state_reload" tagged items
-	dcon::load_record loaded = world.serialize_entire_container_record();
-	loaded.player_nation = false;
-	loaded.player_nation_mp_player = false;
-	loaded.player_nation_nation = false;
 
-
-	loaded.mp_player = false;
-	loaded.mp_player__index = false;
-	loaded.mp_player_nickname = false;
-	loaded.mp_player_password_salt = false;
-	loaded.mp_player_password_hash = false;
-	loaded.mp_player_fully_loaded = false;
-	loaded.mp_player_is_oos = false;
-
-	loaded.locale = false;
-	loaded.locale_native_rtl = false;
-	loaded.locale_prevent_letterspace = false;
-	loaded.locale_display_name = false;
-	loaded.locale_locale_name = false;
-	loaded.locale_fallback = false;
-	loaded.locale_resolved_language = false;
-	loaded.locale_hb_script = false;
-	loaded.locale_resolved_body_font = false;
-	loaded.locale_resolved_header_font = false;
-	loaded.locale_resolved_map_font = false;
-	loaded.locale_body_font = false;
-	loaded.locale_header_font = false;
-	loaded.locale_map_font = false;
-	loaded.locale_body_font_features = false;
-	loaded.locale_header_font_features = false;
-	loaded.locale_map_font_features = false;
-
-
-	loaded.pop_type_migration_target_fn = false;
-	loaded.pop_type_country_migration_target_fn = false;
-	loaded.pop_type_issues_fns = false;
-	loaded.pop_type_ideology_fns = false;
-	loaded.pop_type_promotion_fns = false;
-
-	loaded.national_event_auto_choice = false;
-	loaded.provincial_event_auto_choice = false;
-
-	loaded.free_national_event_auto_choice = false;
-	loaded.free_provincial_event_auto_choice = false;
-
-
+	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
 
 	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
@@ -4748,10 +5344,13 @@ void state::game_loop() {
 	game_speed[1] = int32_t(defines.alice_speed_1);
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
-	game_speed[4] = int32_t(defines.alice_speed_4);
+	game_speed[4] = int32_t(defines.alice_speed_4);	
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		network::send_and_receive_commands(*this);	
+
+		std::unique_lock lock(network_state.command_lock);
+		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
+		network::send_and_receive_commands(*this);
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);
@@ -5901,6 +6500,28 @@ void state::build_up_to_template_land(
 	}
 }
 
+// When selecting a province, clear selected armies
+void sys::state::set_selected_province(dcon::province_id prov_id) {
+	// US31AC3 If a valid province has been selected, reset selection of armies as well
+	if(prov_id && map_state.selected_province != prov_id) {
+		map_state.unhandled_province_selection = true;
+		map_state.selected_province = prov_id;
+		selected_navies.clear();
+		selected_armies.clear();
+		selected_regiments_clear(*this);
+		selected_ships_clear(*this);
+		game_state_updated.store(true, std::memory_order_release);
+	}
+	else {
+		// Otherwise - just hide the province window and province selection w/o deselecting armies
+		map_state.unhandled_province_selection = true;
+		map_state.selected_province = prov_id;
+		if(ui_state.province_window) {
+			ui_state.province_window->set_visible(*this, false);
+		}
+	}
+}
+
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
 		// Toggle selection
@@ -5916,6 +6537,7 @@ void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
+// Clear state.selected_regiments of data, maintaining fixed vector size
 void selected_regiments_clear(sys::state& state) {
 	for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
 		if(state.selected_regiments[i]) {
@@ -5926,7 +6548,7 @@ void selected_regiments_clear(sys::state& state) {
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
-
+// Clear state.selected_ships of data, maintaining fixed vector size
 void selected_ships_add(sys::state& state, dcon::ship_id sh) {
 	for(unsigned i = 0; i < state.selected_ships.size(); i++) {
 		// Toggle selection

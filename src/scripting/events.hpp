@@ -18,6 +18,17 @@ struct pending_human_n_event {
 	dcon::nation_id n; //18,2
 	slot_type pt; //20,1
 	slot_type ft; //21,1
+
+
+	bool operator ==(const pending_human_n_event& other) const {
+		return date == other.date && e == other.e &&
+			from_slot == other.from_slot && n == other.n &&
+			primary_slot == other.primary_slot && r_hi == other.r_hi &&
+			r_lo == other.r_lo;
+	}
+	bool operator !=(const pending_human_n_event& other) const {
+		return !((*this) == other);
+	}
 };
 static_assert(sizeof(pending_human_n_event) ==
 	sizeof(pending_human_n_event::r_lo)
@@ -36,6 +47,16 @@ struct pending_human_f_n_event {
 	dcon::free_national_event_id e; //10,2
 	dcon::nation_id n; //12,2
 	uint16_t padding = 0;
+
+	bool operator ==(const pending_human_f_n_event& other) const {
+		return r_lo == other.r_lo && r_hi == other.r_hi && date == other.date && e == other.e && n == other.n;
+	}
+	bool operator !=(const pending_human_f_n_event& other) const {
+		return !((*this) == other);
+	}
+
+
+
 };
 static_assert(sizeof(pending_human_f_n_event) ==
 	sizeof(pending_human_f_n_event::r_lo)
@@ -53,6 +74,16 @@ struct pending_human_p_event {
 	dcon::province_id p; //2
 	slot_type ft; //1
 	uint8_t padding = 0;
+
+
+	bool operator ==(const pending_human_p_event& other) const {
+		return r_lo == other.r_lo && r_hi == other.r_hi && from_slot == other.from_slot && date == other.date && e == other.e && p == other.p;
+	}
+	bool operator !=(const pending_human_p_event& other) const {
+		return !((*this) == other);
+	}
+
+
 };
 static_assert(sizeof(pending_human_p_event) ==
 	sizeof(pending_human_p_event::r_lo)
@@ -70,6 +101,15 @@ struct pending_human_f_p_event {
 	dcon::free_provincial_event_id e; //10,2
 	dcon::province_id p; //12,2
 	uint16_t padding = 0;
+
+	bool operator ==(const pending_human_f_p_event& other) const {
+		return date == other.date && e == other.e && p == other.p && r_hi == other.r_hi && r_lo == other.r_lo;
+	}
+	bool operator !=(const pending_human_f_p_event& other) const {
+		return !((*this) == other);
+	}
+
+
 };
 static_assert(sizeof(pending_human_f_p_event) ==
 	sizeof(pending_human_f_p_event::r_lo)

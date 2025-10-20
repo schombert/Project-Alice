@@ -2,8 +2,11 @@
 
 #include "gui_element_types.hpp"
 #include "gui_context_window.hpp"
+#include "gui_province_window.hpp"
+#include "economy_trade_routes.hpp"
 #include "military.hpp"
 #include "ai.hpp"
+#include "labour_details.hpp"
 
 namespace ui {
 
@@ -82,7 +85,7 @@ public:
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
-		show_context_menu(state, { .factory=target.factory });
+		show_context_menu(state, { .province = dcon::province_id{ }, .factory = target.factory });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
@@ -120,7 +123,7 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
-		text::add_line(state, contents, commodity_name);
+		text::add_line(state, contents, "rgo_tile_header", text::variable_type::good, commodity_name);
 		text::add_line_break_to_layout(state, contents);
 
 		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.rgo_commodity);
@@ -182,7 +185,7 @@ public:
 			);
 
 			auto a = state.world.regiment_get_army_from_army_membership(target.regiment);
-			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce(state, a);
+			auto reinf = state.defines.pop_size_per_regiment * military::calculate_army_combined_reinforce<military::reinforcement_estimation_type::monthly>(state, a);
 			if(reinf >= 2.0f) {
 				text::add_line(state, contents, "reinforce_rate", text::variable_type::x, int64_t(reinf));
 			} else {
@@ -203,7 +206,11 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		if(target.province_building == economy::province_building_type::railroad) {
+		auto level = state.world.province_get_building_level(target.province, uint8_t(target.province_building));
+
+		if(target.province_building == economy::province_building_type::railroad && level == 0) {
+			return 21;
+		} else if(target.province_building == economy::province_building_type::railroad && level > 0) {
 			return 8;
 		} else if(target.province_building == economy::province_building_type::naval_base) {
 			return 9;
@@ -215,9 +222,8 @@ public:
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
 
-	// Done
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		text::add_line(state, contents, state.lookup_key(economy::province_building_type_get_name(target.province_building)));
+		province_building_tooltip(state, contents, target.province, target.province_building);
 	}
 };
 
@@ -244,7 +250,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity);
+		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity) / 10000.f;
 		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.potential_commodity),
 			text::variable_type::val, (int)limit);
 	}
@@ -266,7 +272,7 @@ public:
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
-		show_context_menu(state, { .province=target.province });
+		show_context_menu(state, { .province = target.province, .factory = dcon::factory_id { } });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
@@ -295,10 +301,199 @@ public:
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		show_context_menu(state, { .province = dcon::province_id{ }, .fconstruction = target.factory_construction });
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		factory_construction_tooltip(state, contents, target.factory_construction);
+	}
+};
+
+
+class local_administration_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("administration_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 15;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+		auto budget_priority = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f;
+
+		text::add_line(state, contents, "local_admin");
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_priority) });
+
+		auto records = economy::explain_local_administration_employment(state, target.province);
+		for(auto record : records) {
+			text::add_line(state, contents, "admin_employment", text::variable_type::value, text::fp_one_place{ record.actual_employment });
+			text::add_line(state, contents, labour_type_to_employment_type_text_key(record.employment_type), 15);
+			text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ record.target_employment }, 15);
+			text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ record.satisfaction }, 15);
+
+			auto wage = state.world.province_get_labor_price(target.province, record.employment_type);
+			text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+		}
+
+		text::add_line(state, contents, "local_admin_efficiency", text::variable_type::value, text::fp_percentage{ economy::local_administration_efficiency });
+
+		text::add_line_break_to_layout(state, contents);
+
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
+		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_percentage{ info.mid_potential });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_percentage{ info.rich_potential });
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_percentage{ info.poor });
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_percentage{ info.mid });
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_percentage{ info.rich });
+	}
+};
+
+
+class capital_administration_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("administration_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 17;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+		auto budget_priority = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.f;
+
+		text::add_line(state, contents, "capital_admin");
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_priority) });
+
+		text::add_line_break_to_layout(state, contents);
+
+		auto records = economy::explain_capital_administration_employment(state, n);
+		for(auto record : records) {
+			text::add_line(state, contents, "admin_employment", text::variable_type::value, text::fp_one_place{ record.actual_employment });
+			text::add_line(state, contents, labour_type_to_employment_type_text_key(record.employment_type), 15);
+			text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ record.target_employment }, 15);
+			text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ record.satisfaction }, 15);
+
+			auto wage = state.world.province_get_labor_price(target.province, record.employment_type);
+			text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
+		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential }, 15);
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential }, 15);
+	}
+};
+
+class no_administration_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("administration_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 18;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override { }
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+
+		auto info = economy::explain_tax_income_local(state, n, target.province);
+
+		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
+		text::add_line_break_to_layout(state, contents);
+
+
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
+		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential }, 15);
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential }, 15);
+	}
+};
+
+class market_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("market_tile");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 16;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		// send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto n = state.world.province_get_nation_from_province_ownership(target.province);
+
+		text::add_line(state, contents, "trade_center");
+		text::add_line(state, contents, "trade_center_desc");
+
+		text::add_line_break_to_layout(state, contents);
+		economy::make_trade_center_tooltip(state, contents, target.market);
+		text::add_line_break_to_layout(state, contents);
+
+		// TODO: Organize abstract "explain market labour demand" for the two
+		// US3AC2
+		auto external_trade_employment = economy::transportation_between_markets_labor_demand(state, target.market);
+		// US3AC3
+		// Since the tile is rendered only for state capitals, we assume that target.province = market capital
+		auto internal_trade_employment = economy::transportation_inside_market_labor_demand(state, target.market, target.province);
+		auto target_employment = external_trade_employment + internal_trade_employment;
+
+		auto satisfaction = state.world.province_get_labor_demand_satisfaction(target.province, economy::labor::no_education);
+		auto employment = target_employment * satisfaction;
+		text::add_line(state, contents, "trade_center_employment", text::variable_type::value, text::fp_one_place{ employment });
+		text::add_line(state, contents, labour_type_to_employment_type_text_key(economy::labor::no_education), 15);
+		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
+		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
+
+		auto wage = (state.world.province_get_labor_price(target.province, economy::labor::no_education) + 0.00001f);
+		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 	}
 };
 

@@ -38,6 +38,13 @@ void populate_production_states_list(sys::state& state, std::vector<dcon::provin
 				text::produce_simple_string(state, state.world.province_get_name(b));
 		return a_name < b_name;
 	};
+	auto sort_by_state_name = [&](dcon::province_id a, dcon::province_id b) {
+		auto a_name =
+			text::get_province_state_name(state, a);
+		auto b_name =
+			text::get_province_state_name(state, b);
+		return a_name < b_name;
+		};
 	auto sort_by_factories = [&](dcon::province_id a, dcon::province_id b) {
 		auto acount = economy::province_factory_count(state, a);
 		auto bcount = economy::province_factory_count(state, b);
@@ -98,7 +105,11 @@ void populate_production_states_list(sys::state& state, std::vector<dcon::provin
 	case production_sort_order::infrastructure:
 		std::sort(row_contents.begin(), row_contents.end(), sort_by_infrastructure);
 		break;
+	case production_sort_order::state_name:
+		std::sort(row_contents.begin(), row_contents.end(), sort_by_state_name);
+		break;
 	}
+	
 }
 
 void open_foreign_investment(sys::state& state, dcon::nation_id n) {
@@ -124,6 +135,14 @@ void open_build_foreign_factory(sys::state& state, dcon::province_id st) {
 			open_investment_nation{state.world.province_get_nation_from_province_ownership(st)});
 
 	send(state, state.ui_state.production_subwindow, production_selection_wrapper{st, true, xy_pair{0, 0}});
+}
+
+void open_build_factory(sys::state& state, dcon::province_id pid) {
+	const dcon::state_instance_id sid = state.world.province_get_state_membership(pid);
+
+	state.ui_state.build_new_factory_subwindow->set_visible(state, true);
+	state.ui_state.root->move_child_to_front(state.ui_state.build_new_factory_subwindow);
+	send(state, state.ui_state.build_new_factory_subwindow, production_selection_wrapper{ pid, true, xy_pair{0, 0} });
 }
 
 } // namespace ui

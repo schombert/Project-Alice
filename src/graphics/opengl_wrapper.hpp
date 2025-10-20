@@ -1,4 +1,5 @@
 #pragma once
+#include <numbers>
 
 #include <string>
 #include <string_view>
@@ -47,6 +48,9 @@ inline constexpr GLuint alpha_color = 20;
 inline constexpr GLuint subsprite_c = 21;
 inline constexpr GLuint linegraph_acolor = 22;
 inline constexpr GLuint stripchart = 23;
+inline constexpr GLuint triangle_strip = 24;
+inline constexpr GLuint border_repeat = 25;
+inline constexpr GLuint corner_repeat = 26;
 } // namespace parameters
 
 enum class color_modification { none, disabled, interactable, interactable_disabled };
@@ -243,8 +247,10 @@ struct data {
 
 	GLuint money_icon_tex = 0;
 	GLuint cross_icon_tex = 0;
+	GLuint cross_desaturated_icon_tex = 0;
 	GLuint color_blind_cross_icon_tex = 0;
 	GLuint checkmark_icon_tex = 0;
+	GLuint checkmark_desaturated_icon_tex = 0;
 	GLuint navy_icon_tex = 0;
 	GLuint army_icon_tex = 0;
 
@@ -309,6 +315,40 @@ public:
 	void bind_buffer();
 };
 
+class generic_ui_mesh_triangle_strip {
+private:
+	float* buffer = nullptr;
+	GLuint buffer_handle = 0;
+	bool pending_data_update = true;
+
+public:
+	uint32_t count = 0;
+
+	generic_ui_mesh_triangle_strip(uint32_t c) : count(c) {
+		buffer = new float[count * 4];
+		set_default();
+	}
+	generic_ui_mesh_triangle_strip(generic_ui_mesh_triangle_strip&& o) noexcept
+		: buffer(o.buffer), buffer_handle(o.buffer_handle), pending_data_update(o.pending_data_update), count(o.count) {
+		o.buffer = nullptr;
+	}
+	generic_ui_mesh_triangle_strip& operator=(generic_ui_mesh_triangle_strip&& o) noexcept {
+		count = o.count;
+		buffer = o.buffer;
+		buffer_handle = o.buffer_handle;
+		pending_data_update = o.pending_data_update;
+
+		o.buffer = nullptr;
+		return *this;
+	}
+	~generic_ui_mesh_triangle_strip() {
+		delete[] buffer;
+	}
+	void set_default();
+	void set_coords(float* v);
+	void bind_buffer();
+};
+
 std::string_view framebuffer_error(GLenum e);
 
 void render_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, ui::rotation r, bool flipped, bool rtl);
@@ -322,9 +362,21 @@ void render_linegraph(sys::state const& state, color_modification enabled, float
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, float a, lines& l);
 void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		data_texture& t, ui::rotation r, bool flipped, bool rtl);
+void render_ui_mesh(
+	sys::state const& state,
+	color_modification enabled,
+	float x, float y,
+	float width, float height,
+	generic_ui_mesh_triangle_strip& mesh,
+	data_texture& t
+);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t);
 void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_border(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
+		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_corner(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
 		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
 		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);
@@ -368,6 +420,16 @@ GLuint make_gl_texture(simple_fs::directory const& dir, native_string_view file_
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap);
 void set_gltex_parameters(GLuint texture_handle, GLuint texture_type, GLuint filter, GLuint wrap_a, GLuint wrap_b);
 GLuint load_texture_array_from_file(simple_fs::file& file, int32_t tiles_x, int32_t tiles_y);
+
+struct scissor_box {
+	const int32_t x;
+	const int32_t y;
+	const int32_t w;
+	const int32_t h;
+
+	scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t w, int32_t h);
+	~scissor_box();
+};
 
 class animation;
 

@@ -27,6 +27,12 @@ void ve_for_each_land_province(sys::state& state, F const& func) {
 }
 
 template<typename F>
+void ve_parallel_for_each_land_province(sys::state& state, F const& func) {
+	int32_t last = state.province_definitions.first_sea_province.index();
+	ve::execute_parallel<dcon::province_id>(uint32_t(last), func);
+}
+
+template<typename F>
 void for_each_sea_province(sys::state& state, F const& func) {
 	int32_t first = state.province_definitions.first_sea_province.index();
 	for(int32_t i = first; i < int32_t(state.world.province_size()); ++i) {
@@ -45,4 +51,13 @@ void for_each_province_in_state_instance(sys::state& state, dcon::state_instance
 		}
 	}
 }
+
+template<typename F>
+void for_each_province_building(sys::state& state, F const& function) {
+	for(auto t = economy::province_building_type::railroad; t != economy::province_building_type::last; t = economy::province_building_type(uint8_t(t) + 1)) {
+		function(t);
+	}
+}
+
+
 } // namespace province

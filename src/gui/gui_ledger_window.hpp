@@ -81,11 +81,16 @@ public:
 		send(state, parent, current_sort);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return std::holds_alternative<dcon::pop_type_id>(type) ? tooltip_behavior::tooltip : tooltip_behavior::no_tooltip;
+		return tooltip_behavior::tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept override {
-		if(std::holds_alternative<dcon::pop_type_id>(type))
+		if(std::holds_alternative<dcon::pop_type_id>(type)) {
 			text::add_line(state, contents, state.world.pop_type_get_name(std::get<dcon::pop_type_id>(type)));
+		}
+		else {
+			// Text on ledger column heads often doesn't fit entirely
+			text::add_line(state, contents, cached_text);
+		}
 	}
 };
 
@@ -356,18 +361,18 @@ public:
 					float b_population = state.world.nation_get_demographics(b, demographics::total);
 
 					if(lsort.reversed) {
-						return economy::gdp_adjusted(state, a) / a_population < economy::gdp_adjusted(state, b) / b_population;
+						return economy::gdp::value_nation_adjusted(state, a) / a_population < economy::gdp::value_nation_adjusted(state, b) / b_population;
 					} else {
-						return economy::gdp_adjusted(state, a) / a_population > economy::gdp_adjusted(state, b) / b_population;
+						return economy::gdp::value_nation_adjusted(state, a) / a_population > economy::gdp::value_nation_adjusted(state, b) / b_population;
 					}
 				});
 				break;
 			case ledger_sort_type::gdp:	
 				std::sort(row_contents.begin(), row_contents.end(), [&](dcon::nation_id a, dcon::nation_id b) {
 					if(lsort.reversed) {
-						return economy::gdp_adjusted(state, a) < economy::gdp_adjusted(state, b);
+						return economy::gdp::value_nation_adjusted(state, a) < economy::gdp::value_nation_adjusted(state, b);
 					} else {
-						return economy::gdp_adjusted(state, a) > economy::gdp_adjusted(state, b);
+						return economy::gdp::value_nation_adjusted(state, a) > economy::gdp::value_nation_adjusted(state, b);
 					}
 				});
 				break;

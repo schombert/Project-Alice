@@ -139,6 +139,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.world_circumference);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
@@ -299,6 +300,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
 	ptr_in = deserialize(ptr_in, state.key_data);
 	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
+	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
 	{ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
@@ -321,6 +323,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
+		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.world_circumference);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
@@ -481,6 +484,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.value_modifiers);
 	ptr_in = serialize(ptr_in, state.key_data);
 	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
+	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 
 	{ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
@@ -503,6 +507,7 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
+		sz += sizeof(state.map_state.map_data.world_circumference);
 		sz += serialize_size(state.map_state.map_data.river_vertices);
 		sz += serialize_size(state.map_state.map_data.river_starts);
 		sz += serialize_size(state.map_state.map_data.river_counts);
@@ -657,6 +662,7 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.value_modifiers);
 	sz += serialize_size(state.key_data);
 	sz += serialize_size(state.untrans_key_to_text_sequence);
+	sz += sizeof(state.hardcoded_gamerules);
 
 	{ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
@@ -684,6 +690,8 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis_state);
 	ptr_in = deserialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_attacker);
+	ptr_in = memcpy_deserialize(ptr_in, state.crisis_defender);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_deserialize(ptr_in, state.primary_crisis_defender);
 	ptr_in = memcpy_deserialize(ptr_in, state.crisis_state_instance);
@@ -699,7 +707,7 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
-	ptr_in = memcpy_deserialize(ptr_in, state.player_data_cache);
+	ptr_in = deserialize(ptr_in, state.player_data_cache);
 	ptr_in = deserialize(ptr_in, state.future_n_event);
 	ptr_in = deserialize(ptr_in, state.future_p_event);
 
@@ -737,6 +745,8 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.current_crisis_state);
 	ptr_in = serialize(ptr_in, state.crisis_participants);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_temperature);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_attacker);
+	ptr_in = memcpy_serialize(ptr_in, state.crisis_defender);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_attacker);
 	ptr_in = memcpy_serialize(ptr_in, state.primary_crisis_defender);
 	ptr_in = memcpy_serialize(ptr_in, state.crisis_state_instance);
@@ -752,7 +762,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
-	ptr_in = memcpy_serialize(ptr_in, state.player_data_cache);
+	ptr_in = serialize(ptr_in, state.player_data_cache);
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
 
@@ -784,6 +794,8 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += sizeof(state.current_crisis_state);
 	sz += serialize_size(state.crisis_participants);
 	sz += sizeof(state.crisis_temperature);
+	sz += sizeof(state.crisis_attacker);
+	sz += sizeof(state.crisis_defender);
 	sz += sizeof(state.primary_crisis_attacker);
 	sz += sizeof(state.primary_crisis_defender);
 	sz += sizeof(state.crisis_state_instance);
@@ -799,7 +811,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
 	sz += sizeof(state.pending_messages);
-	sz += sizeof(state.player_data_cache);
+	sz += serialize_size(state.player_data_cache);
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
 
@@ -817,6 +829,53 @@ size_t sizeof_save_section(sys::state& state) {
 
 	return sz;
 }
+
+
+size_t sizeof_mp_data(sys::state& state) {
+	size_t sz = 0;
+
+	// data container contribution
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_data();
+	sz += state.world.serialize_size(loaded);
+
+	return sz;
+}
+
+
+uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state) {
+
+	// data container contribution
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_data();
+	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	state.world.serialize(start, loaded);
+
+	return reinterpret_cast<uint8_t*>(start);
+}
+
+uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+	dcon::load_record loaded;
+	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	
+	return section_end;
+}
+
+
+
+
+
+
+
+void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record) {
+
+	uint8_t* write_ptr = reinterpret_cast<uint8_t*>(&affected_record);
+	const uint8_t* read_ptr = reinterpret_cast<const uint8_t*>(&other_record);
+	for(uint32_t i = 0; i < sizeof(dcon::load_record); i++) {
+		write_ptr[i] = write_ptr[i] | read_ptr[i];
+	}
+
+}
+
 
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count) {
 	scenario_header header;
@@ -939,6 +998,11 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 		state.on_scenario_load();
 
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
 		return true;
 	} else {
 		return false;
@@ -982,6 +1046,13 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 
 		state.game_seed = uint32_t(std::random_device()());
 
+
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
+
 		return true;
 	} else {
 		return false;
@@ -996,7 +1067,7 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-void write_save_file(sys::state& state, save_type type, std::string const& name) {
+void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
 	//header.timestamp = state.scenario_time_stamp;
@@ -1042,9 +1113,15 @@ void write_save_file(sys::state& state, save_type type, std::string const& name)
 		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
-		auto ymd_date = state.current_date.to_ymd(state.start_date);
-		auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		if(!file_name.empty()) {
+			auto base_str = file_name + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
+		else {
+			auto ymd_date = state.current_date.to_ymd(state.start_date);
+			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		}
 	}
 	delete[] temp_buffer;
 

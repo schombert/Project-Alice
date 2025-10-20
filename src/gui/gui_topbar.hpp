@@ -6,7 +6,6 @@
 #include "gui_diplomacy_window.hpp"
 #include "gui_technology_window.hpp"
 #include "gui_politics_window.hpp"
-#include "gui_trade_window.hpp"
 #include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
@@ -166,11 +165,14 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		std::vector<float> datapoints(size_t(32));
-		for(size_t i = 0; i < state.player_data_cache.treasury_record.size(); ++i)
-			datapoints[i] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + i) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + i) % 32];
-		datapoints[datapoints.size() - 1] = state.player_data_cache.treasury_record[(state.ui_date.value + 1 + 31) % 32] - state.player_data_cache.treasury_record[(state.ui_date.value + 0 + 31) % 32];
-		datapoints[0] = datapoints[1]; // otherwise you will store the difference between two non-consecutive days here
-		set_data_points(state, datapoints);
+
+		if(auto* cache = state.find_player_data_cache(state.local_player_nation)) {
+			for(size_t i = 0; i < (*cache).treasury_record.size(); ++i)
+				datapoints[i] = (*cache).treasury_record[(state.ui_date.value + 1 + i) % 32] - (*cache).treasury_record[(state.ui_date.value + 0 + i) % 32];
+			datapoints[datapoints.size() - 1] = (*cache).treasury_record[(state.ui_date.value + 1 + 31) % 32] - (*cache).treasury_record[(state.ui_date.value + 0 + 31) % 32];
+			datapoints[0] = datapoints[1]; // otherwise you will store the difference between two non-consecutive days here
+			set_data_points(state, datapoints);
+		}
 	}
 };
 
@@ -184,9 +186,8 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
-		auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
-		set_text(state, text::format_percentage(literacy / total_pop, 1));
+		auto literacy = nations::get_avg_non_colonial_literacy(state, n);
+		set_text(state, text::format_percentage(literacy, 1));
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -199,10 +200,16 @@ public:
 		auto box = text::open_layout_box(contents, 0);
 		text::substitution_map sub;
 		auto literacy_change = demographics::get_estimated_literacy_change(state, nation_id);
-		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_four_places{literacy_change});
-		auto total = state.world.nation_get_demographics(nation_id, demographics::total);
-		auto avg_literacy = text::format_percentage(total != 0.f ? (state.world.nation_get_demographics(nation_id, demographics::literacy) / total) : 0.f, 1);
-		text::add_to_substitution_map(sub, text::variable_type::avg, std::string_view(avg_literacy));
+		text::add_to_substitution_map(sub, text::variable_type::val, text::fp_percentage_two_places{literacy_change});
+		auto avg_non_colonial_literacy = nations::get_avg_non_colonial_literacy(state, nation_id);
+		text::add_to_substitution_map(sub, text::variable_type::x, text::fp_percentage_one_place{avg_non_colonial_literacy });
+
+		auto avg_literacy = nations::get_avg_total_literacy(state, nation_id);
+		text::add_to_substitution_map(sub, text::variable_type::avg, text::fp_percentage_one_place{ avg_literacy });
+
+		text::localised_format_box(state, contents, box, std::string_view("alice_topbar_avg_literacy_in_states"), sub);
+		text::add_line_break_to_layout_box(state, contents, box);
+
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_literacy"), sub);
 		text::add_line_break_to_layout_box(state, contents, box);
 		text::localised_format_box(state, contents, box, std::string_view("topbar_avg_change"), sub);
@@ -247,26 +254,28 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto total_pop = state.world.nation_get_demographics(n, demographics::total);
 
-		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
-		auto pop_change = state.ui_date.value <= 32
-			? (state.ui_date.value <= 2 ? 0.0f : pop_amount - state.player_data_cache.population_record[2])
-			: (pop_amount - state.player_data_cache.population_record[(state.ui_date.value - 30) % 32]);
+		if(auto* cache = state.find_player_data_cache(state.local_player_nation)) {
+			auto pop_amount = (*cache).population_record[state.ui_date.value % 32];
+			auto pop_change = state.ui_date.value <= 32
+				? (state.ui_date.value <= 2 ? 0.0f : pop_amount - (*cache).population_record[2])
+				: (pop_amount - (*cache).population_record[(state.ui_date.value - 30) % 32]);
 
-		text::text_color color = pop_change < 0 ?  text::text_color::red : text::text_color::green;
-		if(pop_change == 0)
-			color = text::text_color::white;
+			text::text_color color = pop_change < 0 ? text::text_color::red : text::text_color::green;
+			if(pop_change == 0)
+				color = text::text_color::white;
 
-		auto layout = text::create_endless_layout(state, internal_layout,
-		text::layout_parameters{0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false});
-		auto box = text::open_layout_box(layout, 0);
-		text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
-		text::add_to_layout_box(state, layout, box, std::string(" ("));
-		if(pop_change > 0) {
-			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+			auto layout = text::create_endless_layout(state, internal_layout,
+			text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::left, text::text_color::black, false });
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(state, layout, box, text::prettify(int32_t(total_pop)));
+			text::add_to_layout_box(state, layout, box, std::string(" ("));
+			if(pop_change > 0) {
+				text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+			}
+			text::add_to_layout_box(state, layout, box, text::pretty_integer{ int64_t(pop_change) }, color);
+			text::add_to_layout_box(state, layout, box, std::string(")"));
+			text::close_layout_box(layout, box);
 		}
-		text::add_to_layout_box(state, layout, box, text::pretty_integer{int64_t(pop_change)}, color);
-		text::add_to_layout_box(state, layout, box, std::string(")"));
-		text::close_layout_box(layout, box);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
@@ -275,15 +284,17 @@ public:
 
 		auto nation_id = retrieve<dcon::nation_id>(state, parent);
 
-		auto pop_amount = state.player_data_cache.population_record[state.ui_date.value % 32];
-		auto pop_change = state.ui_date.value <= 30 ? 0.0f : (pop_amount - state.player_data_cache.population_record[(state.ui_date.value - 30) % 32]);
+		if(auto* cache = state.find_player_data_cache(state.local_player_nation)) {
+			auto pop_amount = (*cache).population_record[state.ui_date.value % 32];
+			auto pop_change = state.ui_date.value <= 30 ? 0.0f : (pop_amount - (*cache).population_record[(state.ui_date.value - 30) % 32]);
 
-		text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
-		text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
-		text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
-		text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
+			text::add_line(state, contents, "pop_growth_topbar_3", text::variable_type::curr, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total)) });
+			text::add_line(state, contents, "pop_growth_topbar_2", text::variable_type::x, text::pretty_integer{ int64_t(pop_change) });
+			text::add_line(state, contents, "pop_growth_topbar", text::variable_type::x, text::pretty_integer{ int64_t(nations::get_monthly_pop_increase_of_nation(state, nation_id)) });
+			text::add_line(state, contents, "pop_growth_topbar_4", text::variable_type::val, text::pretty_integer{ int64_t(state.world.nation_get_demographics(nation_id, demographics::total) * 4) });
 
-		text::add_line_break_to_layout(state, contents);
+			text::add_line_break_to_layout(state, contents);
+		}
 
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::pop_growth, true);
 	}
@@ -299,23 +310,25 @@ public:
 		text::layout_parameters{ 0, 0, int16_t(base_data.size.x), int16_t(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::black, false });
 		auto box = text::open_layout_box(layout, 0);
 
-		auto current_day_record = state.player_data_cache.treasury_record[state.ui_date.value % 32];
-		auto previous_day_record = state.player_data_cache.treasury_record[(state.ui_date.value + 31) % 32];
-		auto change = current_day_record - previous_day_record;
+		if(auto* cache = state.find_player_data_cache(state.local_player_nation)) {
+			auto current_day_record = (*cache).treasury_record[state.ui_date.value % 32];
+			auto previous_day_record = (*cache).treasury_record[(state.ui_date.value + 31) % 32];
+			auto change = current_day_record - previous_day_record;
 
-		text::add_to_layout_box(state, layout, box, text::prettify_currency(nations::get_treasury(state, n)));
-		text::add_to_layout_box(state, layout, box, std::string(" ("));
-		if(change > 0) {
-			text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
-			text::add_to_layout_box(state, layout, box, text::prettify_currency( change ), text::text_color::green);
-		} else if(change == 0) {
-			text::add_to_layout_box(state, layout, box, text::prettify_currency( change ), text::text_color::white);
-		} else {
-			text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::red);
+			text::add_to_layout_box(state, layout, box, text::prettify_currency(nations::get_treasury(state, n)));
+			text::add_to_layout_box(state, layout, box, std::string(" ("));
+			if(change > 0) {
+				text::add_to_layout_box(state, layout, box, std::string("+"), text::text_color::green);
+				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::green);
+			} else if(change == 0) {
+				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::white);
+			} else {
+				text::add_to_layout_box(state, layout, box, text::prettify_currency(change), text::text_color::red);
+			}
+			text::add_to_layout_box(state, layout, box, std::string(")"));
 		}
-		text::add_to_layout_box(state, layout, box, std::string(")"));
-
 		text::close_layout_box(layout, box);
+
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -469,7 +482,7 @@ public:
 				}
 			}
 		}
-		
+
 		text::add_line_break_to_layout(state, contents);
 		{
 			text::substitution_map sub{};
@@ -984,11 +997,8 @@ public:
 				}
 				text::substitution_map sub{};
 
-				auto mppl = dcon::fatten(state.world, network::find_country_player(state, pl.playing_as));
-				auto pln = sys::player_name{ mppl.get_nickname() };
-
-				text::add_to_substitution_map(sub, text::variable_type::name, pln.to_string_view());
-				text::add_to_substitution_map(sub, text::variable_type::country, pl.playing_as);
+				text::add_to_substitution_map(sub, text::variable_type::name, pl.hshake_buffer.nickname.to_string_view());
+				text::add_to_substitution_map(sub, text::variable_type::country, state.world.mp_player_get_nation_from_player_nation(pl.player_id));
 				text::add_to_substitution_map(sub, text::variable_type::date, pl.last_seen);
 
 				auto box = text::open_layout_box(contents);
@@ -1717,7 +1727,7 @@ public:
 			}
 			if(auto prov = provinces[index]; prov && prov.value < state.province_definitions.first_sea_province.value) {
 				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-				state.map_state.set_selected_province(prov);
+				state.set_selected_province(prov);
 				static_cast<ui::province_view_window*>(state.ui_state.province_window)->set_active_province(state, prov);
 				if(state.map_state.get_zoom() < map::zoom_very_close)
 					state.map_state.zoom = map::zoom_very_close;
@@ -2078,8 +2088,11 @@ public:
 
 		auto bg_pic = make_element_by_type<background_image>(state, "bg_main_menus");
 		background_pic = bg_pic.get();
-		background_pic->base_data.position.y -= 1;
-		add_child_to_back(std::move(bg_pic));
+		// Some mods might remove the background image
+		if(background_pic) {
+			background_pic->base_data.position.y -= 1;
+			add_child_to_back(std::move(bg_pic));
+		}
 
 		auto dpi_win = make_element_by_type<ui::diplomatic_message_topbar_listbox>(state, "alice_diplomessageicons_window");
 		state.ui_state.request_topbar_listbox = dpi_win.get();
@@ -2147,7 +2160,9 @@ public:
 		} else if(name == "topbarbutton_trade") {
 			auto btn = make_element_by_type<topbar_trade_tab_button>(state, id);
 
-			auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
+			//auto tab = make_element_by_type<trade_window>(state, "alice_country_trade");
+			auto tab = alice_ui::make_trade_dashboard_main(state);
+			tab->set_visible(state, false);
 			btn->topbar_subwindow = tab.get();
 
 			state.ui_state.trade_subwindow = tab.get();
@@ -2390,10 +2405,12 @@ public:
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
-		if(state.ui_state.topbar_subwindow->is_visible()) {
-			background_pic->set_visible(state, true);
-		} else {
-			background_pic->set_visible(state, false);
+		if(background_pic) {
+			if(state.ui_state.topbar_subwindow->is_visible()) {
+				background_pic->set_visible(state, true);
+			} else {
+				background_pic->set_visible(state, false);
+			}
 		}
 		window_element_base::render(state, x, y);
 	}

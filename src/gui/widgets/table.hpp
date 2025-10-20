@@ -144,6 +144,62 @@ public:
 		return ui::tooltip_behavior::tooltip;
 	}
 
+	void on_reset_text(sys::state& state) noexcept override {
+		cached_text = text::produce_simple_string(state, name);
+		auto font_id = text::make_font_id(state, true, base_data.size.y);
+		base_data.data.button.font_handle = font_id;
+
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+		text::single_line_layout sl{
+			internal_layout,
+			text::layout_parameters{
+				0,
+				0,
+				static_cast<int16_t>(base_data.size.x),
+				static_cast<int16_t>(base_data.size.y),
+				font_id,
+				0,
+				text::alignment::center,
+				black_text ? text::text_color::black : text::text_color::white,
+				true,
+				true
+			}, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+			? text::layout_base::rtl_status::rtl
+			: text::layout_base::rtl_status::ltr
+		};
+		sl.add_text(state, cached_text);
+	};
+
+	void set_button_text(sys::state& state, std::string const& new_text) {
+		if(new_text != cached_text) {
+			cached_text = new_text;
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+			auto font_id = text::make_font_id(state, true, base_data.size.y);
+			base_data.data.button.font_handle = font_id;
+
+			text::single_line_layout sl{
+				internal_layout,
+				text::layout_parameters{
+					0,
+					0,
+					static_cast<int16_t>(base_data.size.x),
+					static_cast<int16_t>(base_data.size.y),
+					font_id,
+					0,
+					text::alignment::center,
+					black_text ? text::text_color::black : text::text_color::white,
+					true,
+					true
+				}, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+				? text::layout_base::rtl_status::rtl
+				: text::layout_base::rtl_status::ltr
+			};
+			sl.add_text(state, cached_text);
+		}
+	}
+
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		text::localised_format_box(state, contents, box, std::string_view(name));
@@ -194,6 +250,92 @@ public:
 	entry(uint8_t in_row, uint8_t in_column) {
 		row = in_row;
 		column = in_column;
+	}
+
+	void on_reset_text(sys::state& state) noexcept override {
+		auto font_id = text::make_font_id(state, false, base_data.size.y);
+		base_data.data.button.font_handle = font_id;
+		table_signal<item_type> signal{ };
+		signal.column = column;
+		signal.row = row;
+		auto response = send_and_retrieve<table_signal<item_type>>(state, parent, signal);
+		cached_text = response.text_to_set;
+
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+
+		text::alignment align = text::alignment::left;
+		switch(base_data.data.text.get_alignment()) {
+			case ui::alignment::right:
+				align = text::alignment::right;
+				break;
+			case ui::alignment::centered:
+				align = text::alignment::center;
+				break;
+			default:
+				break;
+		}
+
+		text::single_line_layout sl{
+			internal_layout,
+			text::layout_parameters{
+				0,
+				0,
+				static_cast<int16_t>(base_data.size.x),
+				static_cast<int16_t>(base_data.size.y),
+				font_id,
+				0,
+				align,
+				black_text ? text::text_color::black : text::text_color::white,
+				true,
+				true
+			}, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+			? text::layout_base::rtl_status::rtl
+			: text::layout_base::rtl_status::ltr
+		};
+		sl.add_text(state, cached_text);
+	};
+
+	void set_button_text(sys::state& state, std::string const& new_text) {
+		if(new_text != cached_text) {
+			auto font_id = text::make_font_id(state, false, base_data.size.y);
+			base_data.data.button.font_handle = font_id;
+
+			cached_text = new_text;
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+
+			text::alignment align = text::alignment::left;
+			switch(base_data.data.text.get_alignment()) {
+				case ui::alignment::right:
+					align = text::alignment::right;
+					break;
+				case ui::alignment::centered:
+					align = text::alignment::center;
+					break;
+				default:
+					break;
+			}
+
+			text::single_line_layout sl{
+				internal_layout,
+				text::layout_parameters{
+					0,
+					0,
+					static_cast<int16_t>(base_data.size.x),
+					static_cast<int16_t>(base_data.size.y),
+					font_id,
+					0,
+					align,
+					black_text ? text::text_color::black : text::text_color::white,
+					true,
+					true
+				}, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())
+				? text::layout_base::rtl_status::rtl
+				: text::layout_base::rtl_status::ltr
+			};
+			sl.add_text(state, cached_text);
+		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -359,6 +501,14 @@ public:
 		row_callback = [](sys::state& state, ui::element_base* container, const item_type& a) {
 			return;
 		};
+	}
+
+	//template<typename item_type>
+	void impl_on_reset_text(sys::state& state) noexcept override {
+		window_element_base::impl_on_reset_text(state);
+		if(table_body != nullptr) {
+			table_body->impl_on_reset_text(state);
+		}
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

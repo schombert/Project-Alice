@@ -27,6 +27,11 @@ spriteTypes = {
 		noOfFrames = 5
 	}
 	spriteType = {
+		name = "GFX_alice_map_general"
+		texturefile = "assets\\map_general.png"
+		noOfFrames = 8
+	}
+	spriteType = {
 		name = "GFX_alice_small_unit_frames"
 		texturefile = "assets\\small_uframes.png"
 		noOfFrames = 5
@@ -470,9 +475,30 @@ spriteTypes = {
 	}
 
 	spriteType = {
+		name = "GFX_alice_sun"
+		texturefile = "assets\\sun-button.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_alice_sun_pause"
+		texturefile = "assets\\sun-pause-button.png"
+		noOfFrames = 2
+	}
+	spriteType = {
+		name = "GFX_alice_economy_scene_button"
+		texturefile = "assets\\economy-scene-button.png"
+	}
+
+	spriteType = {
 		name = "GFX_move_capital"
 		texturefile = "assets\\move_cap.png"
 	}
+	
+	spriteType = {
+		name = "GFX_local_admin"
+		texturefile = "assets\\local_admin.png"
+	}
+	
 	spriteType = {
 		name = "GFX_take_province"
 		texturefile = "assets\\take_away_province_btn.png"
@@ -537,6 +563,12 @@ spriteTypes = {
         name = "button-40-40-tower"
         texturefile = "assets\\button-40-40-tower.png"
         noOfFrames = 2
+    }
+
+	spriteType = {
+        name = "army_orders_strip"
+        texturefile = "assets\\army_orders_strip.png"
+        noOfFrames = 8
     }
 
     spriteType = {
@@ -636,6 +668,6 @@ spriteTypes = {
 	spriteType = {
         name = "provincetiles"
         texturefile = "assets\\provincetiles.png"
-        noOfFrames = 15
+        noOfFrames = 22
 	}
 }

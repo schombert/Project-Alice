@@ -772,6 +772,9 @@ struct fp_percentage {
 struct fp_percentage_one_place {
 	float value = 0.0f;
 };
+struct fp_percentage_two_places {
+	float value = 0.0f;
+};
 struct int_percentage {
 	int32_t value = 0;
 };
@@ -779,7 +782,7 @@ struct int_wholenum {
 	int32_t value = 0;
 };
 enum class embedded_icon : uint8_t {
-	check, xmark, army, navy
+	check, xmark, check_desaturated, xmark_desaturated, army, navy
 };
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
@@ -792,7 +795,7 @@ struct embedded_flag {
 };
 using substitution = std::variant<std::string_view, dcon::text_key, dcon::province_id, dcon::state_instance_id, dcon::nation_id,
 		dcon::national_identity_id, int64_t, fp_one_place, sys::date, std::monostate, fp_two_places, fp_three_places, fp_four_places,
-		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, int_percentage, int_wholenum,
+		fp_currency, pretty_integer, fp_percentage, fp_percentage_one_place, fp_percentage_two_places, int_percentage, int_wholenum,
 		dcon::state_definition_id, embedded_icon, embedded_flag, embedded_unit_icon, embedded_commodity_icon>;
 using substitution_map = ankerl::unordered_dense::map<uint32_t, substitution>;
 
@@ -840,6 +843,7 @@ struct layout_base {
 	layout& base_layout;
 	layout_parameters fixed_parameters;
 	rtl_status native_rtl = rtl_status::ltr;
+	layout_details* edit_details = nullptr;
 
 	layout_base(layout& base_layout, layout_parameters const& fixed_parameters, rtl_status native_rtl)
 			: base_layout(base_layout), fixed_parameters(fixed_parameters), native_rtl(native_rtl) {
@@ -899,6 +903,7 @@ struct single_line_layout : public layout_base {
 	}
 
 	void add_text(sys::state& state, std::string_view v);
+	void add_text(sys::state& state, std::u16string_view v);
 	void add_text(sys::state& state, dcon::text_key source_text);
 };
 
@@ -948,6 +953,7 @@ std::string date_to_string(sys::state& state, sys::date date);
 
 std::string prettify(int64_t num);
 std::string prettify_currency(float num);
+std::string prettify_float(float num);
 std::string format_money(float num);
 std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
@@ -981,6 +987,9 @@ inline std::string get_name_as_string(sys::state& state, dcon::nation_fat_id n) 
 inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_id n) {
 	return text::produce_simple_string(state, get_adjective(state, n));
 }
+
+std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid);
+std::string get_commodity_text_icon(sys::state& state, dcon::commodity_id cid);
 
 void localised_format_box(sys::state& state, layout_base& dest, layout_box& box, std::string_view key,
 		substitution_map const& sub = substitution_map{});

@@ -131,6 +131,8 @@
 	LUA_DEFINES_LIST_ELEMENT(pop_size_per_regiment, 3000.000000)                                                                   \
 	LUA_DEFINES_LIST_ELEMENT(soldier_to_pop_damage, 0.200000)                                                                      \
 	LUA_DEFINES_LIST_ELEMENT(land_speed_modifier, 1.000000)                                                                        \
+	LUA_DEFINES_LIST_ELEMENT(strategic_redeployment_speed_modifier, 1.300000)                                                      \
+	LUA_DEFINES_LIST_ELEMENT(strategic_redeployment_infrastructure_factor, 1.00000)                                                \
 	LUA_DEFINES_LIST_ELEMENT(naval_speed_modifier, 2.000000)                                                                       \
 	LUA_DEFINES_LIST_ELEMENT(exp_gain_div, 0.050000)                                                                               \
 	LUA_DEFINES_LIST_ELEMENT(leader_recruit_cost, 20.000000)                                                                       \
@@ -681,7 +683,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 2.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 5000.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 2.00) \
+	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 5.00) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.01) \
 	LUA_DEFINES_LIST_ELEMENT(alice_output_base_factor_artisans, 0.99) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor, 1.0) \
@@ -749,6 +751,24 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_enemy_stacking_target_select_bonus, 0.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_naval_combat_stacking_damage_penalty, 0.5) \
 	LUA_DEFINES_LIST_ELEMENT(alice_globe_mean_radius_km, 6371.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_max_starvation_degrowth, 0.0012) \
+	LUA_DEFINES_LIST_ELEMENT(alice_army_sea_transport_attrition, 2.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_attrition_per_level, 0.35) \
+	LUA_DEFINES_LIST_ELEMENT(alice_attrition_war_exhaustion, 1.5) \
+	LUA_DEFINES_LIST_ELEMENT(alice_army_marching_hours_per_day, 5.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_navy_sailing_hours_per_day, 20.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fort_siege_slowdown, 0.75) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rebel_reduction_after_reoccupation, 7.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_can_add_constructable_cbs_as_wargoals, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_admin_spending_trigger_div, 2.25) \
+	LUA_DEFINES_LIST_ELEMENT(alice_education_spending_trigger_div, 2.25) \
+	LUA_DEFINES_LIST_ELEMENT(alice_military_spending_trigger_div, 1.35) \
+	LUA_DEFINES_LIST_ELEMENT(alice_social_spending_trigger_div, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_partial_retreat_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fog_of_war_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_auto_concession_peace_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_render_on_map_generals, 0.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

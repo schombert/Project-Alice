@@ -98,9 +98,6 @@ void make_unit(std::string_view name, token_generator& gen, error_handler& err, 
 
 	context.map_of_unit_types.insert_or_assign(std::string(name), new_id);
 
-	if(name == "infantry") {
-		context.state.military_definitions.infantry = new_id;
-	}
 	if(context.state.military_definitions.unit_base_definitions.back().active
 		&& context.state.military_definitions.unit_base_definitions.back().primary_culture == false
 		&& context.state.military_definitions.unit_base_definitions.back().type == military::unit_type::infantry) {
@@ -161,8 +158,19 @@ dcon::effect_key cb_on_po_accepted(token_generator& gen, error_handler& err, ind
 
 void make_oob_army(token_generator& gen, error_handler& err, oob_file_context& context) {
 	auto id = context.outer_context.state.world.create_army();
-	context.outer_context.state.world.force_create_army_control(id, context.nation_for);
-	oob_file_army_context new_context{context.outer_context, id, context.nation_for};
+	auto rebel_nid = context.outer_context.state.national_definitions.rebel_id;
+	auto rebel_nation = context.outer_context.state.world.national_identity_get_nation_from_identity_holder(rebel_nid);
+	dcon::nation_id army_controller;
+	// if army is controlled by rebel, use nation ID 0 for army controller. Add it to vector to apply rebel factions to it later
+	if(rebel_nation == context.nation_for) {
+		army_controller = dcon::nation_id{ };
+	}
+	else {
+		army_controller = context.nation_for;
+	}
+	
+	context.outer_context.state.world.force_create_army_control(id, army_controller);
+	oob_file_army_context new_context{ context.outer_context, id, army_controller };
 	parse_oob_army(gen, err, new_context);
 
 	// and check they have correct unit types
@@ -196,6 +204,7 @@ void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_c
 	context.outer_context.state.world.force_create_army_membership(id, context.id);
 	oob_file_regiment_context new_context{context.outer_context, id};
 	parse_oob_regiment(gen, err, new_context);
+	// clean up regiments with invalid unit type
 	if(!context.outer_context.state.world.regiment_get_type(id)) {
 		context.outer_context.state.world.delete_regiment(id);
 	}

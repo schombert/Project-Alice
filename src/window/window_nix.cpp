@@ -6,6 +6,13 @@
 
 namespace window {
 
+int32_t cursor_blink_ms() {
+	return 1000;
+}
+int32_t double_click_ms() {
+	return 500;
+}
+
 static const std::unordered_map<int, sys::virtual_key> glfw_key_to_virtual_key = {{GLFW_KEY_UNKNOWN, sys::virtual_key::NONE},
 		{GLFW_KEY_SPACE, sys::virtual_key::SPACE}, {GLFW_KEY_APOSTROPHE, sys::virtual_key::QUOTE},
 		{GLFW_KEY_COMMA, sys::virtual_key::COMMA}, {GLFW_KEY_EQUAL, sys::virtual_key::PLUS},
@@ -223,7 +230,7 @@ void scroll_callback(GLFWwindow* window, double xoffset, double yoffset) {
 
 void character_callback(GLFWwindow* window, unsigned int codepoint) {
 	sys::state* state = (sys::state*)glfwGetWindowUserPointer(window);
-	if(state->ui_state.edit_target) {
+	if(state->ui_state.edit_target_internal) {
 		state->on_text(codepoint);
 	}
 }
@@ -335,16 +342,14 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	change_cursor(game_state, cursor_type::normal);
 
 	while(!glfwWindowShouldClose(window)) {
-		glfwPollEvents();
-		// Run game code
-
-
-
-
-		game_state.ui_lock.lock();
-		game_state.render();
-		glfwSwapBuffers(window);
-		game_state.ui_lock.unlock();
+		{
+			std::unique_lock lock(game_state.ui_lock);
+			game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
+			glfwPollEvents();
+			// Run game code
+			game_state.render();
+			glfwSwapBuffers(window);
+		}
 
 		sound::update_music_track(game_state);
 	}
@@ -362,6 +367,33 @@ void emit_error_message(std::string const& content, bool fatal) {
 	if(fatal) {
 		std::exit(EXIT_FAILURE);
 	}
+}
+
+win32_text_services::win32_text_services() {
+}
+win32_text_services::~win32_text_services() {
+}
+void win32_text_services::start_text_services() {
+}
+void win32_text_services::end_text_services() {
+}
+void win32_text_services::on_text_change(text_services_object* ts, uint32_t old_start, uint32_t old_end, uint32_t new_end) {
+}
+void win32_text_services::on_selection_change(text_services_object* ts) {
+}
+bool win32_text_services::send_mouse_event_to_tso(text_services_object* ts, int32_t x, int32_t y, uint32_t buttons) {
+	return false;
+}
+void win32_text_services::set_focus(sys::state& win, text_services_object* o) {
+}
+void win32_text_services::suspend_keystroke_handling() {
+}
+void win32_text_services::resume_keystroke_handling() {
+}
+text_services_object* win32_text_services::create_text_service_object(sys::state& win, ui::element_base& ei) {
+	return nullptr;
+}
+void release_text_services_object(text_services_object* ptr) {
 }
 
 } // namespace window

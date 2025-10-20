@@ -177,83 +177,87 @@ public:
 			win->set_visible(state, false);
 		ui::clear_event_windows(state);
 
-		state.network_state.save_slock.lock();
-		std::vector<dcon::nation_id> players;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				players.push_back(n);
-		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		/*state.preload();*/
-		/*state.render_semaphore.acquire();*/
-		state.reset_state();
-		bool loaded = false;
-		if(i->is_new_game) {
-			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
-				auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-				ui::popup_error_window(state, "Scenario Error", msg);
-			} else {
-				loaded = true;
-			}
-		} else {
-			if(!sys::try_read_save_file(state, i->file_name)) {
-				auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
-				ui::popup_error_window(state, "Save Error", msg);
-				state.save_list_updated.store(true, std::memory_order::release); //update savefile list
-				//try loading save from scenario so we atleast have something to work on
+		{
+			state.network_state.yield_command_lock = true;
+			std::unique_lock lock{ state.network_state.command_lock };
+			std::vector<dcon::nation_id> no_ai_nations;
+			for(const auto n : state.world.in_nation)
+				if(state.world.nation_get_is_player_controlled(n))
+					no_ai_nations.push_back(n);
+			dcon::nation_id old_local_player_nation = state.local_player_nation;
+			/*state.preload();*/
+			/*state.render_semaphore.acquire();*/
+			state.reset_state();
+			bool loaded = false;
+			if(i->is_new_game) {
 				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
-					auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-					ui::popup_error_window(state, "Scenario Error", msg2);
+					auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+					ui::popup_error_window(state, "Scenario Error", msg);
 				} else {
 					loaded = true;
 				}
 			} else {
-				loaded = true;
-			}
-		}
-		if(loaded) {
-			/* Updating this flag lets the network state know that we NEED to send the
-			savefile data, otherwise it is safe to assume the client has its own data
-			friendly reminder that, scenario loading and reloading ends up with different outcomes */
-			state.network_state.is_new_game = false;
-			if(state.network_mode == sys::network_mode_type::host) {
-
-
-				// notfy every client that every client is now loading (loading the save)
-				for(auto& loading_client : state.network_state.clients) {
-					if(loading_client.is_active()) {
-						network::notify_player_is_loading(state, loading_client.hshake_buffer.nickname, loading_client.playing_as, true);
+				if(!sys::try_read_save_file(state, i->file_name)) {
+					auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
+					ui::popup_error_window(state, "Save Error", msg);
+					state.save_list_updated.store(true, std::memory_order::release); //update savefile list
+					//try loading save from scenario so we atleast have something to work on
+					if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
+						auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
+						ui::popup_error_window(state, "Scenario Error", msg2);
+					} else {
+						loaded = true;
 					}
+				} else {
+					loaded = true;
 				}
-
-				/* Save the buffer before we fill the unsaved data */
-				state.local_player_nation = dcon::nation_id{ };
-				//network::place_host_player_after_saveload(state);
-
-				network::write_network_save(state);
-				network::place_players_after_reload(state, players, old_local_player_nation);
-				state.fill_unsaved_data();
-				state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-
-				assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-				/* Now send the saved buffer before filling the unsaved data to the clients
-				henceforth. */
-				command::payload c;
-				memset(&c, 0, sizeof(command::payload));
-				c.type = command::command_type::notify_save_loaded;
-				c.source = state.local_player_nation;
-				c.data.notify_save_loaded.target = dcon::nation_id{};
-				network::broadcast_save_to_clients(state, c, state.network_state.current_save_buffer.get(), state.network_state.current_save_length, state.network_state.current_mp_state_checksum);
-			} else {
-				state.fill_unsaved_data();
 			}
+			if(loaded) {
+				/* Updating this flag lets the network state know that we NEED to send the
+				savefile data, otherwise it is safe to assume the client has its own data
+				friendly reminder that, scenario loading and reloading ends up with different outcomes */
+				state.network_state.is_new_game = false;
+				if(state.network_mode == sys::network_mode_type::host) {
+
+
+					// notfy every client that every client is now loading (loading the save)
+					for(auto& loading_client : state.network_state.clients) {
+						if(loading_client.is_active()) {
+							network::notify_player_is_loading(state, loading_client.player_id, true);
+						}
+					}
+
+					/* Save the buffer before we fill the unsaved data */
+					state.local_player_nation = dcon::nation_id{ };
+					//network::place_host_player_after_saveload(state);
+
+					network::write_network_save(state);
+					network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
+					/* Now fill unsaved data, take checksum of gamestate and send the save + checksum all clients. */
+					state.fill_unsaved_data();
+					state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+
+					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+
+					// set last_seen to current date for all clients, as the save may have a diffrent date than the current one
+					for(auto& client : state.network_state.clients) {
+						client.last_seen = state.current_date;
+					}
+					network::broadcast_save_to_clients(state);
+				} else {
+					state.fill_unsaved_data();
+				}
+			}
+			/* Savefiles might load with new railroads, so for responsiveness we
+			   update whenever one is loaded. */
+			state.set_selected_province(dcon::province_id{});
+			state.map_state.unhandled_province_selection = true;
+			state.railroad_built.store(true, std::memory_order::release);
+			state.sprawl_update_requested.store(true, std::memory_order::release);
+			state.network_state.yield_command_lock = false;
+			lock.unlock();
+			state.network_state.command_lock_cv.notify_one();
 		}
-		/* Savefiles might load with new railroads, so for responsiveness we
-		   update whenever one is loaded. */
-		state.map_state.set_selected_province(dcon::province_id{});
-		state.map_state.unhandled_province_selection = true;
-		state.railroad_built.store(true, std::memory_order::release);
-		state.sprawl_update_requested.store(true, std::memory_order::release);
-		state.network_state.save_slock.unlock();
 		state.game_state_updated.store(true, std::memory_order_release);
 		/*state.render_semaphore.release();*/
 
@@ -447,24 +451,15 @@ public:
 class pick_nation_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			disabled = n == state.local_player_nation;
-		} else {
-			// Prevent (via UI) the player from selecting a nation already selected by someone
-			disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, n);
-		}
+		auto nation = retrieve<dcon::nation_id>(state, parent);
+		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, nation, state.local_player_id);
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto n = retrieve<dcon::nation_id>(state, parent);
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			state.local_player_nation = n;
-			state.world.nation_set_is_player_controlled(n, true);
-			state.ui_state.nation_picker->impl_on_update(state);
-		} else {
-			command::notify_player_picks_nation(state, state.local_player_nation, n);
-		}
+		command::notify_player_picks_nation(state, state.local_player_nation, n);
+		
 	}
 };
 
@@ -609,30 +604,24 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
-				if(state.map_state.get_zoom() < map::zoom_very_close)
-					state.map_state.zoom = map::zoom_very_close;
-				state.map_state.center_map_on_province(state, cap);
+			if(command::can_notify_start_game(state, state.local_player_nation)) {
+				if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
+					if(state.map_state.get_zoom() < map::zoom_very_close)
+						state.map_state.zoom = map::zoom_very_close;
+					state.map_state.center_map_on_province(state, cap);
+				}
+				command::notify_start_game(state, state.local_player_nation);
 			}
-			command::notify_start_game(state, state.local_player_nation);
+			
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !bool(state.local_player_nation);
-		// disable if there are any players loading
-		if(state.network_state.num_client_loading != 0) {
-			disabled = true;
-			return;
-		}
+		disabled = !command::can_notify_start_game(state, state.local_player_nation);
 
 		if(state.network_mode == sys::network_mode_type::client) {
 			if(state.network_state.save_stream) { //in the middle of a save stream
 				disabled = true;
-			} else {
-				if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) { //can't start if checksum doesn't match
-					disabled = true;
-				}
 			}
 		}
 	}
@@ -669,22 +658,22 @@ public:
 			if(state.network_state.save_stream) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
 			}
-			else if(!state.session_host_checksum.is_equal(state.get_mp_state_checksum())) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_checksum_host"));
-			}
 			for(auto const& client : state.network_state.clients) {
 				if(client.is_active()) {
 					if(!client.send_buffer.empty()) {
 						text::substitution_map sub;
-						text::add_to_substitution_map(sub, text::variable_type::playername, client.playing_as);
+						text::add_to_substitution_map(sub, text::variable_type::playername, client.hshake_buffer.nickname.to_string_view());
 						text::localised_format_box(state, contents, box, std::string_view("alice_play_pending_client"), sub);
 					}
 				}
 			}
 		}
 		else if(state.network_mode == sys::network_mode_type::host) {
-			if(state.network_state.num_client_loading != 0) {
+			if(network::check_any_players_loading(state)) {
 				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_player_loading"));
+			}
+			if(network::any_player_on_invalid_nation(state)) {
+				text::localised_format_box(state, contents, box, std::string_view("alice_no_start_game_invalid_nations"));
 			}
 		}
 		text::close_layout_box(contents, box);
@@ -698,17 +687,72 @@ public:
 	}
 };
 
+
+class gamerules_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		if(!state.current_scene.is_lobby) {
+			return;
+		}
+		gamerule::restore_gamerule_ui_settings(state);
+		if(!state.ui_state.gamerules_window) {
+			auto window = alice_ui::make_gamerules_main(state);
+			window->impl_on_update(state);
+			state.ui_state.gamerules_window = window.get();
+			state.ui_state.nation_picker->add_child_to_front(std::move(window));
+		} else if(state.ui_state.gamerules_window->is_visible()) {
+			state.ui_state.gamerules_window->set_visible(state, false);
+		} else {
+			state.ui_state.gamerules_window->set_visible(state, true);
+			state.ui_state.nation_picker->move_child_to_front(state.ui_state.gamerules_window);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::no_tooltip;
+	}
+
+};
+
+
+
+class observer_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.local_player_id)) {
+			command::notify_player_picks_nation(state, state.local_player_nation, observer_nation);
+		}
+		
+	}
+	void on_update(sys::state& state) noexcept override {
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		disabled = !command::can_notify_player_picks_nation(state, state.local_player_nation, observer_nation, state.local_player_id);
+		
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		auto observer_nation = state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+		if(state.local_player_nation == observer_nation) {
+			text::localised_format_box(state, contents, box, std::string_view("alice_observer_already_observer_tooltip"));
+		}
+		text::close_layout_box(contents, box);
+	}
+
+};
+
 class multiplayer_status_text : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto player = retrieve<dcon::mp_player_id>(state, parent);
 
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
 			set_text(state, text::produce_simple_string(state, "ready"));
 		}
-		else {
-			auto player = network::find_country_player(state, n);
+		else {;
 			if(state.world.mp_player_get_fully_loaded(player)) {
 				color = text::text_color::dark_green;
 				set_text(state, text::produce_simple_string(state, "ready"));
@@ -751,6 +795,21 @@ public:
 	}
 };
 
+class lobby_player_flag_button : public flag_button {
+	public:
+		dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+			if(state.network_mode == sys::network_mode_type::single_player) {
+				return state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+			}
+			else {
+				auto player = retrieve<dcon::mp_player_id>(state, parent);
+				auto nation = state.world.mp_player_get_nation_from_player_nation(player);
+				return state.world.nation_get_identity_from_identity_holder(nation);
+			}
+		}
+
+};
+
 class number_of_players_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -758,9 +817,8 @@ public:
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			count = 1;
 		} else {
-			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(state.world.nation_get_is_player_controlled(n))
-					count++;
+			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+				count++;
 			});
 		}
 
@@ -770,11 +828,11 @@ public:
 	}
 };
 
-class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::nation_id> {
+class nation_picker_multiplayer_entry : public listbox_row_element_base<dcon::mp_player_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "player_shield") {
-			auto ptr = make_element_by_type<flag_button>(state, id);
+			auto ptr = make_element_by_type<lobby_player_flag_button>(state, id);
 			ptr->base_data.position.x += 10; // Nudge
 			ptr->base_data.position.y += 7; // Nudge
 			return ptr;
@@ -809,7 +867,7 @@ public:
 	}
 };
 
-class nation_picker_multiplayer_listbox : public listbox_element_base<nation_picker_multiplayer_entry, dcon::nation_id> {
+class nation_picker_multiplayer_listbox : public listbox_element_base<nation_picker_multiplayer_entry, dcon::mp_player_id> {
 protected:
 	std::string_view get_row_element_name() override {
 		return "multiplayer_entry_server";
@@ -818,11 +876,10 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
 		if(state.network_mode == sys::network_mode_type::single_player) {
-			row_contents.push_back(state.local_player_nation);
+			row_contents.push_back(dcon::mp_player_id{ });
 		} else {
-			state.world.for_each_nation([&](dcon::nation_id n) {
-				if(state.world.nation_get_is_player_controlled(n))
-					row_contents.push_back(n);
+			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+				row_contents.push_back(p);
 		});
 		}
 		update(state);
@@ -896,6 +953,11 @@ public:
 			auto ptr = make_element_by_type<nation_alice_readme_text>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_readme_text"))->second.definition);
 			add_child_to_front(std::move(ptr));
 			return make_element_by_type<invisible_element>(state, id);
+		} else if(name == "observer_button") {
+			return make_element_by_type<observer_button>(state, id);
+
+		} else if(name == "gamerules_button") {
+			return make_element_by_type< gamerules_button>(state, id);
 		}
 		return nullptr;
 	}

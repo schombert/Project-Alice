@@ -692,7 +692,8 @@ void recalculate_upper_house(sys::state& state, dcon::nation_id n) {
 			},
 			"msg_upper_house_title",
 			n, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::upperhouse
+			sys::message_base_type::upperhouse,
+			dcon::province_id{ }
 		});
 	}
 }
@@ -750,7 +751,8 @@ void start_election(sys::state& state, dcon::nation_id n) {
 				},
 				"msg_election_start_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::electionstart
+				sys::message_base_type::electionstart,
+				dcon::province_id{ }
 			});
 		}
 		event::fire_fixed_event(state, state.national_definitions.on_election_started, trigger::to_generic(n),
@@ -932,7 +934,8 @@ void update_elections(sys::state& state) {
 						},
 						"msg_election_end_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::electiondone
+						sys::message_base_type::electiondone,
+						dcon::province_id{ }
 					});
 				} else {
 					uint32_t winner = 0;
@@ -954,7 +957,8 @@ void update_elections(sys::state& state) {
 						},
 						"msg_election_end_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::electiondone
+						sys::message_base_type::electiondone,
+						dcon::province_id{ }
 					});
 				}
 				event::fire_fixed_event(state, state.national_definitions.on_election_finished, trigger::to_generic(n),

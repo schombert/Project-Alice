@@ -1,4 +1,133 @@
 guiTypes = {
+	guiButtonType = {
+		name = "observer_button"
+		extends = "lobby"
+		position = { x = 28 y = -200 }
+		quadTextureSprite ="GFX_button_standard_144"	
+		buttonText = "alice_observer_btn_text"
+		buttonFont = "vic_18_black"
+		Orientation = "LOWER_LEFT"
+	}
+	guiButtonType = {
+		name = "gamerules_button"
+		extends = "lobby"
+		position = { x = 400 y = -60 }
+		quadTextureSprite ="GFX_button_standard_144"	
+		buttonText = "alice_gamerules_btn_text"
+		buttonFont = "vic_18_black"
+		Orientation = "LOWER_LEFT"
+	}
+
+	instantTextBoxType = { 
+			name = "state_location_name"
+			extends = "state_info"
+			position = { x = 175 y = 4 }
+			font = "vic_22"
+			maxWidth = 140
+			maxHeight = 16	
+			format = left
+			fixedsize = yes
+		}
+
+
+
+
+		windowType = {
+		name = "disband_window"
+		backGround="Background"
+		position = { x=-250 y=-140 }	
+		size = { x=500 y=280 }
+		orientation="CENTER"
+		moveable = 1
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		
+		guiButtonType = {
+			name = "Background"	
+			quadTextureSprite ="SandboxFloaterBackground"
+			tooltip = ""	
+			tooltipText =""
+			delayedTooltipText = ""
+		}
+		
+		iconType =
+		{
+			name ="default_popup_banner"
+			spriteType = "GFX_default_popup_banner"
+			position = { x= -7 y = 42 }
+			Orientation = "UPPER_LEFT"
+		}
+		
+		instantTextBoxType = {
+				name = "Title"
+				position = { x = 0 y = 50 }
+				textureFile = ""
+				font = "vic_22_bl"
+				borderSize = {x = 4 y = 8}
+				maxWidth = 500
+				maxHeight = 32
+
+				format = centre
+			}
+		
+		instantTextBoxType = {
+				name = "Description"
+				position = { x = 70 y = 90 }
+				textureFile = ""
+				font = "vic_18"
+				borderSize = {x = 4 y = 8}	
+				maxWidth = 360
+				maxHeight = 200	
+				fixedsize = yes
+	
+				format = centre
+			}
+		
+		
+		
+		guiButtonType = {
+			name = "AgreeButton"
+			position = { x=328 y =220}
+			quadTextureSprite ="GFX_button_standard_144"
+			tooltip = ""
+			tooltipText =""
+			delayedTooltipText = ""
+			buttonText = "OK"
+			buttonFont = "vic_18_black"
+			shortcut = "ENTER"
+		}
+
+
+		guiButtonType = {
+			name = "DeclineButton"
+			position = { x=25 y =220}
+			quadTextureSprite ="GFX_button_standard_144"
+			tooltip = ""
+			tooltipText =""
+			delayedTooltipText = ""
+			buttonText = "CANCEL"
+			buttonFont = "vic_18_black"
+			shortcut = "ESCAPE"
+		}
+		
+	}
+	iconType = {
+			name = "original_defender"
+			position = { x = 410 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+	}
+	iconType = {
+			name = "original_attacker"
+			position = { x = 157 y = 0 }
+			extends = "diplomacy_war_info"
+			spriteType = "GFX_flag_tiny"
+			
+	}
+
+			
 	iconType = {
         name = "gfx_storage_unit_types"
         spriteType = "GFX_unit_strip"
@@ -147,22 +276,6 @@ guiTypes = {
 			guiButtonType = {
 				name = "fonts_checkbox"
 				position = { 167 99 }
-				quadTextureSprite = "GFX_checkbox_default"
-			}
-			# Fog of War (Y/N)
-			instantTextBoxType = {
-				name = "fow_label"
-				position = { 78 124 }
-				text = "fow_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = left
-			}
-			checkboxType = {
-				name = "fow_checkbox"
-				position = { 51 123 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Dynamic railroads (Y/N)
@@ -538,6 +651,22 @@ guiTypes = {
 				position = { -32 0 }
 				Orientation = "UPPER_RIGHT"
 				shortcut = "ESCAPE"
+			}
+			# unit disband confirmation setting
+			instantTextBoxType = {
+				name = "disband_confirmation_label"
+				position = { 78 96 }
+				text = "disband_confirmation_label"
+				font = "Arial16"
+				borderSize = { 0 0}
+				maxsize = { 236 18 }
+				orientation = "UPPER_LEFT"
+				format = left
+			}
+			guiButtonType = {
+				name = "disband_confirmation_checkbox"
+				position = { 51 95 }
+				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Tooltip hovering style
 			instantTextBoxType = {
@@ -1281,6 +1410,21 @@ guiTypes = {
 			position = { 245  42 }
 			Orientation = "UPPER_LEFT"
 		}
+
+		instantTextBoxType = {
+			name = "unitattrition"
+			position = { x = 260  y = 43 }
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = "17"	
+			maxWidth = 40
+			maxHeight = 17	
+			format = right
+		}
+
+
+
 		iconType = {
 			name = "org_bar"
 			spriteType = "GFX_morale_progress"
@@ -1498,6 +1642,12 @@ guiTypes = {
 				spriteType = "GFX_alice_small_unit_frames"
 				position = { 0 0 }
 			}
+			iconType = {
+				name ="small_attrition_icon"
+				spriteType = "GFX_unit_attr"
+				position = { 65 14 }
+				Orientation = "UPPER_LEFT"
+			}
 			instantTextBoxType={
 				position = { 34 4 }
 				name = "strength"
@@ -1541,6 +1691,12 @@ guiTypes = {
 			size = { 1 1 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
+
+			iconType = {
+				name = "map_general"
+				spriteType = "GFX_alice_map_general"
+				position = { 4 0 }
+			}
 
 			iconType = {
 				name ="frame_bg"
@@ -2673,11 +2829,276 @@ guiTypes = {
 			}
 		}
 	}
+	
+	windowType = {
+		name = "ship_unit"
+		backGround=""
+		position = { x=0 y=0 }	
+		size = { x=166 y=63 }
+		moveable = 0
+		dontRender = ""
+		horizontalBorder= ""
+		verticalBorder= ""
+		fullScreen = no
+		
+
+		guiButtonType = {
+			name = "bg"
+			position = { x=0 y=1 }
+			quadTextureSprite ="GFX_naval_combat_slot_bg"	
+			buttonText = ""
+			buttonFont = "vic_18_black"
+			clicksound = click
+			Orientation = "UPPER_LEFT"
+		}
+
+		iconType = {
+			name ="highlight"
+			spriteType = "GFX_naval_combat_slot_highlight"
+			position = { x=0 y=1 }
+			Orientation = "UPPER_LEFT"
+		}
+
+		windowType = {
+			name = "left_slot"
+			position = { x=0 y=18 }	
+			size = { x=33 y=28 }
+			moveable = 0
+
+			# Toggled in code dependly on current stance
+			guiButtonType = {
+				name ="attacker_icon_normal"
+				spriteType = "GFX_naval_combat_unit_normal_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_attacking"
+				spriteType = "GFX_naval_combat_unit_attack_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_sunk"
+				spriteType = "GFX_naval_combat_unit_sunk_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_retreat"
+				spriteType = "GFX_naval_combat_unit_retreat_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_disengaged"
+				spriteType = "GFX_naval_combat_unit_disengaged_L"
+				position = { x=4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="seeking_target"
+				spriteType = "GFX_naval_combat_seek_target"
+				position = { x=0 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			# Str/Org
+			iconType = {
+				name ="str"
+				spriteType = "GFX_naval_combat_bar_str"
+				position = { x=8 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			iconType = {
+				name ="org"
+				spriteType = "GFX_naval_combat_bar_org"
+				position = { x=4 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			
+			iconType = {
+				name ="mini_frame_str"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=0 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="mini_frame_org"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=4 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+		}
+		
+		windowType = {
+			name = "right_slot"
+			position = { x=130 y=18 }	
+			size = { x=33 y=28 }
+			moveable = 0
+
+			# Toggled in code dependly on current stance
+			guiButtonType = {
+				name ="attacker_icon_normal"
+				spriteType = "GFX_naval_combat_unit_normal_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_attacking"
+				spriteType = "GFX_naval_combat_unit_attack_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_sunk"
+				spriteType = "GFX_naval_combat_unit_sunk_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_retreat"
+				spriteType = "GFX_naval_combat_unit_retreat_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="attacker_icon_disengaged"
+				spriteType = "GFX_naval_combat_unit_disengaged_R"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+			guiButtonType = {
+				name ="seeking_target"
+				spriteType = "GFX_naval_combat_seek_target"
+				position = { x=-4 y=-3 }
+				Orientation = "UPPER_LEFT"
+			}
+
+			# Str/Org
+			iconType = {
+				name ="str"
+				spriteType = "GFX_naval_combat_bar_str"
+				position = { x=35 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			iconType = {
+				name ="org"
+				spriteType = "GFX_naval_combat_bar_org"
+				position = { x=31 y=20 }
+				Orientation = "UPPER_LEFT"
+				rotation = 1.5708
+			}
+			
+			iconType = {
+				name ="mini_frame_str"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=26 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+			
+			iconType = {
+				name ="mini_frame_org"
+				spriteType = "GFX_naval_combat_bar_mini_frame"
+				position = { x=30 y=2 }
+				Orientation = "UPPER_LEFT"
+			}
+		}
+
+		# Attacker name
+		instantTextBoxType = {
+			name = "attacker_name"
+			position = { x=3 y=2 }
+			format = left
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 80
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Defender name
+		instantTextBoxType = {
+			name = "defender_name"
+			position = { x=75 y=2 }
+			format = right
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 84
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Attacker flag
+		instantTextBoxType = {
+			name = "attacker_flag"
+			position = { x=2 y=46 }
+			format = left
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 166
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Defender flag
+		instantTextBoxType = {
+			name = "defender_flag"
+			position = { x=-1 y=46 }
+			format = right
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 166
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+		# Status
+		instantTextBoxType = {
+			name = "status"
+			position = { x=1 y=48 }
+			format = center
+			textureFile = ""
+			font = "Arial12_black"
+			borderSize = {x = 0 y = 0}
+			text = ""
+			maxWidth = 164
+			maxHeight = 16
+			Orientation = "UPPER_LEFT"
+			fixedsize = yes
+		}
+
+		# Range icon offset together with ship
+		iconType = {
+			name ="range_R"
+			spriteType = "GFX_naval_combat_range_R"
+			position = { x=136 y=20 }
+			Orientation = "UPPER_LEFT"
+		}
+		iconType = {
+			name ="range_L"
+			spriteType = "GFX_naval_combat_range_L"
+			position = { x=14 y=20 }
+			Orientation = "UPPER_LEFT"
+		}
+	}
 
 	windowType = {
 		name = "alice_naval_combat"
 		backGround=""
-		position = { 0 -176 }
+		position = { 0 -536 }
 		size = { 512 512 }
 		moveable = 0
 		fullScreen = no
@@ -2686,12 +3107,11 @@ guiTypes = {
 		# Background image
 		iconType = {
 			name ="combat_bg"
-			spriteType = "GFX_alice_naval_combat_bg"
+			spriteType = "GFX_naval_combat_bg"
 			position = {  0 -75 }
 			Orientation = "UPPER_LEFT"
 		}
-
-
+		
 		instantTextBoxType = {
 			name = "label_battlename"
 			position = { 3 -47 }
@@ -2869,6 +3289,18 @@ guiTypes = {
 				fixedsize = no
 				format = right
 			}
+			listboxType = 
+			{
+				name ="slots_list"
+				position = { x=0 y=205 }
+				backGround=""
+				size = { x=166 y=315 }
+				Orientation = "UPPER_LEFT"
+				horizontal = no
+				spacing = 0
+				scrollbartype = "standardlistbox_slider"
+				borderSize = {x = 0 y = 0}
+			}
 
 		}
 
@@ -3023,6 +3455,19 @@ guiTypes = {
 				maxsize = { 27 32 }
 				fixedsize = no
 				format = right
+			}
+			
+			listboxType = 
+			{
+				name ="slots_list"
+				position = { x=2 y=205 }
+				backGround=""
+				size = { x=166 y=315 }
+				Orientation = "UPPER_LEFT"
+				horizontal = no
+				spacing = 0
+				scrollbartype = "standardlistbox_slider"
+				borderSize = {x = 0 y = 0}
 			}
 
 		}
@@ -4615,15 +5060,34 @@ guiTypes = {
 	guiButtonType = {
 		name = "alice_move_capital"
 		extends = "province_view_header"
-		position = { x= 368 y = 43 }
+		position = { x = 368 y = 43 }
 		quadTextureSprite = "GFX_move_capital"	
 	}
 	guiButtonType = {
 		name = "alice_toggle_administration"
 		extends = "province_view_header"
-		position = { x= 100 y = 43 }
-		quadTextureSprite = "GFX_move_capital"	
+		position = { x = 346 y = 43 }
+		quadTextureSprite = "GFX_local_admin"	
 	}
+	
+	iconType = {
+		name ="province_victory_points_icon"
+		extends = "province_view_header"
+		spriteType = "GFX_prestige_icon_2"
+		position = { x = 310 y = 46 }
+		Orientation = "UPPER_LEFT"
+	}
+	
+	instantTextBoxType = {
+		name = "province_victory_points"
+		extends = "province_view_header"
+		position = { x = 325 y = 45}
+		borderSize = { 0 0 }
+		maxsize = { 20 20 }
+		textureFile = ""
+		font = "vic_18"
+	}
+	
 	guiButtonType = {
 		name = "alice_take_province"
 		extends = "province_view_header"
@@ -4632,33 +5096,31 @@ guiTypes = {
 	}
 
 	instantTextBoxType = {
-			name = "ready_state"
-			extends = "ingame_multiplayer_entry"
-			position = { x=160 y =2}
-			borderSize = { 0 0}
-			maxsize = { 50 32 }
-			textureFile = ""
-			font = "vic_18_black"
-		}
+		name = "ready_state"
+		extends = "ingame_multiplayer_entry"
+		position = { x=160 y =2}
+		borderSize = { 0 0}
+		maxsize = { 50 32 }
+		textureFile = ""
+		font = "vic_18_black"
+	}
 
 	guiButtonType = {
-			name = "button_ban"
-			extends = "ingame_multiplayer_entry"
-			quadTextureSprite = "GFX_button_ban"
-			tooltip = ""
-			tooltipText =""	
-			delayedTooltipText = ""
-			position = { x=228 y =2}
-		}
+		name = "button_ban"
+		extends = "ingame_multiplayer_entry"
+		quadTextureSprite = "GFX_button_ban"
+		tooltip = ""
+		tooltipText =""	
+		delayedTooltipText = ""
+		position = { x=228 y =2}
+	}
 
-		guiButtonType = {
-			name = "resync_button"
-			extends = "ingame_lobby_window"
-			quadTextureSprite = "GFX_alice_event_auto"
-			position = { x=535 y =314}
-		}
-
-
+	guiButtonType = {
+		name = "resync_button"
+		extends = "ingame_lobby_window"
+		quadTextureSprite = "GFX_alice_event_auto"
+		position = { x=535 y =314}
+	}
 
     guiButtonType = {
 		name = "alice_budget_warning"
@@ -5177,14 +5639,14 @@ guiTypes = {
     
     instantTextBoxType = {
         name = "thin_cell_name"
-        size = { 100 20 }
+        size = { 100 16 }
         font = "vic_18_black"
         format = left
     }
     
     instantTextBoxType = {
         name = "thin_cell_number"
-        size = { 60 20 }
+        size = { 60 16 }
         font = "vic_18_black"
         format = right
     }
@@ -5846,20 +6308,52 @@ guiTypes = {
 	}
 
 	iconType = {
+			name = "nation_icon_religion"
+			spriteType = "GFX_icon_religion"
+			position = { x = 300 y = 195 }
+			Orientation = "UPPER_LEFT"
+			extends = "diplomacy_country_facts"
+	}
+
+	iconType = {
         name = "industry_size_icon"
         spriteType = "GFX_budget_ind_sup_icon"
-        position = { x= 42 y = 233 }
+        position = { x= 32 y = 233 }
 		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
     }
 
-	instantTextBoxType = {
-		name = "industry_size_text"
-		position = { 75 236 }
-		font = "vic_18_black"
-		text = " "
-		maxWidth = 40
-		maxHeight = 20
+	iconType = {
+        name = "trade_size_icon"
+        spriteType = "GFX_budget_nat_stock_icon"
+        position = { x= 55 y = 233 }
+		Orientation = "UPPER_LEFT"
 		extends="diplomacy_country_facts"
-	}
+    }
+	guiButtonType = {
+        name = "move_siege_order"
+        position = { 0 340 }
+        quadTextureSprite ="army_orders_strip"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
+
+	guiButtonType = {
+        name = "strategic_redeployment_order"
+        position = { 40 340 }
+        quadTextureSprite ="army_orders_strip"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
+
+	guiButtonType = {
+        name = "pursue_order"
+        position = { 80 340 }
+        quadTextureSprite ="army_orders_strip"
+        buttonText = ""
+        buttonFont = "vic_22_black"
+		extends="sup_buttons_window"
+    }
 }

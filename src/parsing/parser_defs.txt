@@ -5,17 +5,6 @@ national_identity_file
 color_from_3f
 	#free          value      float      member_fn
 
-religion_def
-	icon           value      int              member_fn
-	color          group      color_from_3f    member_fn
-	pagan          value      bool             member_fn
-
-religion_group
-	#any           extern     make_religion    discard
-
-religion_file
-	#any           group      religion_group   member_fn
-
 color_from_3i
 	#free          value      int              member_fn
 
@@ -83,6 +72,7 @@ modifier_base
 	max_tax                                   value      float            member_fn
 	min_military_spending                     value      float            member_fn
 	max_military_spending                     value      float            member_fn
+	min_land_upkeep                     value      float            member_fn
 	min_social_spending                       value      float            member_fn
 	max_social_spending                       value      float            member_fn
 	min_domestic_investment              value      float            member_fn
@@ -91,6 +81,7 @@ modifier_base
 	local_factory_owner_cost          value     float          discard
 	min_tariff                                value      float            member_fn
 	max_tariff                                value      float            member_fn
+	trade_routes_attraction                   value      float            member_fn
 	ruling_party_support                      value      float            member_fn
 	local_ruling_party_support                value      float            member_fn
 	rich_vote                                 value      float            member_fn
@@ -257,7 +248,19 @@ modifier_base
 	farmers_savings              value      float            member_fn
 	disallow_naval_trade              value      float            member_fn
 	disallow_land_trade              value      float            member_fn
+	fort_level 						value       float 			 member_fn
 
+religion_def
+	nation_modifier group     modifier_base    member_fn
+	icon           value      int              member_fn
+	color          group      color_from_3f    member_fn
+	pagan          value      bool             member_fn
+
+religion_group
+	#any           extern     make_religion    discard
+
+religion_file
+	#any           group      religion_group   member_fn
 
 int_vector
 	#free          value      int              member_fn
@@ -271,7 +274,6 @@ building_definition
 	visibility           value    none              discard
 	onmap                value    none              discard
 	province             value    none              discard
-	fort_level           value    none              discard
 	pop_build_factory    value    none              discard
 	spawn_railway_track  value    none              discard
 	strategic_factory    value    none              discard
@@ -294,6 +296,7 @@ building_definition
 	is_coastal           value    bool              member
 	uses_potentials           value    bool         member
 	can_be_built_in_colonies   value     bool         member
+	factory_tier   value     int         member
 	colonial_points      group    int_vector        member
 	goods_cost           group    commodity_array   member
 
@@ -606,6 +609,9 @@ province_factory_limit_desc
 province_factory_limit
 	entry             group          province_factory_limit_desc  member_fn
 
+province_revolt
+	type 		   	  value 		text 				member_fn
+
 province_history_file
 	life_rating       value          uint               member_fn
 	colony            value          uint               member_fn
@@ -619,7 +625,7 @@ province_history_file
 	party_loyalty     group          pv_party_loyalty   member_fn
 	state_building    group          pv_state_building  member_fn
 	revolt            value          none               discard
-	revolt            group          none               discard
+	revolt            group          province_revolt    member_fn
 	is_slave          value          bool               member_fn
 	set_province_flag value          none               discard
 	clr_province_flag value          none               discard
@@ -1250,6 +1256,30 @@ history_war_goal
 	receiver                        value      text                              member_fn
 	country                        value      text                              member_fn
 	state_province_id        value      int                              member_fn
+
+
+scan_gamerule_option
+	name                  value      text								 member_fn
+	#any						group	   none									discard
+	#any						value	   none									discard
+
+
+scan_scripted_gamerule
+	name                           value      text                              member_fn
+	option                          group     scan_gamerule_option                 member_fn
+
+scan_gamerule_file
+	scripted_gamerule                   extern     make_scan_gamerule                discard
+
+
+
+
+scripted_gamerule
+	name                           value      text                              member_fn
+	option                          group     gamerule_option                 member_fn
+
+gamerule_file
+	scripted_gamerule                   extern     make_gamerule                discard
 
 war_block
 	add_attacker                    value      text                              member_fn

@@ -327,6 +327,8 @@ enum class message_setting_type : uint8_t {
 	bankruptcy = 100,
 	entered_automatic_alliance = 101,
 	chat_message = 102,
+	embargo_by_nation = 103,
+	embargo_on_nation = 104,
 	count = 128
 };
 
@@ -357,8 +359,8 @@ enum class message_base_type : uint8_t {
 	invention = 23, // added
 	tech = 24, // added
 	leader_dies = 25, // added
-	land_combat_starts = 26,
-	naval_combat_starts = 27,
+	land_combat_starts_on_nation = 26,
+	naval_combat_starts_on_nation = 27,
 	movement_finishes = 28,
 	decision = 29, // added
 	lose_great_power = 30, // added
@@ -405,10 +407,12 @@ enum class message_base_type : uint8_t {
 	bankruptcy = 71,
 	entered_automatic_alliance = 72,
 	chat_message = 73,
-	free_trade_agreement = 74,
-	embargo = 75,
+	embargo = 74,
+	free_trade_agreement = 75,
 	trade_rights_revoked = 76,
-	count = 77,
+	naval_combat_starts_by_nation = 77,
+	land_combat_starts_by_nation = 78,
+	count = 79,
 };
 
 struct msg_setting_entry {
@@ -417,6 +421,7 @@ struct msg_setting_entry {
 	message_setting_type third;
 };
 
+// Setting matches message_base_type of the posted message based on index
 constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type::count)] = {
 						// source									target										third
 	msg_setting_entry{ message_setting_type::revolt,					message_setting_type::count,				message_setting_type:: count}, //revolt
@@ -449,10 +454,10 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::invention,				message_setting_type::count,				message_setting_type::count}, //invention = 23, // added
 	msg_setting_entry{ message_setting_type::tech,					message_setting_type::count,				message_setting_type::count}, //tech = 24, // added
 	msg_setting_entry{ message_setting_type::leader_dies,			message_setting_type::count,				message_setting_type::count}, //leader_dies = 25, // added
-	msg_setting_entry{ message_setting_type::count,					message_setting_type::land_combat_starts_on_nation,
-																												message_setting_type::count}, //land_combat_starts = 26,
-	msg_setting_entry{ message_setting_type::count,					message_setting_type::naval_combat_starts_on_nation,
-																												message_setting_type::count}, //naval_combat_starts = 27,
+	msg_setting_entry{ message_setting_type::land_combat_starts_on_nation,					message_setting_type::count,
+																												message_setting_type::count}, //land_combat_starts_on_nation = 26,
+	msg_setting_entry{ message_setting_type::naval_combat_starts_on_nation,					message_setting_type::count,
+																												message_setting_type::count}, //naval_combat_starts_on_nation = 27,
 	msg_setting_entry{ message_setting_type::movement_finishes,	message_setting_type::count,				message_setting_type::count}, //movement_finishes = 28,
 	msg_setting_entry{ message_setting_type::decision,				message_setting_type::count,				message_setting_type::count}, //decision = 29, // added
 	msg_setting_entry{ message_setting_type::lose_great_power,		message_setting_type::count,				message_setting_type::count}, //lose_great_power = 30, // added
@@ -531,6 +536,13 @@ constexpr inline msg_setting_entry message_setting_map[size_t(message_base_type:
 	msg_setting_entry{ message_setting_type::bankruptcy,			message_setting_type::count,				message_setting_type::count }, // bankruptcy = 71,
 	msg_setting_entry{ message_setting_type::entered_automatic_alliance, message_setting_type::count, message_setting_type::count },//entered_automatic_alliance = 72,
 	msg_setting_entry{ message_setting_type::chat_message, message_setting_type::count, message_setting_type::count },//chat_message = 73,
+	msg_setting_entry{ message_setting_type::embargo_by_nation, message_setting_type::embargo_on_nation, message_setting_type::count },//embargo = 74,
+	msg_setting_entry{ message_setting_type::count, message_setting_type::count, message_setting_type::count },//free_trade_agreement = 75,
+	msg_setting_entry{ message_setting_type::count, message_setting_type::count, message_setting_type::count },//trade_rights_revoked = 76,,
+	msg_setting_entry{ message_setting_type::naval_combat_starts_by_nation,					message_setting_type::count, message_setting_type::count }, //naval_combat_starts_by_nation = 77,
+	msg_setting_entry{ message_setting_type::land_combat_starts_by_nation,					message_setting_type::count, message_setting_type::count }, //naval_combat_starts_by_nation = 78,
+
+
 };
 
 namespace  message_response {
@@ -567,6 +579,7 @@ enum class graphics_mode {
 };
 
 constexpr int32_t max_event_options = 8;
+constexpr uint32_t max_gamerule_settings = 15;
 constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
@@ -588,9 +601,15 @@ constexpr inline int32_t max_building_types = 5;
 
 namespace ui {
 
-enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure };
+enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure, state_name };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
-constexpr inline uint32_t max_chat_message_len = 64;
+constexpr inline uint32_t max_chat_message_len = 255;
+enum class edit_command : uint8_t {
+	new_line, backspace, delete_char, backspace_word, delete_word, tab, cursor_down, cursor_up, cursor_left, cursor_right, cursor_left_word, cursor_right_word, to_line_start, to_line_end, to_text_start, to_text_end, cut, copy, paste, select_all, undo, redo, select_current_word, select_current_section, delete_selection
+};
+enum class edit_selection_mode : uint8_t {
+	none, standard, word, line
+};
 
 }
 

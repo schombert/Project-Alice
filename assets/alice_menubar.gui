@@ -94,6 +94,35 @@ guiTypes = {
 			shortcut = "<"
 			Orientation = "LOWER_RIGHT"
 		}
+		guiButtonType = {
+			name = "sun-button"
+			position = { -415 -29 }
+			quadTextureSprite = "GFX_alice_sun"
+			tooltip = ""
+			tooltipText = ""
+			buttonText = " "
+			buttonFont = "Main_14_black"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "sun-pause-button"
+			position = { -415 -58 }
+			quadTextureSprite = "GFX_alice_sun_pause"
+			tooltip = ""
+			tooltipText = ""
+			buttonText = " "
+			buttonFont = "Main_14_black"
+			Orientation = "LOWER_RIGHT"
+		}
+		guiButtonType = {
+			name = "economy-scene-enter-button"
+			position = { -415 -87 }
+			quadTextureSprite = "GFX_alice_economy_scene_button"
+			tooltipText = "open_economy_scene"
+			buttonText = " "
+			buttonFont = "Main_14_black"
+			Orientation = "LOWER_RIGHT"
+		}
 		iconType = {
 			name = "minimap_bg"
 			spriteType = "GFX_minimap_bg"

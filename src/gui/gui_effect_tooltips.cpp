@@ -226,18 +226,18 @@ void show_limit(sys::state& ws, uint16_t const* tval, text::layout_base& layout,
 		text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "where"));
 		text::close_layout_box(layout, box);
 		trigger_tooltip::make_trigger_description(ws, layout, ws.trigger_data.data() + ws.trigger_data_indices[limit.index() + 1], primary_slot,
-			this_slot, from_slot, indentation + 2 * indentation_amount, primary_slot != -1);
+			this_slot, from_slot, indentation + 2 * indentation_amount, primary_slot != -1, false);
 	}
 }
 
-void show_full_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, text::substitution val, int32_t indentation) {
+void show_full_random_tooltip(sys::state& ws, uint16_t tval, std::string_view loc_key, text::layout_base& layout, text::substitution picked, int32_t indentation) {
 	auto box = text::open_layout_box(layout, indentation);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, random_or_every(tval)));
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, loc_key));
 	text::add_space_to_layout_box(ws, layout, box);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, "("));
-	text::add_to_layout_box(ws, layout, box, val);
+	text::add_to_layout_box(ws, layout, box, picked);
 	text::add_to_layout_box(ws, layout, box, text::produce_simple_string(ws, ")"));
 	text::close_layout_box(layout, box);
 }
@@ -725,10 +725,13 @@ uint32_t es_x_owned_scope_nation(EFFECT_DISPLAY_PARAMS) {
 
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
-				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
+
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -778,10 +781,12 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "owned_province", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -801,9 +806,7 @@ uint32_t es_x_owned_scope_state(EFFECT_DISPLAY_PARAMS) {
 	}
 	show_limit(ws, tval, layout, -1, this_slot, from_slot, indentation);
 
-	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo,
-																																	r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0),
-																																	indentation + indentation_amount);
+	return ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0) + display_subeffects(ws, tval, layout, -1, this_slot, from_slot, r_lo, r_hi + ((tval[0] & effect::is_random_scope) != 0 ? 1 : 0), indentation + indentation_amount);
 }
 uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 	if((tval[0] & effect::is_random_scope) != 0) {
@@ -828,10 +831,12 @@ uint32_t es_x_core_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "core_of", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -879,10 +884,12 @@ uint32_t es_x_core_scope_province(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "core_in", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -923,7 +930,10 @@ uint32_t es_x_substate_scope(EFFECT_DISPLAY_PARAMS) {
 		if(rlist.size() != 0) {
 			auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-			show_full_random_tooltip(ws, tval[0], "substate_of", layout, rlist[r], indentation);
+			auto box = text::open_layout_box(layout, indentation);
+			text::add_to_layout_box(ws, layout, box, rlist[r]);
+			text::close_layout_box(layout, box);
+
 			show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
 			return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 		}
@@ -967,10 +977,12 @@ uint32_t es_x_state_scope(EFFECT_DISPLAY_PARAMS) {
 			if(rlist.size() != 0) {
 				auto r = rng::get_random(ws, r_hi, r_lo) % rlist.size();
 
-				show_full_random_tooltip(ws, tval[0], "state_of", layout, rlist[r], indentation);
+				auto box = text::open_layout_box(layout, indentation);
+				text::add_to_layout_box(ws, layout, box, rlist[r]);
+				text::close_layout_box(layout, box);
+
 				show_limit(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, indentation);
-				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1,
-											 indentation + indentation_amount);
+				return 1 + display_subeffects(ws, tval, layout, trigger::to_generic(rlist[r]), this_slot, from_slot, r_hi, r_lo + 1, indentation + indentation_amount);
 			}
 			return 0;
 		}
@@ -1975,11 +1987,21 @@ uint32_t ef_life_rating(EFFECT_DISPLAY_PARAMS) {
 }
 uint32_t ef_religion(EFFECT_DISPLAY_PARAMS) {
 	{
+		auto rel = trigger::payload(tval[1]).rel_id;
 		auto box = text::open_layout_box(layout, indentation);
 		text::substitution_map m;
-		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(trigger::payload(tval[1]).rel_id));
+		text::add_to_substitution_map(m, text::variable_type::text, ws.world.religion_get_name(rel));
 		text::localised_format_box(ws, layout, box, "make_national_religion", m);
 		text::close_layout_box(layout, box);
+		auto mod_id = ws.world.religion_get_nation_modifier(rel);
+		auto n = trigger::to_nation(primary_slot);
+		auto dr = ws.world.nation_get_dominant_religion(n);
+		if(bool(mod_id)) {
+			text::add_line(ws, layout, "when", 15);
+			text::add_line_with_condition(ws, layout, "religion_nation_modifier", dr == rel, text::variable_type::name, ws.world.religion_get_name(rel), 30);
+			text::add_line(ws, layout, "giving_modifier",15);
+			modifier_description(ws, layout, mod_id, 30);
+		}
 	}
 	return 0;
 }
@@ -2049,7 +2071,7 @@ uint32_t ef_tech_school(EFFECT_DISPLAY_PARAMS) {
 	text::localised_format_box(ws, layout, box, "change_tech_school", m);
 	text::close_layout_box(layout, box);
 	if(ws.user_settings.spoilers) {
-		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount);
+		modifier_description(ws, layout, trigger::payload(tval[1]).mod_id, indentation + +indentation_amount, 1);
 	}
 	return 0;
 }
@@ -7323,7 +7345,7 @@ ef_religion_province, // 0x01BA
 ef_religion_pop, //0x01BB
 ef_reduce_pop_abs, //0x01BC
 ef_set_culture_pop, // 0x01BD
-ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3) 
+ef_change_party_name, //EFFECT_BYTECODE_ELEMENT(0x01BE, change_party_name, 3)
 ef_change_party_position, //EFFECT_BYTECODE_ELEMENT(0x01BF, change_party_position, 2)
 ef_diplo_points, //EFFECT_BYTECODE_ELEMENT(0x01C0, diplo_points, 2)
 ef_suppression_points, // EFFECT_BYTECODE_ELEMENT(0x01C1, suppression_points, 2)

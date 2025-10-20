@@ -1,5 +1,6 @@
 #pragma once
 
+#include "commands.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_unit_panel_subwindow.hpp"
@@ -126,17 +127,191 @@ public:
 	}
 };
 
+
+class disband_units_title : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto count = retrieve<size_t>(state, parent);
+		if(count == 1) {
+			set_text(state, text::produce_simple_string(state, "CONFIRM_DISBAND_TITLE"));
+		}
+		else if(count > 1) {
+			set_text(state, text::produce_simple_string(state, "DISBAND_ALL_TITLE"));
+		}
+	}
+};
+
+class disband_units_desc : public multiline_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto count = retrieve<size_t>(state, parent);
+		auto contents = text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), base_data.data.text.font_handle, 0, text::alignment::center, text::text_color::white, true });
+		auto box = text::open_layout_box(contents);
+		if(count == 1) {
+			text::add_to_layout_box(state, contents, box, text::produce_simple_string(state, "CONFIRM_DISBAND_DESC"), text::text_color::white);
+		}
+		else if(count > 1) {
+			text::substitution_map m;
+			text::add_to_substitution_map(m, text::variable_type::num, int64_t(count));
+			text::add_to_layout_box(state, contents, box, text::resolve_string_substitution(state, "DISBAND_ALL_DESC", m), text::text_color::white);
+		}
+		text::close_layout_box(contents, box);
+	}
+};
+
+template<typename T>
+struct disband_unit_wrapper {
+	std::vector<T> to_be_deleted;
+};
+
+class disband_agree_button : public button_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			if(!command::can_delete_army(state, state.local_player_nation, unit)) {
+				disabled = true;
+			}
+		}
+		disabled = false;
+
+		for(auto unit : navies) {
+			if(!command::can_delete_navy(state, state.local_player_nation, unit)) {
+				disabled = true;
+			}
+		}
+		disabled = false;
+
+	}
+
+	void button_action(sys::state& state) noexcept override {
+
+		const auto& armies = retrieve<std::vector<dcon::army_id>>(state, parent);
+		const auto& navies = retrieve<std::vector<dcon::navy_id>>(state, parent);
+		for(auto unit : armies) {
+			command::delete_army(state, state.local_player_nation, unit);
+		}
+		for(auto unit : navies) {
+			command::delete_navy(state, state.local_player_nation, unit);
+		}
+
+		parent->set_visible(state, false); // Close parent window automatically
+		//send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
+
+	}
+};
+
+
+
+
+
+
+class disband_unit_confirmation : public window_element_base {
+
+	std::vector<dcon::army_id> armies;
+	std::vector<dcon::navy_id> navies;
+
+public:
+	void on_create(sys::state& state) noexcept override {
+		window_element_base::on_create(state);
+		set_visible(state, false);
+		base_data.position.x = base_data.position.y = 0;
+	}
+
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::army_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
+		for(auto unit : units_to_be_deleted) {
+			armies.push_back(unit);
+		}
+	}
+	void set_units_to_be_disbanded(sys::state& state, const std::vector<dcon::navy_id>& units_to_be_deleted) {
+		armies.clear();
+		navies.clear();
+		for(auto unit : units_to_be_deleted) {
+			navies.push_back(unit);
+		}
+	}
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			auto ptr = make_element_by_type<draggable_target>(state, id);
+			ptr->base_data.size = base_data.size; // Nudge
+			return ptr;
+		} else if(name == "default_popup_banner")
+			return make_element_by_type<image_element_base>(state, id); // Not used in Vic2?
+		else if(name == "title")
+			return make_element_by_type<disband_units_title>(state, id);
+		else if(name == "description")
+			return make_element_by_type<disband_units_desc>(state, id);
+		else if(name == "agreebutton")
+			return make_element_by_type<disband_agree_button>(state, id);
+		else if(name == "declinebutton")
+			return make_element_by_type<generic_close_button>(state, id);
+		else
+			return nullptr;
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<std::vector<dcon::army_id>>()) {
+			payload = armies;
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<std::vector<dcon::navy_id>>()) {
+			payload = navies;
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<size_t>()) {
+			payload = armies.size() + navies.size();
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::army_id>>()) {
+			disband_unit_wrapper<dcon::army_id> item = any_cast<disband_unit_wrapper<dcon::army_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<disband_unit_wrapper<dcon::navy_id>>()) {
+			disband_unit_wrapper<dcon::navy_id> item = any_cast<disband_unit_wrapper<dcon::navy_id>>(payload);
+			set_units_to_be_disbanded(state, item.to_be_deleted);
+			set_visible(state, true);
+			return message_result::consumed;
+		}
+
+
+
+		return message_result::unseen;
+	}
+
+};
+
+
+
 template<class T>
 class unit_selection_disband_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
-		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			command::delete_army(state, state.local_player_nation, content);
-		} else {
-			command::delete_navy(state, state.local_player_nation, content);
+		if(state.user_settings.unit_disband_confirmation) {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				std::vector<dcon::army_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else {
+				std::vector<dcon::navy_id> units;
+				units.push_back(content);
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
-		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::close }});
+		else {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				command::delete_army(state, state.local_player_nation, content);
+			} else {
+				command::delete_navy(state, state.local_player_nation, content);
+			}
+		}
+
 	}
 
 	void on_update(sys::state& state) noexcept override {
@@ -251,7 +426,7 @@ public:
 		}
 		display_leader_full(state, lid, contents, 0);
 	}
-	
+
 
 	void button_action(sys::state& state) noexcept override {
 		auto unit = retrieve<T>(state, parent);
@@ -280,16 +455,25 @@ public:
 		}
 
 		auto unit = retrieve<T>(state, parent);
+		dcon::nation_id controller;
 		dcon::leader_id lid;
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			lid = state.world.army_get_general_from_army_leadership(unit);
+			controller = state.world.army_get_controller_from_army_control(unit);
 			disabled = !command::can_change_general(state, state.local_player_nation, unit, dcon::leader_id{});
 		} else {
 			lid = state.world.navy_get_admiral_from_navy_leadership(unit);
+			controller = state.world.navy_get_controller_from_navy_control(unit);
 			disabled = !command::can_change_admiral(state, state.local_player_nation, unit, dcon::leader_id{});
 		}
 
-		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		auto pculture = state.world.nation_get_primary_culture(controller);
+		if constexpr(std::is_same_v<T, dcon::army_id>) {
+			if(!controller) {
+				auto rebel = state.world.army_get_controller_from_army_rebel_control(unit);
+				pculture = state.world.rebel_faction_get_primary_culture(rebel);
+			}
+		}
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
 		if(ltype && lid) {
@@ -584,15 +768,18 @@ public:
 };
 
 template<class T>
-class unit_selection_attrition_amount : public simple_text_element_base {
+class unit_selection_attrition_amount : public color_text_element {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		auto amount = military::attrition_amount(state, content);
-		if(amount > 0)
+		if(amount > 0) {
 			set_text(state, text::format_percentage(amount, 1));
-		else
+			color = text::text_color::red;
+		}
+		else {
 			set_text(state, "");
+		}
 	}
 };
 
@@ -604,13 +791,13 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			if(state.world.army_get_controller_from_army_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 255, 210);
 			} else {
 				color = sys::pack_color(170, 190, 170);
 			}
 		} else {
-			if(state.world.navy_get_controller_from_navy_control(content) == state.local_player_nation) {
+			if(military::get_effective_unit_commander(state, content) == state.local_player_nation) {
 				color = sys::pack_color(210, 210, 255);
 			} else {
 				color = sys::pack_color(170, 170, 190);
@@ -746,26 +933,26 @@ public:
 		if(payload.holds_type<element_selection_wrapper<unitpanel_action>>()) {
 			auto action = any_cast<element_selection_wrapper<unitpanel_action>>(payload).data;
 			switch(action) {
-			case unitpanel_action::close: {
-				// Bucket Carry, we dont handle this, but the parent does
-				parent->impl_get(state, payload);
-				// Tell reorg window to clean up after itself
-				Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
-				reorg_window->impl_get(state, cpayload);
-				break;
-			} case unitpanel_action::reorg: {
-				reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
-				reorg_window->impl_on_update(state);
-				break;
-			} case unitpanel_action::changeleader: {
-				break;
-			} case unitpanel_action::upgrade:
-			{
-				return message_result::unseen;
-			}
-			default: {
-				break;
-			}
+				case unitpanel_action::close: {
+					// Bucket Carry, we dont handle this, but the parent does
+					parent->impl_get(state, payload);
+					// Tell reorg window to clean up after itself
+					Cyto::Any cpayload = element_selection_wrapper<reorg_win_action>{reorg_win_action{reorg_win_action::close}};
+					reorg_window->impl_get(state, cpayload);
+					break;
+				} case unitpanel_action::reorg: {
+					reorg_window->is_visible() ? reorg_window->set_visible(state, false) : reorg_window->set_visible(state, true);
+					reorg_window->impl_on_update(state);
+					break;
+				} case unitpanel_action::changeleader: {
+					break;
+				} case unitpanel_action::upgrade:
+				{
+					return message_result::unseen;
+				}
+				default: {
+					break;
+				}
 			}
 			return message_result::consumed;
 		}
@@ -808,7 +995,7 @@ public:
 					auto fat = regiment_membership.get_regiment().get_regiment_from_automation();
 					auto strenght = fat.get_strength() * state.defines.pop_size_per_regiment;
 					unitstrength_text->set_visible(state, true);
-				
+
 					dcon::unit_type_id utid = fat.get_type();
 					auto result = utid ? state.military_definitions.unit_base_definitions[utid].type : military::unit_type::infantry;
 					if constexpr(N == 0) {
@@ -1228,14 +1415,15 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		int32_t max_cap = 0;
 		for(auto n : state.world.province_get_navy_location(p)) {
-			if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+			if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 				!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 				max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 			}
 		}
-		if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+		if(!command::can_embark_army(state, state.local_player_nation, a)
 			&& max_cap > 0) { //require splitting
 			auto regs = state.world.army_get_army_membership(a);
 			int32_t army_cap = int32_t(regs.end() - regs.begin());
@@ -1270,20 +1458,21 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto a = retrieve<dcon::army_id>(state, parent);
 		auto p = state.world.army_get_location_from_army_location(a);
+		auto army_owner = state.world.army_get_controller_from_army_control(a);
 		visible = !bool(state.world.army_get_navy_from_army_transport(a)); //not already in ship
 		disabled = true;
 		frame = 0;
 		if(visible) {
 			int32_t max_cap = 0;
 			for(auto n : state.world.province_get_navy_location(p)) {
-				if(n.get_navy().get_controller_from_navy_control() == state.local_player_nation &&
+				if(n.get_navy().get_controller_from_navy_control() == army_owner &&
 					!bool(n.get_navy().get_battle_from_navy_battle_participation())) {
 					max_cap = std::max(military::free_transport_capacity(state, n.get_navy()), max_cap);
 				}
 			}
 			disabled = max_cap <= 0;
 			//require splitting
-			if(!military::can_embark_onto_sea_tile(state, state.local_player_nation, p, a)
+			if(!command::can_embark_army(state, state.local_player_nation, a)
 				&& max_cap > 0) {
 				frame = 1;
 			}
@@ -1298,7 +1487,7 @@ public:
 		auto loc = state.world.army_get_location_from_army_location(n);
 
 		text::add_line(state, contents, "uw_load_is_valid");
-		text::add_line_with_condition(state, contents, "alice_load_unload_1", military::can_embark_onto_sea_tile(state, state.local_player_nation, loc, n));
+		text::add_line_with_condition(state, contents, "alice_load_unload_1", command::can_embark_army(state, state.local_player_nation, n));
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(visible)
@@ -1498,7 +1687,14 @@ public:
 
 		economy::commodity_set commodities;
 
-		auto owner = state.local_player_nation;
+		dcon::nation_id owner{};
+
+		if(army) {
+			owner = state.world.army_get_controller_from_army_control(army);
+		} else if (navy) {
+			owner = state.world.navy_get_controller_from_navy_control(navy);
+		}
+
 		auto capital = state.world.nation_get_capital(owner);
 		auto s = state.world.province_get_state_membership(capital);
 		auto m = state.world.state_instance_get_market_from_local_market(s);
@@ -1506,14 +1702,14 @@ public:
 		float spending_level = .0f;
 
 		if(army) {
-			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			commodities = military::get_required_supply(state, owner, army);
 			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
 		} else if(navy) {
-			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			commodities = military::get_required_supply(state, owner, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
 
-		
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1551,20 +1747,25 @@ public:
 		economy::commodity_set commodities;
 
 		float spending_level = .0f;
-		auto owner = state.local_player_nation;
+		dcon::nation_id owner{};
+		if(army) {
+			owner = state.world.army_get_controller_from_army_control(army);
+		} else if(navy) {
+			owner = state.world.navy_get_controller_from_navy_control(navy);
+		}
 		auto capital = state.world.nation_get_capital(owner);
 		auto s = state.world.province_get_state_membership(capital);
 		auto m = state.world.state_instance_get_market_from_local_market(s);
 
 		if(army) {
-			commodities = military::get_required_supply(state, state.local_player_nation, army);
+			commodities = military::get_required_supply(state, owner, army);
 			spending_level = float(state.world.nation_get_land_spending(owner)) / 100.0f;
 		} else if(navy) {
-			commodities = military::get_required_supply(state, state.local_player_nation, navy);
+			commodities = military::get_required_supply(state, owner, navy);
 			spending_level = float(state.world.nation_get_naval_spending(owner)) / 100.0f;
 		}
-		
-		
+
+
 		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
@@ -1581,7 +1782,7 @@ public:
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
-			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;			
+			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 		}
 
 		float median_supply = max_supply > 0.0f ? actual_supply / max_supply : 0.0f;
@@ -1697,12 +1898,164 @@ public:
 class apply_template_container : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "composition") {
+			// Macro builder template label on unit panel window
 			return make_element_by_type<main_template_composition_label>(state, id);
 		} else if(name == "background") {
 			return make_element_by_type< apply_template_to_army_location_button>(state, id);
 		} else {
 			return nullptr;
 		}
+	}
+};
+
+class move_siege_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::move_to_siege;
+
+		if(order_selected) {
+			frame = 1;
+		}
+		else {
+			frame = 0;
+		}
+	}
+
+	// US7AC2 Enable "Move and Siege" with a button
+	void button_action(sys::state& state) noexcept override {
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::move_to_siege) {
+			state.ui_state.selected_army_order = military::special_army_order::move_to_siege;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	// US8AC3 Toggle move and siege order on V.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::V) {
+			button_action(state);
+		}
+
+		return res;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "move_to_siege");
+		text::add_line(state, contents, "move_to_siege_desc");
+	}
+};
+
+class strategic_redeployment_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::strategic_redeployment;
+
+		if(order_selected) {
+			frame = 3;
+		} else {
+			frame = 2;
+		}
+	}
+
+	// US8AC2 Button to order Strategic Redeployment
+	void button_action(sys::state& state) noexcept override {
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::strategic_redeployment) {
+			state.ui_state.selected_army_order = military::special_army_order::strategic_redeployment;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	// US8AC3 Toggle strategic redeployment order on B.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::B) {
+			button_action(state);
+		}
+
+		return res;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "strategic_redeployment");
+		text::add_line(state, contents, "strategic_redeployment_desc");
+	}
+};
+
+class pursue_to_engage_order_button : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		bool order_selected = state.ui_state.selected_army_order == military::special_army_order::pursue_to_engage;
+
+		if(order_selected) {
+			frame = 5;
+		} else {
+			frame = 4;
+		}
+	}
+
+	// US9AC3 Button to order pursue_to_engage
+	void button_action(sys::state& state) noexcept override {
+		// First click selects the order
+		if(state.ui_state.selected_army_order != military::special_army_order::pursue_to_engage) {
+			state.ui_state.selected_army_order = military::special_army_order::pursue_to_engage;
+		}
+		// Second click deselects it
+		else {
+			state.ui_state.selected_army_order = military::special_army_order::none;
+		}
+		impl_on_update(state);
+	}
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		on_update(state);
+		button_element_base::render(state, x, y);
+	}
+
+	// US9AC4 Toggle pursue order on N.
+	message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		message_result res = message_result::unseen;
+
+		if(key == sys::virtual_key::N) {
+			button_action(state);
+		}
+
+		return res;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "pursue_to_engage");
+		text::add_line(state, contents, "pursue_to_engage_desc");
 	}
 };
 
@@ -1758,6 +2111,24 @@ public:
 		} else if(name == "alice_build_up_to_template_window") {
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				return make_element_by_type<apply_template_container>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "move_siege_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<move_siege_order_button>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "strategic_redeployment_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<strategic_redeployment_order_button>(state, id);
+			} else {
+				return make_element_by_type<invisible_element>(state, id);
+			}
+		} else if(name == "pursue_order") {
+			if constexpr(std::is_same_v<T, dcon::army_id>) {
+				return make_element_by_type<pursue_to_engage_order_button>(state, id);
 			} else {
 				return make_element_by_type<invisible_element>(state, id);
 			}
@@ -1995,7 +2366,7 @@ public:
 
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
 			if(parent) {
-				
+
 			}
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
 			if(parent) {
@@ -2236,7 +2607,7 @@ public:
 				unit_upgrade_win->impl_on_update(state);
 				break;
 			}
-			default: 
+			default:
 				break;
 			};
 			return message_result::consumed;
@@ -2310,13 +2681,29 @@ public:
 class disband_all_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		for(auto a : state.selected_armies) {
-			command::delete_army(state, state.local_player_nation, a);
+		if(state.user_settings.unit_disband_confirmation) {
+			if(!state.selected_armies.empty()) {
+				std::vector<dcon::army_id> units = state.selected_armies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(!state.selected_navies.empty()) {
+				std::vector<dcon::navy_id> units = state.selected_navies;
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
-		for(auto a : state.selected_navies) {
-			command::delete_navy(state, state.local_player_nation, a);
-		}	
+		else {
+			for(auto army : state.selected_armies) {
+				if (command::can_delete_army(state, state.local_player_nation, army)) {
+					command::delete_army(state, state.local_player_nation, army);
+				}
+			}
+			for(auto navy : state.selected_navies) {
+				if (command::can_delete_navy(state, state.local_player_nation, navy)) {
+					command::delete_navy(state, state.local_player_nation, navy);
+				}
+			}
+		}
 	}
+
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
 	}
@@ -2367,6 +2754,25 @@ public:
 				total += r.get_ship().get_strength();
 			}
 			set_text(state, text::format_float(total, 1));
+		}
+	}
+};
+class u_row_attrition_text : public color_text_element {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<unit_var>(state, parent);
+		float amount = 0.0;
+		if(std::holds_alternative<dcon::army_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::army_id>(content));
+		}
+		else if(std::holds_alternative<dcon::navy_id>(content)) {
+			amount = military::attrition_amount(state, std::get<dcon::navy_id>(content));
+		}
+		if(amount > 0.0f) {
+			set_text(state, text::format_percentage(amount, 1));
+			color = text::text_color::red;
+		} else {
+			set_text(state, "");
 		}
 	}
 };
@@ -2455,6 +2861,7 @@ class u_row_str_bar : public vertical_progress_bar {
 
 class u_row_disband : public button_element_base {
 public:
+
 	void on_update(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
@@ -2465,11 +2872,25 @@ public:
 	}
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		if(std::holds_alternative<dcon::army_id>(foru)) {
-			command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
-		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+		if(state.user_settings.unit_disband_confirmation) {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				std::vector<dcon::army_id> units;
+				units.push_back(std::get<dcon::army_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::army_id> {units});
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				std::vector<dcon::navy_id> units;
+				units.push_back(std::get<dcon::navy_id>(foru));
+				send(state, state.ui_state.disband_unit_window, disband_unit_wrapper<dcon::navy_id> {units});
+			}
 		}
+		else {
+			if(std::holds_alternative<dcon::army_id>(foru)) {
+				command::delete_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+			} else if(std::holds_alternative<dcon::navy_id>(foru)) {
+				command::delete_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+			}
+		}
+
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;
@@ -2676,15 +3097,28 @@ public:
 
 		auto foru = retrieve<unit_var>(state, parent);
 		dcon::leader_id lid;
+		dcon::nation_id owner;
 		if(std::holds_alternative<dcon::army_id>(foru)) {
-			lid = state.world.army_get_general_from_army_leadership(std::get<dcon::army_id>(foru));
-			disabled = !command::can_change_general(state, state.local_player_nation, std::get<dcon::army_id>(foru), dcon::leader_id{});
+			auto army = std::get<dcon::army_id>(foru);
+			lid = state.world.army_get_general_from_army_leadership(army);
+			owner = state.world.army_get_controller_from_army_control(army);
+			disabled = !command::can_change_general(state, state.local_player_nation, army, dcon::leader_id{});
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			lid = state.world.navy_get_admiral_from_navy_leadership(std::get<dcon::navy_id>(foru));
+			owner = state.world.navy_get_controller_from_navy_control(std::get<dcon::navy_id>(foru));
 			disabled = !command::can_change_admiral(state, state.local_player_nation, std::get<dcon::navy_id>(foru), dcon::leader_id{});
 		}
 
+
 		auto pculture = state.world.nation_get_primary_culture(state.local_player_nation);
+		if(std::holds_alternative<dcon::army_id>(foru)) {
+			if(!owner) {
+				auto army = std::get<dcon::army_id>(foru);
+				auto rebel = state.world.army_get_controller_from_army_rebel_control(army);
+				pculture = state.world.rebel_faction_get_primary_culture(rebel);
+			}
+		}
+
 		auto ltype = pculture.get_group_from_culture_group_membership().get_leader();
 
 		if(ltype && lid) {
@@ -2758,6 +3192,8 @@ public:
 			return make_element_by_type <u_row_strength> (state, id);
 		} else if(name == "unitattrition_icon") {
 			return make_element_by_type<u_row_attrit_icon>(state, id);
+		} else if(name == "unitattrition") {
+			return make_element_by_type<u_row_attrition_text>(state, id);
 		} else if(name == "org_bar") {
 			return make_element_by_type<u_row_org_bar>(state, id);
 		} else if(name == "str_bar") {
@@ -2850,11 +3286,16 @@ public:
 };
 
 class mulit_unit_selection_panel : public window_element_base {
+
+
+
 public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 		auto ptr = make_element_by_type<multi_unit_details_ai_controlled>(state, "alice_enable_ai_controlled_multi");
 		add_child_to_front(std::move(ptr));
+
+
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -2872,6 +3313,8 @@ public:
 			return nullptr;
 		}
 	}
+
+
 };
 
 struct army_group_unit_type_info {
@@ -3028,7 +3471,7 @@ public:
 					if(type) {
 						regiments_by_type[type.index()] += 1;
 					}
-				}				
+				}
 			}
 		}
 
@@ -3077,7 +3520,7 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		window_element_base::on_create(state);
 
-		xy_pair base_position = { 15, 0 }; 
+		xy_pair base_position = { 15, 0 };
 		uint16_t base_offset = 95;
 
 		{
@@ -3128,7 +3571,7 @@ public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "alice_army_group_unit_listbox") {
 			return make_element_by_type<selected_army_group_land_units_list>(state, id);
-		} 
+		}
 		return nullptr;
 	}
 };
@@ -3223,7 +3666,7 @@ class add_selected_units_to_army_group_button : public button_element_base {
 		for(auto item : state.selected_armies) {
 			state.world.for_each_automated_army_group([&](dcon::automated_army_group_id group) {
 				state.remove_army_army_group_clean(group, item);
-			});			
+			});
 			state.add_army_to_army_group(state.selected_army_group, item);
 		}
 		for(auto item : state.selected_navies) {
@@ -3368,7 +3811,7 @@ public:
 		row_contents.clear();
 		state.world.for_each_automated_army_group([&](dcon::automated_army_group_id item) {
 			row_contents.push_back(item);
-		});			
+		});
 		update(state);
 	}
 };

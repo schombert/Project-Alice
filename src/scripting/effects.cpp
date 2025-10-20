@@ -1966,6 +1966,9 @@ uint32_t ef_prestige(EFFECT_PARAMTERS) {
 }
 uint32_t ef_change_tag(EFFECT_PARAMTERS) {
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0) {
+		return 0;
+	}
 	culture::replace_cores(ws, tag, trigger::payload(tval[1]).tag_id);
 	auto old_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), trigger::payload(tval[1]).tag_id);
@@ -1985,6 +1988,9 @@ uint32_t ef_change_tag_culture(EFFECT_PARAMTERS) {
 
 	auto old_holder = ws.world.national_identity_get_nation_from_identity_holder(u);
 	auto tag = ws.world.nation_get_identity_from_identity_holder(trigger::to_nation(primary_slot));
+	if(ws.world.nation_get_owned_province_count(trigger::to_nation(primary_slot)) == 0) {
+		return 0;
+	}
 	culture::replace_cores(ws, tag, u);
 	ws.world.nation_set_identity_from_identity_holder(trigger::to_nation(primary_slot), u);
 	politics::update_displayed_identity(ws, trigger::to_nation(primary_slot));
@@ -2000,25 +2006,20 @@ uint32_t ef_change_tag_no_core_switch(EFFECT_PARAMTERS) {
 		return 0;
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		network::switch_player(ws, holder, trigger::to_nation(primary_slot));
+		nations::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
 	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		network::switch_player(ws, trigger::to_nation(primary_slot), holder);
+		nations::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
 	}
 
-	auto old_controller = ws.world.nation_get_is_player_controlled(holder);
+	/*auto old_controller = ws.world.nation_get_is_player_controlled(holder);
 	ws.world.nation_set_is_player_controlled(holder, ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)));
-	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);
+	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);*/
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
 		ai::remove_ai_data(ws, trigger::to_nation(primary_slot));
 	if(ws.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(ws, holder);
 
-	if(ws.local_player_nation == trigger::to_nation(primary_slot)) {
-		ws.local_player_nation = holder;
-	} else if(ws.local_player_nation == holder) {
-		ws.local_player_nation = trigger::to_nation(primary_slot);
-	}
 	return 0;
 }
 uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
@@ -2030,25 +2031,20 @@ uint32_t ef_change_tag_no_core_switch_culture(EFFECT_PARAMTERS) {
 		return 0;
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot))) {
-		network::switch_player(ws, holder, trigger::to_nation(primary_slot));
+		nations::switch_all_players(ws, holder, trigger::to_nation(primary_slot));
 	} else if(ws.world.nation_get_is_player_controlled(holder)) {
-		network::switch_player(ws, trigger::to_nation(primary_slot), holder);
+		nations::switch_all_players(ws, trigger::to_nation(primary_slot), holder);
 	}
 
-	auto old_controller = ws.world.nation_get_is_player_controlled(holder);
+	/*auto old_controller = ws.world.nation_get_is_player_controlled(holder);
 	ws.world.nation_set_is_player_controlled(holder, ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)));
-	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);
+	ws.world.nation_set_is_player_controlled(trigger::to_nation(primary_slot), old_controller);*/
 
 	if(ws.world.nation_get_is_player_controlled(trigger::to_nation(primary_slot)))
 		ai::remove_ai_data(ws, trigger::to_nation(primary_slot));
 	if(ws.world.nation_get_is_player_controlled(holder))
 		ai::remove_ai_data(ws, holder);
 
-	if(ws.local_player_nation == trigger::to_nation(primary_slot)) {
-		ws.local_player_nation = holder;
-	} else if(ws.local_player_nation == holder) {
-		ws.local_player_nation = trigger::to_nation(primary_slot);
-	}
 	return 0;
 }
 uint32_t ef_set_country_flag(EFFECT_PARAMTERS) {
@@ -2607,10 +2603,18 @@ uint32_t ef_create_vassal(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_this_nation(EFFECT_PARAMTERS) {
 	nations::make_vassal(ws, trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot));
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), trigger::to_nation(this_slot), wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_this_province(EFFECT_PARAMTERS) {
@@ -2618,10 +2622,18 @@ uint32_t ef_create_vassal_this_province(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_from_nation(EFFECT_PARAMTERS) {
 	nations::make_vassal(ws, trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot));
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), trigger::to_nation(from_slot), wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_from_province(EFFECT_PARAMTERS) {
@@ -2629,6 +2641,10 @@ uint32_t ef_create_vassal_from_province(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_end_military_access(EFFECT_PARAMTERS) {
@@ -2769,11 +2785,9 @@ uint32_t ef_release_vassal(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(holder) == 0)
 			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			ws.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
-			ws.world.nation_set_in_sphere_of(holder, trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, holder, trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
@@ -2791,11 +2805,9 @@ uint32_t ef_release_vassal_this_nation(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(trigger::to_nation(this_slot)) == 0)
 			return 0;
 		ws.world.force_create_overlord(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
-			ws.world.nation_set_in_sphere_of(trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(this_slot));
@@ -2816,11 +2828,9 @@ uint32_t ef_release_vassal_this_province(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(holder) == 0)
 			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			ws.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
-			ws.world.nation_set_in_sphere_of(holder, trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, holder, trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
@@ -2838,11 +2848,9 @@ uint32_t ef_release_vassal_from_nation(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(trigger::to_nation(from_slot)) == 0)
 			return 0;
 		ws.world.force_create_overlord(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
-			ws.world.nation_set_in_sphere_of(trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(trigger::to_nation(from_slot));
@@ -2863,11 +2871,9 @@ uint32_t ef_release_vassal_from_province(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(holder) == 0)
 			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			flags = uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere);
-			ws.world.nation_set_in_sphere_of(holder, trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, holder, trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
@@ -2888,11 +2894,9 @@ uint32_t ef_release_vassal_reb(EFFECT_PARAMTERS) {
 		if(ws.world.nation_get_owned_province_count(holder) == 0)
 			return 0;
 		ws.world.force_create_overlord(holder, trigger::to_nation(primary_slot));
+		ws.trade_route_cached_values_out_of_date = true;
 		if(ws.world.nation_get_is_great_power(trigger::to_nation(primary_slot))) {
-			auto sr = ws.world.force_create_gp_relationship(holder, trigger::to_nation(primary_slot));
-			auto& flags = ws.world.gp_relationship_get_status(sr);
-			ws.world.gp_relationship_set_status(sr, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
-			ws.world.nation_set_in_sphere_of(holder, trigger::to_nation(primary_slot));
+			nations::sphere_nation(ws, holder, trigger::to_nation(primary_slot));
 		}
 	} else {
 		auto rel = ws.world.nation_get_overlord_as_subject(holder);
@@ -4012,6 +4016,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;
 						m.data.war = wfor.get_war();
+						m.automatic_call = false;
 						diplomatic_message::post(ws, m);
 					}
 				}
@@ -4024,6 +4029,7 @@ uint32_t ef_call_allies(EFFECT_PARAMTERS) {
 						m.to = other_nation;
 						m.type = diplomatic_message::type_t::call_ally_request;
 						m.data.war = wfor.get_war();
+						m.automatic_call = false;
 						diplomatic_message::post(ws, m);
 					}
 				}

@@ -316,7 +316,7 @@ struct macrobuilder2_main_t : public layout_window_element {
 	std::unique_ptr<macrobuilder2_main_apply_button_t> apply_button;
 	macrobuilder2_main_template_list_g_t template_list_g;
 	macrobuilder2_main_unit_grid_g_t unit_grid_g;
-std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -337,7 +337,7 @@ std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 				new_abs_pos.x = int16_t(std::clamp(int32_t(new_abs_pos.x), 0, ui::ui_width(state) - base_data.size.x));
 			if(ui::ui_height(state) > base_data.size.y)
 				new_abs_pos.y = int16_t(std::clamp(int32_t(new_abs_pos.y), 0, ui::ui_height(state) - base_data.size.y));
-			if(state.world.locale_get_native_rtl(state.font_collection.get_current_locale())) {
+			if(state_is_rtl(state)) {
 				base_data.position.x -= int16_t(new_abs_pos.x - location_abs.x);
 			} else {
 				base_data.position.x += int16_t(new_abs_pos.x - location_abs.x);
@@ -354,15 +354,16 @@ struct macrobuilder2_list_item_t : public layout_window_element {
 	int32_t value;
 	std::unique_ptr<macrobuilder2_list_item_select_button_t> select_button;
 	std::unique_ptr<macrobuilder2_list_item_delete_button_t> delete_button;
-std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
@@ -377,7 +378,7 @@ struct macrobuilder2_grid_item_t : public layout_window_element {
 	std::unique_ptr<macrobuilder2_grid_item_decrease_count_t> decrease_count;
 	std::unique_ptr<macrobuilder2_grid_item_increase_count_t> increase_count;
 	std::unique_ptr<macrobuilder2_grid_item_current_count_t> current_count;
-std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -389,8 +390,8 @@ std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
 	}
 	void on_update(sys::state& state) noexcept override;
-	void* get_by_name(sys::state& state, std::string_view name) noexcept override {
-		if(name == "value") {
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "value") {
 			return (void*)(&value);
 		}
 		return nullptr;
@@ -400,8 +401,9 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_grid_item(sys::state& state
 struct macrobuilder2_spacer_t : public ui::non_owning_container_base {
 // BEGIN spacer::variables
 // END
-std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::unseen;
 	}
@@ -453,7 +455,7 @@ measure_result  macrobuilder2_main_template_list_g_t::place_item(sys::state& sta
 			list_item_pool[list_item_pool_used]->impl_on_update(state);
 			list_item_pool_used++;
 		}
-		alternate = !alternate;
+		alternate = true;
 		return measure_result{ list_item_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
@@ -504,7 +506,7 @@ measure_result  macrobuilder2_main_unit_grid_g_t::place_item(sys::state& state, 
 			grid_item_pool[grid_item_pool_used]->impl_on_update(state);
 			grid_item_pool_used++;
 		}
-		alternate = !alternate;
+		alternate = true;
 		return measure_result{ grid_item_pool[0]->base_data.size.x, grid_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	if(std::holds_alternative<spacer_option>(values[index])) {
@@ -518,7 +520,7 @@ measure_result  macrobuilder2_main_unit_grid_g_t::place_item(sys::state& state, 
 			spacer_pool[spacer_pool_used]->impl_on_update(state);
 			spacer_pool_used++;
 		}
-		alternate = !alternate;
+		alternate = true;
 		return measure_result{ spacer_pool[0]->base_data.size.x, spacer_pool[0]->base_data.size.y + 0, measure_result::special::end_page};
 	}
 	return measure_result{0,0,measure_result::special::none};
@@ -551,7 +553,7 @@ void macrobuilder2_main_close_button_t::update_tooltip(sys::state& state, int32_
 	text::add_line(state, contents, tooltip_key);
 }
 void macrobuilder2_main_close_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void macrobuilder2_main_close_button_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
@@ -567,7 +569,7 @@ void macrobuilder2_main_header_text_t::set_text(sys::state& state, std::string c
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -575,7 +577,7 @@ void macrobuilder2_main_header_text_t::on_reset_text(sys::state& state) noexcept
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void macrobuilder2_main_header_text_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -686,7 +688,7 @@ void macrobuilder2_main_apply_button_t::set_text(sys::state& state, std::string 
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -694,11 +696,11 @@ void macrobuilder2_main_apply_button_t::on_reset_text(sys::state& state) noexcep
 	cached_text = text::produce_simple_string(state, text_key);
 	internal_layout.contents.clear();
 	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cached_text);
 }
 void macrobuilder2_main_apply_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -728,7 +730,16 @@ ui::message_result macrobuilder2_main_t::on_rbutton_down(sys::state& state, int3
 	return ui::message_result::consumed;
 }
 void macrobuilder2_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void macrobuilder2_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
@@ -763,6 +774,13 @@ void macrobuilder2_main_t::create_layout_level(sys::state& state, layout_level& 
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -845,20 +863,8 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
-	auto name_key = state.lookup_key("macrobuilder2::main");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "close_button") {
 			close_button = std::make_unique<macrobuilder2_main_close_button_t>();
 			close_button->parent = this;
@@ -872,7 +878,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "header_text") {
 			header_text = std::make_unique<macrobuilder2_main_header_text_t>();
@@ -890,7 +896,7 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "apply_button") {
 			apply_button = std::make_unique<macrobuilder2_main_apply_button_t>();
@@ -909,8 +915,9 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
 	template_list_g.on_create(state, this);
 	unit_grid_g.on_create(state, this);
@@ -944,7 +951,7 @@ void macrobuilder2_list_item_select_button_t::set_text(sys::state& state, std::s
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -952,9 +959,9 @@ void macrobuilder2_list_item_select_button_t::on_reset_text(sys::state& state) n
 }
 void macrobuilder2_list_item_select_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	if(is_active)
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
 	else
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 	if(internal_layout.contents.empty()) return;
 	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
 	auto linesz = state.font_collection.line_height(state, fh); 
@@ -1022,7 +1029,7 @@ void macrobuilder2_list_item_delete_button_t::update_tooltip(sys::state& state, 
 	text::add_line(state, contents, tooltip_key);
 }
 void macrobuilder2_list_item_delete_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void macrobuilder2_list_item_delete_button_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
@@ -1038,6 +1045,17 @@ void macrobuilder2_list_item_delete_button_t::on_update(sys::state& state) noexc
 void macrobuilder2_list_item_delete_button_t::on_create(sys::state& state) noexcept {
 // BEGIN list_item::delete_button::create
 // END
+}
+void macrobuilder2_list_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void macrobuilder2_list_item_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1071,6 +1089,13 @@ void macrobuilder2_list_item_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1143,20 +1168,8 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	auto name_key = state.lookup_key("macrobuilder2::list_item");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "select_button") {
 			select_button = std::make_unique<macrobuilder2_list_item_select_button_t>();
 			select_button->parent = this;
@@ -1174,7 +1187,7 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "delete_button") {
 			delete_button = std::make_unique<macrobuilder2_list_item_delete_button_t>();
@@ -1190,8 +1203,9 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
 	page_left_texture_key = win_data.page_left_texture;
 	page_right_texture_key = win_data.page_right_texture;
@@ -1305,11 +1319,11 @@ void macrobuilder2_grid_item_unit_icon_t::render(sys::state & state, int32_t x, 
 		auto& gfx_def = state.ui_defs.gfx[background_gid];
 		if(gfx_def.primary_texture_handle) {
 			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_bordered_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), gfx_def.type_dependent, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else if(gfx_def.number_of_frames > 1) {
-				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), frame, gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			} else {
-				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+				ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state)); 
 			}
 		}
 	}
@@ -1358,7 +1372,7 @@ ui::message_result macrobuilder2_grid_item_decrease_count_t::on_rbutton_down(sys
 	return ui::message_result::consumed;
 }
 void macrobuilder2_grid_item_decrease_count_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void macrobuilder2_grid_item_decrease_count_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
@@ -1434,7 +1448,7 @@ ui::message_result macrobuilder2_grid_item_increase_count_t::on_rbutton_down(sys
 	return ui::message_result::consumed;
 }
 void macrobuilder2_grid_item_increase_count_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
 }
 void macrobuilder2_grid_item_increase_count_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
@@ -1451,7 +1465,7 @@ void macrobuilder2_grid_item_current_count_t::set_text(sys::state& state, std::s
 		cached_text = new_text;
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 		sl.add_text(state, cached_text);
 	}
 }
@@ -1493,7 +1507,16 @@ ui::message_result macrobuilder2_grid_item_t::on_rbutton_down(sys::state& state,
 	return ui::message_result::consumed;
 }
 void macrobuilder2_grid_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale())); 
+	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
+	auto cmod = ui::get_color_modification(false, false,  false);
+	for (auto& _item : textures_to_render) {
+		if (_item.texture_type == background_type::texture)
+			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::border_texture_repeat)
+			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		else if (_item.texture_type == background_type::textured_corners)
+			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
+	}
 }
 void macrobuilder2_grid_item_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1530,6 +1553,13 @@ void macrobuilder2_grid_item_t::create_layout_level(sys::state& state, layout_le
 		layout_item_types t;
 		buffer.read(t);
 		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
 			case layout_item_types::control:
 			{
 				layout_control temp;
@@ -1610,20 +1640,8 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	texture_key = win_data.texture;
 	ui::element_base::flags |= ui::element_base::wants_update_when_hidden_mask;
-	auto name_key = state.lookup_key("macrobuilder2::grid_item");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		pending_children.pop_back();
 		if(child_data.name == "unit_icon") {
 			unit_icon = std::make_unique<macrobuilder2_grid_item_unit_icon_t>();
 			unit_icon->parent = this;
@@ -1636,7 +1654,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "decrease_count") {
 			decrease_count = std::make_unique<macrobuilder2_grid_item_decrease_count_t>();
@@ -1650,7 +1668,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "increase_count") {
 			increase_count = std::make_unique<macrobuilder2_grid_item_increase_count_t>();
@@ -1664,7 +1682,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
 		if(child_data.name == "current_count") {
 			current_count = std::make_unique<macrobuilder2_grid_item_current_count_t>();
@@ -1681,8 +1699,9 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
-		continue;
+			pending_children.pop_back(); continue;
 		}
+		pending_children.pop_back();
 	}
 	page_left_texture_key = win_data.page_left_texture;
 	page_right_texture_key = win_data.page_right_texture;
@@ -1695,6 +1714,8 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_grid_item(sys::state& state
 	auto ptr = std::make_unique<macrobuilder2_grid_item_t>();
 	ptr->on_create(state);
 	return ptr;
+}
+void macrobuilder2_spacer_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 }
 void macrobuilder2_spacer_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1711,17 +1732,6 @@ void macrobuilder2_spacer_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	auto name_key = state.lookup_key("macrobuilder2::spacer");
-	for(auto ex : state.ui_defs.extensions) {
-		if(name_key && ex.window == name_key) {
-			auto ch_res = ui::make_element_immediate(state, ex.child);
-			if(ch_res) {
-				this->add_child_to_back(std::move(ch_res));
-				children.push_back(ch_res.get());
-				gui_inserts.push_back(std::move(ch_res));
-			}
-		}
-	}
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		pending_children.pop_back();

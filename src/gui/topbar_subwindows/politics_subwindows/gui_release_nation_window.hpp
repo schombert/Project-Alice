@@ -20,7 +20,7 @@ class release_play_as_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		const dcon::national_identity_id niid = retrieve<dcon::national_identity_id>(state, parent);
-		disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid);
+		disabled = !command::can_release_and_play_as(state, state.local_player_nation, niid, state.local_player_id);
 	}
 
 	void button_action(sys::state& state) noexcept override {

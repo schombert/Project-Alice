@@ -283,8 +283,7 @@ public:
 			root_cb = any_cast<element_selection_wrapper<dcon::cb_type_id>>(payload).data;
 			if(military::cb_requires_selection_of_a_state(state, root_cb)) {
 				select_state(state);
-			}
-			else {
+			} else {
 				wargoal_decided_upon = true;
 			}
 			impl_on_update(state);
@@ -386,20 +385,8 @@ public:
 	}
 };
 
-class diplomacy_industry_size : public standard_nation_text {
+class diplomacy_industry_size : public image_element_base {
 public:
-	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
-		auto fat_id = dcon::fatten(state.world, nation_id);
-
-		float res = 0.f;
-		for(auto p : fat_id.get_province_ownership_as_nation()) {
-			for(auto floc : p.get_province().get_factory_location_as_province()) {
-				res += economy::get_factory_level(state, floc.get_factory());
-			}
-		}
-		return text::format_float(res, 2);
-	}
-
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -408,6 +395,8 @@ public:
 		auto n = retrieve<dcon::nation_id>(state, parent);
 		auto fat_id = dcon::fatten(state.world, n);
 
+
+		auto total = 0.f;
 		auto consumer = 0.f;
 		auto heavy = 0.f;
 		auto mils = 0.f;
@@ -420,6 +409,7 @@ public:
 					continue;
 				}
 
+				total += economy::get_factory_level(state, floc.get_factory());
 				auto output = floc.get_factory().get_building_type().get_output().get_commodity_group();
 				if(output == (uint8_t)sys::commodity_group::military_goods) {
 					mils += economy::get_factory_level(state, floc.get_factory());
@@ -439,6 +429,7 @@ public:
 			}
 		}
 
+		text::add_line(state, contents, "factory_total_size", text::variable_type::val, (int)total);
 		text::add_line(state, contents, "factory_consumer_count", text::variable_type::val, (int)consumer);
 		text::add_line(state, contents, "factory_heavy_count", text::variable_type::val, (int)heavy);
 		text::add_line(state, contents, "factory_military_count", text::variable_type::val, (int)mils);
@@ -449,6 +440,37 @@ public:
 	}
 };
 
+class diplomacy_trade_status_size : public image_element_base {
+public:
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto n = retrieve<dcon::nation_id>(state, parent);
+		auto source = dcon::fatten(state.world, n);
+		for(auto target : state.world.in_nation) {
+			if(economy::has_active_embargo(state, source, target)) {
+				text::add_line(state, contents, "embargo_explain_1", text::variable_type::x, source, text::variable_type::y, target);
+			}
+			if(economy::has_active_embargo(state, target, source)) {
+				text::add_line(state, contents, "embargo_explain_2", text::variable_type::x, target, text::variable_type::y, source);
+			}
+		}
+		
+		for(auto target : state.world.in_nation) {
+			if(economy::nation_gives_direct_free_trade_rights(state, source, target)) {
+				text::add_line(state, contents, "free_trade_explain_8", text::variable_type::x, source, text::variable_type::y, target);
+			}
+			if(economy::nation_gives_direct_free_trade_rights(state, target, source)) {
+				text::add_line(state, contents, "free_trade_explain_8", text::variable_type::x, target, text::variable_type::y, source);
+			}
+		}
+		
+		
+	}
+};
 
 class diplomacy_country_select : public button_element_base {
 public:
@@ -497,7 +519,7 @@ void explain_influence(sys::state& state, dcon::nation_id target, text::columnar
 		text::add_line(state, contents, "influence_explain_1");
 		return;
 	}
-	if(military::has_truce_with(state, state.local_player_nation, target)) {
+	if(military::has_truce_with(state, state.local_player_nation, target) && state.world.nation_get_in_sphere_of(target) != state.local_player_nation) {
 		text::add_line(state, contents, "influence_explain_2");
 		return;
 	}
@@ -1080,10 +1102,7 @@ class nation_primary_culture : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto pc = state.world.nation_get_primary_culture(retrieve<dcon::nation_id>(state, parent));
-		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
 		std::string t = text::produce_simple_string(state, pc.get_name());
-		t += ", ";
-		t += text::produce_simple_string(state, pr.get_name());
 		set_text(state, t);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -1092,7 +1111,31 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto content = retrieve<dcon::nation_id>(state, parent);
 		text::add_line(state, contents, "is_primary_culture", text::variable_type::name, state.world.culture_get_name(state.world.nation_get_primary_culture(content)));
-		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(state.world.nation_get_religion(content)));
+	}
+};
+
+class nation_state_religion : public religion_type_icon {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto pr = state.world.nation_get_religion(retrieve<dcon::nation_id>(state, parent));
+		frame = int32_t(state.world.religion_get_icon(pr) - 1);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		auto rel = state.world.nation_get_religion(content);
+		auto dr = state.world.nation_get_dominant_religion(content);
+
+		text::add_line(state, contents, "is_primary_religion", text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "when");
+		text::add_line_with_condition(state, contents, "religion_nation_modifier", dr == rel, text::variable_type::name, state.world.religion_get_name(rel));
+		text::add_line(state, contents, "giving_modifier");
+		auto mod_id = state.world.religion_get_nation_modifier(rel);
+		if(bool(mod_id)) {
+			modifier_description(state, contents, mod_id, 15);
+		}
 	}
 };
 
@@ -1394,6 +1437,8 @@ public:
 			return make_element_by_type<nation_population_text>(state, id);
 		} else if(name == "country_primary_cultures") {
 			return make_element_by_type<nation_primary_culture>(state, id);
+		} else if(name == "nation_icon_religion") {
+			return make_element_by_type<nation_state_religion>(state, id);
 		} else if(name == "country_accepted_cultures") {
 			return make_element_by_type<nation_accepted_cultures>(state, id);
 		} else if(name == "war_extra_info_bg") {
@@ -1484,12 +1529,12 @@ public:
 			auto ptr = make_element_by_type<diplomacy_action_add_wargoal_button>(state, id);
 			war_elements[20] = ptr.get();
 			return ptr;
-		} else if(name == "industry_size_text") {
+		} else if(name == "industry_size_icon") {
 			auto ptr = make_element_by_type<diplomacy_industry_size>(state, id);
 			war_elements[21] = ptr.get();
 			return ptr;
-		} else if(name == "industry_size_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
+		} else if(name == "trade_size_icon") {
+			auto ptr = make_element_by_type<diplomacy_trade_status_size>(state, id);
 			war_elements[22] = ptr.get();
 			return ptr;
 		} else if(name == "selected_military_icon") {
@@ -1899,6 +1944,36 @@ public:
 	}
 };
 
+
+template<bool IsAttacker>
+class original_participant_flag : public flag_button {
+public:
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		dcon::nation_id original_participant;
+		if constexpr(IsAttacker) {
+			original_participant = state.world.war_get_original_attacker(war);
+		}
+		else {
+			original_participant = state.world.war_get_original_target(war);
+		}
+		
+		return state.world.nation_get_identity_from_identity_holder(original_participant);
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto war = retrieve<dcon::war_id>(state, parent);
+		auto cur_ident = get_current_nation(state);
+		auto cur_nation = state.world.national_identity_get_nation_from_identity_holder(cur_ident);
+		auto name = text::get_name(state, cur_nation);
+		if(!nations::nation_is_in_war(state, cur_nation, war)) {
+			text::add_line(state, contents, "alice_original_war_participant_notinvolved");
+		}
+		text::add_line(state, contents, "alice_original_war_participant_desc", text::variable_type::nation, name, text::variable_type::actor, (IsAttacker) ? "attacker" : "defender");
+		text::add_line(state, contents, "alice_original_war_participant_desc_2");
+
+	}
+};
+
 class diplomacy_war_info : public listbox_row_element_base<dcon::war_id> {
 public:
 	war_bar_position bar_position;
@@ -1942,6 +2017,10 @@ public:
 			auto ptr = make_element_by_type<overlapping_defender_flags>(state, id);
 			ptr->base_data.position.y -= 8 - 2;
 			return ptr;
+		} else if(name == "original_defender") {
+			return make_element_by_type<original_participant_flag<false>>(state, id);
+		} else if(name == "original_attacker") {
+			return make_element_by_type<original_participant_flag<true>>(state, id);
 		} else if(name == "attackers_wargoals") {
 			return make_element_by_type<diplomacy_war_overlapping_wargoals<true>>(state, id);
 		} else if(name == "defenders_wargoals") {
@@ -2236,8 +2315,10 @@ public:
 		set_text(state, text::produce_simple_string(state, "tut_8c_3"));
 	}
 };
-inline const int DiplomaticActionsRows = 10;
+inline const int DiplomaticActionsRows = 11;
 
+
+inline static diplomacy_action_command_units_button diplomacy_action_command_units_button_s;
 inline static diplomacy_action_ally_button diplomacy_action_ally_button_s;
 inline static diplomacy_action_call_ally_button diplomacy_action_call_ally_button_s;
 inline static diplomacy_action_military_access_button diplomacy_action_military_access_button_s;
@@ -2270,7 +2351,8 @@ inline static diplomacy_action_btn_logic* leftcolumnlogics[DiplomaticActionsRows
 	&diplomacy_action_war_subisides_button_s,
 	&diplomacy_action_declare_war_button_s,
 	&diplomacy_action_release_subject_button_s,
-	&diplomacy_action_ask_free_trade_agreement_s
+	&diplomacy_action_ask_free_trade_agreement_s,
+	&diplomacy_action_command_units_button_s
 };
 inline static diplomacy_action_btn_logic* rightcolumnlogics[DiplomaticActionsRows] = {
 	&diplomacy_action_discredit_button_s,
@@ -2803,7 +2885,7 @@ public:
 			case diplomacy_action::call_ally:
 				for(auto war_par : fat.get_war_participant()) {
 					command::call_to_arms(state, state.local_player_nation, facts_nation_id,
-							dcon::fatten(state.world, war_par).get_war().id);
+							dcon::fatten(state.world, war_par).get_war().id, false);
 				}
 				break;
 			case diplomacy_action::remove_from_sphere:

@@ -257,6 +257,13 @@ native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
 }
 
+native_string get_dir_name(directory const& dir) {
+	size_t found;
+	found = dir.relative_path.find_last_of(NATIVE("\\"));
+	return dir.relative_path.substr(found + 1);
+}
+
+
 std::optional<native_string> get_path_to_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -291,6 +298,35 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 				FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
 		if(file_handle != INVALID_HANDLE_VALUE) {
 			return std::optional<file>(file(file_handle, full_path));
+		}
+	}
+	return std::optional<file>{};
+}
+
+std::optional<file> open_file(directory const& dir, std::vector<native_string_view> file_names) {
+	if(dir.parent_system) {
+		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
+			native_string dir_path = dir.parent_system->ordered_roots[i] + dir.relative_path;
+			for(auto file_name : file_names) {
+				native_string full_path = dir_path + NATIVE('\\') + native_string(file_name);
+				if(simple_fs::is_ignored_path(*dir.parent_system, full_path)) {
+					continue;
+				}
+				HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+						FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+				if(file_handle != INVALID_HANDLE_VALUE) {
+					return std::optional<file>(file(file_handle, full_path));
+				}
+			}
+		}
+	} else {
+		for(auto file_name : file_names) {
+			native_string full_path = dir.relative_path + NATIVE('\\') + native_string(file_name);
+			HANDLE file_handle = CreateFileW(full_path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr, OPEN_EXISTING,
+					FILE_ATTRIBUTE_NORMAL | FILE_FLAG_SEQUENTIAL_SCAN, nullptr);
+			if(file_handle != INVALID_HANDLE_VALUE) {
+				return std::optional<file>(file(file_handle, full_path));
+			}
 		}
 	}
 	return std::optional<file>{};
@@ -439,6 +475,22 @@ directory get_or_create_templates_directory() {
 	return directory(nullptr, base_path);
 }
 
+directory get_or_create_gamerules_directory() {
+	native_char* local_path_out = nullptr;
+	native_string base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\gamerules");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
+
 directory get_or_create_oos_directory() {
 	native_char* local_path_out = nullptr;
 	native_string base_path;
@@ -531,10 +583,28 @@ native_string utf8_to_native(std::string_view str) {
 	return native_string(NATIVE(""));
 }
 
+std::u16string utf8_to_utf16(std::string_view str) {
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<WCHAR[]>(new WCHAR[str.length() * 2]);
+		auto chars_written = MultiByteToWideChar(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 2));
+		return std::u16string((char16_t*)(buffer.get()), size_t(chars_written));
+	}
+	return std::u16string(u"");
+}
+
 std::string native_to_utf8(native_string_view str) {
 	if(str.size() > 0) {
 		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
 		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, str.data(), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
+		return std::string(buffer.get(), size_t(chars_written));
+	}
+	return std::string("");
+}
+
+std::string utf16_to_utf8(std::u16string_view str) {
+	if(str.size() > 0) {
+		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
+		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(str.data()), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
 		return std::string(buffer.get(), size_t(chars_written));
 	}
 	return std::string("");

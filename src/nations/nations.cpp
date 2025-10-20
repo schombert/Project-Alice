@@ -18,6 +18,8 @@
 #include "economy_government.hpp"
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
+#include "gui_effect_tooltips.hpp"
+#include "adaptive_ve.hpp"
 
 namespace nations {
 
@@ -156,6 +158,7 @@ void restore_unsaved_values(sys::state& state) {
 			auto t = state.world.gp_relationship_get_influence_target(rel);
 			auto gp = state.world.gp_relationship_get_great_power(rel);
 			state.world.nation_set_in_sphere_of(t, gp);
+			state.trade_route_cached_values_out_of_date = true;
 		}
 	});
 
@@ -213,7 +216,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -353,7 +356,7 @@ void generate_sea_trade_routes(sys::state& state) {
 					capital_of_region[connected_region] = candidate;
 				}
 			}
-		}		
+		}
 	});
 
 	state.world.for_each_state_instance([&](auto candidate) {
@@ -445,10 +448,9 @@ void generate_sea_trade_routes(sys::state& state) {
 			auto continent_origin = state.world.province_get_continent(state_owner_capital);
 
 			float mult = 1.f;
-			mult += std::min(naval_base_origin, naval_base_target) * 0.25f;
+			mult += std::min(naval_base_origin, naval_base_target) * naval_base_level_to_market_attractiveness;
 			bool must_connect = same_owner && different_region && capital_and_connected_region;
 
-			
 			auto distance_approximation = province::direct_distance(state, coast_0, coast_1) / base_speed;
 
 
@@ -471,7 +473,7 @@ void generate_sea_trade_routes(sys::state& state) {
 				std::vector<dcon::province_id> path{ };
 				auto speed = base_speed;
 				dcon::province_id p_prev{ };
-				path = province::make_naval_path(state, coast_0, coast_1);
+				path = province::make_unowned_naval_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -687,6 +689,13 @@ void generate_initial_state_instances(sys::state& state) {
 	}
 }
 
+bool is_commanding_subject_units(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	if(nations::is_nation_subject_of(state, subject, overlord)) {
+		return state.world.nation_get_overlord_commanding_units(subject);
+	}
+	return false;
+}
+
 bool can_release_as_vassal(sys::state const& state, dcon::nation_id n, dcon::national_identity_id releasable) {
 	auto target_nation = state.world.national_identity_get_nation_from_identity_holder(releasable);
 	if(!state.world.national_identity_get_is_not_releasable(releasable) &&
@@ -758,7 +767,7 @@ void update_national_administrative_efficiency(sys::state& state) {
 }
 
 void update_administrative_efficiency(sys::state& state) {
-	
+
 
 	// replaced with control ratio at capital which is doing the same thing but better
 	// prepare buffers
@@ -956,14 +965,14 @@ void update_administrative_efficiency(sys::state& state) {
 		state.world.province_set_control_ratio(
 			pids,
 			0.99f * state.world.province_get_control_ratio(pids)
-			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)			
+			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)
 		);
 		auto supply = ve::max(
-			0.f, 
+			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
 		);
 		auto movement = ve::max(
-			0.f, 
+			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
 		);
 		auto attrition = ve::max(
@@ -1305,6 +1314,7 @@ void update_great_powers(sys::state& state) {
 			state.great_nations[i].last_greatness = state.current_date;
 		} else if(state.great_nations[i].last_greatness + int32_t(state.defines.greatness_days) < state.current_date ||
 							state.world.nation_get_owned_province_count(state.great_nations[i].nation) == 0) {
+			state.trade_route_cached_values_out_of_date = true;
 
 			auto n = state.great_nations[i].nation;
 			state.great_nations[i] = state.great_nations.back();
@@ -1331,7 +1341,8 @@ void update_great_powers(sys::state& state) {
 				},
 				"msg_lost_gp_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::lose_great_power
+				sys::message_base_type::lose_great_power,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -1345,6 +1356,7 @@ void update_great_powers(sys::state& state) {
 			state.world.nation_set_state_from_flashpoint_focus(n, dcon::state_instance_id{});
 
 			state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
+			state.trade_route_cached_values_out_of_date = true;
 			auto rng = state.world.nation_get_gp_relationship_as_influence_target(n);
 			while(rng.begin() != rng.end()) {
 				state.world.delete_gp_relationship(*(rng.begin()));
@@ -1358,7 +1370,8 @@ void update_great_powers(sys::state& state) {
 				},
 				"msg_new_gp_title",
 				n, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::become_great_power
+				sys::message_base_type::become_great_power,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -1750,7 +1763,7 @@ void update_monthly_points(sys::state& state) {
 	// while the other prestige modifiers are supposed to add monthly prestige
 	// they need to be separated out from each other (even though they have the same name)
 	// until we do that, removing ticking prestige is the easier fix
-	
+
 	//state.world.execute_serial_over_nation([&](auto ids) {
 	//	auto pmod = state.world.nation_get_modifier_values(ids, sys::national_mod_offsets::prestige);
 	//	state.world.nation_set_prestige(ids, state.world.nation_get_prestige(ids) + pmod);
@@ -1867,33 +1880,75 @@ float tax_efficiency(sys::state& state, dcon::nation_id n) {
 	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.01f, 1.f);
 }
 
-bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
+crisis_role involved_in_crisis_state(sys::state const& state, dcon::nation_id n) {
 	if(n == state.primary_crisis_attacker)
-		return true;
+		return crisis_role::attacker;
 	if(n == state.primary_crisis_defender)
-		return true;
+		return crisis_role::defender;
 	for(auto& par : state.crisis_participants) {
 		if(!par.id)
-			return false;
+			return crisis_role::not_involved;
 		if(par.id == n)
-			return true;
+			return (par.supports_attacker) ? crisis_role::attacker : crisis_role::defender;
+	}
+	return crisis_role::not_involved;
+}
+crisis_role committed_in_crisis_state(sys::state const& state, dcon::nation_id n) {
+	if(n == state.primary_crisis_attacker)
+		return crisis_role::attacker;
+	if(n == state.primary_crisis_defender)
+		return crisis_role::defender;
+	for(auto& par : state.crisis_participants) {
+		if(!par.id)
+			return crisis_role::not_involved;
+		if(par.id == n && !par.merely_interested)
+			return (par.supports_attacker) ? crisis_role::attacker : crisis_role::defender;
+	}
+	return crisis_role::not_involved;
+}
+
+bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
+	return committed_in_crisis_state(state, n) != crisis_role::not_involved;
+}
+
+bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
+	return involved_in_crisis_state(state, n) != crisis_role::not_involved;
+}
+
+void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
+
+	auto p = network::find_country_players(state, old_n);
+	// move ALL players which are on the current nation, to the new nation
+	for(auto player : p) {
+		state.world.force_create_player_nation(new_n, player);
+	}
+	if(!p.empty()) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+		state.world.nation_set_is_player_controlled(old_n, false);
 	}
 
-	return false;
-}
-bool is_committed_in_crisis(sys::state const& state, dcon::nation_id n) {
-	if(n == state.primary_crisis_attacker)
-		return true;
-	if(n == state.primary_crisis_defender)
-		return true;
-	for(auto& par : state.crisis_participants) {
-		if(!par.id)
-			return false;
-		if(par.id == n)
-			return !par.merely_interested;
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::write_player_nations(state);
 	}
-	return false;
+	if(state.local_player_nation == old_n) {
+		state.local_player_nation = new_n;
+	}
+	// We will also re-assign all chat messages from this nation to the new one
+	for(auto& msg : state.ui_state.chat_messages)
+		if(bool(msg.source) && msg.source == old_n)
+			msg.source = new_n;
+	
+	if(state.current_scene.game_in_progress) {
+		// give back units if puppet becomes player controlled. This is also done when the game starts and goes from lobby to game in progress
+		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
+			military::give_back_units(state, new_n);
+		}
+	}
+
 }
+
+
+
 
 void adjust_relationship(sys::state& state, dcon::nation_id a, dcon::nation_id b, float delta) {
 	if(state.world.nation_get_owned_province_count(a) == 0 || state.world.nation_get_owned_province_count(a) == 0)
@@ -2025,6 +2080,16 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 	politics::update_displayed_identity(state, n);
 }
 
+bool exists_or_is_utility_tag(sys::state& state, dcon::nation_id nation) {
+	return state.world.nation_get_owned_province_count(nation) > 0 || state.world.nation_get_utility_tag(nation);
+}
+
+ve::mask_vector exists_or_is_utility_tag(sys::state& state, ve::contiguous_tags<dcon::nation_id> nations) {
+	return (state.world.nation_get_owned_province_count(nations) != 0) || state.world.nation_get_utility_tag(nations);
+}
+
+
+
 void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)
 	for(const auto n : state.world.in_nation) {
@@ -2111,6 +2176,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 	auto new_ident_holder = state.world.create_nation();
 	state.world.try_create_identity_holder(new_ident_holder, old_ident);
 
+	state.trade_route_cached_values_out_of_date = true;
+
 	for(auto o : state.world.in_nation) {
 		if(o.get_in_sphere_of() == n) {
 			notification::post(state, notification::message{
@@ -2119,7 +2186,8 @@ void cleanup_nation(sys::state& state, dcon::nation_id n) {
 				},
 				"msg_rem_sphere_title",
 				n, o, dcon::nation_id{},
-				sys::message_base_type::rem_sphere
+				sys::message_base_type::rem_sphere,
+				dcon::province_id{ }
 			});
 			o.set_in_sphere_of(dcon::nation_id{});
 		}
@@ -2153,7 +2221,196 @@ bool destroy_vassal_relationships(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
+dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation) {
+	auto overlord = state.world.nation_get_overlord_as_subject(nation);
+	if(state.world.overlord_get_ruler(overlord)) {
+		return state.world.overlord_get_ruler(overlord);
+	}
+	auto sphere = state.world.nation_get_in_sphere_of(nation);
+	if(bool(sphere)) {
+		return sphere;
+	}
+	return nation;
+}
+
+ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations) {
+	auto sphere = state.world.nation_get_in_sphere_of(nations);
+
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(nations));
+
+	auto has_overlord_mask = overlord != dcon::nation_id{};;
+	auto has_sphere_mask = sphere != dcon::nation_id{};
+
+	return ve::select(has_overlord_mask, overlord, ve::select(has_sphere_mask, sphere, nations));
+}
+template<war_initiation check_alliance>
+bool would_war_conflict_with_sphere_leader(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target) {
+	// check gamerule if sphereling always can declare on spherelord
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.sphereling_can_declare_spherelord, uint8_t(gamerule::sphereling_declare_war_settings::yes))) {
+		return false;
+	}
+	auto source_sphere = state.world.nation_get_in_sphere_of(sphereling);
+	if(!source_sphere) {
+		return false;
+	}
+	auto target_sphere = state.world.nation_get_in_sphere_of(target);
+
+	if(source_sphere == target) {
+		return true; // cannot go to war against sphere leader
+	}
+	if constexpr(check_alliance == war_initiation::declare_war) {
+		if(source_sphere && target_sphere && target_sphere == source_sphere) {
+			return true; // cannot go to war against sphereling if source is in the same sphere as target
+		}
+
+		if(are_allied(state, target, source_sphere)) {
+			return true; // cannot go to war against someone who is directly allied to the sphere leader
+		}
+	}
+
+	return false;
+}
+
+template bool would_war_conflict_with_sphere_leader<war_initiation::join_war>(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
+template bool would_war_conflict_with_sphere_leader<war_initiation::declare_war>(sys::state& state, dcon::nation_id sphereling, dcon::nation_id target);
+
+void create_free_trade_agreement_both_ways(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
+	auto enddt = state.current_date + (int32_t)(365 * state.defines.alice_free_trade_agreement_years);
+
+	state.trade_route_cached_values_out_of_date = true;
+
+	// One way tariff removal
+	auto rel_1 = state.world.get_unilateral_relationship_by_unilateral_pair(to, from);
+	if(!rel_1) {
+		rel_1 = state.world.force_create_unilateral_relationship(to, from);
+	}
+	state.world.unilateral_relationship_set_no_tariffs_until(rel_1, enddt);
+
+	// Another way tariff removal
+	auto rel_2 = state.world.get_unilateral_relationship_by_unilateral_pair(from, to);
+	if(!rel_2) {
+		rel_2 = state.world.force_create_unilateral_relationship(from, to);
+	}
+	state.world.unilateral_relationship_set_no_tariffs_until(rel_2, enddt);
+
+	notification::post(state, notification::message{
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_free_trade_agreement_signed", text::variable_type::x, target, text::variable_type::y, source);
+		},
+		"msg_free_trade_agreement_signed_title",
+		to, from, dcon::nation_id{},
+		sys::message_base_type::free_trade_agreement
+	});
+}
+
+void revoke_free_trade_agreement_one_way(sys::state& state, dcon::nation_id to, dcon::nation_id from) {
+	auto our_rights = economy::nation_gives_direct_free_trade_rights(state, from, to);
+
+	if(!our_rights) {
+		return; // Nation doesn't give trade rights
+	}
+
+	state.world.unilateral_relationship_set_no_tariffs_until(our_rights, sys::date{}); // Reset trade rights
+	state.trade_route_cached_values_out_of_date = true;
+
+	notification::post(state, notification::message{
+		[source = from, target = to](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_trade_rights_revoked", text::variable_type::x, target, text::variable_type::y, source);
+			},
+			"msg_trade_rights_revoked_title",
+			from, to, dcon::nation_id{},
+			sys::message_base_type::trade_rights_revoked
+		});
+}
+
+void remove_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
+	assert(rel);
+	auto to = state.world.unilateral_relationship_get_target(rel);
+	auto from = state.world.unilateral_relationship_get_source(rel);
+	if(state.world.unilateral_relationship_get_embargo(rel)) {
+		state.world.unilateral_relationship_set_embargo(rel, false);
+		state.trade_route_cached_values_out_of_date = true;
+		if(notify) {
+			// Notify the person from whom we lifted embargo
+			notification::post(state, notification::message{
+			[source = from, target = to](sys::state& state, text::layout_base& contents) {
+				text::add_line(state, contents, "msg_embargo_lifted", text::variable_type::x, target, text::variable_type::y, source);
+				},
+				"msg_embargo_lifted_title",
+				from, to, dcon::nation_id{},
+				sys::message_base_type::embargo
+			});
+		}
+
+	}
+}
+
+void do_embargo(sys::state& state, dcon::unilateral_relationship_id rel, bool notify) {
+	assert(rel);
+	auto to = state.world.unilateral_relationship_get_target(rel);
+	auto from = state.world.unilateral_relationship_get_source(rel);
+	if(!state.world.unilateral_relationship_get_embargo(rel)) {
+		state.world.unilateral_relationship_set_embargo(rel, true);
+		state.trade_route_cached_values_out_of_date = true;
+		if(notify) {
+			// Notify the person who got embargoed
+			notification::post(state, notification::message{
+					[source = from, target = to](sys::state& state, text::layout_base& contents) {
+						text::add_line(state, contents, "msg_embargo_issued", text::variable_type::x, target, text::variable_type::y, source);
+					},
+					"msg_embargo_issued_title",
+					from, to, dcon::nation_id{},
+					sys::message_base_type::embargo
+			});
+		}
+
+	}
+}
+// removes all embargoes issued by the source nation
+void clear_embargoes_by(sys::state& state, dcon::nation_id source) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(source)) {
+		remove_embargo(state, rel);
+	}
+}
+
+// removes all embargoes issued to the target nation
+void clear_embargoes_to(sys::state& state, dcon::nation_id target) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(target)) {
+		remove_embargo(state, rel);
+	}
+}
+
+// removes both embagoes to AND from the nation
+void clear_all_embargoes(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(nation)) {
+		remove_embargo(state, rel);
+	}
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(nation)) {
+		remove_embargo(state, rel);
+	}
+}
+
+void clear_alliances(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_diplomatic_relation(nation)) {
+		break_alliance(state, rel);
+	}
+}
+
+void clear_trade_agreements(sys::state& state, dcon::nation_id nation) {
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_source(nation)) {
+		if(bool(rel.get_no_tariffs_until())) {
+			revoke_free_trade_agreement_one_way(state, rel.get_target(), rel.get_source());
+		}
+	}
+	for(auto rel : state.world.nation_get_unilateral_relationship_as_target(nation)) {
+		if(bool(rel.get_no_tariffs_until())) {
+			revoke_free_trade_agreement_one_way(state, rel.get_target(), rel.get_source());
+		}
+	}
+}
+
 void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
+	state.trade_route_cached_values_out_of_date = true;
 	{
 		auto gp_relationships = state.world.nation_get_gp_relationship_as_great_power(n);
 		while(gp_relationships.begin() != gp_relationships.end()) {
@@ -2171,9 +2428,7 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		state.world.nation_set_in_sphere_of(n, dcon::nation_id{});
 	}
 	{
-		for(auto rel : state.world.nation_get_diplomatic_relation(n)) {
-			break_alliance(state, rel);
-		}
+		clear_alliances(state, n);
 	}
 	{
 		auto ov_rel = state.world.nation_get_overlord_as_ruler(n);
@@ -2183,6 +2438,13 @@ void destroy_diplomatic_relationships(sys::state& state, dcon::nation_id n) {
 		}
 	}
 }
+
+bool is_vassal(sys::state& state, dcon::nation_id nation) {
+	auto overlord = state.world.nation_get_overlord_as_subject(nation);
+	return bool(state.world.overlord_get_ruler(overlord));
+}
+
+
 void release_vassal(sys::state& state, dcon::overlord_id rel) {
 	auto vas = state.world.overlord_get_subject(rel);
 	auto ol = state.world.overlord_get_ruler(rel);
@@ -2192,11 +2454,13 @@ void release_vassal(sys::state& state, dcon::overlord_id rel) {
 			state.world.nation_get_substates_count(ol)--;
 		}
 		state.world.nation_get_vassals_count(ol)--;
+		military::give_back_units(state, vas);
 		state.world.delete_overlord(rel);
 		politics::update_displayed_identity(state, vas);
 		// TODO: notify player
 	}
 }
+
 
 void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
 	if(subject == overlord)
@@ -2217,7 +2481,12 @@ void make_vassal(sys::state& state, dcon::nation_id subject, dcon::nation_id ove
 		}
 	} else {
 		state.world.force_create_overlord(subject, overlord);
+		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_get_vassals_count(overlord)++;
+		// clear alliances of subject to prevent potential tomfoolery by the subject
+		clear_alliances(state, subject);
+		clear_all_embargoes(state, subject);
+		clear_trade_agreements(state, subject);
 		politics::update_displayed_identity(state, subject);
 	}
 }
@@ -2240,9 +2509,14 @@ void make_substate(sys::state& state, dcon::nation_id subject, dcon::nation_id o
 		}
 	} else {
 		state.world.force_create_overlord(subject, overlord);
+		state.trade_route_cached_values_out_of_date = true;
 		state.world.nation_set_is_substate(subject, true);
 		state.world.nation_get_vassals_count(overlord)++;
 		state.world.nation_get_substates_count(current_ruler)++;
+		// clear alliances of subject to prevent potential tomfoolery by the subject
+		clear_alliances(state, subject);
+		clear_all_embargoes(state, subject);
+		clear_trade_agreements(state, subject);
 		politics::update_displayed_identity(state, subject);
 	}
 }
@@ -2266,7 +2540,8 @@ void break_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 					},
 					"msg_alliance_ends_title",
 					a, b, dcon::nation_id{},
-					sys::message_base_type::alliance_ends
+					sys::message_base_type::alliance_ends,
+					dcon::province_id{ }
 				});
 			}
 		}
@@ -2292,7 +2567,8 @@ void make_alliance(sys::state& state, dcon::nation_id a, dcon::nation_id b) {
 			},
 			"msg_alliance_starts_title",
 			a, b, dcon::nation_id{},
-			sys::message_base_type::alliance_starts
+			sys::message_base_type::alliance_starts,
+			dcon::province_id{ }
 		});
 	}
 }
@@ -2308,7 +2584,7 @@ bool other_nation_is_influencing(sys::state& state, dcon::nation_id target, dcon
 bool can_accumulate_influence_with(sys::state& state, dcon::nation_id gp, dcon::nation_id target, dcon::gp_relationship_id rel) {
 	if((state.world.gp_relationship_get_status(rel) & influence::is_banned) != 0)
 		return false;
-	if(military::has_truce_with(state, gp, target))
+	if(military::has_truce_with(state, gp, target) && state.world.nation_get_in_sphere_of(target) != gp )
 		return false;
 	if(military::are_at_war(state, gp, target))
 		return false;
@@ -2342,6 +2618,18 @@ bool has_sphere_neighbour(sys::state& state, dcon::nation_id n, dcon::nation_id 
 			return true;
 	}
 	return false;
+}
+
+float get_avg_non_colonial_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::non_colonial_literacy);
+	auto total_pop = state.world.nation_get_demographics(n, demographics::non_colonial_total);
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
+}
+
+float get_avg_total_literacy(sys::state& state, dcon::nation_id n) {
+	auto literacy = state.world.nation_get_demographics(n, demographics::literacy);
+	auto total_pop = std::max(1.0f, state.world.nation_get_demographics(n, demographics::total));
+	return total_pop > 0.0f ? literacy / total_pop : 0.0f;;
 }
 
 void update_influence(sys::state& state) {
@@ -2446,7 +2734,7 @@ void update_influence(sys::state& state) {
 					Any influence that accumulates beyond the max (define:MAX_INFLUENCE) will be subtracted from the influence of
 					the great power with the most influence (other than the influencing nation).
 					*/
-					
+
 					rel.set_influence(rel.get_influence() + std::max(0.0f, gain_amount));
 					if(rel.get_influence() > state.defines.max_influence) {
 						auto overflow = rel.get_influence() - state.defines.max_influence;
@@ -2469,6 +2757,35 @@ void update_influence(sys::state& state) {
 			}
 		}
 	}
+}
+
+bool has_units_inside_other_nation(sys::state& state, dcon::nation_id nation_a, dcon::nation_id nation_b) {
+	assert(nation_a);
+	assert(nation_b);
+	for(auto a : state.world.nation_get_army_control(nation_a)) {
+		auto army = a.get_army();
+		auto army_location = army.get_location_from_army_location();
+		if(army_location.get_nation_from_province_control() == nation_b) {
+			return true;
+		}
+	}
+	for(auto n : state.world.nation_get_navy_control(nation_a)) {
+		auto navy = n.get_navy();
+		auto navy_location = navy.get_location_from_navy_location();
+		if(navy_location.get_nation_from_province_control() == nation_b) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool nation_is_in_war(sys::state& state, dcon::nation_id nation, dcon::war_id war) {
+	for(auto war_part : state.world.nation_get_war_participant(nation)) {
+		if(war_part.get_war() == war) {
+			return true;
+		}
+	}
+	return false;
 }
 
 bool can_put_flashpoint_focus_in_state(sys::state& state, dcon::state_instance_id s, dcon::nation_id fp_nation) {
@@ -2729,12 +3046,17 @@ void add_as_primary_crisis_defender(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_crisis_defender_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::crisis_defender_backer
+		sys::message_base_type::crisis_defender_backer,
+		dcon::province_id{ }
 	});
 }
 
 void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 	state.primary_crisis_attacker = n;
+	// if it is liberation crisis and the attacker dosen't exist, add the new primary attacker as the owner of the currently added liberation wargoal. Else, if the nation is liberated by agreement, it will not be properly created from a template as no one will own the wargoal
+	if(state.current_crisis == sys::crisis_type::liberation && !state.crisis_attacker) {
+		state.crisis_attacker_wargoals.at(0).added_by = n;
+	}
 
 	notification::post(state, notification::message{
 		[n](sys::state& state, text::layout_base& contents) {
@@ -2743,8 +3065,14 @@ void add_as_primary_crisis_attacker(sys::state& state, dcon::nation_id n) {
 		},
 		"msg_crisis_attacker_title",
 		n, dcon::nation_id{}, dcon::nation_id{},
-		sys::message_base_type::crisis_attacker_backer
+		sys::message_base_type::crisis_attacker_backer,
+		dcon::province_id{ }
 	});
+}
+
+bool is_nation_subject_of(sys::state& state, dcon::nation_id subject, dcon::nation_id overlord) {
+	auto target_ol_rel = state.world.nation_get_overlord_as_subject(subject);
+	return state.world.overlord_get_ruler(target_ol_rel) == overlord;
 }
 
 void ask_to_defend_in_crisis(sys::state& state, dcon::nation_id n) {
@@ -2798,7 +3126,8 @@ void reject_crisis_participation(sys::state& state) {
 					},
 					"msg_crisis_fizzle_title",
 					state.local_player_nation,dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::crisis_fizzle
+					sys::message_base_type::crisis_fizzle,
+					dcon::province_id{ }
 				});
 
 				cleanup_crisis(state);
@@ -2822,7 +3151,8 @@ void reject_crisis_participation(sys::state& state) {
 					},
 					"msg_crisis_fizzle_title",
 					state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-					sys::message_base_type::crisis_fizzle
+					sys::message_base_type::crisis_fizzle,
+					dcon::province_id{ }
 				});
 
 				auto first_wg = state.crisis_attacker_wargoals.at(0);
@@ -2952,7 +3282,8 @@ void crisis_state_transition(sys::state& state, sys::crisis_state new_state) {
 						},
 						"msg_crisis_vol_join_title",
 						i.id, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::crisis_voluntary_join,
+						dcon::province_id{ }
 					});
 				} else if(state.world.nation_get_ai_rival(i.id) == state.primary_crisis_defender
 					|| nations::are_allied(state, i.id, state.primary_crisis_attacker)
@@ -2969,7 +3300,8 @@ void crisis_state_transition(sys::state& state, sys::crisis_state new_state) {
 						},
 						"msg_crisis_vol_join_title",
 						i.id, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::crisis_voluntary_join
+						sys::message_base_type::crisis_voluntary_join,
+						dcon::province_id{ }
 					});
 				}
 			}
@@ -3074,7 +3406,8 @@ void update_crisis(sys::state& state) {
 					state.local_player_nation,
 					crisis_liberation_tag.get_nation_from_identity_holder(),
 					owner,
-					sys::message_base_type::crisis_starts
+					sys::message_base_type::crisis_starts,
+					dcon::province_id{ }
 				});
 
 				break;
@@ -3132,7 +3465,8 @@ void update_crisis(sys::state& state) {
 							},
 							"msg_new_crisis_title",
 							state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-							sys::message_base_type::crisis_starts
+							sys::message_base_type::crisis_starts,
+							dcon::province_id{ }
 						});
 						break;
 					}
@@ -3190,16 +3524,29 @@ void update_crisis(sys::state& state) {
 			assert(state.crisis_attacker_wargoals.size() > 0);
 
 			auto first_wg = state.crisis_attacker_wargoals.at(0);
-			war = military::create_war(state, state.crisis_attacker,
-						state.crisis_defender,
+
+			// check that the crisis attacker or defender actually exists before creating a war with them. In a liberation crisis, it is possible that the crisis_attacker or crisis_defender will not exist.
+			// If they don't exist, use the primary defender/attacker instead (which is the GP backing their side)
+			auto find_actual_crisis_actor = [&](dcon::nation_id crisis_actor, dcon::nation_id primary_crisis_actor) {
+				if(crisis_actor && state.world.nation_get_owned_province_count(crisis_actor) != 0) {
+					return crisis_actor;
+				} else {
+					return primary_crisis_actor;
+				}
+			};
+			auto actual_defender = find_actual_crisis_actor(state.crisis_defender, state.primary_crisis_defender);
+			auto actual_attacker = find_actual_crisis_actor(state.crisis_attacker, state.primary_crisis_attacker);
+
+			war = military::create_war(state, actual_attacker,
+						actual_defender,
 						first_wg.cb, first_wg.state,
 						first_wg.wg_tag, first_wg.secondary_nation);
 
-			if(state.crisis_attacker != state.primary_crisis_attacker) {
+			if(actual_attacker != state.primary_crisis_attacker) {
 				military::add_to_war(state, war, state.primary_crisis_attacker, true);
 				state.world.war_set_primary_attacker(war, state.primary_crisis_attacker);
 			}
-			if(state.crisis_defender != state.primary_crisis_defender) {
+			if(actual_defender != state.primary_crisis_defender) {
 				military::add_to_war(state, war, state.primary_crisis_defender, false);
 				state.world.war_set_primary_defender(war, state.primary_crisis_defender);
 			}
@@ -3231,7 +3578,7 @@ void update_crisis(sys::state& state) {
 				military::add_wargoal(state, war, wg.added_by, wg.target_nation, wg.cb,
 						wg.state, wg.wg_tag, wg.secondary_nation);
 			}
-			
+
 			/*
 			If the crisis becomes a war, any interested GP which did not take a side loses
 			(years-after-start-date x define:CRISIS_DID_NOT_TAKE_SIDE_PRESTIGE_FACTOR_YEAR +
@@ -3293,7 +3640,8 @@ void update_crisis(sys::state& state) {
 				},
 				"msg_crisis_escalates_title",
 				state.local_player_nation, dcon::nation_id{}, dcon::nation_id{},
-				sys::message_base_type::crisis_becomes_war
+				sys::message_base_type::crisis_becomes_war,
+				dcon::province_id{ }
 			});
 		}
 	}
@@ -3343,6 +3691,7 @@ void liberate_nation_from(sys::state& state, dcon::national_identity_id liberate
 	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
 		state.world.nation_set_capital(from, province::pick_capital(state, from));
 	}
+	state.military_definitions.pending_blackflag_update = true;
 }
 
 void release_nation_from(sys::state& state, dcon::national_identity_id liberated, dcon::nation_id from) {
@@ -3370,6 +3719,7 @@ void release_nation_from(sys::state& state, dcon::national_identity_id liberated
 	if(state.world.province_get_nation_from_province_ownership(state.world.nation_get_capital(from)) != from) {
 		state.world.nation_set_capital(from, province::pick_capital(state, from));
 	}
+	state.military_definitions.pending_blackflag_update = true;
 }
 
 void remove_cores_from_owned(sys::state& state, dcon::nation_id n, dcon::national_identity_id tag) {
@@ -3421,10 +3771,9 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 	while(inf < 0) {
 		if(state.world.nation_get_in_sphere_of(target) == great_power) {
 			state.world.gp_relationship_set_influence(rel, inf + state.defines.addtosphere_influence_cost);
-			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+			auto l = state.world.gp_relationship_get_status(rel);
+			nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
 
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::decrease_level(l)));
 		} else {
 			state.world.gp_relationship_set_influence(rel, inf + state.defines.increaseopinion_influence_cost);
 
@@ -3434,21 +3783,28 @@ void adjust_influence_with_overflow(sys::state& state, dcon::nation_id great_pow
 	}
 
 	while(inf > state.defines.max_influence) {
-		if(state.world.nation_get_in_sphere_of(target) != great_power) {
-			state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
-			auto affected_gp = state.world.nation_get_in_sphere_of(target);
-			state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
-			{
+		// if already sphered, set influence to max
+		if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_in_sphere) {
+			state.world.gp_relationship_set_influence(rel, state.defines.max_influence);
+		}
+		else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
+			// if in someone else's sphere, spend overflow influence to remove them from it first
+			if(bool(state.world.nation_get_in_sphere_of(target)) && state.world.nation_get_in_sphere_of(target) != great_power) {
+				state.world.gp_relationship_set_influence(rel, inf - state.defines.removefromsphere_influence_cost);
+				auto affected_gp = state.world.nation_get_in_sphere_of(target);
+				// the target was in a previous GP's sphere, update their state
 				auto orel = state.world.get_gp_relationship_by_gp_influence_pair(target, affected_gp);
-				auto& l = state.world.gp_relationship_get_status(orel);
-				state.world.gp_relationship_set_status(orel, uint8_t(nations::influence::decrease_level(l)));
+				auto l = state.world.gp_relationship_get_status(orel);
+				nations::remove_from_sphere(state, target, uint8_t(nations::influence::decrease_level(l)));
+
 			}
-		} else if((state.world.gp_relationship_get_status(rel) & influence::level_mask) == influence::level_friendly) {
-			state.world.nation_set_in_sphere_of(target, great_power);
-			state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
-			auto& l = state.world.gp_relationship_get_status(rel);
-			state.world.gp_relationship_set_status(rel, uint8_t(nations::influence::increase_level(l)));
-		} else {
+			// if they arent in a sphere, use overflow influence to spehere them
+			else {
+				nations::sphere_nation(state, target, great_power);
+				state.world.gp_relationship_set_influence(rel, inf - state.defines.addtosphere_influence_cost);
+			}
+		}
+		else {
 			state.world.gp_relationship_set_influence(rel, inf - state.defines.increaseopinion_influence_cost);
 
 			auto& l = state.world.gp_relationship_get_status(rel);
@@ -3464,6 +3820,61 @@ void adjust_foreign_investment(sys::state& state, dcon::nation_id great_power, d
 	}
 	auto& invest = state.world.unilateral_relationship_get_foreign_investment(rel);
 	state.world.unilateral_relationship_set_foreign_investment(rel, std::max(0.0f, invest + delta));
+}
+
+void remove_from_sphere(sys::state& state, dcon::nation_id target, uint8_t new_influence_level) {
+	auto existing_sphere_leader = state.world.nation_get_in_sphere_of(target);
+	if(existing_sphere_leader) {
+		state.trade_route_cached_values_out_of_date = true;
+		auto rel = state.world.get_gp_relationship_by_gp_influence_pair(target, existing_sphere_leader);
+		assert(rel);
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) & ~nations::influence::level_mask));
+		state.world.gp_relationship_set_status(rel, uint8_t(state.world.gp_relationship_get_status(rel) | new_influence_level));
+
+		state.world.nation_set_in_sphere_of(target, dcon::nation_id{});
+	}
+}
+
+
+void sphere_nation(sys::state& state, dcon::nation_id target, dcon::nation_id source) {
+	if(state.world.nation_get_in_sphere_of(target) || state.world.nation_get_is_great_power(target)) {
+		return;
+	}
+	if(state.world.nation_get_is_great_power(source)) {
+		state.trade_route_cached_values_out_of_date = true;
+		auto gp_rel = state.world.get_gp_relationship_by_gp_influence_pair(target, source);
+		if(!gp_rel) {
+			gp_rel = state.world.force_create_gp_relationship(target, source);
+		}
+		auto& flags = state.world.gp_relationship_get_status(gp_rel);
+		state.world.gp_relationship_set_status(gp_rel, uint8_t((flags & ~nations::influence::level_mask) | nations::influence::level_in_sphere));
+		state.world.nation_set_in_sphere_of(target, source);
+		// clear trade agreements as spherelings can't do them. The spherelord's trade agreements are in effect instead. Will NOT clear the trade agreement if the nation is the sphereleader, since those are allowed
+		for(auto rel : state.world.nation_get_unilateral_relationship_as_source(target)) {
+			if(bool(rel.get_no_tariffs_until())) {
+				auto rel_target = rel.get_target();
+				auto rel_source = rel.get_source();
+				if(rel_target != source ) {
+					revoke_free_trade_agreement_one_way(state, rel_target, rel_source);
+				}
+
+			}
+		}
+		for(auto rel : state.world.nation_get_unilateral_relationship_as_target(target)) {
+			if(bool(rel.get_no_tariffs_until())) {
+				auto rel_target = rel.get_target();
+				auto rel_source = rel.get_source();
+				if(rel_source != source) {
+					revoke_free_trade_agreement_one_way(state, rel_target, rel_source);
+				}
+			}
+		}
+		// clear embargoes BY the sphereling as they are now covered by the spherelord's embargo discretion. Nations can however still embargo the sphereling individually.
+		clear_embargoes_by(state, target);
+	}
+	else {
+		assert(false);
+	}
 }
 
 float get_yesterday_income(sys::state& state, dcon::nation_id n) {
@@ -3659,6 +4070,30 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 	culture::update_nation_issue_rules(state, source);
 	sys::update_single_nation_modifiers(state, source);
 }
+
+void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	if(auto e = state.world.decision_get_effect(d); e) {
+		effect::execute(state, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(state.current_date.value),
+				uint32_t(source.index() << 4 ^ d.index()));
+	}
+
+	notification::post(state, notification::message{
+		[source, d, when = state.current_date](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_decision_1", text::variable_type::x, source, text::variable_type::y, state.world.decision_get_name(d));
+			if(auto e = state.world.decision_get_effect(d); e) {
+				text::add_line(state, contents, "msg_decision_2");
+				ui::effect_description(state, contents, e, trigger::to_generic(source), trigger::to_generic(source), 0, uint32_t(when.value),
+					uint32_t(source.index() << 4 ^ d.index()));
+			}
+		},
+		"msg_decision_title",
+		source, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::decision,
+		dcon::province_id{ }
+	});
+}
+
+
 
 void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
 

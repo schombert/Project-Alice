@@ -64,20 +64,27 @@ void set_militancy(sys::state& state, dcon::pop_id p, float v);
 float get_consciousness(sys::state const& state, dcon::pop_id p);
 void set_consciousness(sys::state& state, dcon::pop_id p, float v);
 float get_literacy(sys::state const& state, dcon::pop_id p);
-void set_literacy(sys::state& state, dcon::pop_id p, float v);
+template<typename P, typename V>
+void set_literacy(sys::state& state, P p, V v);
 float get_employment(sys::state const& state, dcon::pop_id p);
 float get_raw_employment(sys::state const& state, dcon::pop_id p);
 void set_employment(sys::state& state, dcon::pop_id p, float v);
 void set_raw_employment(sys::state& state, dcon::pop_id p, float v);
 float get_life_needs(sys::state const& state, dcon::pop_id p);
-template<typename P, typename V>
-void set_life_needs(sys::state& state, P p, V v);
 float get_everyday_needs(sys::state const& state, dcon::pop_id p);
-template<typename P, typename V>
-void set_everyday_needs(sys::state& state, P p, V v);
 float get_luxury_needs(sys::state const& state, dcon::pop_id p);
 template<typename P, typename V>
-void set_luxury_needs(sys::state& state, P p, V v);
+void set_life_needs(sys::state& state, P p, V v) {
+	state.world.pop_set_ulife_needs_satisfaction(p, to_pu8(v));
+}
+template<typename P, typename V>
+void set_everyday_needs(sys::state& state, P p, V v) {
+	state.world.pop_set_ueveryday_needs_satisfaction(p, to_pu8(v));
+}
+template<typename P, typename V>
+void set_luxury_needs(sys::state& state, P p, V v) {
+	state.world.pop_set_uluxury_needs_satisfaction(p, to_pu8(v));
+}
 float get_social_reform_desire(sys::state const& state, dcon::pop_id p);
 void set_social_reform_desire(sys::state& state, dcon::pop_id p, float v);
 float get_political_reform_desire(sys::state const& state, dcon::pop_id p);
@@ -117,6 +124,10 @@ template<typename T>
 auto get_literacy(sys::state const& state, T p) {
 	auto ival = state.world.pop_get_uliteracy(p);
 	return from_pu16(ival);
+}
+template<typename P, typename V>
+void set_literacy(sys::state& state, P p, V v) {
+	state.world.pop_set_uliteracy(p, to_pu16(v));
 }
 template<typename T>
 auto get_life_needs(sys::state const& state, T p) {
@@ -165,8 +176,10 @@ constexpr inline dcon::demographics_key rich_luxury_needs(19);
 constexpr inline dcon::demographics_key poor_total(20);
 constexpr inline dcon::demographics_key middle_total(21);
 constexpr inline dcon::demographics_key rich_total(22);
-
-constexpr inline uint32_t count_special_keys = 23;
+constexpr inline dcon::demographics_key non_colonial_literacy(23);
+constexpr inline dcon::demographics_key non_colonial_total(24);
+constexpr inline dcon::demographics_key primary_or_accepted(25);
+constexpr inline uint32_t count_special_keys = 26;
 
 dcon::demographics_key to_key(sys::state const& state, dcon::ideology_id v);
 dcon::demographics_key to_key(sys::state const& state, dcon::issue_option_id v);
@@ -272,7 +285,6 @@ struct migration_buffer {
 	}
 };
 
-void update_literacy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_consciousness(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf);
@@ -313,6 +325,11 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
 
+float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers);
+float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop);
+float get_pop_starvation_factor(sys::state& state, dcon::pop_id ids);
+float popgrowth_from_life_rating(sys::state& state, float life_rating);
+float get_monthly_pop_growth_factor(sys::state& state, dcon::pop_id ids);
 float get_monthly_pop_increase(sys::state& state, dcon::pop_id);
 int64_t get_monthly_pop_increase(sys::state& state, dcon::nation_id n);
 int64_t get_monthly_pop_increase(sys::state& state, dcon::state_instance_id n);

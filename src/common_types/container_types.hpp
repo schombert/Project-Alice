@@ -122,6 +122,19 @@ static_assert(sizeof(event_option) ==
 	+ sizeof(event_option::ai_chance)
 	+ sizeof(event_option::effect));
 
+
+
+
+
+struct gamerule_option {
+	dcon::text_key name;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+
+};
+
+
+
 struct modifier_hash {
 	using is_avalanching = void;
 
@@ -129,6 +142,54 @@ struct modifier_hash {
 
 	auto operator()(dcon::modifier_id m) const noexcept -> uint64_t {
 		int32_t index = m.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct province_hash {
+	using is_avalanching = void;
+
+	province_hash() {
+	}
+
+	auto operator()(dcon::province_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct pop_hash {
+	using is_avalanching = void;
+
+	pop_hash() {
+	}
+
+	auto operator()(dcon::pop_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct regiment_hash {
+	using is_avalanching = void;
+
+	regiment_hash() {
+	}
+
+	auto operator()(dcon::regiment_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct gamerule_hash {
+	using is_avalanching = void;
+
+	gamerule_hash() {
+	}
+
+	auto operator()(dcon::gamerule_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
 		return ankerl::unordered_dense::hash<int32_t>()(index);
 	}
 };
@@ -287,7 +348,7 @@ template<size_t _Size>
 struct player_value {
 	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
-	std::string_view to_string_view() noexcept {
+	std::string_view to_string_view() const noexcept {
 		for(uint32_t i = 0; i < sizeof(data); i++) {
 			if(data[i] == ' ' || data[i] == '\0') {
 				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
@@ -302,7 +363,11 @@ struct player_value {
 		return *this;
 	}
 
-	std::string to_string() noexcept {
+	bool is_equal(player_value<_Size> other) {
+		return other.data == data;
+	}
+
+	std::string to_string() const noexcept {
 		return std::string(to_string_view());
 	}
 

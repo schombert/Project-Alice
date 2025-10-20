@@ -699,7 +699,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 				++total;
 			}
 		}
-		nations::adjust_prestige(state, target_nation, p / float(total));
+		nations::adjust_prestige(state, target_nation, p / float(total + 1));
 	}
 }
 
@@ -1119,7 +1119,8 @@ void update_research(sys::state& state, uint32_t current_year) {
 						},
 						"msg_tech_title",
 						n, dcon::nation_id{}, dcon::nation_id{},
-						sys::message_base_type::tech
+						sys::message_base_type::tech,
+						dcon::province_id{ }
 					});
 
 					n.set_current_research(dcon::technology_id{});

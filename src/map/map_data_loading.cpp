@@ -41,7 +41,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	auto content = simple_fs::view_contents(*terrain_bmp);
 	uint8_t const* start = (uint8_t const*)(content.data);
 
-#ifdef __linux__
+#ifdef __unix__
 
 	//Ported from Microsoft's documentation
 	//Replaced DWORD into uint32_t, WORD into uint16_t
@@ -66,7 +66,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		uint32_t  bfOffBits;
 	} __attribute__((__packed__))
 	BITMAPFILEHEADER;
-	
+
 	typedef struct {
 		uint32_t  biSize;
   		int32_t   biWidth;
@@ -138,7 +138,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 		uint32_t  	 bV5ProfileSize;
 		uint32_t  	 bV5Reserved;
 	} BITMAPV5HEADER;
-	
+
 	const int	BI_RGB	= 0;
 	const int	BI_RLE8	= 1;
 	const int	BI_RLE4	= 2;

@@ -12,6 +12,10 @@ inline size_t serialize_size(std::vector<T> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
+inline size_t serialize_size(native_string const& s) {
+	return sizeof(uint32_t) + sizeof(native_char) * s.size();
+}
+
 template<typename T>
 inline uint8_t* serialize(uint8_t* ptr_in, std::vector<T> const& vec) {
 	uint32_t length = uint32_t(vec.size());
@@ -27,6 +31,21 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
 	vec.resize(length);
 	memcpy(vec.data(), ptr_in + sizeof(uint32_t), sizeof(T) * length);
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
+}
+
+inline uint8_t* serialize(uint8_t* ptr_in, native_string const& s) {
+	uint32_t length = uint32_t(s.size());
+	memcpy(ptr_in, &length, sizeof(uint32_t));
+	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(native_char) * s.size());
+	return ptr_in + sizeof(uint32_t) + sizeof(native_char) * s.size();
+}
+
+inline uint8_t const* deserialize(uint8_t const* ptr_in, native_string& s) {
+	uint32_t length = 0;
+	memcpy(&length, ptr_in, sizeof(uint32_t));
+	s.resize(length);
+	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(native_char) * length);
+	return ptr_in + sizeof(uint32_t) + sizeof(native_char) * length;
 }
 
 template<typename T>
@@ -207,12 +226,19 @@ struct scenario_size {
 scenario_size sizeof_scenario_section(sys::state& state);
 size_t sizeof_save_section(sys::state& state);
 
+size_t sizeof_mp_data(sys::state& state);
+uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
+uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
+
+// combines load record settings by OR-ing them together
+void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record);
+
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count);
 bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
 bool try_read_scenario_as_save_file(sys::state& state, native_string_view name);
 
-void write_save_file(sys::state& state, sys::save_type type = sys::save_type::normal, std::string const& name = std::string(""));
+void write_save_file(sys::state& state, sys::save_type type = sys::save_type::normal, std::string const& name = std::string(""), const std::string& file_name = std::string(""));
 bool try_read_save_file(sys::state& state, native_string_view name);
 
 } // namespace sys

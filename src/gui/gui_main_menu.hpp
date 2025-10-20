@@ -136,6 +136,13 @@ public:
 	void button_action(sys::state& state) noexcept override;
 	bool is_active(sys::state& state) noexcept override;
 };
+
+class disband_confirmation_checkbox : public checkbox_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	bool is_active(sys::state& state) noexcept override;
+};
+
 class spoilers_checkbox : public checkbox_button {
 public:
 	void button_action(sys::state& state) noexcept override;
@@ -161,12 +168,6 @@ class zoom_speed_scrollbar : public scrollbar {
 	void on_update(sys::state& state) noexcept final;
 };
 
-class fow_checkbox : public checkbox_button {
-public:
-	void on_create(sys::state& state) noexcept override;
-	bool is_active(sys::state& state) noexcept override;
-	void button_action(sys::state& state) noexcept override;
-};
 class render_models_checkbox : public checkbox_button {
 public:
 	bool is_active(sys::state& state) noexcept override;
@@ -326,6 +327,8 @@ class options_menu_window : public window_element_base {
 			return make_element_by_type<map_zoom_mode_right>(state, id);
 		} else if(name == "tooltip_mode_checkbox") {
 			return make_element_by_type<tooltip_mode_checkbox>(state, id);
+		} else if(name == "disband_confirmation_checkbox") {
+			return make_element_by_type<disband_confirmation_checkbox>(state, id);
 		} else if(name == "spoilers_checkbox") {
 			return make_element_by_type<spoilers_checkbox>(state, id);
 		} else if(name == "dm_popup_checkbox") {
@@ -358,8 +361,6 @@ class options_menu_window : public window_element_base {
 			return make_element_by_type<fonts_mode_checkbox>(state, id);
 		} else if(name == "mouse_left_click_mode_checkbox") {
 			return make_element_by_type<left_mouse_click_mode_checkbox>(state, id);
-		} else if(name == "fow_checkbox") {
-			return make_element_by_type<fow_checkbox>(state, id);
 		} else if(name == "render_models_checkbox") {
 			return make_element_by_type<render_models_checkbox>(state, id);
 		} else if(name == "black_map_font_checkbox") {

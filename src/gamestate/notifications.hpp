@@ -8,10 +8,13 @@ namespace notification {
 struct message {
 	std::function<void(sys::state&, text::layout_base&)> body;
 	char const* title = nullptr;
-	dcon::nation_id source;	 // which nation caused the notification to be sent
-	dcon::nation_id target;	 // which nation is primarily affected by the event (if != source)
+	dcon::nation_id source;	 // which nation caused the notification to be sent. 
+	dcon::nation_id target;	 // which nation is primarily affected by the event (if != source).
 	dcon::nation_id third;	 // a secondary nation affected by the event
 	sys::message_base_type type;
+	dcon::province_id province_source{}; // if the message is tied to a province.
+	// the goto buttton will go to source nations capital if province source
+	// if province_source is defined, it will go to said province instead
 };
 
 void post(sys::state& state, message&& m);

@@ -317,6 +317,27 @@ struct pending_invention_content {
 	token_generator generator_state;
 	dcon::invention_id id;
 };
+
+
+struct scanned_gamerule_option {
+
+	scanned_gamerule_option(dcon::gamerule_id _gamerule, uint8_t _option_id) {
+		option_id = _option_id;
+		gamerule = _gamerule;
+	}
+
+	dcon::gamerule_id gamerule;
+	uint8_t option_id = 0;
+};
+
+
+struct rebel_regiment_parse_data {
+	dcon::province_id home_prov;
+	int32_t line_num;
+	std::string file_name;
+};
+
+
 struct pending_nat_event {
 	std::string original_file;
 	dcon::national_event_id id;
@@ -376,6 +397,8 @@ struct scenario_building_context {
 
 	sys::state& state;
 	ankerl::unordered_dense::map<uint32_t, dcon::national_identity_id> map_of_ident_names;
+	ankerl::unordered_dense::map<dcon::pop_id, dcon::rebel_type_id, sys::pop_hash> map_of_pop_rebel_affiliation;
+	ankerl::unordered_dense::map<dcon::province_id, dcon::rebel_type_id, sys::province_hash> map_of_province_rebel_control;
 	tagged_vector<std::string, dcon::national_identity_id> file_names_for_idents;
 
 	ankerl::unordered_dense::map<std::string, dcon::religion_id> map_of_religion_names;
@@ -413,9 +436,13 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::leader_images_id> map_of_leader_graphics;
 	ankerl::unordered_dense::map<std::string, std::vector<saved_stored_condition>> map_of_stored_triggers;
 	ankerl::unordered_dense::map<std::string, dcon::national_focus_id> map_of_national_focuses;
+	ankerl::unordered_dense::map<std::string, dcon::gamerule_id> map_of_gamerules;
+	ankerl::unordered_dense::map<std::string, scanned_gamerule_option> map_of_gamerule_options;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
+	ankerl::unordered_dense::map<dcon::regiment_id, rebel_regiment_parse_data, sys::regiment_hash> map_of_rebel_regiment_homes;
+
 
 	ankerl::unordered_dense::map<uint32_t, dcon::province_id> map_color_to_province_id;
 
@@ -464,28 +491,6 @@ struct color_from_3f {
 	void finish(T& context) { }
 };
 
-struct religion_context {
-	dcon::religion_id id;
-	scenario_building_context& outer_context;
-};
-struct religion_def {
-	void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context);
-	void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context);
-	void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context);
-	void finish(religion_context& context) { }
-};
-
-void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
-
-struct religion_group {
-	void finish(scenario_building_context& context) { }
-};
-
-struct religion_file {
-	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) { }
-	void finish(scenario_building_context& context) { }
-};
-
 struct color_from_3i {
 	uint32_t value = 0;
 	template<typename T>
@@ -495,6 +500,88 @@ struct color_from_3i {
 	template<typename T>
 	void finish(T& context) { }
 };
+
+
+struct scripted_gamerule_context {
+	dcon::gamerule_id id;
+	scenario_building_context& outer_context;
+};
+
+
+
+
+struct gamerule_option {
+	uint8_t option_id = 0;
+	dcon::gamerule_id gamerule_id;
+	bool default_option = false;
+	dcon::effect_key on_select;
+	dcon::effect_key on_deselect;
+	std::string_view defined_name;
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
+	void finish(scenario_building_context& context);
+
+
+};
+
+
+struct scripted_gamerule {
+	dcon::gamerule_id gamerule_id;
+	std::array< sys::gamerule_option, sys::max_gamerule_settings> options;
+	int32_t settings_count = 0;
+	uint8_t default_opt = 0;
+	bool has_default = false;
+
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
+	void option(gamerule_option option, error_handler& err, int32_t line, scenario_building_context& context);
+
+	void finish(scenario_building_context& context);
+
+};
+
+struct gamerule_file {
+	void finish(scenario_building_context& context);
+};
+
+struct scan_gamerule_file {
+	void finish(scenario_building_context& context) {
+
+	}
+};
+
+
+struct scan_gamerule_option {
+	std::string_view defined_name;
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+		defined_name = text;
+	}
+	void finish(scripted_gamerule_context& context) {
+
+	}
+
+
+};
+
+
+struct scan_scripted_gamerule {
+	std::string_view defined_name;
+	uint8_t settings_count = 0;
+
+
+	void name(association_type, std::string_view text, error_handler& err, int32_t line, scripted_gamerule_context& context) {
+		if(context.outer_context.map_of_gamerules.contains(std::string(text))) {
+			err.accumulated_errors += "Gamerule with name " + std::string(text) + " has already been defined earlier (" + err.file_name + "), line " + std::to_string(line) + "\n";
+		}
+		defined_name = text;
+	}
+	void option(scan_gamerule_option opt, error_handler& err, int32_t line, scripted_gamerule_context& context);
+
+	void finish(scripted_gamerule_context& context);
+};
+
+
 
 struct culture_group_context {
 	dcon::culture_group_id id;
@@ -640,6 +727,8 @@ public:
 	MOD_NAT_FUNCTION(max_tax)
 	MOD_NAT_FUNCTION(min_military_spending)
 	MOD_NAT_FUNCTION(max_military_spending)
+	MOD_NAT_FUNCTION(trade_routes_attraction)
+	MOD_NAT_FUNCTION(min_land_upkeep)
 	MOD_NAT_FUNCTION(min_social_spending)
 	MOD_NAT_FUNCTION(max_social_spending)
 	MOD_NAT_FUNCTION(min_domestic_investment)
@@ -649,6 +738,7 @@ public:
 	MOD_NAT_FUNCTION(max_tariff)
 	MOD_NAT_FUNCTION(ruling_party_support)
 	MOD_PROV_FUNCTION(local_ruling_party_support)
+	MOD_PROV_FUNCTION(fort_level)
 	MOD_NAT_FUNCTION(rich_vote)
 	MOD_NAT_FUNCTION(middle_vote)
 	MOD_NAT_FUNCTION(poor_vote)
@@ -673,7 +763,9 @@ public:
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
-			constructed_definition_n.values[next_to_add_n] = v * 1.0f;
+			//for some reason the global_population_growth effect is not parsed as a "pure" float in vic2's files unlike the "pop_growth" tech&invention effects or the "population_growth" effect in local modifiers
+			// instead, the decimal place is moved up one digit, ie "global_population_growth = 0.002" gives the same effect as "pop_growth = 0.0002" so we have to multiply the parsed value with 0.1 to get the actual pop growth float
+			constructed_definition_n.values[next_to_add_n] = v * 0.1f;
 			++next_to_add_n;
 		}
 	}
@@ -848,7 +940,8 @@ public:
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
 		} else {
 			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::pop_growth;
-			constructed_definition_n.values[next_to_add_n] = v * 10.0f;
+			// previously it multiplied the value by 10.0f, but it caused pop growth effects to be much more powerfull than they should be
+			constructed_definition_n.values[next_to_add_n] = v;
 			++next_to_add_n;
 		}
 	}
@@ -1038,6 +1131,29 @@ public:
 #undef MOD_PROV_FUNCTION
 #undef MOD_NAT_FUNCTION
 
+struct religion_context {
+	dcon::religion_id id;
+	scenario_building_context& outer_context;
+};
+struct religion_def : public modifier_base {
+	void icon(association_type, int32_t v, error_handler& err, int32_t line, religion_context& context);
+	void color(color_from_3f v, error_handler& err, int32_t line, religion_context& context);
+	void pagan(association_type, bool v, error_handler& err, int32_t line, religion_context& context);
+	void nation_modifier(modifier_base v, error_handler& err, int32_t line, religion_context& context);
+	void finish(religion_context& context) { };
+};
+
+void make_religion(std::string_view name, token_generator& gen, error_handler& err, scenario_building_context& context);
+
+struct religion_group {
+	void finish(scenario_building_context& context) { };
+};
+
+struct religion_file {
+	void any_group(std::string_view name, religion_group, error_handler& err, int32_t line, scenario_building_context& context) { };
+	void finish(scenario_building_context& context) { };
+};
+
 struct int_vector {
 	std::vector<int32_t> data;
 	template<typename T>
@@ -1078,6 +1194,7 @@ struct building_definition : public modifier_base {
 	int32_t time = 0;
 	int32_t cost = 0;
 	bool can_be_built_in_colonies = false;
+	int8_t factory_tier = 0;
 	economy::province_building_type stored_type = economy::province_building_type::factory;
 
 	void type(association_type, std::string_view value, error_handler& err, int32_t line, scenario_building_context& context);
@@ -1584,6 +1701,15 @@ struct province_factory_limit {
 	void finish(province_file_context&) { }
 };
 
+struct province_revolt {
+
+	dcon::rebel_type_id rebel;
+
+	void type(parsers::association_type, std::string_view text, error_handler& err, int32_t line, province_file_context& context);
+	void finish(province_file_context&) {
+	}
+};
+
 struct province_history_file {
 	void life_rating(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void colony(association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
@@ -1599,6 +1725,7 @@ struct province_history_file {
 	void rgo_distribution(province_rgo_ext const& value, error_handler& err, int32_t line, province_file_context& context);
 	void rgo_distribution_add(province_rgo_ext_2 const& value, error_handler& err, int32_t line, province_file_context& context);
 	void factory_limit(province_factory_limit const& value, error_handler& err, int32_t line, province_file_context& context);
+	void revolt(province_revolt const& rev, error_handler& err, int32_t line, province_file_context& context);
 	void any_value(std::string_view name, association_type, uint32_t value, error_handler& err, int32_t line, province_file_context& context);
 	void finish(province_file_context&) { }
 };
@@ -2946,6 +3073,7 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 } // namespace parsers
 
 #include "trigger_parsing.hpp"
+#include "gamerule_parsing.hpp"
 #include "effect_parsing.hpp"
 #include "cultures_parsing.hpp"
 #include "parser_defs_generated.hpp"
