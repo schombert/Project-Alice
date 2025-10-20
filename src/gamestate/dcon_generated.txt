@@ -1847,6 +1847,18 @@ object {
 		type{ float }
 		tag{ save }
 	}
+
+	property{
+		name{ december_winter }
+		type{ uint8_t }
+		tag{ scenario }
+	}
+
+	property{
+		name{ june_winter }
+		type{ uint8_t }
+		tag{ scenario }
+	}
 }
 
 relationship{
