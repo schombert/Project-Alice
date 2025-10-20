@@ -10,6 +10,7 @@
 #include "prng.hpp"
 #include "triggers.hpp"
 #include "economy_stats.hpp"
+#include "date_interface.hpp"
 #include <set>
 
 namespace province {
@@ -40,27 +41,66 @@ bool province_is_deep_waters(sys::state& state, dcon::province_id prov) {
 		}
 	}
 	return true;
+}
 
+// Array of cumulative days per month for non-leap years
+constexpr int32_t cumulative_days[12] = {
+	0,   // January (0 days before)
+	31,  // February (31 days in Jan)
+	59,  // March (31+28=59)
+	90,  // April (31+28+31=90)
+	120, // May (31+28+31+30=120)
+	151, // June (31+28+31+30+31=151)
+	181, // July (31+28+31+30+31+30=181)
+	212, // August (31+28+31+30+31+30+31=212)
+	243, // September (31+28+31+30+31+30+31+31=243)
+	273, // October (31+28+31+30+31+30+31+31+30=273)
+	304, // November (31+28+31+30+31+30+31+31+30+31=304)
+	334  // December (31+28+31+30+31+30+31+31+30+31+30=334)
+};
+
+int32_t get_day_of_year(int32_t year, int32_t month, int32_t day) {
+	// Validate input
+	if(month < 1 || month > 12 || day < 1 || day > 31) {
+		return 0; // Or throw an exception
+	}
+
+	// Calculate base day from cumulative days
+	int32_t day_of_year = cumulative_days[month - 1] + day;
+
+	// Add leap day if it's a leap year and after February
+	if(sys::is_leap_year(year) && month > 2) {
+		day_of_year += 1;
+	}
+
+	return day_of_year;
 }
 
 // Returns 1.f when it is full winter in the province and 0.f when it is summer
 float province_is_winter_now(sys::state& state, dcon::province_id prov) {
-	// Summer textures
-	if(state.current_date.to_ymd(state.start_date).month > 3 && state.current_date.to_ymd(state.start_date).month < 11) {
-		return 0.f;
+
+	auto winter_june = state.world.province_get_june_winter(prov);
+	auto winter_december = state.world.province_get_december_winter(prov);
+
+	auto y = state.current_date.to_ymd(state.start_date).year;
+	auto m = state.current_date.to_ymd(state.start_date).month;
+	auto d = state.current_date.to_ymd(state.start_date).day;
+	auto md = get_day_of_year(y,m,d);
+
+	auto daysinayear = 365.f;
+	if(sys::is_leap_year(y)) {
+		daysinayear++;
 	}
-	// Animation from winter to summer
-	else if(state.current_date.to_ymd(state.start_date).month == 3) {
-		return 1.f - std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f);
-	}
-	// Animation from summer to winter
-	else if(state.current_date.to_ymd(state.start_date).month == 11) {
-		return std::min(state.current_date.to_ymd(state.start_date).day / 30.f, 1.f);
-	}
-	// Winter textures
-	else {
-		return 1.f;
-	}
+	// Convert md to angle (0 to 2π over 360 days)
+	float angle = (2.0f * math::pi * md) / daysinayear;
+
+	// Northern winter peaks around day 0 (January) and day 360 (December)
+	// Southern winter peaks around day 180 (July)
+	float northern_winter = winter_december * (1.0f + cos(angle)) / 2.0f;
+	float southern_winter = winter_june * (1.0f - cos(angle)) / 2.0f;
+
+	// Use the maximum of the two to handle both hemispheres
+	return std::max(northern_winter, southern_winter);
 }
 
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation) {
