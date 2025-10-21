@@ -47,7 +47,6 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	case scene_id::in_game_basic:
 		if(state.current_scene.id == scene_id::in_game_state_selector) {
-			state.state_selection.reset();
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 

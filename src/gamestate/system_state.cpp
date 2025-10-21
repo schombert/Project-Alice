@@ -350,8 +350,9 @@ void state::state_select(dcon::state_definition_id sdef) {
 	assert(state_selection);
 	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
 		if(state_selection->single_state_select) {
-			state_selection->on_select(*this, sdef);
 			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+			state_selection->on_select(*this, sdef);
+			// Order of calls is important since callback can switch us to another scene with selector
 		} else {
 			// Multi-state selection is not supported
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
