@@ -481,6 +481,7 @@ struct national_identity_selection_data {
 	std::vector<dcon::national_identity_id> selectable_identities;
 	std::function<void(sys::state&, dcon::national_identity_id)> on_select;
 	std::function<void(sys::state&)> on_cancel;
+	dcon::nation_id province_owner_filter;
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here

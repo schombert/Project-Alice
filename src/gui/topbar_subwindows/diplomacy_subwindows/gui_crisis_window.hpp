@@ -429,6 +429,7 @@ private:
 			}
 		}
 
+		seldata.province_owner_filter = target;
 		seldata.on_select = [&](sys::state& state, dcon::national_identity_id ni) {
 			// Target_country has been selected
 			if(ni) { // goto next step
@@ -504,7 +505,7 @@ public:
 			ptr->set_visible(state, true);
 			return ptr;
 		} else if(name == "wargoal_state_select") {
-			return make_element_by_type<invisible_element>(state, id);
+			return nullptr;
 		} else if(name == "wargoal_country_select") {
 			{
 				auto ptr = make_element_by_type<wargoal_offer_setup_window<true>>(state, id);
@@ -575,7 +576,7 @@ public:
 			payload.emplace<dcon::state_definition_id>(target_state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(secondary_tag_identity);
+			payload.emplace<dcon::national_identity_id>(wg_tag);
 			return message_result::consumed;
 		}
 		return message_result::unseen;

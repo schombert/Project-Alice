@@ -758,6 +758,11 @@ std::vector<uint32_t> select_national_identity_map_from(sys::state& state) {
 				auto p = c.get_province();
 				auto i = province::to_map_id(p.id);
 
+				// Filtering outside cores
+				if(state.national_identity_selection->province_owner_filter && p.get_nation_from_province_ownership() != state.national_identity_selection->province_owner_filter) {
+					continue;
+				}
+
 				// Identity coming first in a stack is higher priority
 				if(prov_color[i] == 0) {
 					prov_color[i] = color;

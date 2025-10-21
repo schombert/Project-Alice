@@ -1154,6 +1154,7 @@ private:
 			}
 		}
 
+		seldata.province_owner_filter = target;
 		seldata.on_select = [&](sys::state& state, dcon::national_identity_id ni) {
 			// Target_country has been selected
 			if(ni) { // goto next step
@@ -1662,6 +1663,7 @@ private:
 			}
 		}
 
+		seldata.province_owner_filter = target;
 		seldata.on_select = [&](sys::state& state, dcon::national_identity_id ni) {
 			// Target_country has been selected
 			if(ni) { // goto next step
