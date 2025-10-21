@@ -1045,10 +1045,11 @@ private:
 
 	dcon::cb_type_id cb_to_use;
 	dcon::state_definition_id target_state;
-	dcon::national_identity_id target_country;
+	dcon::national_identity_id secondary_tag;
 	diplomacy_declare_war_run_state checkboxes_state;
 	bool wargoal_decided_upon = false;
 
+	// Initiate target state selection (state_definition_id)
 	void select_state(sys::state& state) {
 		sys::state_selection_data seldata;
 		seldata.single_state_select = true;
@@ -1056,8 +1057,11 @@ private:
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;
 		auto war = military::find_war_between(state, actor, target);
-		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+
+		assert(cb);
+		assert(target);
+		assert(actor);
 
 		// Add target states to the selection
 		if ((state.world.cb_type_get_type_bits(cb) & military::cb_flag::always) == 0) {
@@ -1134,20 +1138,19 @@ private:
 		state.start_state_selection(seldata);
 	}
 
+	// Initiate select secondary tag sequence (national_identity_id)
 	void select_national_identity(sys::state& state) {
 		sys::national_identity_selection_data seldata;
 		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
 		auto actor = state.local_player_nation;
 		dcon::cb_type_id cb = cb_to_use;
 		auto war = military::find_war_between(state, actor, target);
-		auto secondary_tag = target_country;
 		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
 
 		dcon::trigger_key allowed_countries = state.world.cb_type_get_allowed_countries(cb);
-		// This CB doesn't need selection of a state.
 		assert(cb);
 		assert(allowed_countries);
-		assert(target_state || !military::cb_requires_selection_of_a_state(state, cb));
+		assert(target_state || !military::cb_requires_selection_of_a_state(state, cb)); // Target state has been selected or CB doesn't need selection of a state.
 
 		// Add target identities to the selection
 		for(auto n : state.world.in_nation) {
@@ -1162,6 +1165,7 @@ private:
 			// Target_country has been selected
 			if(ni) { // goto next step
 				wargoal_decided_upon = true;
+				secondary_tag = ni;
 				wargoal_setup_win->set_visible(state, true);
 			} else {
 				wargoal_decided_upon = false;
@@ -1172,7 +1176,7 @@ private:
 			};
 		seldata.on_cancel = [&](sys::state& state) {
 			target_state = dcon::state_definition_id{};
-			target_country = dcon::national_identity_id{};
+			secondary_tag = dcon::national_identity_id{};
 			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, true);
 				select_state(state);
@@ -1189,7 +1193,7 @@ public:
 	void reset_window(sys::state& state) {
 		cb_to_use = dcon::cb_type_id{};
 		target_state = dcon::state_definition_id{};
-		target_country = dcon::national_identity_id{};
+		secondary_tag = dcon::national_identity_id{};
 		checkboxes_state = diplomacy_declare_war_run_state::none;
 		wargoal_decided_upon = false;
 		wargoal_setup_win->set_visible(state, true);
@@ -1285,7 +1289,7 @@ public:
 			payload.emplace<dcon::state_definition_id>(target_state);
 			return message_result::consumed;
 		} else if(payload.holds_type<dcon::national_identity_id>()) {
-			payload.emplace<dcon::national_identity_id>(target_country);
+			payload.emplace<dcon::national_identity_id>(secondary_tag);
 			return message_result::consumed;
 		} else if(payload.holds_type<diplomacy_declare_war_run_state>()) {
 			payload.emplace<diplomacy_declare_war_run_state>(checkboxes_state);
