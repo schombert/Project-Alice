@@ -38,20 +38,6 @@ public:
 			return nullptr;
 		}
 	}
-
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<dcon::nation_id>()) {
-			auto memb = state.world.state_definition_get_abstract_state_membership(content);
-			if(memb.begin() == memb.end()) {
-				payload.emplace<dcon::nation_id>(state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id));
-				return message_result::consumed;
-			}
-			auto n = (*(memb.begin())).get_province().get_state_membership().get_capital().get_province_control().get_nation();
-			payload.emplace<dcon::nation_id>(n);
-			return message_result::consumed;
-		}
-		return listbox_row_element_base::get(state, payload);
-	}
 };
 
 class map_state_select_listbox : public listbox_element_base<map_state_select_entry, dcon::state_definition_id> {
