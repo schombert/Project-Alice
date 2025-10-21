@@ -314,7 +314,6 @@ public:
 class crisis_add_wargoal_window : public window_element_base {
 private:
 	wargoal_offer_setup_window<true>* wargoal_setup_win = nullptr;
-	wargoal_offer_country_select_window* wargoal_country_win = nullptr;
 	wargoal_target_country_select_window* wargoal_target_win = nullptr;
 
 	dcon::nation_id offer_made_to;
@@ -326,7 +325,7 @@ private:
 
 	bool wargoal_decided_upon = false;
 
-	void select_mode(sys::state& state) {
+	void select_state(sys::state& state) {
 		sys::state_selection_data seldata;
 		seldata.single_state_select = true;
 		// Populate selectable states...
@@ -390,28 +389,65 @@ private:
 		}
 		seldata.on_select = [&](sys::state& state, dcon::state_definition_id sdef) {
 			target_state = sdef;
-			wargoal_decided_upon = true;
-			wargoal_setup_win->set_visible(state, true);
-			wargoal_country_win->set_visible(state, false);
+
+			if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
+				wargoal_setup_win->set_visible(state, false);
+				select_national_identity(state);
+			} else {
+				wargoal_decided_upon = true;
+				wargoal_setup_win->set_visible(state, true);
+			}
 			impl_on_update(state);
 			};
 		seldata.on_cancel = [&](sys::state& state) {
-			target_state = dcon::state_definition_id{};
-			if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
-				wargoal_setup_win->set_visible(state, false);
-				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, true);
-			} else {
-				cb_to_use = dcon::cb_type_id{};
-				wargoal_decided_upon = false;
-				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, false);
-			}
+			reset_window(state);
 			impl_on_update(state);
 			};
 		state.start_state_selection(seldata);
 	}
+
+	// Initiate select secondary tag sequence (national_identity_id)
+	void select_national_identity(sys::state& state) {
+		sys::national_identity_selection_data seldata;
+		dcon::nation_id target = retrieve<dcon::nation_id>(state, parent);
+		auto actor = state.local_player_nation;
+		dcon::cb_type_id cb = cb_to_use;
+		auto war = military::find_war_between(state, actor, target);
+		auto allowed_substate_regions = state.world.cb_type_get_allowed_substate_regions(cb);
+
+		dcon::trigger_key allowed_countries = state.world.cb_type_get_allowed_countries(cb);
+		assert(cb);
+		assert(allowed_countries);
+		assert(target_state || !military::cb_requires_selection_of_a_state(state, cb)); // Target state has been selected or CB doesn't need selection of a state.
+
+		// Add target identities to the selection
+		for(auto n : state.world.in_nation) {
+			auto ni = state.world.nation_get_identity_from_identity_holder(n);
+
+			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+				seldata.selectable_identities.push_back(ni);
+			}
+		}
+
+		seldata.on_select = [&](sys::state& state, dcon::national_identity_id ni) {
+			// Target_country has been selected
+			if(ni) { // goto next step
+				wargoal_decided_upon = true;
+				wg_tag = ni;
+				wargoal_setup_win->set_visible(state, true);
+			} else {
+				reset_window(state);
+				wargoal_setup_win->set_visible(state, true);
+			}
+			impl_on_update(state);
+			};
+		seldata.on_cancel = [&](sys::state& state) {
+			reset_window(state);
+			impl_on_update(state);
+		};
+		state.start_national_identity_selection(seldata);
+	}
+
 public:
 	void reset_window(sys::state& state) {
 		wargoal_against = dcon::nation_id{};
@@ -419,11 +455,15 @@ public:
 		cb_to_use = dcon::cb_type_id{};
 		target_state = dcon::state_definition_id{};
 		secondary_tag_identity = dcon::national_identity_id{};
+		wg_tag = dcon::national_identity_id{};
 		wargoal_decided_upon = false;
+
+		// Reset remainers from previous uses of selectors
+		state.state_selection.reset();
+		state.national_identity_selection.reset();
 
 		wargoal_setup_win->set_visible(state, false);
 		//wargoal_state_win->set_visible(state, false);
-		wargoal_country_win->set_visible(state, false);
 		wargoal_target_win->set_visible(state, true);
 	}
 
@@ -471,11 +511,6 @@ public:
 				wargoal_setup_win = ptr.get();
 				ptr->set_visible(state, false);
 				add_child_to_front(std::move(ptr));
-			}
-			{
-				auto ptr = make_element_by_type<wargoal_offer_country_select_window>(state, id);
-				wargoal_country_win = ptr.get();
-				ptr->set_visible(state, false);
 				return ptr;
 			}
 		} else {
@@ -504,54 +539,23 @@ public:
 
 				wargoal_setup_win->set_visible(state, false);
 				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, false);
 				wargoal_target_win->set_visible(state, true);
 			} else if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
 				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, true);
 				wargoal_target_win->set_visible(state, false);
+				select_national_identity(state);
 			} else if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 				wargoal_setup_win->set_visible(state, false);
 				//wargoal_state_win->set_visible(state, true);
-				wargoal_country_win->set_visible(state, false);
 				wargoal_target_win->set_visible(state, false);
-				select_mode(state);
+				select_state(state);
 			} else {
 				wargoal_decided_upon = true;
 				wargoal_setup_win->set_visible(state, true);
 				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, false);
 				wargoal_target_win->set_visible(state, false);
 			}
-			impl_on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<dcon::national_identity_id>>()) {
-			secondary_tag_identity = any_cast<element_selection_wrapper<dcon::national_identity_id>>(payload).data;
-
-			if(secondary_tag_identity) { // goto next step
-				if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
-					wargoal_setup_win->set_visible(state, true);
-					//wargoal_state_win->set_visible(state, true);
-					wargoal_country_win->set_visible(state, false);
-					wargoal_target_win->set_visible(state, true);
-					select_mode(state);
-				} else {
-					wargoal_setup_win->set_visible(state, true);
-					//wargoal_state_win->set_visible(state, false);
-					wargoal_country_win->set_visible(state, false);
-					wargoal_target_win->set_visible(state, false);
-					wargoal_decided_upon = true;
-				}
-			} else {
-				wargoal_decided_upon = false;
-				cb_to_use = dcon::cb_type_id{};
-				wargoal_setup_win->set_visible(state, true);
-				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, false);
-				wargoal_target_win->set_visible(state, false);
-			}
-
 			impl_on_update(state);
 			return message_result::consumed;
 		} else if(payload.holds_type<set_target>()) {
@@ -561,7 +565,6 @@ public:
 				cb_to_use = dcon::cb_type_id{};
 				wargoal_setup_win->set_visible(state, true);
 				//wargoal_state_win->set_visible(state, false);
-				wargoal_country_win->set_visible(state, false);
 				wargoal_target_win->set_visible(state, false);
 			}
 			return message_result::consumed;
