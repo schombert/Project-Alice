@@ -40,13 +40,14 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		if (state.current_scene.id != scene_id::in_game_state_selector)
 			state.stored_map_mode = state.map_state.active_map_mode;
-		map_mode::set_map_mode(state, map_mode::mode::political);
+		map_mode::set_map_mode(state, map_mode::mode::nation_identity_select);
 		state.set_selected_province(dcon::province_id{});
 
 		return;
 
 	case scene_id::in_game_basic:
-		if(state.current_scene.id == scene_id::in_game_state_selector) {
+		// Bring back remembered map mode we had before the selector
+		if(state.current_scene.id == scene_id::in_game_state_selector || state.current_scene.id == scene_id::in_game_national_identity_selector) {
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 

@@ -317,11 +317,6 @@ void create_in_game_windows(sys::state& state) {
 namespace sys {
 
 void state::start_state_selection(state_selection_data& data) {
-	if(state_selection) {
-		state_selection->on_cancel(*this);
-		state_selection.reset();
-	}
-
 	state_selection = data;
 
 	game_scene::switch_scene(*this, game_scene::scene_id::in_game_state_selector);
@@ -332,10 +327,6 @@ void state::start_state_selection(state_selection_data& data) {
 }
 
 void state::start_national_identity_selection(national_identity_selection_data& data) {
-	if(national_identity_selection) {
-		national_identity_selection->on_cancel(*this);
-		national_identity_selection.reset();
-	}
 	national_identity_selection = data;
 
 	game_scene::switch_scene(*this, game_scene::scene_id::in_game_national_identity_selector);
@@ -364,6 +355,7 @@ void state::state_select(dcon::state_definition_id sdef) {
 			std::abort();
 		}
 	}
+	state_selection.reset();
 	map_state.update(*this);
 }
 
@@ -375,6 +367,7 @@ void state::national_identity_select(dcon::national_identity_id ni) {
 		national_identity_selection->on_select(*this, ni);
 		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 	}
+	national_identity_selection.reset();
 	map_state.update(*this);
 }
 

@@ -1129,9 +1129,7 @@ private:
 			impl_on_update(state);
 		};
 		seldata.on_cancel = [&](sys::state& state) {
-			target_state = dcon::state_definition_id{};
-			cb_to_use = dcon::cb_type_id{};
-			wargoal_decided_upon = false;
+			reset_window(state);
 			wargoal_setup_win->set_visible(state, true);
 			impl_on_update(state);
 		};
@@ -1168,25 +1166,15 @@ private:
 				secondary_tag = ni;
 				wargoal_setup_win->set_visible(state, true);
 			} else {
-				wargoal_decided_upon = false;
-				cb_to_use = dcon::cb_type_id{};
+				reset_window(state);
 				wargoal_setup_win->set_visible(state, true);
 			}
 			impl_on_update(state);
 			};
 		seldata.on_cancel = [&](sys::state& state) {
-			target_state = dcon::state_definition_id{};
-			secondary_tag = dcon::national_identity_id{};
-			if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
-				wargoal_setup_win->set_visible(state, true);
-				select_state(state);
-			}
-			else {
-				wargoal_decided_upon = false;
-				wargoal_setup_win->set_visible(state, true);
-			}
+			reset_window(state);
 			impl_on_update(state);
-			};
+		};
 		state.start_national_identity_selection(seldata);
 	}
 public:
@@ -1197,6 +1185,8 @@ public:
 		checkboxes_state = diplomacy_declare_war_run_state::none;
 		wargoal_decided_upon = false;
 		wargoal_setup_win->set_visible(state, true);
+		state.state_selection.reset();
+		state.national_identity_selection.reset();
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1266,10 +1256,12 @@ public:
 				wargoal_decided_upon = false;
 			} else if(military::cb_requires_selection_of_a_state(state, cb_to_use)) {
 				// Select a state
+				wargoal_decided_upon = false;
 				wargoal_setup_win->set_visible(state, true);
 				select_state(state);
 			} else if(military::cb_requires_selection_of_a_valid_nation(state, cb_to_use) || military::cb_requires_selection_of_a_liberatable_tag(state, cb_to_use)) {
 				// Select a nation
+				wargoal_decided_upon = false;
 				wargoal_setup_win->set_visible(state, false);
 				select_national_identity(state);
 			} else {

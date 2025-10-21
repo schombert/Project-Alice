@@ -744,6 +744,32 @@ std::vector<uint32_t> select_states_map_from(sys::state& state) {
 	return prov_color;
 }
 
+std::vector<uint32_t> select_national_identity_map_from(sys::state& state) {
+	uint32_t province_size = state.world.province_size();
+	uint32_t texture_size = province_size + 256 - province_size % 256;
+	std::vector<uint32_t> prov_color(texture_size * 2, 0);
+
+	assert(state.national_identity_selection.has_value());
+	if(state.national_identity_selection) {
+		for(const auto ni : state.national_identity_selection->selectable_identities) {
+			uint32_t color = ogl::color_from_hash(ni.index());
+
+			for(const auto c : state.world.national_identity_get_core(ni)) {
+				auto p = c.get_province();
+				auto i = province::to_map_id(p.id);
+
+				// Identity coming first in a stack is higher priority
+				if(prov_color[i] == 0) {
+					prov_color[i] = color;
+					prov_color[i + texture_size] = ~color;
+				}
+			}
+			
+		}
+	}
+	return prov_color;
+}
+
 namespace map_mode {
 
 void set_map_mode(sys::state& state, mode mode) {
@@ -835,6 +861,9 @@ void set_map_mode(sys::state& state, mode mode) {
 	switch(mode) {
 	case mode::state_select:
 		prov_color = select_states_map_from(state);
+		break;
+	case mode::nation_identity_select:
+		prov_color = select_national_identity_map_from(state);
 		break;
 	case mode::terrain:
 		state.map_state.set_terrain_map_mode();
