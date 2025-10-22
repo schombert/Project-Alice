@@ -18,6 +18,8 @@ require "assets.lua.custom_ffi"
 
 require("jit.v").start("dump.txt")
 
+-- example of lua modding
+
 ---comment
 ---@param navy navy_id
 ---@param province province_id
@@ -88,4 +90,26 @@ function alice.global_bombardment()
 	end
 end
 
+---@param battle_id land_battle_id
+function alice.store_battle_tick_results(battle_id)
+end
+
+-- FILE = assert(io.open("battles_log.txt", "w"))
+
+---@param battle_id land_battle_id
+---@param winner_exists boolean
+---@param attacker_won boolean
+function alice.handle_battle_end(battle_id, winner_exists, attacker_won)
+	local casualties_attacker =
+		LAND_BATTLE.get_attacker_cav_lost(battle_id)
+		+ LAND_BATTLE.get_attacker_infantry_lost(battle_id)
+		+ LAND_BATTLE.get_attacker_support_lost(battle_id)
+	local casualties_defender =
+		LAND_BATTLE.get_defender_cav_lost(battle_id)
+		+ LAND_BATTLE.get_defender_infantry_lost(battle_id)
+		+ LAND_BATTLE.get_defender_support_lost(battle_id)
+end
+
 ON_ACTION.add_daily_call("global_bombardment")
+-- ON_ACTION.add_battle_call("store_battle_tick_results")
+ON_ACTION.add_battle_end_call("handle_battle_end")

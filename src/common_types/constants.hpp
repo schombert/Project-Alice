@@ -412,7 +412,8 @@ enum class message_base_type : uint8_t {
 	trade_rights_revoked = 76,
 	naval_combat_starts_by_nation = 77,
 	land_combat_starts_by_nation = 78,
-	count = 79,
+	scripting_notification = 79,
+	count = 80,
 };
 
 struct msg_setting_entry {

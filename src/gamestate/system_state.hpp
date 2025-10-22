@@ -36,20 +36,17 @@
 #include "lua.hpp"
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
+#include "enums.hpp"
+
+namespace ui {
+struct lua_scripted_element;
+}
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
 
 namespace sys {
-
-enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
-enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
-struct text_mouse_test_result {
-	uint32_t position;
-	uint32_t quadrent;
-};
-
 struct user_settings_s {
 	float ui_scale = 1.0f;
 	float master_volume = 0.5f;
@@ -774,7 +771,12 @@ struct alignas(64) state {
 	lua_State* lua_ui_environment;
 	lua_State* lua_game_loop_environment;
 	std::vector<int> lua_on_daily_tick;
+	std::vector<int> lua_on_battle_end;
+	std::vector<int> lua_on_battle_tick;
+	std::vector<int> lua_on_war_declaration;
+	std::vector<int> lua_on_war_conclusion;
 	ankerl::unordered_dense::map<std::string, int> lua_registered_functions;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_ui_functions;
 
 	//
 	// Crisis data
@@ -878,6 +880,7 @@ struct alignas(64) state {
 
 	//current ui
 	game_scene::scene_properties current_scene;
+	ui::lua_scripted_element* current_lua_element;
 
 	std::optional<state_selection_data> state_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
@@ -1045,6 +1048,7 @@ struct alignas(64) state {
 	void reset_state();
 
 	void console_log(std::string_view message);
+	void lua_notification(std::string message);
 	void log_player_nations();
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected

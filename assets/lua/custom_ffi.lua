@@ -39,13 +39,36 @@ ffi.cdef[[
 
     void call_daily(const char function_name[]);
     void remove_daily(const char function_name[]);
+
+    void call_daily_battle(const char function_name[]);
+    void remove_daily_battle(const char function_name[]);
+
+    void call_battle_end(const char function_name[]);
+    void remove_battle_end(const char function_name[]);
+
+    void set_text(const char text[]);
+    int32_t local_player_nation();
 ]]
+
+
+STATE = {}
+
+---@return nation_id
+function STATE.player()
+    return ffi.C.local_player_nation()
+end
+
+---@param text string
+function STATE.set_text(text)
+    return ffi.C.set_text(text)
+end
+
 
 MILITARY = {}
 
 ---@param a nation_id
 ---@param b nation_id
----@returns boolean
+---@return boolean
 function MILITARY.at_war(a, b)
 	return ffi.C.alice_at_war(a, b)
 end
@@ -64,8 +87,23 @@ ON_ACTION = {}
 function ON_ACTION.add_daily_call(name)
     ffi.C.call_daily(name)
 end
-
 ---@param name string
 function ON_ACTION.remove_daily_call(name)
-    ffi.C.call_daily(name)
+    ffi.C.remove_daily(name)
+end
+---@param name string
+function ON_ACTION.add_battle_call(name)
+    ffi.C.call_daily_battle(name)
+end
+---@param name string
+function ON_ACTION.remove_battle_call(name)
+    ffi.C.remove_daily_battle(name)
+end
+---@param name string
+function ON_ACTION.add_battle_end_call(name)
+    ffi.C.call_battle_end(name)
+end
+---@param name string
+function ON_ACTION.remove_battle_end_call(name)
+    ffi.C.remove_battle_end(name)
 end

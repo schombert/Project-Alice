@@ -1589,7 +1589,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_ui");
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice");
 	lua_getfield(lua_ui_environment, -1, "on_ui_thread_update");
 	lua_remove(lua_ui_environment, -2);
 	lua_pushinteger(lua_ui_environment, microseconds_since_last_render.count());
@@ -1598,8 +1598,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	//lua_call(lua_ui_environment, 3, 0);
 	auto result = lua_pcall(lua_ui_environment, 3, 0, 0);
 	if(result) {
-		OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
-		std::abort();
+		console_log(lua_tostring(lua_ui_environment, -1));
+		lua_settop(lua_ui_environment, 0);
 	}
 
 	assert(lua_gettop(lua_ui_environment) == 0);
@@ -1668,7 +1668,7 @@ void state::on_create() {
 	// alice table
 	{
 		lua_newtable(lua_ui_environment);
-		lua_setglobal(lua_ui_environment, "alice_ui");
+		lua_setglobal(lua_ui_environment, "alice");
 		assert(lua_gettop(lua_ui_environment) == 0);
 	}
 
@@ -1680,7 +1680,7 @@ void state::on_create() {
 
 
 	// graphics subsystem
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_ui"); // [alice
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
 	lua_newtable(lua_ui_environment); // [alice, table
 	lua_setfield(lua_ui_environment, -2, "graphics"); // [alice
 	lua_remove(lua_ui_environment, -1); // [
@@ -1688,7 +1688,7 @@ void state::on_create() {
 	assert(lua_gettop(lua_ui_environment) == 0);
 
 	// rectangle
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_ui"); // [alice
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
 	lua_getfield(lua_ui_environment, -1, "graphics"); // [alice, graphics
 	lua_remove(lua_ui_environment, -2); // [graphics
 	lua_pushcfunction(lua_ui_environment, draw_rectangle); // [graphics, draw_rectangle
@@ -1706,11 +1706,9 @@ void state::on_create() {
 		int status;
 		status = luaL_dostring(lua_ui_environment, simple_fs::view_contents(*lua_loader).data);
 		if(status) {
-			/* If something went wrong, error message is at the top of */
-			/* the stack */
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+			lua_settop(lua_ui_environment, 0);
 			std::abort();
-			//exit(1);
 		}
 	}
 
@@ -1722,11 +1720,9 @@ void state::on_create() {
 		int status;
 		status = luaL_dostring(lua_game_loop_environment, simple_fs::view_contents(*lua_loader).data);
 		if(status) {
-			/* If something went wrong, error message is at the top of */
-			/* the stack */
 			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
-			//exit(1);
 		}
 	}
 
@@ -5250,8 +5246,8 @@ void state::single_game_tick() {
 		lua_rawgeti(lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
 		auto result = lua_pcall(lua_game_loop_environment, 0, 0, 0);
 		if(result) {
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-			std::abort();
+			lua_notification(lua_tostring(lua_ui_environment, -1));
+			lua_settop(lua_game_loop_environment, 0);
 		}
 		assert(lua_gettop(lua_game_loop_environment) == 0);
 	}
@@ -5317,6 +5313,21 @@ void state::single_game_tick() {
 
 void state::console_log(std::string_view message) {
 	current_scene.console_log(*this, message);
+}
+
+void state::lua_notification(const std::string message) {
+	notification::post(*this, notification::message{
+		.body = [=](sys::state& state, text::layout_base& layout) {
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(state, layout, box, message);
+		},
+		.title = "LUA_ERROR",
+		.source = dcon::nation_id{ },
+		.target = dcon::nation_id{ },
+		.third = dcon::nation_id{ },
+		.type = sys::message_base_type::scripting_notification,
+		.province_source = dcon::province_id{ },
+	});
 }
 
 sys::checksum_key state::get_save_checksum() {

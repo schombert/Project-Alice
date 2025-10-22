@@ -5695,6 +5695,19 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	War score is gained based on the difference in losses (in absolute terms) divided by 5 plus 0.1 to a minimum of 0.1
 	*/
 
+	for(auto& ref : state.lua_on_battle_end) {
+		lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+		lua_pushnumber(state.lua_game_loop_environment, b.index());
+		lua_pushboolean(state.lua_game_loop_environment, result != battle_result::indecisive);
+		lua_pushboolean(state.lua_game_loop_environment, result == battle_result::attacker_won);
+		auto pcall_result = lua_pcall(state.lua_game_loop_environment, 3, 0, 0);
+		if(pcall_result) {
+			state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+			lua_settop(state.lua_game_loop_environment, 0);
+		}
+		assert(lua_gettop(state.lua_game_loop_environment) == 0);
+	}
+
 	if(result != battle_result::indecisive) {
 		if(war)
 			state.world.war_set_number_of_battles(war, uint16_t(state.world.war_get_number_of_battles(war) + 1));
@@ -7198,6 +7211,17 @@ void update_land_battles(sys::state& state) {
 
 		state.world.land_battle_set_attacker_casualties(b, attacker_casualties);
 		state.world.land_battle_set_defender_casualties(b, defender_casualties);
+
+		for(auto& ref : state.lua_on_battle_tick) {
+			lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+			lua_pushnumber(state.lua_game_loop_environment, b.index());
+			auto result = lua_pcall(state.lua_game_loop_environment, 1, 0, 0);
+			if(result) {
+				state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+				lua_settop(state.lua_game_loop_environment, 0);
+			}
+			assert(lua_gettop(state.lua_game_loop_environment) == 0);
+		}
 
 
 		// clear dead / retreated regiments out
