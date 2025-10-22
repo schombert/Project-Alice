@@ -8,9 +8,8 @@ The server will receive commands from the clients. The server will then send bac
 
 The commands should be sent in chronological order. Clients **will** advance one tick when told so, and then execute the commands afterwards as if the player was doing it. This means that all commands should be properly acknowledged by the client as they occurred chronologically.
 
-Everytime a client connects, it is given the checksum of the server, this checksum is for failsafe purpouses, to not let the client enter into an invalid state. The "play" button on the nation picker will bre greyed out if the checksum of the client and the host mismatch. Everytime a savefile is selected on the host, it will tell all it's clients that the checksum has indeed, changed now. This prevents clients who are otherwise not given yet a savefile to connect a game, or clients with different mods to connect a server for example.
+Everytime a client connects, it is given the checksum of the server, this checksum is for failsafe purpouses, to not let the client enter into an invalid state. If the checksums do not match on-join, then the client will immediately OOS. Everytime a savefile is selected on the host, it will tell all it's clients that the checksum has indeed, changed now. This prevents clients who are otherwise not given yet a savefile to connect a game, or clients with different mods to connect a server for example.
 
-Fog of War is forcefully set ON, however we know people can evade this restriction pretty easily, so it's mainly an honor thing - be kind with others :D
 
 ### Deterministic reimplementations
 
@@ -18,9 +17,26 @@ The standard C++ and C library provide `sin`, `cos`, and `acos` functions for pe
 
 - `void internal_check(float v, float err, float lower, float upper)` : Some mathematical functions have precision errors on them, we will however, check for any unreasonable numbers well beyond the boundaries of the function, `err` is the maximum absolute error for the function, `lower` and `upper` represent the lower and upper boundaries of the output. `v` being the value. This function should equate to a no-op on release.
 
+
+
+
+### Commands ###
+
+A command consists of a `header`, which contains the command type, and the player ID it is sent from (or in the case of some notification commands, the player it concerns).
+
+Then there is the `payload`. The payload is a variable sized vector. Data is pushed to the payload with the `<<` operator, and a reference to the payload can be retrieved with the `get_payload` function.
+In order to ensure memory and network safety, all commands have a minumum, and maximum payload size. Any command not conforming to these restrictions will be discarded.
+The minimum size is to guarantee that no unitialized memory is read from. The minimum size is typically the same size as its data struct which is pushed to the payload.
+
+For fixed-size commands, the max and min sizes would be the same (the size of their data struct). In some cases a variable amount of data is needed in the payload, and this is when the max size is larger.
+
+For variable sized payload, the `check_variable_size_payload` member function will confirm if a payload has a certain amount of variable data after the data struct.
+
+
+
 ### Notification commands
 
-`notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled. When a player joins, all other players in the lobby (including the host) will fully reset, then reload their gamestate. Currently this is done so that there is no "lingering" data left behind after reloading their own state. This is to futureproof it against even minor mistakes/changes in contributions which can easily breka sync if state is not fully reset first.
+`notify_player_joins` - Tells the clients that a player has joined, marks the `source` nation as player-controlled. When a player joins, all other players in the lobby (including the host) will fully reset, then reload their gamestate. Currently this is done so that there is no "lingering" data left behind after reloading their own state. This is to futureproof it against even minor mistakes/changes in contributions which can easily break sync if state is not fully reset first.
 `notify_player_pick_nation` - Picks a nation, this is useful for example on the lobby where players are switching nations constantly, IF the `source` is invalid (i.e a `dcon::nation_id{}`) then it refers to the current local player nation of the client, this is useful to set the "temporal nation" on the lobby so that clients can be identified by their nation automatically assigned by the server. Otherwise the `source` is the client who requested to pick a nation `target` in `data.nation_pick.target`.
 `notify_save_loaded` - Updates the session checksum, used to check discrepancies between clients and hosts that could hinder gameplay and throw it into an invalid state. Following it comes an `uint32_t` describing the size of the save stream, and the save stream itself! Keep in mind that the client will automatically reload their state first before loading the save
 `notify_player_kick` - When kicking a player, it is disconnected, but allowed to rejoin.

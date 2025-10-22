@@ -765,6 +765,9 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_military_spending_trigger_div, 1.35) \
 	LUA_DEFINES_LIST_ELEMENT(alice_social_spending_trigger_div, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_can_goto_war_against_spherelord_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_allow_partial_retreat_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_fog_of_war_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_auto_concession_peace_default_setting, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_render_on_map_generals, 0.0) \
 
 // scales the needs values so that they are needs per this many pops

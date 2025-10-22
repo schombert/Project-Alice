@@ -4659,6 +4659,63 @@ float directed_warscore(
 	return std::clamp(total, 0.0f, 100.0f);
 }
 
+
+bool try_force_peace(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id in_war, dcon::peace_offer_id pending_offer) {
+	auto directed_warscore = military::directed_warscore(state, in_war, source, target);
+	// check gamerule to see if auto concession peaces can be rejected
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.auto_concession_peace, uint8_t(gamerule::auto_concession_peace_settings::cannot_reject))) {
+		// A concession offer must be accepted when target concedes all wargoals
+		if(directed_warscore < 0.0f && state.world.peace_offer_get_is_concession(pending_offer)) {
+			if(military::cost_of_peace_offer(state, pending_offer) >= 100) {
+				military::implement_peace_offer(state, pending_offer);
+				return true;
+			}
+
+			auto containseverywargoal = true;
+			for(auto poi : state.world.peace_offer_get_peace_offer_item(pending_offer)) {
+
+				auto foundmatch = false;
+				for(auto wg : state.world.war_get_wargoals_attached(in_war)) {
+					if(wg.get_wargoal().id == poi.get_wargoal().id) {
+						foundmatch = true;
+						break;
+					}
+				}
+
+				if(!foundmatch) {
+					containseverywargoal = false;
+					break;
+				}
+			}
+
+			if(containseverywargoal) {
+				military::implement_peace_offer(state, pending_offer);
+
+				if(target == state.local_player_nation) {
+					sound::play_interface_sound(state, sound::get_enemycapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				}
+				return true;
+			}
+		}
+	}
+
+	
+	// A peace offer must be accepted when war score reaches 100.
+	if(directed_warscore >= 100.0f && (!state.world.nation_get_is_player_controlled(target) || !state.world.peace_offer_get_is_concession(pending_offer)) && military::cost_of_peace_offer(state, pending_offer) <= 100) {
+		military::implement_peace_offer(state, pending_offer);
+
+		if(target == state.local_player_nation) {
+			sound::play_interface_sound(state, sound::get_wecapitulated_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+
 void upgrade_ship(sys::state& state, dcon::ship_id ship, dcon::unit_type_id new_type) {
 	state.world.ship_set_type(ship, new_type);
 	state.world.ship_set_strength(ship, 0.01f);
@@ -8409,7 +8466,7 @@ void update_movement(sys::state& state) {
 					} else {
 						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
 						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
-							if(province::is_strait_blocked(state, a.get_controller_from_army_control(), from, dest)) {
+							if(province::is_crossing_blocked(state, a.get_controller_from_army_control(), from, dest)) {
 								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
 								stop_army_movement(state, a);
 								a.set_is_retreating(false);
@@ -8558,7 +8615,7 @@ void update_movement(sys::state& state) {
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
-				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_canal_adjacency_passable(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
 					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
 					n.set_is_retreating(false);
@@ -9255,7 +9312,7 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
 
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, our_nation, location, prov) ||
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_crossing_blocked(state, our_nation, location, prov) ||
 			!state.world.province_get_nation_from_province_ownership(prov)) {
 			// if its a sea province, a blockaded sea strait or uncolonized
 			return false;
@@ -9350,7 +9407,7 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 	for(auto adj : state.world.province_get_province_adjacency(location)) {
 		auto indx = adj.get_connected_provinces(0).id != location ? 0 : 1;
 		auto prov = adj.get_connected_provinces(indx);
-		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_strait_blocked(state, in_nation, location, prov)) {
+		if(prov.id.index() >= state.province_definitions.first_sea_province.index() || province::is_crossing_blocked(state, in_nation, location, prov)) {
 			// if it is a sea province, or a blockaded sea strait, ignore it
 			continue;
 		}
