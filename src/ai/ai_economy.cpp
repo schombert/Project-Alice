@@ -691,6 +691,12 @@ void update_budget(sys::state& state, bool presim) {
 
 		float land_budget_ratio = 0.15f;
 		float sea_budget_ratio = 0.05f;
+		if(presim) {
+			// set military supply sliders high in presim to simulate demand
+			land_budget_ratio = 1.0f;
+			sea_budget_ratio = 0.5f;
+			
+		}
 		float education_budget_ratio = 0.25f;
 		float investments_budget_ratio = 0.20f;
 		float soldiers_budget_ratio = 0.30f;
@@ -730,16 +736,9 @@ void update_budget(sys::state& state, bool presim) {
 			ratio_land /= 10.f;
 			ratio_naval /= 10.f;
 		}
-		if(presim) {
-			// set military supply sliders high in presim to simulate demand
-			n.set_land_spending(100);
-			n.set_naval_spending(50);
-		}
-		else {
-			n.set_land_spending(int8_t(ratio_land));
-			n.set_naval_spending(int8_t(ratio_naval));
-		}
-
+		n.set_land_spending(int8_t(ratio_land));
+		n.set_naval_spending(int8_t(ratio_naval));
+	
 		n.set_administrative_spending(35);
 
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);

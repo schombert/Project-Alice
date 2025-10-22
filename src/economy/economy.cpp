@@ -371,13 +371,13 @@ void presimulate(sys::state& state) {
 	});
 	// economic updates without construction
 #ifdef NDEBUG
-	uint32_t steps = 730;
+	uint32_t steps = uint32_t(state.defines.alice_economy_presim_days);
 #else
 	uint32_t steps = 2;
 #endif
 	for(uint32_t i = 0; i < steps; i++) {
 		float presim_completion = float(i) / float(steps);
-		float employment_gradient_mult = 100.0f / (presim_completion * 100.0f + 1.0f);
+		float employment_gradient_mult = 1000.0f / std::max(presim_completion * 1000.0f, 1.0f);
 		update_employment(state, employment_gradient_mult);
 		daily_update(state, true, (float)i / (float)steps);
 		ai::update_budget(state, true);

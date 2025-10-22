@@ -4692,7 +4692,6 @@ relationship{
 	name{ trade_route }
 	storage_type{ compactable }
 	size{ 80000 }
-	tag{ scenario }
 	tag{ save }
 
 	link{

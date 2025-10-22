@@ -1177,15 +1177,22 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 	// simulate spending on construction of units
 	// useful to help the game start with some production of artillery and small arms
 
-	float income_to_build_units = 1'000.f;
+	float income_to_build_units = 2'000.f;
 
 	if(state.world.nation_get_owned_province_count(n) == 0) {
 		return;
 	}
 
-	// we build the best infantry and artillery:
+	// we build the best infantry and artillery, and the best light ship and transport ship:
 	auto infantry = military::get_best_infantry(state, n, false, false);
 	auto artillery = military::get_best_artillery(state, n, false, false);
+
+	auto light_ship = military::get_best_light_ship(state, n, false, false);
+
+	auto transport = military::get_best_transport(state, n, false, false);
+
+	auto& light_ship_def = state.military_definitions.unit_base_definitions[light_ship];
+	auto& transport_def = state.military_definitions.unit_base_definitions[transport];
 
 	auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 	auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
@@ -1195,6 +1202,30 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		auto market = state.world.state_instance_get_market_from_local_market(local_state);
 
 		float daily_cost = 0.f;
+		bool state_is_coastal = province::state_is_coastal(state, local_state);
+
+		if(state_is_coastal) {
+			if(light_ship) {
+				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+					if(light_ship_def.build_cost.commodity_type[i]) {
+						auto p = price(state, market, light_ship_def.build_cost.commodity_type[i]);
+						daily_cost += light_ship_def.build_cost.commodity_amounts[i] / light_ship_def.build_time * p;
+					} else {
+						break;
+					}
+				}
+			}
+			if(transport) {
+				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+					if(transport_def.build_cost.commodity_type[i]) {
+						auto p = price(state, market, transport_def.build_cost.commodity_type[i]);
+						daily_cost += transport_def.build_cost.commodity_amounts[i] / transport_def.build_time * p;
+					} else {
+						break;
+					}
+				}
+			}
+		}
 
 		if(infantry) {
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
@@ -1220,6 +1251,34 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		
 
 		auto pairs_to_build = std::max(0.f, income_to_build_units / (daily_cost + 1.f) - 0.1f);
+
+		if(state_is_coastal) {
+			if(light_ship) {
+				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+					if(light_ship_def.build_cost.commodity_type[i]) {
+						auto daily_amount = light_ship_def.build_cost.commodity_amounts[i] / light_ship_def.build_time;
+						register_demand(state, market, light_ship_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
+						auto& current = state.world.market_get_stockpile(market, light_ship_def.build_cost.commodity_type[i]);
+						state.world.market_set_stockpile(market, light_ship_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
+					} else {
+						break;
+					}
+				}
+			}
+
+			if(transport) {
+				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+					if(transport_def.build_cost.commodity_type[i]) {
+						auto daily_amount = transport_def.build_cost.commodity_amounts[i] / transport_def.build_time;
+						register_demand(state, market, transport_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
+						auto& current = state.world.market_get_stockpile(market, transport_def.build_cost.commodity_type[i]);
+						state.world.market_set_stockpile(market, transport_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
+					} else {
+						break;
+					}
+				}
+			}
+		}
 
 		if(infantry) {
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {

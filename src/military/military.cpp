@@ -8591,7 +8591,7 @@ void update_movement(sys::state& state) {
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
-				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+				if((path_bits & province::border::non_adjacent_bit) != 0 && province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
 					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
 					n.set_is_retreating(false);
