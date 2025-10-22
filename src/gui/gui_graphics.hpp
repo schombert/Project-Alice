@@ -470,6 +470,7 @@ struct state {
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
 	std::unique_ptr<element_base> select_states_legend;
+	std::unique_ptr<element_base> select_national_identity_root;
 
 	std::unique_ptr<element_base> army_group_selector_root;
 	std::unique_ptr<element_base> army_group_deselector_root;

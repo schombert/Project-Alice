@@ -35,10 +35,19 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		state.set_selected_province(dcon::province_id{});
 
 		return;
+	case scene_id::in_game_national_identity_selector:
+		state.current_scene = national_identity_selector();
+
+		if (state.current_scene.id != scene_id::in_game_state_selector)
+			state.stored_map_mode = state.map_state.active_map_mode;
+		map_mode::set_map_mode(state, map_mode::mode::nation_identity_select);
+		state.set_selected_province(dcon::province_id{});
+
+		return;
 
 	case scene_id::in_game_basic:
-		if(state.current_scene.id == scene_id::in_game_state_selector) {
-			state.state_selection.reset();
+		// Bring back remembered map mode we had before the selector
+		if(state.current_scene.id == scene_id::in_game_state_selector || state.current_scene.id == scene_id::in_game_national_identity_selector) {
 			map_mode::set_map_mode(state, state.stored_map_mode);
 		}
 
@@ -198,6 +207,12 @@ void select_wargoal_state_from_selected_province(sys::state& state) {
 	auto prov = state.map_state.selected_province;
 	auto sdef = state.world.province_get_state_from_abstract_state_membership(prov);
 	state.state_select(sdef);
+}
+
+
+void select_national_identity_from_selected_province(sys::state& state) {
+	auto prov = state.map_state.selected_province;
+	state.national_identity_select(prov);
 }
 
 void send_selected_province_to_province_window(sys::state& state) {
@@ -552,7 +567,22 @@ void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		state.map_state.on_key_down(keycode, mod);
 		if(keycode == sys::virtual_key::ESCAPE) {
-			state.state_selection->on_cancel(state);
+			if(state.state_selection) {
+				state.state_selection->on_cancel(state);
+			}
+			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
+		}
+	}
+}
+
+void nation_identity_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(state.ui_state.select_national_identity_root->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
+		state.map_state.on_key_down(keycode, mod);
+		if(keycode == sys::virtual_key::ESCAPE) {
+			if(state.national_identity_selection) {
+				state.national_identity_selection->on_cancel(state);
+			}
 			switch_scene(state, scene_id::in_game_basic);
 			state.ui_state.root->impl_on_update(state);
 		}
@@ -1207,6 +1237,10 @@ ui::element_base* root_game_economy_viewer(sys::state& state) {
 
 ui::element_base* root_game_wargoal_state_selection(sys::state& state) {
 	return state.ui_state.select_states_legend.get();
+}
+
+ui::element_base* root_game_national_identity_selection(sys::state& state) {
+	return state.ui_state.select_national_identity_root.get();
 }
 
 }
