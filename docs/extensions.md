@@ -529,7 +529,8 @@ Alice adds a handful of new defines:
 - `alice_max_starvation_degrowth` - the maximum possible popgrowth penalty for a starving pop (below life_need_starvation_limit), reaching this maximum value when fufillment hits 0%. This penalty will not be overidden by other popgrowth techs&modifiers, so a fully starving pop will have this negative popgrowth at minimum.
 - `alice_can_add_constructable_cbs_as_wargoals` - if set to zero, then one can't add constructable (but not constructed) CBs as wargoals to the ongoing war.
 - `alice_render_on_map_generals` - if non-zero, then `map_general` element of `top_unit_icon` GUI is rendered with an on-map general icon
-
+- `alice_economy_presim_days` - The number of days in which the economy will presimulate when creating scenario, so that the economy starts on a decent footing in the start date. Setting this value higher will increase scenario creation time however.
+- 
 
 **Crises and conferences:**
 - `alice_crisis_necessary_base_win_ratio = 2.5f`: Strength Ratio at which AI submits to demands after 80 temperature
@@ -573,6 +574,9 @@ These relate to occupations
 These relate to gamerules
 
 - `alice_can_goto_war_against_spherelord_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a sphereling can goto war against its spherelord. Can be either 1 (which means they can declare war against spherelord), or 0 (which means they cannot). Default is 1
+- `alice_allow_partial_retreat_default_setting = 0.0f` - Sets the default setting for the hardcoded gamerule deciding whether armies can partial-retreat from battles. 1.0 means it is enabled, while 0 means it is disabled.
+- `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, where 0.0 means it is off.
+- `alice_auto_concession_peace_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a peacedeal will be force-accepted if it is conceding all wargoals (or if the peacedeal concedes 100 warscore or higher). 1.0 means forced-peaces are disabled, where 0.0 means they are enabled.
 
 ### Support for reforms based on party issues
 
