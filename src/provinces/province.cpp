@@ -1480,12 +1480,15 @@ bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::pr
 bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
 	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
-	if(strait_prov) { // strait crossing
+	if(strait_prov) { // strait crossing or canal control province
+		// if land province, check if we own the canal control province
 		if(strait_prov.index() < state.province_definitions.first_sea_province.index()) {
 			auto controller = state.world.province_get_nation_from_province_control(strait_prov);
 			auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(strait_prov);
 			return bool(reb_controller) || (bool(controller) && military::are_enemies(state, thisnation, controller));
-		} else {
+		}
+		// otherwise, its a blockadable strait
+		else {
 			return military::province_has_enemy_fleet(state, strait_prov, thisnation);
 		}
 	}

@@ -129,9 +129,6 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
 						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
 
-						if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
-							err.accumulated_warnings += "Canal province ID " + std::to_string(second_value) + " in Canal ID " + std::to_string(canal_id) + " is a sea province (" + err.file_name + ")\n";
-						}
 						if(canal_id <= 0) {
 							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
 							return;
@@ -140,8 +137,13 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						if(!existing_rel) {
 							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
 							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit | province::border::impassible_bit);
-							context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
-
+							if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
+								err.accumulated_warnings += "Canal control province ID " + std::to_string(canal_province_id) + " in Canal ID " + std::to_string(canal_id) + " is a sea province, setting control province to ID 0 (" + err.file_name + ")\n";
+								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, dcon::province_id{ });
+							}
+							else {
+								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, context.original_id_to_prov_id_map[canal_province_id]);
+							}
 							if(context.state.province_definitions.canals.size() < canal_id) {
 								context.state.province_definitions.canals.resize(canal_id);
 							}
