@@ -1745,14 +1745,18 @@ void state::on_create() {
 		int status;
 		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
 		if(status) {
+#ifdef _WIN32
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
 			lua_settop(lua_ui_environment, 0);
 			std::abort();
 		}
 
 		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
 		if(status) {
+#ifdef _WIN32
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
 			lua_settop(lua_ui_environment, 0);
 			std::abort();
 		}
@@ -1762,13 +1766,17 @@ void state::on_create() {
 		int status;
 		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
 		if(status) {
+#ifdef _WIN32
 			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
 			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
 		}
 		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
 		if(status) {
+#ifdef _WIN32
 			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
 			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
 		}
