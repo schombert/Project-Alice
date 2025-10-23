@@ -92,6 +92,6 @@ function alice.handle_battle_end(battle_id, winner_exists, attacker_won)
 		+ LAND_BATTLE.get_defender_support_lost(battle_id)
 end
 
-ON_ACTION.add_daily_call("global_bombardment")
+-- ON_ACTION.add_daily_call("global_bombardment")
 -- ON_ACTION.add_battle_call("store_battle_tick_results")
-ON_ACTION.add_battle_end_call("handle_battle_end")
+-- ON_ACTION.add_battle_end_call("handle_battle_end")
