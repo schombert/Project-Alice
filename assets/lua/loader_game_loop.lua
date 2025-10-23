@@ -1,22 +1,4 @@
-require "assets.lua.engine.navy"
-require "assets.lua.engine.navy_control"
-require "assets.lua.engine.navy_location"
-require "assets.lua.engine.navy_membership"
-
-require "assets.lua.engine.army"
-require "assets.lua.engine.army_control"
-require "assets.lua.engine.army_location"
-require "assets.lua.engine.army_membership"
-
-require "assets.lua.engine.ship"
-require "assets.lua.engine.regiment"
-
-require "assets.lua.engine.province"
-require "assets.lua.engine.province_adjacency"
-
-require "assets.lua.custom_ffi"
-
-require("jit.v").start("dump.txt")
+-- require("jit.v").start("dump.txt")
 
 -- example of lua modding
 

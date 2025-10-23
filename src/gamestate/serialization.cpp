@@ -136,6 +136,11 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
+	{  // lua script
+		ptr_in = deserialize(ptr_in, state.lua_combined_script);
+		ptr_in = deserialize(ptr_in, state.lua_game_loop_script);
+		ptr_in = deserialize(ptr_in, state.lua_ui_script);
+	}
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
@@ -320,6 +325,11 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 }
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
+	{  // lua script
+		ptr_in = serialize(ptr_in, state.lua_combined_script);
+		ptr_in = serialize(ptr_in, state.lua_game_loop_script);
+		ptr_in = serialize(ptr_in, state.lua_ui_script);
+	}
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
@@ -504,6 +514,11 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
+	{
+		sz += serialize_size(state.lua_combined_script);
+		sz += serialize_size(state.lua_game_loop_script);
+		sz += serialize_size(state.lua_ui_script);
+	}
 	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
@@ -856,7 +871,7 @@ uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, s
 	dcon::load_record loaded;
 	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
-	
+
 	return section_end;
 }
 

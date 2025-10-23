@@ -785,6 +785,10 @@ struct alignas(64) state {
 	ankerl::unordered_dense::map<std::string, int> lua_registered_functions;
 	ankerl::unordered_dense::map<std::string, int> lua_registered_ui_functions;
 
+	std::string lua_combined_script{};
+	std::string lua_game_loop_script{};
+	std::string lua_ui_script{};
+
 	//
 	// Crisis data
 	//

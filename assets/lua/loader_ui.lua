@@ -1,10 +1,5 @@
 io.write("LUA LOADED");
 
-require "assets.lua.engine.province"
-require "assets.lua.engine.province_ownership"
-require "assets.lua.engine.nation"
-require "assets.lua.custom_ffi"
-
 TIMER = 0
 
 function alice.on_ui_thread_update(dt_microseconds, window_width, window_height)

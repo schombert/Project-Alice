@@ -600,7 +600,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	}
 
 	dcon::nation_id current_nation{ progress };
-	
+
 	// ACTUAL CALCULATIONS BEGIN
 
 	auto export_temp = economy::export_volume(state, current_nation, commodity);
@@ -624,7 +624,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 	production_volume.set(progress, production_temp);
 	consumption_volume.set(progress, consumption_temp);
-	
+
 	progress++;
 	return false;
 }
@@ -1682,7 +1682,7 @@ static int draw_rectangle(lua_State* L) {
 	auto height = lua_tonumber(L, 4);
 
 	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
-	state* alice_state = (state*)(lua_touserdata(L, -1));	
+	state* alice_state = (state*)(lua_touserdata(L, -1));
 
 	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
 
@@ -1697,7 +1697,6 @@ void state::on_create() {
 
 	auto root = get_root(common_fs);
 	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
-	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
 
 	lua_ui_environment = luaL_newstate();
 	luaL_openlibs(lua_ui_environment);
@@ -1743,12 +1742,15 @@ void state::on_create() {
 
 	// populate the table with scripted functions
 	{
-		auto lua_loader = simple_fs::open_file(assets_lua, NATIVE("loader_ui.lua"));
-		if(!lua_loader) {
+		int status;
+		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
+		if(status) {
+			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+			lua_settop(lua_ui_environment, 0);
 			std::abort();
 		}
-		int status;
-		status = luaL_dostring(lua_ui_environment, simple_fs::view_contents(*lua_loader).data);
+
+		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
 		if(status) {
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
 			lua_settop(lua_ui_environment, 0);
@@ -1757,12 +1759,14 @@ void state::on_create() {
 	}
 
 	{
-		auto lua_loader = simple_fs::open_file(assets_lua, NATIVE("loader_game_loop.lua"));
-		if(!lua_loader) {
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
 		}
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, simple_fs::view_contents(*lua_loader).data);
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
 		if(status) {
 			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
 			lua_settop(lua_game_loop_environment, 0);
@@ -1775,8 +1779,8 @@ void state::on_create() {
 	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
 
 	// Load late ui defs
-	
-	
+
+
 	for(auto gui_file : list_files(assets, NATIVE(".aui"))) {
 		auto file_name = simple_fs::get_file_name(gui_file);
 		auto opened_file = open_file(gui_file);
@@ -2421,7 +2425,7 @@ void state::save_gamerule_settings() const {
 		current_gamerule_settings.push_back(gr.get_current_setting());
 	}
 	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
-	
+
 }
 
 
@@ -4075,6 +4079,48 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
+	// read lua scripts
+	lua_combined_script.clear();
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
+	{
+		// read dcon wrappers
+		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
+		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
+			auto opened_file = open_file(province_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				lua_combined_script += "\n";
+			}
+		}
+
+		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
+		if(hand_written_wrappers) {
+			auto content = view_contents(*hand_written_wrappers);
+			lua_combined_script += content.data;
+			lua_combined_script += "\n";
+		}
+
+		// read loader for game thread
+		lua_game_loop_script.clear();
+		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
+		if(game_loop) {
+			auto content = view_contents(*game_loop);
+			lua_game_loop_script += content.data;
+			lua_game_loop_script += "\n";
+		}
+
+		// read loader for ui thread
+		lua_ui_script.clear();
+		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
+		if(ui_script) {
+			auto content = view_contents(*ui_script);
+			lua_ui_script += content.data;
+			lua_ui_script += "\n";
+		}
+	}
+
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
 	economy::sanity_check(*this);
@@ -5544,7 +5590,7 @@ void state::game_loop() {
 	game_speed[1] = int32_t(defines.alice_speed_1);
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
-	game_speed[4] = int32_t(defines.alice_speed_4);	
+	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 
