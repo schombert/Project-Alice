@@ -1394,7 +1394,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	if(old_owner) {
 		state.world.nation_set_owned_province_count(old_owner, uint16_t(state.world.nation_get_owned_province_count(old_owner) - uint16_t(1)));
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
-		if(lprovs.begin() == lprovs.end()) {
+		if(!nations::exists_or_is_utility_tag(state, old_owner) ) {
 			state.world.nation_set_marked_for_gc(old_owner, true);
 		}
 	}
