@@ -1658,7 +1658,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
-
+// example of providing LUA API if someone would ever need it for something
 static int draw_rectangle(lua_State* L) {
 	// get amount of arguments
 	int n = lua_gettop(L);

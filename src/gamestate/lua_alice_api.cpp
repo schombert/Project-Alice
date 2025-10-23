@@ -37,10 +37,10 @@ int32_t local_player_nation() {
 }
 
 void command_move_army(int32_t unit, int32_t target, bool reset) {
-	command::move_army(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::army_id{ unit }, dcon::province_id{ target }, reset);
+	command::move_army(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::army_id{ uint16_t(unit) }, dcon::province_id{ uint16_t(target) }, reset);
 }
 void command_move_navy(int32_t unit, int32_t target, bool reset) {
-	command::move_navy(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::navy_id{ unit }, dcon::province_id{ target }, reset);
+	command::move_navy(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::navy_id{ uint16_t(unit) }, dcon::province_id{ uint16_t(target) }, reset);
 }
 
 namespace ui {
