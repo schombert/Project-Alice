@@ -99,7 +99,6 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
 	"src/gamerule/gamerule.cpp"
-	"src/gamestate/lua_alice_api.cpp"
 )
 
 if(WIN32)
