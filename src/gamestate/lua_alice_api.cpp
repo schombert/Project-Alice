@@ -97,7 +97,9 @@ void lua_scripted_element::on_update(sys::state& state) noexcept  {
 	if(result) {
 		std::string error = lua_tostring(alice_state_ptr->lua_ui_environment, -1);
 		set_text(*alice_state_ptr, error);
+#ifdef _WIN32
 		OutputDebugStringA(error.c_str());
+#endif
 		lua_settop(alice_state_ptr->lua_ui_environment, 0);
 	}
 	assert(lua_gettop(alice_state_ptr->lua_ui_environment) == start);
