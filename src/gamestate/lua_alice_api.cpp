@@ -3,6 +3,7 @@
 #include "system_state.hpp"
 #include "lua.hpp"
 #include "text.hpp"
+#include "commands.hpp"
 
 sys::state* alice_state_ptr;
 
@@ -26,10 +27,20 @@ extern "C" {
 	DCON_LUADLL_API void set_text(const char text[]);
 
 	DCON_LUADLL_API int32_t local_player_nation();
+
+	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
+	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
 }
 
 int32_t local_player_nation() {
 	return alice_state_ptr->local_player_nation.index();
+}
+
+void command_move_army(int32_t unit, int32_t target, bool reset) {
+	command::move_army(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::army_id{ unit }, dcon::province_id{ target }, reset);
+}
+void command_move_navy(int32_t unit, int32_t target, bool reset) {
+	command::move_navy(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::navy_id{ unit }, dcon::province_id{ target }, reset);
 }
 
 namespace ui {
