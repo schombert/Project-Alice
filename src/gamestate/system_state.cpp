@@ -23,6 +23,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
+#include "gui_national_identity_select.hpp"
 #include "gui_error_window.hpp"
 #include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
@@ -63,7 +64,13 @@ void create_in_game_windows(sys::state& state) {
 
 	//
 	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
-
+	// create UI for national identity selector
+	{
+		auto key = state.lookup_key("alice_select_legend_window");
+		auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+		auto window = ui::make_element_by_type<ui::map_national_identity_select_window>(state, def);
+		state.ui_state.select_national_identity_root->add_child_to_front(std::move(window));
+	}
 	// create ui for army selector
 	{
 		{
@@ -311,9 +318,6 @@ void create_in_game_windows(sys::state& state) {
 namespace sys {
 
 void state::start_state_selection(state_selection_data& data) {
-	if(state_selection) {
-		state_selection->on_cancel(*this);
-	}
 	state_selection = data;
 
 	game_scene::switch_scene(*this, game_scene::scene_id::in_game_state_selector);
@@ -323,13 +327,26 @@ void state::start_state_selection(state_selection_data& data) {
 	}
 }
 
+void state::start_national_identity_selection(national_identity_selection_data& data) {
+	national_identity_selection = data;
+
+	game_scene::switch_scene(*this, game_scene::scene_id::in_game_national_identity_selector);
+
+	if(ui_state.select_national_identity_root) {
+		ui_state.select_national_identity_root->impl_on_update(*this);
+	}
+	ui_state.root->impl_on_update(*this);
+}
+
 void state::state_select(dcon::state_definition_id sdef) {
 	assert(state_selection);
 	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
 		if(state_selection->single_state_select) {
-			state_selection->on_select(*this, sdef);
 			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+			state_selection->on_select(*this, sdef);
+			// Order of calls is important since callback can switch us to another scene with selector
 		} else {
+			// Multi-state selection is not supported
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
 			if(it == state.selected_states.end()) {
 				on_select(sdef);
@@ -337,6 +354,33 @@ void state::state_select(dcon::state_definition_id sdef) {
 				state.selected_states.erase(std::remove(state.selected_states.begin(), state.selected_states.end(), sdef), state.selected_states.end());
 			}*/
 			std::abort();
+		}
+	}
+	state_selection.reset();
+	map_state.update(*this);
+}
+
+// A national identity was selected from the legend
+void state::national_identity_select(dcon::national_identity_id ni) {
+	assert(national_identity_selection);
+
+	if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
+		national_identity_selection->on_select(*this, ni);
+		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+	}
+	national_identity_selection.reset();
+	map_state.update(*this);
+}
+
+// A province was selected on the map
+void state::national_identity_select(dcon::province_id prov) {
+	assert(national_identity_selection);
+
+	for(auto core : world.province_get_core(prov)) {
+		auto ni = core.get_identity();
+		if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
+			national_identity_selection->on_select(*this, ni);
+			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 		}
 	}
 	map_state.update(*this);

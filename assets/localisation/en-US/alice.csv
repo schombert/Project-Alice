@@ -1125,6 +1125,7 @@ w_artisan_distribution;National artisan distribution: $x$
 w_fac_prod;Global factory production: $x$
 alice_lose_gp;We are losing ?YGreat Power?! status!
 alice_state_select_title;Select state
+alice_national_identity_select_title;Select national identity
 press_esc_to_cancel;Press ?YESC?! to cancel
 fort_build_tt_1;The province is under your control
 fort_build_tt_2;The province is not under siege

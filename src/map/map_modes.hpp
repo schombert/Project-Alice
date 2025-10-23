@@ -50,6 +50,7 @@ enum class mode : uint8_t {
 	workforce = 0x2b,
 	mobilization = 0x2c,
 	state_select = 0x2d,
+	nation_identity_select = 0x2e,
 
 	handled_from_outside = 0xff
 };

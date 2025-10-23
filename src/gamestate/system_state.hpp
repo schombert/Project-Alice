@@ -426,7 +426,7 @@ struct cheat_data_s {
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
-	bool daily_oos_check = true;
+	bool daily_oos_check = false;
 	bool province_names = false;
 
 	bool ecodump = false;
@@ -473,6 +473,13 @@ struct state_selection_data {
 	std::vector<dcon::state_definition_id> selectable_states;
 	std::function<void(sys::state&, dcon::state_definition_id)> on_select;
 	std::function<void(sys::state&)> on_cancel;
+};
+// used for visual identity selector
+struct national_identity_selection_data {
+	std::vector<dcon::national_identity_id> selectable_identities;
+	std::function<void(sys::state&, dcon::national_identity_id)> on_select;
+	std::function<void(sys::state&)> on_cancel;
+	dcon::nation_id province_owner_filter;
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
@@ -884,6 +891,7 @@ struct alignas(64) state {
 	ui::lua_scripted_element* current_lua_element;
 
 	std::optional<state_selection_data> state_selection;
+	std::optional<national_identity_selection_data> national_identity_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
@@ -1003,6 +1011,10 @@ struct alignas(64) state {
 	void debug_scenario_oos_dump();
 
 	void start_state_selection(state_selection_data& data);
+	void start_national_identity_selection(national_identity_selection_data& data);
+	void national_identity_select(dcon::province_id prov);
+	void national_identity_select(dcon::national_identity_id ni);
+
 	void state_select(dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool

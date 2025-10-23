@@ -10,6 +10,7 @@ enum class scene_id : uint8_t {
 	in_game_basic,
 	in_game_military,
 	in_game_state_selector,
+	in_game_national_identity_selector,
 	in_game_military_selector,
 	in_game_economy_viewer,
 	end_screen,
@@ -42,6 +43,7 @@ void open_diplomacy(
 
 void select_player_nation_from_selected_province(sys::state& state);
 void select_wargoal_state_from_selected_province(sys::state& state);
+void select_national_identity_from_selected_province(sys::state& state);
 void military_screen_on_lbutton_up(sys::state& state);
 
 void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod);
@@ -63,6 +65,7 @@ void do_nothing_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_mo
 void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void military_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void state_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void nation_identity_selector_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 
 
@@ -109,6 +112,7 @@ ui::element_base* root_game_basic(sys::state& state);
 ui::element_base* root_game_battleplanner(sys::state& state);
 ui::element_base* root_game_battleplanner_unit_selection(sys::state& state);
 ui::element_base* root_game_wargoal_state_selection(sys::state& state);
+ui::element_base* root_game_national_identity_selection(sys::state& state);
 ui::element_base* root_game_battleplanner_add_army(sys::state& state);
 ui::element_base* root_game_economy_viewer(sys::state& state);
 
@@ -332,6 +336,26 @@ inline scene_properties state_wargoal_selector() {
 .lbutton_up = select_wargoal_state_from_selected_province,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = state_selector_hotkeys,
+.console_log = console_log_other
+	};
+}
+
+inline scene_properties national_identity_selector() {
+	return scene_properties{
+.id = scene_id::in_game_national_identity_selector,
+
+.get_root = root_game_national_identity_selection,
+
+.borders = borders_granularity::state,
+
+.rbutton_selected_units = do_nothing_province_target,
+.rbutton_province = do_nothing_province_target,
+.allow_drag_selection = false,
+.on_drag_start = do_nothing_screen,
+.drag_selection = do_nothing_screen,
+.lbutton_up = select_national_identity_from_selected_province,
+.keycode_mapping = replace_keycodes_map_movement,
+.handle_hotkeys = nation_identity_selector_hotkeys,
 .console_log = console_log_other
 	};
 }
