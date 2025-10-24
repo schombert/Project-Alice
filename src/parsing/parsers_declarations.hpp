@@ -3070,64 +3070,6 @@ struct locale_parser {
 
 void add_locale(sys::state& state, std::string_view locale_name, char const* data_start, char const* data_end);
 
-
-
-
-struct position_coordinates {
-	float x = 0.0f;
-	float y = 0.0f;
-	void finish(scenario_building_context& context) {
-
-	}
-};
-
-
-
-struct building_positions {
-
-	position_coordinates coordinates;
-
-	void naval_base(const position_coordinates& value, error_handler& err, int32_t line, scenario_building_context& context) {
-		coordinates = value;
-	}
-
-	void finish(scenario_building_context& context) {
-
-	}
-};
-
-struct province_positions {
-
-	building_positions building_pos;
-	position_coordinates unit_pos;
-
-	void unit(const position_coordinates& value, error_handler& err, int32_t line, scenario_building_context& context) {
-		unit_pos = value;
-	}
-	void building_position(const building_positions& value, error_handler& err, int32_t line, scenario_building_context& context) {
-		building_pos = value;
-	}
-
-	void finish(scenario_building_context& context) {
-
-	}
-};
-
-
-struct positions_file {
-	void any_group(std::string_view prov, const province_positions& prov_positions, error_handler& err, int32_t line, scenario_building_context& context);
-	void finish(scenario_building_context& context) {
-
-	}
-};
-
-
-
-
-
-
-
-
 } // namespace parsers
 
 #include "trigger_parsing.hpp"

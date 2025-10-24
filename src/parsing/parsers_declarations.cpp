@@ -3558,14 +3558,4 @@ void add_locale(sys::state& state, std::string_view locale_name, char const* dat
 }
 
 
-
-
-void positions_file::any_group(std::string_view prov, const province_positions& prov_positions, error_handler& err, int32_t line, scenario_building_context& context) {
-	auto provid = parse_uint(prov, line, err);
-	auto real_provid = context.original_id_to_prov_id_map[provid];
-	//glm::dvec2 unit_pos{ prov_positions.unit_pos.x, prov_positions.unit_pos.y, };
-	//context.state.world.province_
-}
-
-
 } // namespace parsers
