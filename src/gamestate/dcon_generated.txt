@@ -1491,6 +1491,16 @@ object {
 		type{ crime_id }
 		tag{ save }
 	}
+	property{
+		name{ unit_position }
+		type{ glm::vec2 }
+		tag{ scenario }
+	}
+	property{
+		name{ unit_position_b }
+		type{ glm::vec3 }
+		
+	}
 
 	property{
 		name{ mid_point }

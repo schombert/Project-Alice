@@ -1393,3 +1393,24 @@ locale_parser
 	header_feature     value      text      member_fn
 	map_feature     value      text      member_fn
 	fallback     value      text      member
+
+
+position_coordinates
+	x						value		float			member
+	y						value		float			member
+
+
+building_positions
+	naval_base						group		position_coordinates			member_fn
+	#free                         group      none                            discard
+
+
+
+province_positions
+	building_position               group      building_positions                 member_fn
+	unit						  group		  position_coordinates			     member_fn
+	#free                         group      none                            discard
+
+
+positions_file
+	#any                   group      province_positions      member_fn
