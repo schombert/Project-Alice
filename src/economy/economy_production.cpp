@@ -698,7 +698,7 @@ consumption_data consume(
 	economy_reason reason
 ) {
 	assert(input_multiplier >= 0.f);
-	assert(throughput_multiplier > 0.f);
+	assert(throughput_multiplier >= 0.f);
 	assert(output_multiplier >= 0.f);
 	assert(efficiency_inputs_multiplier >= 0.f);
 
