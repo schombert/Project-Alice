@@ -1,6 +1,5 @@
 #GLEW <- DO NOT REMOVE; NEEDED FOR A TEST
 
-cmake_minimum_required(VERSION 3.4)
 
 project(fetch_content)
 
@@ -10,8 +9,7 @@ include(FetchContent)
 FetchContent_Declare(
 	glew
 	GIT_REPOSITORY https://github.com/Perlmint/glew-cmake.git
-	GIT_TAG master
-	GIT_SHALLOW 1
+	GIT_TAG d06782b910213d675925e6e51a69ad0fd1fe1f23
 	GIT_PROGRESS TRUE
 )
 

@@ -120,7 +120,8 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 endif()
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
-
+target_compile_definitions(Alice PRIVATE GLM_ENABLE_EXPERIMENTAL)
+target_compile_definitions(AliceIncremental PRIVATE GLM_ENABLE_EXPERIMENTAL)
 if(NOT WIN32)
 	add_compile_definitions(PREFER_ONE_TBB)
 endif()
