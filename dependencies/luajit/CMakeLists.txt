@@ -26,8 +26,8 @@ else()
 		INSTALL_DIR ${CMAKE_CURRENT_BINARY_DIR}/luajit/install
 		INSTALL_COMMAND make install PREFIX=<INSTALL_DIR>
 	)
-	add_dependencies(lib_luajit luajit)
 	add_library(lib_luajit INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/luajit/source/luajit.h)
+	add_dependencies(lib_luajit luajit)
 	target_link_libraries(lib_luajit INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/luajit/install/lib/libluajit-5.1.so)
 endif()
 
