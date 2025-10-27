@@ -193,6 +193,9 @@ if(WIN32)
 		endif()
 	endif()
 else() # GCC or CLANG
+	target_link_options(Alice INTERFACE -rdynamic -Wl,-E)
+	target_link_options(AliceIncremental INTERFACE -rdynamic -Wl,-E)
+	target_link_options(AliceCommon INTERFACE -rdynamic -Wl,-E)
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
@@ -205,6 +208,7 @@ else() # GCC or CLANG
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
+	target_link_libraries(AliceCommon INTERFACE dl)
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainerLua)
