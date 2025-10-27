@@ -23,8 +23,6 @@ else()
 		BUILD_IN_SOURCE TRUE
 		BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/luajit/source/luajit.h
 		BUILD_BYPRODUCTS ${CMAKE_CURRENT_BINARY_DIR}/luajit/source/src/libluajit.so
-		INSTALL_DIR ./luajit/install
-		INSTALL_COMMAND make install PREFIX=<INSTALL_DIR>
 	)
 	add_library(lib_luajit INTERFACE ${CMAKE_CURRENT_BINARY_DIR}/luajit/source/luajit.h)
 	add_dependencies(lib_luajit luajit)
