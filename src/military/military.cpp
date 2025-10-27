@@ -1074,7 +1074,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	}
 	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
 	auto national_supply_lim = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_limit) + 1.0f);
-	return int32_t(base_supply_lim * modifier * national_supply_lim);
+	return std::max(int32_t(base_supply_lim * modifier * national_supply_lim), 0);
 }
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p) {
 	int32_t total = 0;
@@ -4459,9 +4459,14 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w) {
 }
 
 float primary_warscore(sys::state& state, dcon::war_id w) {
+	// return immediately if one side has 100% warscore from occupation (full occupation). This supercedes all else
+	auto occupation_score = primary_warscore_from_occupation(state, w);
+	if(occupation_score >= 100.0f || occupation_score <= -100.0f) {
+		return std::clamp(occupation_score, -100.0f, 100.0f);
+	}
 	return std::clamp(
 		// US5AC4
-		primary_warscore_from_occupation(state, w)
+		occupation_score
 		// US5AC1
 		+ primary_warscore_from_battles(state, w)
 		// US5AC2
@@ -4491,11 +4496,26 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 		sum_defender_prov_values += v;
 		sum_defender_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
-
-	if(sum_defender_prov_values > 0)
-		total += (sum_defender_occupied_values * 100.0f) / sum_defender_prov_values;
-	if(sum_attacker_prov_values > 0)
-		total -= (sum_attacker_occupied_values * 100.0f) / sum_attacker_prov_values;
+	// if one side occupues 100% of victory points, then it is 100 warscore no matter what the other side may occupy
+	if(sum_defender_prov_values > 0) {
+		float defender_total = (sum_defender_occupied_values * 100.0f) / sum_defender_prov_values;
+		if(defender_total >= 100.0f) {
+			return defender_total;
+		}
+		else {
+			total += defender_total;
+		}
+	}
+		
+	if(sum_attacker_prov_values > 0) {
+		float attacker_total = (sum_attacker_occupied_values * 100.0f) / sum_attacker_prov_values;
+		if(attacker_total >= 100.0f) {
+			return -attacker_total;
+		}
+		else {
+			total -= attacker_total;
+		}
+	}
 
 	return total;
 }
@@ -4562,15 +4582,29 @@ float directed_warscore(
 		against_beneficiary_score_from_occupation += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
-	if(beneficiary_potential_score_from_occupation > 0)
-		total +=
-			(beneficiary_score_from_occupation * 100.0f
-			/ beneficiary_potential_score_from_occupation);
+	// if one country has full occupied the other (100% occupation warscore), then stick return early as it supercedes all alse
+	if(beneficiary_potential_score_from_occupation > 0) {
+		float beneficiary_occupation_score = (beneficiary_score_from_occupation * 100.0f / beneficiary_potential_score_from_occupation);
+		if(beneficiary_occupation_score >= 100.0f) {
+			return beneficiary_occupation_score;
+		}
+		else {
+			total += beneficiary_occupation_score;
+		}
+		
+	}
+		
 
-	if(against_beneficiary_potential_score_from_occupation > 0)
-		total -=
-			(against_beneficiary_score_from_occupation * 100.0f
-			/ against_beneficiary_potential_score_from_occupation);
+	if(against_beneficiary_potential_score_from_occupation > 0) {
+		float against_beneficiary_occupation_score = (against_beneficiary_score_from_occupation * 100.0f / against_beneficiary_potential_score_from_occupation);
+		if(against_beneficiary_occupation_score >= 100.0f) {
+			return -against_beneficiary_occupation_score;
+		}
+		else {
+			total -= against_beneficiary_occupation_score;
+		}
+	}
+		
 
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		auto wargoal_is_added_by_beneficiary = wg.get_wargoal().get_added_by() == potential_beneficiary;
@@ -5957,17 +5991,24 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does not normally get stackwiped if the navy automatically retreats before the battle is retreatable (navies are close enough to the center)
 		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
-
-			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
+			// If the navy is already in the retreating state (from having manually initiated a retreat earlier) we don't need to try to initiate another retreat.
+			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
 			
-		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
+			
+		}
+		else if(!battle_attacker && result == battle_result::attacker_won) {
+			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
+			
 			
 		}
 	}

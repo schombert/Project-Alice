@@ -2832,7 +2832,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::parse_scan_gamerule_file(gen, err, context);
 		}
 		// some sanity checks
-		for(const auto& gamerule : context.state.world.in_gamerule) {
+		for(auto gamerule : context.state.world.in_gamerule) {
 			if(gamerule.get_settings_count() == uint8_t(0)) {
 				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
 			}
@@ -4072,7 +4072,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 	// apply effects from gamerule options which are on by default
-	for(const auto& gamerule : context.state.world.in_gamerule) {
+	for(auto gamerule : context.state.world.in_gamerule) {
 		if(gamerule.get_settings_count() > 0) {
 			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
 			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
