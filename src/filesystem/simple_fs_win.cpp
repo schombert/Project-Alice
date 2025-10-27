@@ -604,7 +604,7 @@ std::string native_to_utf8(native_string_view str) {
 std::string utf16_to_utf8(std::u16string_view str) {
 	if(str.size() > 0) {
 		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
-		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(str.data()), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
+		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(const_cast<char16_t*>(str.data())), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
 		return std::string(buffer.get(), size_t(chars_written));
 	}
 	return std::string("");

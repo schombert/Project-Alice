@@ -2095,7 +2095,7 @@ void run_gc(sys::state& state) {
 	for(const auto n : state.world.in_nation) {
 		if(n.get_marked_for_gc()) {
 			n.set_marked_for_gc(false);
-			if(auto lprovs = n.get_province_ownership(); lprovs.begin() == lprovs.end()) {
+			if(!nations::exists_or_is_utility_tag(state, n)) {
 				nations::cleanup_nation(state, n);
 			}
 		}
