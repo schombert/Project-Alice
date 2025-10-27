@@ -132,6 +132,7 @@ add_subdirectory(ParserGenerator EXCLUDE_FROM_ALL)
 add_subdirectory(FifInterfaceGenerator EXCLUDE_FROM_ALL)
 
 add_library(AliceCommon INTERFACE)
+target_compile_definitions(AliceCommon INTERFACE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 if(WIN32)
 	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})

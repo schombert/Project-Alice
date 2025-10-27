@@ -6,6 +6,11 @@
 
 namespace ai {
 
+void inline validate_cb(sys::state& state, dcon::nation_id attacker, ai::possible_cb& r) {
+	assert(command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation));
+	auto result_to_step_into = command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation);
+}
+
 // Desired properties of utility:
 // 1) utility represents our desirability of an event
 // 2) event "nothing happens" has 0 utility
@@ -909,8 +914,9 @@ void prepare_list_of_targets_for_cb(
 		dcon::nation_id{}
 	);
 	
-	if (!duplicated && probability_to_win_war > 0.5f)
+	if(!duplicated && probability_to_win_war > 0.5f) {
 		result.push_back(possible_cb{ target, dcon::nation_id{}, dcon::national_identity_id{}, dcon::state_definition_id{}, cb, 1.f });
+	}
 	return;
 }
 
@@ -2019,38 +2025,41 @@ void make_war_decs(sys::state& state) {
 	auto targets = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id n{ dcon::nation_id::value_base_t(i) };
-		if(state.world.nation_get_owned_province_count(n) == 0)
-			return;
-		if(state.world.nation_get_is_at_war(n))
-			return;
+
+		// are we truly free or our actions are determined by factors outside of our control?
 		if(state.world.nation_get_is_player_controlled(n))
 			return;
+
+		// is it possible?
+		if(!military::can_attack(state, n))
+			return;		
+
+		// is it desirable?		
+		// no units --> no
 		if(state.world.nation_get_military_score(n) == 0)
-			return;
-		// Subjects don't declare wars without a define set
-		if(auto ol = state.world.nation_get_overlord_as_subject(n); state.world.overlord_get_ruler(ol) && state.defines.alice_allow_subjects_declare_wars < 1)
 			return;
 		// AI shouldn't declare wars if it has high war exhaustion that would make it want to peace out immediately
 		if(state.world.nation_get_war_exhaustion(n) > state.defines.alice_ai_war_exhaustion_readiness_limit)
 			return;
+
 		auto base_strength = estimate_strength(state, n);
 		float best_difference = 2.0f;
+
 		//Great powers should look for non-neighbor nations to use their existing wargoals on; helpful for forcing unification/repay debts wars to happen
 		if(nations::is_great_power(state, n)) {
 			for(auto target : state.world.in_nation) {
-				auto real_target = target.get_overlord_as_subject().get_ruler() ? target.get_overlord_as_subject().get_ruler() : target;
-				if(target == n || real_target == n)
+				auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+				auto real_target = target;
+				if(overlord) {
+					real_target = overlord;
+				}
+
+				// is it possible?
+				if(!military::can_attack_ai(state, n, target))
 					continue;
-				if(state.world.nation_get_owned_province_count(real_target) == 0)
-					continue;
-				if(nations::are_allied(state, n, real_target))
-					continue;
-				if(target.get_in_sphere_of() == n)
-					continue;
-				if(military::has_truce_with(state, n, real_target))
-					continue;
-				if(!military::can_use_cb_against(state, n, target))
-					continue;
+
+				// is it desirable?
+				
 				//If it neighbors one of our spheres and we can pathfind to each other's capitals, we don't need naval supremacy to reach this nation
 				//Generally here to help Prussia realize it doesn't need a navy to attack Denmark
 				for(auto adj : state.world.nation_get_nation_adjacency(target)) {
@@ -2081,18 +2090,9 @@ void make_war_decs(sys::state& state) {
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
-			if(real_target == n)
+			if(!military::can_attack_ai(state, n, other))
 				continue;
-			if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
-				continue;
-			if(real_target.get_in_sphere_of() == n)
-				continue;
-			if(state.world.nation_get_in_sphere_of(other) == n)
-				continue;
-			if(military::has_truce_with(state, n, other) || military::has_truce_with(state, n, real_target))
-				continue;
-			if(!military::can_use_cb_against(state, n, other))
-				continue;
+			
 			if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !does_have_naval_supremacy(state, n, other))
 				continue;
 			auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
@@ -2108,24 +2108,16 @@ void make_war_decs(sys::state& state) {
 				auto reduced_value = rng::reduce(uint32_t(rvalue), state.world.nation_size());
 				dcon::nation_id other{ dcon::nation_id::value_base_t(reduced_value) };
 				auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
-				if(other == n || real_target == n)
+				if(!military::can_attack_ai(state, n, other))
 					continue;
-				if(state.world.nation_get_owned_province_count(other) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
-					continue;
+
+				// do not even try
 				if(state.world.nation_get_central_ports(other) == 0 || state.world.nation_get_central_ports(real_target) == 0)
 					continue;
-				if(nations::are_allied(state, n, real_target) || nations::are_allied(state, n, other))
-					continue;
-				if(real_target.get_in_sphere_of() == n)
-					continue;
-				if(state.world.nation_get_in_sphere_of(other) == n)
-					continue;
-				if(military::has_truce_with(state, n, other) || military::has_truce_with(state, n, real_target))
-					continue;
-				if(!military::can_use_cb_against(state, n, other))
-					continue;
+				
 				if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !does_have_naval_supremacy(state, n, other))
 					continue;
+
 				auto str_difference = base_strength + estimate_additional_offensive_strength(state, n, real_target) - estimate_defensive_strength(state, real_target);
 				if(str_difference > best_difference) {
 					best_difference = str_difference;
