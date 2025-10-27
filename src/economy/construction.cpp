@@ -1191,12 +1191,6 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 	auto transport = military::get_best_transport(state, n, false, false);
 
-	auto& light_ship_def = state.military_definitions.unit_base_definitions[light_ship];
-	auto& transport_def = state.military_definitions.unit_base_definitions[transport];
-
-	auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
-	auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
-
 	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
 		auto local_state = state.world.state_ownership_get_state(soid);
 		auto market = state.world.state_instance_get_market_from_local_market(local_state);
@@ -1206,6 +1200,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 		if(state_is_coastal) {
 			if(light_ship) {
+				auto& light_ship_def = state.military_definitions.unit_base_definitions[light_ship];
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(light_ship_def.build_cost.commodity_type[i]) {
 						auto p = price(state, market, light_ship_def.build_cost.commodity_type[i]);
@@ -1216,6 +1211,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 				}
 			}
 			if(transport) {
+				auto& transport_def = state.military_definitions.unit_base_definitions[transport];
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(transport_def.build_cost.commodity_type[i]) {
 						auto p = price(state, market, transport_def.build_cost.commodity_type[i]);
@@ -1228,6 +1224,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		}
 
 		if(infantry) {
+			auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(infantry_def.build_cost.commodity_type[i]) {
 					auto p = price(state, market, infantry_def.build_cost.commodity_type[i]);
@@ -1239,6 +1236,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		}
 
 		if(artillery) {
+			auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(artillery_def.build_cost.commodity_type[i]) {
 					auto p = price(state, market, artillery_def.build_cost.commodity_type[i]);
@@ -1254,6 +1252,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 
 		if(state_is_coastal) {
 			if(light_ship) {
+				auto& light_ship_def = state.military_definitions.unit_base_definitions[light_ship];
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(light_ship_def.build_cost.commodity_type[i]) {
 						auto daily_amount = light_ship_def.build_cost.commodity_amounts[i] / light_ship_def.build_time;
@@ -1267,6 +1266,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 			}
 
 			if(transport) {
+				auto& transport_def = state.military_definitions.unit_base_definitions[transport];
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(transport_def.build_cost.commodity_type[i]) {
 						auto daily_amount = transport_def.build_cost.commodity_amounts[i] / transport_def.build_time;
@@ -1281,6 +1281,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		}
 
 		if(infantry) {
+			auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(infantry_def.build_cost.commodity_type[i]) {
 					auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
@@ -1294,6 +1295,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		}
 
 		if(artillery) {
+			auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 				if(artillery_def.build_cost.commodity_type[i]) {
 					auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;

@@ -43,7 +43,7 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context) {
 
 void restore_gamerule_ui_settings(sys::state& state) {
 	state.ui_state.gamerule_ui_settings.clear();
-	for(const auto& gamerule : state.world.in_gamerule) {
+	for(auto gamerule : state.world.in_gamerule) {
 		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
 	}
 }

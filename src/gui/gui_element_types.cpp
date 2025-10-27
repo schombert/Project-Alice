@@ -982,31 +982,37 @@ message_result edit_box_element_base::on_key_down(sys::state& state, sys::virtua
 				on_edit_command(state, edit_command::select_all, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		case sys::virtual_key::X:
 			if(ctrl_held) {
 				on_edit_command(state, edit_command::cut, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		case sys::virtual_key::C:
 			if(ctrl_held) {
 				on_edit_command(state, edit_command::copy, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		case sys::virtual_key::V:
 			if(ctrl_held) {
 				on_edit_command(state, edit_command::paste, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		case sys::virtual_key::Z:
 			if(ctrl_held) {
 				on_edit_command(state, edit_command::undo, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		case sys::virtual_key::Y:
 			if(ctrl_held) {
 				on_edit_command(state, edit_command::redo, mods);
 				return message_result::consumed;
 			}
+			return message_result::unseen;
 		default:
 			break;
 		}
@@ -1474,7 +1480,7 @@ void edit_box_element_base::on_edit_command(sys::state& state, edit_command comm
 		auto current_pos = std::clamp(cursor_position, 0, int32_t(glyph_details.grapheme_placement.size() - 1));
 		auto current_line = glyph_details.grapheme_placement[current_pos].line;
 		auto new_pos = best_cursor_fit_on_line(current_line + 1,
-			glyph_details.grapheme_placement[current_pos].x_offset + (cursor_position < int32_t(glyph_details.grapheme_placement.size())) ? 0 : glyph_details.grapheme_placement.back().width
+			glyph_details.grapheme_placement[current_pos].x_offset + (cursor_position < int32_t(glyph_details.grapheme_placement.size()) ? 0 : glyph_details.grapheme_placement.back().width)
 		);
 		if(new_pos != -1)
 			cursor_position = new_pos;
@@ -1493,7 +1499,7 @@ void edit_box_element_base::on_edit_command(sys::state& state, edit_command comm
 		auto current_pos = std::clamp(cursor_position, 0, int32_t(glyph_details.grapheme_placement.size() - 1));
 		auto current_line = glyph_details.grapheme_placement[current_pos].line;
 		auto new_pos = best_cursor_fit_on_line(current_line - 1,
-			glyph_details.grapheme_placement[current_pos].x_offset + (cursor_position < int32_t(glyph_details.grapheme_placement.size())) ? 0 : glyph_details.grapheme_placement.back().width
+			glyph_details.grapheme_placement[current_pos].x_offset + (cursor_position < int32_t(glyph_details.grapheme_placement.size()) ? 0 : glyph_details.grapheme_placement.back().width)
 		);
 		if(new_pos != -1)
 			cursor_position = new_pos;
