@@ -6358,6 +6358,12 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	modifier of the province, and finally we add (define:SEIGE_ATTRITION + fort-level * define:ALICE_FORT_SIEGE_ATTRITION_PER_LEVEL) if the army is conducting a siege. Units taking
 	attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage
 	taken in combat, meaning that it will reduce the size of the backing pop.
+
+	PETER:
+		this is way too strong and destroys AI armies to 0 during siege
+		makes attrition stronger or weaker depending on the number of regiments
+		while they have the same amount of soldiers
+		logic will be adjusted to deal damage relatively to current regiment size
 	*/
 
 	float total_army_weight = local_army_weight(state, prov) + additional_army_weight;
@@ -6376,7 +6382,7 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 
 	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
 	auto value = std::clamp((total_army_weight - supply_limit) * attrition_mods, 0.0f, max_attrition) + siege_attrition;
-	return value * 0.01f;
+	return std::min(1.f, value * 0.01f);
 }
 float attrition_amount(sys::state& state, dcon::navy_id a) {
 	return relative_attrition_amount(state, a, state.world.navy_get_location_from_navy_location(a));
@@ -6392,7 +6398,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		return;
 	}
 	for(auto rg : state.world.army_get_army_membership(army)) {
-		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value);
+		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value * rg.get_regiment().get_strength());
 	}
 }
 void apply_monthly_attrition_to_navy(sys::state& state, dcon::navy_id navy) {
