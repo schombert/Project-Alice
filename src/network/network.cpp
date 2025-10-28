@@ -710,7 +710,7 @@ void log_player_nations(sys::state& state) {
 void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded) {
 		state.world.mp_player_set_fully_loaded(player, fully_loaded);
 		state.network_state.clients_loading_state_changed.store(true);
-	
+
 }
 
 // the way mp_player is used right now, we can safely assume the host is always the first ID, as the host should never be able to leave (and free up the slot) without the game ending.
@@ -988,7 +988,7 @@ void init(sys::state& state) {
 		state.local_player_id = create_mp_player(state, player_name, discard, true, false, state.local_player_nation);
 		return;
 	}
-		
+
 
 	state.network_state.finished = false;
 #ifdef _WIN64
@@ -1187,10 +1187,10 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			reload_cmd << reload_payload;
 			send_network_command(state, [&](const client_data& other_client) {return client.player_id != other_client.player_id; }, reload_cmd );
 		}
-		
+
 		notify_start_game(state, client);
 	}
-	
+
 	auto old_size = client.send_buffer.size();
 	client.send_buffer.resize(old_size + tmp.size());
 	std::memcpy(client.send_buffer.data() + old_size, tmp.data(), tmp.size());
@@ -1228,7 +1228,7 @@ void full_reset_after_oos(sys::state& state) {
 		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 	}
-	{ 
+	{
 
 		// send MP data and savegame to oos'd clients. Reload will happen automatically together with saveloading
 		send_mp_data(state, [&](const client_data& other_client) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
@@ -1247,7 +1247,7 @@ void full_reset_after_oos(sys::state& state) {
 		command::chat_message(state, state.local_player_nation, text::produce_simple_string(state, "alice_host_has_resync"), dcon::nation_id{ });
 	}
 	window::change_cursor(state, window::cursor_type::normal);
-	
+
 }
 
 int server_process_handshake(sys::state& state, network::client_data& client) {
@@ -1444,7 +1444,7 @@ static void accept_new_clients(sys::state& state) {
 	tv.tv_usec = 1000;
 	if(select(socket_t(int(state.network_state.socket_fd) + 1), &rfds, nullptr, nullptr, &tv) <= 0)
 		return;
-	
+
 	// Find available slot for client
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active())
@@ -1465,7 +1465,7 @@ static void accept_new_clients(sys::state& state) {
 }
 
 void send_and_receive_commands(sys::state& state) {
-	
+
 
 
 	if(state.network_state.finished)
@@ -1610,7 +1610,7 @@ void send_and_receive_commands(sys::state& state) {
 					state.network_state.out_of_sync = true;
 				}
 				command::notify_player_fully_loaded(state, state.local_player_nation); // notify that we are loaded and ready to start
-				
+
 			});
 			if(r > 0) { // error
 				ui::popup_error_window(state, "Network Error", "Network client save stream receive error: " + get_last_error_msg());
@@ -1713,7 +1713,7 @@ void finish(sys::state& state, bool notify_host) {
 			}
 		}
 	}
-	
+
 	socket_shutdown(state.network_state.socket_fd);
 #ifdef _WIN64
 	WSACleanup();
@@ -1753,12 +1753,11 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 	}
 
 	if(state.network_mode == sys::network_mode_type::host) {
-
 		write_player_nations(state);
 	}
 
 	if(state.local_player_id == player) {
-		state.local_player_nation = new_n;
+		state.set_local_player_nation_do_not_update_dcon(new_n);
 	}
 
 	// We will also re-assign all chat messages from this nation to the new one
