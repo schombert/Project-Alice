@@ -154,6 +154,8 @@ struct scene_properties {
 
 	std::function<void(sys::state& state)>
 		lbutton_up;
+	std::function<void(sys::state& state)>
+		on_province_selected;
 
 	//key presses related
 	std::function <sys::virtual_key(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)>
@@ -207,13 +209,14 @@ inline scene_properties nation_picker() {
 .allow_drag_selection = false,
 .on_drag_start = do_nothing_screen,
 .drag_selection = do_nothing_screen,
-.lbutton_up = select_player_nation_from_selected_province,
+.lbutton_up = do_nothing,
+.on_province_selected = select_player_nation_from_selected_province,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = nation_picker_hotkeys,
 .console_log = console_log_other,
 .open_chat = open_chat_before_game,
 .update_highlight_texture = highlight_player_nation,
-	};
+};
 }
 
 inline scene_properties basic_game() {
@@ -230,6 +233,7 @@ inline scene_properties basic_game() {
 .on_drag_start = start_dragging,
 .drag_selection = select_units,
 .lbutton_up = do_nothing,
+.on_province_selected = do_nothing,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = in_game_hotkeys,
 .console_log = console_log_other,
@@ -256,6 +260,7 @@ inline scene_properties battleplan_editor() { return scene_properties{
 	.on_drag_start = do_nothing_screen,
 	.drag_selection = do_nothing_screen,
 	.lbutton_up = military_screen_on_lbutton_up,
+	.on_province_selected = do_nothing,
 	.keycode_mapping = replace_keycodes_map_movement,
 	.handle_hotkeys = military_screen_hotkeys,
 	.console_log = console_log_other,
@@ -281,6 +286,7 @@ inline scene_properties battleplan_editor_add_army() {
 .on_drag_start = start_dragging,
 .drag_selection = select_units,
 .lbutton_up = do_nothing,
+.on_province_selected = do_nothing,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = military_screen_hotkeys,
 .console_log = console_log_other,
@@ -308,6 +314,7 @@ inline scene_properties economy_viewer_scene() {
 .on_drag_start = do_nothing_screen,
 .drag_selection = do_nothing_screen,
 .lbutton_up = do_nothing,
+.on_province_selected = do_nothing,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = economy_screen_hotkeys,
 .console_log = console_log_other,
@@ -333,7 +340,8 @@ inline scene_properties state_wargoal_selector() {
 .allow_drag_selection = false,
 .on_drag_start = do_nothing_screen,
 .drag_selection = do_nothing_screen,
-.lbutton_up = select_wargoal_state_from_selected_province,
+.lbutton_up = do_nothing,
+.on_province_selected = select_wargoal_state_from_selected_province,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = state_selector_hotkeys,
 .console_log = console_log_other
@@ -353,7 +361,8 @@ inline scene_properties national_identity_selector() {
 .allow_drag_selection = false,
 .on_drag_start = do_nothing_screen,
 .drag_selection = do_nothing_screen,
-.lbutton_up = select_national_identity_from_selected_province,
+.lbutton_up = do_nothing,
+.on_province_selected = select_national_identity_from_selected_province,
 .keycode_mapping = replace_keycodes_map_movement,
 .handle_hotkeys = nation_identity_selector_hotkeys,
 .console_log = console_log_other
@@ -377,6 +386,7 @@ inline scene_properties end_screen() {
 .on_drag_start = do_nothing_screen,
 .drag_selection = do_nothing_screen,
 .lbutton_up = do_nothing,
+.on_province_selected = do_nothing,
 .keycode_mapping = replace_keycodes_identity,
 .handle_hotkeys = do_nothing_hotkeys,
 .console_log = console_log_other,

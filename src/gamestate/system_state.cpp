@@ -344,6 +344,7 @@ void state::state_select(dcon::state_definition_id sdef) {
 		if(state_selection->single_state_select) {
 			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 			state_selection->on_select(*this, sdef);
+			state_selection.reset();
 			// Order of calls is important since callback can switch us to another scene with selector
 		} else {
 			// Multi-state selection is not supported
@@ -356,19 +357,17 @@ void state::state_select(dcon::state_definition_id sdef) {
 			std::abort();
 		}
 	}
-	state_selection.reset();
 	map_state.update(*this);
 }
 
 // A national identity was selected from the legend
 void state::national_identity_select(dcon::national_identity_id ni) {
 	assert(national_identity_selection);
-
 	if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
 		national_identity_selection->on_select(*this, ni);
 		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+		national_identity_selection.reset();
 	}
-	national_identity_selection.reset();
 	map_state.update(*this);
 }
 
@@ -6774,6 +6773,24 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 			ui_state.province_window->set_visible(*this, false);
 		}
 	}
+	current_scene.on_province_selected(*this);
+}
+
+
+void sys::state::set_local_player_nation_do_not_update_dcon(dcon::nation_id value) {
+	local_player_nation = value;
+	map_state.unhandled_province_selection = true;
+	game_state_updated.store(true, std::memory_order_release);
+}
+void sys::state::set_local_player_nation_singleplayer(dcon::nation_id value) {
+	if (local_player_nation) {
+		world.nation_set_is_player_controlled(value, false);
+	}
+	world.nation_set_is_player_controlled(value, true);
+	local_player_nation = value;
+	map_state.unhandled_province_selection = true;
+	game_state_updated.store(true, std::memory_order_release);
+	ai::remove_ai_data(*this, value);
 }
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {

@@ -232,7 +232,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto total_out = 0.f;
 
 		state.world.market_for_each_trade_route(mid, [&](auto route) {
-			auto current_volume = state.world.trade_route_get_volume(route, cid);		
+			auto current_volume = state.world.trade_route_get_volume(route, cid);
 			auto origin =
 				current_volume > 0.f
 				? state.world.trade_route_get_connected_markets(route, 0)
@@ -262,7 +262,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			}
 		});
 
-		
+
 
 		// if total in > total out
 		// we assume that commodity has a chance to be consumed
@@ -275,7 +275,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			disappear_weight = total_in - total_out;
 		}
 
-		
+
 
 		auto sid = state.world.market_get_zone_from_local_market(mid);
 		auto port = province::state_get_coastal_capital(state, sid);
@@ -1235,7 +1235,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		points = good_points;
-		
+
 
 		//initial center:
 		glm::vec2 center = sum_points / (float)(points.size());
@@ -1292,7 +1292,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		};
 
 		for(auto key_point : key_points) {
-			//if (glm::length(key_point - center) < 100.f * glm::length(eigenvector_1)) 
+			//if (glm::length(key_point - center) < 100.f * glm::length(eigenvector_1))
 			update_bbox(key_provs, key_point);
 		}
 
@@ -1338,7 +1338,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			out_y.push_back(e.y);
 			out_x.push_back(e.x);
 			//w.push_back(10 * float(map_data.province_area[province::to_map_id(p2)]));
-					
+
 			in_x.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.x, l_1* e.x* e.x, l_3* e.x* e.x* e.x});
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
@@ -1387,7 +1387,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return mo[1] * l_1 + 2.f * mo[2] * x * l_2 + 3.f * mo[3] * x * x * l_3;
 			};
 			auto error_grad = [&](float x, float y) {
-				float error_linear = poly_fn(x) - y;				
+				float error_linear = poly_fn(x) - y;
 				return glm::vec4(error_linear * error_linear * error_linear * error_linear * error_linear * mo);
 			};
 
@@ -1408,7 +1408,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					use_quadratic = true;
 					break;
 				}
-			}			
+			}
 
 			if(!use_quadratic)
 				text_data.emplace_back(std::move(prepared_name), mo, basis, ratio);
@@ -1543,7 +1543,7 @@ void map_state::update(sys::state& state) {
 		update_trade_flow_arrows(state, map_data);
 		state.update_trade_flow.store(false, std::memory_order_release);
 	}
-	update_unit_arrows(state, map_data);	
+	update_unit_arrows(state, map_data);
 
 	// Update railroads, only if railroads are being built and we have 'em enabled
 	if(state.user_settings.railroads_enabled && state.sprawl_update_requested.load(std::memory_order::acquire)) {
@@ -1594,7 +1594,7 @@ void map_state::update(sys::state& state) {
 		} else if(mouse_pos_percent.y > 0.98f) {
 			cursor_velocity_vector.y += 1.f;
 		}
-	
+
 		// check if the vector length is not zero before normalizing
 		if(glm::length(cursor_velocity_vector) != 0.0f) {
 			cursor_velocity_vector = glm::normalize(cursor_velocity_vector);
@@ -1690,7 +1690,7 @@ void map_state::update(sys::state& state) {
 		map_mode::update_map_mode(state);
 		state.update_trade_flow.store(true, std::memory_order::release);
 
-		map_data.set_selected_province(state, selected_province);
+		map_data.update_highlight(state);
 		unhandled_province_selection = false;
 	}
 }
@@ -1803,7 +1803,7 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		map_data.set_drag_box(true, pos1, pos2, pixel_size);
 	} else {
 		map_data.set_drag_box(false, {}, {}, {});
-	}	
+	}
 }
 
 bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {

@@ -136,12 +136,7 @@ int32_t* f_change_tag(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	dcon::nation_id to_nation;
 	to_nation.value = dcon::nation_id::value_base_t(s.main_data_back(0));
 	if(to_nation && to_nation != state->local_player_nation && to_nation != state->world.national_identity_get_nation_from_identity_holder(state->national_definitions.rebel_id)) {
-		if(state->local_player_nation)
-			state->world.nation_set_is_player_controlled(state->local_player_nation, false);
-
-		state->local_player_nation = to_nation;
-		state->world.nation_set_is_player_controlled(to_nation, true);
-		ai::remove_ai_data(*state, to_nation);
+		state->set_local_player_nation_singleplayer(to_nation);
 	}
 
 	s.pop_main();
@@ -1207,7 +1202,7 @@ int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		return p + 2;
 	}
 
-	
+
 
 	dcon::nation_id to_nation_b;
 	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
@@ -1476,7 +1471,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::run_fif_interpreter(*state.fif_environment,
 		" :s name nation_id s: nation-name ; ",
 		values);
-	
+
 	fif::run_fif_interpreter(*state.fif_environment,
 		" : player " + std::to_string(offsetof(sys::state, local_player_nation)) + " state-ptr @ buf-add ptr-cast ptr(nation_id) ; ",
 		values);

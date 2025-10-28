@@ -4,20 +4,15 @@
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
-#include <numbers>
 #include <glm/glm.hpp>
 #include <glm/mat3x3.hpp>
-#include <unordered_map>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/transform.hpp>
-
 #include "stb_image.h"
 #include "system_state.hpp"
-#include "parsers_declarations.hpp"
-#include "math_fns.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
 
@@ -1656,9 +1651,9 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
+void display_data::update_highlight(sys::state& state) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1, 0);
-	state.current_scene.update_highlight_texture(state, province_highlights, prov_id);
+	state.current_scene.update_highlight_texture(state, province_highlights, state.map_state.get_selected_province());
 	gen_prov_color_texture(textures[texture_province_highlight], province_highlights);
 }
 

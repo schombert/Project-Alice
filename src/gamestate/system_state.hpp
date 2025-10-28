@@ -1125,6 +1125,8 @@ struct alignas(64) state {
 	}
 
 	void set_selected_province(dcon::province_id prov_id);
+	void set_local_player_nation_singleplayer(dcon::nation_id value);
+	void set_local_player_nation_do_not_update_dcon(dcon::nation_id value);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);
