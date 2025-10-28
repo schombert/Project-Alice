@@ -3212,20 +3212,6 @@ object {
 }
 
 relationship{
-	name{ local_administration }
-	tag{ save }
-	link{
-		object{state_instance}
-		name{state_instance}
-		type{unique}
-	}
-	link{
-		object{administration}
-		name{administration}
-		type{many}
-	}
-}
-relationship{
 	name{ nation_administration }
 	tag{ save }
 	link{
@@ -3237,6 +3223,7 @@ relationship{
 		object{nation}
 		name{nation}
 		type{many}
+		index_storage{array}
 	}
 }
 
@@ -6038,7 +6025,9 @@ relationship{
 		object{nation}
 		name{nation}
 		type{many}
+		index_storage{array}
 	}
+
 	link{
 		object{mp_player}
 		name{mp_player}

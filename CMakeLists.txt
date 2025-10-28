@@ -120,7 +120,8 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 endif()
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
-
+target_compile_definitions(Alice PRIVATE GLM_ENABLE_EXPERIMENTAL)
+target_compile_definitions(AliceIncremental PRIVATE GLM_ENABLE_EXPERIMENTAL)
 if(NOT WIN32)
 	add_compile_definitions(PREFER_ONE_TBB)
 endif()
@@ -131,6 +132,7 @@ add_subdirectory(ParserGenerator EXCLUDE_FROM_ALL)
 add_subdirectory(FifInterfaceGenerator EXCLUDE_FROM_ALL)
 
 add_library(AliceCommon INTERFACE)
+target_compile_definitions(AliceCommon INTERFACE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(AliceCommon INTERFACE "PROJECT_ROOT=\"${PROJECT_SOURCE_DIR}\"")
 if(WIN32)
 	# string(REPLACE "/GR" "" CMAKE_CXX_FLAGS ${CMAKE_CXX_FLAGS})
@@ -192,6 +194,9 @@ if(WIN32)
 		endif()
 	endif()
 else() # GCC or CLANG
+	target_link_options(Alice INTERFACE -rdynamic -Wl,-E)
+	target_link_options(AliceIncremental INTERFACE -rdynamic -Wl,-E)
+	target_link_options(AliceCommon INTERFACE -rdynamic -Wl,-E)
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
@@ -204,13 +209,16 @@ else() # GCC or CLANG
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
+	target_link_libraries(AliceCommon INTERFACE dl)
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
+target_link_libraries(AliceCommon INTERFACE dependency_DataContainerLua)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
 target_link_libraries(AliceCommon INTERFACE freetype)
 target_link_libraries(AliceCommon INTERFACE harfbuzz)
 target_link_libraries(AliceCommon INTERFACE glm)
+target_link_libraries(AliceCommon INTERFACE lib_luajit)
 if (WIN32)
 	target_link_libraries(AliceCommon INTERFACE ws2_32)
 	target_link_libraries(AliceCommon INTERFACE wsock32)
@@ -248,6 +256,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/culture
 	${PROJECT_SOURCE_DIR}/src/military
 	${PROJECT_SOURCE_DIR}/src/scripting
+	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
@@ -394,6 +403,14 @@ add_custom_command(
 	DEPENDS ${CONTAINER_PATH}.txt
 	VERBATIM)
 
+add_custom_command(
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp
+	COMMAND DataContainer-Lua alice alice_state_ptr->world. ${CONTAINER_PATH}.txt ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.cpp ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp ${PROJECT_SOURCE_DIR}/assets/lua/engine
+	DEPENDS ${CONTAINER_PATH}.txt
+	DEPENDS DataContainer-Lua
+	VERBATIM
+)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
@@ -402,6 +419,10 @@ add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
 add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINERIFACE)
 add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
+
+add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
+add_dependencies(Alice GENERATE_CONTAINER_LUA)
+add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
 
 # The command to build the generated parsers file
 add_custom_command(
