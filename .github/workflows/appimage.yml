@@ -43,7 +43,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_INSTALL_PREFIX=/usr -B build 
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_INSTALL_PREFIX=/usr -B build
 
     - name: Build Project Alice
       run: |
@@ -52,11 +52,14 @@ jobs:
     - name: Build Launcher
       run: |
         cmake --build build --parallel --target launch_alice
-    
+
     - name: Create AppDir
       run: |
         cd build
         make install DESTDIR=AppDir
+        git clone https://luajit.org/git/luajit.git
+        cd luajit
+        echo "make -j && make install DESTDIR=$(pwd)/../AppDir PREFIX=/usr" >> build.sh && chmod +x ./build.sh  && ./build.sh
 
     - name: Create AppImage
       run: |
@@ -65,7 +68,7 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         cp ../src/AppRun AppDir/AppRun
         ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --desktop-file AppDir/usr/share/applications/alice.desktop --icon-file AppDir/usr/share/icons/hicolor/128x128/apps/alice.png
-    
+
     - name: Package AppImage and assets
       run: |
         cd build
@@ -113,7 +116,7 @@ jobs:
 
     - name: Configure Build Files
       run: |
-        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_INSTALL_PREFIX=/usr -B build 
+        cmake -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_INSTALL_PREFIX=/usr -B build
 
     - name: Build Project Alice
       run: |
@@ -122,7 +125,7 @@ jobs:
     - name: Build Launcher
       run: |
         cmake --build build --parallel --target launch_alice
-    
+
     - name: Create AppDir
       run: |
         cd build
@@ -135,7 +138,7 @@ jobs:
         chmod +x linuxdeploy-x86_64.AppImage
         cp ../src/AppRun AppDir/AppRun
         ./linuxdeploy-x86_64.AppImage --appdir AppDir --output appimage --desktop-file AppDir/usr/share/applications/alice.desktop --icon-file AppDir/usr/share/icons/hicolor/128x128/apps/alice.png
-    
+
     - name: Package AppImage and assets
       run: |
         cd build

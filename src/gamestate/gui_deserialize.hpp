@@ -68,6 +68,8 @@ enum class aui_property : uint8_t {
 	share_table_highlight = 43,
 	page_button_textures = 44,
 	layout_information = 45,
+	table_connection = 46,
+	is_lua = 47
 };
 
 inline void bytes_to_windows(char const* bytes, size_t size, std::string const& project_name, ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes>& map) {
@@ -157,6 +159,7 @@ struct aui_element_data {
 	text::text_color text_color = text::text_color::black;
 	aui_text_type text_type = aui_text_type::body;
 	text::alignment text_alignment = text::alignment::left;
+	bool is_lua;
 };
 
 inline aui_window_data read_window_bytes(char const* bytes, size_t size, std::vector<sys::aui_pending_bytes>& children_out) {
@@ -245,6 +248,8 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 			essential_child_section.read(result.table_highlight_color);
 		} else if(ptype == aui_property::other_color) {
 			essential_child_section.read(result.table_highlight_color);
+		} else if(ptype == aui_property::is_lua) {
+			essential_child_section.read(result.is_lua);
 		} else if(ptype == aui_property::ascending_sort_icon) {
 			result.ascending_sort_icon =essential_child_section.read<std::string_view>();
 		} else if(ptype == aui_property::descending_sort_icon) {

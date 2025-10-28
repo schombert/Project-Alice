@@ -1336,6 +1336,7 @@ struct budgetwindow_budget_header_contents_t : public ui::element_base {
 struct budgetwindow_main_t : public layout_window_element {
 // BEGIN main::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_main_close_button_t> close_button;
 	std::unique_ptr<budgetwindow_main_title_t> title;
 	std::unique_ptr<budgetwindow_main_income_label_t> income_label;
@@ -1424,6 +1425,7 @@ struct budgetwindow_section_header_t : public layout_window_element {
 // BEGIN section_header::variables
 // END
 	int32_t section_type;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_section_header_label_t> label;
 	std::unique_ptr<budgetwindow_section_header_llbutton_t> llbutton;
 	std::unique_ptr<budgetwindow_section_header_lbutton_t> lbutton;
@@ -1457,6 +1459,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_section_header(sys::state& s
 struct budgetwindow_neutral_spacer_t : public ui::non_owning_container_base {
 // BEGIN neutral_spacer::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
@@ -1473,6 +1476,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_neutral_spacer(sys::state& s
 struct budgetwindow_top_spacer_t : public ui::non_owning_container_base {
 // BEGIN top_spacer::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
@@ -1489,6 +1493,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_top_spacer(sys::state& state
 struct budgetwindow_bottom_spacer_t : public ui::non_owning_container_base {
 // BEGIN bottom_spacer::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
 	dcon::texture_id background_texture;
@@ -1507,6 +1512,7 @@ struct budgetwindow_budget_row_t : public layout_window_element {
 // END
 	std::string name;
 	float value;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_budget_row_contents_t> contents;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
@@ -1537,6 +1543,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_budget_row(sys::state& state
 struct budgetwindow_budget_header_t : public layout_window_element {
 // BEGIN budget_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<budgetwindow_budget_header_contents_t> contents;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	std::string_view texture_key;
@@ -3670,7 +3677,7 @@ void budgetwindow_main_debt_chart_t::update_chart(sys::state& state) {
 	int32_t index = 0;
 	float offset = 0.0f;
 	for(int32_t k = 0; k < 200; k++) {
-		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(200)) {
+		while(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(200)) {
 			offset += graph_content[index].amount;
 			++index;
 		}
@@ -3835,90 +3842,97 @@ void budgetwindow_main_t::create_layout_level(sys::state& state, layout_level& l
 				temp.ptr = nullptr;
 				if(cname == "close_button") {
 					temp.ptr = close_button.get();
-				}
+				} else
 				if(cname == "title") {
 					temp.ptr = title.get();
-				}
+				} else
 				if(cname == "income_label") {
 					temp.ptr = income_label.get();
-				}
+				} else
 				if(cname == "income_amount") {
 					temp.ptr = income_amount.get();
-				}
+				} else
 				if(cname == "expenses_label") {
 					temp.ptr = expenses_label.get();
-				}
+				} else
 				if(cname == "expenses_amount") {
 					temp.ptr = expenses_amount.get();
-				}
+				} else
 				if(cname == "admin_eff1") {
 					temp.ptr = admin_eff1.get();
-				}
+				} else
 				if(cname == "admin_eff2") {
 					temp.ptr = admin_eff2.get();
-				}
+				} else
 				if(cname == "admin_eff_amount") {
 					temp.ptr = admin_eff_amount.get();
-				}
+				} else
 				if(cname == "welfare_label") {
 					temp.ptr = welfare_label.get();
-				}
+				} else
 				if(cname == "chart_max_a") {
 					temp.ptr = chart_max_a.get();
-				}
+				} else
 				if(cname == "chart_min") {
 					temp.ptr = chart_min.get();
-				}
+				} else
 				if(cname == "chart_max_b") {
 					temp.ptr = chart_max_b.get();
-				}
+				} else
 				if(cname == "chart_poplabel") {
 					temp.ptr = chart_poplabel.get();
-				}
+				} else
 				if(cname == "chart_needslabel") {
 					temp.ptr = chart_needslabel.get();
-				}
+				} else
 				if(cname == "welfare_chart_poor") {
 					temp.ptr = welfare_chart_poor.get();
-				}
+				} else
 				if(cname == "welfare_chart_middle") {
 					temp.ptr = welfare_chart_middle.get();
-				}
+				} else
 				if(cname == "welfare_chart_rich") {
 					temp.ptr = welfare_chart_rich.get();
-				}
+				} else
 				if(cname == "hover_poor") {
 					temp.ptr = hover_poor.get();
-				}
+				} else
 				if(cname == "hover_middle") {
 					temp.ptr = hover_middle.get();
-				}
+				} else
 				if(cname == "hover_rich") {
 					temp.ptr = hover_rich.get();
-				}
+				} else
 				if(cname == "debt_label") {
 					temp.ptr = debt_label.get();
-				}
+				} else
 				if(cname == "debt_enable") {
 					temp.ptr = debt_enable.get();
-				}
+				} else
 				if(cname == "total_debt_label") {
 					temp.ptr = total_debt_label.get();
-				}
+				} else
 				if(cname == "max_debt_label") {
 					temp.ptr = max_debt_label.get();
-				}
+				} else
 				if(cname == "total_debt_amount") {
 					temp.ptr = total_debt_amount.get();
-				}
+				} else
 				if(cname == "max_debt_amount") {
 					temp.ptr = max_debt_amount.get();
-				}
+				} else
 				if(cname == "debt_chart") {
 					temp.ptr = debt_chart.get();
-				}
+				} else
 				if(cname == "debt_overlay") {
 					temp.ptr = debt_overlay.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4010,7 +4024,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "title") {
 			title = std::make_unique<budgetwindow_main_title_t>();
 			title->parent = this;
@@ -4028,7 +4042,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "income_label") {
 			income_label = std::make_unique<budgetwindow_main_income_label_t>();
 			income_label->parent = this;
@@ -4046,7 +4060,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "income_amount") {
 			income_amount = std::make_unique<budgetwindow_main_income_amount_t>();
 			income_amount->parent = this;
@@ -4063,7 +4077,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "expenses_label") {
 			expenses_label = std::make_unique<budgetwindow_main_expenses_label_t>();
 			expenses_label->parent = this;
@@ -4081,7 +4095,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "expenses_amount") {
 			expenses_amount = std::make_unique<budgetwindow_main_expenses_amount_t>();
 			expenses_amount->parent = this;
@@ -4098,7 +4112,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "admin_eff1") {
 			admin_eff1 = std::make_unique<budgetwindow_main_admin_eff1_t>();
 			admin_eff1->parent = this;
@@ -4116,7 +4130,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "admin_eff2") {
 			admin_eff2 = std::make_unique<budgetwindow_main_admin_eff2_t>();
 			admin_eff2->parent = this;
@@ -4134,7 +4148,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "admin_eff_amount") {
 			admin_eff_amount = std::make_unique<budgetwindow_main_admin_eff_amount_t>();
 			admin_eff_amount->parent = this;
@@ -4151,7 +4165,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "welfare_label") {
 			welfare_label = std::make_unique<budgetwindow_main_welfare_label_t>();
 			welfare_label->parent = this;
@@ -4169,7 +4183,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "chart_max_a") {
 			chart_max_a = std::make_unique<budgetwindow_main_chart_max_a_t>();
 			chart_max_a->parent = this;
@@ -4187,7 +4201,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "chart_min") {
 			chart_min = std::make_unique<budgetwindow_main_chart_min_t>();
 			chart_min->parent = this;
@@ -4205,7 +4219,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "chart_max_b") {
 			chart_max_b = std::make_unique<budgetwindow_main_chart_max_b_t>();
 			chart_max_b->parent = this;
@@ -4223,7 +4237,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "chart_poplabel") {
 			chart_poplabel = std::make_unique<budgetwindow_main_chart_poplabel_t>();
 			chart_poplabel->parent = this;
@@ -4241,7 +4255,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "chart_needslabel") {
 			chart_needslabel = std::make_unique<budgetwindow_main_chart_needslabel_t>();
 			chart_needslabel->parent = this;
@@ -4259,7 +4273,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "welfare_chart_poor") {
 			welfare_chart_poor = std::make_unique<budgetwindow_main_welfare_chart_poor_t>();
 			welfare_chart_poor->parent = this;
@@ -4273,7 +4287,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "welfare_chart_middle") {
 			welfare_chart_middle = std::make_unique<budgetwindow_main_welfare_chart_middle_t>();
 			welfare_chart_middle->parent = this;
@@ -4287,7 +4301,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "welfare_chart_rich") {
 			welfare_chart_rich = std::make_unique<budgetwindow_main_welfare_chart_rich_t>();
 			welfare_chart_rich->parent = this;
@@ -4301,7 +4315,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "hover_poor") {
 			hover_poor = std::make_unique<budgetwindow_main_hover_poor_t>();
 			hover_poor->parent = this;
@@ -4320,7 +4334,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "hover_middle") {
 			hover_middle = std::make_unique<budgetwindow_main_hover_middle_t>();
 			hover_middle->parent = this;
@@ -4339,7 +4353,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "hover_rich") {
 			hover_rich = std::make_unique<budgetwindow_main_hover_rich_t>();
 			hover_rich->parent = this;
@@ -4358,7 +4372,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "debt_label") {
 			debt_label = std::make_unique<budgetwindow_main_debt_label_t>();
 			debt_label->parent = this;
@@ -4376,7 +4390,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "debt_enable") {
 			debt_enable = std::make_unique<budgetwindow_main_debt_enable_t>();
 			debt_enable->parent = this;
@@ -4396,7 +4410,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "total_debt_label") {
 			total_debt_label = std::make_unique<budgetwindow_main_total_debt_label_t>();
 			total_debt_label->parent = this;
@@ -4414,7 +4428,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "max_debt_label") {
 			max_debt_label = std::make_unique<budgetwindow_main_max_debt_label_t>();
 			max_debt_label->parent = this;
@@ -4432,7 +4446,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "total_debt_amount") {
 			total_debt_amount = std::make_unique<budgetwindow_main_total_debt_amount_t>();
 			total_debt_amount->parent = this;
@@ -4450,7 +4464,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "max_debt_amount") {
 			max_debt_amount = std::make_unique<budgetwindow_main_max_debt_amount_t>();
 			max_debt_amount->parent = this;
@@ -4468,7 +4482,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "debt_chart") {
 			debt_chart = std::make_unique<budgetwindow_main_debt_chart_t>();
 			debt_chart->parent = this;
@@ -4482,7 +4496,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "debt_overlay") {
 			debt_overlay = std::make_unique<budgetwindow_main_debt_overlay_t>();
 			debt_overlay->parent = this;
@@ -4497,7 +4511,7 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tabincome_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -4532,6 +4546,28 @@ void budgetwindow_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(income_table_item_value_column_text_color);
 			col_section.read(income_table_item_value_header_text_color);
 			col_section.read(income_table_item_value_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		}
 		pending_children.pop_back();
@@ -5449,33 +5485,40 @@ void budgetwindow_section_header_t::create_layout_level(sys::state& state, layou
 				temp.ptr = nullptr;
 				if(cname == "label") {
 					temp.ptr = label.get();
-				}
+				} else
 				if(cname == "llbutton") {
 					temp.ptr = llbutton.get();
-				}
+				} else
 				if(cname == "lbutton") {
 					temp.ptr = lbutton.get();
-				}
+				} else
 				if(cname == "rbutton") {
 					temp.ptr = rbutton.get();
-				}
+				} else
 				if(cname == "rrbutton") {
 					temp.ptr = rrbutton.get();
-				}
+				} else
 				if(cname == "setting_amount") {
 					temp.ptr = setting_amount.get();
-				}
+				} else
 				if(cname == "expand_button") {
 					temp.ptr = expand_button.get();
-				}
+				} else
 				if(cname == "total_amount") {
 					temp.ptr = total_amount.get();
-				}
+				} else
 				if(cname == "min_setting") {
 					temp.ptr = min_setting.get();
-				}
+				} else
 				if(cname == "max_setting") {
 					temp.ptr = max_setting.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -5563,7 +5606,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "llbutton") {
 			llbutton = std::make_unique<budgetwindow_section_header_llbutton_t>();
 			llbutton->parent = this;
@@ -5579,7 +5622,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "lbutton") {
 			lbutton = std::make_unique<budgetwindow_section_header_lbutton_t>();
 			lbutton->parent = this;
@@ -5595,7 +5638,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "rbutton") {
 			rbutton = std::make_unique<budgetwindow_section_header_rbutton_t>();
 			rbutton->parent = this;
@@ -5611,7 +5654,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "rrbutton") {
 			rrbutton = std::make_unique<budgetwindow_section_header_rrbutton_t>();
 			rrbutton->parent = this;
@@ -5627,7 +5670,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "setting_amount") {
 			setting_amount = std::make_unique<budgetwindow_section_header_setting_amount_t>();
 			setting_amount->parent = this;
@@ -5644,7 +5687,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "expand_button") {
 			expand_button = std::make_unique<budgetwindow_section_header_expand_button_t>();
 			expand_button->parent = this;
@@ -5659,7 +5702,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "total_amount") {
 			total_amount = std::make_unique<budgetwindow_section_header_total_amount_t>();
 			total_amount->parent = this;
@@ -5676,7 +5719,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "min_setting") {
 			min_setting = std::make_unique<budgetwindow_section_header_min_setting_t>();
 			min_setting->parent = this;
@@ -5693,7 +5736,7 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "max_setting") {
 			max_setting = std::make_unique<budgetwindow_section_header_max_setting_t>();
 			max_setting->parent = this;
@@ -5706,6 +5749,28 @@ void budgetwindow_section_header_t::on_create(sys::state& state) noexcept {
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -5752,6 +5817,28 @@ void budgetwindow_neutral_spacer_t::on_create(sys::state& state) noexcept {
 	texture_key = win_data.texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 // BEGIN neutral_spacer::create
@@ -5789,6 +5876,28 @@ void budgetwindow_top_spacer_t::on_create(sys::state& state) noexcept {
 	texture_key = win_data.texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 // BEGIN top_spacer::create
@@ -5826,6 +5935,28 @@ void budgetwindow_bottom_spacer_t::on_create(sys::state& state) noexcept {
 	texture_key = win_data.texture;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 // BEGIN bottom_spacer::create
@@ -6002,6 +6133,13 @@ void budgetwindow_budget_row_t::create_layout_level(sys::state& state, layout_le
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -6082,6 +6220,28 @@ void budgetwindow_budget_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -6285,6 +6445,13 @@ void budgetwindow_budget_header_t::create_layout_level(sys::state& state, layout
 				temp.ptr = nullptr;
 				if(cname == "contents") {
 					temp.ptr = contents.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -6365,6 +6532,28 @@ void budgetwindow_budget_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);

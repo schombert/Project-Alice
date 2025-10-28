@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "date_interface.hpp"
 #include "dcon_generated.hpp"
+#include "system_state_forward.hpp"
 
 namespace sys {
 

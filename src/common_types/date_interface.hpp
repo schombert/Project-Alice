@@ -3,8 +3,6 @@
 #include <cstdint>
 namespace sys {
 
-struct state;
-
 struct year_month_day {
 	int32_t year;
 	uint16_t month;

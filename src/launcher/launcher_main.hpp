@@ -3,6 +3,7 @@
 #define ALICE_NO_ENTRY_POINT 1
 
 #include "common_types.cpp"
+#include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "parsers.cpp"
