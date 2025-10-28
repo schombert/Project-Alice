@@ -195,6 +195,8 @@ std::unique_ptr<element_base> province_view_window::make_child(sys::state& state
 	} else if(name == "local_economy_view") {
 		auto ptr = alice_ui::make_province_economy_overview_body(state);
 		economy_window = ptr.get();
+		economy_window->set_visible(state, false);
+		economy_window->base_data.position.x = base_data.position.x + base_data.size.x + 60;
 		return ptr;
 	} if(name == "toggle-economy-province") {
 		return make_element_by_type<economy_data_toggle>(state, id);
