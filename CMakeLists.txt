@@ -171,6 +171,8 @@ if(WIN32)
 	else()
 		set_target_properties(AliceCommon PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
 
+		# /arch:AVX512
+		# /d2archSSE42
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE

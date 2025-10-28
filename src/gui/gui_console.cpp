@@ -55,6 +55,7 @@ void ui::console_edit::on_edit_command(sys::state& state, edit_command command, 
 			state.console_command_pending += simple_fs::utf16_to_utf8(cached_text);
 			add_to_history(state, state.console_command_pending);
 			command::notify_console_command(state);
+			set_text(state, u"");
 		}
 		return;
 	}
