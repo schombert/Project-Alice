@@ -3114,48 +3114,9 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
 
-	if(nations::has_units_inside_other_nation(state, source, target)) {
+	if(!military::can_attack(state, source, target)) {
 		return false;
 	}
-
-	dcon::nation_id real_target = target;
-
-	auto target_ol_rel = state.world.nation_get_overlord_as_subject(target);
-	if(state.world.overlord_get_ruler(target_ol_rel) && state.world.overlord_get_ruler(target_ol_rel) != source) {
-		real_target = state.world.overlord_get_ruler(target_ol_rel);
-		// check again against the real target if its diffrent
-		if(nations::has_units_inside_other_nation(state, source, real_target)) {
-			return false;
-		}
-	}
-
-
-	if(source == target || source == real_target)
-		return false;
-
-	if(state.world.nation_get_owned_province_count(target) == 0 || state.world.nation_get_owned_province_count(real_target) == 0)
-		return false;
-
-	if(military::are_allied_in_war(state, source, real_target) || military::are_at_war(state, source, real_target))
-		return false;
-
-	if(nations::are_allied(state, real_target, source))
-		return false;
-
-	auto source_ol_rel = state.world.nation_get_overlord_as_subject(source);
-	if(state.world.overlord_get_ruler(source_ol_rel) && state.world.overlord_get_ruler(source_ol_rel) != real_target && state.defines.alice_allow_subjects_declare_wars == 0.0)
-		return false;
-
-	if(state.world.nation_get_in_sphere_of(real_target) == source)
-		return false; // cannot declare war on your own sphereling
-	// when declaring a war, alliances with the spherelord are also checked
-	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, source, real_target)) {
-		return false;
-	}
-
-	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
-		return false;
-
 	// check CB validity
 	if(!military::cb_instance_conditions_satisfied(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation))
 		return false;

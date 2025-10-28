@@ -10309,4 +10309,118 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	military::delete_regiment_safe_wrapper(state, reg_id);
 }
 
+
+bool can_attack(sys::state& state, dcon::nation_id n) {
+	// nations without land are not supported yet
+	if(state.world.nation_get_owned_province_count(n) == 0)
+		return false;
+
+	return true;
+}
+
+// used by both functions
+// attempts to be cheap...
+bool can_attack_internal(sys::state& state, dcon::nation_id n, dcon::nation_id target) {	
+	if(target == n)
+		return false;	
+
+	// can't declare war on nations without land currently
+	if(state.world.nation_get_owned_province_count(target) == 0)
+		return false;
+
+	// no decs against allies
+	if(nations::are_allied(state, n, target))
+		return false;
+
+	// cannot declare war on your own sphereling
+	if(state.world.nation_get_in_sphere_of(target) == n)
+		return false;
+
+	// when declaring a war, alliances with the spherelord are also checked
+	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, n, target)) {
+		return false;
+	}
+
+	if(military::has_truce_with(state, n, target))
+		return false;
+
+	// subjects check
+	auto overlord_source = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));
+	if(overlord_source && overlord_source != target && state.defines.alice_allow_subjects_declare_wars == 0.0)
+		return false;
+
+	// the most expensive check
+	if(nations::has_units_inside_other_nation(state, n, target)) {
+		return false;
+	}
+
+	return true;
+}
+
+// cheaper version: some checks could be more strict to be less computationally expensive
+bool can_attack_ai(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	// we don't allow attacking war allies or war enemies
+	// for AI we do it in a cheaper way:
+	// don't declare war when you have war allies
+	if(state.world.nation_get_is_at_war(n))
+		return false;
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	// we do not check can_attack(state, source) because it is checked during iteration over source
+	// common checks, both for player and AI
+	if(!can_attack_internal(state, n, target)) {
+		return false;
+	}
+	if(overlord) {
+		if(!can_attack_internal(state, n, overlord)) {
+			return false;
+		}
+	}
+
+	// check existence of cb
+	if(!military::can_use_cb_against(state, n, target))
+		return false;
+
+	return true;
+}
+
+// we can allow expensive logic there
+bool can_attack_expensive_checks(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(military::are_allied_in_war(state, source, target) || military::are_at_war(state, source, target))
+		return false;
+	return true;
+}
+
+bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+
+	if(!can_attack(state, source)) {
+		return false;
+	}
+
+	if(!can_attack_internal(state, source, target)) {
+		return false;
+	}
+	if(!can_attack_expensive_checks(state, source, target)) {
+		return false;
+	}
+	if(overlord) {
+		if(!can_attack_internal(state, source, overlord)) {
+			return false;
+		}
+		if(!can_attack_expensive_checks(state, source, overlord)) {
+			return false;
+		}
+	}
+
+	// anti player bias
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
+		return false;
+
+	// have to check only against target
+	if(!military::can_use_cb_against(state, source, target))
+		return false;
+
+	return true;
+}
+
 } // namespace military
