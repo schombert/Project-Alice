@@ -1353,6 +1353,7 @@ bool msaa_enabled(sys::state const& state) {
 	return state.open_gl.msaa_enabled;
 }
 
+// Returns readable pixel colors for a 4-channel image
 image load_stb_image(simple_fs::file& file) {
 	int32_t file_channels = 4;
 	int32_t size_x = 0;
