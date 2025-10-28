@@ -6,10 +6,11 @@
 
 namespace ai {
 
-void inline validate_cb(sys::state& state, dcon::nation_id attacker, ai::possible_cb& r) {
-	assert(command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation));
-	auto result_to_step_into = command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation);
-}
+//useful function for debug
+//void inline validate_cb(sys::state& state, dcon::nation_id attacker, ai::possible_cb& r) {
+//	assert(command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation));
+//	auto result_to_step_into = command::can_declare_war(state, attacker, r.target, r.cb, r.state_def, r.associated_tag, r.secondary_nation);
+//}
 
 // Desired properties of utility:
 // 1) utility represents our desirability of an event
