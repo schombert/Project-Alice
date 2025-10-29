@@ -136,7 +136,7 @@ int32_t* f_change_tag(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	dcon::nation_id to_nation;
 	to_nation.value = dcon::nation_id::value_base_t(s.main_data_back(0));
 	if(to_nation && to_nation != state->local_player_nation && to_nation != state->world.national_identity_get_nation_from_identity_holder(state->national_definitions.rebel_id)) {
-		state->set_local_player_nation_singleplayer(to_nation);
+		nations::switch_all_players(*state, to_nation, state->local_player_nation);
 	}
 
 	s.pop_main();

@@ -198,6 +198,7 @@ struct scenario_header {
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
 	checksum_key checksum;
+	native_char mod_save_dir[64] = { 0 };
 };
 
 struct save_header {

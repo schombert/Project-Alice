@@ -400,7 +400,7 @@ protected:
 		row_contents.clear();
 		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
 
-		auto sdir = simple_fs::get_or_create_save_game_directory();
+		auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
 			auto of = simple_fs::open_file(f);
 			if(of) {

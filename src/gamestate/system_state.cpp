@@ -2341,7 +2341,7 @@ void state::load_user_settings() {
 
 	// find most recent autosave
 
-	auto saves = simple_fs::get_or_create_save_game_directory();
+	auto saves = simple_fs::get_or_create_save_game_directory(mod_save_dir);
 	uint64_t max_timestamp = 0;
 	for(int32_t i = 0; i < sys::max_autosaves; ++i) {
 		auto asfile = simple_fs::open_file(saves, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(i)) + native_string(NATIVE(".bin")));

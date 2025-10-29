@@ -1931,7 +1931,7 @@ void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_i
 		network::write_player_nations(state);
 	}
 	if(state.local_player_nation == old_n) {
-		state.local_player_nation = new_n;
+		state.set_local_player_nation_do_not_update_dcon(new_n);
 	}
 	// We will also re-assign all chat messages from this nation to the new one
 	for(auto& msg : state.ui_state.chat_messages)

@@ -150,6 +150,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 
 				auto root = get_root(fs_root);
 				auto common = open_directory(root, NATIVE("common"));
+				auto save_dir = simple_fs::get_mod_save_dir_name(fs_root);
 
 				parsers::bookmark_context bookmark_context;
 				if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
@@ -178,6 +179,7 @@ int WINAPI wWinMain(HINSTANCE /*hInstance*/, HINSTANCE /*hPrevInstance*/, LPWSTR
 					err.accumulated_warnings.clear();
 					//
 					auto inner_game_state = std::make_unique<sys::state>();
+					inner_game_state->mod_save_dir = save_dir;
 					simple_fs::add_root(inner_game_state->common_fs, L".");
 
 					inner_game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);

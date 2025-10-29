@@ -896,6 +896,12 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
+	memcpy(header.mod_save_dir, state.mod_save_dir.c_str(), std::min(state.mod_save_dir.length(), size_t(63)) * sizeof(native_char));
+	if(name.length() < 63) {
+		header.mod_save_dir[state.mod_save_dir.length()] = 0;
+	} else {
+		header.mod_save_dir[63] = 0;
+	}
 
 	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
@@ -962,6 +968,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
+		state.mod_save_dir = header.mod_save_dir;
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
 
@@ -998,6 +1005,7 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
+		state.mod_save_dir = header.mod_save_dir;
 
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
@@ -1118,7 +1126,7 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	auto sdir = simple_fs::get_or_create_save_game_directory();
+	auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 
 	if(type == sys::save_type::autosave) {
 		simple_fs::write_file(sdir, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin")), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
@@ -1199,7 +1207,7 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	}
 }
 bool try_read_save_file(sys::state& state, native_string_view name) {
-	auto dir = simple_fs::get_or_create_save_game_directory();
+	auto dir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 	auto save_file = open_file(dir, name);
 	if(save_file) {
 		save_header header;

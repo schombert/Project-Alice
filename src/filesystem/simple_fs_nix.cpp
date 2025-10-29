@@ -337,6 +337,21 @@ directory open_directory(directory const& dir, native_string_view directory_name
 	return directory(dir.parent_system, dir.relative_path + NATIVE('/') + native_string(directory_name));
 }
 
+
+native_string get_mod_save_dir_name(const simple_fs::file_system& fs) {
+	auto mod_roots = simple_fs::list_roots(fs);
+	native_string save_dir;
+	for(const auto& root : mod_roots) {
+		size_t found = root.find_last_of(NATIVE("/"));
+		if(found == native_string::npos) {
+			continue;
+		}
+		save_dir += root.substr(found + 1);
+	}
+	return save_dir;
+}
+
+
 std::optional<file> open_file(directory const& dir, native_string_view file_name) {
 	if(dir.parent_system) {
 		for(size_t i = dir.parent_system->ordered_roots.size(); i-- > 0;) {
@@ -521,8 +536,11 @@ directory get_or_create_settings_directory() {
 	return directory(nullptr, path);
 }
 
-directory get_or_create_save_game_directory() {
+directory get_or_create_save_game_directory(native_string mod_dir) {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/saves/";
+	if(mod_dir.length() > 0) {
+		path += (mod_dir + "/")
+	}
 	make_directories(path);
 
 	return directory(nullptr, path);
