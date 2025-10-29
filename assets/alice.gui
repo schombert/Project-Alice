@@ -17,7 +17,7 @@ guiTypes = {
 		buttonFont = "vic_18_black"
 		Orientation = "LOWER_LEFT"
 	}
-
+	
 	instantTextBoxType = { 
 			name = "state_location_name"
 			extends = "state_info"
@@ -3764,6 +3764,13 @@ guiTypes = {
 			text = ""
 			maxsize = { 160 18 }
 			fixedsize = yes
+			Orientation = "UPPER_LEFT"
+		}
+		iconType =
+		{
+			name = "warning"
+			spriteType = "GFX_closebutton"
+			position = { 180 8 }
 			Orientation = "UPPER_LEFT"
 		}
 	}

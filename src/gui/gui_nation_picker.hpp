@@ -136,6 +136,7 @@ struct save_item {
 	dcon::national_identity_id save_flag;
 	dcon::government_type_id as_gov;
 	bool is_new_game = false;
+	bool checksum_match = false;
 	std::string name = "fe_new_game";
 
 	bool is_bookmark() const {
@@ -360,6 +361,29 @@ public:
 	}
 };
 
+class save_warning : public image_element_base {
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		save_item* save_data = retrieve< save_item*>(state, parent);
+		visible = !save_data->checksum_match;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible) {
+			image_element_base::render(state, x, y);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(visible) {
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_savegame_incompatible_warning");
+			text::close_layout_box(contents, box);
+		}
+	}
+};
+
 class save_game_item : public listbox_row_element_base<std::shared_ptr<save_item>> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -377,6 +401,8 @@ public:
 			return make_element_by_type<save_name>(state, id);
 		} else if(name == "date") {
 			return make_element_by_type<save_date>(state, id);
+		} else if(name == "warning") {
+			return make_element_by_type<save_warning>(state, id);
 		}
 		return nullptr;
 	}
@@ -398,7 +424,7 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
+		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, true, std::string("") }));
 
 		auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
@@ -409,7 +435,10 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, std::string(h.save_name) }));
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, true, std::string(h.save_name) }));
+				}
+				else {
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, false, std::string(h.save_name) }));
 				}
 			}
 		}
