@@ -33,11 +33,11 @@ void check_mods_folder() {
 	auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
 	auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
 	parsers::error_handler err("");
-	for (auto& f : mod_files) {
+	for(auto& f : mod_files) {
 		auto of = simple_fs::open_file(f);
 		if(of) {
 			auto content = view_contents(*of);
-			parsers::token_generator gen(content.data, content.data + content.file_size );
+			parsers::token_generator gen(content.data, content.data + content.file_size);
 			mod_list.push_back(parsers::parse_mod_file(gen, err, parsers::mod_file_context{}));
 		}
 	}
@@ -157,7 +157,7 @@ void find_scenario_file() {
 	selected_scenario_file = NATIVE("");
 	auto mod_path = produce_mod_path();
 	for(auto& f : scenario_files) {
-		if(f.ident.mod_path == mod_path){
+		if(f.ident.mod_path == mod_path) {
 			selected_scenario_file = f.file_name;
 			break;
 		}
@@ -201,7 +201,7 @@ void enforce_list_order() {
 	});
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
 	add_root(game_state.common_fs, NATIVE("."));
 	check_mods_folder();
 	check_scenario_folder();
@@ -209,20 +209,30 @@ int main (int argc, char *argv[]) {
 	bool headless = false;
 	int headless_speed = 1;
 
-	if ( argc >= 2) {
-		//TODO: Get all argv as vector and process them before running any codes
-		//for (int args = 1; args < argc; ++args){
-		//	arguments.push_back(args);
-		//}
+	//No args provided. Find a vanilla scenario and create one if it does not exist.
+	if(argc <= 1) {
+		find_scenario_file();
+		if(!selected_scenario_file.empty()) {
+			window::emit_error_message("Selected vanilla scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
+		} else {
+			window::emit_error_message("Building a vanilla scenario file, since none was found. This process may take a few minutes to complete.\n", false);
+			build_scenario_file();
+		}
+	} else {
+		// Check if a scenario file was provided. If so, ignore the --mod args as they are redundant in that case.
+		for(int i = 0; i < argc; ++i) {
+			if(strstr(argv[i], ".bin") != NULL) {
+				selected_scenario_file = argv[i];
+				break;
+			}
+		}
 
-		for (int i = 1; i < argc; ++i ) {
-			if (native_string(argv[i]) == NATIVE("--mod")) {
-				//Use closest to standard v2game.exe args structure, i.e. --mod mod/modname.mod
-				//We don't need powerful do-it-all entry point, scenario generation is enough
-				//Always assume that user will run this in the standard way of usage
-				if ( i + 1 < argc ){
+		// No scenario file was provided, but mod(s) might have been. Try finding the corresponding scenario file if mods were indeed specified. 			
+		if(selected_scenario_file.empty()) {
+			for(int i = 0; i < argc; ++i) {
+				if(strstr(argv[i], "--mod") != NULL) {
 					//Beginning of seemingly unnecessary code
-					std::string fullpath = argv[ i + 1];
+					std::string fullpath = argv[i + 1];
 					int idx = fullpath.rfind("/");
 					std::string dir = fullpath.substr(0, idx);
 					if(dir != NATIVE("mod")) {
@@ -237,28 +247,42 @@ int main (int argc, char *argv[]) {
 					//Implement check of passed argv in mod_list vector, if found, set true to mod_selected
 					//Currently, the code is crude
 					auto of = simple_fs::open_file(mod_dir, NATIVE(filename));
-					parsers::error_handler err{""};
+					parsers::error_handler err{ "" };
 					std::vector<parsers::mod_file> selected_mod;
-					if(of){
+					if(of) {
 						auto content = view_contents(*of);
 						parsers::token_generator gen(content.data, content.data + content.file_size);
 						selected_mod.push_back(parsers::parse_mod_file(gen, err, parsers::mod_file_context{}));
 					}
 					//This is to iterate through the content of mod_list
-					for(int32_t modindex = 0; modindex < int32_t(mod_list.size()); ++modindex){
+					for(int32_t modindex = 0; modindex < int32_t(mod_list.size()); ++modindex) {
 						if(mod_list[modindex].name_ == selected_mod[0].name_) {
 							mod_list[modindex].mod_selected = true;
 						}
 					}
-					i++;
+					enforce_list_order();
+					find_scenario_file();
+					// If no scenario could be found for the mod, create one
+					if(selected_scenario_file.empty()) {
+						window::emit_error_message("Since no scenario was found for the specified mod(s), a new one is now being created. \n", false);
+						build_scenario_file();
+					}
+					break;
+
 				}
-			} else if (native_string(argv[i]) == NATIVE("-test")) {
-				if (sys::try_read_scenario_and_save_file(game_state, "development_test_file.bin")){
+			}
+		}
+
+		//other args (MP, etc), left this the same.
+
+		for(int i = 0; i < argc; ++i) {
+			if(native_string(argv[i]) == NATIVE("-test")) {
+				if(sys::try_read_scenario_and_save_file(game_state, "development_test_file.bin")) {
 					selected_scenario_file = "development_test_file.bin";
 				} else {
 					window::emit_error_message("Development test file not found. Proceeding to generate file, this process may take a few minutes to complete.\n", false);
 					parsers::error_handler err{ "" };
-					game_state.load_scenario_data(err, sys::year_month_day{ 1836, 1, 1});
+					game_state.load_scenario_data(err, sys::year_month_day{ 1836, 1, 1 });
 					if(!err.accumulated_errors.empty() || !err.accumulated_warnings.empty()) {
 						auto assembled_msg = std::string("You can still play the mod, but it might be unstable\r\nThe following problems were encountered while creating the scenario:\r\n\r\nErrors:\r\n") + err.accumulated_errors + "\r\n\r\nWarnings:\r\n" + err.accumulated_warnings;
 						window::emit_error_message(assembled_msg, false);
@@ -302,15 +326,13 @@ int main (int argc, char *argv[]) {
 					std::memcpy(game_state.network_state.lobby_password, str.c_str(), std::min(sizeof(game_state.network_state.lobby_password), str.length()));
 					i++;
 				}
-			}
-			else if (native_string(argv[i]) == NATIVE("-player_password")) {
-				if (i + 1 < argc) {
+			} else if(native_string(argv[i]) == NATIVE("-player_password")) {
+				if(i + 1 < argc) {
 					std::string password = simple_fs::native_to_utf8(native_string(argv[i + 1]));
 					memcpy(&game_state.network_state.player_password.data, password.c_str(), std::min<size_t>(password.length(), 8));
 					i++;
 				}
-			}
-			else if(native_string(argv[i]) == NATIVE("-v6")) {
+			} else if(native_string(argv[i]) == NATIVE("-v6")) {
 				game_state.network_state.as_v6 = true;
 			} else if(native_string(argv[i]) == NATIVE("-v4")) {
 				game_state.network_state.as_v6 = false;
@@ -318,46 +340,15 @@ int main (int argc, char *argv[]) {
 				headless = true;
 			}
 		}
-
-		enforce_list_order();
-		for (int32_t modindex = 0; modindex < int32_t(mod_list.size()); ++modindex){
-			if(mod_list[modindex].mod_selected) {
-				window::emit_error_message("Selected mod: " + NATIVE(mod_list[modindex].name_) + "\n", false);
-			}
-		}
-		//Trying to find the corresponding scenario file before attempting to build
-		//Sacred scenario file = "development_test_file.bin"
-		//Some parts below felt redundant, may not fix
-		if (selected_scenario_file == NATIVE("development_test_file.bin")) {
-			window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
-		} else {
-			//Checking the scenario folder
-			if (argc > 2) {
-				selected_scenario_file = argv[1];
-			} else {
-				find_scenario_file();
-			}
-			//If any file fits the criteria, then don't build
-			if (!selected_scenario_file.empty()) {
-				window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
-				//If no file fits the critertia, then build
-			} else {
-				window::emit_error_message("Scenario file with selected mods cannot be found. Proceeding to build.\nThis process may take a few minutes to finish.\n", false);
-				build_scenario_file();
-			}
-		}
-	} else {
-		//Falling back to vanilla
-		find_scenario_file();
-		if (!selected_scenario_file.empty()) {
-			window::emit_error_message("Selected scenario file: " + NATIVE(selected_scenario_file) + "\n", false);
-		} else {
-			window::emit_error_message("Building the vanilla scenario file. This process may take a few minutes to complete.\n", false);
-			build_scenario_file();
+	}
+	enforce_list_order();
+	for(int32_t modindex = 0; modindex < int32_t(mod_list.size()); ++modindex) {
+		if(mod_list[modindex].mod_selected) {
+			window::emit_error_message("Selected mod: " + NATIVE(mod_list[modindex].name_) + "\n", false);
 		}
 	}
 
-	if (sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
+	if(sys::try_read_scenario_and_save_file(game_state, selected_scenario_file)) {
 		auto msg = "Running scenario file " + simple_fs::native_to_utf8(selected_scenario_file) + "\n";
 		window::emit_error_message(msg, false);
 		game_state.loaded_scenario_file = NATIVE(selected_scenario_file);
@@ -389,8 +380,9 @@ int main (int argc, char *argv[]) {
 		update_thread.join();
 		ui_cache_update.join();
 	}
-	
+
 	network::finish(game_state, true);
 
 	return EXIT_SUCCESS;
 }
+
