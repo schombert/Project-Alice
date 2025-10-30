@@ -142,7 +142,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 	std::sort(volume_sample.begin(), volume_sample.end());
 	// we are interested only in the most significant routes
-	auto cutoff = std::max(0.05f, volume_sample[9 * volume_sample.size() / 10] * 0.5f);
+	auto cutoff = std::max(0.01f, volume_sample[9 * volume_sample.size() / 10] * 0.5f);
 
 	// start with construction of trade_graph
 	std::map<int32_t, std::map<int32_t, float>> trade_graph;
@@ -413,6 +413,68 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		}
 	});
 
+	// build arbitrary distance field
+
+	// choose "previous" node for every node
+	// propagate distance backward along previous node
+	// propagate distance forward with usual nodes
+	std::map<int32_t, bool> visited;
+	state.world.for_each_province([&](dcon::province_id origin) { visited[origin.index()] = false; });
+
+	// todo: use the most important node as previous by storing "volume" and updating previous only when volume gets larger
+	std::map<int32_t, int32_t> previous;
+	state.world.for_each_province([&](dcon::province_id origin) {
+		if(trade_graph.contains(origin.index())) {
+			for(auto& [key, value] : trade_graph[origin.index()]) {
+				previous[key] = origin.index();
+			}
+		}
+	});
+
+	std::map<int32_t, float> distance_field;
+	std::vector<int32_t> to_visit;
+	size_t current_index_to_visit = 0;
+	state.world.for_each_province([&](dcon::province_id origin) {
+		if(trade_graph.contains(origin.index()) && !visited[origin.index()]) {
+			to_visit.clear();
+			to_visit.push_back(origin.index());
+			current_index_to_visit = 0;
+			distance_field[origin.index()] = 0.f;
+
+			while(current_index_to_visit < to_visit.size()) {
+				auto current = to_visit[current_index_to_visit];
+				auto prev_it = previous.find(current);
+				if(prev_it != previous.end() && !visited[prev_it->second]) {
+					auto edge_volume = trade_graph[prev_it->second][current];
+					auto width = std::min(std::sqrt(std::abs(edge_volume)) / cutoff, 5.f) * 1000.f;
+					distance_field[prev_it->second] = distance_field[current] - province::direct_distance(
+						state,
+						dcon::province_id{ (dcon::province_id::value_base_t)(current) },
+						dcon::province_id{ (dcon::province_id::value_base_t)(prev_it->second) }
+					) / width;
+					to_visit.push_back(prev_it->second);
+					visited[prev_it->second] = true;
+				}
+
+				for(auto const& [target_index, volume] : trade_graph[origin.index()]) {
+					if(!visited[target_index]) {
+						auto edge_volume = trade_graph[current][target_index];
+						auto width = std::min(std::sqrt(std::abs(edge_volume)) / cutoff, 5.f) * 1000.f;
+						distance_field[target_index] = distance_field[current] + province::direct_distance(
+							state,
+							dcon::province_id{ (dcon::province_id::value_base_t)(current) },
+							dcon::province_id{ (dcon::province_id::value_base_t)(target_index) }
+						) / width;
+						to_visit.push_back(target_index);
+						visited[target_index] = true;
+					}
+				}
+
+				current_index_to_visit++;
+			}
+		};
+	});
+
 	// now we are building vertices
 
 	for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
@@ -513,14 +575,14 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					norm_pos,
 					+start_normal,
 					0.f,
-					0.0f,
+					distance_field[origin.index()],
 					width
 				});
 				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
 					norm_pos,
 					-start_normal,
 					1.f,
-					0.0f,
+					distance_field[origin.index()],
 					width
 				});
 
@@ -530,14 +592,14 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					norm_next_pos,
 					+start_normal,
 					0.f,
-					distance,
+					distance_field[origin.index()] + distance,
 					width
 				});
 				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
 					norm_next_pos,
 					-start_normal,
 					1.f,
-					distance,
+					distance_field[origin.index()] + distance,
 					width
 				});
 
