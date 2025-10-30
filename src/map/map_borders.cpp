@@ -759,7 +759,7 @@ void display_data::make_borders(sys::state& state, std::vector<bool>& visited) {
 					fake_border = true;
 				}
 
-				if(!was_visited && prim != sec && prim && sec) {
+				if(!was_visited && prim != sec) {
 					int32_t border_index;
 
 					if(!fake_border) {
