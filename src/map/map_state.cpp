@@ -11,6 +11,8 @@
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
 
+#include "economy_pops.hpp"
+
 
 #include <set>
 
@@ -148,6 +150,77 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	std::map<int32_t, std::map<int32_t, float>> trade_graph;
 	
 	std::map<int32_t, float> trade_graph_toward_port;
+
+	state.world.for_each_province([&](dcon::province_id province) {
+		auto local_in = economy::estimate_intermediate_consumption(state, cid, province) + economy::estimate_pops_consumption(state, cid, province);
+		auto local_out = economy::estimate_production(state, cid, province);
+		auto absolute_volume = std::abs(local_out - local_in);
+		if(absolute_volume < cutoff) {
+			return;
+		}
+
+		auto sid = state.world.province_get_state_membership(province);
+		//auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		auto target = state.world.state_instance_get_capital(sid).id;
+
+		if(local_in > local_out) {
+			auto path = province::make_unowned_naval_path(state, province, target);
+			auto start = province;
+			for(int i = int(path.size()) - 1; i >= 0; i--) {
+				auto end = path[i];
+				if(trade_graph.contains(start.index())) {
+					if(trade_graph[start.index()].contains(end.index())) {
+						trade_graph[start.index()][end.index()] += absolute_volume;
+					} else {
+						trade_graph[start.index()][end.index()] = absolute_volume;
+					}
+				} else {
+					trade_graph[start.index()] = std::map<int32_t, float>{ };
+					trade_graph[start.index()][end.index()] = absolute_volume;
+				}
+
+				auto start_index = start.index();
+				if(start.index() < state.province_definitions.first_sea_province.index()) {
+					start_index += state.world.province_size();
+				}
+				auto end_index = end.index();
+				if(end.index() < state.province_definitions.first_sea_province.index()) {
+					end_index += state.world.province_size();
+				}
+				register_trade_flow(map_data, start_index, end_index, absolute_volume);
+
+				start = end;
+			}
+		} else {
+			auto path = province::make_unowned_naval_path(state, target, province);
+			auto start = target;
+			for(int i = int(path.size()) - 1; i >= 0; i--) {
+				auto end = path[i];
+				if(trade_graph.contains(start.index())) {
+					if(trade_graph[start.index()].contains(end.index())) {
+						trade_graph[start.index()][end.index()] += absolute_volume;
+					} else {
+						trade_graph[start.index()][end.index()] = absolute_volume;
+					}
+				} else {
+					trade_graph[start.index()] = std::map<int32_t, float>{ };
+					trade_graph[start.index()][end.index()] = absolute_volume;
+				}
+
+				auto start_index = start.index();
+				if(start.index() < state.province_definitions.first_sea_province.index()) {
+					start_index += state.world.province_size();
+				}
+				auto end_index = end.index();
+				if(end.index() < state.province_definitions.first_sea_province.index()) {
+					end_index += state.world.province_size();
+				}
+				register_trade_flow(map_data, start_index, end_index, absolute_volume);
+
+				start = end;
+			}
+		}
+	});
 
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
