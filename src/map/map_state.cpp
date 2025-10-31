@@ -146,7 +146,9 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 	// start with construction of trade_graph
 	std::map<int32_t, std::map<int32_t, float>> trade_graph;
+	
 	std::map<int32_t, float> trade_graph_toward_port;
+
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
@@ -413,6 +415,11 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		}
 	});
 
+
+	auto is_sea = [&](dcon::province_id x) {
+		return x.value >= state.province_definitions.first_sea_province.value;
+	};
+
 	// build arbitrary distance field
 
 	// choose "previous" node for every node
@@ -421,15 +428,92 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	std::map<int32_t, bool> visited;
 	state.world.for_each_province([&](dcon::province_id origin) { visited[origin.index()] = false; });
 
+	float the_most_fat_route = 0.f;
+
+	std::map<int32_t, std::map<int32_t, float>> trade_graph_incoming;
+	state.world.for_each_province([&](dcon::province_id origin) {
+		trade_graph_incoming[origin.index()] = { };
+	});
 	// todo: use the most important node as previous by storing "volume" and updating previous only when volume gets larger
 	std::map<int32_t, int32_t> previous;
 	state.world.for_each_province([&](dcon::province_id origin) {
 		if(trade_graph.contains(origin.index())) {
 			for(auto& [key, value] : trade_graph[origin.index()]) {
 				previous[key] = origin.index();
+				trade_graph_incoming[key][origin.index()] = value;
+				the_most_fat_route = std::max(the_most_fat_route, value);
 			}
 		}
 	});
+
+	std::map<int32_t, std::map<int32_t, float>> trade_graph_max_incoming;
+	state.world.for_each_province([&](dcon::province_id origin) {
+		trade_graph_max_incoming[origin.index()] = { };
+	});
+
+	state.world.for_each_province([&](dcon::province_id origin) {
+		if(trade_graph.contains(origin.index()) || previous.contains(origin.index())) {
+
+			auto total_outgoing = 0.f;
+			auto total_incoming = 0.f;
+
+			for(auto const& [index, volume] : trade_graph[origin.index()]) {
+				total_outgoing += volume;
+			}
+
+			for(auto const& [index, volume] : trade_graph_incoming[origin.index()]) {
+				total_incoming += volume;
+			}
+
+			auto left_outgoing = total_outgoing;
+			auto left_incoming = total_incoming;
+
+			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+
+					if(source == target) {
+						continue;
+					}
+
+					// if land->[port]->sea - abort
+					// if sea->[port]->land - abort
+					if(is_sea(source) && !is_sea(origin) && !is_sea(target))continue;
+					if(!is_sea(source) && !is_sea(origin) && is_sea(target))continue;
+
+					auto volume_start =
+						source_volume;
+					auto volume_end =
+						volume_start
+						* map_data.particle_next_node_probability[origin.index()][target_index];
+
+					left_incoming -= volume_end;
+					left_outgoing -= volume_end;
+
+					auto found = trade_graph_max_incoming[target_index].find(origin.index());
+					if(found == trade_graph_max_incoming[target_index].end())
+						trade_graph_max_incoming[target_index][origin.index()] = volume_end;
+					else if(trade_graph_max_incoming[target_index][origin.index()] < volume_end)
+						trade_graph_max_incoming[target_index][origin.index()] = volume_end;
+				}
+			}
+
+			if(left_outgoing > 0.001f) {
+				for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+					auto volume = target_volume * left_outgoing / total_outgoing;
+
+					auto found = trade_graph_max_incoming[target_index].find(origin.index());
+					if(found == trade_graph_max_incoming[target_index].end())
+						trade_graph_max_incoming[target_index][origin.index()] = volume;
+					else if(trade_graph_max_incoming[target_index][origin.index()] < volume)
+						trade_graph_max_incoming[target_index][origin.index()] = volume;
+				}
+			}
+		}
+	});
+
 
 	std::map<int32_t, float> distance_field;
 	std::vector<int32_t> to_visit;
@@ -477,6 +561,10 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 
 	// now we are building vertices
 
+	auto volume_to_width = [&](float volume) {
+		return std::abs(volume) / std::max(0.05f, the_most_fat_route) * 40000.f;
+	};
+
 	for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
 		auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
 
@@ -484,8 +572,8 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		glm::vec2 next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
 
 		if(volume < 0.f) {
-			next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
 			current_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
+			next_pos = put_in_local(get_army_location(state, coastal_province), current_pos, size_x);
 		}
 
 		glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
@@ -497,7 +585,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto old_size = map_data.trade_flow_vertices.size();
 		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
 
-		auto width = std::min(std::sqrt(std::abs(volume)) / cutoff, 5.f) * 1000.f;
+		auto width = volume_to_width(volume);
 
 		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
 			norm_pos,
@@ -539,73 +627,309 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		);
 	}
 
+	std::map<int32_t, bool> vertices_built;
+	state.world.for_each_province([&](dcon::province_id origin) { vertices_built[origin.index()] = false; });
+
+
+
 	state.world.for_each_province([&](dcon::province_id origin) {
-		if(trade_graph.contains(origin.index())) {
-			for(auto const& [target_index, volume] : trade_graph[origin.index()]) {
-				auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-				glm::vec2 current_pos = get_army_location(state, origin);
-				glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
+		
 
-				if(
-					origin.value < state.province_definitions.first_sea_province.value
-					&& target.value >= state.province_definitions.first_sea_province.value
-				) {
-					current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+		if(trade_graph.contains(origin.index()) || previous.contains(origin.index())) {
+
+			auto total_outgoing = 0.f;
+			auto total_incoming = 0.f;
+
+			for(auto const& [index, volume] : trade_graph[origin.index()]) {
+				total_outgoing += volume;
+			}
+
+			for(auto const& [index, volume] : trade_graph_incoming[origin.index()]) {
+				total_incoming += volume;
+			}
+
+			auto left_outgoing = total_outgoing;
+			auto left_incoming = total_incoming;
+
+			auto max_incoming = 0.f;
+			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+
 				}
+			}
 
-				if(
-					target.value < state.province_definitions.first_sea_province.value
-					&& origin.value >= state.province_definitions.first_sea_province.value
-				) {
-					next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
+			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+					glm::vec2 current_pos = get_army_location(state, origin);
+
+					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
+
+					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
+
+					if(source == target) {
+						continue;
+					}
+
+
+					// sea->[port]->sea
+					if(
+						is_sea(target)
+						&&
+						!is_sea(origin)
+						&&
+						is_sea(source)
+					) {
+						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+					}
+
+					// sea->sea->[port]
+					// [port]->sea->[port]
+					if(
+						!is_sea(target)
+						&&
+						is_sea(origin)
+					) {
+						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
+					}
+					// [port]->sea->sea
+					// [port]->sea->[port]
+					if(
+						!is_sea(source)
+						&&
+						is_sea(origin)
+					) {
+						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
+					}
+
+					// if land->[port]->sea - abort
+					// if sea->[port]->land - abort
+					if(is_sea(source) && !is_sea(origin) && !is_sea(target))continue;
+					if(!is_sea(source) && !is_sea(origin) && is_sea(target))continue;
+
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					glm::vec2 tangent_end = glm::normalize(next_pos - current_pos);
+
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = (current_pos + next_pos) / 2.f;
+
+					float distance = distance_field[source_index];
+
+					auto volume_start =
+						source_volume;
+					auto volume_end =
+						volume_start
+						* map_data.particle_next_node_probability[origin.index()][target_index];
+
+					left_incoming -= volume_end;
+					left_outgoing -= volume_end;
+
+					if(volume_end == 0.f) {
+						continue;
+					}
+
+					auto start_width = volume_to_width(trade_graph_max_incoming[origin.index()][source_index]);
+
+					if(start_width < 10.f) {
+						continue;
+					}
+					if(volume_to_width(volume_end) < 10.f) {
+						continue;
+					}
+
+					// finally
+					auto old_size = map_data.trade_flow_vertices.size();
+					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+
+					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
+					auto norm_pos = start / glm::vec2(size_x, size_y);
+
+
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_pos,
+						start_normal,
+						0.f,
+						distance,
+						start_width
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_pos,
+						-start_normal,
+						1.f,
+						distance,
+						start_width
+					});
+
+					add_bezier_to_buffer_variable_width(
+						map_data.trade_flow_vertices,
+						start,
+						end,
+						tangent_start,
+						tangent_end,
+						1.0f,
+						false,
+						size_x,
+						size_y,
+						40,
+						distance,
+						start_width,
+						volume_to_width(volume_end),
+						volume_to_width(volume_end)
+					);
+
+					map_data.trade_flow_arrow_counts.push_back(
+						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					);
 				}
+			}
 
-				glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
+			auto distance = distance_field[origin.index()];
 
-				auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
-				auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-				auto norm_next_pos = next_pos / glm::vec2(size_x, size_y);
+			if(left_incoming > 0.001f) {
+				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+					glm::vec2 current_pos = get_army_location(state, origin);
 
-				auto old_size = map_data.trade_flow_vertices.size();
-				map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
 
-				auto width = std::min(std::sqrt(std::abs(volume)) / cutoff, 5.f) * 1000.f;
+					//[port]->sea
+					if(
+						!is_sea(source)
+						&&
+						is_sea(origin)
+					) {
+						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
+					}
 
-				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-					norm_pos,
-					+start_normal,
-					0.f,
-					distance_field[origin.index()],
-					width
-				});
-				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-					norm_pos,
-					-start_normal,
-					1.f,
-					distance_field[origin.index()],
-					width
-				});
+					//sea->[port]
+					if(
+						is_sea(source)
+						&&
+						!is_sea(origin)
+					) {
+						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+					}
 
-				auto distance = province::direct_distance(state, origin, target) / width;
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
 
-				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-					norm_next_pos,
-					+start_normal,
-					0.f,
-					distance_field[origin.index()] + distance,
-					width
-				});
-				map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-					norm_next_pos,
-					-start_normal,
-					1.f,
-					distance_field[origin.index()] + distance,
-					width
-				});
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = current_pos;
 
-				map_data.trade_flow_arrow_counts.push_back(
-					GLsizei(map_data.trade_flow_vertices.size() - old_size)
-				);
+					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
+					auto norm_start = start / glm::vec2(size_x, size_y);
+					auto norm_end = end / glm::vec2(size_x, size_y);
+
+					auto volume = source_volume * left_incoming / total_incoming;
+
+					auto old_size = map_data.trade_flow_vertices.size();
+					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_start,
+						start_normal,
+						0.f,
+						distance - glm::distance(norm_end, norm_start),
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_start,
+						-start_normal,
+						1.f,
+						distance - glm::distance(norm_end, norm_start),
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_end,
+						start_normal,
+						0.f,
+						distance,
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_end,
+						-start_normal,
+						1.f,
+						distance,
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_arrow_counts.push_back(
+						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					);
+				}
+			}
+
+			if(left_outgoing > 0.001f) {
+				for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+					glm::vec2 current_pos = get_army_location(state, origin);
+
+					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
+
+					//sea->[port]
+					if(
+						!is_sea(target)
+						&&
+						is_sea(origin)
+					) {
+						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
+					}
+
+					//[port]->sea
+					if(
+						is_sea(target)
+						&&
+						!is_sea(origin)
+					) {
+						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+					}
+
+					glm::vec2 tangent_start = glm::normalize(next_pos - current_pos);
+
+					glm::vec2 start = current_pos;
+					glm::vec2 end = (current_pos + next_pos) / 2.f;
+
+					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
+					auto norm_start = start / glm::vec2(size_x, size_y);
+					auto norm_end = end / glm::vec2(size_x, size_y);
+
+					auto volume = target_volume * left_outgoing / total_outgoing;
+
+					auto old_size = map_data.trade_flow_vertices.size();
+					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_start,
+						start_normal,
+						0.f,
+						distance,
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_start,
+						-start_normal,
+						1.f,
+						distance,
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_end,
+						start_normal,
+						0.f,
+						distance + glm::distance(norm_end, norm_start),
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+						norm_end,
+						-start_normal,
+						1.f,
+						distance + glm::distance(norm_end, norm_start),
+						volume_to_width(volume)
+					});
+					map_data.trade_flow_arrow_counts.push_back(
+						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					);
+				}
 			}
 		}
 	});
