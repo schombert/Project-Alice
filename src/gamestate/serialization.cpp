@@ -1090,6 +1090,20 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
+native_string get_default_save_filename(sys::state& state, save_type type) {
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	if(type == sys::save_type::autosave) {
+		return native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin"));
+	}
+	else if(type == sys::save_type::bookmark) {
+		return simple_fs::utf8_to_native( "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin");
+	}
+	else {
+		auto tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		return simple_fs::utf8_to_native(make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin");
+	}
+}
+
 void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
@@ -1129,21 +1143,17 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 
 	if(type == sys::save_type::autosave) {
-		simple_fs::write_file(sdir, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin")), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		state.autosave_counter = (state.autosave_counter + 1) % sys::max_autosaves;
 	} else if(type == sys::save_type::bookmark) {
-		auto ymd_date = state.current_date.to_ymd(state.start_date);
-		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
 		if(!file_name.empty()) {
 			auto base_str = file_name + ".bin";
 			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 		else {
-			auto ymd_date = state.current_date.to_ymd(state.start_date);
-			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+			simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 	}
 	delete[] temp_buffer;

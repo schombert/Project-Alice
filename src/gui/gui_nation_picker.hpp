@@ -129,28 +129,6 @@ public:
 };
 
 
-struct save_item {
-	native_string file_name;
-	uint64_t timestamp = 0;
-	sys::date save_date;
-	dcon::national_identity_id save_flag;
-	dcon::government_type_id as_gov;
-	bool is_new_game = false;
-	bool checksum_match = false;
-	std::string name = "fe_new_game";
-
-	bool is_bookmark() const {
-		return file_name.starts_with(NATIVE("bookmark_"));
-	}
-
-	bool operator==(save_item const& o) const {
-		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
-	}
-	bool operator!=(save_item const& o) const {
-		return !(*this == o);
-	}
-};
-
 class select_save_game : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -344,11 +322,9 @@ public:
 		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
-			auto name = text::get_name(state, state.world.national_identity_get_nation_from_identity_holder(i->save_flag));
-			if(auto gov_name = state.world.national_identity_get_government_name(i->save_flag, i->as_gov); state.key_is_localized(gov_name)) {
-				name = gov_name;
-			}
-			set_text(state, text::produce_simple_string(state, name));
+			auto display_str = i->file_name;
+			simple_fs::remove_file_extension(display_str);
+			set_text(state, simple_fs::native_to_utf8( display_str));
 		}
 	}
 };
@@ -437,7 +413,7 @@ protected:
 				if(h.checksum.is_equal(state.scenario_checksum)) {
 					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, true, std::string(h.save_name) }));
 				}
-				else {
+				else if(state.user_settings.show_all_saves) {
 					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, false, std::string(h.save_name) }));
 				}
 			}
@@ -953,6 +929,42 @@ public:
 	}
 };
 
+class show_all_saves_checkbox : public checkbox_button {
+	void button_action(sys::state& state) noexcept {
+		state.user_settings.show_all_saves = !state.user_settings.show_all_saves;
+		state.save_list_updated.store(true, std::memory_order::release); // update save list
+		state.game_state_updated.store(true, std::memory_order::release); //update ui
+		state.save_user_settings();
+	}
+	bool is_active(sys::state& state) noexcept {
+		return state.user_settings.show_all_saves;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_show_all_saves_tooltip");
+		text::close_layout_box(contents, box);
+		
+	}
+	
+};
+
+class show_all_saves_setting_container : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "show_all_saves_checkbox") {
+			return make_element_by_type<show_all_saves_checkbox>(state, id);
+		} else if(name == "show_all_saves_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		}
+		return nullptr;
+	}
+
+};
+
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -989,6 +1001,9 @@ public:
 
 		} else if(name == "gamerules_button") {
 			return make_element_by_type< gamerules_button>(state, id);
+		}
+		else if(name == "show_all_saves_setting_container") {
+			return make_element_by_type<show_all_saves_setting_container>(state, id);
 		}
 		return nullptr;
 	}

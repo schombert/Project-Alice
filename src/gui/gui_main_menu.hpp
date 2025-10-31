@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_message_settings_window.hpp"
+#include "serialization.hpp"
 
 namespace ui {
 
@@ -449,8 +450,152 @@ class options_menu_window : public window_element_base {
 	}
 };
 
+struct set_save_filename {
+	std::string filename;
+};
+struct get_save_filename {
+	std::string filename;
+};
+
+class selectable_save_item : public checkbox_button {
+	void on_update(sys::state& state) noexcept override {
+		auto* save = retrieve<save_item*>(state, parent);
+		auto display_str = save->file_name;
+		simple_fs::remove_file_extension(display_str);
+		set_button_text(state, simple_fs::native_to_utf8( display_str));
+		checkbox_button::on_update(state);
+		
+	}
+	void button_action(sys::state& state) noexcept override {
+		auto* save = retrieve<save_item*>(state, parent);
+		auto save_filename = save->file_name;
+		simple_fs::remove_file_extension(save_filename);
+		send(state, parent, set_save_filename{ simple_fs::native_to_utf8( save_filename) });
+		state.game_state_updated.store(true, std::memory_order::release);
+	}
+};
+
+class save_menu_list_item : public listbox_row_element_base<std::shared_ptr<save_item>> {
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "game") {
+			return make_element_by_type<selectable_save_item>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
+		if(payload.holds_type<save_item*>()) {
+			payload.emplace<save_item*>(content.get());
+			return message_result::consumed;
+		}
+		return listbox_row_element_base<std::shared_ptr<save_item>>::get(state, payload);
+	}
+};
+
+class save_menu_list : public listbox_element_base< save_menu_list_item, std::shared_ptr<save_item>> {
+	std::string_view get_row_element_name() override {
+		return std::string_view{ "alice_main_menu_savegame_entry" };
+	}
+	void on_update(sys::state& state) noexcept override {
+		row_contents.clear();
+
+		auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
+		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
+			auto of = simple_fs::open_file(f);
+			if(of) {
+				auto content = simple_fs::view_contents(*of);
+				sys::save_header h;
+				if(content.file_size > sys::sizeof_save_header(h))
+					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
+				auto save = std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, true, std::string(h.save_name) });
+				if(!save->is_bookmark()) {
+					row_contents.push_back(std::move(save));
+				}
+			}
+		}
+
+		std::sort(row_contents.begin(), row_contents.end(), [](std::shared_ptr<save_item>const& a, std::shared_ptr<save_item> const& b) {
+			return a->timestamp > b->timestamp;
+		});
+		update(state);
+	}
+};
+
+class save_name_editbox : public edit_box_element_base {
+public:
+	void on_create(sys::state& state) noexcept override {
+		edit_box_element_base::on_create(state);
+		base_data.size.y += 4;
+		base_data.data.text.border_size.y += 8;
+	}
+};
+
+class save_button : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		auto result = retrieve<get_save_filename>(state, parent);
+		command::save_game(state, state.local_player_nation, false, result.filename);
+		if(parent) {
+			parent->set_visible(state, false);
+		}
+	}
+};
+
+
+class save_game_subwindow : public window_element_base {
+
+	save_name_editbox* editbox = nullptr;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "menu_savebg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "background") {
+			return make_element_by_type< draggable_target>(state, id);
+		} else if(name == "games") {
+			return make_element_by_type<save_menu_list>(state, id);
+		} else if(name == "savegame_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "save") {
+			return make_element_by_type<save_button>(state, id);
+		} else if(name == "cancel") {
+			return make_element_by_type<generic_close_button>(state, id);
+		} else if(name == "filename_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		} else if(name == "game_name") {
+			auto ptr = make_element_by_type<save_name_editbox>(state, id);
+			editbox = ptr.get();
+			return ptr;
+		} else {
+			return nullptr;
+		}
+	}
+	void on_visible(sys::state& state) noexcept override {
+		auto default_filename = sys::get_default_save_filename(state, sys::save_type::normal);
+		simple_fs::remove_file_extension(default_filename);
+		auto utf16_filename = simple_fs::utf8_to_utf16(simple_fs::native_to_utf8(default_filename));
+
+		editbox->set_text(state, utf16_filename);
+	}
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {
+		 if(payload.holds_type<set_save_filename>()) {
+			auto txt = any_cast<set_save_filename>(payload).filename;
+			editbox->set_text(state,simple_fs::utf8_to_utf16(txt) );
+			return message_result::consumed;
+		} else if(payload.holds_type<get_save_filename>()) {
+			payload.emplace<get_save_filename>(get_save_filename{ simple_fs::utf16_to_utf8(  editbox->get_text(state)) });
+			return message_result::consumed;
+		}
+		return message_result::unseen;
+	}
+};
+
+
+
+
 enum class main_menu_sub_window {
-	controls, audio, graphics, message_settings
+	controls, audio, graphics, message_settings, save_game
 };
 
 class close_application_button : public button_element_base {
@@ -465,13 +610,6 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		disabled = true;
-	}
-};
-
-class save_button : public button_element_base {
-public:
-	void button_action(sys::state& state) noexcept override {
-		command::save_game(state, state.local_player_nation, false);
 	}
 };
 
@@ -527,7 +665,10 @@ public:
 			audio_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-		} else {
+		} else if(name == "alice_save_menu") {
+			return make_element_by_type<invisible_element>(state, id);
+		}
+		else {
 			return nullptr;
 		}
 	}
@@ -568,6 +709,7 @@ class main_menu_window : public generic_tabbed_window<main_menu_sub_window> {
 	options_menu_window* controls_menu = nullptr;
 	options_menu_window* graphics_menu = nullptr;
 	options_menu_window* audio_menu = nullptr;
+	save_game_subwindow* save_menu = nullptr;
 	element_base* message_settings_menu = nullptr;
 
 public:
@@ -604,7 +746,9 @@ public:
 		} else if(name == "exit") {
 			return make_element_by_type<close_application_button>(state, id);
 		} else if(name == "save") {
-			return make_element_by_type<save_button>(state, id);
+			auto ptr = make_element_by_type<generic_tab_button<main_menu_sub_window>>(state, id);
+			ptr->target = main_menu_sub_window::save_game;
+			return ptr;
 		} else if(name == "save_and_exit") {
 			return make_element_by_type<save_and_quit_button>(state, id);
 		} else if(name == "alice_graphics_menu") {
@@ -622,7 +766,13 @@ public:
 			audio_menu = ptr.get();
 			ptr->set_visible(state, false);
 			return ptr;
-		} else {
+		} else if(name == "alice_save_menu") {
+			auto ptr = make_element_by_type<save_game_subwindow>(state, id);
+			save_menu = ptr.get();
+			ptr->set_visible(state, false);
+			return ptr;
+		}
+		else {
 			return nullptr;
 		}
 	}
@@ -636,6 +786,9 @@ public:
 			audio_menu->set_visible(state, false);
 		if(message_settings_menu)
 			message_settings_menu->set_visible(state, false);
+		if(save_menu) {
+			save_menu->set_visible(state, false);
+		}
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
@@ -655,6 +808,10 @@ public:
 			case main_menu_sub_window::message_settings:
 				message_settings_menu->set_visible(state, true);
 				state.ui_state.root->move_child_to_front(message_settings_menu);
+				break;
+			case main_menu_sub_window::save_game:
+				save_menu->set_visible(state, true);
+				//state.ui_state.root->move_child_to_front(save_menu);
 				break;
 			}
 			return message_result::consumed;

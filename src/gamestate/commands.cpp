@@ -131,16 +131,32 @@ void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::pr
 	}
 }
 
-void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename) {
 	command_data p{ command_type::save_game, state.local_player_id };
-	auto data = save_game_data{ and_quit };
+	uint8_t truncated_length = std::min<uint8_t>(uint8_t(filename.length()), std::numeric_limits<uint8_t>::max());
+	auto data = save_game_data{ and_quit,  truncated_length };
 	p << data;
+
+	p.push_ptr(filename.data(), truncated_length);
 	add_to_command_queue(state, p);
 
 }
 
-void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
-	sys::write_save_file(state);
+bool can_save_game(sys::state& state, command_data& command) {
+	auto& payload = command.get_payload<save_game_data_recv>();
+
+	// check that the filename length is correct before reading from it
+	if(!command.check_variable_size_payload<save_game_data>(payload.base.filename_len)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+
+	return true;
+}
+
+void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename) {
+	std::string_view c;
+	sys::write_save_file(state, sys::save_type::normal, "", filename);
 
 	if(and_quit) {
 		window::close_window(state);
@@ -6526,7 +6542,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::save_game:
 	{
-		return true; //can_save_game(state, c.source, c.data.save_game.and_quit);
+		return can_save_game(state, c);
 	}
 
 	case command_type::cancel_factory_building_construction:
@@ -7305,8 +7321,9 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::save_game:
 	{
-		auto& data = c.get_payload<save_game_data>();
-		execute_save_game(state, source_nation, data.and_quit);
+		auto& data = c.get_payload<save_game_data_recv>();
+		std::string str(data.filename, data.base.filename_len);
+		execute_save_game(state, source_nation, data.base.and_quit, str);
 		break;
 	}
 	case command_type::cancel_factory_building_construction:
@@ -7419,12 +7436,7 @@ bool execute_command(sys::state& state, command_data& c) {
 		// common mp commands
 	case command_type::chat_message:
 	{
-		// by this time we know that the msg_len is legit, after can_perform_command
 		auto& data = c.get_payload<chat_message_data_recv>();
-		/*size_t count = 0;
-		for(count = 0; count < sizeof(data.body); count++)
-			if(data.body[count] == '\0')
-				break;*/
 		std::string_view sv(data.body, data.data.msg_len);
 		execute_chat_message(state, source_nation, sv, data.data.target, c.header.player_id);
 		break;
