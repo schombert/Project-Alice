@@ -1156,6 +1156,13 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 	};
 
 	float total = 0.0f;
+
+	auto const admin_spending = full_spendings_administration(state, n, base_budget);
+	costs.administration = admin_spending;
+	total += admin_spending;
+
+	assert(std::isfinite(total) && total >= 0.0f);
+
 	float military_total = 0.f;
 	uint32_t total_commodities = state.world.commodity_size();
 
@@ -1230,15 +1237,6 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 			}
 		}
 	}
-
-
-	assert(std::isfinite(total) && total >= 0.0f);
-
-
-	// wages to employed:
-	auto const admin_spending = full_spendings_administration(state, n, base_budget);
-	costs.administration = admin_spending;
-	total += admin_spending;
 
 	assert(std::isfinite(total) && total >= 0.0f);
 
@@ -4202,77 +4200,6 @@ float estimate_tariff_export_income(sys::state& state, dcon::nation_id n) {
 		});
 	});
 	return result;
-}
-
-float estimate_social_spending(sys::state& state, dcon::nation_id n) {
-	auto base_budget = economy::estimate_next_budget(state, n);
-	auto const p_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level));
-	auto const unemp_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit));
-
-	if(p_level + unemp_level == 0.f) {
-		return 0.f;
-	}
-
-	auto social_budget = base_budget * float(state.world.nation_get_social_spending(n)) / 100.0f;
-
-	return social_budget;
-}
-
-float estimate_education_spending(sys::state& state, dcon::nation_id n) {
-	// account for refund
-	auto base_budget = economy::estimate_next_budget(state, n);
-
-	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
-
-	auto total = 0.f;
-
-	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
-		auto p = state.world.province_ownership_get_province(ownership);
-		auto education_priority = float(state.world.nation_get_education_spending(n)) / 100.f;
-		auto education_budget = base_budget * education_priority;
-		auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
-		auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
-		auto weight = total_population == 0.f ? 0.f : local_population / total_population;
-		auto local_education_budget = weight * education_budget;
-		total = total + std::max(0.f, local_education_budget * state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type));
-	});
-
-	return total;
-}
-
-float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in) {
-	auto total = 0.f;
-	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
-		auto local_state = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(local_state);
-		state.world.for_each_pop_type([&](dcon::pop_type_id pt) {
-			auto adj_pop_of_type =
-				state.world.state_instance_get_demographics(local_state, demographics::to_key(state, pt)) / state.defines.alice_needs_scaling_factor;
-
-			if(adj_pop_of_type <= 0)
-				return;
-
-			auto ln_type = culture::income_type(state.world.pop_type_get_life_needs_income_type(pt));
-			if(ln_type == in) {
-				total += adj_pop_of_type * state.world.market_get_life_needs_costs(market, pt);
-			}
-
-			auto en_type = culture::income_type(state.world.pop_type_get_everyday_needs_income_type(pt));
-			if(en_type == in) {
-				total += adj_pop_of_type * state.world.market_get_everyday_needs_costs(market, pt);
-			}
-
-			auto lx_type = culture::income_type(state.world.pop_type_get_luxury_needs_income_type(pt));
-			if(lx_type == in) {
-				total += adj_pop_of_type * state.world.market_get_luxury_needs_costs(market, pt);
-			}
-		});
-	});
-	return total * payouts_spending_multiplier;
-}
-
-float estimate_subsidy_spending(sys::state& state, dcon::nation_id n) {
-	return state.world.nation_get_subsidies_spending(n);
 }
 
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n) {

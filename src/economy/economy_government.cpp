@@ -62,59 +62,42 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 	return base * from_control * efficiency;
 }
 
-float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority) {
-	float total = 0.f;
-	auto admin_budget = economy::estimate_next_budget(state, n) * budget_priority;
-	auto admin_count = count_active_administrations(state, n);
-	if(admin_count == 0.f) {
+float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget) {
+	auto capital = state.world.nation_get_capital(n);
+	if(state.world.province_get_nation_from_province_control(capital) != n) {
 		return 0.f;
 	}
-	auto budget_per_administration = admin_budget / admin_count;
-	{
-		auto capital = state.world.nation_get_capital(n);
-		if(state.world.province_get_nation_from_province_control(capital) == n) {
-			auto capital_state = state.world.province_get_state_membership(capital);
-			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
-			auto demand = budget_per_administration / wage;
-			total += demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		}
-	}
-
-	return total;
+	auto capital_state = state.world.province_get_state_membership(capital);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	auto demand = budget / wage;
+	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 }
 
-float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority) {
+float estimate_spendings_administration_local(sys::state& state, dcon::nation_id n, dcon::administration_id admin, float budget) {
+	auto capital = state.world.administration_get_capital(admin);
+	if(state.world.province_get_nation_from_province_control(capital) != n) {
+		return 0.f;
+	}
+	auto capital_state = state.world.province_get_state_membership(capital);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	auto demand = budget / wage;
+	return demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+}
+
+float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget) {
 	float total = 0.f;
-	auto admin_budget = economy::estimate_next_budget(state, n) * budget_priority;
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;
 	}
-	auto budget_per_administration = admin_budget / admin_count;
-	{
-		auto capital = state.world.nation_get_capital(n);
-		if(state.world.province_get_nation_from_province_control(capital) == n) {
-			auto capital_state = state.world.province_get_state_membership(capital);
-			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
-			auto demand = budget_per_administration / wage;
-			total += demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		}
-	}
+	auto budget_per_administration = budget / admin_count;
+	total += estimate_spendings_administration_capital(state, n, budget_per_administration);
 	state.world.nation_for_each_nation_administration(n, [&](auto naid) {
 		auto admin = state.world.nation_administration_get_administration(naid);
-		auto capital = state.world.administration_get_capital(admin);
-		if(state.world.province_get_nation_from_province_control(capital) != n) {
-			return;
-		}
-		auto capital_state = state.world.province_get_state_membership(capital);
-		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
-		auto demand = budget_per_administration / wage;
-		total += demand * wage * state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		total += estimate_spendings_administration_local(state, n, admin, budget_per_administration);
 	});
-
 	return total;
 }
 

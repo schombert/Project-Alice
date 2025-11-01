@@ -3,6 +3,7 @@
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
 #include "economy_government.hpp"
+#include "national_budget.hpp"
 #include "construction.hpp"
 #include "demographics.hpp"
 #include "prng.hpp"
@@ -741,7 +742,7 @@ void update_budget(sys::state& state, bool presim) {
 	
 		n.set_administrative_spending(35);
 
-		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
+		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
 
 		n.set_education_spending(int8_t(education_budget_ratio * 100.f));

@@ -1332,9 +1332,10 @@ float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon:
 }
 
 float estimate_next_budget(sys::state& state, dcon::nation_id n) {
+	// treasury is remainder after spending + income
+	// so there is no need to account for income as it's already there
 	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
-	auto future_income = economy::estimate_daily_income(state, n);
-	return treasury + future_income;
+	return treasury;
 }
 
 }
