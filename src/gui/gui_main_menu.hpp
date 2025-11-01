@@ -459,17 +459,15 @@ struct get_save_filename {
 
 class selectable_save_item : public checkbox_button {
 	void on_update(sys::state& state) noexcept override {
-		auto* save = retrieve<save_item*>(state, parent);
-		auto display_str = save->file_name;
-		simple_fs::remove_file_extension(display_str);
+		const auto* save = retrieve<save_item*>(state, parent);
+		auto display_str = simple_fs::remove_file_extension(save->file_name);
 		set_button_text(state, simple_fs::native_to_utf8( display_str));
 		checkbox_button::on_update(state);
 		
 	}
 	void button_action(sys::state& state) noexcept override {
-		auto* save = retrieve<save_item*>(state, parent);
-		auto save_filename = save->file_name;
-		simple_fs::remove_file_extension(save_filename);
+		const auto* save = retrieve<save_item*>(state, parent);
+		auto save_filename = simple_fs::remove_file_extension(save->file_name);
 		send(state, parent, set_save_filename{ simple_fs::native_to_utf8( save_filename) });
 		state.game_state_updated.store(true, std::memory_order::release);
 	}
@@ -572,7 +570,7 @@ class save_game_subwindow : public window_element_base {
 	}
 	void on_visible(sys::state& state) noexcept override {
 		auto default_filename = sys::get_default_save_filename(state, sys::save_type::normal);
-		simple_fs::remove_file_extension(default_filename);
+		default_filename = simple_fs::remove_file_extension(default_filename);
 		auto utf16_filename = simple_fs::utf8_to_utf16(simple_fs::native_to_utf8(default_filename));
 
 		editbox->set_text(state, utf16_filename);

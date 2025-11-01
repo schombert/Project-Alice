@@ -732,6 +732,15 @@ std::string remove_double_backslashes(std::string_view data_in) {
 	return res;
 }
 
+native_string remove_file_extension(const native_string& str) {
+	size_t found = str.find_last_of(NATIVE("."));
+	if(found != native_string::npos) {
+		return native_string(str, 0, found);
+	} else {
+		return native_string(str);
+	}
+}
+
 native_string correct_slashes(native_string_view path) {
 	std::string res;
 	res.reserve(path.size());

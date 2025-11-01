@@ -101,5 +101,5 @@ std::u16string utf8_to_utf16(std::string_view data_in);
 
 std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
 native_string correct_slashes(native_string_view path);
-void remove_file_extension(native_string& str);
+native_string remove_file_extension(const native_string& str);
 } // namespace simple_fs

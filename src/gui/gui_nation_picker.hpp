@@ -322,8 +322,7 @@ public:
 		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
-			auto display_str = i->file_name;
-			simple_fs::remove_file_extension(display_str);
+			auto display_str = simple_fs::remove_file_extension(i->file_name);
 			set_text(state, simple_fs::native_to_utf8( display_str));
 		}
 	}
