@@ -1793,3 +1793,7 @@ alice_gamerule_auto_concession_peace;Auto-peace when conceding wargoals
 alice_gamerule_auto_concession_peace_desc;Specifies whether a conceding peacedeal (ie one side surrenders to ALL added wargoals, or 100 warscore) will always be accepted no matter what
 alice_gamerule_auto_concession_peace_opt_cannot_reject;Conceding peace offers cannot be rejected
 alice_gamerule_auto_concession_peace_opt_can_reject;Conceding peace offers can be rejected
+alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario than the currently loaded one. The save may be buggy, fail to load or crash the game.?W
+alice_show_all_saves_text;Show all saves
+alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
+alice_save_input_filename_label;Saved game filename (empty is default name):

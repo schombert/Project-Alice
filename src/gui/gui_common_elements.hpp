@@ -66,6 +66,29 @@ struct production_selection_wrapper {
 	xy_pair focus_pos{ 0, 0 };
 };
 
+
+struct save_item {
+	native_string file_name;
+	uint64_t timestamp = 0;
+	sys::date save_date;
+	dcon::national_identity_id save_flag;
+	dcon::government_type_id as_gov;
+	bool is_new_game = false;
+	bool checksum_match = false;
+	std::string name = "fe_new_game";
+
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
+
+	bool operator==(save_item const& o) const {
+		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
+	}
+	bool operator!=(save_item const& o) const {
+		return !(*this == o);
+	}
+};
+
 // Open Build new Factory window
 void open_build_factory(sys::state& state, dcon::province_id pid);
 // Open Build new Factory abroad (investment) window
@@ -2456,6 +2479,29 @@ class go_to_base_game_button : public button_element_base {
 	void button_action(sys::state& state) noexcept final {
 		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 	}
+};
+
+
+class show_all_saves_checkbox : public checkbox_button {
+	void button_action(sys::state& state) noexcept override {
+		state.user_settings.show_all_saves = !state.user_settings.show_all_saves;
+		state.save_list_updated.store(true, std::memory_order::release); // update save list
+		state.game_state_updated.store(true, std::memory_order::release); //update ui
+		state.save_user_settings();
+	}
+	bool is_active(sys::state& state) noexcept override {
+		return state.user_settings.show_all_saves;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_show_all_saves_tooltip");
+		text::close_layout_box(contents, box);
+
+	}
+
 };
 
 inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov_id, dcon::commodity_id c) {

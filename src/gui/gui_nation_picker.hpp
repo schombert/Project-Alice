@@ -129,27 +129,6 @@ public:
 };
 
 
-struct save_item {
-	native_string file_name;
-	uint64_t timestamp = 0;
-	sys::date save_date;
-	dcon::national_identity_id save_flag;
-	dcon::government_type_id as_gov;
-	bool is_new_game = false;
-	std::string name = "fe_new_game";
-
-	bool is_bookmark() const {
-		return file_name.starts_with(NATIVE("bookmark_"));
-	}
-
-	bool operator==(save_item const& o) const {
-		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
-	}
-	bool operator!=(save_item const& o) const {
-		return !(*this == o);
-	}
-};
-
 class select_save_game : public button_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -343,11 +322,19 @@ public:
 		} else if(i->is_bookmark()) {
 			set_text(state, text::produce_simple_string(state, i->name));
 		} else {
-			auto name = text::get_name(state, state.world.national_identity_get_nation_from_identity_holder(i->save_flag));
-			if(auto gov_name = state.world.national_identity_get_government_name(i->save_flag, i->as_gov); state.key_is_localized(gov_name)) {
-				name = gov_name;
+			// if the filename has the default name (with the hash and everything), don't display it
+			if(i->name == simple_fs::native_to_utf8( i->file_name)) {
+				auto name = text::get_name(state, state.world.national_identity_get_nation_from_identity_holder(i->save_flag));
+				if(auto gov_name = state.world.national_identity_get_government_name(i->save_flag, i->as_gov); state.key_is_localized(gov_name)) {
+					name = gov_name;
+				}
+				set_text(state, text::produce_simple_string(state, name));
 			}
-			set_text(state, text::produce_simple_string(state, name));
+			// if the filename is custom; display that
+			else {
+				auto display_str = simple_fs::remove_file_extension(i->file_name);
+				set_text(state, simple_fs::native_to_utf8(display_str));
+			}
 		}
 	}
 };
@@ -357,6 +344,29 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
 		set_text(state, text::date_to_string(state, i->save_date));
+	}
+};
+
+class save_warning : public image_element_base {
+	bool visible = false;
+	void on_update(sys::state& state) noexcept override {
+		save_item* save_data = retrieve< save_item*>(state, parent);
+		visible = !save_data->checksum_match;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		if(visible) {
+			image_element_base::render(state, x, y);
+		}
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(visible) {
+			auto box = text::open_layout_box(contents, 0);
+			text::localised_format_box(state, contents, box, "alice_savegame_incompatible_warning");
+			text::close_layout_box(contents, box);
+		}
 	}
 };
 
@@ -377,6 +387,8 @@ public:
 			return make_element_by_type<save_name>(state, id);
 		} else if(name == "date") {
 			return make_element_by_type<save_date>(state, id);
+		} else if(name == "warning") {
+			return make_element_by_type<save_warning>(state, id);
 		}
 		return nullptr;
 	}
@@ -398,9 +410,9 @@ protected:
 
 	void update_save_list(sys::state& state) noexcept {
 		row_contents.clear();
-		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, std::string("") }));
+		row_contents.push_back(std::make_shared<save_item>(save_item{ NATIVE(""), 0, sys::date(0), dcon::national_identity_id{ }, dcon::government_type_id{ }, true, true, std::string("") }));
 
-		auto sdir = simple_fs::get_or_create_save_game_directory();
+		auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 		for(auto& f : simple_fs::list_files(sdir, NATIVE(".bin"))) {
 			auto of = simple_fs::open_file(f);
 			if(of) {
@@ -409,7 +421,10 @@ protected:
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				if(h.checksum.is_equal(state.scenario_checksum)) {
-					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, std::string(h.save_name) }));
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, true, std::string(h.save_name) }));
+				}
+				else if(state.user_settings.show_all_saves) {
+					row_contents.push_back(std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, false, std::string(h.save_name) }));
 				}
 			}
 		}
@@ -924,6 +939,21 @@ public:
 	}
 };
 
+
+class show_all_saves_setting_container : public window_element_base {
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "background") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "show_all_saves_checkbox") {
+			return make_element_by_type<show_all_saves_checkbox>(state, id);
+		} else if(name == "show_all_saves_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		}
+		return nullptr;
+	}
+
+};
+
 class nation_picker_container : public window_element_base {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -960,6 +990,9 @@ public:
 
 		} else if(name == "gamerules_button") {
 			return make_element_by_type< gamerules_button>(state, id);
+		}
+		else if(name == "show_all_saves_setting_container") {
+			return make_element_by_type<show_all_saves_setting_container>(state, id);
 		}
 		return nullptr;
 	}

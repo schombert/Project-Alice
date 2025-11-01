@@ -61,6 +61,9 @@ bool is_ignored_path(file_system const& fs, native_string_view path);
 directory open_directory(directory const& dir, native_string_view directory_name);
 native_string get_full_name(directory const& f);
 
+native_string get_mod_save_dir_name(const simple_fs::file_system& fs);
+
+
 // write_file will clear an existing file, if it exists, will create a new file if it does not
 void write_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
 void append_file(directory const& dir, native_string_view file_name, char const* file_data, uint32_t file_size);
@@ -76,7 +79,7 @@ file_contents view_contents(file const& f);
 native_string get_full_name(file const& f);
 
 // functions that operate outside of a filesystem object
-directory get_or_create_save_game_directory();
+directory get_or_create_save_game_directory(native_string mod_dir);
 directory get_or_create_templates_directory();
 directory get_or_create_gamerules_directory();
 directory get_or_create_oos_directory();
@@ -98,4 +101,5 @@ std::u16string utf8_to_utf16(std::string_view data_in);
 
 std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
 native_string correct_slashes(native_string_view path);
+native_string remove_file_extension(const native_string& str);
 } // namespace simple_fs
