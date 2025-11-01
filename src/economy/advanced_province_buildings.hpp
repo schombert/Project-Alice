@@ -44,5 +44,6 @@ void update_consumption(sys::state& state);
 void update_private_size(sys::state& state);
 void update_national_size(sys::state& state);
 void update_production(sys::state& state);
+void update_profit_and_refund(sys::state& state);
 
 }

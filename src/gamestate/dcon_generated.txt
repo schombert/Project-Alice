@@ -1772,6 +1772,11 @@ object {
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
+	property {
+		name{ advanced_province_building_private_output }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
 
 	property {
 		name{ service_price }

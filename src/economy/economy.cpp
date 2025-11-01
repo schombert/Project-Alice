@@ -3010,6 +3010,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.province_get_state_membership(capital)
 		);
 
+		// refund national employment:
+		refund_demand_administration(state, n);
+
 		/*
 		determine effective spending levels
 		we iterate over all markets to gather contruction data
@@ -3153,6 +3156,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	});
 
 	set_profile_point("refund_nations");
+
+	advanced_province_buildings::update_profit_and_refund(state);
+
+	set_profile_point("refund and profit of advanced province buildings");
 
 	sanity_check(state);
 
@@ -4212,8 +4219,25 @@ float estimate_social_spending(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_education_spending(sys::state& state, dcon::nation_id n) {
+	// account for refund
 	auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
-	return float(state.world.nation_get_education_spending(n)) * base_budget / 100.f;
+
+	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
+
+	auto total = 0.f;
+
+	state.world.nation_for_each_province_ownership(n, [&](auto ownership) {
+		auto p = state.world.province_ownership_get_province(ownership);
+		auto education_priority = float(state.world.nation_get_education_spending(n)) / 100.f;
+		auto education_budget = base_budget * education_priority;
+		auto total_population = state.world.nation_get_demographics(n, demographics::primary_or_accepted);
+		auto local_population = state.world.province_get_demographics(p, demographics::primary_or_accepted);
+		auto weight = total_population == 0.f ? 0.f : local_population / total_population;
+		auto local_education_budget = weight * education_budget;
+		total = total + std::max(0.f, local_education_budget * state.world.province_get_labor_demand_satisfaction(p, def.throughput_labour_type));
+	});
+
+	return total;
 }
 
 float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in) {
