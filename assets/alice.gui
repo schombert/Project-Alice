@@ -38,7 +38,7 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "show_all_saves_label"
-			position = { 23 7 }
+			position = { -8 7 }
 			font = "vic_18_black"
 			text = "alice_show_all_saves_text"
 			maxsize = { 212 32 }
