@@ -3,6 +3,7 @@
 #include <thread>
 #include "system_state.hpp"
 #include "dcon_generated.hpp"
+#include "lua_alice_api.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"
 #include "window.hpp"
@@ -22,6 +23,7 @@
 #include "gui_land_combat.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_state_select.hpp"
+#include "gui_national_identity_select.hpp"
 #include "gui_error_window.hpp"
 #include "gui_diplomacy_request_topbar.hpp"
 #include "map_tooltip.hpp"
@@ -62,7 +64,13 @@ void create_in_game_windows(sys::state& state) {
 
 	//
 	state.ui_state.select_states_legend = ui::make_element_by_type<ui::map_state_select_window>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_select_legend_window"))->second.definition);
-
+	// create UI for national identity selector
+	{
+		auto key = state.lookup_key("alice_select_legend_window");
+		auto def = state.ui_state.defs_by_name.find(key)->second.definition;
+		auto window = ui::make_element_by_type<ui::map_national_identity_select_window>(state, def);
+		state.ui_state.select_national_identity_root->add_child_to_front(std::move(window));
+	}
 	// create ui for army selector
 	{
 		{
@@ -310,9 +318,6 @@ void create_in_game_windows(sys::state& state) {
 namespace sys {
 
 void state::start_state_selection(state_selection_data& data) {
-	if(state_selection) {
-		state_selection->on_cancel(*this);
-	}
 	state_selection = data;
 
 	game_scene::switch_scene(*this, game_scene::scene_id::in_game_state_selector);
@@ -322,13 +327,27 @@ void state::start_state_selection(state_selection_data& data) {
 	}
 }
 
+void state::start_national_identity_selection(national_identity_selection_data& data) {
+	national_identity_selection = data;
+
+	game_scene::switch_scene(*this, game_scene::scene_id::in_game_national_identity_selector);
+
+	if(ui_state.select_national_identity_root) {
+		ui_state.select_national_identity_root->impl_on_update(*this);
+	}
+	ui_state.root->impl_on_update(*this);
+}
+
 void state::state_select(dcon::state_definition_id sdef) {
 	assert(state_selection);
 	if(std::find(state_selection->selectable_states.begin(), state_selection->selectable_states.end(), sdef) != state_selection->selectable_states.end()) {
 		if(state_selection->single_state_select) {
-			state_selection->on_select(*this, sdef);
 			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+			state_selection->on_select(*this, sdef);
+			state_selection.reset();
+			// Order of calls is important since callback can switch us to another scene with selector
 		} else {
+			// Multi-state selection is not supported
 			/*auto it = std::find(state.selected_states.begin(), state.selected_states.end(), sdef);
 			if(it == state.selected_states.end()) {
 				on_select(sdef);
@@ -336,6 +355,31 @@ void state::state_select(dcon::state_definition_id sdef) {
 				state.selected_states.erase(std::remove(state.selected_states.begin(), state.selected_states.end(), sdef), state.selected_states.end());
 			}*/
 			std::abort();
+		}
+	}
+	map_state.update(*this);
+}
+
+// A national identity was selected from the legend
+void state::national_identity_select(dcon::national_identity_id ni) {
+	assert(national_identity_selection);
+	if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
+		national_identity_selection->on_select(*this, ni);
+		game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
+		national_identity_selection.reset();
+	}
+	map_state.update(*this);
+}
+
+// A province was selected on the map
+void state::national_identity_select(dcon::province_id prov) {
+	assert(national_identity_selection);
+
+	for(auto core : world.province_get_core(prov)) {
+		auto ni = core.get_identity();
+		if(std::find(national_identity_selection->selectable_identities.begin(), national_identity_selection->selectable_identities.end(), ni) != national_identity_selection->selectable_identities.end()) {
+			national_identity_selection->on_select(*this, ni);
+			game_scene::switch_scene(*this, game_scene::scene_id::in_game_basic);
 		}
 	}
 	map_state.update(*this);
@@ -555,7 +599,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	}
 
 	dcon::nation_id current_nation{ progress };
-	
+
 	// ACTUAL CALCULATIONS BEGIN
 
 	auto export_temp = economy::export_volume(state, current_nation, commodity);
@@ -579,7 +623,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 	production_volume.set(progress, production_temp);
 	consumption_volume.set(progress, consumption_temp);
-	
+
 	progress++;
 	return false;
 }
@@ -961,12 +1005,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(ui_state.last_render_time == std::chrono::time_point<std::chrono::steady_clock>{}) {
 		ui_state.last_render_time = now;
 	}
+	auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
+	auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
+	ui_state.last_render_time = now;
+
 	if(ui_state.fps_timer > 20) {
-		auto microseconds_since_last_render = std::chrono::duration_cast<std::chrono::microseconds>(now - ui_state.last_render_time);
-		auto frames_per_second = 1.f / float(microseconds_since_last_render.count() / 1e6);
 		ui_state.last_fps = frames_per_second;
 		ui_state.fps_timer = 0;
-		ui_state.last_render_time = now;
 	}
 	ui_state.fps_timer += 1;
 
@@ -1587,6 +1632,22 @@ void state::render() { // called to render the frame may (and should) delay retu
 		}
 	}
 
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice");
+	lua_getfield(lua_ui_environment, -1, "on_ui_thread_update");
+	lua_remove(lua_ui_environment, -2);
+	lua_pushinteger(lua_ui_environment, microseconds_since_last_render.count());
+	lua_pushinteger(lua_ui_environment, x_size);
+	lua_pushinteger(lua_ui_environment, y_size);
+	//lua_call(lua_ui_environment, 3, 0);
+	auto result = lua_pcall(lua_ui_environment, 3, 0, 0);
+	if(result) {
+		console_log(lua_tostring(lua_ui_environment, -1));
+		lua_settop(lua_ui_environment, 0);
+	}
+
+	assert(lua_gettop(lua_ui_environment) == 0);
+
+
 	if(ui_state.fps_counter) {
 		if(ui_state.fps_counter->is_visible()) {
 			glEndQuery(GL_TIME_ELAPSED);
@@ -1596,14 +1657,137 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
+// example of providing LUA API if someone would ever need it for something
+static int draw_rectangle(lua_State* L) {
+	// get amount of arguments
+	int n = lua_gettop(L);
+
+	// validation
+	if(n != 4) {
+		lua_pushstring(L, "incorrect count of arguments");
+		lua_error(L);
+	}
+	for(int i = 1; i <= n; i++) {
+		if(!lua_isnumber(L, i)) {
+			lua_pushstring(L, "incorrect argument");
+			lua_error(L);
+		}
+	}
+
+
+	auto x = lua_tonumber(L, 1);
+	auto y = lua_tonumber(L, 2);
+	auto width = lua_tonumber(L, 3);
+	auto height = lua_tonumber(L, 4);
+
+	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
+	state* alice_state = (state*)(lua_touserdata(L, -1));
+
+	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
+
+	// return number of results
+	return 0;
+}
+
 void state::on_create() {
+	// lua
+
+	lua_alice_api::set_state(this);
+
+	auto root = get_root(common_fs);
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+
+	lua_ui_environment = luaL_newstate();
+	luaL_openlibs(lua_ui_environment);
+
+	lua_game_loop_environment = luaL_newstate();
+	luaL_openlibs(lua_game_loop_environment);
+
+	// pointer to alice state
+	lua_pushlightuserdata(lua_ui_environment, (void*)(this));
+	lua_setfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_state");
+
+	// alice table
+	{
+		lua_newtable(lua_ui_environment);
+		lua_setglobal(lua_ui_environment, "alice");
+		assert(lua_gettop(lua_ui_environment) == 0);
+	}
+
+	{
+		lua_newtable(lua_game_loop_environment);
+		lua_setglobal(lua_game_loop_environment, "alice");
+		assert(lua_gettop(lua_game_loop_environment) == 0);
+	}
+
+
+	// graphics subsystem
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+	lua_newtable(lua_ui_environment); // [alice, table
+	lua_setfield(lua_ui_environment, -2, "graphics"); // [alice
+	lua_remove(lua_ui_environment, -1); // [
+
+	assert(lua_gettop(lua_ui_environment) == 0);
+
+	// rectangle
+	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+	lua_getfield(lua_ui_environment, -1, "graphics"); // [alice, graphics
+	lua_remove(lua_ui_environment, -2); // [graphics
+	lua_pushcfunction(lua_ui_environment, draw_rectangle); // [graphics, draw_rectangle
+	lua_setfield(lua_ui_environment, -2, "rect"); // [graphics,
+	lua_remove(lua_ui_environment, -1); // [
+
+	assert(lua_gettop(lua_ui_environment) == 0);
+
+	// populate the table with scripted functions
+	{
+		int status;
+		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
+			lua_settop(lua_ui_environment, 0);
+			std::abort();
+		}
+
+		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
+#endif
+			lua_settop(lua_ui_environment, 0);
+			std::abort();
+		}
+	}
+
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
 	ui_state.tooltip_font = text::name_into_font_id(*this, "ToolTip_Font");
 	ui_state.default_header_font = text::name_into_font_id(*this, "vic_22");
 	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
 
 	// Load late ui defs
-	auto root = get_root(common_fs);
-	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+
+
 	for(auto gui_file : list_files(assets, NATIVE(".aui"))) {
 		auto file_name = simple_fs::get_file_name(gui_file);
 		auto opened_file = open_file(gui_file);
@@ -2026,7 +2210,7 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(fow_enabled);
+	US_SAVE(UNUSED_BOOL);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -2096,7 +2280,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(fow_enabled);
+			US_LOAD(UNUSED_BOOL);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -2217,6 +2401,40 @@ void state::load_user_settings() {
 		font_collection.change_locale(*this, dcon::locale_id{ 0 });
 	}
 }
+
+void state::load_gamerule_settings() {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	auto f = simple_fs::open_file(sdir, loaded_scenario_file);
+	if(f) {
+		auto contents = simple_fs::view_contents(*f);
+		auto data_ptr = reinterpret_cast<const uint8_t*>(contents.data);
+		uint32_t num_gamerule_settings = contents.file_size / sizeof(uint8_t);
+		//Corruption protection
+		if(num_gamerule_settings >= 8192 * 4)
+			num_gamerule_settings = 8192 * 4;
+
+		for(uint32_t i = 0; i < num_gamerule_settings; i++) {
+			uint8_t setting = data_ptr[i];
+			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
+			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
+				gamerule::set_gamerule(*this, gamerule, setting);
+			}
+		}
+	}
+}
+
+
+void state::save_gamerule_settings() const {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	std::vector<uint8_t> current_gamerule_settings;
+	current_gamerule_settings.reserve(world.gamerule_size());
+	for(auto gr : world.in_gamerule) {
+		current_gamerule_settings.push_back(gr.get_current_setting());
+	}
+	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
+
+}
+
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
@@ -2613,7 +2831,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			parsers::parse_scan_gamerule_file(gen, err, context);
 		}
 		// some sanity checks
-		for(const auto& gamerule : context.state.world.in_gamerule) {
+		for(auto gamerule : context.state.world.in_gamerule) {
 			if(gamerule.get_settings_count() == uint8_t(0)) {
 				err.accumulated_errors += "Gamerule with name " + text::produce_simple_string(context.state, gamerule.get_name()) + " has no defined options\n";
 			}
@@ -2766,9 +2984,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 
-		if(!bool(military_definitions.infantry)) {
-			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
-		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
@@ -3856,7 +4071,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 	// apply effects from gamerule options which are on by default
-	for(const auto& gamerule : context.state.world.in_gamerule) {
+	for(auto gamerule : context.state.world.in_gamerule) {
 		if(gamerule.get_settings_count() > 0) {
 			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
 			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
@@ -3869,6 +4084,48 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		dcon::decision_id d = pending_decision.second;
 		if(auto e = world.decision_get_effect(d); e)
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
+
+	// read lua scripts
+	lua_combined_script.clear();
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
+	{
+		// read dcon wrappers
+		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
+		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
+			auto opened_file = open_file(province_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				lua_combined_script += "\n";
+			}
+		}
+
+		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
+		if(hand_written_wrappers) {
+			auto content = view_contents(*hand_written_wrappers);
+			lua_combined_script += content.data;
+			lua_combined_script += "\n";
+		}
+
+		// read loader for game thread
+		lua_game_loop_script.clear();
+		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
+		if(game_loop) {
+			auto content = view_contents(*game_loop);
+			lua_game_loop_script += content.data;
+			lua_game_loop_script += "\n";
+		}
+
+		// read loader for ui thread
+		lua_ui_script.clear();
+		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
+		if(ui_script) {
+			auto content = view_contents(*ui_script);
+			lua_ui_script += content.data;
+			lua_ui_script += "\n";
+		}
 	}
 
 	demographics::regenerate_from_pop_data_full(*this);
@@ -5114,6 +5371,18 @@ void state::single_game_tick() {
 		demographics::alt_demographics_update_extras(*this);
 	}
 
+	// LUA
+
+	for(auto& ref : lua_on_daily_tick) {
+		lua_rawgeti(lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+		auto result = lua_pcall(lua_game_loop_environment, 0, 0, 0);
+		if(result) {
+			lua_notification(lua_tostring(lua_ui_environment, -1));
+			lua_settop(lua_game_loop_environment, 0);
+		}
+		assert(lua_gettop(lua_game_loop_environment) == 0);
+	}
+
 	/*
 	* END OF DAY: update cached data
 	*/
@@ -5175,6 +5444,21 @@ void state::single_game_tick() {
 
 void state::console_log(std::string_view message) {
 	current_scene.console_log(*this, message);
+}
+
+void state::lua_notification(const std::string message) {
+	notification::post(*this, notification::message{
+		.body = [=](sys::state& state, text::layout_base& layout) {
+			auto box = text::open_layout_box(layout, 0);
+			text::add_to_layout_box(state, layout, box, message);
+		},
+		.title = "LUA_ERROR",
+		.source = dcon::nation_id{ },
+		.target = dcon::nation_id{ },
+		.third = dcon::nation_id{ },
+		.type = sys::message_base_type::scripting_notification,
+		.province_source = dcon::province_id{ },
+	});
 }
 
 sys::checksum_key state::get_save_checksum() {
@@ -5313,9 +5597,12 @@ void state::game_loop() {
 	game_speed[1] = int32_t(defines.alice_speed_1);
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
-	game_speed[4] = int32_t(defines.alice_speed_4);	
+	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::unique_lock lock(network_state.command_lock);
+		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
 		network::send_and_receive_commands(*this);
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
@@ -6486,6 +6773,24 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 			ui_state.province_window->set_visible(*this, false);
 		}
 	}
+	current_scene.on_province_selected(*this);
+}
+
+
+void sys::state::set_local_player_nation_do_not_update_dcon(dcon::nation_id value) {
+	local_player_nation = value;
+	map_state.unhandled_province_selection = true;
+	game_state_updated.store(true, std::memory_order_release);
+}
+void sys::state::set_local_player_nation_singleplayer(dcon::nation_id value) {
+	if (local_player_nation) {
+		world.nation_set_is_player_controlled(value, false);
+	}
+	world.nation_set_is_player_controlled(value, true);
+	local_player_nation = value;
+	map_state.unhandled_province_selection = true;
+	game_state_updated.store(true, std::memory_order_release);
+	ai::remove_ai_data(*this, value);
 }
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {

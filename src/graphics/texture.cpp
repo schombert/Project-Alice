@@ -897,6 +897,8 @@ GLuint get_flag_handle(sys::state& state, dcon::national_identity_id nat_id, dco
 	if(!masq_nat_id) {
 		masq_nat_id = nat_id;
 	}
+	if(!masq_nat_id)
+		masq_nat_id = state.national_definitions.rebel_id;
 
 	int flag_offset = 0;
 	if(type) {

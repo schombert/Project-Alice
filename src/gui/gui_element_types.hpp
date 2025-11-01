@@ -564,7 +564,7 @@ public:
 	void on_hover(sys::state& state) noexcept override;
 	void on_hover_end(sys::state& state) noexcept override;
 
-	~edit_box_element_base();
+	~edit_box_element_base() override;
 };
 
 class tool_tip : public element_base {

@@ -27,15 +27,30 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context) {
 		std::vector<std::string> options = { "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_no", "alice_gamerule_allow_sphereling_declare_war_on_spherelord_opt_yes" };
 		context.state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(context, "alice_gamerule_allow_sphereling_declare_war_on_spherelord", options, uint8_t(context.state.defines.alice_can_goto_war_against_spherelord_default_setting));
 	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_allow_partial_retreat_opt_disabled", "alice_gamerule_allow_partial_retreat_opt_enabled" };
+		context.state.hardcoded_gamerules.allow_partial_retreat = create_hardcoded_gamerule(context, "alice_gamerule_allow_partial_retreat", options, uint8_t(context.state.defines.alice_allow_partial_retreat_default_setting));
+	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_fog_of_war_opt_disabled", "alice_gamerule_fog_of_war_opt_enabled" };
+		context.state.hardcoded_gamerules.fog_of_war = create_hardcoded_gamerule(context, "alice_gamerule_fog_of_war", options, uint8_t(context.state.defines.alice_fog_of_war_default_setting));
+	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_auto_concession_peace_opt_cannot_reject", "alice_gamerule_auto_concession_peace_opt_can_reject" };
+		context.state.hardcoded_gamerules.auto_concession_peace = create_hardcoded_gamerule(context, "alice_gamerule_auto_concession_peace", options, uint8_t(context.state.defines.alice_auto_concession_peace_default_setting));
+	}
 }
 
 void restore_gamerule_ui_settings(sys::state& state) {
 	state.ui_state.gamerule_ui_settings.clear();
-	for(const auto& gamerule : state.world.in_gamerule) {
+	for(auto gamerule : state.world.in_gamerule) {
 		state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule.id, gamerule.get_current_setting());
 	}
 }
 void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	if(check_gamerule(state, gamerule, new_setting)) {
+		return;
+	}
 	auto old_setting = state.world.gamerule_get_current_setting(gamerule);
 	auto& options = state.world.gamerule_get_options(gamerule);
 	auto on_deselect_effect = options[old_setting].on_deselect;
@@ -48,6 +63,8 @@ void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_set
 	}
 	state.world.gamerule_set_current_setting(gamerule, new_setting);
 	state.ui_state.gamerule_ui_settings.insert_or_assign(gamerule, new_setting);
+	// if its being called from somewhere not in a command, set new_game to false
+	state.network_state.is_new_game = false;
 }
 
 

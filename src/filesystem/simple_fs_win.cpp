@@ -475,6 +475,22 @@ directory get_or_create_templates_directory() {
 	return directory(nullptr, base_path);
 }
 
+directory get_or_create_gamerules_directory() {
+	native_char* local_path_out = nullptr;
+	native_string base_path;
+	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
+		base_path = native_string(local_path_out) + NATIVE("\\Project Alice");
+	}
+	CoTaskMemFree(local_path_out);
+	if(base_path.length() > 0) {
+		CreateDirectoryW(base_path.c_str(), nullptr);
+		base_path += NATIVE("\\gamerules");
+		CreateDirectoryW(base_path.c_str(), nullptr);
+	}
+	return directory(nullptr, base_path);
+}
+
+
 directory get_or_create_oos_directory() {
 	native_char* local_path_out = nullptr;
 	native_string base_path;
@@ -588,7 +604,7 @@ std::string native_to_utf8(native_string_view str) {
 std::string utf16_to_utf8(std::u16string_view str) {
 	if(str.size() > 0) {
 		auto buffer = std::unique_ptr<char[]>(new char[str.length() * 4]);
-		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(str.data()), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
+		auto chars_written = WideCharToMultiByte(CP_UTF8, 0, (wchar_t*)(const_cast<char16_t*>(str.data())), int32_t(str.length()), buffer.get(), int32_t(str.length() * 4), NULL, NULL);
 		return std::string(buffer.get(), size_t(chars_written));
 	}
 	return std::string("");

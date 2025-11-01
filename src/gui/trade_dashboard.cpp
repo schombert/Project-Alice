@@ -1966,7 +1966,7 @@ void  trade_dashboard_main_top_gdp_capita_t::update(sys::state& state, layout_wi
 	values.clear();
 	size_t counter = 0;
 	while(counter < *size && values.size() < 8) {
-		auto pid = state.ui_cached_data.per_province.sorted_by_gdp[(int)counter];
+		auto pid = state.ui_cached_data.per_province.sorted_by_gdp_per_capita[(int)counter];
 		if(pid) {
 			if(!main.nation_pov || state.world.province_get_nation_from_province_ownership(*pid) == main.nation_pov) {
 				add_province_row_gdp_per_capita(*pid);

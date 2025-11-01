@@ -197,7 +197,7 @@ struct global_military_state {
 	dcon::cb_type_id crisis_annex;
 
 	dcon::unit_type_id irregular;
-	dcon::unit_type_id infantry;
+	//dcon::unit_type_id infantry;
 	dcon::unit_type_id artillery;
 
 	bool pending_blackflag_update = false;
@@ -379,6 +379,9 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w);
 // DO NOT use this when calculating the overall score of the war or when looking at a peace deal between primary attacker and
 // defender
 float directed_warscore(sys::state& state, dcon::war_id w, dcon::nation_id primary, dcon::nation_id secondary);
+
+// Goes though checks to see if the war shall be force peaced when a peaceoffer is sent, and force peaces the war if applicable. Returns true if the war was force-peaced, false if not.
+bool try_force_peace(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id in_war, dcon::peace_offer_id pending_offer);
 
 bool is_defender_wargoal(sys::state const& state, dcon::war_id w, dcon::wargoal_id wg);
 
@@ -701,5 +704,10 @@ enum special_army_order {
 	strategic_redeployment,
 	pursue_to_engage
 };
+
+bool can_attack(sys::state& state, dcon::nation_id n);
+bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 
 } // namespace military

@@ -35,8 +35,8 @@ std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mo
 		game_state->on_scenario_load();
 		INFO("Scenario loaded");
 	}
-	
-	
+
+
 
 	return game_state;
 }

@@ -136,6 +136,11 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
+	{  // lua script
+		ptr_in = deserialize(ptr_in, state.lua_combined_script);
+		ptr_in = deserialize(ptr_in, state.lua_game_loop_script);
+		ptr_in = deserialize(ptr_in, state.lua_ui_script);
+	}
 	{ // map
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
@@ -320,6 +325,11 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 }
 uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	// hand-written contribution
+	{  // lua script
+		ptr_in = serialize(ptr_in, state.lua_combined_script);
+		ptr_in = serialize(ptr_in, state.lua_game_loop_script);
+		ptr_in = serialize(ptr_in, state.lua_ui_script);
+	}
 	{ // map
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
@@ -504,6 +514,11 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	size_t sz = 0;
 
 	// hand-written contribution
+	{
+		sz += serialize_size(state.lua_combined_script);
+		sz += serialize_size(state.lua_game_loop_script);
+		sz += serialize_size(state.lua_ui_script);
+	}
 	{ // map
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
@@ -830,6 +845,53 @@ size_t sizeof_save_section(sys::state& state) {
 	return sz;
 }
 
+
+size_t sizeof_mp_data(sys::state& state) {
+	size_t sz = 0;
+
+	// data container contribution
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_data();
+	sz += state.world.serialize_size(loaded);
+
+	return sz;
+}
+
+
+uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state) {
+
+	// data container contribution
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_data();
+	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	state.world.serialize(start, loaded);
+
+	return reinterpret_cast<uint8_t*>(start);
+}
+
+uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+	dcon::load_record loaded;
+	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+
+	return section_end;
+}
+
+
+
+
+
+
+
+void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record) {
+
+	uint8_t* write_ptr = reinterpret_cast<uint8_t*>(&affected_record);
+	const uint8_t* read_ptr = reinterpret_cast<const uint8_t*>(&other_record);
+	for(uint32_t i = 0; i < sizeof(dcon::load_record); i++) {
+		write_ptr[i] = write_ptr[i] | read_ptr[i];
+	}
+
+}
+
+
 void write_scenario_file(sys::state& state, native_string_view name, uint32_t count) {
 	scenario_header header;
 	header.count = count;
@@ -951,6 +1013,11 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 
 		state.on_scenario_load();
 
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
 		return true;
 	} else {
 		return false;
@@ -993,6 +1060,13 @@ bool try_read_scenario_as_save_file(sys::state& state, native_string_view name) 
 			});
 
 		state.game_seed = uint32_t(std::random_device()());
+
+
+		// only load gamerule settings if host or singleplayer. A client would have to load the host' settings anyway
+		if(state.network_mode == sys::network_mode_type::host || state.network_mode == sys::network_mode_type::single_player) {
+			state.load_gamerule_settings();
+		}
+
 
 		return true;
 	} else {

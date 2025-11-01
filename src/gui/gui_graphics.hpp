@@ -19,6 +19,7 @@ struct building_gfx_context;
 namespace ui {
 
 class context_menu_window;
+class factory_refit_window;
 
 enum class object_type : uint8_t {
 	generic_sprite = 0x00,
@@ -469,6 +470,7 @@ struct state {
 	std::unique_ptr<element_base> nation_picker;
 	std::unique_ptr<element_base> end_screen;
 	std::unique_ptr<element_base> select_states_legend;
+	std::unique_ptr<element_base> select_national_identity_root;
 
 	std::unique_ptr<element_base> army_group_selector_root;
 	std::unique_ptr<element_base> army_group_deselector_root;
@@ -540,6 +542,7 @@ struct state {
 	element_base* gamerules_window = nullptr;
 
 	context_menu_window* context_menu = nullptr;
+	factory_refit_window* factory_refit_win = nullptr;
 
 	std::array<chat_message, 32> chat_messages;
 	std::vector<dcon::technology_id> tech_queue;
@@ -561,6 +564,7 @@ struct state {
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
 	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
+	bool recently_pressed_resync = false; // flag to prevent clicking the resync button again after already pressing it once
 
 	float last_tick_investment_pool_change;
 

@@ -1352,7 +1352,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 
 	ubrk_first(lb_it);
 
-	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()), text.size()), text::stored_glyphs::no_bidi{});
+	text::stored_glyphs all_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())), text.size()), text::stored_glyphs::no_bidi{});
 
 	if(dest.edit_details)
 		dest.edit_details->scaling_factor = font_scaling_factor;
@@ -1407,7 +1407,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				//	text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
 				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
 				if(box.x_position - extent <= dest.fixed_parameters.left)
@@ -1428,7 +1428,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
 				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
 
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
 				impl::lb_finish_line(dest, box, line_height);
@@ -1459,10 +1459,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				--m;
 				if(m >= next_glyph_position) m = next_glyph_position - 1;
 
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
-				std::vector<uint16_t> tempv{ (uint16_t*)(text.data()) + cluster_start_position, (uint16_t*)(text.data()) + cluster_end };
+				std::vector<uint16_t> tempv{ (uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, (uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_end };
 
 				if(ellipsis_valid) {
 					tempv.push_back(0x2026);
@@ -1490,7 +1491,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				//dest.base_layout.contents.push_back(text_chunk{
 				//	text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
 				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
 				if(!dest.fixed_parameters.single_line && box.x_position <= dest.fixed_parameters.left)
@@ -1537,7 +1538,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				// too long, but no line breaking opportunities earlier in the line
 
 				//dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
 				box.x_position += extent;
@@ -1557,7 +1558,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				//dest.base_layout.contents.push_back(
 				//	text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details),
 				//	box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 				box.x_position += extent;
 				box.y_size = std::max(box.y_size, box.y_position + line_height);
@@ -1591,10 +1592,11 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 						break;
 					++m;
 				}
+				--m;
 				if(m >= next_glyph_position) m = next_glyph_position - 1;
 
 				auto cluster_end = all_glyphs.glyph_info[m].cluster;
-				std::vector<uint16_t> tempv{ (uint16_t*)(text.data()) + cluster_start_position, (uint16_t*)(text.data()) + cluster_end };
+				std::vector<uint16_t> tempv{ (uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, (uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_end };
 
 				if(ellipsis_valid) {
 					tempv.push_back(0x2026);
@@ -1614,7 +1616,7 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				// no remaining text
 
 				//dest.base_layout.contents.push_back(text_chunk{ text::stored_glyphs(state, text::font_index_from_font_id(state, dest.fixed_parameters.font_id), std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position), uint32_t(cluster_start_position), dest.edit_details), box.x_position, (!dest.fixed_parameters.suppress_hyperlinks) ? source : std::monostate{}, int16_t(box.y_position), int16_t(extent), int16_t(text_height), tmp_color });
-				append_glyphs(std::span<uint16_t>((uint16_t*)(text.data()) + cluster_start_position, next_cluster_position - cluster_start_position),
+				append_glyphs(std::span<uint16_t>((uint16_t*)(const_cast<char16_t*>(text.data())) + cluster_start_position, next_cluster_position - cluster_start_position),
 					uint32_t(cluster_start_position), int16_t(extent));
 
 				box.x_position += extent;

@@ -4,20 +4,15 @@
 #include "texture.hpp"
 #include "province.hpp"
 #include <cmath>
-#include <numbers>
 #include <glm/glm.hpp>
 #include <glm/mat3x3.hpp>
-#include <unordered_map>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/intersect.hpp>
 #include <glm/gtx/polar_coordinates.hpp>
 #include <glm/gtc/constants.hpp>
 #include <glm/gtx/transform.hpp>
-
 #include "stb_image.h"
 #include "system_state.hpp"
-#include "parsers_declarations.hpp"
-#include "math_fns.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
 
@@ -86,7 +81,7 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(state.user_settings.fow_enabled || state.network_mode != sys::network_mode_type::single_player) {
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {
@@ -476,6 +471,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto tline_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_f.glsl"));
 	auto river_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_river_f.glsl"));
 
+	auto trade_route_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/trade_route_v.glsl"));
+	auto trade_route_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/trade_route_f.glsl"));
+
 	auto tlineb_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_b_v.glsl"));
 
 	auto tlinew_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/wavy_textured_line_f.glsl"));
@@ -489,7 +487,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_provinces] = create_program(*map_vshader, *map_provinces_shader);
 	shaders[shader_textured_line] = create_program(*tline_vshader, *tline_fshader);
 	shaders[shader_textured_line_with_variable_width] = create_program(*tline_width_vshader, *river_fshader);
-	shaders[shader_trade_flow] = create_program(*tline_width_vshader, *tlineb_fshader);
+	shaders[shader_trade_flow] = create_program(*trade_route_vshader, *trade_route_fshader);
 	shaders[shader_railroad_line] = create_program(*tline_vshader, *tlinew_fshader);
 	shaders[shader_borders] = create_program(*tlineb_vshader, *tlineb_fshader);
 	shaders[shader_borders_provinces] = create_program(*tlineb_vshader, *tlineb_provinces_fshader);
@@ -1656,9 +1654,9 @@ void display_data::gen_prov_color_texture(GLuint texture_handle, std::vector<uin
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
-void display_data::set_selected_province(sys::state& state, dcon::province_id prov_id) {
+void display_data::update_highlight(sys::state& state) {
 	std::vector<uint32_t> province_highlights(state.world.province_size() + 1, 0);
-	state.current_scene.update_highlight_texture(state, province_highlights, prov_id);
+	state.current_scene.update_highlight_texture(state, province_highlights, state.map_state.get_selected_province());
 	gen_prov_color_texture(textures[texture_province_highlight], province_highlights);
 }
 
@@ -1855,14 +1853,14 @@ void add_tl_segment_buffer(
 	float size_x,
 	float size_y,
 	float& distance,
-	float width
+	float width_end
 ) {
 	start /= glm::vec2(size_x, size_y);
 	end /= glm::vec2(size_x, size_y);
 	auto d = start - end;
-	distance += glm::length(d) * width / 1000.f;
-	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width });//C
-	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width });//D
+	distance += glm::length(d);
+	buffer.emplace_back(textured_line_with_width_vertex{ end, +next_normal_dir, 0.0f, distance, width_end });//C
+	buffer.emplace_back(textured_line_with_width_vertex{ end, -next_normal_dir, 1.0f, distance, width_end });//D
 }
 
 void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm::vec2 start, glm::vec2 end, glm::vec2 start_per, glm::vec2 end_per, float progress, bool last_curve, float size_x, float size_y, uint32_t num_b_segments, float& distance) {
@@ -1918,7 +1916,11 @@ void add_tl_bezier_to_buffer(std::vector<map::textured_line_vertex>& buffer, glm
 	}
 }
 
-void add_tl_bezier_to_buffer(
+float smootherstep(float x) {
+	return x * x * x * (x * (6.0f * x - 15.0f) + 10.0f);
+}
+
+void add_bezier_to_buffer_variable_width(
 	std::vector<map::textured_line_with_width_vertex>& buffer,
 	glm::vec2 start,
 	glm::vec2 end,
@@ -1931,18 +1933,12 @@ void add_tl_bezier_to_buffer(
 	uint32_t num_b_segments,
 	float& distance,
 	float width_start,
+	float width_middle,
 	float width_end
 ) {
 	auto control_point_length = glm::length(end - start) * control_point_length_factor;
-
-	//auto start_normal = -glm::vec2{ start_tangent.y, -start_tangent.x };
-	//auto end_normal = -glm::vec2{ end_tangent.y, -end_tangent.x };
-
-	//auto start_control_point = start_normal * control_point_length + start;
-	//auto end_control_point = -end_normal * control_point_length + end;
-
 	auto start_control_point = start_tangent * control_point_length + start;
-	auto end_control_point = end_tangent * control_point_length + end;
+	auto end_control_point = -end_tangent * control_point_length + end;
 
 	auto bpoint = [=](float t) {
 		auto u = 1.0f - t;
@@ -1953,48 +1949,74 @@ void add_tl_bezier_to_buffer(
 			+ (t * t * t) * end;
 		};
 
-	auto last_normal = glm::vec2(-start_tangent.y, start_tangent.x);
-	glm::vec2 next_normal{ 0.0f, 0.0f };
-
-	for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
-		auto t_start = float(i) / float(num_b_segments);
-		auto t_end = float(i + 1) / float(num_b_segments);
-		auto t_next = float(i + 2) / float(num_b_segments);
-
-		auto start_point = bpoint(t_start);
-		auto end_point = bpoint(t_end);
-		auto next_point = bpoint(t_next);
-
-		next_normal = glm::normalize(end_point - start_point) + glm::normalize(end_point - next_point);
-		auto temp = glm::normalize(end_point - start_point);
-		if(glm::length(next_normal) < 0.00001f) {
-			next_normal = glm::normalize(glm::vec2(-temp.y, temp.x));
+	auto width = [=](float t) {
+		if(t < 0.5f) {
+			auto a = smootherstep(t * 2.f);
+			auto b = 1.f - a;
+			return b * width_start + a * width_middle;
 		} else {
-			next_normal = glm::normalize(next_normal);
-			if(glm::dot(glm::vec2(-temp.y, temp.x), next_normal) < 0) {
-				next_normal = -next_normal;
+			auto a = smootherstep((t - 0.5f) * 2.f);
+			auto b = 1.f - a;
+			return b * width_middle + a * width_end;
+		}
+	};
+
+	auto last_normal = glm::vec2(-start_tangent.y, start_tangent.x);
+
+	float normal_step = 1.f / float(num_b_segments);
+	bool request_higher_density = false;
+	float t_prev = 0.f;
+
+	//for(uint32_t i = 0; i < num_b_segments - 1; ++i) {
+	while (t_prev + normal_step * 2.f < 1.f) {
+		float current_step = normal_step;
+		if(request_higher_density) {
+			current_step /= 4.f;
+		}
+
+		auto t_current = t_prev + current_step;
+		auto t_next = t_current + current_step;
+
+		auto point_prev = bpoint(t_prev);
+		auto point = bpoint(t_current);
+		auto point_next = bpoint(t_next);
+
+		auto approximate_normal = glm::normalize(point - point_prev) + glm::normalize(point - point_next);
+		auto local_tangent = glm::normalize(point - point_prev);
+		if(glm::length(approximate_normal) < 0.00001f) {
+			approximate_normal = glm::normalize(glm::vec2(-local_tangent.y, local_tangent.x));
+		} else {
+			approximate_normal = glm::normalize(approximate_normal);
+			if(glm::dot(glm::vec2(-local_tangent.y, local_tangent.x), approximate_normal) < 0) {
+				approximate_normal = -approximate_normal;
 			}
 		}
 
-		auto width = t_start * width_end + (1.f - t_start) * width_start;
-
-		if(width != width_end) {
-			auto help = true;
+		if(!request_higher_density) {
+			if(glm::dot(approximate_normal, last_normal) < 0.98f) {
+				request_higher_density = true;
+				continue;
+			}
+		} else {
+			if(glm::dot(approximate_normal, last_normal) > 0.995f) {
+				request_higher_density = false;
+			}
 		}
 
-		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance, width);
+		add_tl_segment_buffer(buffer, point_prev, point, last_normal, size_x, size_y, distance, width(t_current));
+		last_normal = approximate_normal;
 
-		last_normal = next_normal;
+		t_prev = t_current;
 	}
+
 	{
-		next_normal = glm::vec2(end_tangent.y, -end_tangent.x);
+		last_normal = glm::vec2(-end_tangent.y, end_tangent.x);
 		auto t_start = float(num_b_segments - 1) / float(num_b_segments);
 		auto t_end = 1.0f;
 		auto start_point = bpoint(t_start);
 		auto end_point = bpoint(t_end);
-		auto width = t_start * width_end + (1.f - t_start) * width_start;
 
-		add_tl_segment_buffer(buffer, start_point, end_point, next_normal, size_x, size_y, distance, width);
+		add_tl_segment_buffer(buffer, start_point, end_point, last_normal, size_x, size_y, distance, width_end);
 	}
 }
 
@@ -2152,7 +2174,7 @@ void make_sea_path(
 				next_perpendicular = glm::normalize(current_pos - next_pos);
 			}
 
-			add_tl_bezier_to_buffer(
+			add_bezier_to_buffer_variable_width(
 				buffer,
 				current_pos,
 				next_pos,
@@ -2164,6 +2186,7 @@ void make_sea_path(
 				size_y,
 				default_num_b_segments,
 				distance,
+				width,
 				width,
 				width
 			);
@@ -2228,7 +2251,7 @@ void make_land_path(
 				next_tangent = glm::normalize(current_pos - next_pos);
 			}
 
-			add_tl_bezier_to_buffer(
+			add_bezier_to_buffer_variable_width(
 				buffer,
 				current_pos,
 				next_pos,
@@ -2240,6 +2263,7 @@ void make_land_path(
 				size_y,
 				default_num_b_segments,
 				distance,
+				width,
 				width,
 				width
 			);

@@ -3,6 +3,7 @@
 #endif
 
 #include "common_types.cpp"
+#include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "gamerule.cpp"
@@ -45,6 +46,7 @@
 #include "gui_production_window.cpp"
 #include "gui_province_window.cpp"
 #include "gui_population_window.cpp"
+#include "gui_factory_refit_window.cpp"
 #include "labour_details.cpp"
 #include "immediate_mode.cpp"
 #include "economy_viewer.cpp"

@@ -2,10 +2,10 @@ guiTypes = {
 	guiButtonType = {
 		name = "observer_button"
 		extends = "lobby"
-		position = { x = 17 y = -200 }
-		quadTextureSprite ="GFX_frontend_play_button"	
+		position = { x = 28 y = -200 }
+		quadTextureSprite ="GFX_button_standard_144"	
 		buttonText = "alice_observer_btn_text"
-		buttonFont = "vic_32_black"
+		buttonFont = "vic_18_black"
 		Orientation = "LOWER_LEFT"
 	}
 	guiButtonType = {
@@ -276,22 +276,6 @@ guiTypes = {
 			guiButtonType = {
 				name = "fonts_checkbox"
 				position = { 167 99 }
-				quadTextureSprite = "GFX_checkbox_default"
-			}
-			# Fog of War (Y/N)
-			instantTextBoxType = {
-				name = "fow_label"
-				position = { 78 124 }
-				text = "fow_label"
-				font = "Arial16"
-				borderSize = { 0 0}
-				maxsize = { 236 18 }
-				orientation = "UPPER_LEFT"
-				format = left
-			}
-			checkboxType = {
-				name = "fow_checkbox"
-				position = { 51 123 }
 				quadTextureSprite = "GFX_checkbox_default"
 			}
 			# Dynamic railroads (Y/N)
@@ -1707,6 +1691,12 @@ guiTypes = {
 			size = { 1 1 }
 			moveable = 0
 			Orientation = "UPPER_LEFT"
+
+			iconType = {
+				name = "map_general"
+				spriteType = "GFX_alice_map_general"
+				position = { 4 0 }
+			}
 
 			iconType = {
 				name ="frame_bg"

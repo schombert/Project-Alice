@@ -404,12 +404,12 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		state.world.commodity_get_rgo_amount(cid) > 0.f
 		&& !state.world.commodity_get_actually_exists_in_nature(cid);
 
-	if(!state.world.commodity_get_is_available_from_start(cid)) {
-		auto unlocked_A = state.world.nation_get_unlocked_commodities(n_A, cid);
-		auto unlocked_B = state.world.nation_get_unlocked_commodities(n_B, cid);
-		result.commodity_is_not_discovered = result.commodity_is_not_discovered
-			|| (!unlocked_A && !unlocked_B);
-	}
+	//if(!state.world.commodity_get_is_available_from_start(cid)) {
+	//	auto unlocked_A = state.world.nation_get_unlocked_commodities(n_A, cid);
+	//	auto unlocked_B = state.world.nation_get_unlocked_commodities(n_B, cid);
+	//	result.commodity_is_not_discovered = result.commodity_is_not_discovered
+	//		|| (!unlocked_A && !unlocked_B);
+	//}
 
 	auto current_volume = state.world.trade_route_get_volume(route, cid);
 	auto absolute_volume = std::abs(current_volume);
@@ -572,15 +572,15 @@ void update_trade_routes_volume(
 			}
 
 			// US3AC20.
-			auto unlocked_A = state.world.nation_get_unlocked_commodities(controller_A, c);
-			auto unlocked_B = state.world.nation_get_unlocked_commodities(controller_B, c);
+			//auto unlocked_A = state.world.nation_get_unlocked_commodities(controller_A, c);
+			//auto unlocked_B = state.world.nation_get_unlocked_commodities(controller_B, c);
 
 			auto reset_route_commodity = reset_route;
 
-			if(!state.world.commodity_get_is_available_from_start(c)) {
-				reset_route_commodity = reset_route_commodity
-					|| (!unlocked_A && !unlocked_B);
-			}
+			//if(!state.world.commodity_get_is_available_from_start(c)) {
+			//	reset_route_commodity = reset_route_commodity
+			//		|| (!unlocked_A && !unlocked_B);
+			//}
 
 			auto current_volume = state.world.trade_route_get_volume(trade_route, c);
 

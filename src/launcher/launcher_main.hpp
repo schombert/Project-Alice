@@ -3,6 +3,7 @@
 #define ALICE_NO_ENTRY_POINT 1
 
 #include "common_types.cpp"
+#include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "parsers.cpp"
@@ -45,6 +46,7 @@
 #include "gui_province_window.cpp"
 #include "gui_population_window.cpp"
 #include "gui_context_window.cpp"
+#include "gui_factory_refit_window.cpp"
 #include "province_tiles.cpp"
 #include "immediate_mode.cpp"
 #include "economy_viewer.cpp"

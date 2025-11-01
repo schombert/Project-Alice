@@ -576,6 +576,11 @@ object {
 		type{ bitfield }
 		tag{ scenario }
 	}
+	property{
+		name{ factory_tier }
+		type{ uint8_t }
+		tag{ scenario }
+	}
 }
 
 
@@ -3207,20 +3212,6 @@ object {
 }
 
 relationship{
-	name{ local_administration }
-	tag{ save }
-	link{
-		object{state_instance}
-		name{state_instance}
-		type{unique}
-	}
-	link{
-		object{administration}
-		name{administration}
-		type{many}
-	}
-}
-relationship{
 	name{ nation_administration }
 	tag{ save }
 	link{
@@ -3232,6 +3223,7 @@ relationship{
 		object{nation}
 		name{nation}
 		type{many}
+		index_storage{array}
 	}
 }
 
@@ -3695,7 +3687,7 @@ object {
 	storage_type{ erasable }
 	size{ 2000 }
 	tag{ save }
-	
+	tag{ mp_data }
 
 	property{
 		name{ color }
@@ -4300,6 +4292,7 @@ object {
 	property{
 		name{ is_player_controlled }
 		type{ bitfield }
+		tag { mp_data }
 	}
 	property{
 		name{ is_debt_spending }
@@ -4479,6 +4472,11 @@ object {
 	property {
 		name{ ai_strategy }
 		type{ int }
+		tag{ save }
+	}
+	property {
+		name{ utility_tag }
+		type{ bitfield }
 		tag{ save }
 	}
 }
@@ -4681,7 +4679,6 @@ relationship{
 	name{ trade_route }
 	storage_type{ compactable }
 	size{ 80000 }
-	tag{ scenario }
 	tag{ save }
 
 	link{
@@ -5872,7 +5869,7 @@ object {
 	property{
 		name{ hide_notification }
 		type{ bitfield }
-		tag{ save }
+		tag { mp_checksum_excluded }
 	}
 }
 
@@ -5986,13 +5983,13 @@ object{
 	storage_type{ erasable }
 	size{ 200 }
 	tag { keep_after_state_reload }
-	tag { mp_checksum_excluded }
+	tag { mp_data }
 
 	property{
 		name{ nickname }
 		type{ std::array<uint8_t,24> }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
+		tag { mp_data }
 	}
 	property{
 		name{ password_salt }
@@ -6010,25 +6007,27 @@ object{
 		name{ fully_loaded }
 		type{ bitfield }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
+		tag { mp_data }
 	}
 	property{
 		name{ is_oos }
 		type{ bitfield }
 		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
+		tag { mp_data }
 	}
 }
 
 relationship{
 	name{ player_nation }
 	tag { keep_after_state_reload }
-	tag { mp_checksum_excluded }
+	tag { mp_data }
 	link{
 		object{nation}
 		name{nation}
 		type{many}
+		index_storage{array}
 	}
+
 	link{
 		object{mp_player}
 		name{mp_player}
@@ -6063,6 +6062,11 @@ load_save{
 	name{store_mp_checksum_excluded}
 	exclude_objects{mp_checksum_excluded}
 	exclude_properties{mp_checksum_excluded}
+}
+load_save{
+	name{store_mp_data}
+	only_objects{mp_data}
+	only_properties{mp_data}
 }
 
 

@@ -20,8 +20,8 @@ void main() {
 
 
 	vec4 out_color = texture(line_texture, vec2(o_dist, tex_coord));
-	vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
-	out_color.rgb *= texture(province_fow, prov_id).rgb;
+	//vec2 prov_id = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size).xy;
+	//out_color.rgb *= texture(province_fow, prov_id).rgb;
 	out_color.rgb *= out_color.a;
 
 	frag_color = gamma_correct(out_color);

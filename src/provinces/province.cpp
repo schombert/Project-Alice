@@ -507,6 +507,11 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	auto old_con = state.world.province_get_nation_from_province_control(p);
+	auto curr_owner = state.world.province_get_nation_from_province_ownership(p);
+	// don't switch controllership on an uncolonized province
+	if(!curr_owner) {
+		return;
+	}
 	if(old_con != n) {
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;
@@ -537,6 +542,11 @@ void set_province_controller(sys::state& state, dcon::province_id p, dcon::natio
 
 void set_province_controller(sys::state& state, dcon::province_id p, dcon::rebel_faction_id rf) {
 	auto old_con = state.world.province_get_rebel_faction_from_province_rebel_control(p);
+	auto curr_owner = state.world.province_get_nation_from_province_ownership(p);
+	// don't switch controllership on an uncolonized province
+	if(!curr_owner) {
+		return;
+	}
 	if(old_con != rf) {
 		state.world.province_set_last_control_change(p, state.current_date);
 		state.trade_route_cached_values_out_of_date = true;
@@ -1098,20 +1108,6 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			state.world.state_instance_set_definition(new_si, state_def);
 			state.world.try_create_state_ownership(new_si, new_owner);
 
-			// sanity check
-			auto owner_has_administration = false;
-			state.world.nation_for_each_nation_administration(new_owner, [&](auto id) { owner_has_administration = true; });
-
-			if(owner_has_administration) {
-				auto new_owner_capital = state.world.nation_get_capital(new_owner);
-				auto capital_sid = state.world.province_get_state_membership(new_owner_capital);
-				auto new_administration = state.world.state_instance_get_administration_from_local_administration(capital_sid);
-				state.world.force_create_local_administration(new_si, new_administration);
-			}
-			// if nation does not have a central admin,
-			// it doesn't have a capital either,
-			// so we don't create central admin here to avoid out of bounds errors later			
-
 			state.world.state_instance_set_capital(new_si, id);
 			state.world.province_set_is_colonial(id, will_be_colonial);
 			state.world.province_set_is_slave(id, false);
@@ -1361,21 +1357,8 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 			}
 			auto local_market = state.world.state_instance_get_market_from_local_market(old_si);
 
-			auto local_administration = state.world.state_instance_get_administration_from_local_administration(old_si);
 			state.world.delete_market(local_market);
 			state.world.delete_state_instance(old_si);
-
-			if(local_administration) {
-				// count states in local administration
-				bool more_than_zero = false;
-				state.world.administration_for_each_local_administration(local_administration, [&](auto ids) {
-					more_than_zero = true;
-				});
-				if(!more_than_zero) {
-					state.world.delete_administration(local_administration);
-				}
-			}
-
 		} else if(state.world.state_instance_get_capital(old_si) == id) {
 			state.world.state_instance_set_capital(old_si, a_province);
 		}
@@ -1384,7 +1367,7 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 	if(old_owner) {
 		state.world.nation_set_owned_province_count(old_owner, uint16_t(state.world.nation_get_owned_province_count(old_owner) - uint16_t(1)));
 		auto lprovs = state.world.nation_get_province_ownership(old_owner);
-		if(lprovs.begin() == lprovs.end()) {
+		if(!nations::exists_or_is_utility_tag(state, old_owner) ) {
 			state.world.nation_set_marked_for_gc(old_owner, true);
 		}
 	}
@@ -1462,60 +1445,38 @@ void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation
 }
 // returns true if a strait between the two provinces are blocked by an enemy navy from the perspective of thisnation
 // Reads sea adjacency data from the v2 adjacencies file to determine if it is blocked
-bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
+bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to) {
 	auto adjacency = state.world.get_province_adjacency_by_province_pair(to, from);
-	return is_strait_blocked(state, thisnation, adjacency);
+	return is_crossing_blocked(state, thisnation, adjacency);
 }
 
-bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
-	// assert both provinces are land
-	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 0).index() < state.province_definitions.first_sea_province.index());
-	assert(state.world.province_adjacency_get_connected_provinces(adjacency, 1).index() < state.province_definitions.first_sea_province.index());
+bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency) {
 	auto path_bits = state.world.province_adjacency_get_type(adjacency);
- 	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
-	if(strait_prov) { // strait crossing
-		if(military::province_has_enemy_fleet(state, strait_prov, thisnation)) {
-			return true;
+	auto strait_prov = state.world.province_adjacency_get_canal_or_blockade_province(adjacency);
+	if(strait_prov) { // strait crossing or canal control province
+		// if land province, check if we own the canal control province
+		if(strait_prov.index() < state.province_definitions.first_sea_province.index()) {
+			auto controller = state.world.province_get_nation_from_province_control(strait_prov);
+			auto reb_controller = state.world.province_get_rebel_faction_from_province_rebel_control(strait_prov);
+			return bool(reb_controller) || (bool(controller) && military::are_enemies(state, thisnation, controller));
+		}
+		// otherwise, its a blockadable strait
+		else {
+			return military::province_has_enemy_fleet(state, strait_prov, thisnation);
 		}
 	}
 	return false;
 }
 
-bool is_canal_adjacency_passable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
-	// assert both provinces are sea
-	assert(state.world.province_adjacency_get_connected_provinces(adj ,0).index() >= state.province_definitions.first_sea_province.index());
-	assert(state.world.province_adjacency_get_connected_provinces(adj, 1).index() >= state.province_definitions.first_sea_province.index());
-	auto canal_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
-	if(bool(canal_prov)) {
-		auto canal_controller = state.world.province_get_nation_from_province_control(canal_prov);
-		return !military::are_enemies(state, thisnation, canal_controller);
-	}
-	else {
-		return true;
-	}
-	
-}
-
 bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj) {
 	// if impassable bit is set, always return true
-	if((state.world.province_adjacency_get_type(adj) & province::border::impassible_bit) != 0) {
+	auto type = state.world.province_adjacency_get_type(adj);
+	if((type & province::border::impassible_bit) != 0) {
 		return true;
 	}
 	// if non_adjacent bit is set, check for potential strait or canal blocking
-	if((state.world.province_adjacency_get_type(adj) & province::border::non_adjacent_bit) != 0) {
-		auto blocking_prov = state.world.province_adjacency_get_canal_or_blockade_province(adj);
-		// the blocking province is invalid, which means it is passable
-		if(!bool(blocking_prov)) {
-			return false;
-		}
-		// the blocking province is land, which means it is a canal
-		else if(blocking_prov.index() < state.province_definitions.first_sea_province.index()) {
-			return !is_canal_adjacency_passable(state, thisnation, adj);
-		}
-		// the blocking province is sea, which means it is a strait crossing
-		else {
-			return is_strait_blocked(state, thisnation, adj);
-		}
+	if((type & province::border::non_adjacent_bit) != 0) {
+		return is_crossing_blocked(state, thisnation, adj);
 	}
 	return false;
 
@@ -1654,6 +1615,7 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id n, dcon::state_defi
 			return false;
 	}
 
+	// Must have colonization in progress
 	dcon::colonization_id colony_status;
 	auto crange = state.world.state_definition_get_colonization(d);
 	for(auto rel : crange) {
@@ -2247,8 +2209,10 @@ void set_rgo(sys::state& state, dcon::province_id prov, dcon::commodity_id c) {
 }
 
 void enable_canal(sys::state& state, int32_t id) {
-	auto& current = state.world.province_adjacency_get_type(state.province_definitions.canals[id]);
-	state.world.province_adjacency_set_type(state.province_definitions.canals[id], uint8_t(current & ~province::border::impassible_bit));
+	if(auto can_id = state.province_definitions.canals[id]; can_id) {
+		auto current = state.world.province_adjacency_get_type(can_id);
+		state.world.province_adjacency_set_type(can_id, uint8_t(current & ~province::border::impassible_bit));
+	}
 }
 
 // distance between to adjacent provinces

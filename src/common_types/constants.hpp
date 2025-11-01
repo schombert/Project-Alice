@@ -412,7 +412,8 @@ enum class message_base_type : uint8_t {
 	trade_rights_revoked = 76,
 	naval_combat_starts_by_nation = 77,
 	land_combat_starts_by_nation = 78,
-	count = 79,
+	scripting_notification = 79,
+	count = 80,
 };
 
 struct msg_setting_entry {
@@ -603,7 +604,7 @@ namespace ui {
 
 enum class production_sort_order { name, factories, primary_workers, secondary_workers, owners, infrastructure, state_name };
 enum class production_window_tab : uint8_t { factories = 0x0, investments = 0x1, projects = 0x2, goods = 0x3 };
-constexpr inline uint32_t max_chat_message_len = 64;
+constexpr inline uint32_t max_chat_message_len = 255;
 enum class edit_command : uint8_t {
 	new_line, backspace, delete_char, backspace_word, delete_word, tab, cursor_down, cursor_up, cursor_left, cursor_right, cursor_left_word, cursor_right_word, to_line_start, to_line_end, to_text_start, to_text_end, cut, copy, paste, select_all, undo, redo, select_current_word, select_current_section, delete_selection
 };

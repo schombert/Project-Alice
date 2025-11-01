@@ -543,6 +543,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 	MSG msg;
 	// pump message loop
 	while(true) {
+		std::unique_lock lock(game_state.ui_lock);
+		game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
 		if(PeekMessageW(&msg, 0, 0, 0, PM_REMOVE)) {
 			if(msg.message == WM_QUIT) {
 				break;
@@ -552,11 +554,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 			DispatchMessageW(&msg);
 		} else {
 			// Run game code
-			game_state.ui_lock.lock();;
-
 			game_state.render();
 			SwapBuffers(game_state.win_ptr->opengl_window_dc);
-			game_state.ui_lock.unlock();
 		}
 	}
 
@@ -703,7 +702,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		gathered_attributes.clear();
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) {
+	HRESULT STDMETHODCALLTYPE QueryInterface(REFIID riid, _COM_Outptr_ void __RPC_FAR* __RPC_FAR* ppvObject) override {
 		if(riid == __uuidof(IUnknown))
 			*ppvObject = static_cast<ITextStoreACP2*>(this);
 		else if(riid == __uuidof(ITextStoreACP2))
@@ -721,10 +720,10 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		(static_cast<IUnknown*>(*ppvObject))->AddRef();
 		return S_OK;
 	}
-	virtual ULONG STDMETHODCALLTYPE AddRef() {
+	ULONG STDMETHODCALLTYPE AddRef() override {
 		return InterlockedIncrement(&m_refCount);
 	}
-	virtual ULONG STDMETHODCALLTYPE Release() {
+	ULONG STDMETHODCALLTYPE Release() override {
 		long val = InterlockedDecrement(&m_refCount);
 		if(val == 0) {
 			delete this;
@@ -733,7 +732,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 	}
 
 	//ITfMouseTrackerACP
-	virtual HRESULT STDMETHODCALLTYPE AdviseMouseSink(__RPC__in_opt ITfRangeACP* range, __RPC__in_opt ITfMouseSink* pSink, __RPC__out DWORD* pdwCookie) {
+	HRESULT STDMETHODCALLTYPE AdviseMouseSink(__RPC__in_opt ITfRangeACP* range, __RPC__in_opt ITfMouseSink* pSink, __RPC__out DWORD* pdwCookie) override {
 		if(!range || !pSink || !pdwCookie)
 			return E_INVALIDARG;
 		for(uint32_t i = 0; i < installed_mouse_sinks.size(); ++i) {
@@ -757,7 +756,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE UnadviseMouseSink(DWORD dwCookie) {
+	HRESULT STDMETHODCALLTYPE UnadviseMouseSink(DWORD dwCookie) override {
 		if(dwCookie < installed_mouse_sinks.size()) {
 			safe_release(installed_mouse_sinks[dwCookie].sink);
 		}
@@ -783,13 +782,13 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 	}
 
 	//ITfContextOwnerCompositionSink
-	virtual HRESULT STDMETHODCALLTYPE OnStartComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/, __RPC__out BOOL* pfOk) {
+	HRESULT STDMETHODCALLTYPE OnStartComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/, __RPC__out BOOL* pfOk) override {
 		*pfOk = TRUE;
 		in_composition = true;
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE OnUpdateComposition(__RPC__in_opt ITfCompositionView* pComposition, __RPC__in_opt ITfRange* /*pRangeNew*/) {
+	HRESULT STDMETHODCALLTYPE OnUpdateComposition(__RPC__in_opt ITfCompositionView* pComposition, __RPC__in_opt ITfRange* /*pRangeNew*/) override {
 		ITfRange* view_range = nullptr;
 		pComposition->GetRange(&view_range);
 		if(view_range) {
@@ -810,7 +809,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE OnEndComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/) {
+	HRESULT STDMETHODCALLTYPE OnEndComposition(__RPC__in_opt ITfCompositionView* /*pComposition*/) override {
 		if(ei) {
 			ei->register_composition_result(win);
 		}
@@ -819,7 +818,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 	}
 
 	// ITextStoreACP2
-	virtual HRESULT STDMETHODCALLTYPE AdviseSink(__RPC__in REFIID riid, __RPC__in_opt IUnknown* punk, DWORD dwMask) {
+	HRESULT STDMETHODCALLTYPE AdviseSink(__RPC__in REFIID riid, __RPC__in_opt IUnknown* punk, DWORD dwMask) override {
 		if(!IsEqualGUID(riid, IID_ITextStoreACPSink)) {
 			return E_INVALIDARG;
 		}
@@ -841,14 +840,14 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE UnadviseSink(__RPC__in_opt IUnknown* /*punk*/) {
+	HRESULT STDMETHODCALLTYPE UnadviseSink(__RPC__in_opt IUnknown* /*punk*/) override {
 		safe_release(advise_sink);
 		notify_on_text_change = false;
 		notify_on_selection_change = false;
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE RequestLock(DWORD dwLockFlags, __RPC__out HRESULT* phrSession) {
+	HRESULT STDMETHODCALLTYPE RequestLock(DWORD dwLockFlags, __RPC__out HRESULT* phrSession) override {
 		if(!advise_sink) {
 			*phrSession = E_FAIL;
 			return E_UNEXPECTED;
@@ -889,7 +888,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetStatus(__RPC__out TS_STATUS* pdcs) {
+	HRESULT STDMETHODCALLTYPE GetStatus(__RPC__out TS_STATUS* pdcs) override {
 		if(!pdcs)
 			return E_INVALIDARG;
 		pdcs->dwStaticFlags = TS_SS_NOHIDDENTEXT;
@@ -898,7 +897,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE QueryInsert(LONG acpTestStart, LONG acpTestEnd, ULONG /*cch*/, __RPC__out LONG* pacpResultStart, __RPC__out LONG* pacpResultEnd) {
+	HRESULT STDMETHODCALLTYPE QueryInsert(LONG acpTestStart, LONG acpTestEnd, ULONG /*cch*/, __RPC__out LONG* pacpResultStart, __RPC__out LONG* pacpResultEnd) override {
 		if(!pacpResultStart || !pacpResultEnd || acpTestStart > acpTestEnd)
 			return E_INVALIDARG;
 		if(!ei)
@@ -908,7 +907,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetSelection(ULONG ulIndex, ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_SELECTION_ACP* pSelection, __RPC__out ULONG* pcFetched) {
+	HRESULT STDMETHODCALLTYPE GetSelection(ULONG ulIndex, ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_SELECTION_ACP* pSelection, __RPC__out ULONG* pcFetched) override {
 		if(!pcFetched)
 			return E_INVALIDARG;
 		if(document_lock_state == lock_state::unlocked)
@@ -929,7 +928,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE SetSelection(ULONG ulCount, __RPC__in_ecount_full(ulCount) const TS_SELECTION_ACP* pSelection) {
+	HRESULT STDMETHODCALLTYPE SetSelection(ULONG ulCount, __RPC__in_ecount_full(ulCount) const TS_SELECTION_ACP* pSelection) override {
 		if(document_lock_state != lock_state::locked_readwrite)
 			return TF_E_NOLOCK;
 		if(!ei)
@@ -945,7 +944,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetText(LONG acpStart, LONG acpEnd, __RPC__out_ecount_part(cchPlainReq, *pcchPlainRet) WCHAR* pchPlain, ULONG cchPlainReq, __RPC__out ULONG* pcchPlainRet, __RPC__out_ecount_part(cRunInfoReq, *pcRunInfoRet) TS_RUNINFO* prgRunInfo, ULONG cRunInfoReq, __RPC__out ULONG* pcRunInfoRet, __RPC__out LONG* pacpNext) {
+	HRESULT STDMETHODCALLTYPE GetText(LONG acpStart, LONG acpEnd, __RPC__out_ecount_part(cchPlainReq, *pcchPlainRet) WCHAR* pchPlain, ULONG cchPlainReq, __RPC__out ULONG* pcchPlainRet, __RPC__out_ecount_part(cRunInfoReq, *pcRunInfoRet) TS_RUNINFO* prgRunInfo, ULONG cRunInfoReq, __RPC__out ULONG* pcRunInfoRet, __RPC__out LONG* pacpNext) override {
 
 		if(!pcchPlainRet || !pcRunInfoRet)
 			return E_INVALIDARG;
@@ -993,7 +992,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE SetText(DWORD /*dwFlags*/, LONG acpStart, LONG acpEnd, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out TS_TEXTCHANGE* pChange) {
+	HRESULT STDMETHODCALLTYPE SetText(DWORD /*dwFlags*/, LONG acpStart, LONG acpEnd, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out TS_TEXTCHANGE* pChange) override {
 		if(document_lock_state != lock_state::locked_readwrite)
 			return TF_E_NOLOCK;
 		if(!ei)
@@ -1011,7 +1010,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		LONG acpRemovingEnd = acpEnd >= acpStart ? std::min(acpEnd, len) : acpStart;
 
 
-		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpRemovingEnd), std::u16string_view((char16_t*)pchText, cch), ui::insertion_source::text_services);
+		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpRemovingEnd), std::u16string_view((char16_t*)const_cast<WCHAR*>(pchText), cch), ui::insertion_source::text_services);
 
 		pChange->acpStart = acpStart;
 		pChange->acpOldEnd = acpRemovingEnd;
@@ -1020,18 +1019,18 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetFormattedText(LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__deref_out_opt IDataObject** /*ppDataObject*/) {
+	HRESULT STDMETHODCALLTYPE GetFormattedText(LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__deref_out_opt IDataObject** /*ppDataObject*/) override {
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetEmbedded(LONG /*acpPos*/, __RPC__in REFGUID /*rguidService*/, __RPC__in REFIID /*riid*/, __RPC__deref_out_opt IUnknown** ppunk) {
+	HRESULT STDMETHODCALLTYPE GetEmbedded(LONG /*acpPos*/, __RPC__in REFGUID /*rguidService*/, __RPC__in REFIID /*riid*/, __RPC__deref_out_opt IUnknown** ppunk) override {
 		if(!ppunk)
 			return E_INVALIDARG;
 		*ppunk = nullptr;
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE QueryInsertEmbedded(__RPC__in const GUID* /*pguidService*/, __RPC__in const FORMATETC* pFormatEtc, __RPC__out BOOL* pfInsertable) {
+	HRESULT STDMETHODCALLTYPE QueryInsertEmbedded(__RPC__in const GUID* /*pguidService*/, __RPC__in const FORMATETC* pFormatEtc, __RPC__out BOOL* pfInsertable) override {
 		if(!pFormatEtc || !pfInsertable)
 			return E_INVALIDARG;
 		if(pfInsertable)
@@ -1039,11 +1038,11 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE InsertEmbedded(DWORD /*dwFlags*/, LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) {
+	HRESULT STDMETHODCALLTYPE InsertEmbedded(DWORD /*dwFlags*/, LONG /*acpStart*/, LONG /*acpEnd*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) override {
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE InsertTextAtSelection(DWORD dwFlags, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out LONG* pacpStart, __RPC__out LONG* pacpEnd, __RPC__out TS_TEXTCHANGE* pChange) {
+	HRESULT STDMETHODCALLTYPE InsertTextAtSelection(DWORD dwFlags, __RPC__in_ecount_full(cch) const WCHAR* pchText, ULONG cch, __RPC__out LONG* pacpStart, __RPC__out LONG* pacpEnd, __RPC__out TS_TEXTCHANGE* pChange) override {
 
 
 		if(!ei)
@@ -1069,7 +1068,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 			return E_INVALIDARG;
 
 
-		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpEnd), std::u16string_view((char16_t*)pchText, cch), ui::insertion_source::text_services);
+		ei->insert_text(win, uint32_t(acpStart), uint32_t(acpEnd), std::u16string_view((char16_t*)const_cast<WCHAR*>(pchText), cch), ui::insertion_source::text_services);
 
 		if(pacpStart)
 			*pacpStart = acpStart;
@@ -1085,7 +1084,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE InsertEmbeddedAtSelection(DWORD /*dwFlags*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out LONG* /*pacpStart*/, __RPC__out LONG* /*pacpEnd*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) {
+	HRESULT STDMETHODCALLTYPE InsertEmbeddedAtSelection(DWORD /*dwFlags*/, __RPC__in_opt IDataObject* /*pDataObject*/, __RPC__out LONG* /*pacpStart*/, __RPC__out LONG* /*pacpEnd*/, __RPC__out TS_TEXTCHANGE* /*pChange*/) override {
 
 		return E_NOTIMPL;
 	}
@@ -1245,7 +1244,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		}
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE RequestSupportedAttrs(DWORD dwFlags, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs) {
+	HRESULT STDMETHODCALLTYPE RequestSupportedAttrs(DWORD dwFlags, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs) override {
 		if(!paFilterAttrs && cFilterAttrs > 0)
 			return E_INVALIDARG;
 		if(!ei)
@@ -1256,7 +1255,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE RequestAttrsAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) {
+	HRESULT STDMETHODCALLTYPE RequestAttrsAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) override {
 		if(!paFilterAttrs && cFilterAttrs > 0)
 			return E_INVALIDARG;
 		if(!ei)
@@ -1267,7 +1266,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE RequestAttrsTransitioningAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) {
+	HRESULT STDMETHODCALLTYPE RequestAttrsTransitioningAtPosition(LONG acpPos, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags) override {
 		if(!paFilterAttrs && cFilterAttrs > 0)
 			return E_INVALIDARG;
 		if(!ei)
@@ -1316,7 +1315,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE FindNextAttrTransition(LONG acpStart, LONG acpHalt, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags, __RPC__out LONG* pacpNext, __RPC__out BOOL* pfFound, __RPC__out LONG* plFoundOffset) {
+	HRESULT STDMETHODCALLTYPE FindNextAttrTransition(LONG acpStart, LONG acpHalt, ULONG cFilterAttrs, __RPC__in_ecount_full_opt(cFilterAttrs) const TS_ATTRID* paFilterAttrs, DWORD dwFlags, __RPC__out LONG* pacpNext, __RPC__out BOOL* pfFound, __RPC__out LONG* plFoundOffset) override {
 		if(!pacpNext || !pfFound || !plFoundOffset)
 			return E_INVALIDARG;
 
@@ -1367,13 +1366,13 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE RetrieveRequestedAttrs(ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_ATTRVAL* paAttrVals, __RPC__out ULONG* pcFetched) {
+	HRESULT STDMETHODCALLTYPE RetrieveRequestedAttrs(ULONG ulCount, __RPC__out_ecount_part(ulCount, *pcFetched) TS_ATTRVAL* paAttrVals, __RPC__out ULONG* pcFetched) override {
 
 		*pcFetched = 0;
 		uint32_t i = 0;
 		for(; i < ulCount && i < gathered_attributes.size(); ++i) {
 			paAttrVals[i] = gathered_attributes[i];
-			*pcFetched++;
+			(*pcFetched)++;
 		}
 		for(; i < gathered_attributes.size(); ++i) {
 			VariantClear(&(gathered_attributes[i].varValue));
@@ -1382,7 +1381,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetEndACP(__RPC__out LONG* pacp) {
+	HRESULT STDMETHODCALLTYPE GetEndACP(__RPC__out LONG* pacp) override {
 		if(!pacp)
 			return E_INVALIDARG;
 		if(document_lock_state == lock_state::unlocked)
@@ -1394,14 +1393,14 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetActiveView(__RPC__out TsViewCookie* pvcView) {
+	HRESULT STDMETHODCALLTYPE GetActiveView(__RPC__out TsViewCookie* pvcView) override {
 		if(!pvcView)
 			return E_INVALIDARG;
 		*pvcView = 0;
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetACPFromPoint(TsViewCookie /*vcView*/, __RPC__in const POINT* ptScreen, DWORD dwFlags, __RPC__out LONG* pacp) {
+	HRESULT STDMETHODCALLTYPE GetACPFromPoint(TsViewCookie /*vcView*/, __RPC__in const POINT* ptScreen, DWORD dwFlags, __RPC__out LONG* pacp) override {
 
 		*pacp = 0;
 		if(!ei)
@@ -1424,7 +1423,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetTextExt(TsViewCookie /*vcView*/, LONG acpStart, LONG acpEnd, __RPC__out RECT* prc, __RPC__out BOOL* pfClipped) {
+	HRESULT STDMETHODCALLTYPE GetTextExt(TsViewCookie /*vcView*/, LONG acpStart, LONG acpEnd, __RPC__out RECT* prc, __RPC__out BOOL* pfClipped) override {
 		if(!pfClipped || !prc)
 			return E_INVALIDARG;
 		if(document_lock_state == lock_state::unlocked)
@@ -1454,7 +1453,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetScreenExt(TsViewCookie /*vcView*/, __RPC__out RECT* prc) {
+	HRESULT STDMETHODCALLTYPE GetScreenExt(TsViewCookie /*vcView*/, __RPC__out RECT* prc) override {
 		if(!prc)
 			return E_INVALIDARG;
 
@@ -1480,7 +1479,7 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetInputScopes(__RPC__deref_out_ecount_full_opt(*pcCount) InputScope** pprgInputScopes, __RPC__out UINT* pcCount) {
+	HRESULT STDMETHODCALLTYPE GetInputScopes(__RPC__deref_out_ecount_full_opt(*pcCount) InputScope** pprgInputScopes, __RPC__out UINT* pcCount) override {
 		*pprgInputScopes = (InputScope*)CoTaskMemAlloc(sizeof(InputScope));
 		*(*pprgInputScopes) = IS_TEXT;
 		/*
@@ -1516,23 +1515,23 @@ struct text_services_object : public ITextStoreACP2, public ITfInputScope, publi
 		return S_OK;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetPhrase(__RPC__deref_out_ecount_full_opt(*pcCount) BSTR** ppbstrPhrases, __RPC__out UINT* pcCount) {
+	HRESULT STDMETHODCALLTYPE GetPhrase(__RPC__deref_out_ecount_full_opt(*pcCount) BSTR** ppbstrPhrases, __RPC__out UINT* pcCount) override {
 		*ppbstrPhrases = nullptr;
 		*pcCount = 0;
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetRegularExpression(__RPC__deref_out_opt BSTR* pbstrRegExp) {
+	HRESULT STDMETHODCALLTYPE GetRegularExpression(__RPC__deref_out_opt BSTR* pbstrRegExp) override {
 		*pbstrRegExp = nullptr;
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetSRGS(__RPC__deref_out_opt BSTR* pbstrSRGS) {
+	HRESULT STDMETHODCALLTYPE GetSRGS(__RPC__deref_out_opt BSTR* pbstrSRGS) override {
 		*pbstrSRGS = nullptr;
 		return E_NOTIMPL;
 	}
 
-	virtual HRESULT STDMETHODCALLTYPE GetXML(__RPC__deref_out_opt BSTR* pbstrXML) {
+	HRESULT STDMETHODCALLTYPE GetXML(__RPC__deref_out_opt BSTR* pbstrXML) override {
 		*pbstrXML = nullptr;
 		return E_NOTIMPL;
 	}

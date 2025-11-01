@@ -153,7 +153,7 @@ NOTE: Domains are not supported, please resolve them manually and type their cor
 
 If you use IPv4, type a dot "." in the IP field, if you are going to use IPv6, type a semicolon ":" in the IP field. Clients that use IPv4 cannot connect to a IPv6 host.
 
-To accept connections from clients (without using a tunneling service like Hamachi), you will need to be able to accept connections over port 1984. Usually this requires port forwarding it in your router to your local machine. You can use an [open port checker tool](https://www.yougetsignal.com/tools/open-ports/) to check you opened the ports correctly, be aware this kind of tools may not be 100% reliable, as such, another person helping to test is very much preferred.
+To accept connections from clients (without using a tunneling service like Hamachi), you will need to be able to accept connections over the port specified in host_settings.json in the local application folder. Default port is 1984. Usually this requires port forwarding it in your router to your local machine. You can use an [open port checker tool](https://www.yougetsignal.com/tools/open-ports/) to check you opened the ports correctly, be aware this kind of tools may not be 100% reliable, as such, another person helping to test is very much preferred.
 
 When giving players your IP address so that they can connect to you, you need to provide them with the address that your machine appears to be at from the perspective of the internet (i.e. not your local subnet address).
 
@@ -174,11 +174,12 @@ For clients:
 - Ensure you're connecting using IPv4 or IPv6 - accordingly, hosts will not accept a client with a different IPv
 - If using IPv6, check that your router even supports it
 - If using IPv4, do not input semicolons (i.e, `127.0.0.1:1283`), as this will be interpreted as a IPv6 address
+- If the host is using a custom port, then specify the port number with a semicolon. Eg (`127.0.0.1;1983`). If no port is specified it defaults to 1984.
 - Check that your firewall is not blocking Alice
 - Check your internet connection (maybe even ping the host)
 - If using a VPN tunneling app, check that you're connected to the peer
 - Ensure you all have the same game version
-- Check that someone else is able to join (i.e that the host has port forwarded properly, the port `1984`)
+- Check that someone else is able to join (i.e that the host has port forwarded properly the port specified in host_setting.json. Default is port `1984`)
 - Ensure you have the same mods as the host
 - You can try using the same scenario file if you think that you are having issues caused by slightly different version of mods
 
@@ -189,4 +190,4 @@ For hosts:
 - If using IPv4, do not input semicolons (i.e, `:1283`), as this will be interpreted as a IPv6 address
 - Check that your firewall is not blocking Alice
 - Check your internet connection
-- Check that the port `1984`, is properly forwarded on your machine (you may use an open port checker to analyze this)
+- Check that the host port (default `1984`), is properly forwarded on your machine (you may use an open port checker to analyze this)

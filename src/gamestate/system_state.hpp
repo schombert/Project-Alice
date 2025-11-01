@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
-#include <semaphore>
+#include <condition_variable>
 
 #include "window.hpp"
 #include "constants.hpp"
@@ -33,22 +33,20 @@
 #include "notifications.hpp"
 #include "network.hpp"
 #include "fif.hpp"
+#include "lua.hpp"
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
+#include "enums.hpp"
+
+namespace ui {
+struct lua_scripted_element;
+}
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
 
 namespace sys {
-
-enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
-enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
-struct text_mouse_test_result {
-	uint32_t position;
-	uint32_t quadrent;
-};
-
 struct user_settings_s {
 	float ui_scale = 1.0f;
 	float master_volume = 0.5f;
@@ -378,7 +376,7 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool fow_enabled = false;
+	bool UNUSED_BOOL = false; // used to be fow == on/off
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -410,6 +408,7 @@ struct host_settings_s {
 	float alice_place_ai_upon_disconnection = 1.0f;
 	float alice_lagging_behind_days_to_slow_down = 30.f;
 	float alice_lagging_behind_days_to_drop = 90.f;
+	uint16_t alice_host_port = 1984;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -474,6 +473,13 @@ struct state_selection_data {
 	std::vector<dcon::state_definition_id> selectable_states;
 	std::function<void(sys::state&, dcon::state_definition_id)> on_select;
 	std::function<void(sys::state&)> on_cancel;
+};
+// used for visual identity selector
+struct national_identity_selection_data {
+	std::vector<dcon::national_identity_id> selectable_identities;
+	std::function<void(sys::state&, dcon::national_identity_id)> on_select;
+	std::function<void(sys::state&)> on_cancel;
+	dcon::nation_id province_owner_filter;
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
@@ -768,6 +774,21 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> jit_environment;
 #endif
 
+	//std::unique_ptr<lua_State> lua_environment;
+	lua_State* lua_ui_environment;
+	lua_State* lua_game_loop_environment;
+	std::vector<int> lua_on_daily_tick;
+	std::vector<int> lua_on_battle_end;
+	std::vector<int> lua_on_battle_tick;
+	std::vector<int> lua_on_war_declaration;
+	std::vector<int> lua_on_war_conclusion;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_functions;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_ui_functions;
+
+	std::string lua_combined_script{};
+	std::string lua_game_loop_script{};
+	std::string lua_ui_script{};
+
 	//
 	// Crisis data
 	//
@@ -830,6 +851,7 @@ struct alignas(64) state {
 
 	network_mode_type network_mode = network_mode_type::single_player;
 	dcon::nation_id local_player_nation;
+	dcon::mp_player_id local_player_id;
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
@@ -870,8 +892,10 @@ struct alignas(64) state {
 
 	//current ui
 	game_scene::scene_properties current_scene;
+	ui::lua_scripted_element* current_lua_element;
 
 	std::optional<state_selection_data> state_selection;
+	std::optional<national_identity_selection_data> national_identity_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
@@ -888,7 +912,7 @@ struct alignas(64) state {
 	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
-	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
+	rigtorp::SPSCQueue<command::command_data> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
@@ -952,7 +976,11 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> fif_environment;
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
+
+
 	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
+	std::condition_variable ui_lock_cv;
+	bool yield_ui_lock = false;
 
 	// the following functions will be invoked by the window subsystem
 
@@ -987,6 +1015,10 @@ struct alignas(64) state {
 	void debug_scenario_oos_dump();
 
 	void start_state_selection(state_selection_data& data);
+	void start_national_identity_selection(national_identity_selection_data& data);
+	void national_identity_select(dcon::province_id prov);
+	void national_identity_select(dcon::national_identity_id ni);
+
 	void state_select(dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool
@@ -1015,7 +1047,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
 
 		key_data.push_back(0);
 	}
@@ -1024,6 +1056,8 @@ struct alignas(64) state {
 
 	void save_user_settings() const;
 	void load_user_settings();
+	void load_gamerule_settings();
+	void save_gamerule_settings() const;
 	void update_ui_scale(float new_scale);
 
 	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data
@@ -1033,6 +1067,7 @@ struct alignas(64) state {
 	void reset_state();
 
 	void console_log(std::string_view message);
+	void lua_notification(std::string message);
 	void log_player_nations();
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
@@ -1090,6 +1125,8 @@ struct alignas(64) state {
 	}
 
 	void set_selected_province(dcon::province_id prov_id);
+	void set_local_player_nation_singleplayer(dcon::nation_id value);
+	void set_local_player_nation_do_not_update_dcon(dcon::nation_id value);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);

@@ -3,7 +3,7 @@
 
 namespace ai {
 enum ai_strategies {
-	industrious, militant, technological
+	industrious, militant, technological, naval
 };
 struct weighted_state_instance {
 	dcon::state_instance_id target;
