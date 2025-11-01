@@ -6,6 +6,11 @@ struct state;
 }
 
 namespace ai {
+
+inline bool province_has_available_workers(sys::state& state, dcon::province_id p);
+
+inline bool province_has_workers(sys::state& state, dcon::province_id p);
+
 void update_budget(sys::state& state, bool presim = false);
 void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id, std::vector<dcon::factory_type_id>& desired_types, bool pop_project);
 void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::market_id mid, dcon::province_id, std::vector<dcon::factory_type_id>& desired_types, bool pop_project);

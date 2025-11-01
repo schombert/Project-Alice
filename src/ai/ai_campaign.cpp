@@ -180,8 +180,8 @@ void update_ai_research(sys::state& state) {
 				base *= 2.0f;
 			}
 
-			auto cost = std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id));
-			pt.weight = base / cost;
+			auto cost = (float) std::pow(std::max(1.0f, culture::effective_technology_rp_cost(state, year, n, pt.id)), 2);
+			pt.weight = (rng::get_random(state, id * pt.id.value) % 100) * base / cost;
 		}
 		auto rval = rng::get_random(state, id);
 		std::sort(potential.begin(), potential.end(), [&](potential_techs& a, potential_techs& b) {
