@@ -980,9 +980,8 @@ construction_spending_explanation explain_construction_spending_now(sys::state& 
 }
 
 float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
-	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
 	auto priority = float(state.world.nation_get_construction_spending(n)) / 100.f;
-	auto current_budget = std::max(0.f, treasury * priority);
+	auto current_budget = std::max(0.f, economy::estimate_next_budget(state, n) * priority);
 	return estimate_construction_spending_from_budget(state, n, current_budget);
 }
 

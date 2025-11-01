@@ -1331,4 +1331,10 @@ float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon:
 	return target_demand == 0.f ? 0.f : std::min(1.f, historical_supply / target_demand);
 }
 
+float estimate_next_budget(sys::state& state, dcon::nation_id n) {
+	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
+	auto future_income = economy::estimate_daily_income(state, n);
+	return treasury + future_income;
+}
+
 }

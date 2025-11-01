@@ -4205,7 +4205,7 @@ float estimate_tariff_export_income(sys::state& state, dcon::nation_id n) {
 }
 
 float estimate_social_spending(sys::state& state, dcon::nation_id n) {
-	auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
+	auto base_budget = economy::estimate_next_budget(state, n);
 	auto const p_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level));
 	auto const unemp_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit));
 
@@ -4220,7 +4220,7 @@ float estimate_social_spending(sys::state& state, dcon::nation_id n) {
 
 float estimate_education_spending(sys::state& state, dcon::nation_id n) {
 	// account for refund
-	auto base_budget = state.world.nation_get_stockpiles(n, economy::money);
+	auto base_budget = economy::estimate_next_budget(state, n);
 
 	auto& def = advanced_province_buildings::definitions[advanced_province_buildings::list::schools_and_universities];
 
@@ -4352,7 +4352,7 @@ float estimate_diplomatic_expenses(sys::state& state, dcon::nation_id n) {
 
 
 float estimate_max_domestic_investment(sys::state& state, dcon::nation_id n) {
-	return state.world.nation_get_stockpiles(n, economy::money);
+	return economy::estimate_next_budget(state, n);
 }
 
 float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n) {
@@ -4849,7 +4849,10 @@ void resolve_constructions(sys::state& state) {
  */
 float estimate_daily_income(sys::state& state, dcon::nation_id n) {
 	auto tax = explain_tax_income(state, n);
-	return tax.mid + tax.poor + tax.rich;
+	auto tariff = estimate_tariff_export_income(state, n) + estimate_tariff_import_income(state, n);
+	auto gold = estimate_gold_income(state, n);
+	auto diplomacy = estimate_diplomatic_income(state, n);
+	return tax.mid + tax.poor + tax.rich + tariff + gold + diplomacy;
 }
 
 void try_add_factory_to_state(sys::state& state, dcon::state_instance_id s, dcon::factory_type_id t) {

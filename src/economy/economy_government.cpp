@@ -64,7 +64,7 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority) {
 	float total = 0.f;
-	auto admin_budget = state.world.nation_get_stockpiles(n, economy::money) * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	auto admin_budget = economy::estimate_next_budget(state, n) * budget_priority;
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;
@@ -86,7 +86,7 @@ float estimate_spendings_administration_capital(sys::state& state, dcon::nation_
 
 float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority) {
 	float total = 0.f;
-	auto admin_budget = state.world.nation_get_stockpiles(n, economy::money) * float(state.world.nation_get_administrative_spending(n)) / 100.f;
+	auto admin_budget = economy::estimate_next_budget(state, n) * budget_priority;
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return 0.f;

@@ -541,4 +541,6 @@ float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::m
 
 float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id, dcon::commodity_id, float additional_demand);
 
+float estimate_next_budget(sys::state& state, dcon::nation_id n);
+
 }
