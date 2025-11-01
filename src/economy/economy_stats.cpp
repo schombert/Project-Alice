@@ -424,7 +424,7 @@ float consumption(
 	dcon::market_id s,
 	dcon::commodity_id c
 ) {
-	return std::max(0.f, (state.world.market_get_demand(s, c) - trade_demand(state, s, c))) * state.world.market_get_demand_satisfaction(s, c);
+	return std::max(0.f, (state.world.market_get_demand(s, c) - trade_demand(state, s, c))) * state.world.market_get_actual_probability_to_buy(s, c);
 }
 float consumption(
 	sys::state& state,
@@ -437,7 +437,7 @@ float consumption(
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
 
 		auto local = state.world.market_get_demand(market, c);
-		total += local * state.world.market_get_demand_satisfaction(market, c);
+		total += local * state.world.market_get_actual_probability_to_buy(market, c);
 	});
 
 	return total;
@@ -449,7 +449,7 @@ float consumption(
 	auto total = 0.f;
 	state.world.for_each_market([&](auto m) {
 		auto local = state.world.market_get_demand(m, c);
-		total += local * state.world.market_get_demand_satisfaction(m, c);
+		total += local * state.world.market_get_actual_probability_to_buy(m, c);
 	});
 	return total;
 }
@@ -569,13 +569,6 @@ float inline market_speculation_budget(
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
-	auto sid = state.world.market_get_zone_from_local_market(m);
-	auto capital = state.world.state_instance_get_capital(sid);
-	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
-	// todo: implement more stable money per person value, for example, median wage over the world
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_speculation_budget = wage * population / 100.f * state.world.market_get_demand_satisfaction(m, c);
-	// return local_speculation_budget;
 	return 0.f;
 }
 template<typename M>
@@ -584,12 +577,6 @@ ve::fp_vector market_speculation_budget(
 	M m,
 	dcon::commodity_id c
 ) {
-	auto sid = state.world.market_get_zone_from_local_market(m);
-	auto capital = state.world.state_instance_get_capital(sid);
-	auto population = state.world.state_instance_get_demographics(sid, demographics::total);
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_speculation_budget = wage * population / 100.f * state.world.market_get_demand_satisfaction(m, c);
-	// return ve::max(0.f, local_speculation_budget);
 	return 0.f;
 }
 ve::fp_vector ve_market_speculation_budget(
@@ -740,7 +727,7 @@ float trade_influx(sys::state& state,
 			? state.world.trade_route_get_connected_markets(trade_route, 0)
 			: state.world.trade_route_get_connected_markets(trade_route, 1);
 		if(target != m) return;
-		auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+		auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 		auto absolute_volume = std::abs(current_volume);
 		auto distance = state.world.trade_route_get_distance(trade_route);
 		auto trade_good_loss_mult = std::max(0.f, 1.f - 0.0001f * distance);
@@ -765,7 +752,7 @@ float trade_outflux(sys::state& state,
 			? state.world.trade_route_get_connected_markets(trade_route, 0)
 			: state.world.trade_route_get_connected_markets(trade_route, 1);
 		if(origin != m) return;
-		auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+		auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 		auto absolute_volume = std::abs(current_volume);
 		result += sat * absolute_volume;
 	});
@@ -793,7 +780,7 @@ float trade_value_flow(
 			current_volume <= 0.f
 			? state.world.trade_route_get_connected_markets(trade_route, 0)
 			: state.world.trade_route_get_connected_markets(trade_route, 1);
-		auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+		auto sat = state.world.market_get_actual_probability_to_buy(m_origin, c);
 		auto absolute_volume = std::abs(current_volume);
 		auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
 		auto s_target = state.world.market_get_zone_from_local_market(m_target);
@@ -829,7 +816,7 @@ std::vector<float> trade_value_flow_nation_to_all(
 					current_volume <= 0.f
 					? state.world.trade_route_get_connected_markets(trade_route, 0)
 					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+				auto sat = state.world.market_get_actual_probability_to_buy(m_origin, c);
 				auto absolute_volume = std::abs(current_volume);
 				auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
 				auto s_target = state.world.market_get_zone_from_local_market(m_target);
@@ -868,7 +855,7 @@ std::vector<float> trade_value_flow_all_to_nation(
 					current_volume <= 0.f
 					? state.world.trade_route_get_connected_markets(trade_route, 0)
 					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+				auto sat = state.world.market_get_actual_probability_to_buy(m_origin, c);
 				auto absolute_volume = std::abs(current_volume);
 				auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
 				auto s_target = state.world.market_get_zone_from_local_market(m_target);
@@ -912,7 +899,7 @@ float trade_value_flow(
 					current_volume <= 0.f
 					? state.world.trade_route_get_connected_markets(trade_route, 0)
 					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				auto sat = state.world.market_get_direct_demand_satisfaction(m_origin, c);
+				auto sat = state.world.market_get_actual_probability_to_buy(m_origin, c);
 				auto absolute_volume = std::abs(current_volume);
 				auto s_origin = state.world.market_get_zone_from_local_market(m_origin);
 				auto s_target = state.world.market_get_zone_from_local_market(m_target);
@@ -952,7 +939,7 @@ float export_value(
 				: state.world.trade_route_get_connected_markets(trade_route, 1);
 
 			if(origin != s) return;
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 			auto absolute_volume = std::abs(current_volume);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
 			auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -998,7 +985,7 @@ float import_value(
 
 			if(target != s) return;
 
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 			auto absolute_volume = std::abs(current_volume);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
 			auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -1075,7 +1062,7 @@ trade_volume_data_detailed export_volume_detailed(
 
 			if(origin != market) return;
 
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 			auto absolute_volume = std::abs(current_volume);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
 			auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -1176,7 +1163,7 @@ trade_volume_data_detailed import_volume_detailed(
 
 			if(target != market) return;
 
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, c);
+			auto sat = state.world.market_get_actual_probability_to_buy(origin, c);
 			auto absolute_volume = std::abs(current_volume);
 			auto s_origin = state.world.market_get_zone_from_local_market(origin);
 			auto s_target = state.world.market_get_zone_from_local_market(target);
@@ -1336,5 +1323,12 @@ float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::m
 	return std::max(r, 0.0f);
 }
 
+
+float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_demand) {
+	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
+	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
+	auto target_demand = historical_demand + additional_demand;
+	return target_demand == 0.f ? 0.f : std::min(1.f, historical_supply / target_demand);
+}
 
 }

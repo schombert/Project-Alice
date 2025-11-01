@@ -539,4 +539,6 @@ bool has_factory(sys::state& state, dcon::state_instance_id s, dcon::factory_typ
 float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
 float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
 
+float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id, dcon::commodity_id, float additional_demand);
+
 }

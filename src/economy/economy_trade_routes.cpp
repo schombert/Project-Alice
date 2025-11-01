@@ -440,16 +440,17 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	result.profit_score = current_profit_A_to_B / price_A_export - current_profit_B_to_A / price_B_export;
 	auto change = result.profit_score;
 
-	// expand the route slower if goods are not actually bought:
-	auto bought_A = state.world.market_get_demand_satisfaction(A, cid);
-	auto bought_B = state.world.market_get_demand_satisfaction(B, cid);
+	// expand the route slower if goods are not actually bought in origin:
+	// use expectation because it's a behaviour-related update
+	auto bought_A = state.world.market_get_expected_probability_to_buy(A, cid);
+	auto bought_B = state.world.market_get_expected_probability_to_buy(B, cid);
 	auto bought = current_volume > 0.f ? bought_A :	bought_B;
 
-	result.actually_sold_in_origin = bought;
+	result.expected_to_buy_in_origin_ratio = bought;
 
 	result.expansion_multiplier = std::max(
 		std::max(0.f, min_trade_expansion_multiplier / (1.f + std::abs(change))),
-		(result.actually_sold_in_origin - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign
+		(result.expected_to_buy_in_origin_ratio - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign
 	);
 
 	change = change * (current_volume + change) >= 0.f
@@ -604,23 +605,23 @@ void update_trade_routes_volume(
 
 			auto change = current_profit_A_to_B / price_A_export - current_profit_B_to_A / price_B_export;
 
-			// expand the route slower if goods are not actually bought:
-			auto bought_A = state.world.market_get_demand_satisfaction(A, c);
-			auto bought_B = state.world.market_get_demand_satisfaction(B, c);
-			auto bought = ve::select(
+			// expand the route slower if we do not expect to actually buy the goods:
+			auto expected_to_buy_A = state.world.market_get_expected_probability_to_buy(A, c);
+			auto expected_to_buy_B = state.world.market_get_expected_probability_to_buy(B, c);
+			auto expected_to_buy_inputs = ve::select(
 				current_volume > 0.f,
-				bought_A,
-				bought_B
+				expected_to_buy_A,
+				expected_to_buy_B
 			);
 			change = ve::select(
 				change * (current_volume + change) >= 0.f, // change and volume are collinear
-				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (bought - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
+				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (expected_to_buy_inputs - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
 				change
 			);
 
 			// modifier for trade to slowly decay to create soft limit on transportation
 			// essentially, regularisation of trade weights, but can lead to weird effects
-			change = change - current_volume * trade_base_multiplicative_decay / (trade_base_multiplicative_decay * 10.f + bought) - volume_soft_sign * trade_base_additive_decay;
+			change = change - current_volume * trade_base_multiplicative_decay / (trade_base_multiplicative_decay * 10.f + expected_to_buy_inputs) - volume_soft_sign * trade_base_additive_decay;
 
 			auto new_volume = ve::select(reset_route_commodity, 0.f, current_volume + change);
 
@@ -757,7 +758,7 @@ trade_and_tariff<TRADE_ROUTE> explain_trade_route_commodity_internal(
 	auto price_origin = state.world.market_get_price(origin, cid);
 	auto price_target = state.world.market_get_price(target, cid);
 
-	auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+	auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 
 	auto absolute_volume = sat * adaptive_ve::abs(current_volume);
 
@@ -893,7 +894,7 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state&
 	auto origin_is_open_to_target = sphere_origin == controller_capital_target || overlord_origin == controller_capital_target || !source_applies_tariffs;
 	auto target_is_open_to_origin = sphere_target == controller_capital_origin || overlord_target == controller_capital_origin || !target_applies_tariffs;
 
-	auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+	auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 
 	auto absolute_volume = sat * std::abs(current_volume);
 	auto distance = state.world.trade_route_get_distance(trade_route);

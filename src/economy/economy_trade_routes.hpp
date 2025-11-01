@@ -41,7 +41,7 @@ auto trade_route_effect_of_scale(sys::state& state, TRADE_ROUTE trade_route) {
 	state.world.for_each_commodity([&](auto cid) {
 		VALUE volume = state.world.trade_route_get_volume(trade_route, cid);
 		MARKET origin = ve::select(volume > 0.f, A, B);
-		cargo = cargo + adaptive_ve::abs(volume) * state.world.market_get_direct_demand_satisfaction(origin, cid);;
+		cargo = cargo + adaptive_ve::abs(volume) * state.world.market_get_actual_probability_to_buy(origin, cid);;
 	});
 	return adaptive_ve::max<VALUE>(
 		trade_effect_of_scale_lower_bound,
@@ -89,7 +89,7 @@ struct trade_route_volume_change_reasons {
 	float profit_score = 0.f;
 	float current_volume = 0.f;
 	float base_change = 0.f;
-	float actually_sold_in_origin = 0.f;
+	float expected_to_buy_in_origin_ratio = 0.f;
 	float expansion_multiplier = 0.f;
 	float decay = 0.f;
 	float final_change = 0.f;

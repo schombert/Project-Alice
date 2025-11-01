@@ -143,7 +143,7 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		bool output_is_in_demand = state.world.market_get_demand_satisfaction(mid, type.get_output()) < filter_output_demand_satisfaction;
+		bool output_is_in_demand = state.world.market_get_expected_probability_to_sell(mid, type.get_output()) < filter_output_demand_satisfaction;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit;

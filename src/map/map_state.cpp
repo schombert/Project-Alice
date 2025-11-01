@@ -132,7 +132,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			current_volume <= 0.f
 			? state.world.trade_route_get_connected_markets(trade_route, 0)
 			: state.world.trade_route_get_connected_markets(trade_route, 1);
-		auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+		auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 		auto absolute_volume = std::abs(sat * current_volume);
 		total_volume += absolute_volume;
 		volume_sample.push_back(absolute_volume);
@@ -237,7 +237,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		auto s_target = state.world.market_get_zone_from_local_market(target);
 		auto p_origin = state.world.state_instance_get_capital(s_origin);
 		auto p_target = state.world.state_instance_get_capital(s_target);
-		auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+		auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 		auto absolute_volume = std::abs(sat * current_volume);
 
 		if(absolute_volume < cutoff) {
@@ -316,7 +316,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				current_volume <= 0.f
 				? state.world.trade_route_get_connected_markets(route, 0)
 				: state.world.trade_route_get_connected_markets(route, 1);
-			auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+			auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 
 			if(state.world.trade_route_get_connected_markets(route, 1) == mid) {
 				current_volume = -current_volume;
