@@ -179,8 +179,12 @@ public:
 		if(retrieve<bool>(state, parent)) {
 			text::add_line(state, contents, "alice_recommended_build");
 		}
+
+		auto content = dcon::fatten(state.world, retrieve<dcon::factory_type_id>(state, parent));
+
+		text::add_line(state, contents, "factory_tier", text::variable_type::x, text::int_wholenum{ state.world.factory_type_get_factory_tier(content) });
+
 		//
-		auto content = retrieve<dcon::factory_type_id>(state, parent);
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto n = state.world.state_ownership_get_nation(state.world.state_instance_get_state_ownership(sid));
 		//
@@ -220,12 +224,17 @@ public:
 				auto cid = cset.commodity_type[i];
 				auto price = economy::price(state, s, cid);
 
+				// Commodity icon
+				auto box = text::open_layout_box(contents, 0);
+				std::string padding = cid.index() < 10 ? "0" : "";
+				std::string description = "@$" + padding + std::to_string(cid.index());
+				text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ price });
 				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ price * amount });
-				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
 				text::close_layout_box(contents, box);
 			}
@@ -263,6 +272,39 @@ public:
 
 			text::add_line_with_condition(state, contents, "factory_build_condition_11", 1 <= limit);
 		}
+
+		text::add_line(state, contents, "alice_building_conditions");
+
+		text::add_line_with_condition(state, contents, "nation_is_factory_type_active", state.world.nation_get_active_building(n, content) || state.world.factory_type_get_is_available_from_start(content), 15);
+
+
+		auto p = state.world.state_instance_get_capital(sid);
+		auto const tax_eff = economy::tax_collection_rate(state, n, p);
+
+		auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		auto market_demand_satisfaction = state.world.market_get_demand_satisfaction(mid, output);
+
+		auto wage = state.world.province_get_labor_price(p, economy::labor::basic_education) * 2.f;
+		auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
+
+		float cost = economy::factory_type_build_cost(state, n, p, content, false) + 0.1f;
+		float output_value = economy::factory_type_output_cost(state, n, mid, content) * rich_effect;
+		float input = economy::factory_type_input_cost(state, n, mid, content) + 0.1f;
+		float profitability = (output_value - input - wage * content.get_base_workforce()) / input;
+		float payback_time = cost / std::max(0.00001f, (output_value - input - wage * content.get_base_workforce()));
+
+		text::add_line(state, contents, "construction_cost", text::variable_type::x, text::fp_currency{ cost });
+		text::add_line(state, contents, "input_value", text::variable_type::x, text::fp_currency{ input });
+		text::add_line(state, contents, "output_value", text::variable_type::x, text::fp_currency{ output_value });
+		text::add_line(state, contents, "profitability", text::variable_type::x, text::fp_percentage_one_place{ profitability });
+		text::add_line(state, contents, "payback_time", text::variable_type::x, text::fp_two_places{ payback_time });
+
+		// Some extra outputs for AI debugging
+
+		text::add_line(state, contents, "alice_pop_show_details");
+		
+		text::add_line_with_condition(state, contents, "province_has_workers", ai::province_has_workers(state, p));
+		text::add_line_with_condition(state, contents, "province_has_available_workers", ai::province_has_available_workers(state, p));
 	}
 };
 

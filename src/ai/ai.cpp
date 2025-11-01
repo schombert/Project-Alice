@@ -1373,11 +1373,34 @@ float estimate_balanced_composition_factor(sys::state& state, dcon::army_id a) {
 	return total_str * scale;
 }
 
+float estimate_army_quality(sys::state& state, dcon::army_id a) {
+	if(state.cheat_data.disable_ai) {
+		return 0.0f;
+	}
+	auto regs = state.world.army_get_army_membership(a);
+	if(regs.begin() == regs.end())
+		return 0.0f;
+	// average army quality
+	float total_str = 0.f;
+	auto owner = state.world.army_control_get_controller(state.world.army_get_army_control(a));
+	for(const auto reg : regs) {
+		auto type = reg.get_regiment().get_type();
+		auto stats = state.world.nation_get_unit_stats(owner, type);
+		auto& atk = (stats.discipline_or_evasion > 0.0f) ? stats.attack_or_gun_power : state.military_definitions.unit_base_definitions[type].attack_or_gun_power;
+		auto& def = (stats.discipline_or_evasion > 0.0f) ? stats.defence_or_hull : state.military_definitions.unit_base_definitions[type].defence_or_hull;
+
+		total_str += atk * def * reg.get_regiment().get_strength();
+	}
+	assert(std::isfinite(total_str));
+
+	return total_str;
+}
+
 float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	if(state.cheat_data.disable_ai) {
 		return 0.0f;
 	}
-	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
+	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.9f; // Since army quality is evaluated, no need to devalue rebels so much
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
 		auto n = state.world.army_get_controller_from_army_control(a);
@@ -1402,8 +1425,8 @@ float estimate_army_defensive_strength(sys::state& state, dcon::army_id a) {
 	scale += terrain_bonus;
 	float defender_fort = 1.0f + 0.1f * state.world.province_get_building_level(state.world.army_get_location_from_army_location(a), uint8_t(economy::province_building_type::fort));
 	scale += defender_fort;
-	// composition bonus
-	float strength = estimate_balanced_composition_factor(state, a);
+	// composition bonus and average unit quality
+	float strength = estimate_balanced_composition_factor(state, a) * estimate_army_quality(state, a);
 	return std::max(0.1f, strength * scale);
 }
 
@@ -1411,7 +1434,7 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 	if(state.cheat_data.disable_ai) {
 		return 0.0f;
 	}
-	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.5f;
+	float scale = state.world.army_get_controller_from_army_control(a) ? 1.f : 0.9f; // Since army quality is evaluated, no need to devalue rebels so much
 	// account general
 	if(auto gen = state.world.army_get_general_from_army_leadership(a); gen) {
 		auto n = state.world.army_get_controller_from_army_control(a);
@@ -1431,8 +1454,8 @@ float estimate_army_offensive_strength(sys::state& state, dcon::army_id a) {
 		scale += atk * morale * org;
 		scale += state.world.nation_get_has_gas_attack(n) ? 10.f : 0.f;
 	}
-	// composition bonus
-	float strength = estimate_balanced_composition_factor(state, a);
+	// composition bonus and average unit quality
+	float strength = estimate_balanced_composition_factor(state, a) * estimate_army_quality(state, a);
 	return std::max(0.1f, strength * scale);
 }
 
