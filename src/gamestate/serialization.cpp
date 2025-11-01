@@ -735,6 +735,24 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
 
+	 if(section_end - ptr_in >= static_cast<ptrdiff_t>(sizeof(uint32_t))) {
+        uint32_t decision_count = 0;
+        std::memcpy(&decision_count, ptr_in, sizeof(decision_count));
+        ptr_in += sizeof(decision_count);
+
+        // bounds check
+        if(section_end - ptr_in >= static_cast<ptrdiff_t>(decision_count)) {
+            for(uint32_t i = 0; i < decision_count; ++i) {
+                uint8_t flag = *ptr_in++;
+                dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
+                state.world.decision_set_hide_notification(id, flag != 0);
+            }
+        } else {
+            // malformed section: clamp and return
+            ptr_in = section_end;
+        }
+    }
+
 	// data container contribution
 
 	dcon::load_record loaded;
@@ -789,6 +807,17 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
 
+	{
+        uint32_t decision_count = uint32_t(state.world.decision_size());
+        std::memcpy(ptr_in, &decision_count, sizeof(decision_count));
+        ptr_in += sizeof(decision_count);
+        for(uint32_t i = 0; i < decision_count; ++i) {
+            dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
+            uint8_t flag = state.world.decision_get_hide_notification(id) ? 1 : 0;
+            *ptr_in++ = flag;
+        }
+    }
+
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
@@ -837,6 +866,12 @@ size_t sizeof_save_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.great_wars_enabled);
 		sz += sizeof(state.military_definitions.world_wars_enabled);
 	}
+
+	{
+        uint32_t decision_count = uint32_t(state.world.decision_size());
+        sz += sizeof(decision_count);
+        sz += size_t(decision_count) * sizeof(uint8_t);
+    }
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
