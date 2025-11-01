@@ -930,13 +930,13 @@ public:
 };
 
 class show_all_saves_checkbox : public checkbox_button {
-	void button_action(sys::state& state) noexcept {
+	void button_action(sys::state& state) noexcept override {
 		state.user_settings.show_all_saves = !state.user_settings.show_all_saves;
 		state.save_list_updated.store(true, std::memory_order::release); // update save list
 		state.game_state_updated.store(true, std::memory_order::release); //update ui
 		state.save_user_settings();
 	}
-	bool is_active(sys::state& state) noexcept {
+	bool is_active(sys::state& state) noexcept override {
 		return state.user_settings.show_all_saves;
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
