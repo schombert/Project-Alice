@@ -507,9 +507,12 @@ class save_menu_list : public listbox_element_base< save_menu_list_item, std::sh
 				if(content.file_size > sys::sizeof_save_header(h))
 					sys::read_save_header(reinterpret_cast<uint8_t const*>(content.data), h);
 				auto save = std::make_shared<save_item>(save_item{ simple_fs::get_file_name(f), h.timestamp, h.d, h.tag, h.cgov, false, true, std::string(h.save_name) });
-				if(!save->is_bookmark()) {
-					row_contents.push_back(std::move(save));
+				if(save->is_bookmark()) {
+					continue;
 				}
+				if(state.user_settings.show_all_saves || h.checksum.is_equal(state.scenario_checksum)) {
+					row_contents.push_back(save);
+				} 
 			}
 		}
 
@@ -564,16 +567,19 @@ class save_game_subwindow : public window_element_base {
 			auto ptr = make_element_by_type<save_name_editbox>(state, id);
 			editbox = ptr.get();
 			return ptr;
-		} else {
+		} else if(name == "show_all_saves_checkbox") {
+			return make_element_by_type<show_all_saves_checkbox>(state, id);
+		} else if(name == "show_all_saves_label") {
+			return make_element_by_type<simple_text_element_base>(state, id);
+		}
+
+		else {
 			return nullptr;
 		}
 	}
 	void on_visible(sys::state& state) noexcept override {
-		auto default_filename = sys::get_default_save_filename(state, sys::save_type::normal);
-		default_filename = simple_fs::remove_file_extension(default_filename);
-		auto utf16_filename = simple_fs::utf8_to_utf16(simple_fs::native_to_utf8(default_filename));
 
-		editbox->set_text(state, utf16_filename);
+		editbox->set_text(state, u"");
 	}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept  override {

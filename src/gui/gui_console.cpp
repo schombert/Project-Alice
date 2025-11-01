@@ -155,10 +155,9 @@ int32_t* f_spectate(fif::state_stack& s, int32_t* p, fif::environment* e) {
 
 	dcon::nation_id to_nation = state->world.national_identity_get_nation_from_identity_holder(state->national_definitions.rebel_id);
 
-	if(state->local_player_nation)
-		state->world.nation_set_is_player_controlled(state->local_player_nation, false);
-
-	state->local_player_nation = to_nation;
+	if(to_nation && to_nation != state->local_player_nation) {
+		nations::switch_all_players(*state, to_nation, state->local_player_nation);
+	}
 
 	return p + 2;
 }

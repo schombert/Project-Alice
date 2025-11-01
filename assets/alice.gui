@@ -38,7 +38,7 @@ guiTypes = {
 		}
 		instantTextBoxType = {
 			name = "show_all_saves_label"
-			position = { -8 7 }
+			position = { -48 7 }
 			font = "vic_18_black"
 			text = "alice_show_all_saves_text"
 			maxsize = { 212 32 }
@@ -1226,6 +1226,22 @@ guiTypes = {
 				buttonText = "MENU_BAR_SAVE"
 				buttonFont = "vic_18_black"
 			}
+			checkboxType = {
+				name = "show_all_saves_checkbox"
+				position = { x = 49 y = 329}
+				quadTextureSprite = "GFX_checkbox_default"
+				buttonText = ""
+			}
+			instantTextBoxType= {
+				position = {x = 29 y = 349 }
+				name = "show_all_saves_label"
+				font = "Arial12"
+				maxWidth = 208
+				maxHeight = 18
+				borderSize = {x = 0 y = 0}	
+				text = "alice_show_all_saves_text"	
+				format = left
+			}
 			
 			guiButtonType = {
 				name = "cancel"
@@ -1240,13 +1256,13 @@ guiTypes = {
 			}
 
 			instantTextBoxType= {
-				position = {x = 84 y = 282 }
+				position = {x = 74 y = 282 }
 				name = "filename_label"
 				font = "Arial12"
 				borderSize = {x = 8 y = 0}	
-				maxWidth = 188
+				maxWidth = 228
 				maxHeight = 18
-				text = "MENU_BAR_SAVE_GAME_FILENAME"	
+				text = "alice_save_input_filename_label"	
 				orientation = "UPPER_LEFT"
 				format = centre
 			}
@@ -3921,7 +3937,7 @@ guiTypes = {
 		{
 			name = "warning"
 			spriteType = "GFX_closebutton"
-			position = { 180 8 }
+			position = { 185 8 }
 			Orientation = "UPPER_LEFT"
 		}
 	}

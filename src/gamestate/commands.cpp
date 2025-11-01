@@ -155,7 +155,6 @@ bool can_save_game(sys::state& state, command_data& command) {
 }
 
 void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename) {
-	std::string_view c;
 	sys::write_save_file(state, sys::save_type::normal, "", filename);
 
 	if(and_quit) {

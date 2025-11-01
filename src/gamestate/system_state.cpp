@@ -6777,20 +6777,10 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 }
 
 
-void sys::state::set_local_player_nation_do_not_update_dcon(dcon::nation_id value) {
+void sys::state::set_local_player_nation(dcon::nation_id value) {
 	local_player_nation = value;
 	map_state.unhandled_province_selection = true;
 	game_state_updated.store(true, std::memory_order_release);
-}
-void sys::state::set_local_player_nation_singleplayer(dcon::nation_id value) {
-	if (local_player_nation) {
-		world.nation_set_is_player_controlled(value, false);
-	}
-	world.nation_set_is_player_controlled(value, true);
-	local_player_nation = value;
-	map_state.unhandled_province_selection = true;
-	game_state_updated.store(true, std::memory_order_release);
-	ai::remove_ai_data(*this, value);
 }
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {

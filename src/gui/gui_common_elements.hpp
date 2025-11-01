@@ -2481,6 +2481,29 @@ class go_to_base_game_button : public button_element_base {
 	}
 };
 
+
+class show_all_saves_checkbox : public checkbox_button {
+	void button_action(sys::state& state) noexcept override {
+		state.user_settings.show_all_saves = !state.user_settings.show_all_saves;
+		state.save_list_updated.store(true, std::memory_order::release); // update save list
+		state.game_state_updated.store(true, std::memory_order::release); //update ui
+		state.save_user_settings();
+	}
+	bool is_active(sys::state& state) noexcept override {
+		return state.user_settings.show_all_saves;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_show_all_saves_tooltip");
+		text::close_layout_box(contents, box);
+
+	}
+
+};
+
 inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov_id, dcon::commodity_id c) {
 	auto rgo_good = dcon::fatten(state.world, c);
 	auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);

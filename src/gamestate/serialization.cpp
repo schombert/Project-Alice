@@ -1090,17 +1090,17 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
-native_string get_default_save_filename(sys::state& state, save_type type) {
+std::string get_default_save_name(sys::state& state, save_type type) {
 	auto ymd_date = state.current_date.to_ymd(state.start_date);
 	if(type == sys::save_type::autosave) {
-		return native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin"));
+		return "autosave_" + std::to_string(state.autosave_counter) + ".bin";
 	}
 	else if(type == sys::save_type::bookmark) {
-		return simple_fs::utf8_to_native( "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin");
+		return  "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 	}
 	else {
 		auto tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
-		return simple_fs::utf8_to_native(make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin");
+		return make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
 	}
 }
 
@@ -1115,12 +1115,25 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 	header.d = state.current_date;
 
-	memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(31)));
-	if(name.length() < 31) {
-		header.save_name[name.length()] = 0;
-	} else {
-		header.save_name[31] = 0;
+	auto default_save_name = get_default_save_name(state, type);
+
+	if(!name.empty()) {
+		memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(63)));
+		if(name.length() < 63) {
+			header.save_name[name.length()] = 0;
+		} else {
+			header.save_name[63] = 0;
+		}
 	}
+	else {
+		memcpy(header.save_name, default_save_name.c_str(), std::min(default_save_name.length(), size_t(63)));
+		if(default_save_name.length() < 63) {
+			header.save_name[default_save_name.length()] = 0;
+		} else {
+			header.save_name[63] = 0;
+		}
+	}
+
 
 	size_t save_space = sizeof_save_section(state);
 
@@ -1143,17 +1156,17 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 
 	if(type == sys::save_type::autosave) {
-		simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		state.autosave_counter = (state.autosave_counter + 1) % sys::max_autosaves;
 	} else if(type == sys::save_type::bookmark) {
-		simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native( default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
 		if(!file_name.empty()) {
 			auto base_str = file_name + ".bin";
 			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 		else {
-			simple_fs::write_file(sdir, get_default_save_filename(state, type), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 	}
 	delete[] temp_buffer;
