@@ -212,7 +212,7 @@ void retrieve_list_of_provinces_for_national_construction(sys::state& state, dco
 }
 
 inline bool province_has_available_workers(sys::state& state, dcon::province_id p) {
-	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) >= 0.95f;
+	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.95f;
 }
 
 inline bool province_has_workers(sys::state& state, dcon::province_id p) {
