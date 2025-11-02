@@ -108,6 +108,11 @@ budget_spending_details estimate_budget_detailed(sys::state& state, dcon::nation
 	// SCALED SPENDING
 
 	auto social_budget = budget_ratio(available_funds, priority.social);
+	auto const p_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level));
+	auto const unemp_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit));
+	if(p_level + unemp_level == 0.f) {
+		social_budget = 0.f;
+	}
 	auto military_budget = estimate_pop_payouts_by_income_type(state, n, culture::income_type::military) * priority.military_wages;
 	auto domestic_investment = budget_ratio(available_funds, priority.domestic_investments);
 	auto education_budget = estimate_education_spending(state, n, available_funds * priority.education_wages);
