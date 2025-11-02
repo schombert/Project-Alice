@@ -195,7 +195,6 @@ float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n)
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
-float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
 float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
