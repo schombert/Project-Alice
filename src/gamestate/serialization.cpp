@@ -730,26 +730,31 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 	}
 
-	{ // military definitions
-		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
-		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
-	}
+    { // military definitions
+        ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
+        ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
+    }
 
-	 if(section_end - ptr_in >= static_cast<ptrdiff_t>(sizeof(uint32_t))) {
+    // decision ignore flags
+    if(section_end - ptr_in >= static_cast<ptrdiff_t>(sizeof(uint32_t))) {
         uint32_t decision_count = 0;
         std::memcpy(&decision_count, ptr_in, sizeof(decision_count));
         ptr_in += sizeof(decision_count);
 
-        // bounds check
-        if(section_end - ptr_in >= static_cast<ptrdiff_t>(decision_count)) {
-            for(uint32_t i = 0; i < decision_count; ++i) {
-                uint8_t flag = *ptr_in++;
-                dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
-                state.world.decision_set_hide_notification(id, flag != 0);
-            }
-        } else {
-            // malformed section: clamp and return
+        ptrdiff_t needed = static_cast<ptrdiff_t>(decision_count);
+        if(section_end - ptr_in < needed) {
             ptr_in = section_end;
+        } else {
+			// until someone comes with a way to do this properly in MP, utilize it only for SP
+            if(state.network_mode == sys::network_mode_type::single_player) {
+                for(uint32_t i = 0; i < decision_count; ++i) {
+                    uint8_t flag = *ptr_in++;
+                    dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
+                    state.world.decision_set_hide_notification(id, flag != 0);
+                }
+            } else {
+                ptr_in += decision_count;
+            }
         }
     }
 
