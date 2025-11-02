@@ -410,6 +410,10 @@ int32_t main_culture_regiments_under_construction_in_province(sys::state& state,
 int32_t mobilized_regiments_created_from_province(sys::state& state, dcon::province_id p);
 int32_t mobilized_regiments_possible_from_province(sys::state& state, dcon::province_id p);
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture);
+
+// finds an available soldier pop for a regiment with the specific unit type anywhere in the nation
+dcon::pop_id find_available_soldier_anywhere(sys::state& state, dcon::nation_id nation, dcon::unit_type_id type);
+
 int32_t mobilized_regiments_pop_limit(sys::state& state, dcon::nation_id n);
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed);
 

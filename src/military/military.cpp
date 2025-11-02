@@ -1275,6 +1275,24 @@ bool can_pop_form_regiment(sys::state& state, dcon::pop_id pop, float divisor) {
 	return false;
 }
 
+
+
+dcon::pop_id find_available_soldier_anywhere(sys::state& state, dcon::nation_id nation, dcon::unit_type_id type) {
+
+	const auto& unit_stats = state.military_definitions.unit_base_definitions[type];
+	if(unit_stats.primary_culture) {
+		return find_available_soldier_anywhere(state, nation, [&](sys::state& state, dcon::pop_id pop) {
+			return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers && state.world.pop_get_is_primary_or_accepted_culture(pop);
+		});
+	}
+	else {
+		return find_available_soldier_anywhere(state, nation, [&](sys::state& state, dcon::pop_id pop) {
+			return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+		});
+	}
+}
+
+
 // Calculates whether province can support more regiments
 // Considers existing regiments and construction as well
 dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, dcon::culture_id pop_culture) {
@@ -6434,12 +6452,11 @@ void apply_regiment_damage(sys::state& state) {
 			auto& pending_attrition_damage = state.world.regiment_get_pending_attrition_damage(s);
 			auto& current_strength = state.world.regiment_get_strength(s);
 			auto backing_pop = state.world.regiment_get_pop_from_regiment_source(s);
-			// the regiment must always have a backing pop
-			assert(backing_pop);
+			auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(s));
+
 		
 			if(pending_combat_damage > 0) {
 				auto tech_nation = tech_nation_for_regiment(state, s);
-				auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(s));
 				if(bool(in_nation)) {
 					// give war exhaustion for the losses
 					auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
@@ -6455,7 +6472,6 @@ void apply_regiment_damage(sys::state& state) {
 			}
 			if(pending_attrition_damage > 0) {
 				auto tech_nation = tech_nation_for_regiment(state, s);
-				auto in_nation = state.world.army_get_controller_from_army_control(state.world.regiment_get_army_from_army_membership(s));
 				if(bool(in_nation)) {
 					// give war exhaustion for the losses
 					auto& current_war_ex = state.world.nation_get_war_exhaustion(in_nation);
@@ -6473,15 +6489,24 @@ void apply_regiment_damage(sys::state& state) {
 			auto psize = state.world.pop_get_size(backing_pop);
 			// Check if the regiment has no attached pop without having been deleted (from demotion, migration etc).
 			if(!bool(backing_pop)) {
-				military::delete_regiment_safe_wrapper(state, s);
+				// try to find a new pop to replace the old. if not possible, then delete the regiment
+				auto new_pop = find_available_soldier_anywhere(state, in_nation, state.world.regiment_get_type(s));
+				if(bool(new_pop)) {
+					state.world.try_create_regiment_source(s, new_pop);
+				}
+				else {
+					military::delete_regiment_safe_wrapper(state, s);
+				}
 			}
 			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
 			else if(psize <= 1.0f) {
-				//safely delete any regiment which has this pop as its source
-				while(state.world.pop_get_regiment_source(backing_pop).begin() != state.world.pop_get_regiment_source(backing_pop).end()) {
-					auto reg = *(state.world.pop_get_regiment_source(backing_pop).begin());
-					military::delete_regiment_safe_wrapper(state, reg.get_regiment());
-
+				// try to find a new pop
+				auto new_pop = find_available_soldier_anywhere(state, in_nation, state.world.regiment_get_type(s));
+				if(bool(new_pop)) {
+					state.world.try_create_regiment_source(s, new_pop);
+				}
+				else {
+					military::delete_regiment_safe_wrapper(state, s);
 				}
 				state.world.delete_pop(backing_pop);
 			}

@@ -54,6 +54,32 @@ dcon::pop_id find_available_soldier(sys::state& state, dcon::province_id p, F&& 
 	
 }
 
+
+
+// Finds a pop which can support more regiments anywhere in the target nation
+// Takes a filter function template to filter out which pops are eligible
+template<typename F>
+dcon::pop_id find_available_soldier_anywhere(sys::state& state, dcon::nation_id nation, F&& filter) {
+	if(!nation) {
+		// can't find a pop for the invalid/rebel tag
+		return dcon::pop_id{ };
+	}
+
+	for(auto p : state.world.nation_get_province_ownership(nation)) {
+		auto prov = p.get_province();
+		if(state.world.province_get_nation_from_province_control(prov) == nation) {
+			auto pop = find_available_soldier(state, prov, filter);
+			if(bool(pop)) {
+				return pop;
+			}
+		}
+	}
+	return dcon::pop_id{};
+
+}
+
+
+
 // Calculates whether province can support more regiments when parsing OOBs
 // Takes a filter function template to filter out which pops are eligible
 template<typename F>
