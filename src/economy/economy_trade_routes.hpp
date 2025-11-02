@@ -103,6 +103,8 @@ float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_ro
 float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market);
 float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital);
 
+bool is_trade_route_relevant(sys::state& state, dcon::trade_route_id trade_route, dcon::nation_id n);
+
 void make_trade_center_tooltip(
 	sys::state& state,
 	text::columnar_layout& contents,
@@ -151,8 +153,8 @@ auto explain_trade_route(
 
 	auto s0 = state.world.market_get_zone_from_local_market(m0);
 	auto s1 = state.world.market_get_zone_from_local_market(m1);
-	auto n0 = state.world.state_instance_get_nation_from_state_ownership(s0);
-	auto n1 = state.world.state_instance_get_nation_from_state_ownership(s1);
+	auto formal_n0 = state.world.state_instance_get_nation_from_state_ownership(s0);
+	auto formal_n1 = state.world.state_instance_get_nation_from_state_ownership(s1);
 
 	auto capital_0 = state.world.state_instance_get_capital(s0);
 	auto capital_1 = state.world.state_instance_get_capital(s1);
@@ -160,8 +162,11 @@ auto explain_trade_route(
 	auto controller_capital_0 = state.world.province_get_nation_from_province_control(capital_0);
 	auto controller_capital_1 = state.world.province_get_nation_from_province_control(capital_1);
 
-	auto market_leader_0 = nations::get_market_leader(state, n0);
-	auto market_leader_1 = nations::get_market_leader(state, n1);
+	controller_capital_0 = adaptive_ve::select(controller_capital_0 != dcon::nation_id{}, controller_capital_0, formal_n0);
+	controller_capital_1 = adaptive_ve::select(controller_capital_1 != dcon::nation_id{}, controller_capital_1, formal_n1);
+
+	auto market_leader_0 = nations::get_market_leader(state, controller_capital_0);
+	auto market_leader_1 = nations::get_market_leader(state, controller_capital_1);
 
 	auto applies_tariffs_0 = ve::apply([&](auto n_a, auto n_b) {
 		auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
@@ -187,8 +192,8 @@ auto explain_trade_route(
 		return true;
 	}, market_leader_1, controller_capital_0);
 
-	auto is_open_0_to_1 = market_leader_0 == controller_capital_1 || !applies_tariffs_0 || n0 == n1;
-	auto is_open_1_to_0 = market_leader_1 == controller_capital_0 || !applies_tariffs_1 || n0 == n1;
+	auto is_open_0_to_1 = market_leader_0 == controller_capital_1 || !applies_tariffs_0 || controller_capital_0 == controller_capital_1;
+	auto is_open_1_to_0 = market_leader_1 == controller_capital_0 || !applies_tariffs_1 || controller_capital_0 == controller_capital_1;
 
 	auto distance = state.world.trade_route_get_distance(trade_route);
 	auto trade_good_loss_mult = adaptive_ve::max<VALUE>(0.f, 1.f - trade_loss_per_distance_unit * distance);
@@ -221,8 +226,9 @@ auto explain_trade_route(
 
 	return result;
 }
-template <typename TRADE_ROUTE>
-trade_and_tariff<TRADE_ROUTE> explain_trade_route_commodity(sys::state& state, TRADE_ROUTE trade_route, tariff_data<TRADE_ROUTE>& additional_data, dcon::commodity_id cid);
+
+//template <typename TRADE_ROUTE>
+//trade_and_tariff<TRADE_ROUTE> explain_trade_route_commodity(sys::state& state, TRADE_ROUTE trade_route, tariff_data<TRADE_ROUTE>& additional_data, dcon::commodity_id cid);
 
 trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
 

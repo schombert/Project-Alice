@@ -15,6 +15,7 @@
 #include "price.hpp"
 #include "economy_pops.hpp"
 #include "commodities.hpp"
+#include "adaptive_ve.hpp"
 
 namespace economy {
 
@@ -1250,7 +1251,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 		total += base_budget * float(state.world.nation_get_domestic_investment_spending(n)) / 100.f;
 	}
 
-	auto const m_spending = float(state.world.nation_get_military_spending(n)) * float(state.world.nation_get_military_spending(n)) / 100.0f / 100.f;
+	auto const m_spending = float(state.world.nation_get_military_spending(n)) / 100.f;
 
 	auto const p_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::pension_level));
 	auto const unemp_level = std::max(0.f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::unemployment_benefit));
@@ -3731,43 +3732,28 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		if(presimulation) {
 			emulate_construction_demand(state, n);
 		}
+	}
 
-		/*
-		collect taxes
-		*/
-
-		//if(false) {
-		//	// we do not want to accumulate tons of money during presim
-		//	state.world.for_each_nation([&](dcon::nation_id n) {
-		//		state.world.nation_set_stockpiles(n, money, 0.f);
-		//	});
-		//}
-
+	for(auto n : state.world.in_nation) {
 		collect_taxes(state, n);
-
-		{
-			/*
-			collect tariffs
-			*/
-
-			float t_total = 0.0f;
-
-			for(auto si : state.world.nation_get_state_ownership(n)) {
-				auto market = si.get_state().get_market_from_local_market();
-				auto capital = si.get_state().get_capital();
-				if(capital.get_nation_from_province_control() == n) {
-					t_total += state.world.market_get_tariff_collected(market);
-				}
-				state.world.market_set_tariff_collected(market, 0.f);
-			}
-
-			assert(std::isfinite(t_total));
-			assert(t_total >= 0);
-			state.world.nation_set_stockpiles(n, money, state.world.nation_get_stockpiles(n, money) + t_total);
-		}
-	};
+	}
 
 	set_profile_point("taxes");
+
+	auto collected_tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
+	for(auto mid : state.world.in_market) {
+		auto controller = mid.get_zone_from_local_market().get_capital().get_nation_from_province_control();
+		auto old_value = collected_tariff_buffer.get(controller);
+		auto collected = mid.get_tariff_collected();
+		collected_tariff_buffer.set(controller, old_value + collected);
+		mid.set_tariff_collected(0.f);
+	};
+	state.world.execute_serial_over_nation([&](auto nid) {
+		auto old = state.world.nation_get_stockpiles(nid, economy::money);
+		state.world.nation_set_stockpiles(nid, economy::money, old + collected_tariff_buffer.get(nid));
+	});
+
+	set_profile_point("tariffs");
 
 	// todo: vectorize
 	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](auto raw_market_id) {
@@ -4163,19 +4149,12 @@ float estimate_gold_income(sys::state& state, dcon::nation_id n) {
 float estimate_tariff_import_income(sys::state& state, dcon::nation_id n) {
 	float result = 0.f;
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
-		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
-			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
-			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
-				auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-				auto target =
-					current_volume <= 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				if(target == mid) {
-					trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
-					result += route_data.tariff_target;
-				}
-			});
+		state.world.for_each_trade_route([&](auto route) {
+			if(!economy::is_trade_route_relevant(state, route, n)) return;
+			trade_and_tariff route_data = explain_trade_route_commodity(state, route, cid);
+			if(route_data.target_nation == n) {
+				result += route_data.tariff_target;
+			}
 		});
 	});
 	return result;
@@ -4184,19 +4163,12 @@ float estimate_tariff_import_income(sys::state& state, dcon::nation_id n) {
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n) {
 	float result = 0.f;
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
-		state.world.nation_for_each_state_ownership(n, [&](auto sid) {
-			auto mid = state.world.state_instance_get_market_from_local_market(state.world.state_ownership_get_state(sid));
-			state.world.market_for_each_trade_route(mid, [&](auto trade_route) {
-				auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
-				auto origin =
-					current_volume > 0.f
-					? state.world.trade_route_get_connected_markets(trade_route, 0)
-					: state.world.trade_route_get_connected_markets(trade_route, 1);
-				if(origin == mid) {
-					trade_and_tariff route_data = explain_trade_route_commodity(state, trade_route, cid);
-					result += route_data.tariff_origin;
-				}
-			});
+		state.world.for_each_trade_route([&](auto route) {
+			if(!economy::is_trade_route_relevant(state, route, n)) return;
+			trade_and_tariff route_data = explain_trade_route_commodity(state, route, cid);
+			if(route_data.origin_nation == n) {
+				result += route_data.tariff_origin;
+			}
 		});
 	});
 	return result;

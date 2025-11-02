@@ -408,7 +408,7 @@ void update_income_national_subsidy(sys::state& state){
 			investment_budget
 			/ (investors + 1.f);
 
-		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f / 100.0f;
+		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f;
 
 		auto types = state.world.pop_get_poptype(ids);
 
