@@ -339,9 +339,9 @@ void populate_land_unit_construction_demand(
 		auto can_purchase_budget = std::min(budget_limit, budget) / (local_price + 0.001f);
 		auto can_purchase_construction = required / construction_time;
 		auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-		auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+		auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 		budget = std::max(0.f, budget - can_purchase * local_price * satisfaction);
-		register_construction_demand(state,	details.market,	cid, can_purchase);
+		register_construction_demand(state, details.market, cid, can_purchase);
 	}
 }
 
@@ -410,7 +410,7 @@ void populate_naval_unit_construction_demand(
 		auto can_purchase_budget = std::min(budget_limit, budget) / (local_price + 0.001f);
 		auto can_purchase_construction = required / details.construction_time;
 		auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-		auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+		auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 		budget = std::max(0.f, budget - can_purchase * local_price * satisfaction);
 		register_construction_demand(state, details.market, cid, can_purchase);
 	}
@@ -515,7 +515,7 @@ void populate_province_building_construction_demand(
 		auto can_purchase_budget = std::min(budget_limit, budget) / (local_price + 0.001f);
 		auto can_purchase_construction = required / details.construction_time;
 		auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-		auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+		auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 		budget = std::max(0.f, budget - can_purchase * local_price * satisfaction);
 		register_construction_demand(state, details.market, cid, can_purchase);
 	}
@@ -625,7 +625,7 @@ void populate_state_construction_demand(
 		auto can_purchase_budget = std::min(budget_limit, budget) / (local_price + 0.001f);
 		auto can_purchase_construction = required / details.construction_time;
 		auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-		auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+		auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 		budget = std::max(0.f, budget - can_purchase * local_price * satisfaction);
 		register_construction_demand(state, details.market, cid, can_purchase);
 	}
@@ -798,7 +798,7 @@ void populate_explanation_province_construction(
 			auto can_purchase_budget = std::min(budget_limit_per_project, dedicated_budget) / (local_price + 0.001f);
 			auto can_purchase_construction = required / details.construction_time;
 			auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-			auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 			auto cost = std::min(dedicated_budget, can_purchase * satisfaction * local_price);
 			dedicated_budget -= cost;
 			estimated_spendings += cost;
@@ -836,7 +836,7 @@ void populate_explanation_state_construction(
 			auto can_purchase_budget = std::min(budget_limit_per_project, dedicated_budget) / (local_price + 0.001f);
 			auto can_purchase_construction = required / details.construction_time;
 			auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-			auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 			auto cost = std::min(dedicated_budget, can_purchase * satisfaction * local_price);
 			dedicated_budget -= cost;
 			estimated_spendings += cost;
@@ -875,7 +875,7 @@ void populate_explanation_land_construction(
 			auto can_purchase_budget = actual_budget / (local_price + 0.001f);
 			auto can_purchase_construction = required / details.construction_time;
 			auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-			auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 			auto cost = std::min(dedicated_budget, can_purchase * satisfaction * local_price);
 			dedicated_budget -= cost;
 			estimated_spendings += cost;
@@ -916,7 +916,7 @@ void populate_explanation_naval_construction(
 			auto can_purchase_budget = actual_budget / (local_price + 0.001f);
 			auto can_purchase_construction = required / details.construction_time;
 			auto can_purchase = std::min(can_purchase_budget, can_purchase_construction);
-			auto satisfaction = state.world.market_get_demand_satisfaction(details.market, cid);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(details.market, cid);
 			auto cost = std::min(dedicated_budget, can_purchase * satisfaction * local_price);
 			dedicated_budget -= cost;
 			estimated_spendings += cost;
@@ -967,10 +967,7 @@ construction_spending_explanation explain_construction_spending(
 	return result;
 }
 
-// TODO: write a lighter version which doesn't include all the current projects and calculates only costs
-float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget) {
-	return explain_construction_spending(state, n, current_budget).estimated_spendings;
-}
+
 
 construction_spending_explanation explain_construction_spending_now(sys::state& state, dcon::nation_id n) {
 	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
@@ -979,10 +976,14 @@ construction_spending_explanation explain_construction_spending_now(sys::state& 
 	return explain_construction_spending(state, n, current_budget);
 }
 
+// TODO: write a lighter version which doesn't include all the current projects and calculates only costs
+float estimate_construction_spending_from_budget(sys::state& state, dcon::nation_id n, float current_budget) {
+	return explain_construction_spending(state, n, current_budget).estimated_spendings;
+}
+
 float estimate_construction_spending(sys::state& state, dcon::nation_id n) {
-	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
 	auto priority = float(state.world.nation_get_construction_spending(n)) / 100.f;
-	auto current_budget = std::max(0.f, treasury * priority);
+	auto current_budget = std::max(0.f, economy::estimate_next_budget(state, n) * priority);
 	return estimate_construction_spending_from_budget(state, n, current_budget);
 }
 
@@ -1120,7 +1121,7 @@ void refund_construction_demand(sys::state& state, dcon::nation_id n, float tota
 			dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 			auto& nat_demand = state.world.market_get_construction_demand(market, c);
 			auto com_price = price(state, market, c);
-			auto d_sat = state.world.market_get_demand_satisfaction(market, c);
+			auto d_sat = state.world.market_get_actual_probability_to_buy(market, c);
 			refund_amount +=
 				nat_demand
 				* (1.0f - d_sat)

@@ -89,6 +89,7 @@ void match_supply_and_demand(sys::state& state) {
 
 namespace advanced_province_buildings {
 
+// TODO: move definitions to assets
 const advanced_building_definition definitions[services::list::total] = {
 	// school
 	{
@@ -101,6 +102,7 @@ const advanced_building_definition definitions[services::list::total] = {
 void initialize_size_of_dcon_arrays(sys::state& state) {
 	state.world.province_resize_advanced_province_building_national_size(list::total);
 	state.world.province_resize_advanced_province_building_private_size(list::total);
+	state.world.province_resize_advanced_province_building_private_output(list::total);
 }
 
 void update_consumption(sys::state& state) {
@@ -113,6 +115,44 @@ void update_consumption(sys::state& state) {
 
 			auto current_demand = state.world.province_get_labor_demand(pids, def.throughput_labour_type);
 			state.world.province_set_labor_demand(pids, def.throughput_labour_type, current_demand + total);
+		});
+	}
+}
+
+void update_profit_and_refund(sys::state& state) {
+	// can't be vectorised directly
+	// TODO: add refund buffer to execute in serial way and then sum it up in parallel over nation/market
+
+	// refund to nation:
+	for(int32_t i = 0; i < list::total; i++) {
+		auto& def = definitions[i];
+		state.world.for_each_province([&](auto pids) {
+			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto local_nation = state.world.province_get_nation_from_province_ownership(pids);
+			auto national_size = state.world.province_get_advanced_province_building_national_size(pids, i);
+			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+			auto treasury = state.world.nation_get_stockpiles(local_nation, economy::money);
+			state.world.nation_set_stockpiles(local_nation, economy::money, treasury + (1.f - actually_bought) * national_size * cost_of_input);
+		});
+	}
+
+	// profit exists only for private enterprises
+	for(int32_t i = 0; i < list::total; i++) {
+		auto& def = definitions[i];
+		state.world.for_each_province([&](auto pids) {
+			auto sid = state.world.province_get_state_membership(pids);
+			auto mid = state.world.state_instance_get_market_from_local_market(sid);
+			auto private_size = state.world.province_get_advanced_province_building_private_size(pids, i);
+			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
+
+			auto output = state.world.province_get_advanced_province_building_private_output(pids, i);
+			auto actually_sold = state.world.province_get_service_sold(pids, def.output);
+
+			auto profit = output * actually_sold - private_size * cost_of_input * actually_bought;
+
+			auto current_money = state.world.market_get_stockpile(mid, economy::money);
+			state.world.market_set_stockpile(mid, economy::money, current_money + profit);
 		});
 	}
 }
@@ -188,6 +228,7 @@ void update_production(sys::state& state) {
 			auto current_public_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
 			auto current_public_supply = state.world.province_get_service_supply_public(pids, def.output);
 			state.world.province_set_service_supply_public(pids, def.output, current_public_supply + current_public_size * output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, current_public_size * output);
 		});
 
 		// TODO:

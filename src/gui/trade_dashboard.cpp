@@ -3171,9 +3171,25 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 		item.color = c3f;
 	}
 
+	// we can't access cached data directly in sorting, because order is not stable
+	// so we cache cached data
+	std::vector<dcon::nation_id> parent_nation;
+	std::vector<float> sphere_gdp;
+
+	parent_nation.resize(state.world.nation_size());
+	sphere_gdp.resize(state.world.nation_size());
+	state.world.for_each_nation([&](auto nid) {
+		parent_nation[nid.index()] = state.ui_cached_data.per_nation.sphere_parent[nid.index()].value_or(nid);
+		if(parent_nation[nid.index()]) {
+			sphere_gdp[nid.index()] = state.ui_cached_data.per_nation.sphere_gdp[
+				parent_nation[nid.index()].index()
+			].value_or(0.f);
+		}
+	});
+
 	std::sort(graph_content.begin(), graph_content.end(), [&](auto const& a, auto const& b) {
-		auto parent_a = state.ui_cached_data.per_nation.sphere_parent[a.key.index()].value_or(a.key);
-		auto parent_b = state.ui_cached_data.per_nation.sphere_parent[b.key.index()].value_or(b.key);
+		auto parent_a = parent_nation[a.key.index()];
+		auto parent_b = parent_nation[b.key.index()];
 
 		if(parent_a == parent_b) {
 			if(a.amount != b.amount) {
@@ -3186,11 +3202,11 @@ void trade_dashboard_main_gdp_nations_t::on_update(sys::state& state) noexcept {
 			float value_b = 0.f;
 
 			if(parent_a) {
-				value_a = state.ui_cached_data.per_nation.sphere_gdp[parent_a.index()].value_or(0.f);
+				value_a = sphere_gdp[parent_a.index()];
 			}
 
 			if(parent_b) {
-				value_b = state.ui_cached_data.per_nation.sphere_gdp[parent_b.index()].value_or(0.f);
+				value_b = sphere_gdp[parent_b.index()];
 			}
 
 			if(value_a != value_b) {

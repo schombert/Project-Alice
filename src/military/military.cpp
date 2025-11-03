@@ -196,15 +196,16 @@ bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id
 // Evaluate if the nation can reasonably build this unit type
 bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dcon::unit_type_id type) {
 	auto& def = state.military_definitions.unit_base_definitions[type];
+	auto build_time = def.build_time;
 
 	bool lacking_input = false;
-
 	auto m = state.world.nation_get_capital(n).get_state_membership().get_market_from_local_market();
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(def.build_cost.commodity_type[i]) {
-			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.01f)
-				lacking_input = true;
+			auto cid = def.build_cost.commodity_type[i];
+			auto amount = def.build_cost.commodity_amounts[i];
+			lacking_input = economy::estimate_probability_to_buy_after_demand_increase(state, m, cid, amount / build_time) < 0.1f;
 		} else {
 			break;
 		}
