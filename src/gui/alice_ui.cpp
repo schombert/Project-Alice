@@ -1472,8 +1472,6 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
 			trigger::to_generic(ids), trigger::to_generic(ids), 0);
-	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -1490,51 +1488,30 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
 			text::add_line(state, contents, "pop_prom_2", text::variable_type::val, text::fp_two_places{ promotion_bonus });
 			promotion_chance += promotion_bonus;
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-			demotion_chance += promotion_bonus;
-		}
+		} 
 	}
 	ui::additive_value_modifier_description(state, contents, state.culture_definitions.promotion_chance, trigger::to_generic(ids),
 			trigger::to_generic(ids), 0);
 
 	text::add_line_break_to_layout(state, contents);
 
-	text::add_line(state, contents, "pop_prom_4");
-	if(promoted_type) {
-		if(promoted_type == ptype) {
-
-		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-			text::add_line(state, contents, "pop_prom_2", text::variable_type::val, text::fp_two_places{ promotion_bonus });
-		}
-	}
 	ui::additive_value_modifier_description(state, contents, state.culture_definitions.demotion_chance, trigger::to_generic(ids),
 			trigger::to_generic(ids), 0);
 
 	text::add_line_break_to_layout(state, contents);
 
-	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f) {
+	if(promotion_chance <= 0.0f) {
 		text::add_line(state, contents, "pop_prom_7");
 		return;
 	}
-
-	bool promoting = promotion_chance >= demotion_chance;
-	if(promoting) {
-		text::add_line(state, contents, "pop_prom_5");
-		text::add_line(state, contents, "pop_prom_8", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
-				text::variable_type::val, text::fp_two_places{ promotion_chance }, text::variable_type::y,
-				text::fp_percentage{ state.world.nation_get_administrative_efficiency(owner) });
-	} else {
-		text::add_line(state, contents, "pop_prom_6");
-	}
+	text::add_line(state, contents, "pop_prom_8", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
+				text::variable_type::val, text::fp_two_places{ promotion_chance });
+	
 }
 
 void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {
 
 	auto owner = nations::owner_of_pop(state, ids);
-	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
 			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
@@ -1546,14 +1523,12 @@ void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon:
 	auto ptype = state.world.pop_get_poptype(ids);
 	auto strata = state.world.pop_type_get_strata(ptype);
 
-	text::add_line(state, contents, "pop_prom_1");
+	text::add_line(state, contents, "pop_prom_4");
 	if(promoted_type) {
 		if(promoted_type == ptype) {
 			text::add_line(state, contents, "pop_prom_3");
-		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-			text::add_line(state, contents, "pop_prom_2", text::variable_type::val, text::fp_two_places{ promotion_bonus });
-			promotion_chance += promotion_bonus;
 		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+			text::add_line(state, contents, "pop_prom_2", text::variable_type::val, text::fp_two_places{ promotion_bonus });
 			demotion_chance += promotion_bonus;
 		}
 	}
@@ -1562,34 +1537,18 @@ void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon:
 
 	text::add_line_break_to_layout(state, contents);
 
-	text::add_line(state, contents, "pop_prom_4");
-	if(promoted_type) {
-		if(promoted_type == ptype) {
-
-		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-			text::add_line(state, contents, "pop_prom_2", text::variable_type::val, text::fp_two_places{ promotion_bonus });
-		}
-	}
 	ui::additive_value_modifier_description(state, contents, state.culture_definitions.demotion_chance, trigger::to_generic(ids),
 			trigger::to_generic(ids), 0);
 
 	text::add_line_break_to_layout(state, contents);
 
-	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f) {
-		text::add_line(state, contents, "pop_prom_7");
+	if(demotion_chance <= 0.0f) {
+		text::add_line(state, contents, "pop_prom_5");
 		return;
 	}
-
-	bool promoting = promotion_chance >= demotion_chance;
-	if(promoting) {
-		text::add_line(state, contents, "pop_prom_5");
-	} else {
-		text::add_line(state, contents, "pop_prom_6");
-		text::add_line(state, contents, "pop_prom_9", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
+	text::add_line(state, contents, "pop_prom_9", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
 				text::variable_type::val, text::fp_two_places{ demotion_chance });
-	}
+	
 }
 
 void describe_con(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids) {

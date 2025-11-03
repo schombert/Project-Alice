@@ -647,10 +647,9 @@ pop_prom_1;?YPromotion factor:
 pop_prom_2;From national focus: ?G$val$
 pop_prom_3;0 (because of national focus)
 pop_prom_4;?YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
+pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
+pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:

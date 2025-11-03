@@ -1,6 +1,8 @@
 #pragma once
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
+#include "triggers.hpp"
+#include "prng.hpp"
 
 namespace pop_demographics {
 
@@ -55,6 +57,7 @@ inline ve::fp_vector from_pu16(ve::int_vector v) {
 inline ve::fp_vector from_pmc(ve::int_vector v) {
 	return ve::to_float(v) * pop_mc_scaling;
 }
+
 
 void regenerate_is_primary_or_accepted(sys::state& state);
 float get_demo(sys::state const& state, dcon::pop_id p, dcon::pop_demographics_key k);
@@ -236,6 +239,145 @@ struct issues_buffer {
 	}
 };
 
+
+
+struct pop_promotion_demotion_data {
+	float amount = 0.0f;
+	dcon::pop_type_id target = dcon::pop_type_id{};
+};
+enum class promotion_type : bool {
+	demotion = 0,
+	promotion = 1
+};
+
+template<promotion_type PROMOTION_TYPE>
+pop_promotion_demotion_data get_promotion_demotion_data(sys::state& state, dcon::pop_id p, float promotion_or_demotion_chance) {
+	auto loc = state.world.pop_get_province_from_pop_location(p);
+	auto si = state.world.province_get_state_membership(loc);
+	auto nf = state.world.state_instance_get_owner_focus(si);
+	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
+	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
+	auto ptype = state.world.pop_get_poptype(p);
+	auto strata = state.world.pop_type_get_strata(ptype);
+	float current_size = state.world.pop_get_size(p);
+
+	pop_promotion_demotion_data output_data{};
+
+
+	float base_amount = std::ceil(promotion_or_demotion_chance * state.defines.promotion_scale * current_size);
+
+	if constexpr(PROMOTION_TYPE == promotion_type::demotion) {
+		if(ptype == state.culture_definitions.artisans) {
+			base_amount *= 10.f;
+		}
+	}
+
+	if(base_amount >= 0.001f) {
+		auto transfer_amount = std::min(current_size, base_amount);
+		output_data.amount = transfer_amount;
+	}
+
+	tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
+
+	/*
+	The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If
+	there is a national focus set towards a pop type in the state, that is also added into the chances to promote into
+	that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the
+	promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is
+	selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This
+	obviously has the effect of making those pop types even more likely than they otherwise would be.
+
+	As for demotion, there appear to an extra wrinkle. Pops do not appear to demote into pop types if there is more
+	unemployment in that demotion target than in their current pop type. Otherwise, the national focus appears to have
+	the same effect with respect to demotion.
+	*/
+
+	bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
+
+	if((PROMOTION_TYPE == promotion_type::promotion && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))
+		|| (PROMOTION_TYPE == promotion_type::demotion && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))) {
+
+		float chance = 0.0f;
+		if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, promoted_type); mfn != 0) {
+			using ftype = float(*)(int32_t);
+			ftype fn = (ftype)mfn;
+			float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+			float interp_result = 0.0f;
+			if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
+				interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
+			}
+			assert(llvm_result == interp_result);
+#endif
+			chance = llvm_result + promotion_bonus;
+		} else {
+			if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
+				chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + promotion_bonus;
+			}
+		}
+
+		if(chance > 0) {
+			output_data.target = promoted_type;
+			return output_data; // early exit
+		}
+	}
+
+	float chances_total = 0.0f;
+	state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
+		if(target_type == ptype) {
+			weights[target_type] = 0.0f; //don't promote to the same type
+		} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
+			weights[target_type] = 0.0f; //don't promote if the pop is not in the state capital
+		} else if((PROMOTION_TYPE == promotion_type::promotion && state.world.pop_type_get_strata(promoted_type) >= strata) //if the selected type is higher strata
+			|| (PROMOTION_TYPE == promotion_type::demotion && state.world.pop_type_get_strata(promoted_type) <= strata)) {   //if the selected type is lower strata
+
+			weights[target_type] = 0.0f;
+
+			if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, target_type); mfn != 0) {
+				using ftype = float(*)(int32_t);
+				ftype fn = (ftype)mfn;
+				float llvm_result = fn(p.index());
+#ifdef CHECK_LLVM_RESULTS
+				float interp_result = 0.0f;
+				if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
+					interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
+				}
+				assert(llvm_result == interp_result);
+#endif
+				auto chance = llvm_result + (target_type == promoted_type ? promotion_bonus : 0.0f);
+				chances_total += chance;
+				weights[target_type] = chance;
+			} else {
+				if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
+					auto chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f);
+					chances_total += chance;
+					weights[target_type] = chance;
+				}
+			}
+
+		} else {
+			weights[target_type] = 0.0f;
+		}
+	});
+
+	if(chances_total > 0.0f) {
+		auto rvalue = float(rng::get_random(state, uint32_t(p.index())) & 0xFFFF) / float(0xFFFF + 1);
+		for(uint32_t i = state.world.pop_type_size(); i-- > 0;) {
+			dcon::pop_type_id pr{ dcon::pop_type_id::value_base_t(i) };
+			rvalue -= weights[pr] / chances_total;
+			if(rvalue < 0.0f) {
+				output_data.target = pr;
+				return output_data;
+			}
+		}
+	}
+	output_data.amount = 0.0f;
+	output_data.target = dcon::pop_type_id{ };
+	return output_data;
+
+}
+
+
 struct promotion_buffer {
 	ve::vectorizable_buffer<float, dcon::pop_id> amounts;
 	ve::vectorizable_buffer<dcon::pop_type_id, dcon::pop_id> types;
@@ -290,7 +432,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf);
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& ibuf);
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
-void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf);
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
@@ -299,7 +441,6 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
 float get_estimated_con_change(sys::state& state, dcon::nation_id n);
-float get_estimated_promotion(sys::state& state, dcon::nation_id n);
 
 // bureacracy has to travel around the realm
 inline constexpr float administration_base_push = 0.9f;
@@ -316,7 +457,7 @@ province_migration_weight_explanation explain_province_internal_migration_weight
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
-void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf);
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
@@ -339,7 +480,6 @@ float get_estimated_literacy_change(sys::state& state, dcon::pop_id n);
 float get_estimated_mil_change(sys::state& state, dcon::pop_id n);
 float get_estimated_con_change(sys::state& state, dcon::pop_id n);
 float get_estimated_type_change(sys::state& state, dcon::pop_id n);
-float get_effective_estimation_type_change(sys::state& state, dcon::nation_id nation, dcon::pop_type_id target_type);
 float get_estimated_promotion(sys::state& state, dcon::pop_id n);
 float get_estimated_demotion(sys::state& state, dcon::pop_id n);
 float get_estimated_assimilation(sys::state& state, dcon::pop_id n);
