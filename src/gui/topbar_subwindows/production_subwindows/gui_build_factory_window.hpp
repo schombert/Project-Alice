@@ -289,7 +289,7 @@ public:
 		auto const tax_eff = economy::tax_collection_rate(state, n, p);
 
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
-		auto market_demand_satisfaction = state.world.market_get_demand_satisfaction(mid, output);
+		auto market_demand_satisfaction = state.world.market_get_expected_probability_to_sell(mid, output);
 
 		auto wage = state.world.province_get_labor_price(p, economy::labor::basic_education) * 2.f;
 		auto const rich_effect = (1.0f - tax_eff * float(state.world.nation_get_rich_tax(n)) / 100.0f);
