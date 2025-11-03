@@ -6488,6 +6488,7 @@ void apply_regiment_damage(sys::state& state) {
 			
 			auto psize = state.world.pop_get_size(backing_pop);
 			// Check if the regiment has no attached pop without having been deleted (from demotion, migration etc).
+			// The find soldier function cannot find a pop for an invalid nation id (rebel armies) so it will take care of that
 			if(!bool(backing_pop)) {
 				// try to find a new pop to replace the old. if not possible, then delete the regiment
 				auto new_pop = find_available_soldier_anywhere(state, in_nation, state.world.regiment_get_type(s));
@@ -6498,7 +6499,6 @@ void apply_regiment_damage(sys::state& state) {
 					military::delete_regiment_safe_wrapper(state, s);
 				}
 			}
-			// check if the pop has taken enough damage to be deleted, and if so, also delete the connected regiments safely
 			else if(psize <= 1.0f) {
 				// try to find a new pop
 				auto new_pop = find_available_soldier_anywhere(state, in_nation, state.world.regiment_get_type(s));

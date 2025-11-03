@@ -1046,6 +1046,10 @@ void populate_army_consumption(sys::state& state) {
 		auto owner = reg.get_army_from_army_membership().get_controller_from_army_control();
 		auto pop = reg.get_pop_from_regiment_source();
 		auto location = pop.get_pop_location().get_province().get_state_membership();
+		// if the regiment has no pop attached (may happen temporarily until it gets deleted) don't do army demand
+		if(!location) {
+			return;
+		}
 		auto market = location.get_market_from_local_market();
 		auto strength = reg.get_strength();
 
