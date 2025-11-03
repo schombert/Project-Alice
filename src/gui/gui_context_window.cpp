@@ -1,6 +1,7 @@
 #include "gui_element_types.hpp"
 #include "gui_context_window.hpp"
 #include "gui_common_elements.hpp"
+#include "gui_factory_refit_window.hpp"
 
 namespace ui {
 
@@ -182,6 +183,31 @@ public:
 	}
 };
 
+class context_menu_refit_factory : public context_menu_entry_logic {
+public:
+	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
+		return state.lookup_key("factory_refit");
+	}
+
+	bool is_available(sys::state& state, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		auto pid = state.world.factory_get_province_from_factory_location(context.factory);
+		auto sid = state.world.province_get_state_membership(pid);
+		auto n = state.world.province_get_nation_from_province_ownership(pid);
+		return factory_refit_button_active(state, context.factory, pid, sid, n);
+	}
+
+	void button_action(sys::state& state, context_menu_context context, ui::element_base* parent) noexcept override {
+		show_factory_refit_menu(state, context.factory);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, context_menu_context context) noexcept override {
+		auto fid = context.factory;
+		factory_refit_button_tooltip(state, x, y, contents, fid);
+	}
+};
+
+
 class context_menu_delete_factory : public context_menu_entry_logic {
 public:
 	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
@@ -239,6 +265,7 @@ public:
 
 inline static context_menu_delete_factory context_menu_delete_factory_logic;
 inline static context_menu_upgrade_factory context_menu_upgrade_factory_logic;
+inline static context_menu_refit_factory context_menu_refit_factory_logic;
 inline static context_menu_build_factory context_menu_build_factory_logic;
 inline static context_menu_cancel_factory_construction context_menu_cancel_factory_construction_logic;
 
@@ -322,7 +349,8 @@ void show_context_menu(sys::state& state, context_menu_context context) {
 	}
 	else if(context.factory) {
 		logics[0] = &context_menu_upgrade_factory_logic;
-		logics[1] = &context_menu_delete_factory_logic;
+		logics[1] = &context_menu_refit_factory_logic;
+		logics[2] = &context_menu_delete_factory_logic;
 	}
 	else if(context.fconstruction) {
 		logics[0] = &context_menu_cancel_factory_construction_logic;

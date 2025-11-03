@@ -1916,40 +1916,28 @@ bool is_involved_in_crisis(sys::state const& state, dcon::nation_id n) {
 }
 
 void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n) {
-	if(state.network_mode == sys::network_mode_type::single_player) {
+
+	auto p = network::find_country_players(state, old_n);
+	// move ALL players which are on the current nation, to the new nation
+	for(auto player : p) {
+		state.world.force_create_player_nation(new_n, player);
+	}
+	if(!p.empty()) {
 		state.world.nation_set_is_player_controlled(new_n, true);
 		state.world.nation_set_is_player_controlled(old_n, false);
-		state.local_player_nation = new_n;
-	} else {
-		auto p = network::find_country_players(state, old_n);
-		// move ALL players which are on the current nation, to the new nation
-		for(auto player : p) {
-			state.world.force_create_player_nation(new_n, player);
-		}
-		if(!p.empty()) {
-			state.world.nation_set_is_player_controlled(new_n, true);
-			state.world.nation_set_is_player_controlled(old_n, false);
-		}
-
-		if(state.network_mode == sys::network_mode_type::host) {
-			for(auto& client : state.network_state.clients) {
-				if(!client.is_active())
-					continue;
-				if(client.playing_as == old_n) {
-					client.playing_as = new_n;
-				}
-			}
-
-			network::write_player_nations(state);
-		}
-		if(state.local_player_nation == old_n) {
-			state.local_player_nation = new_n;
-		}
-		// We will also re-assign all chat messages from this nation to the new one
-		for(auto& msg : state.ui_state.chat_messages)
-			if(bool(msg.source) && msg.source == old_n)
-				msg.source = new_n;
 	}
+
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::write_player_nations(state);
+	}
+	if(state.local_player_nation == old_n) {
+		state.local_player_nation = new_n;
+	}
+	// We will also re-assign all chat messages from this nation to the new one
+	for(auto& msg : state.ui_state.chat_messages)
+		if(bool(msg.source) && msg.source == old_n)
+			msg.source = new_n;
+	
 	if(state.current_scene.game_in_progress) {
 		// give back units if puppet becomes player controlled. This is also done when the game starts and goes from lobby to game in progress
 		if(bool(state.world.nation_get_overlord_as_subject(new_n)) && state.world.nation_get_overlord_commanding_units(new_n)) {
@@ -2091,6 +2079,16 @@ void create_nation_based_on_template(sys::state& state, dcon::nation_id n, dcon:
 
 	politics::update_displayed_identity(state, n);
 }
+
+bool exists_or_is_utility_tag(sys::state& state, dcon::nation_id nation) {
+	return state.world.nation_get_owned_province_count(nation) > 0 || state.world.nation_get_utility_tag(nation);
+}
+
+ve::mask_vector exists_or_is_utility_tag(sys::state& state, ve::contiguous_tags<dcon::nation_id> nations) {
+	return (state.world.nation_get_owned_province_count(nations) != 0) || state.world.nation_get_utility_tag(nations);
+}
+
+
 
 void run_gc(sys::state& state) {
 	//cleanup (will set gc pending)

@@ -42,6 +42,7 @@ public:
 
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto type = retrieve<dcon::factory_type_id>(state, parent);
+
 		/* If mod uses Factory Province limits */
 		auto output = state.world.factory_type_get_output(type);
 		if(state.world.commodity_get_uses_potentials(output)) {
@@ -202,12 +203,18 @@ public:
 				auto cid = iset.commodity_type[i];
 				auto price = economy::price(state, s, cid);
 
+				auto box = text::open_layout_box(contents, 0);
+
+				// Commodity icon
+				std::string padding = cid.index() < 10 ? "0" : "";
+				std::string description = "@$" + padding + std::to_string(cid.index());
+				text::add_unparsed_text_to_layout_box(state, contents, box, description);
+				// Text
 				text::substitution_map m;
 				text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
 				text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ price });
 				text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
 				text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ price * amount });
-				auto box = text::open_layout_box(contents, 0);
 				text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
 				text::close_layout_box(contents, box);
 			}
@@ -361,11 +368,11 @@ public:
 };
 
 class factory_build_list : public listbox_element_base<factory_build_item, dcon::factory_type_id> {
-	std::vector<dcon::factory_type_id> desired_types;
+	/*std::vector<dcon::factory_type_id> desired_types;
 	bool is_highlighted(sys::state& state, dcon::province_id pid, dcon::factory_type_id ftid) {
 		bool is_hl = std::find(desired_types.begin(), desired_types.end(), ftid) != desired_types.end();
 		return is_hl && command::can_begin_factory_building_construction(state, state.local_player_nation, pid, ftid, false);
-	}
+	}*/
 protected:
 	std::string_view get_row_element_name() override {
 		return "new_factory_option";
@@ -375,10 +382,36 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto sid = retrieve<dcon::state_instance_id>(state, parent);
 		auto pid = retrieve<dcon::province_id>(state, parent);
+		auto n = state.local_player_nation;
 		row_contents.clear();
-		desired_types.clear();
+		// desired_types.clear();
 		auto m = state.world.state_instance_get_market_from_local_market(sid);
-		ai::get_desired_factory_types(state, state.local_player_nation, m, pid, desired_types, false);
+
+		std::vector<dcon::factory_type_id> types;
+		for(auto t : state.world.in_factory_type) {
+			types.push_back(t);
+		}
+
+		std::sort(types.begin(), types.end(), [&](auto a, auto b) {
+			// Constructable first
+			if(command::can_begin_factory_building_construction(state, state.local_player_nation, pid, a, false) != command::can_begin_factory_building_construction(state, state.local_player_nation, pid, b, false)) {
+				return (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, a, false) > (int)command::can_begin_factory_building_construction(state, state.local_player_nation, pid, b, false);
+			}
+			// Then sort by commodity
+			if(state.world.factory_type_get_output(a).id.index() != state.world.factory_type_get_output(b).id.index()) {
+				return state.world.factory_type_get_output(a).id.index() < state.world.factory_type_get_output(b).id.index();
+			}
+			// Then sort by tier
+			if(state.world.factory_type_get_factory_tier(a) != state.world.factory_type_get_factory_tier(b)) {
+				return state.world.factory_type_get_factory_tier(a) < state.world.factory_type_get_factory_tier(b);
+			}
+			return a.value > b.value;
+		});
+
+		for(auto t : types) {
+			row_contents.push_back(t);
+		}
+		/*ai::get_desired_factory_types(state, state.local_player_nation, m, pid, desired_types, false);
 
 		// First the desired factory types
 		for(const auto ftid : desired_types)
@@ -396,6 +429,7 @@ public:
 				row_contents.push_back(ftid);
 			}
 		}
+		*/
 		update(state);
 	}
 };

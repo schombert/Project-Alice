@@ -121,17 +121,19 @@ public:
 class player_kick_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto player = retrieve<dcon::mp_player_id>(state, parent);
-		auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-		disabled = !command::can_notify_player_kick(state, state.local_player_nation, nickname);
-		if(state.network_mode != sys::network_mode_type::host)
+		if(state.network_mode != sys::network_mode_type::host) {
 			disabled = true;
+			return;
+		}
+		auto player = retrieve<dcon::mp_player_id>(state, parent);
+		disabled = !command::can_notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), player);
+		
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto player = retrieve<dcon::mp_player_id>(state, parent);
 		auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-		command::notify_player_kick(state, state.local_player_nation, true, nickname);
+		command::notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -148,17 +150,17 @@ public:
 class player_ban_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		auto player = retrieve<dcon::mp_player_id>(state, parent);
-		auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-		disabled = !command::can_notify_player_ban(state, state.local_player_nation, nickname);
-		if(state.network_mode != sys::network_mode_type::host)
+		if(state.network_mode != sys::network_mode_type::host) {
 			disabled = true;
+			return;
+		}
+		auto player = retrieve<dcon::mp_player_id>(state, parent);
+		disabled = !command::can_notify_player_ban(state, state.world.mp_player_get_nation_from_player_nation(player), player);
 	}
 
 	void button_action(sys::state& state) noexcept override {
 		auto player =  retrieve<dcon::mp_player_id>(state, parent);
-		auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-		command::notify_player_ban(state, state.local_player_nation, true, nickname);
+		command::notify_player_ban(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
 	}
 
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -328,12 +330,13 @@ public:
 		if(network::check_any_players_loading(state) || state.network_mode != sys::network_mode_type::host) {
 			return;
 		}
-		disabled = !network::any_player_oos(state);
+		disabled = !network::any_player_oos(state) || state.ui_state.recently_pressed_resync;
 	}
 	void button_action(sys::state& state) noexcept override {
-		if(state.network_mode == sys::network_mode_type::host) {
+		if(state.network_mode == sys::network_mode_type::host && !network::check_any_players_loading(state) && !state.ui_state.recently_pressed_resync) {
+			state.ui_state.recently_pressed_resync = true;
 			disabled = true;
-			network::full_reset_after_oos(state);
+			command::resync_lobby(state, state.local_player_nation);
 		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
@@ -454,7 +457,7 @@ inline void chat_edit_box::on_edit_command(sys::state& state, edit_command comma
 		memcpy(body, s.data(), len);
 		body[len] = '\0';
 
-		command::chat_message(state, state.local_player_nation, body, target, state.network_state.nickname);
+		command::chat_message(state, state.local_player_nation, body, target);
 
 		Cyto::Any payload = this;
 		impl_get(state, payload);

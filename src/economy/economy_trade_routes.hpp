@@ -199,8 +199,8 @@ auto explain_trade_route(
 	);
 
 	auto export_tariff_0 = ve::select(is_open_0_to_1, 0.f, export_tariff.get(m0));
-	auto import_tariff_0 = ve::select(is_open_0_to_1, 0.f, import_tariff.get(m1));
-	auto export_tariff_1 = ve::select(is_open_1_to_0, 0.f, export_tariff.get(m0));
+	auto import_tariff_0 = ve::select(is_open_0_to_1, 0.f, import_tariff.get(m0));
+	auto export_tariff_1 = ve::select(is_open_1_to_0, 0.f, export_tariff.get(m1));
 	auto import_tariff_1 = ve::select(is_open_1_to_0, 0.f, import_tariff.get(m1));
 
 	tariff_data<TRADE_ROUTE> result{

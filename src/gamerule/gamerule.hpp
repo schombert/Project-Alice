@@ -21,8 +21,26 @@ enum class sphereling_declare_war_settings : uint8_t {
 	yes = 1
 };
 
+enum class partial_retreat_settings : uint8_t {
+	disable = 0,
+	enable = 1
+};
+enum class fog_of_war_settings : uint8_t {
+	disable = 0,
+	enable = 1
+};
+enum class auto_concession_peace_settings : uint8_t {
+	cannot_reject = 0,
+	can_reject = 1
+};
+
+
+
 struct hardcoded_gamerules {
 	dcon::gamerule_id sphereling_can_declare_spherelord;
+	dcon::gamerule_id allow_partial_retreat;
+	dcon::gamerule_id fog_of_war;
+	dcon::gamerule_id auto_concession_peace;
 
 };
 

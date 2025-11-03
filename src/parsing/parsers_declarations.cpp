@@ -3194,6 +3194,7 @@ void history_war_goal::state_province_id(association_type t, int32_t value, erro
 	}
 }
 
+// Load leader images into GFX (both png and dds are supported)
 void make_leader_images(scenario_building_context& outer_context) {
 	auto root = get_root(outer_context.state.common_fs);
 	auto gfx = open_directory(root, NATIVE("gfx"));
@@ -3201,6 +3202,8 @@ void make_leader_images(scenario_building_context& outer_context) {
 	auto leaders = open_directory(infa, NATIVE("leaders"));
 
 	auto all_images = simple_fs::list_files(leaders, NATIVE(".dds"));
+	auto png_images = simple_fs::list_files(leaders, NATIVE(".png"));
+	all_images.insert(all_images.end(), png_images.begin(), png_images.end());
 	for(auto i : all_images) {
 		auto native_name = simple_fs::get_file_name(i);
 		auto uname = simple_fs::native_to_utf8(native_name);

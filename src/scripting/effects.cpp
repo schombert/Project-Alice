@@ -2603,10 +2603,18 @@ uint32_t ef_create_vassal(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_this_nation(EFFECT_PARAMTERS) {
 	nations::make_vassal(ws, trigger::to_nation(this_slot), trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), trigger::to_nation(this_slot));
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), trigger::to_nation(this_slot), wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_this_province(EFFECT_PARAMTERS) {
@@ -2614,10 +2622,18 @@ uint32_t ef_create_vassal_this_province(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_from_nation(EFFECT_PARAMTERS) {
 	nations::make_vassal(ws, trigger::to_nation(from_slot), trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), trigger::to_nation(from_slot));
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), trigger::to_nation(from_slot), wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_create_vassal_from_province(EFFECT_PARAMTERS) {
@@ -2625,6 +2641,10 @@ uint32_t ef_create_vassal_from_province(EFFECT_PARAMTERS) {
 	if(!holder)
 		return 0;
 	nations::make_vassal(ws, holder, trigger::to_nation(primary_slot));
+	military::end_wars_between(ws, trigger::to_nation(primary_slot), holder);
+	for(auto wp : ws.world.nation_get_war_participant(trigger::to_nation(primary_slot))) {
+		military::add_to_war(ws, wp.get_war(), holder, wp.get_is_attacker());
+	}
 	return 0;
 }
 uint32_t ef_end_military_access(EFFECT_PARAMTERS) {

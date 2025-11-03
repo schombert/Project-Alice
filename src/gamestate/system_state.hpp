@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
-#include <semaphore>
+#include <condition_variable>
 
 #include "window.hpp"
 #include "constants.hpp"
@@ -378,7 +378,7 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool fow_enabled = false;
+	bool UNUSED_BOOL = false; // used to be fow == on/off
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -410,6 +410,7 @@ struct host_settings_s {
 	float alice_place_ai_upon_disconnection = 1.0f;
 	float alice_lagging_behind_days_to_slow_down = 30.f;
 	float alice_lagging_behind_days_to_drop = 90.f;
+	uint16_t alice_host_port = 1984;
 };
 
 struct global_scenario_data_s { // this struct holds miscellaneous global properties of the scenario
@@ -427,7 +428,7 @@ struct cheat_data_s {
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
-	bool daily_oos_check = false;
+	bool daily_oos_check = true;
 	bool province_names = false;
 
 	bool ecodump = false;
@@ -830,6 +831,7 @@ struct alignas(64) state {
 
 	network_mode_type network_mode = network_mode_type::single_player;
 	dcon::nation_id local_player_nation;
+	dcon::mp_player_id local_player_id;
 	sys::date current_date = sys::date{0};
 	sys::date ui_date = sys::date{0};
 	uint32_t game_seed = 0; // do *not* alter this value, ever
@@ -888,7 +890,7 @@ struct alignas(64) state {
 	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
-	rigtorp::SPSCQueue<command::payload> incoming_commands;          // ui or network -> local gamestate
+	rigtorp::SPSCQueue<command::command_data> incoming_commands;          // ui or network -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
@@ -952,7 +954,11 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> fif_environment;
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
+
+
 	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
+	std::condition_variable ui_lock_cv;
+	bool yield_ui_lock = false;
 
 	// the following functions will be invoked by the window subsystem
 
@@ -1015,7 +1021,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(1024), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
 
 		key_data.push_back(0);
 	}
@@ -1024,6 +1030,8 @@ struct alignas(64) state {
 
 	void save_user_settings() const;
 	void load_user_settings();
+	void load_gamerule_settings();
+	void save_gamerule_settings() const;
 	void update_ui_scale(float new_scale);
 
 	void load_scenario_data(parsers::error_handler& err, sys::year_month_day bookmark_date);   // loads all scenario files other than map data

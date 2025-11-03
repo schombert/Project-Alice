@@ -11,6 +11,7 @@
 #include "nations.hpp"
 #include "container_types.hpp"
 #include "text.hpp"
+#include "system_state.hpp"
 
 namespace economy {
 dcon::modifier_id get_province_selector_modifier(sys::state& state);
@@ -1325,7 +1326,7 @@ struct trigger_body {
 																std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
+		context.compiled_trigger.push_back(uint16_t(value * (100.0f / context.outer_context.state.defines.alice_military_spending_trigger_div)));
 	}
 	void administration_spending(association_type a, float value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
@@ -1343,7 +1344,7 @@ struct trigger_body {
 																std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
+		context.compiled_trigger.push_back(uint16_t(value * (100.0f / context.outer_context.state.defines.alice_admin_spending_trigger_div)));
 	}
 	void education_spending(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {
@@ -1360,7 +1361,7 @@ struct trigger_body {
 																std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
+		context.compiled_trigger.push_back(uint16_t(value * (100.0f / context.outer_context.state.defines.alice_education_spending_trigger_div)));
 	}
 	void national_provinces_occupied(association_type a, float value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
@@ -1387,7 +1388,7 @@ struct trigger_body {
 																std::to_string(line) + ")\n";
 			return;
 		}
-		context.compiled_trigger.push_back(uint16_t(value * 100.0f));
+		context.compiled_trigger.push_back(uint16_t(value * (100.0f / context.outer_context.state.defines.alice_social_spending_trigger_div)));
 	}
 	void brigades_compare(association_type a, float value, error_handler& err, int32_t line, trigger_building_context& context) {
 		if(context.main_slot == trigger::slot_contents::nation) {

@@ -2026,7 +2026,7 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(fow_enabled);
+	US_SAVE(UNUSED_BOOL);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -2096,7 +2096,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(fow_enabled);
+			US_LOAD(UNUSED_BOOL);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -2217,6 +2217,40 @@ void state::load_user_settings() {
 		font_collection.change_locale(*this, dcon::locale_id{ 0 });
 	}
 }
+
+void state::load_gamerule_settings() {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	auto f = simple_fs::open_file(sdir, loaded_scenario_file);
+	if(f) {
+		auto contents = simple_fs::view_contents(*f);
+		auto data_ptr = reinterpret_cast<const uint8_t*>(contents.data);
+		uint32_t num_gamerule_settings = contents.file_size / sizeof(uint8_t);
+		//Corruption protection
+		if(num_gamerule_settings >= 8192 * 4)
+			num_gamerule_settings = 8192 * 4;
+
+		for(uint32_t i = 0; i < num_gamerule_settings; i++) {
+			uint8_t setting = data_ptr[i];
+			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
+			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
+				gamerule::set_gamerule(*this, gamerule, setting);
+			}
+		}
+	}
+}
+
+
+void state::save_gamerule_settings() const {
+	auto sdir = simple_fs::get_or_create_gamerules_directory();
+	std::vector<uint8_t> current_gamerule_settings;
+	current_gamerule_settings.reserve(world.gamerule_size());
+	for(auto gr : world.in_gamerule) {
+		current_gamerule_settings.push_back(gr.get_current_setting());
+	}
+	simple_fs::write_file(sdir, loaded_scenario_file, reinterpret_cast<const char*>(current_gamerule_settings.data()), uint32_t(current_gamerule_settings.size()));
+	
+}
+
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
@@ -2766,9 +2800,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			}
 		}
 
-		if(!bool(military_definitions.infantry)) {
-			err.accumulated_errors += "No infantry (or equivalent unit type) found\n";
-		}
 		if(!bool(military_definitions.irregular)) {
 			err.accumulated_errors += "No irregular (or equivalent unit type) found\n";
 		}
@@ -5316,6 +5347,9 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);	
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::unique_lock lock(network_state.command_lock);
+		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
 		network::send_and_receive_commands(*this);
 		{
 			std::lock_guard l{ ugly_ui_game_interaction_hack };

@@ -187,22 +187,9 @@ void open_diplomacy(
 void select_player_nation_from_selected_province(sys::state& state) {
 	auto owner = state.world.province_get_nation_from_province_ownership(state.map_state.selected_province);
 	if(owner) {
-		// On single player we simply set the local player nation
-		// on multiplayer we wait until we get a confirmation that we are
-		// allowed to pick the specified nation as no two players can get on
-		// a nation, at the moment
-		// Co-op should work
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			if(state.local_player_nation) {
-				state.world.nation_set_is_player_controlled(state.local_player_nation, false);
-			}
-			state.local_player_nation = owner;
-			state.world.nation_set_is_player_controlled(state.local_player_nation, true);
-			if(state.ui_state.nation_picker) {
-				state.ui_state.nation_picker->impl_on_update(state);
-			}
-		} else if(command::can_notify_player_picks_nation(state, state.local_player_nation, owner, state.network_state.nickname)) {
-			command::notify_player_picks_nation(state, state.local_player_nation, owner, state.network_state.nickname);
+
+		if(command::can_notify_player_picks_nation(state, state.local_player_nation, owner, state.local_player_id)) {
+			command::notify_player_picks_nation(state, state.local_player_nation, owner);
 		}
 	}
 }

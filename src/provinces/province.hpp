@@ -80,10 +80,9 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id);
 float revolt_risk(sys::state& state, dcon::province_id id);
 
 void change_province_owner(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
-bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
-bool is_strait_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
+bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_id from, dcon::province_id to);
+bool is_crossing_blocked(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adjacency);
 bool is_adjacency_impassable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
-bool is_canal_adjacency_passable(sys::state& state, dcon::nation_id thisnation, dcon::province_adjacency_id adj);
 void conquer_province(sys::state& state, dcon::province_id id, dcon::nation_id new_owner);
 
 void update_crimes(sys::state& state);

@@ -1183,61 +1183,6 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 		return;
 	}
 
-	// we build infantry and artillery:
-	auto infantry = state.military_definitions.infantry;
-	auto artillery = state.military_definitions.artillery;
-
-	auto& infantry_def = state.military_definitions.unit_base_definitions[infantry];
-	auto& artillery_def = state.military_definitions.unit_base_definitions[artillery];
-
-	state.world.nation_for_each_state_ownership(n, [&](auto soid) {
-		auto local_state = state.world.state_ownership_get_state(soid);
-		auto market = state.world.state_instance_get_market_from_local_market(local_state);
-
-		float daily_cost = 0.f;
-
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(infantry_def.build_cost.commodity_type[i]) {
-				auto p = price(state, market, infantry_def.build_cost.commodity_type[i]);
-				daily_cost += infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time * p;
-			} else {
-				break;
-			}
-		}
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(artillery_def.build_cost.commodity_type[i]) {
-				auto p = price(state, market, artillery_def.build_cost.commodity_type[i]);
-				daily_cost += artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time * p;
-			} else {
-				break;
-			}
-		}
-
-		auto pairs_to_build = std::max(0.f, income_to_build_units / (daily_cost + 1.f) - 0.1f);
-
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(infantry_def.build_cost.commodity_type[i]) {
-				auto daily_amount = infantry_def.build_cost.commodity_amounts[i] / infantry_def.build_time;
-				register_demand(state, market, infantry_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
-				auto& current = state.world.market_get_stockpile(market, infantry_def.build_cost.commodity_type[i]);
-				state.world.market_set_stockpile(market, infantry_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
-			} else {
-				break;
-			}
-		}
-		for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-			if(artillery_def.build_cost.commodity_type[i]) {
-				auto daily_amount = artillery_def.build_cost.commodity_amounts[i] / artillery_def.build_time;
-				register_demand(state, market, artillery_def.build_cost.commodity_type[i], daily_amount * pairs_to_build);
-				auto& current = state.world.market_get_stockpile(market, artillery_def.build_cost.commodity_type[i]);
-				state.world.market_set_stockpile(market, artillery_def.build_cost.commodity_type[i], current + daily_amount * pairs_to_build * 0.05f);
-			} else {
-				break;
-			}
-		}
-	});
-
-	// phase 2:
 	// simulate spending on construction of factories
 	// helps with machine tools and cement
 
