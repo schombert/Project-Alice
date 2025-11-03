@@ -147,7 +147,8 @@ void filter_factories_disjunctive(
 		bool output_is_in_demand = state.world.market_get_expected_probability_to_sell(mid, type.get_output()) < filter_output_demand_satisfaction;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit;
+		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
+		// -50%;50% range of miscalculation
 		float input = economy::factory_type_input_cost(state, n, mid, type) + 0.1f;
 		float profitability = (output - input - wage * type.get_base_workforce()) / input;
 		float payback_time = cost / std::max(0.00001f, (output - input - wage * type.get_base_workforce()));

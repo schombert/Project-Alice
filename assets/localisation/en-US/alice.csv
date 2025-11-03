@@ -1307,6 +1307,14 @@ alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+province_has_workers;Province has any workforce
+province_has_available_workers;Province has available workforce
+nation_is_factory_type_active;Necessary technology has been researched
+payback_time;Payback time: ?Y$x$?!
+construction_cost;Construction cost: ?Y$x$?!
+output_value;Output value: ?Y$x$?!
+input_value;Input value: ?Y$x$?!
+profitability;Profitability: ?Y$x$?!
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
