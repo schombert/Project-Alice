@@ -20,10 +20,12 @@ inline constexpr float rgo_profit_to_wage_bound = 0.8f;
 inline constexpr float factory_profit_to_wage_bound = 2.f;
 
 struct ve_inputs_data {
+	ve::fp_vector min_expected = 0.f;
 	ve::fp_vector min_available = 0.f;
 	ve::fp_vector total_cost = 0.f;
 };
 struct inputs_data {
+	float min_expected = 0.f;
 	float min_available = 0.f;
 	float total_cost = 0.f;
 };
@@ -45,6 +47,7 @@ float nation_factory_input_multiplier(sys::state const& state, dcon::factory_typ
 float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 
 void update_employment(sys::state& state, float presim_employment_mult = 1.0f);
+void update_rgo_profit(sys::state& state);
 
 void update_artisan_production(sys::state& state);
 void update_production_consumption(sys::state& state);

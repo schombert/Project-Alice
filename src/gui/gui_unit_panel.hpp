@@ -1725,7 +1725,7 @@ public:
 
 			dcon::commodity_id c = commodities.commodity_type[i];
 
-			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1778,7 +1778,7 @@ public:
 			}
 			dcon::commodity_id c = commodities.commodity_type[i];
 
-			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1791,7 +1791,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
 				dcon::commodity_id c = commodities.commodity_type[i];
-				float satisfaction = state.world.market_get_demand_satisfaction(m, c);
+				float satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 				float wanted_commodity = commodities.commodity_amounts[i];
 				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 

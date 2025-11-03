@@ -3,6 +3,7 @@
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
 #include "economy_government.hpp"
+#include "national_budget.hpp"
 #include "construction.hpp"
 #include "demographics.hpp"
 #include "prng.hpp"
@@ -143,7 +144,7 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		bool output_is_in_demand = state.world.market_get_demand_satisfaction(mid, type.get_output()) < filter_output_demand_satisfaction;
+		bool output_is_in_demand = state.world.market_get_expected_probability_to_sell(mid, type.get_output()) < filter_output_demand_satisfaction;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
@@ -213,7 +214,7 @@ void retrieve_list_of_provinces_for_national_construction(sys::state& state, dco
 }
 
 inline bool province_has_available_workers(sys::state& state, dcon::province_id p) {
-	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.99f;
+	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.95f;
 }
 
 inline bool province_has_workers(sys::state& state, dcon::province_id p) {
@@ -742,7 +743,7 @@ void update_budget(sys::state& state, bool presim) {
 	
 		n.set_administrative_spending(35);
 
-		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
+		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
 
 		n.set_education_spending(int8_t(education_budget_ratio * 100.f));

@@ -183,6 +183,11 @@ struct make_leader_data {
 
 struct save_game_data {
 	bool and_quit;
+	uint8_t filename_len;
+};
+struct save_game_data_recv {
+	save_game_data base;
+	char filename[1];
 };
 
 struct province_building_data {
@@ -843,7 +848,7 @@ static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(comm
 // decides whether the host should broadcast the command or execute it only for themself
 bool should_broadcast_command(sys::state& state, const command_data& command);
 
-void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename = "");
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
 

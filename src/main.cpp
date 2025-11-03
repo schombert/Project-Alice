@@ -28,6 +28,7 @@
 #include "economy_trade_routes.cpp"
 #include "economy_government.cpp"
 #include "economy_production.cpp"
+#include "national_budget.cpp"
 #include "construction.cpp"
 #include "advanced_province_buildings.cpp"
 #include "demographics.cpp"
