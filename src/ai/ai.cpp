@@ -1388,8 +1388,9 @@ float estimate_army_quality(sys::state& state, dcon::army_id a) {
 		auto stats = state.world.nation_get_unit_stats(owner, type);
 		auto& atk = (stats.discipline_or_evasion > 0.0f) ? stats.attack_or_gun_power : state.military_definitions.unit_base_definitions[type].attack_or_gun_power;
 		auto& def = (stats.discipline_or_evasion > 0.0f) ? stats.defence_or_hull : state.military_definitions.unit_base_definitions[type].defence_or_hull;
+		auto& sup = (stats.discipline_or_evasion > 0.0f) ? stats.support : state.military_definitions.unit_base_definitions[type].support;
 
-		total_str += atk * def * reg.get_regiment().get_strength();
+		total_str += (10 + atk + 10 + def + sup) / 2 * reg.get_regiment().get_strength() * (1 + reg.get_regiment().get_experience());
 	}
 	assert(std::isfinite(total_str));
 
