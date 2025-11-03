@@ -5030,6 +5030,8 @@ void state::single_game_tick() {
 		demographics::apply_immigration(*this, o, days_in_month, imbuf);
 	}
 
+	demographics::fixup_state_only_pops(*this);
+
 	demographics::remove_size_zero_pops(*this);
 
 	// basic repopulation of demographics derived values

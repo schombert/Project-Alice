@@ -270,13 +270,8 @@ float get_single_promotion_demotion_target_weight(sys::state& state, dcon::pop_i
 	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
 	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
 
-	bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
-
 	if (target_type == ptype) {
 		return 0.0f; //don't promote to the same type
-	}
-	else if (!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
-		return 0.0f; //don't promote if the pop is not in the state capital
 	}
 	else if ((PROMOTION_TYPE == promotion_type::promotion && state.world.pop_type_get_strata(target_type) >= strata) //if the selected type is higher strata
 		|| (PROMOTION_TYPE == promotion_type::demotion && state.world.pop_type_get_strata(target_type) <= strata)) {   //if the selected type is lower strata
@@ -364,10 +359,9 @@ pop_promotion_demotion_data get_promotion_demotion_data(sys::state& state, dcon:
 	the same effect with respect to demotion.
 	*/
 
-	bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
 
-	if ((PROMOTION_TYPE == promotion_type::promotion && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))
-		|| (PROMOTION_TYPE == promotion_type::demotion && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))) {
+	if ((PROMOTION_TYPE == promotion_type::promotion && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata)
+		|| (PROMOTION_TYPE == promotion_type::demotion && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata)) {
 
 		float chance = 0.0f;
 		if (auto mfn = state.world.pop_type_get_promotion_fns(ptype, promoted_type); mfn != 0) {
@@ -503,6 +497,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
+void fixup_state_only_pops(sys::state& state);
 
 float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers);
 float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop);

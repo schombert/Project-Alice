@@ -3781,7 +3781,6 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 	} else if(!is_mine && ptid == state.culture_definitions.laborers) {
 		ptid = state.culture_definitions.farmers;
 	}
-	// TODO: fix state capital only type pops ?
 	for(auto pl : state.world.province_get_pop_location(loc)) {
 		if(pl.get_pop().get_culture() == cid && pl.get_pop().get_religion() == rid && pl.get_pop().get_poptype() == ptid) {
 			return pl.get_pop();
@@ -4001,6 +4000,32 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 				},
 				ids);
 	});
+}
+
+void fixup_state_only_pops(sys::state& state) {
+
+	for(auto last = state.world.pop_size(); last-- > 0;) {
+		dcon::pop_id pop{ dcon::pop_id::value_base_t(last) };
+		auto pop_location = state.world.pop_get_province_from_pop_location(pop);
+		auto owner = state.world.province_get_nation_from_province_ownership(pop_location);
+		if(!owner) {
+			continue;
+		}
+		auto pop_type = state.world.pop_get_poptype(pop);
+		auto state_capital_only = state.world.pop_type_get_state_capital_only(pop_type);
+		if(state_capital_only) {
+			auto state_instance = state.world.province_get_state_membership(pop_location);
+			auto state_capital = state.world.state_instance_get_capital(state_instance);
+			if(pop_location != state_capital) {
+				auto new_pop = impl::find_or_make_pop(state, state_capital, state.world.pop_get_culture(pop), state.world.pop_get_religion(pop), pop_type, pop_demographics::get_literacy(state, pop));
+				float new_pop_size = state.world.pop_get_size(new_pop);
+				float old_pop_size = state.world.pop_get_size(pop);
+				state.world.pop_set_size(new_pop, new_pop_size + old_pop_size);
+				state.world.pop_set_size(pop, 0.0f);
+			}
+
+		}
+	}
 }
 
 void remove_size_zero_pops(sys::state& state) {
