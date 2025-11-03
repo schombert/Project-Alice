@@ -1055,7 +1055,11 @@ void rebel_risings_check(sys::state& state) {
 					pop_demographics::get_militancy(state, pop.get_pop()) >= state.defines.mil_to_join_rising
 					&&
 					// prevent pops at occupied locations from starting rebellion
-					location.get_nation_from_province_control() == location.get_nation_from_province_ownership()
+					(
+						location.get_nation_from_province_control() == location.get_nation_from_province_ownership()
+						||
+						!location.get_nation_from_province_control()
+					)
 				) {
 
 					// this is the logic we would use if we were creating rebel regiments
