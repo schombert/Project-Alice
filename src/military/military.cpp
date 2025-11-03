@@ -196,15 +196,16 @@ bool is_big_ship_better(sys::state& state, dcon::nation_id n, dcon::unit_type_id
 // Evaluate if the nation can reasonably build this unit type
 bool will_have_shortages_building_unit(sys::state& state, dcon::nation_id n, dcon::unit_type_id type) {
 	auto& def = state.military_definitions.unit_base_definitions[type];
+	auto build_time = def.build_time;
 
 	bool lacking_input = false;
-
 	auto m = state.world.nation_get_capital(n).get_state_membership().get_market_from_local_market();
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		if(def.build_cost.commodity_type[i]) {
-			if(m.get_demand_satisfaction(def.build_cost.commodity_type[i]) < 0.1f && m.get_demand(def.build_cost.commodity_type[i]) > 0.01f)
-				lacking_input = true;
+			auto cid = def.build_cost.commodity_type[i];
+			auto amount = def.build_cost.commodity_amounts[i];
+			lacking_input = economy::estimate_probability_to_buy_after_demand_increase(state, m, cid, amount / build_time) < 0.1f;
 		} else {
 			break;
 		}
@@ -6376,6 +6377,12 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	modifier of the province, and finally we add (define:SEIGE_ATTRITION + fort-level * define:ALICE_FORT_SIEGE_ATTRITION_PER_LEVEL) if the army is conducting a siege. Units taking
 	attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage
 	taken in combat, meaning that it will reduce the size of the backing pop.
+
+	PETER:
+		this is way too strong and destroys AI armies to 0 during siege
+		makes attrition stronger or weaker depending on the number of regiments
+		while they have the same amount of soldiers
+		logic will be adjusted to deal damage relatively to current regiment size
 	*/
 
 	float total_army_weight = local_army_weight(state, prov) + additional_army_weight;
@@ -6394,7 +6401,7 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 
 	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
 	auto value = std::clamp((total_army_weight - supply_limit) * attrition_mods, 0.0f, max_attrition) + siege_attrition;
-	return value * 0.01f;
+	return std::min(1.f, value * 0.01f);
 }
 float attrition_amount(sys::state& state, dcon::navy_id a) {
 	return relative_attrition_amount(state, a, state.world.navy_get_location_from_navy_location(a));
@@ -6410,7 +6417,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		return;
 	}
 	for(auto rg : state.world.army_get_army_membership(army)) {
-		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value);
+		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value * rg.get_regiment().get_strength());
 	}
 }
 void apply_monthly_attrition_to_navy(sys::state& state, dcon::navy_id navy) {

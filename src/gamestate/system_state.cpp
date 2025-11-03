@@ -3075,6 +3075,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_size(world.commodity_size());
 	world.province_resize_rgo_potential(world.commodity_size());
 	world.province_resize_rgo_efficiency(world.commodity_size());
+	world.province_resize_rgo_max_efficiency(world.commodity_size());
+	world.province_resize_rgo_demand(world.commodity_size());
 	world.province_resize_rgo_target_employment(world.commodity_size());
 	world.province_resize_rgo_output(world.commodity_size());
 	world.province_resize_rgo_output_per_worker(world.commodity_size());
@@ -3701,9 +3703,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_navy_demand(world.commodity_size());
 	world.market_resize_construction_demand(world.commodity_size());
 	world.market_resize_private_construction_demand(world.commodity_size());
-	world.market_resize_demand_satisfaction(world.commodity_size());
-	world.market_resize_direct_demand_satisfaction(world.commodity_size());
-	world.market_resize_supply_sold_ratio(world.commodity_size());
+	world.market_resize_actual_probability_to_buy(world.commodity_size());
+	world.market_resize_actual_probability_to_sell(world.commodity_size());
+	world.market_resize_expected_probability_to_buy(world.commodity_size());
+	world.market_resize_expected_probability_to_sell(world.commodity_size());
+	world.market_resize_aggregated_demand_history(world.commodity_size());
+	world.market_resize_aggregated_supply_history(world.commodity_size());
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
