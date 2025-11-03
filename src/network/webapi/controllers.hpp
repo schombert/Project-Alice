@@ -117,7 +117,7 @@ inline void init(sys::state& state) noexcept {
 				auto p_origin = state.world.state_instance_get_capital(s_origin);
 				auto p_target = state.world.state_instance_get_capital(s_target);
 
-				auto sat = state.world.market_get_direct_demand_satisfaction(origin, cid);
+				auto sat = state.world.market_get_actual_probability_to_buy(origin, cid);
 
 				auto absolute_volume = std::abs(current_volume);
 				auto factual_volume = sat * absolute_volume;

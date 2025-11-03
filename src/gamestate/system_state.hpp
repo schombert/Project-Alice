@@ -376,7 +376,7 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool UNUSED_BOOL = false; // used to be fow == on/off
+	bool show_all_saves = true; 
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -767,6 +767,7 @@ struct alignas(64) state {
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
+	native_string mod_save_dir;
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
 
@@ -1125,8 +1126,7 @@ struct alignas(64) state {
 	}
 
 	void set_selected_province(dcon::province_id prov_id);
-	void set_local_player_nation_singleplayer(dcon::nation_id value);
-	void set_local_player_nation_do_not_update_dcon(dcon::nation_id value);
+	void set_local_player_nation(dcon::nation_id value);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);

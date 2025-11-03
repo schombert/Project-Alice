@@ -2210,7 +2210,7 @@ void state::save_user_settings() const {
 	ptr += 98;
 	std::memcpy(ptr, user_settings.other_message_settings, lower_half_count);
 	ptr += 98;
-	US_SAVE(UNUSED_BOOL);
+	US_SAVE(show_all_saves);
 	constexpr size_t upper_half_count = 128 - 98;
 	std::memcpy(ptr, &user_settings.self_message_settings[98], upper_half_count);
 	ptr += upper_half_count;
@@ -2280,7 +2280,7 @@ void state::load_user_settings() {
 			std::memcpy(&user_settings.other_message_settings, ptr, std::min(lower_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += 98;
 
-			US_LOAD(UNUSED_BOOL);
+			US_LOAD(show_all_saves);
 			constexpr size_t upper_half_count = 128 - 98;
 			std::memcpy(&user_settings.self_message_settings[98], ptr, std::min(upper_half_count, size_t(std::max(ptrdiff_t(0), (content.data + content.file_size) - ptr))));
 			ptr += upper_half_count;
@@ -2341,7 +2341,7 @@ void state::load_user_settings() {
 
 	// find most recent autosave
 
-	auto saves = simple_fs::get_or_create_save_game_directory();
+	auto saves = simple_fs::get_or_create_save_game_directory(mod_save_dir);
 	uint64_t max_timestamp = 0;
 	for(int32_t i = 0; i < sys::max_autosaves; ++i) {
 		auto asfile = simple_fs::open_file(saves, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(i)) + native_string(NATIVE(".bin")));
@@ -3075,6 +3075,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.province_resize_rgo_size(world.commodity_size());
 	world.province_resize_rgo_potential(world.commodity_size());
 	world.province_resize_rgo_efficiency(world.commodity_size());
+	world.province_resize_rgo_max_efficiency(world.commodity_size());
+	world.province_resize_rgo_demand(world.commodity_size());
 	world.province_resize_rgo_target_employment(world.commodity_size());
 	world.province_resize_rgo_output(world.commodity_size());
 	world.province_resize_rgo_output_per_worker(world.commodity_size());
@@ -3701,9 +3703,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_navy_demand(world.commodity_size());
 	world.market_resize_construction_demand(world.commodity_size());
 	world.market_resize_private_construction_demand(world.commodity_size());
-	world.market_resize_demand_satisfaction(world.commodity_size());
-	world.market_resize_direct_demand_satisfaction(world.commodity_size());
-	world.market_resize_supply_sold_ratio(world.commodity_size());
+	world.market_resize_actual_probability_to_buy(world.commodity_size());
+	world.market_resize_actual_probability_to_sell(world.commodity_size());
+	world.market_resize_expected_probability_to_buy(world.commodity_size());
+	world.market_resize_expected_probability_to_sell(world.commodity_size());
+	world.market_resize_aggregated_demand_history(world.commodity_size());
+	world.market_resize_aggregated_supply_history(world.commodity_size());
 	world.market_resize_life_needs_weights(world.commodity_size());
 	world.market_resize_everyday_needs_weights(world.commodity_size());
 	world.market_resize_luxury_needs_weights(world.commodity_size());
@@ -6777,20 +6782,10 @@ void sys::state::set_selected_province(dcon::province_id prov_id) {
 }
 
 
-void sys::state::set_local_player_nation_do_not_update_dcon(dcon::nation_id value) {
+void sys::state::set_local_player_nation(dcon::nation_id value) {
 	local_player_nation = value;
 	map_state.unhandled_province_selection = true;
 	game_state_updated.store(true, std::memory_order_release);
-}
-void sys::state::set_local_player_nation_singleplayer(dcon::nation_id value) {
-	if (local_player_nation) {
-		world.nation_set_is_player_controlled(value, false);
-	}
-	world.nation_set_is_player_controlled(value, true);
-	local_player_nation = value;
-	map_state.unhandled_province_selection = true;
-	game_state_updated.store(true, std::memory_order_release);
-	ai::remove_ai_data(*this, value);
 }
 
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg) {

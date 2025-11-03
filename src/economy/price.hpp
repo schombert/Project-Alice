@@ -3,7 +3,7 @@
 
 namespace economy {
 namespace price_properties {
-inline constexpr float speed_multiplier = 0.001f;
+inline constexpr float speed_multiplier = 0.003f;
 inline constexpr float additive_smoothing = 0.01f;
 //inline constexpr float relative_speed_limit = 0.05f;
 

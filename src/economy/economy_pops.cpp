@@ -408,7 +408,7 @@ void update_income_national_subsidy(sys::state& state){
 			investment_budget
 			/ (investors + 1.f);
 
-		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f / 100.0f;
+		auto const m_spending = owner_spending * ve::to_float(state.world.nation_get_military_spending(owners)) / 100.0f;
 
 		auto types = state.world.pop_get_poptype(ids);
 
@@ -699,7 +699,7 @@ float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::p
 	auto zone = state.world.province_get_state_membership(p);
 	auto market = state.world.state_instance_get_market_from_local_market(zone);
 
-	auto satisfaction = state.world.market_get_demand_satisfaction(market, c);
+	auto satisfaction = state.world.market_get_actual_probability_to_buy(market, c);
 
 	auto nation = state.world.province_get_nation_from_province_ownership(p);
 

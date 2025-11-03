@@ -27,6 +27,7 @@ economy::commodity_set calculate_factory_upgrade_goods_cost(
 	bool is_pop_project
 );
 
+float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
 void populate_construction_consumption(sys::state& state);
 
 struct unit_construction_data {
