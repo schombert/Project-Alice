@@ -244,6 +244,10 @@ struct generic_location_data {
 	dcon::province_id prov;
 };
 
+struct generic_state_definition_data {
+	dcon::state_definition_id state_def;
+};
+
 struct cheat_location_data {
 	dcon::province_id prov;
 	dcon::nation_id n;
@@ -586,7 +590,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{command_type::upgrade_colony_to_state, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::invest_in_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::abandon_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
-	{command_type::finish_colonization, command_type_data{sizeof(command::generic_location_data),  sizeof(command::generic_location_data) } },
+	{command_type::finish_colonization, command_type_data{sizeof(command::generic_state_definition_data),  sizeof(command::generic_state_definition_data) } },
 	{command_type::intervene_in_war, command_type_data{sizeof(command::war_target_data),  sizeof(command::war_target_data) } },
 	{command_type::suppress_movement, command_type_data{ sizeof(command::movement_data), sizeof(command::movement_data) } },
 	{command_type::civilize_nation, command_type_data{ 0, 0 } },
@@ -961,8 +965,8 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::provi
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
