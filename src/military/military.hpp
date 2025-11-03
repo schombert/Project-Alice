@@ -705,4 +705,9 @@ enum special_army_order {
 	pursue_to_engage
 };
 
+bool can_attack(sys::state& state, dcon::nation_id n);
+bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+
 } // namespace military

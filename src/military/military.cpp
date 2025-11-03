@@ -1074,7 +1074,7 @@ int32_t supply_limit_in_province(sys::state& state, dcon::nation_id n, dcon::pro
 	}
 	auto base_supply_lim = (state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::supply_limit) + 1.0f);
 	auto national_supply_lim = (state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_limit) + 1.0f);
-	return int32_t(base_supply_lim * modifier * national_supply_lim);
+	return std::max(int32_t(base_supply_lim * modifier * national_supply_lim), 0);
 }
 int32_t regiments_created_from_province(sys::state& state, dcon::province_id p) {
 	int32_t total = 0;
@@ -4459,9 +4459,14 @@ float primary_warscore_from_blockades(sys::state& state, dcon::war_id w) {
 }
 
 float primary_warscore(sys::state& state, dcon::war_id w) {
+	// return immediately if one side has 100% warscore from occupation (full occupation). This supercedes all else
+	auto occupation_score = primary_warscore_from_occupation(state, w);
+	if(occupation_score >= 100.0f || occupation_score <= -100.0f) {
+		return std::clamp(occupation_score, -100.0f, 100.0f);
+	}
 	return std::clamp(
 		// US5AC4
-		primary_warscore_from_occupation(state, w)
+		occupation_score
 		// US5AC1
 		+ primary_warscore_from_battles(state, w)
 		// US5AC2
@@ -4491,11 +4496,26 @@ float primary_warscore_from_occupation(sys::state& state, dcon::war_id w) {
 		sum_defender_prov_values += v;
 		sum_defender_occupied_values += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
-
-	if(sum_defender_prov_values > 0)
-		total += (sum_defender_occupied_values * 100.0f) / sum_defender_prov_values;
-	if(sum_attacker_prov_values > 0)
-		total -= (sum_attacker_occupied_values * 100.0f) / sum_attacker_prov_values;
+	// if one side occupues 100% of victory points, then it is 100 warscore no matter what the other side may occupy
+	if(sum_defender_prov_values > 0) {
+		float defender_total = (sum_defender_occupied_values * 100.0f) / sum_defender_prov_values;
+		if(defender_total >= 100.0f) {
+			return defender_total;
+		}
+		else {
+			total += defender_total;
+		}
+	}
+		
+	if(sum_attacker_prov_values > 0) {
+		float attacker_total = (sum_attacker_occupied_values * 100.0f) / sum_attacker_prov_values;
+		if(attacker_total >= 100.0f) {
+			return -attacker_total;
+		}
+		else {
+			total -= attacker_total;
+		}
+	}
 
 	return total;
 }
@@ -4562,15 +4582,29 @@ float directed_warscore(
 		against_beneficiary_score_from_occupation += share_province_score_for_war_occupation(state, w, prv.get_province()) * v;
 	}
 
-	if(beneficiary_potential_score_from_occupation > 0)
-		total +=
-			(beneficiary_score_from_occupation * 100.0f
-			/ beneficiary_potential_score_from_occupation);
+	// if one country has full occupied the other (100% occupation warscore), then stick return early as it supercedes all alse
+	if(beneficiary_potential_score_from_occupation > 0) {
+		float beneficiary_occupation_score = (beneficiary_score_from_occupation * 100.0f / beneficiary_potential_score_from_occupation);
+		if(beneficiary_occupation_score >= 100.0f) {
+			return beneficiary_occupation_score;
+		}
+		else {
+			total += beneficiary_occupation_score;
+		}
+		
+	}
+		
 
-	if(against_beneficiary_potential_score_from_occupation > 0)
-		total -=
-			(against_beneficiary_score_from_occupation * 100.0f
-			/ against_beneficiary_potential_score_from_occupation);
+	if(against_beneficiary_potential_score_from_occupation > 0) {
+		float against_beneficiary_occupation_score = (against_beneficiary_score_from_occupation * 100.0f / against_beneficiary_potential_score_from_occupation);
+		if(against_beneficiary_occupation_score >= 100.0f) {
+			return -against_beneficiary_occupation_score;
+		}
+		else {
+			total -= against_beneficiary_occupation_score;
+		}
+	}
+		
 
 	for(auto wg : state.world.war_get_wargoals_attached(w)) {
 		auto wargoal_is_added_by_beneficiary = wg.get_wargoal().get_added_by() == potential_beneficiary;
@@ -5752,6 +5786,19 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	War score is gained based on the difference in losses (in absolute terms) divided by 5 plus 0.1 to a minimum of 0.1
 	*/
 
+	for(auto& ref : state.lua_on_battle_end) {
+		lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+		lua_pushnumber(state.lua_game_loop_environment, b.index());
+		lua_pushboolean(state.lua_game_loop_environment, result != battle_result::indecisive);
+		lua_pushboolean(state.lua_game_loop_environment, result == battle_result::attacker_won);
+		auto pcall_result = lua_pcall(state.lua_game_loop_environment, 3, 0, 0);
+		if(pcall_result) {
+			state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+			lua_settop(state.lua_game_loop_environment, 0);
+		}
+		assert(lua_gettop(state.lua_game_loop_environment) == 0);
+	}
+
 	if(result != battle_result::indecisive) {
 		if(war)
 			state.world.war_set_number_of_battles(war, uint16_t(state.world.war_get_number_of_battles(war) + 1));
@@ -5944,17 +5991,24 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does not normally get stackwiped if the navy automatically retreats before the battle is retreatable (navies are close enough to the center)
 		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
-
-			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
+			// If the navy is already in the retreating state (from having manually initiated a retreat earlier) we don't need to try to initiate another retreat.
+			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
 			
-		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-				n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-				n.get_navy().set_is_retreating(true);
+			
+		}
+		else if(!battle_attacker && result == battle_result::attacker_won) {
+			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
+					n.get_navy().set_is_retreating(true);
+				}
 			}
+			
 			
 		}
 	}
@@ -6304,6 +6358,12 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 	modifier of the province, and finally we add (define:SEIGE_ATTRITION + fort-level * define:ALICE_FORT_SIEGE_ATTRITION_PER_LEVEL) if the army is conducting a siege. Units taking
 	attrition lose max-strength x attrition-value x 0.01 points of strength. This strength loss is treated just like damage
 	taken in combat, meaning that it will reduce the size of the backing pop.
+
+	PETER:
+		this is way too strong and destroys AI armies to 0 during siege
+		makes attrition stronger or weaker depending on the number of regiments
+		while they have the same amount of soldiers
+		logic will be adjusted to deal damage relatively to current regiment size
 	*/
 
 	float total_army_weight = local_army_weight(state, prov) + additional_army_weight;
@@ -6322,7 +6382,7 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 
 	// Multiplying army weight by local attrition modifier (often coming from terrain) wasn't a correct approach
 	auto value = std::clamp((total_army_weight - supply_limit) * attrition_mods, 0.0f, max_attrition) + siege_attrition;
-	return value * 0.01f;
+	return std::min(1.f, value * 0.01f);
 }
 float attrition_amount(sys::state& state, dcon::navy_id a) {
 	return relative_attrition_amount(state, a, state.world.navy_get_location_from_navy_location(a));
@@ -6338,7 +6398,7 @@ void apply_attrition_to_army(sys::state& state, dcon::army_id army) {
 		return;
 	}
 	for(auto rg : state.world.army_get_army_membership(army)) {
-		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value);
+		military::regiment_take_damage<military::regiment_dmg_source::attrition>(state, rg.get_regiment(), attrition_value * rg.get_regiment().get_strength());
 	}
 }
 void apply_monthly_attrition_to_navy(sys::state& state, dcon::navy_id navy) {
@@ -7255,6 +7315,17 @@ void update_land_battles(sys::state& state) {
 
 		state.world.land_battle_set_attacker_casualties(b, attacker_casualties);
 		state.world.land_battle_set_defender_casualties(b, defender_casualties);
+
+		for(auto& ref : state.lua_on_battle_tick) {
+			lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, ref);
+			lua_pushnumber(state.lua_game_loop_environment, b.index());
+			auto result = lua_pcall(state.lua_game_loop_environment, 1, 0, 0);
+			if(result) {
+				state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+				lua_settop(state.lua_game_loop_environment, 0);
+			}
+			assert(lua_gettop(state.lua_game_loop_environment) == 0);
+		}
 
 
 		// clear dead / retreated regiments out
@@ -8591,7 +8662,7 @@ void update_movement(sys::state& state) {
 
 				auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
 				auto path_bits = state.world.province_adjacency_get_type(adj);
-				if((path_bits & province::border::non_adjacent_bit) != 0 && !province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
+				if((path_bits & province::border::non_adjacent_bit) != 0 && province::is_crossing_blocked(state, n.get_controller_from_navy_control(), adj)) { // hostile canal crossing
 					// if the canal province becomes hostile by the time the movement happens, stop movement and check for enemy navy collision
 					stop_navy_movement(state, n);
 					n.set_is_retreating(false);
@@ -10242,6 +10313,120 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	}
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
 	military::delete_regiment_safe_wrapper(state, reg_id);
+}
+
+
+bool can_attack(sys::state& state, dcon::nation_id n) {
+	// nations without land are not supported yet
+	if(state.world.nation_get_owned_province_count(n) == 0)
+		return false;
+
+	return true;
+}
+
+// used by both functions
+// attempts to be cheap...
+bool can_attack_internal(sys::state& state, dcon::nation_id n, dcon::nation_id target) {	
+	if(target == n)
+		return false;	
+
+	// can't declare war on nations without land currently
+	if(state.world.nation_get_owned_province_count(target) == 0)
+		return false;
+
+	// no decs against allies
+	if(nations::are_allied(state, n, target))
+		return false;
+
+	// cannot declare war on your own sphereling
+	if(state.world.nation_get_in_sphere_of(target) == n)
+		return false;
+
+	// when declaring a war, alliances with the spherelord are also checked
+	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, n, target)) {
+		return false;
+	}
+
+	if(military::has_truce_with(state, n, target))
+		return false;
+
+	// subjects check
+	auto overlord_source = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));
+	if(overlord_source && overlord_source != target && state.defines.alice_allow_subjects_declare_wars == 0.0)
+		return false;
+
+	// the most expensive check
+	if(nations::has_units_inside_other_nation(state, n, target)) {
+		return false;
+	}
+
+	return true;
+}
+
+// cheaper version: some checks could be more strict to be less computationally expensive
+bool can_attack_ai(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
+	// we don't allow attacking war allies or war enemies
+	// for AI we do it in a cheaper way:
+	// don't declare war when you have war allies
+	if(state.world.nation_get_is_at_war(n))
+		return false;
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+	// we do not check can_attack(state, source) because it is checked during iteration over source
+	// common checks, both for player and AI
+	if(!can_attack_internal(state, n, target)) {
+		return false;
+	}
+	if(overlord) {
+		if(!can_attack_internal(state, n, overlord)) {
+			return false;
+		}
+	}
+
+	// check existence of cb
+	if(!military::can_use_cb_against(state, n, target))
+		return false;
+
+	return true;
+}
+
+// we can allow expensive logic there
+bool can_attack_expensive_checks(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(military::are_allied_in_war(state, source, target) || military::are_at_war(state, source, target))
+		return false;
+	return true;
+}
+
+bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
+
+	if(!can_attack(state, source)) {
+		return false;
+	}
+
+	if(!can_attack_internal(state, source, target)) {
+		return false;
+	}
+	if(!can_attack_expensive_checks(state, source, target)) {
+		return false;
+	}
+	if(overlord) {
+		if(!can_attack_internal(state, source, overlord)) {
+			return false;
+		}
+		if(!can_attack_expensive_checks(state, source, overlord)) {
+			return false;
+		}
+	}
+
+	// anti player bias
+	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
+		return false;
+
+	// have to check only against target
+	if(!military::can_use_cb_against(state, source, target))
+		return false;
+
+	return true;
 }
 
 } // namespace military

@@ -675,7 +675,7 @@ void update_ai_econ_construction(sys::state& state) {
 	}
 }
 
-void update_budget(sys::state& state) {
+void update_budget(sys::state& state, bool presim) {
 	concurrency::parallel_for(uint32_t(0), state.world.nation_size(), [&](uint32_t i) {
 		dcon::nation_id nid{ dcon::nation_id::value_base_t(i) };
 		auto n = fatten(state.world, nid);
@@ -692,6 +692,12 @@ void update_budget(sys::state& state) {
 
 		float land_budget_ratio = 0.15f;
 		float sea_budget_ratio = 0.05f;
+		if(presim) {
+			// set military supply sliders high in presim to simulate demand
+			land_budget_ratio = 1.0f;
+			sea_budget_ratio = 0.5f;
+			
+		}
 		float education_budget_ratio = 0.25f;
 		float investments_budget_ratio = 0.20f;
 		float soldiers_budget_ratio = 0.30f;
@@ -733,7 +739,7 @@ void update_budget(sys::state& state) {
 		}
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
-
+	
 		n.set_administrative_spending(35);
 
 		float max_soldiers_budget = 1.f + economy::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);

@@ -36,6 +36,7 @@ class map_legend_gradient_image : public image_element_base {
 		case map_mode::mode::life_rating:
 		case map_mode::mode::admin:
 		case map_mode::mode::supply:
+		case map_mode::mode::employment:
 			return (int16_t)GRADIENT_ICON::VIRIDIS;
 		case map_mode::mode::growth:
 		case map_mode::mode::migration:
@@ -45,7 +46,6 @@ class map_legend_gradient_image : public image_element_base {
 		case map_mode::mode::civilization_level:
 		case map_mode::mode::colonial:
 		case map_mode::mode::income:
-		case map_mode::mode::employment:
 		case map_mode::mode::mobilization:
 		case map_mode::mode::officers:
 		case map_mode::mode::clerk_to_craftsmen_ratio:

@@ -245,6 +245,8 @@ public:
 					}
 					network::broadcast_save_to_clients(state);
 				} else {
+					// in singleplayer, swap player to the local player nation. local_player_nation is loaded with the save, but we need to update other data too. In MP we keep the same existing nations for each player on saveload
+					nations::switch_all_players(state, state.local_player_nation, old_local_player_nation);
 					state.fill_unsaved_data();
 				}
 			}

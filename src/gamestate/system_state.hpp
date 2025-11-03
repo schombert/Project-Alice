@@ -33,22 +33,20 @@
 #include "notifications.hpp"
 #include "network.hpp"
 #include "fif.hpp"
+#include "lua.hpp"
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
+#include "enums.hpp"
+
+namespace ui {
+struct lua_scripted_element;
+}
 
 // this header will eventually contain the highest-level objects
 // that represent the overall state of the program
 // it will also include the game state itself eventually as a member
 
 namespace sys {
-
-enum class gui_modes : uint8_t { faithful = 0, nouveau = 1, dummycabooseval = 2 };
-enum class projection_mode : uint8_t { globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3};
-struct text_mouse_test_result {
-	uint32_t position;
-	uint32_t quadrent;
-};
-
 struct user_settings_s {
 	float ui_scale = 1.0f;
 	float master_volume = 0.5f;
@@ -428,7 +426,7 @@ struct cheat_data_s {
 	bool instant_army = false;
 	bool instant_industry = false;
 	std::vector<dcon::nation_id> instant_research_nations;
-	bool daily_oos_check = true;
+	bool daily_oos_check = false;
 	bool province_names = false;
 
 	bool ecodump = false;
@@ -475,6 +473,13 @@ struct state_selection_data {
 	std::vector<dcon::state_definition_id> selectable_states;
 	std::function<void(sys::state&, dcon::state_definition_id)> on_select;
 	std::function<void(sys::state&)> on_cancel;
+};
+// used for visual identity selector
+struct national_identity_selection_data {
+	std::vector<dcon::national_identity_id> selectable_identities;
+	std::function<void(sys::state&, dcon::national_identity_id)> on_select;
+	std::function<void(sys::state&)> on_cancel;
+	dcon::nation_id province_owner_filter;
 };
 
 struct player_data { // currently this data is serialized via memcpy, to make sure no pointers end up in here
@@ -769,6 +774,21 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> jit_environment;
 #endif
 
+	//std::unique_ptr<lua_State> lua_environment;
+	lua_State* lua_ui_environment;
+	lua_State* lua_game_loop_environment;
+	std::vector<int> lua_on_daily_tick;
+	std::vector<int> lua_on_battle_end;
+	std::vector<int> lua_on_battle_tick;
+	std::vector<int> lua_on_war_declaration;
+	std::vector<int> lua_on_war_conclusion;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_functions;
+	ankerl::unordered_dense::map<std::string, int> lua_registered_ui_functions;
+
+	std::string lua_combined_script{};
+	std::string lua_game_loop_script{};
+	std::string lua_ui_script{};
+
 	//
 	// Crisis data
 	//
@@ -872,8 +892,10 @@ struct alignas(64) state {
 
 	//current ui
 	game_scene::scene_properties current_scene;
+	ui::lua_scripted_element* current_lua_element;
 
 	std::optional<state_selection_data> state_selection;
+	std::optional<national_identity_selection_data> national_identity_selection;
 	map_mode::mode stored_map_mode = map_mode::mode::political;
 
 	simple_fs::file_system common_fs;                                // file system for looking up graphics assets, etc
@@ -993,6 +1015,10 @@ struct alignas(64) state {
 	void debug_scenario_oos_dump();
 
 	void start_state_selection(state_selection_data& data);
+	void start_national_identity_selection(national_identity_selection_data& data);
+	void national_identity_select(dcon::province_id prov);
+	void national_identity_select(dcon::national_identity_id ni);
+
 	void state_select(dcon::state_definition_id sdef);
 
 	// the following function are for interacting with the string pool
@@ -1041,6 +1067,7 @@ struct alignas(64) state {
 	void reset_state();
 
 	void console_log(std::string_view message);
+	void lua_notification(std::string message);
 	void log_player_nations();
 
 	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
@@ -1098,6 +1125,8 @@ struct alignas(64) state {
 	}
 
 	void set_selected_province(dcon::province_id prov_id);
+	void set_local_player_nation_singleplayer(dcon::nation_id value);
+	void set_local_player_nation_do_not_update_dcon(dcon::nation_id value);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);

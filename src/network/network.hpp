@@ -276,7 +276,7 @@ void full_reset_after_oos(sys::state& state);
 
 void load_network_save(sys::state& state, const uint8_t* save_buffer);
 
-// gets the host player in the current lobby. Shouldn't be used in single-player mode
+// gets the host player in the current lobby. Also returns the static player ID of the player in single player.
 dcon::mp_player_id get_host_player(sys::state& state);
 
 bool any_player_on_invalid_nation(sys::state& state);

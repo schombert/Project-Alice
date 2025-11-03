@@ -1095,7 +1095,7 @@ void employment_map_tt_box(sys::state& state, text::columnar_layout& contents, d
 	if(prov.value < state.province_definitions.first_sea_province.value) {
 		auto box = text::open_layout_box(contents);
 
-		float employment_rate = fat.get_demographics(demographics::employable) == 0.f ? 0.f : (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::employable));
+		float employment_rate = fat.get_demographics(demographics::total) == 0.f ? 0.f : (fat.get_demographics(demographics::employed) / fat.get_demographics(demographics::total));
 
 		text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_total_employment"));
 		text::add_to_layout_box(state, contents, box, text::fp_percentage_one_place{ employment_rate }, text::text_color::yellow);
@@ -1543,6 +1543,9 @@ void populate_map_tooltip(sys::state& state, text::columnar_layout& contents, dc
 		terrain_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::state_select:
+		political_map_tt_box(state, contents, prov);
+		break;
+	case map_mode::mode::nation_identity_select:
 		political_map_tt_box(state, contents, prov);
 		break;
 	case map_mode::mode::political:

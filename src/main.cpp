@@ -3,6 +3,7 @@
 #endif
 
 #include "common_types.cpp"
+#include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #ifndef INCREMENTAL
 #include "gamerule.cpp"
