@@ -1075,7 +1075,7 @@ alice_recommended_build;?G建议建造此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
 alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
-alice_factory_base_workforce;基础劳力?Y$x$?W
+alice_factory_base_workforce;基础劳动力?Y$x$?W
 alice_factory_total_bonus;总和大约为?Y$x$?W
 alice_slider_controls;?Y左键?W 增加 ?Y$value$?W\n?YSHIFT+左键?W 增加 ?Y$x$?W\n?YSHIFT+右键?W 增加到最大值
 alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?Y$x$?W\n?YSHIFT+右键?W 减少到最小值
@@ -1789,3 +1789,16 @@ alice_gamerule_auto_concession_peace;自动接受无条件投降
 alice_gamerule_auto_concession_peace_desc;设置战时一方达成所有战争目标或一百分即强制和谈，无法拒绝。
 alice_gamerule_auto_concession_peace_opt_cannot_reject;被迫无条件投降
 alice_gamerule_auto_concession_peace_opt_can_reject;无条件投降可被拒绝
+alice_national_identity_select_title;选择国籍
+alice_savegame_incompatible_warning;?R该存档不来自当前场景，可能存在错误、加载失败或游戏崩溃。?W
+alice_show_all_saves_text;显示所有存档
+alice_show_all_saves_tooltip;在存档列表中显示所有存档（包括可能不兼容的）。
+alice_save_input_filename_label;存档文件名（空白为默认名称）：
+province_has_workers;省份总劳动力
+province_has_available_workers;省份可用劳动力
+nation_is_factory_type_active;必要科技已被研发
+payback_time;投资回收期：?Y$x$?!
+construction_cost;建筑成本：?Y$x$?!
+output_value;输出价值：?Y$x$?!
+input_value;输入价值：?Y$x$?!
+profitability;投入产出比：?Y$x$?!
