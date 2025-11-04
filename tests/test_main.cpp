@@ -61,8 +61,10 @@ std::unique_ptr<sys::state> load_testing_scenario_file_with_save(sys::network_mo
 	} else {
 		if(!selected_nation) {
 			auto observer_nation = game_state->world.national_identity_get_nation_from_identity_holder(game_state->national_definitions.rebel_id);
+			network::create_mp_player(*game_state, sys::player_name{ 'P', 'l' ,'a', 'y', 'e', 'r' }, sys::player_password_raw{ }, true, false, observer_nation);
 			game_state->local_player_nation = observer_nation;
 		} else {
+			network::create_mp_player(*game_state, sys::player_name{ 'P', 'l' ,'a', 'y', 'e', 'r' }, sys::player_password_raw{ },true , false, selected_nation);
 			game_state->local_player_nation = selected_nation;
 		}
 		game_state->fill_unsaved_data();

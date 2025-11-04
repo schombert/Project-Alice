@@ -5112,7 +5112,6 @@ void state::single_game_tick() {
 			}
 		});
 
-
 		economy::daily_update(*this, false, 1.f);
 
 		//

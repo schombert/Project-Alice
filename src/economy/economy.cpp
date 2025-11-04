@@ -2175,7 +2175,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				}
 			});
 		});
-
+		// OOS AFTER THIS
 		// update cache:
 
 		state.world.for_each_trade_route([&](auto route) {
@@ -3504,6 +3504,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point("stockpile trade");
 
+	// OOS AFTER THIS
+
 	sanity_check(state);
 
 	// labor supply
@@ -3766,6 +3768,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 		rebalance_needs_weights(state, mid);
 	});
+
+
+	state.console_log(state.get_mp_state_checksum().to_string_view());
 
 	set_profile_point("need weights");
 
