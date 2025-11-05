@@ -5716,8 +5716,8 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
 #endif
 					state.network_state.out_of_sync = true;
+					state.debug_save_oos_dump();
 				}
-				state.debug_save_oos_dump();
 			}
 		}
 		state.actual_game_speed = speed;
