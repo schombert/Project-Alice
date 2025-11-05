@@ -730,33 +730,10 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variables);
 	}
 
-    { // military definitions
-        ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
-        ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
-    }
-
-    // decision ignore flags
-    if(section_end - ptr_in >= static_cast<ptrdiff_t>(sizeof(uint32_t))) {
-        uint32_t decision_count = 0;
-        std::memcpy(&decision_count, ptr_in, sizeof(decision_count));
-        ptr_in += sizeof(decision_count);
-
-        ptrdiff_t needed = static_cast<ptrdiff_t>(decision_count);
-        if(section_end - ptr_in < needed) {
-            ptr_in = section_end;
-        } else {
-			// until someone comes with a way to do this properly in MP, utilize it only for SP
-            if(state.network_mode == sys::network_mode_type::single_player) {
-                for(uint32_t i = 0; i < decision_count; ++i) {
-                    uint8_t flag = *ptr_in++;
-                    dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
-                    state.world.decision_set_hide_notification(id, flag != 0);
-                }
-            } else {
-                ptr_in += decision_count;
-            }
-        }
-    }
+	{ // military definitions
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
+		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
+	}
 
 	// data container contribution
 
@@ -765,11 +742,15 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+		ptr_in = reinterpret_cast<uint8_t const*>(start);
+        ptr_in = read_decision_ignore_list(ptr_in, section_end, state);
 	} else {
 		dcon::load_record loadmask = state.world.make_serialize_record_store_save();
 		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded, loadmask);
+		ptr_in = reinterpret_cast<uint8_t const*>(start);
 	}
+
 	return section_end;
 }
 
@@ -803,6 +784,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.player_data_cache);
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
+	ptr_in = write_decision_ignore_list(ptr_in, state);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -811,17 +793,6 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
-
-	{
-        uint32_t decision_count = uint32_t(state.world.decision_size());
-        std::memcpy(ptr_in, &decision_count, sizeof(decision_count));
-        ptr_in += sizeof(decision_count);
-        for(uint32_t i = 0; i < decision_count; ++i) {
-            dcon::decision_id id{ dcon::decision_id::value_base_t(i) };
-            uint8_t flag = state.world.decision_get_hide_notification(id) ? 1 : 0;
-            *ptr_in++ = flag;
-        }
-    }
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -863,6 +834,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.player_data_cache);
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
+	sz += sizeof_decision_ignore_list(state);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
@@ -871,12 +843,6 @@ size_t sizeof_save_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.great_wars_enabled);
 		sz += sizeof(state.military_definitions.world_wars_enabled);
 	}
-
-	{
-        uint32_t decision_count = uint32_t(state.world.decision_size());
-        sz += sizeof(decision_count);
-        sz += size_t(decision_count) * sizeof(uint8_t);
-    }
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -916,10 +882,46 @@ uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, s
 }
 
 
+size_t sizeof_decision_ignore_list(sys::state& state) {
+    std::vector<uint32_t> hidden;
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        if(state.world.decision_get_hide_notification(did)) {
+            hidden.push_back(i);
+        }
+    }
+    return serialize_size(hidden);
+}
 
+uint8_t* write_decision_ignore_list(uint8_t* ptr_in, sys::state& state) {
+    std::vector<uint32_t> hidden;
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        if(state.world.decision_get_hide_notification(did)) {
+            hidden.push_back(i);
+        }
+    }
+    return serialize(ptr_in, hidden);
+}
 
+uint8_t const* read_decision_ignore_list(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+    std::vector<uint32_t> hidden;
+    ptr_in = deserialize(ptr_in, hidden);
 
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        state.world.decision_set_hide_notification(did, false);
+    }
 
+    for(auto idx : hidden) {
+        if(idx < state.world.decision_size()) {
+            dcon::decision_id did{ dcon::decision_id::value_base_t(idx) };
+            state.world.decision_set_hide_notification(did, true);
+        }
+    }
+    state.game_state_updated.store(true, std::memory_order_release);
+    return ptr_in;
+}
 
 void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record) {
 
@@ -936,6 +938,12 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
+	memcpy(header.mod_save_dir, state.mod_save_dir.c_str(), std::min(state.mod_save_dir.length(), size_t(63)) * sizeof(native_char));
+	if(name.length() < 63) {
+		header.mod_save_dir[state.mod_save_dir.length()] = 0;
+	} else {
+		header.mod_save_dir[63] = 0;
+	}
 
 	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
@@ -1002,6 +1010,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
+		state.mod_save_dir = header.mod_save_dir;
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
 
@@ -1038,6 +1047,7 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
+		state.mod_save_dir = header.mod_save_dir;
 
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
@@ -1122,6 +1132,20 @@ std::string make_time_string(uint64_t value) {
 	return result;
 }
 
+std::string get_default_save_name(sys::state& state, save_type type) {
+	auto ymd_date = state.current_date.to_ymd(state.start_date);
+	if(type == sys::save_type::autosave) {
+		return "autosave_" + std::to_string(state.autosave_counter) + ".bin";
+	}
+	else if(type == sys::save_type::bookmark) {
+		return  "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+	}
+	else {
+		auto tag = state.world.nation_get_identity_from_identity_holder(state.local_player_nation);
+		return make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
+	}
+}
+
 void write_save_file(sys::state& state, save_type type, std::string const& name, const std::string& file_name) {
 	save_header header;
 	header.count = state.scenario_counter;
@@ -1133,12 +1157,25 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	header.cgov = state.world.nation_get_government_type(state.local_player_nation);
 	header.d = state.current_date;
 
-	memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(31)));
-	if(name.length() < 31) {
-		header.save_name[name.length()] = 0;
-	} else {
-		header.save_name[31] = 0;
+	auto default_save_name = get_default_save_name(state, type);
+
+	if(!name.empty()) {
+		memcpy(header.save_name, name.c_str(), std::min(name.length(), size_t(63)));
+		if(name.length() < 63) {
+			header.save_name[name.length()] = 0;
+		} else {
+			header.save_name[63] = 0;
+		}
 	}
+	else {
+		memcpy(header.save_name, default_save_name.c_str(), std::min(default_save_name.length(), size_t(63)));
+		if(default_save_name.length() < 63) {
+			header.save_name[default_save_name.length()] = 0;
+		} else {
+			header.save_name[63] = 0;
+		}
+	}
+
 
 	size_t save_space = sizeof_save_section(state);
 
@@ -1158,24 +1195,20 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 
 	auto total_size_used = buffer_position - temp_buffer;
 
-	auto sdir = simple_fs::get_or_create_save_game_directory();
+	auto sdir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 
 	if(type == sys::save_type::autosave) {
-		simple_fs::write_file(sdir, native_string(NATIVE("autosave_")) + simple_fs::utf8_to_native(std::to_string(state.autosave_counter)) + native_string(NATIVE(".bin")), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		state.autosave_counter = (state.autosave_counter + 1) % sys::max_autosaves;
 	} else if(type == sys::save_type::bookmark) {
-		auto ymd_date = state.current_date.to_ymd(state.start_date);
-		auto base_str = "bookmark_" + make_time_string(uint64_t(std::time(nullptr))) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-		simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+		simple_fs::write_file(sdir, simple_fs::utf8_to_native( default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 	} else {
 		if(!file_name.empty()) {
 			auto base_str = file_name + ".bin";
 			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 		else {
-			auto ymd_date = state.current_date.to_ymd(state.start_date);
-			auto base_str = make_time_string(uint64_t(std::time(nullptr))) + "-" + nations::int_to_tag(state.world.national_identity_get_identifying_int(header.tag)) + "-" + std::to_string(ymd_date.year) + "-" + std::to_string(ymd_date.month) + "-" + std::to_string(ymd_date.day) + ".bin";
-			simple_fs::write_file(sdir, simple_fs::utf8_to_native(base_str), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
+			simple_fs::write_file(sdir, simple_fs::utf8_to_native(default_save_name), reinterpret_cast<char*>(temp_buffer), uint32_t(total_size_used));
 		}
 	}
 	delete[] temp_buffer;
@@ -1239,7 +1272,7 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 	}
 }
 bool try_read_save_file(sys::state& state, native_string_view name) {
-	auto dir = simple_fs::get_or_create_save_game_directory();
+	auto dir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 	auto save_file = open_file(dir, name);
 	if(save_file) {
 		save_header header;

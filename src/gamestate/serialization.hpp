@@ -198,6 +198,7 @@ struct scenario_header {
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
 	checksum_key checksum;
+	native_char mod_save_dir[128] = { 0 };
 };
 
 struct save_header {
@@ -208,7 +209,7 @@ struct save_header {
 	dcon::national_identity_id tag;
 	dcon::government_type_id cgov;
 	sys::date d;
-	char save_name[32];
+	char save_name[64];
 };
 
 struct mod_identifier {
@@ -249,6 +250,10 @@ size_t sizeof_mp_data(sys::state& state);
 uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
 uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 
+size_t sizeof_decision_ignore_list(sys::state& state);
+uint8_t* write_decision_ignore_list(uint8_t* ptr_in, sys::state& state);
+uint8_t const* read_decision_ignore_list(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
+
 // combines load record settings by OR-ing them together
 void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record);
 
@@ -256,6 +261,8 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 bool try_read_scenario_file(sys::state& state, native_string_view name);
 bool try_read_scenario_and_save_file(sys::state& state, native_string_view name);
 bool try_read_scenario_as_save_file(sys::state& state, native_string_view name);
+
+std::string get_default_save_name(sys::state& state, save_type type);
 
 void write_save_file(sys::state& state, sys::save_type type = sys::save_type::normal, std::string const& name = std::string(""), const std::string& file_name = std::string(""));
 bool try_read_save_file(sys::state& state, native_string_view name);
