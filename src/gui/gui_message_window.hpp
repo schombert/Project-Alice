@@ -35,9 +35,9 @@ public:
 			base_data.get_element_type() == element_type::button
 			&&
 			(
-				base_data.data.button.shortcut == sys::virtual_key::ESCAPE
+				key == sys::virtual_key::ESCAPE
 				||
-				base_data.data.button.shortcut == sys::virtual_key::RETURN
+				key == sys::virtual_key::RETURN
 			)
 		) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
