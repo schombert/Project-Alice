@@ -764,6 +764,9 @@ void update_national_administrative_efficiency(sys::state& state) {
 
 void update_administrative_efficiency(sys::state& state) {
 
+	// high control areas are high pressure
+	// low control areas are low pressure
+	// control goes from high pressure areas to low pressure areas
 
 	// replaced with control ratio at capital which is doing the same thing but better
 	// prepare buffers
@@ -840,6 +843,8 @@ void update_administrative_efficiency(sys::state& state) {
 					* std::min(0.1f, propagation_multiplier / (distance + 1.f) * naval_base_multiplier);
 				state.world.province_set_control_scale(port_A, state.world.province_get_control_scale(port_A) + naval_shift_of_control);
 				state.world.province_set_control_scale(port_B, state.world.province_get_control_scale(port_B) - naval_shift_of_control);
+				assert(std::isfinite(state.world.province_get_control_scale(port_A)));
+				assert(std::isfinite(state.world.province_get_control_scale(port_B)));
 			}
 		}
 		// propagate along land trade routes
@@ -873,6 +878,8 @@ void update_administrative_efficiency(sys::state& state) {
 					* std::min(0.1f, propagation_multiplier / (distance + 1.f) / 2.f);
 				state.world.province_set_control_scale(capital_A, state.world.province_get_control_scale(capital_A) + land_shift_of_control);
 				state.world.province_set_control_scale(capital_B, state.world.province_get_control_scale(capital_B) - land_shift_of_control);
+				assert(std::isfinite(state.world.province_get_control_scale(capital_A)));
+				assert(std::isfinite(state.world.province_get_control_scale(capital_B)));
 			}
 		}
 	});
@@ -885,6 +892,8 @@ void update_administrative_efficiency(sys::state& state) {
 			auto change = control_buffer.get(capital) - control_buffer.get(pid);
 			state.world.province_set_control_scale(capital, state.world.province_get_control_scale(capital) - change * 0.01f);
 			state.world.province_set_control_scale(pid, state.world.province_get_control_scale(pid) + change * 0.01f);
+			assert(std::isfinite(state.world.province_get_control_scale(capital)));
+			assert(std::isfinite(state.world.province_get_control_scale(pid)));
 		});
 	});
 
@@ -919,7 +928,7 @@ void update_administrative_efficiency(sys::state& state) {
 		auto distance = state.world.province_adjacency_get_distance(paid) * (movement_A * movement_B);
 		auto A_owner = state.world.province_get_nation_from_province_ownership(A);
 		auto B_owner = state.world.province_get_nation_from_province_ownership(B);
-		float propagation_multiplier = 0.05f;
+		float propagation_multiplier = 0.2f;
 		auto sphere_A = state.world.nation_get_in_sphere_of(A_owner);
 		auto sphere_B = state.world.nation_get_in_sphere_of(B_owner);
 		auto overlord_A = state.world.overlord_get_ruler(
@@ -948,20 +957,25 @@ void update_administrative_efficiency(sys::state& state) {
 		auto land_shift_of_control = (B_control - A_control) * std::min(0.1f, propagation_multiplier / (distance + 1.f) * rail_multiplier);
 		state.world.province_set_control_scale(A, state.world.province_get_control_scale(A) + land_shift_of_control);
 		state.world.province_set_control_scale(B, state.world.province_get_control_scale(B) - land_shift_of_control);
+		assert(std::isfinite(state.world.province_get_control_scale(A)));
+		assert(std::isfinite(state.world.province_get_control_scale(B)));
 	});
 
 	// add friction to control expansion:
 	state.world.execute_serial_over_province([&](auto pids) {
-		auto population = state.world.province_get_demographics(pids, demographics::total);
-		auto control = ve::max(0.f, state.world.province_get_control_scale(pids));
+		auto current_control = state.world.province_get_control_ratio(pids);
+		auto mass = state.world.province_get_demographics(pids, demographics::total) + 1000.f;
 
-		auto available_control = control * 0.1f;
-		auto consumed_control = ve::min(available_control, population);
+		auto control_scale = ve::max(0.f, state.world.province_get_control_scale(pids));
+		// as we expand control over local land, it requires much higher levels of administrative work to increase it
+		auto available_control = ve::min(control_scale * 0.05f * (1.01f - current_control), mass);
+
+		auto speed = (available_control / mass - current_control);
+
 		// slow down to avoid sudden drops in taxes
 		state.world.province_set_control_ratio(
 			pids,
-			0.99f * state.world.province_get_control_ratio(pids)
-			+ 0.01f * ve::select(population == 0.f, 0.f, consumed_control / population)
+			ve::min(1.f, ve::max(0.f, current_control + 0.01f * speed))
 		);
 		auto supply = ve::max(
 			0.f,
@@ -976,7 +990,7 @@ void update_administrative_efficiency(sys::state& state) {
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::max_attrition) + 1.f
 		);
 		auto decay = 0.01f / (1.f + supply) * (1.f + movement) * (1.f + attrition);
-		state.world.province_set_control_scale(pids, ve::max(control * (1.f - decay) - consumed_control, 0.f));
+		state.world.province_set_control_scale(pids, ve::max(control_scale * (1.f - decay) - available_control, 0.f));
 	});
 }
 
