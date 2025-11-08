@@ -762,6 +762,108 @@ void update_national_administrative_efficiency(sys::state& state) {
 	});
 }
 
+float admin_cost_of_province(sys::state& state, dcon::province_id pid) {
+	auto population = state.world.province_get_demographics(pid, demographics::total);
+	auto area = state.map_state.map_data.province_area_km2[province::to_map_id(pid)];
+	auto is_coastal = state.world.province_get_is_coast(pid);
+	auto has_major_river = state.world.province_get_has_major_river(pid);
+
+	auto population_concentration = 1.f;
+
+	if(is_coastal) {
+		population_concentration *= 0.5f;
+	}
+	if(has_major_river) {
+		population_concentration *= 0.5f;
+	}
+	return population * population_concentration + area * 100.f + 100.f;
+}
+template <typename T>
+ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
+	auto population = state.world.province_get_demographics(pid, demographics::total);
+	auto area = ve::apply(
+		[&](auto p) { return state.map_state.map_data.province_area_km2[province::to_map_id(p)]; }, pid
+	);
+	auto is_coastal = state.world.province_get_is_coast(pid);
+	auto has_major_river = state.world.province_get_has_major_river(pid);
+	ve::fp_vector population_concentration = 1.f;
+	population_concentration = ve::select(is_coastal, population_concentration * 0.5f, population_concentration);
+	population_concentration = ve::select(has_major_river, population_concentration * 0.5f, population_concentration);
+	return population * population_concentration + area * 100.f + 100.f;
+}
+
+float desire_score_province(sys::state& state, dcon::province_id pid) {
+	return std::min(2.f, state.world.province_get_demographics(pid, demographics::total) / admin_cost_of_province(state, pid) / 4.f);
+}
+
+float control_shift_weight_mult(sys::state& state, dcon::province_adjacency_id adj) {
+	auto A = state.world.province_adjacency_get_connected_provinces(adj, 0);
+	auto B = state.world.province_adjacency_get_connected_provinces(adj, 1);
+	auto flag = state.world.province_adjacency_get_type(adj);
+	bool interrupted = flag & province::border::impassible_bit;
+	if(
+		state.world.province_get_nation_from_province_control(A)
+		!=
+		state.world.province_get_nation_from_province_ownership(A)
+	) {
+		interrupted = true;
+	}
+	if(
+		state.world.province_get_nation_from_province_control(B)
+		!=
+		state.world.province_get_nation_from_province_ownership(B)
+	) {
+		interrupted = true;
+	}
+	if(interrupted) {
+		return 0.f;
+	}
+
+	auto A_owner = state.world.province_get_nation_from_province_ownership(A);
+	auto B_owner = state.world.province_get_nation_from_province_ownership(B);
+	auto sphere_A = state.world.nation_get_in_sphere_of(A_owner);
+	auto sphere_B = state.world.nation_get_in_sphere_of(B_owner);
+	auto overlord_A = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(A_owner)
+	);
+	auto overlord_B = state.world.overlord_get_ruler(
+		state.world.nation_get_overlord_as_subject(B_owner)
+	);
+	auto leader_A = (overlord_A) ? overlord_A : ((sphere_A) ? sphere_A : A_owner);
+	auto leader_B = (overlord_B) ? overlord_B : ((sphere_B) ? sphere_B : B_owner);
+	if(leader_A != leader_B) {
+		return 0.f;
+	}
+	float ownership_mult = 1.f;
+	if(A_owner != B_owner) {
+		ownership_mult /= 2.f;
+	}
+
+	auto railroad_A = state.world.province_get_building_level(A, uint8_t(economy::province_building_type::railroad));
+	auto railroad_B = state.world.province_get_building_level(B, uint8_t(economy::province_building_type::railroad));
+	auto base_multiplier = 0.1f;
+	auto rail_multiplier = railroad_A + railroad_B;
+	auto river_multiplier = 0.f;
+	if(flag & province::border::river_connection_bit) {
+		river_multiplier = 2.f;
+	}
+
+	auto movement_A = 1.f + std::max(0.f, (
+		state.world.province_get_modifier_values(A, sys::provincial_mod_offsets::movement_cost) + 1.f
+		));
+	auto movement_B = 1.f + std::max(0.f, (
+		state.world.province_get_modifier_values(B, sys::provincial_mod_offsets::movement_cost) + 1.f
+		));
+	auto distance = state.world.province_adjacency_get_distance(adj) * (movement_A * movement_B);
+
+	auto total_multiplier =
+		ownership_mult
+		/ (distance + 1.f)
+		* (base_multiplier + rail_multiplier + river_multiplier);
+
+	return total_multiplier;
+}
+
 void update_administrative_efficiency(sys::state& state) {
 
 	// high control areas are high pressure
@@ -790,7 +892,7 @@ void update_administrative_efficiency(sys::state& state) {
 		auto B_state_instance = state.world.market_get_zone_from_local_market(B_market);
 		auto A_owner = state.world.state_instance_get_nation_from_state_ownership(A_state_instance);
 		auto B_owner = state.world.state_instance_get_nation_from_state_ownership(B_state_instance);
-		float propagation_multiplier = 0.05f;
+		float propagation_multiplier = 0.01f;
 		auto sphere_A = state.world.nation_get_in_sphere_of(A_owner);
 		auto sphere_B = state.world.nation_get_in_sphere_of(B_owner);
 		auto overlord_A = state.world.overlord_get_ruler(
@@ -897,78 +999,55 @@ void update_administrative_efficiency(sys::state& state) {
 		});
 	});
 
-	// propagate control for provinces
+	// reset buffer to avoid introduction of negative values
+	state.world.execute_serial_over_province([&](auto ids) {
+		control_buffer.set(ids, state.world.province_get_control_scale(ids));
+	});
+	auto total_adjacency_weight = state.world.province_make_vectorizable_float_buffer();
+
 	state.world.for_each_province_adjacency([&](auto paid) {
 		auto A = state.world.province_adjacency_get_connected_provinces(paid, 0);
 		auto B = state.world.province_adjacency_get_connected_provinces(paid, 1);
-		bool interrupted = false;
-		if(
-			state.world.province_get_nation_from_province_control(A)
-			!=
-			state.world.province_get_nation_from_province_ownership(A)
-		) {
-			interrupted = true;
-		}
-		if(
-			state.world.province_get_nation_from_province_control(B)
-			!=
-			state.world.province_get_nation_from_province_ownership(B)
-		) {
-			interrupted = true;
-		}
-		if(interrupted) {
-			return;
-		}
-		auto movement_A = 1.f + std::max(0.f, (
-			state.world.province_get_modifier_values(A, sys::provincial_mod_offsets::movement_cost) + 1.f
-		));
-		auto movement_B = 1.f + std::max(0.f, (
-			state.world.province_get_modifier_values(B, sys::provincial_mod_offsets::movement_cost) + 1.f
-		));
-		auto distance = state.world.province_adjacency_get_distance(paid) * (movement_A * movement_B);
-		auto A_owner = state.world.province_get_nation_from_province_ownership(A);
-		auto B_owner = state.world.province_get_nation_from_province_ownership(B);
-		float propagation_multiplier = 0.2f;
-		auto sphere_A = state.world.nation_get_in_sphere_of(A_owner);
-		auto sphere_B = state.world.nation_get_in_sphere_of(B_owner);
-		auto overlord_A = state.world.overlord_get_ruler(
-			state.world.nation_get_overlord_as_subject(A_owner)
-		);
-		auto overlord_B = state.world.overlord_get_ruler(
-			state.world.nation_get_overlord_as_subject(B_owner)
-		);
-		auto leader_A = (overlord_A) ? overlord_A : ((sphere_A) ? sphere_A : A_owner);
-		auto leader_B = (overlord_B) ? overlord_B : ((sphere_B) ? sphere_B : B_owner);
-		if(leader_A != leader_B) {
-			return;
-		}
-		if(A_owner != B_owner) {
-			propagation_multiplier /= 2.f;
-		}
+		auto mult = control_shift_weight_mult(state, paid);
+		auto weight_A = desire_score_province(state, A) * mult;
+		auto weight_B = desire_score_province(state, B) * mult;
+		auto old_A = total_adjacency_weight.get(A);
+		auto old_B = total_adjacency_weight.get(B);
+		total_adjacency_weight.set(B, old_B + weight_A);
+		total_adjacency_weight.set(A, old_A + weight_B);
+	});
 
-		auto A_control = control_buffer.get(A);
-		auto B_control = control_buffer.get(B);
-
-		auto railroad_A = state.world.province_get_building_level(A, uint8_t(economy::province_building_type::railroad));
-		auto railroad_B = state.world.province_get_building_level(B, uint8_t(economy::province_building_type::railroad));
-
-		auto rail_multiplier = 1.f + railroad_A + railroad_B;
-
-		auto land_shift_of_control = (B_control - A_control) * std::min(0.1f, propagation_multiplier / (distance + 1.f) * rail_multiplier);
-		state.world.province_set_control_scale(A, state.world.province_get_control_scale(A) + land_shift_of_control);
-		state.world.province_set_control_scale(B, state.world.province_get_control_scale(B) - land_shift_of_control);
-		assert(std::isfinite(state.world.province_get_control_scale(A)));
-		assert(std::isfinite(state.world.province_get_control_scale(B)));
+	state.world.for_each_province([&](auto pid) {
+		auto total_weight = total_adjacency_weight.get(pid) + 0.00001f;
+		auto control_to_transfer = control_buffer.get(pid) * 0.9f;
+		state.world.province_for_each_province_adjacency(pid, [&](auto adj) {
+			auto other = state.world.province_adjacency_get_connected_provinces(adj, 0);
+			if(other == pid) {
+				other = state.world.province_adjacency_get_connected_provinces(adj, 1);
+			}
+			auto score = desire_score_province(state, other);
+			auto mult = control_shift_weight_mult(state, adj);
+			auto other_scale = state.world.province_get_control_scale(other);
+			assert(std::isfinite(other_scale + control_to_transfer * score * mult / total_weight));
+			state.world.province_set_control_scale(other, other_scale + control_to_transfer * score * mult / total_weight);
+		});
+		auto scale = state.world.province_get_control_scale(pid);
+		state.world.province_set_control_scale(pid, scale - control_to_transfer);
 	});
 
 	// add friction to control expansion:
 	state.world.execute_serial_over_province([&](auto pids) {
+		auto is_coastal = state.world.province_get_is_coast(pids);
+		auto has_major_river = state.world.province_get_has_major_river(pids);
+
 		auto current_control = state.world.province_get_control_ratio(pids);
-		auto mass = state.world.province_get_demographics(pids, demographics::total) + 1000.f;
+		auto mass = ve_admin_cost_of_province(state, pids) * (0.01f + current_control);
+		auto prize = state.world.province_get_demographics(pids, demographics::total);
+		auto desire = ve::max(0.f, (prize / mass - 0.1f));
 
 		auto control_scale = ve::max(0.f, state.world.province_get_control_scale(pids));
 		// as we expand control over local land, it requires much higher levels of administrative work to increase it
-		auto available_control = ve::min(control_scale * 0.05f * (1.01f - current_control), mass);
+		auto available_control = ve::min(control_scale * desire * 5.f, mass);
 
 		auto speed = (available_control / mass - current_control);
 
@@ -981,6 +1060,9 @@ void update_administrative_efficiency(sys::state& state) {
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
 		);
+		// assume that coastal terrain is non-issue
+		auto coast_multiplier = ve::select(is_coastal, 0.2f, 1.f);
+		auto river_multiplier = ve::select(has_major_river, 0.2f, 1.f);
 		auto movement = ve::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
@@ -989,7 +1071,7 @@ void update_administrative_efficiency(sys::state& state) {
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::max_attrition) + 1.f
 		);
-		auto decay = 0.01f / (1.f + supply) * (1.f + movement) * (1.f + attrition);
+		auto decay = 0.001f / (1.f + supply) * (1.f + movement) * (1.f + attrition) * coast_multiplier * river_multiplier;
 		state.world.province_set_control_scale(pids, ve::max(control_scale * (1.f - decay) - available_control, 0.f));
 	});
 }

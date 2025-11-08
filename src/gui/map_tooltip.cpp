@@ -458,8 +458,9 @@ void admin_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon::
 		text::close_layout_box(contents, box);
 		if(fat.get_crime()) {
 			text::add_line_break_to_layout(state, contents);
-			text::add_line(state, contents, state.culture_definitions.crimes[fat.get_crime()].name);
-			ui::modifier_description(state, contents, state.culture_definitions.crimes[fat.get_crime()].modifier);
+			auto crime_def = state.culture_definitions.crimes[fat.get_crime()];
+			text::add_line(state, contents, crime_def.name);
+			ui::modifier_description(state, contents, crime_def.modifier);
 		}
 	}
 }

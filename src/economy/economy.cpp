@@ -1620,10 +1620,10 @@ std::vector<full_construction_factory> estimate_private_investment_construct(sys
 		return res;
 	}
 
-	static std::vector<dcon::factory_type_id> desired_types;
+	std::vector<dcon::factory_type_id> desired_types;
 	desired_types.clear();
 
-	static std::vector<dcon::province_id> provinces_in_order;
+	std::vector<dcon::province_id> provinces_in_order;
 	provinces_in_order.clear();
 	for(auto si : n.get_province_ownership()) {
 		if(si.get_province().get_state_membership().get_capital().get_is_colonial() == false) {
