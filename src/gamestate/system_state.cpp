@@ -4875,7 +4875,8 @@ void state::single_game_tick() {
 	// pop update:
 	static demographics::ideology_buffer idbuf(*this);
 	static demographics::issues_buffer isbuf(*this);
-	static demographics::promotion_buffer pbuf;
+	static demographics::promotion_buffer promotion_buf;
+	static demographics::promotion_buffer demotion_buf;
 	static demographics::assimilation_buffer abuf;
 	static demographics::migration_buffer mbuf;
 	static demographics::migration_buffer cmbuf;
@@ -4906,7 +4907,7 @@ void state::single_game_tick() {
 			auto o = uint32_t(ymd_date.day + 6);
 			if(o >= days_in_month)
 				o -= days_in_month;
-			demographics::update_type_changes(*this, o, days_in_month, pbuf);
+			demographics::update_type_changes(*this, o, days_in_month, promotion_buf, demotion_buf);
 			break;
 		}
 		case 3:
@@ -5007,7 +5008,7 @@ void state::single_game_tick() {
 		auto o = uint32_t(ymd_date.day + 6);
 		if(o >= days_in_month)
 			o -= days_in_month;
-		demographics::apply_type_changes(*this, o, days_in_month, pbuf);
+		demographics::apply_type_changes(*this, o, days_in_month, promotion_buf, demotion_buf);
 	}
 	{
 		auto o = uint32_t(ymd_date.day + 7);
@@ -5033,6 +5034,8 @@ void state::single_game_tick() {
 			o -= days_in_month;
 		demographics::apply_immigration(*this, o, days_in_month, imbuf);
 	}
+
+	demographics::fixup_state_only_pops(*this);
 
 	demographics::remove_size_zero_pops(*this);
 
@@ -5108,7 +5111,6 @@ void state::single_game_tick() {
 				break;
 			}
 		});
-
 
 		economy::daily_update(*this, false, 1.f);
 

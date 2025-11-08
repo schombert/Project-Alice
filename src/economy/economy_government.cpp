@@ -33,8 +33,22 @@ inline constexpr float base_tax_collection_capacity = 10000.f;
 // 
 inline constexpr float base_population_per_admin = 2000.f;
 
+// multiplier to convert the vanilla administrative_multiplier into the normalized admin divisor that we use. 100.0f corrosponds to a 10% increase in required admin per pop per level of administrative_multiplier with default defines.
+inline constexpr float admin_reform_mult = 100.0f;
+
+
+float get_nation_administrative_multiplier(sys::state& state, dcon::nation_id nation) {
+	float admin_mult_sum = 0.0f;
+	for(auto issue : state.culture_definitions.social_issues) {
+		admin_mult_sum = admin_mult_sum + state.world.issue_option_get_administrative_multiplier(state.world.nation_get_issues(nation, issue));
+	}
+	return admin_mult_sum * state.defines.bureaucracy_percentage_increment;
+}
+
 float population_per_admin(sys::state& state, dcon::nation_id n) {
-	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n));
+	float admin_mult = get_nation_administrative_multiplier(state, n);
+	float normalized_admin_divisor = admin_mult * admin_reform_mult + 1.0f;
+	return base_population_per_admin * (1.f + state.world.nation_get_administrative_efficiency(n)) / normalized_admin_divisor;
 }
 
 // represents amount of people

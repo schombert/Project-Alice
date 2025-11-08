@@ -230,6 +230,7 @@ float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon
 float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n);
 float estimate_subject_payments_received(sys::state& state, dcon::nation_id o);
 
+float estimate_daily_income_ai(sys::state& state, dcon::nation_id n);
 float estimate_daily_income(sys::state& state, dcon::nation_id n);
 
 struct construction_status {
