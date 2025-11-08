@@ -1052,6 +1052,10 @@ void populate_army_consumption(sys::state& state) {
 		auto owner = reg.get_army_from_army_membership().get_controller_from_army_control();
 		auto pop = reg.get_pop_from_regiment_source();
 		auto location = pop.get_pop_location().get_province().get_state_membership();
+		// if the regiment has no pop attached (may happen temporarily until it gets deleted) don't do army demand
+		if(!location) {
+			return;
+		}
 		auto market = location.get_market_from_local_market();
 		auto strength = reg.get_strength();
 
@@ -3763,6 +3767,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		rebalance_needs_weights(state, mid);
 	});
 
+
+
 	set_profile_point("need weights");
 
 	sanity_check(state);
@@ -4236,6 +4242,7 @@ float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	return w_sub + w_reps + subject_payments;
 }
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n) {
+	// potential OOS in subject_payments (if parallelizing over nations while changing tax levels)
 	float w_sub = estimate_war_subsidies_income(state, n);
 	float w_reps = estimate_reparations_income(state, n);
 	float subject_payments = estimate_subject_payments_received(state, n);
@@ -4740,6 +4747,15 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 	}
+}
+
+// This is used specifically in AI calculations, and omits subject income calculation because that requires iterating over all subjects and calculating their tax income seperately, will will cause OOS when parallelized over nations in ai::update_budget
+float estimate_daily_income_ai(sys::state& state, dcon::nation_id n) {
+	auto tax = explain_tax_income(state, n);
+	auto tariff = estimate_tariff_export_income(state, n) + estimate_tariff_import_income(state, n);
+	auto gold = estimate_gold_income(state, n);
+	auto diplomacy = estimate_war_subsidies_income(state, n) + estimate_reparations_income(state, n);
+	return tax.mid + tax.poor + tax.rich + tariff + gold + diplomacy;
 }
 
 /* TODO -

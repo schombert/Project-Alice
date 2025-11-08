@@ -1606,25 +1606,27 @@ void update_rgo_production(sys::state& state) {
 
 	// registed calculated production
 	// can't do in parallel over provinces
-	// but independent commodities do not influence each other
+	// therefore do it in parallel over markets. Cannot do it over commodities because register_domestic_supply writes to market_gdp
 
-	concurrency::parallel_for(uint32_t(0), state.world.commodity_size(), [&](uint32_t k) {
-		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-		auto rgo_output = state.world.commodity_get_rgo_amount(c);
-		if(rgo_output <= 0.f) {
+	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](uint32_t k) {
+		dcon::market_id local_market{ dcon::market_id::value_base_t(k) };
+		if(!state.world.market_is_valid(local_market)) {
 			return;
 		}
-		if(state.world.commodity_get_money_rgo(c)) {
-			return;
-		}
-		province::for_each_land_province(state, [&](auto province) {
-			auto local_state = state.world.province_get_state_membership(province);
-			auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
-			if(!local_market) {
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto rgo_output = state.world.commodity_get_rgo_amount(commodity);
+			if(rgo_output <= 0.f) {
 				return;
 			}
-			auto amount = state.world.province_get_rgo_output(province, c);
-			register_domestic_supply(state, local_market, c, amount, economy_reason::rgo);
+			if(state.world.commodity_get_money_rgo(commodity)) {
+				return;
+			}
+			auto state_instance = state.world.market_get_zone_from_local_market(local_market);
+			assert(state_instance);
+			province::for_each_province_in_state_instance(state, state_instance, [&](dcon::province_id province) {
+				auto amount = state.world.province_get_rgo_output(province, commodity);
+				register_domestic_supply(state, local_market, commodity, amount, economy_reason::rgo);
+			});
 		});
 	});
 }

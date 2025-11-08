@@ -683,7 +683,7 @@ void update_budget(sys::state& state, bool presim) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
-		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
+		float base_income = economy::estimate_daily_income_ai(state, n) + n.get_stockpiles(economy::money) / 365.f;
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,
