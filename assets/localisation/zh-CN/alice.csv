@@ -548,11 +548,10 @@ pop_prom_1;?Y升职系数：?!
 pop_prom_2;来自国家焦点：?G$val$
 pop_prom_3;0（由于国家焦点）
 pop_prom_4;?Y降职系数：?!
-pop_prom_5;这个人群正在升职，因为升职系数大于降职系数
-pop_prom_6;这个人群正在降职，因为降职系数大于升职系数
-pop_prom_7;由于这两个因子都是负数，此人群将维持现状
-pop_prom_8;可能升职人数=人群规模*升职规模（$x$）*升职系数（$val$）*行政效率（$y$）
-pop_prom_9;可能降职人数=人群规模*降职规模（$x$）*降职系数（$val$）
+pop_prom_5;由于降职因子为负，该人群当前不降职
+pop_prom_7;由于升职因子为负，该人群当前不升职
+pop_prom_8;升职人数 = 人群规模 * 升职规模（$x$）* 升职因子（$val$）
+pop_prom_9;降职人数 = 人群规模 * 降职规模（$x$）* 降职因子（$val$）
 pop_con_1;每月觉醒度变化：
 pop_con_2;总计：
 pop_con_3;来自奢侈品满足度：?G+$x$
@@ -604,7 +603,7 @@ pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 
 pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
 pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
 pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子?W（?Y$y$?W）。
-pop_growth_12;最后，将?Y饥饿因子?W（?Y$x$?W）和?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的净惩罚值（?Y$val$?W），然后将其与其余的修正值相加。
+pop_growth_12;最后，将 ?Y饥饿因子?W（?Y$x$?W）和 ?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的惩罚净值（?Y$val$?W），然后将其与其余的修正值相加。
 pop_assim_1;每月人群同化：$x$
 pop_assim_2;奴隶不被同化
 pop_assim_3;可接受民族人群不被同化
@@ -1069,14 +1068,14 @@ alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
 alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
-alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
+alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$（以 $val$ 为单位相乘）。进度：$x$/$y$
 alice_recommended_build;?G建议建造此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
 alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
-alice_factory_base_workforce;基础劳动力?Y$x$?W
-alice_factory_total_bonus;总和大约为?Y$x$?W
+alice_factory_base_workforce;基础劳动力 ?Y$x$?W
+alice_factory_total_bonus;总和约为 ?Y$x$?W
 alice_slider_controls;?Y左键?W 增加 ?Y$value$?W\n?YSHIFT+左键?W 增加 ?Y$x$?W\n?YSHIFT+右键?W 增加到最大值
 alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?Y$x$?W\n?YSHIFT+右键?W 减少到最小值
 explain_colonial_points;列强和次强会积累殖民点。
