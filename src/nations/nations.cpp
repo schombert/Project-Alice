@@ -1064,8 +1064,11 @@ void update_administrative_efficiency(sys::state& state) {
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
 		);
 		// assume that coastal terrain is non-issue
-		auto coast_multiplier = ve::select(is_coastal, 0.2f, 1.f);
-		auto river_multiplier = ve::select(has_major_river, 0.2f, 1.f);
+
+		auto normal_multiplier = ve::fp_vector{ 1.f };
+		auto reduced_multiplier = ve::fp_vector{ 0.2f };
+		auto coast_multiplier = ve::select(is_coastal, reduced_multiplier, normal_multiplier);
+		auto river_multiplier = ve::select(has_major_river, reduced_multiplier, normal_multiplier);
 		auto movement = ve::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
