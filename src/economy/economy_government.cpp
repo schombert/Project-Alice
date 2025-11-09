@@ -17,7 +17,23 @@ namespace economy {
 // to avoid death traps
 inline constexpr float base_tax_collection_capacity = 10000.f;
 
-inline constexpr float base_population_per_admin = 200.f;
+// assume that normal nation has:
+// population: 60'000'000
+// area: 600'000 km^2
+// amount of public workers: 600'000
+//
+// then we can suggest that in perfect conditions 1 administrator can administer 100 people at area of 1 km^2
+//
+// assume density of population being equal to 100 people/km^2 in normal conditions to convert area to people
+// 200 people per administrator
+//
+// account for difficult conditions
+// account for representing only the capital bureacracy
+// with multiplying by 10
+// 
+// 2000 people per administrator
+// 
+inline constexpr float base_population_per_admin = 2000.f;
 
 // multiplier to convert the vanilla administrative_multiplier into the normalized admin divisor that we use. 100.0f corrosponds to a 10% increase in required admin per pop per level of administrative_multiplier with default defines.
 inline constexpr float admin_reform_mult = 100.0f;
