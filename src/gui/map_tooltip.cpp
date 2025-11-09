@@ -730,62 +730,68 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 			float v;
 			dcon::nation_id n;
 		};
+		struct migration_display_data {
+			std::vector<float> total_migration;
+			std::vector<nation_and_value> positive_migration;
+			std::vector<nation_and_value> negative_migration;
+			float total_neg = 0;
+			float total_pos = 0;
+			sys::date timestamp;
 
-		static dcon::nation_id last_owner;
-		static sys::date last_checked;
-		static std::vector<float> last_value;
-		static std::vector<nation_and_value> positive_vals;
-		static std::vector<nation_and_value> neg_vals;
-		static float total_pos = 0.0f;
-		static float total_neg = 0.0f;
-
+		};
+		static ankerl::unordered_dense::map<dcon::nation_id, migration_display_data, sys::nation_hash> display_data;
 		auto d = state.ui_date;
-		if(d != last_checked || last_owner != owner) {
-			last_checked = d;
-			last_owner = owner;
-			total_pos = 0.0f;
-			total_neg = 0.0f;
+		auto iterator = display_data.find(owner);
+		if(iterator != display_data.end() && iterator->second.timestamp == d) {
 
-			demographics::estimate_directed_immigration(state, owner, last_value);
-			positive_vals.clear();
-			neg_vals.clear();
-			for(uint32_t i = uint32_t(last_value.size()); i-- > 0; ) {
+		}
+		else {
+			migration_display_data local_mig_data{};
+			local_mig_data.timestamp = d;
+			local_mig_data.total_pos = 0.0f;
+			local_mig_data.total_neg = 0.0f;
+			demographics::estimate_directed_immigration(state, owner, local_mig_data.total_migration);
+			for(uint32_t i = uint32_t(local_mig_data.total_migration.size()); i-- > 0; ) {
 				dcon::nation_id in{ dcon::nation_id::value_base_t(i) };
-				if(last_value[i] > 0.0f) {
-					positive_vals.push_back(nation_and_value{ last_value[i],in });
-					total_pos += last_value[i];
-				} else if(last_value[i] < 0.0f) {
-					neg_vals.push_back(nation_and_value{ last_value[i],in });
-					total_neg += last_value[i];
+				if(local_mig_data.total_migration[i] > 0.0f) {
+					local_mig_data.positive_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
+					local_mig_data.total_pos += local_mig_data.total_migration[i];
+				} else if(local_mig_data.total_migration[i] < 0.0f) {
+					local_mig_data.negative_migration.push_back(nation_and_value{ local_mig_data.total_migration[i],in });
+					local_mig_data.total_neg += local_mig_data.total_migration[i];
 				}
 			}
 
-			std::sort(positive_vals.begin(), positive_vals.end(), [](nation_and_value const& a, nation_and_value const& b) {
+			std::sort(local_mig_data.positive_migration.begin(), local_mig_data.positive_migration.end(), [](nation_and_value const& a, nation_and_value const& b) {
 				return a.v > b.v;
 			});
-			std::sort(neg_vals.begin(), neg_vals.end(), [](nation_and_value const& a, nation_and_value const& b) {
+			std::sort(local_mig_data.negative_migration.begin(), local_mig_data.negative_migration.end(), [](nation_and_value const& a, nation_and_value const& b) {
 				return a.v < b.v;
 			});
+
+			display_data.insert_or_assign(owner, std::move(local_mig_data));
 		}
+
+		const migration_display_data& migration_display = display_data.at(owner);
 
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "monthly_immigration_lab");
 		float total_accounted_for = 0.0f;
-		for(uint32_t i = 0; i < positive_vals.size() && i < 10; ++i) {
-			total_accounted_for += positive_vals[i].v;
+		for(uint32_t i = 0; i < migration_display.positive_migration.size() && i < 10; ++i) {
+			total_accounted_for += migration_display.positive_migration[i].v;
 			auto box = text::open_layout_box(contents);
 
-			text::add_to_layout_box(state, contents, box, int64_t(positive_vals[i].v), text::text_color::green);
+			text::add_to_layout_box(state, contents, box, int64_t(migration_display.positive_migration[i].v), text::text_color::green);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(positive_vals[i].n) });
+			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(migration_display.positive_migration[i].n) });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::get_name(state, positive_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, migration_display.positive_migration[i].n));
 
 			text::close_layout_box(contents, box);
 		}
-		if(total_pos - total_accounted_for >= 1.0f) {
+		if(migration_display.total_pos - total_accounted_for >= 1.0f) {
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, int64_t(total_pos - total_accounted_for), text::text_color::green);
+			text::add_to_layout_box(state, contents, box, int64_t(migration_display.total_pos - total_accounted_for), text::text_color::green);
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, "pop_other_cult");
 			text::close_layout_box(contents, box);
@@ -794,27 +800,25 @@ void migration_map_tt_box(sys::state& state, text::columnar_layout& contents, dc
 		text::add_line_break_to_layout(state, contents);
 		text::add_line(state, contents, "monthly_emigration_lab");
 		total_accounted_for = 0.0f;
-		for(uint32_t i = 0; i < neg_vals.size() && i < 10; ++i) {
-			total_accounted_for += neg_vals[i].v;
+		for(uint32_t i = 0; i < migration_display.negative_migration.size() && i < 10; ++i) {
+			total_accounted_for += migration_display.negative_migration[i].v;
 			auto box = text::open_layout_box(contents);
 
-			text::add_to_layout_box(state, contents, box, int64_t(-neg_vals[i].v), text::text_color::red);
+			text::add_to_layout_box(state, contents, box, int64_t(-migration_display.negative_migration[i].v), text::text_color::red);
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(neg_vals[i].n) });
+			text::add_to_layout_box(state, contents, box, text::embedded_flag{ state.world.nation_get_identity_from_identity_holder(migration_display.negative_migration[i].n) });
 			text::add_space_to_layout_box(state, contents, box);
-			text::add_to_layout_box(state, contents, box, text::get_name(state, neg_vals[i].n));
+			text::add_to_layout_box(state, contents, box, text::get_name(state, migration_display.negative_migration[i].n));
 
 			text::close_layout_box(contents, box);
 		}
-		if(total_neg - total_accounted_for <= -1.0f) {
+		if(migration_display.total_neg - total_accounted_for <= -1.0f) {
 			auto box = text::open_layout_box(contents);
-			text::add_to_layout_box(state, contents, box, int64_t(-(total_neg - total_accounted_for)), text::text_color::red);
+			text::add_to_layout_box(state, contents, box, int64_t(-(migration_display.total_neg - total_accounted_for)), text::text_color::red);
 			text::add_space_to_layout_box(state, contents, box);
 			text::localised_format_box(state, contents, box, "pop_other_cult");
 			text::close_layout_box(contents, box);
 		}
-	} else {
-
 	}
 }
 
