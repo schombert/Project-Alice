@@ -99,177 +99,6 @@ void compare_game_states(sys::state& ws1, sys::state& ws2) {
 	REQUIRE(ws1.get_mp_state_checksum().to_string() == ws2.get_mp_state_checksum().to_string());
 }
 
-void checked_pop_update(sys::state& ws) {
-	auto ymd_date = ws.current_date.to_ymd(ws.start_date);
-	auto month_start = sys::year_month_day{ymd_date.year, ymd_date.month, uint16_t(1)};
-	auto next_month_start = sys::year_month_day{ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1)};
-	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
-
-	// pop update:
-	static demographics::ideology_buffer idbuf(ws);
-	static demographics::issues_buffer isbuf(ws);
-	static demographics::promotion_buffer pbuf;
-	static demographics::assimilation_buffer abuf;
-	static demographics::migration_buffer mbuf;
-	static demographics::migration_buffer cmbuf;
-	static demographics::migration_buffer imbuf;
-
-	idbuf = demographics::ideology_buffer(ws);
-	isbuf = demographics::issues_buffer(ws);
-
-	// calculate complex changes in parallel where we can, but don't actually apply the results
-	// instead, the changes are saved to be applied only after all triggers have been evaluated
-	concurrency::parallel_for(0, 7, [&](int32_t index) {
-		switch(index) {
-		case 0:
-		{
-			auto o = uint32_t(ymd_date.day);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_ideologies(ws, o, days_in_month, idbuf);
-			break;
-		}
-		case 1:
-		{
-			auto o = uint32_t(ymd_date.day + 1);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_issues(ws, o, days_in_month, isbuf);
-			break;
-		}
-		case 2:
-		{
-			auto o = uint32_t(ymd_date.day + 6);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_type_changes(ws, o, days_in_month, pbuf);
-			break;
-		}
-		case 3:
-		{
-			auto o = uint32_t(ymd_date.day + 7);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_assimilation(ws, o, days_in_month, abuf);
-			break;
-		}
-		case 4:
-		{
-			auto o = uint32_t(ymd_date.day + 8);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_internal_migration(ws, o, days_in_month, mbuf);
-			break;
-		}
-		case 5:
-		{
-			auto o = uint32_t(ymd_date.day + 9);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_colonial_migration(ws, o, days_in_month, cmbuf);
-			break;
-		}
-		case 6:
-		{
-			auto o = uint32_t(ymd_date.day + 10);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_immigration(ws, o, days_in_month, imbuf);
-			break;
-		}
-		}
-	});
-
-	// apply in parallel where we can
-	concurrency::parallel_for(0, 7, [&](int32_t index) {
-		switch(index) {
-		case 0:
-		{
-			auto o = uint32_t(ymd_date.day + 0);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::apply_ideologies(ws, o, days_in_month, idbuf);
-			break;
-		}
-		case 1:
-		{
-			auto o = uint32_t(ymd_date.day + 1);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::apply_issues(ws, o, days_in_month, isbuf);
-			break;
-		}
-		case 2:
-		{
-			auto o = uint32_t(ymd_date.day + 2);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_militancy(ws, o, days_in_month);
-			break;
-		}
-		case 3:
-		{
-			auto o = uint32_t(ymd_date.day + 3);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_consciousness(ws, o, days_in_month);
-			break;
-		}
-		case 4:
-		{
-			break;
-		}
-		case 5:
-		{
-			auto o = uint32_t(ymd_date.day + 5);
-			if(o >= days_in_month)
-				o -= days_in_month;
-			demographics::update_growth(ws, o, days_in_month);
-			break;
-		}
-		case 6:
-			province::ve_for_each_land_province(ws,
-					[&](auto ids) { ws.world.province_set_daily_net_migration(ids, ve::fp_vector{}); });
-			break;
-		case 7:
-			province::ve_for_each_land_province(ws,
-					[&](auto ids) { ws.world.province_set_daily_net_immigration(ids, ve::fp_vector{}); });
-			break;
-		}
-	});
-
-	// because they may add pops, these changes must be applied sequentially
-	{
-		auto o = uint32_t(ymd_date.day + 6);
-		if(o >= days_in_month)
-			o -= days_in_month;
-		demographics::apply_type_changes(ws, o, days_in_month, pbuf);
-	}
-	{
-		auto o = uint32_t(ymd_date.day + 7);
-		if(o >= days_in_month)
-			o -= days_in_month;
-		demographics::apply_assimilation(ws, o, days_in_month, abuf);
-	}
-	{
-		auto o = uint32_t(ymd_date.day + 8);
-		if(o >= days_in_month)
-			o -= days_in_month;
-		demographics::apply_internal_migration(ws, o, days_in_month, mbuf);
-	}
-	{
-		auto o = uint32_t(ymd_date.day + 9);
-		if(o >= days_in_month)
-			o -= days_in_month;
-		demographics::apply_colonial_migration(ws, o, days_in_month, cmbuf);
-	}
-	{
-		auto o = uint32_t(ymd_date.day + 10);
-		if(o >= days_in_month)
-			o -= days_in_month;
-		demographics::apply_immigration(ws, o, days_in_month, imbuf);
-	}
-}
 
 void write_test_save(sys::state& state) {
 	auto current_date = state.current_date.to_string(state.start_date);
@@ -293,6 +122,46 @@ void test_load_save(sys::state& state, uint8_t* ptr_in, uint32_t length) {
 }
 
 constexpr uint32_t test_game_seed = 808080;
+
+void do_sim_game_test(const native_string& savefile = native_string{ }) {
+	std::unique_ptr<sys::state> game_state_1;
+	std::unique_ptr<sys::state> game_state_2;
+
+	if(savefile.empty()) {
+		game_state_1 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
+		game_state_2 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
+	}
+	else {
+		game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
+		game_state_2 = load_testing_scenario_file(sys::network_mode_type::host);
+		if(!sys::try_read_save_file(*game_state_1, savefile)) {
+			assert(false);
+			std::abort();
+		} else {
+			game_state_1->fill_unsaved_data();
+		}
+		if(!sys::try_read_save_file(*game_state_2, savefile)) {
+			assert(false);
+			std::abort();
+		} else {
+			game_state_2->fill_unsaved_data();
+		}
+	}
+
+
+	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
+
+	compare_game_states(*game_state_1, *game_state_2);
+	for(int i = 0; i <= 3653; i++) {
+		game_state_1->console_log(std::to_string(i));
+		game_state_1->single_game_tick();
+		game_state_2->single_game_tick();
+		compare_game_states(*game_state_1, *game_state_2);
+	}
+}
+
+
+
 
 TEST_CASE("sim_none", "[determinism]") {
 	// Test that the game states are equal AFTER loading
@@ -531,310 +400,36 @@ TEST_CASE("sim_game_solo_10", "[determinism][sim_solo_tests]") {
 //All of the following tests from first to tenth is running the entire game in 10 year intervals with a save for each to test for desync's.
 
 TEST_CASE("sim_game_1", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file_with_save(sys::network_mode_type::client);
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test();
 }
 
 TEST_CASE("sim_game_2", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("184611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("184611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("184611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("sim_game_3", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("185611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("185611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("185611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_4", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("186611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("186611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("186611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_5", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("187611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("187611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("187611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_6", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("188611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("188611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("188611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_7", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("189611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("189611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("189611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_8", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("190611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("190611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("190611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_9", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("191611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("191611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("191611_TEST_SAVE.bin"));
 }
 TEST_CASE("sim_game_10", "[determinism][sim_game_tests]") {
-	// Test that the game states are equal after playing
-	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file(sys::network_mode_type::host);
-	std::unique_ptr<sys::state> game_state_2 = load_testing_scenario_file(sys::network_mode_type::client);
-
-
-	if(!sys::try_read_save_file(*game_state_1, NATIVE("192611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_1->fill_unsaved_data();
-	}
-	if(!sys::try_read_save_file(*game_state_2, NATIVE("192611_TEST_SAVE.bin"))) {
-		assert(false);
-		std::abort();
-	}
-	else {
-		game_state_2->fill_unsaved_data();
-	}
-
-
-	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
-
-	compare_game_states(*game_state_1, *game_state_2);
-	for(int i = 0; i <= 3653; i++) {
-		game_state_1->console_log(std::to_string(i));
-		game_state_1->single_game_tick();
-		game_state_2->single_game_tick();
-		compare_game_states(*game_state_1, *game_state_2);
-	}
+	do_sim_game_test(NATIVE("192611_TEST_SAVE.bin"));
 }
 
 TEST_CASE("fill_unsaved_values_determinism_1", "[determinism][fill_unsaved_tests]") {
