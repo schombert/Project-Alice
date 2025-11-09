@@ -27,8 +27,10 @@ inline constexpr float base_tax_collection_capacity = 10000.f;
 // assume density of population being equal to 100 people/km^2 in normal conditions to convert area to people
 // 200 people per administrator
 //
-// account for difficult conditions with multiplying by 5
-// account for representing only the capital bureacracy with multiplying by 2
+// account for difficult conditions
+// account for representing only the capital bureacracy
+// with multiplying by 10
+// 
 // 2000 people per administrator
 // 
 inline constexpr float base_population_per_admin = 2000.f;

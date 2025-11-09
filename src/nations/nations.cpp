@@ -776,7 +776,8 @@ float admin_cost_of_province(sys::state& state, dcon::province_id pid) {
 	if(has_major_river) {
 		population_concentration *= 0.5f;
 	}
-	return population * population_concentration + area * 100.f + 100.f;
+	auto current_control = state.world.province_get_control_ratio(pid);
+	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 template <typename T>
 ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
@@ -789,11 +790,13 @@ ve::fp_vector ve_admin_cost_of_province(sys::state& state, T pid) {
 	ve::fp_vector population_concentration = 1.f;
 	population_concentration = ve::select(is_coastal, population_concentration * 0.5f, population_concentration);
 	population_concentration = ve::select(has_major_river, population_concentration * 0.5f, population_concentration);
-	return population * population_concentration + area * 100.f + 100.f;
+	auto current_control = state.world.province_get_control_ratio(pid);
+	return (population * population_concentration + area * 100.f) * (1.f / (1.01f - current_control) - 1.f) + 100.f;
 }
 
 float desire_score_province(sys::state& state, dcon::province_id pid) {
-	return std::min(2.f, state.world.province_get_demographics(pid, demographics::total) / admin_cost_of_province(state, pid) / 4.f);
+	auto base_score = state.world.province_get_demographics(pid, demographics::total) / admin_cost_of_province(state, pid);
+	return std::min(2.f, base_score * base_score / 4.f);
 }
 
 float control_shift_weight_mult(sys::state& state, dcon::province_adjacency_id adj) {
@@ -1041,7 +1044,7 @@ void update_administrative_efficiency(sys::state& state) {
 		auto has_major_river = state.world.province_get_has_major_river(pids);
 
 		auto current_control = state.world.province_get_control_ratio(pids);
-		auto mass = ve_admin_cost_of_province(state, pids) * (0.01f + current_control);
+		auto mass = ve_admin_cost_of_province(state, pids);
 		auto prize = state.world.province_get_demographics(pids, demographics::total);
 		auto desire = ve::max(0.f, (prize / mass - 0.1f));
 
