@@ -3719,6 +3719,8 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
+	auto pop_size = state.world.pop_size();
+
 	concurrency::parallel_for(uint32_t(0), pop_size, [&](uint32_t i) {
 		auto ids = dcon::pop_id{ dcon::pop_id::value_base_t(i) };
 		auto loc = state.world.pop_get_province_from_pop_location(ids);

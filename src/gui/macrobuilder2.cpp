@@ -1232,44 +1232,17 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 	text::add_line(state, contents, state.military_definitions.unit_base_definitions[grid_item.value].name);
 	text::add_line_break_to_layout(state, contents);
 	auto utid = grid_item.value;
-	auto is_land = state.military_definitions.unit_base_definitions[utid].is_land;
-
-	float reconnaissance_or_fire_range = 0.f;
-	float siege_or_torpedo_attack = 0.f;
-	float attack_or_gun_power = 0.f;
-	float defence_or_hull = 0.f;
-	float discipline_or_evasion = std::numeric_limits<float>::max();
-	float support = 0.f;
-	float supply_consumption = 0.f;
-	float maximum_speed = std::numeric_limits<float>::max();
-	float maneuver = std::numeric_limits<float>::max();
-	int32_t supply_consumption_score = 0;
 	bool warn_overseas = false;
 	bool warn_culture = false;
 	bool warn_active = false;
 
-	
+	if(!state.military_definitions.unit_base_definitions[utid].active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+		warn_active = true;
+	if(state.military_definitions.unit_base_definitions[utid].primary_culture)
+		warn_culture = true;
+	if(!state.military_definitions.unit_base_definitions[utid].can_build_overseas)
+		warn_overseas = true;
 
-		if(!state.military_definitions.unit_base_definitions[utid].active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
-			warn_active = true;
-		if(state.military_definitions.unit_base_definitions[utid].primary_culture)
-			warn_culture = true;
-		if(!state.military_definitions.unit_base_definitions[utid].can_build_overseas)
-			warn_overseas = true;
-
-		reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range;
-		siege_or_torpedo_attack += state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack;
-		attack_or_gun_power += state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power;
-		defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull ;
-		discipline_or_evasion += std::min(discipline_or_evasion, state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion);
-		supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption;
-		maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed);
-		if(is_land) {
-			support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support ;
-			maneuver += state.world.nation_get_unit_stats(state.local_player_nation, utid).maneuver;
-		} else {
-			supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score;
-		}
 	
 
 	if(warn_overseas)
@@ -1278,40 +1251,10 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 		text::add_line(state, contents, "macro_warn_culture");
 	if(warn_active)
 		text::add_line(state, contents, "macro_warn_unlocked");
+
+
+	ui::display_unit_stats(state, contents, state.local_player_nation, utid);
 	
-	if(maximum_speed == std::numeric_limits<float>::max()) maximum_speed = 0.f;
-	if(discipline_or_evasion == std::numeric_limits<float>::max()) discipline_or_evasion = 0.f;
-	if(maneuver == std::numeric_limits<float>::max()) maneuver = 0.f;
-	if(is_land) {
-		if(reconnaissance_or_fire_range > 0.f) {
-			text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(reconnaissance_or_fire_range, 2));
-		}
-		if(siege_or_torpedo_attack > 0.f) {
-			text::add_line(state, contents, "unit_siege", text::variable_type::x, text::format_float(siege_or_torpedo_attack, 2));
-		}
-		text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(attack_or_gun_power, 2));
-		text::add_line(state, contents, "unit_defence", text::variable_type::x, text::format_float(defence_or_hull, 2));
-		text::add_line(state, contents, "unit_discipline", text::variable_type::x, text::format_percentage(discipline_or_evasion, 0));
-		if(support > 0.f) {
-			text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(support, 0));
-		}
-		text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(maneuver, 0));
-		text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(maximum_speed, 2));
-		text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(supply_consumption, 0));
-	} else {
-		text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(maximum_speed, 2));
-		text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(attack_or_gun_power, 2));
-		if(siege_or_torpedo_attack > 0.f) {
-			text::add_line(state, contents, "unit_torpedo_attack", text::variable_type::x, text::format_float(siege_or_torpedo_attack, 2));
-		}
-		text::add_line(state, contents, "unit_hull", text::variable_type::x, text::format_float(defence_or_hull, 2));
-		text::add_line(state, contents, "unit_fire_range", text::variable_type::x, text::format_float(reconnaissance_or_fire_range, 2));
-		if(discipline_or_evasion > 0.f) {
-			text::add_line(state, contents, "unit_evasion", text::variable_type::x, text::format_percentage(discipline_or_evasion, 0));
-		}
-		text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(supply_consumption, 0));
-		text::add_line(state, contents, "unit_supply_load", text::variable_type::x, supply_consumption_score);
-	}
 // END
 }
 void macrobuilder2_grid_item_unit_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {

@@ -1014,6 +1014,7 @@ col_invest_4;Without competition, you will be able to turn this state into a col
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
 col_invest_6;You have at least $x$ free colonial points
 activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
+activated_by_tech:Activated by technology ?Y$x$?!
 unit_max_speed;Max Speed ?G$x$?! KPH
 unit_attack;Attack ?G$x$
 unit_hull;Hull ?G$x$
