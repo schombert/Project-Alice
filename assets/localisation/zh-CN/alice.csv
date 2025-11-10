@@ -3,7 +3,7 @@ uh_support_for_blank;上议院支持 $text$
 up_to;达到
 scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备量 $text$
+stockpile_of;库存量 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
 add_war_goal;添加 $text$ 战争目标针对 $nation$
@@ -31,7 +31,7 @@ make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
 change_tech_school;科研学派变成 ?Y$text$?W
 change_government_to;政体变成 ?Y$text$?W
-add_to_treasury;添加到国库
+add_to_treasury;收入国库
 war_exhaustion;厌战度
 become_blank;成为 ?Y$text$?W
 player_control_change;玩家操作国家变成 $text$
@@ -68,7 +68,7 @@ free_slave_state;成为自由区
 free_slave_pop;解放奴隶
 hold_election;举行选举
 issue_change;$issue$ 变成 $text$
-add_relative_income;最后收入到国库
+add_relative_income;收入国库
 make_neutral;解除所有同盟，释放所有附庸
 pop_size;人群规模
 move_pop_to;人群移动到 $text$
@@ -464,7 +464,7 @@ work;工作
 available_for;适于：
 support;支持
 percentage;比例
-stockpile;储备
+stockpile;库存
 this_nat_religion;此国国教
 from_nat_religion;来自此国国教
 event_show_requirements;此事件的条件：
@@ -634,15 +634,15 @@ pop_ideology_attraction_1;意识形态吸引力：$x$
 pop_ideology_attraction_2;此意识形态目前不能
 trade_setting_drawing;库存使用
 trade_setting_filling;库存买入
-trade_setting_stable;不储备
+trade_setting_stable;不库存
 trade_commodity_report_1;当前全球需求：$x$
 trade_commodity_report_2;当前全球生产：$x$
 trade_commodity_report_3;当前全球消费：$x$
 trade_commodity_report_4;全球市场数量：$x$
 trade_fill;买入
 trade_use;卖出
-trade_stockpile_target;库存目标数量
-trade_stockpile_current;当前储备：
+trade_stockpile_target;库存目标
+trade_stockpile_current;当前库存：
 diplomacy_wx_1;每月厌战性：
 influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
@@ -910,7 +910,7 @@ chat_player_switch;$playername$ 选择了 $country$
 chat_player_oos;$playername$ 已断开连接！
 alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$ 未准备
-alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
+alice_stockpile_button_0_0;国家库存可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
 alice_stockpile_button_1_1;我明白了，好吧，现在我不会继续说，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
@@ -1055,7 +1055,7 @@ alice_budget_scaled_10;社会支出：?R$value$
 alice_budget_scaled_11;军事支出：?R$value$
 alice_budget_scaled_12;国内投资：?R$value$
 alice_budget_scaled_13;海外支出：?R$value$
-alice_budget_scaled_14;储备买入：?R$value$
+alice_budget_scaled_14;库存买入：?R$value$
 alice_budget_scaled_15;战争援助：?R$value$
 alice_budget_scaled_16;外交投资：?G$value$
 alice_budget_scaled_17;黄金产出：?G$value$
@@ -1231,8 +1231,8 @@ price;价格
 supply;供应
 demand;需求
 balance;结余
-market_stockpiles;库存
-national_stockpile;政府储备
+market_stockpiles;市场库存
+national_stockpile;政府库存
 government_need;政府采购
 factory_need;工厂投入
 pop_need;需求缺口
@@ -1240,7 +1240,7 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;仓储
+produced_nation;库存
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
@@ -1599,7 +1599,7 @@ trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
 trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
-trade_centre_money;资金储备：?Y$val$
+trade_centre_money;资金：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
 alice_sort_pops;种族
