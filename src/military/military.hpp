@@ -607,6 +607,9 @@ void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+
+// stackwipes the given navy, sinks all of the ships currently in a battle, and removes all ships from the navy. The empty navy will still exist in a retreating state, but will be cleaned up by GC later
+void stackwipe_navy(sys::state& state, dcon::navy_id navy);
 float required_avg_dist_to_center_for_retreat(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
@@ -623,6 +626,8 @@ uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id batt
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
 dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
+// Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This does NOT remove the ship from a battle if it it is in one!
+void delete_ship_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);

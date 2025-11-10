@@ -188,12 +188,12 @@ public:
 			}
 			set_text(state, text::prettify(total));
 		} else if(std::holds_alternative<dcon::navy_id>(u)) {
-			float total = 0.0f;
+			int32_t total = 0;
 			auto a = std::get<dcon::navy_id>(u);
 			for(auto m : state.world.navy_get_navy_membership(a)) {
-				total += m.get_ship().get_strength();
+				total += 1;
 			}
-			set_text(state, text::format_float(total, 1));
+			set_text(state, text::format_wholenum(total));
 		}
 
 	}

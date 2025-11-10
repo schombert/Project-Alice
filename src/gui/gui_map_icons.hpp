@@ -1557,7 +1557,7 @@ public:
 						++total_opp_count;
 
 						str += m.get_ship().get_strength();
-						display.top_right_value += m.get_ship().get_strength();
+						display.top_right_value += 1.0f;
 						display.top_right_org_value += m.get_ship().get_org();
 					}
 
@@ -1578,7 +1578,7 @@ public:
 						++total_count;
 
 						str += m.get_ship().get_strength();
-						display.top_left_value += m.get_ship().get_strength();
+						display.top_left_value += 1.0f;
 						display.top_left_org_value += m.get_ship().get_org();
 					}
 
@@ -1825,7 +1825,7 @@ public:
 							++total_count;
 
 							str += m.get_ship().get_strength();
-							display.top_left_value += m.get_ship().get_strength();
+							display.top_left_value += 1.0f;
 							display.top_left_org_value += m.get_ship().get_org();
 						}
 

@@ -5992,29 +5992,13 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		auto role_in_war = get_role(state, war, n.get_navy().get_controller_from_navy_control());
 		bool battle_attacker = (role_in_war == war_role::attacker) == state.world.naval_battle_get_war_attacker_is_attacker(b);
 
-
-		auto transport_cap = military::free_transport_capacity(state, n.get_navy());
-		if(transport_cap < 0) {
-			for(auto em : n.get_navy().get_army_transport()) {
-				auto em_regs = em.get_army().get_army_membership();
-				while(em_regs.begin() != em_regs.end() && transport_cap < 0) {
-					auto reg_id = (*em_regs.begin()).get_regiment();
-					disband_regiment_w_pop_death<regiment_dmg_source::combat>(state, reg_id);
-					++transport_cap;
-				}
-				if(transport_cap >= 0)
-					break;
-			}
-		}
-
 		// only check if a retreat path can be made. If it can't (no accesible port anywhere) stackwipe them. Navies does not normally get stackwiped if the navy automatically retreats before the battle is retreatable (navies are close enough to the center)
 		// They can however, get stackwiped if a retreat path to a accesible port cannot be made
 		if(battle_attacker && result == battle_result::defender_won) {
 			// If the navy is already in the retreating state (from having manually initiated a retreat earlier) we don't need to try to initiate another retreat.
 			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
 				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
+					stackwipe_navy(state, n.get_navy());
 				}
 			}
 			
@@ -6023,8 +6007,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
 				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
-					n.get_navy().set_controller_from_navy_control(dcon::nation_id{});
-					n.get_navy().set_is_retreating(true);
+					stackwipe_navy(state, n.get_navy());
 				}
 			}
 			
@@ -6230,6 +6213,27 @@ dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army) {
 	if(ruler)
 		return ruler;
 	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
+}
+
+void delete_ship_w_army_transport_loss(sys::state& state, dcon::ship_id ship) {
+	auto ship_type = state.world.ship_get_type(ship);
+	auto type = state.military_definitions.unit_base_definitions[ship_type].type;
+	if(type == military::unit_type::transport) {
+		auto navy = state.world.ship_get_navy_from_navy_membership(ship);
+		assert(navy);
+		auto free_transport_cap = free_transport_capacity(state, navy);
+		while(free_transport_cap <= 0) {
+			for(auto army : state.world.navy_get_army_transport(navy)) {
+				auto army_regiments = state.world.army_get_army_membership(army.get_army());
+				if(army_regiments.begin() != army_regiments.end()) {
+					disband_regiment_w_pop_death<regiment_dmg_source::combat>(state, (*army_regiments.begin()).get_regiment());
+					free_transport_cap++;
+				}
+			}
+		}
+
+	}
+	state.world.delete_ship(ship);
 }
 
 bool will_recieve_attrition(sys::state& state, dcon::navy_id a) {
@@ -7948,6 +7952,80 @@ void notify_on_new_naval_battle(sys::state& state, dcon::naval_battle_id battle,
 	}
 }
 
+void stackwipe_navy(sys::state& state, dcon::navy_id navy) {
+	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
+	bool is_attacker = is_attacker_in_battle(state, navy);
+	// if navy is in a battle, sink all of it's ships, and delete them after
+	if(battle) {
+		auto slots = state.world.naval_battle_get_slots(battle);
+		for(auto slot : slots) {
+			if(bool(slot.ship) && (slot.flags & ship_in_battle::mode_sunk) == 0) {
+				auto ship_navy = state.world.ship_get_navy_from_navy_membership(slot.ship);
+				if(navy == ship_navy) {
+					uint16_t type = slot.flags & ship_in_battle::type_mask;
+					auto unit_type = state.world.ship_get_type(slot.ship);
+					if(is_attacker) {
+						switch(type) {
+						case ship_in_battle::type_big:
+						{
+							state.world.naval_battle_set_attacker_big_ships_lost(battle, state.world.naval_battle_get_attacker_big_ships_lost(battle) + 1);
+							break;
+						}
+						case ship_in_battle::type_small:
+						{
+							state.world.naval_battle_set_attacker_small_ships_lost(battle, state.world.naval_battle_get_attacker_small_ships_lost(battle) + 1);
+							break;
+
+						}
+						case ship_in_battle::type_transport:
+						{
+							state.world.naval_battle_set_attacker_transport_ships_lost(battle, state.world.naval_battle_get_attacker_transport_ships_lost(battle) + 1);
+							break;
+						}
+						default:
+							assert(false);
+						}
+						state.world.naval_battle_set_attacker_loss_value(battle, state.world.naval_battle_get_attacker_loss_value(battle) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
+					}
+					else {
+						switch(type) {
+						case ship_in_battle::type_big:
+						{
+							state.world.naval_battle_set_defender_big_ships_lost(battle, state.world.naval_battle_get_defender_big_ships_lost(battle) + 1);
+							break;
+						}
+						case ship_in_battle::type_small:
+						{
+							state.world.naval_battle_set_defender_small_ships_lost(battle, state.world.naval_battle_get_defender_small_ships_lost(battle) + 1);
+							break;
+
+						}
+						case ship_in_battle::type_transport:
+						{
+							state.world.naval_battle_set_defender_transport_ships_lost(battle, state.world.naval_battle_get_defender_transport_ships_lost(battle) + 1);
+							break;
+						}
+						default:
+							assert(false);
+						}
+						state.world.naval_battle_set_defender_loss_value(battle, state.world.naval_battle_get_defender_loss_value(battle) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
+					}
+					slot.flags &= ~ship_in_battle::mode_mask;
+					slot.flags |= ship_in_battle::mode_sunk;
+					slot.ship = dcon::ship_id{ };
+				}
+			}
+		}
+	}
+	//then delete all the ships from the navy
+	auto all_navy_ships = state.world.navy_get_navy_membership(navy);
+	while(all_navy_ships.begin() != all_navy_ships.end()) {
+		delete_ship_w_army_transport_loss(state, (*all_navy_ships.begin()).get_ship());
+	}	
+	// then set the navy to retreat to not interfere with other navies. Empty navies will get cleaned up later
+	state.world.navy_set_is_retreating(navy, true);
+}
+
 
 /*
 Naval battle general info:
@@ -7991,7 +8069,7 @@ void update_naval_battles(sys::state& state) {
 			notify_on_new_naval_battle(state, b, state.local_player_nation);
 
 
-			// compare total hull of new battles to see if it's an instant wipe
+			// compare total hull of new battles to see if it's an instant wipe.
 			float attacker_hull = 0;
 			float defender_hull = 0;
 			for(uint32_t j = slots.size(); j-- > 0;) {
@@ -8008,78 +8086,25 @@ void update_naval_battles(sys::state& state) {
 				}
 			}
 			if(defender_hull * 10.0f < attacker_hull) {
-				for(uint32_t j = slots.size(); j-- > 0;) {
-					bool is_attacking = (slots[j].flags & ship_in_battle::is_attacking) != 0;
-					if(!is_attacking) {
-						uint16_t type = slots[j].flags & ship_in_battle::type_mask;
-						auto unit_type = state.world.ship_get_type(slots[j].ship);
-						switch(type) {
-							case ship_in_battle::type_big:
-							{
-								state.world.naval_battle_set_defender_big_ships_lost(b, state.world.naval_battle_get_defender_big_ships_lost(b) + 1);
-								break;
-							}
-							case ship_in_battle::type_small:
-							{
-								state.world.naval_battle_set_defender_small_ships_lost(b, state.world.naval_battle_get_defender_small_ships_lost(b) + 1);
-								break;
-								
-							}
-							case ship_in_battle::type_transport:
-							{
-								state.world.naval_battle_set_defender_transport_ships_lost(b, state.world.naval_battle_get_defender_transport_ships_lost(b) + 1);
-								break;
-							}
-							default:
-								assert(false);
-						}
-						state.world.naval_battle_set_defender_loss_value(b, state.world.naval_battle_get_defender_loss_value(b) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
-						state.world.delete_ship(slots[j].ship);
-						slots[j].flags &= ~ship_in_battle::mode_mask;
-						slots[j].flags |= ship_in_battle::mode_sunk;
-						slots[j].ship = dcon::ship_id{ };
-						to_delete.set(b, uint8_t(1));
-						return;
-						
+
+				for(auto battle_participation : state.world.naval_battle_get_navy_battle_participation(b)) {
+					auto navy = battle_participation.get_navy();
+					if(!is_attacker_in_battle(state, navy)) {
+						stackwipe_navy(state, navy);
 					}
 				}
+				to_delete.set(b, uint8_t(1));
+				return;
 			}
 			else if(attacker_hull * 10.0f < defender_hull) {
-				for(uint32_t j = slots.size(); j-- > 0;) {
-					bool is_attacking = (slots[j].flags & ship_in_battle::is_attacking) != 0;
-					if(is_attacking) {
-						uint16_t type = slots[j].flags & ship_in_battle::type_mask;
-						auto unit_type = state.world.ship_get_type(slots[j].ship);
-						switch(type) {
-							case ship_in_battle::type_big:
-							{
-								state.world.naval_battle_set_attacker_big_ships_lost(b, state.world.naval_battle_get_attacker_big_ships_lost(b) + 1);
-								break;
-							}
-							case ship_in_battle::type_small:
-							{
-								state.world.naval_battle_set_attacker_small_ships_lost(b, state.world.naval_battle_get_attacker_small_ships_lost(b) + 1);
-								break;
-
-							}
-							case ship_in_battle::type_transport:
-							{
-								state.world.naval_battle_set_attacker_transport_ships_lost(b, state.world.naval_battle_get_attacker_transport_ships_lost(b) + 1);
-								break;
-							}
-							default:
-								assert(false);
-						}
-						state.world.naval_battle_set_attacker_loss_value(b, state.world.naval_battle_get_attacker_loss_value(b) + state.military_definitions.unit_base_definitions[unit_type].supply_consumption_score);
-						state.world.delete_ship(slots[j].ship);
-						slots[j].flags &= ~ship_in_battle::mode_mask;
-						slots[j].flags |= ship_in_battle::mode_sunk;
-						slots[j].ship = dcon::ship_id{ };
-						to_delete.set(b, uint8_t(2));
-						return;
-
+				for(auto battle_participation : state.world.naval_battle_get_navy_battle_participation(b)) {
+					auto navy = battle_participation.get_navy();
+					if(is_attacker_in_battle(state, navy)) {
+						stackwipe_navy(state, navy);
 					}
 				}
+				to_delete.set(b, uint8_t(2));
+				return;
 			}
 		}
 		
@@ -8363,7 +8388,7 @@ void update_naval_battles(sys::state& state) {
 		dcon::ship_id s{ dcon::ship_id::value_base_t(i) };
 		if(state.world.ship_is_valid(s)) {
 			if(state.world.ship_get_strength(s) <= 0.0f) {
-				state.world.delete_ship(s);
+				delete_ship_w_army_transport_loss(state, s);
 			}
 		}
 	}
