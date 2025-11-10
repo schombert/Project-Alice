@@ -16,7 +16,7 @@ trade_in;贸易进口
 trade_out;贸易出口
 trade_balance;贸易平衡
 consumption;商品消费
-stockpiles;商品仓储
+stockpiles;商品库存
 Max;最大
-sell_stockpile;仓库卖出
-sell_stockpile_label;仓库卖出标签
+sell_stockpile;库存卖出
+sell_stockpile_label;库存卖出标签
