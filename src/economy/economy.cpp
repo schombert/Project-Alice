@@ -789,6 +789,20 @@ void initialize(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		state.world.nation_set_stockpiles(n, money, 1000.f);
 	});
+
+
+	// civilian ports
+	state.world.for_each_province([&](auto pid) {
+		if(state.world.province_get_is_coast(pid)) {
+			auto naval_base_level = state.world.province_get_building_level(pid, (uint8_t)(economy::province_building_type::naval_base));
+			auto population = state.world.province_get_demographics(pid, demographics::total);
+			state.world.province_set_advanced_province_building_max_private_size(
+				pid,
+				advanced_province_buildings::list::civilian_ports,
+				naval_base_level * 25000.f + population * 0.0001f + 100.f
+			);
+		}
+	});
 }
 
 float sphere_leader_share_factor(sys::state& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
@@ -2273,6 +2287,29 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// PROFILE
 	set_profile_point("land stats and inventions count");
 
+	// store available port capacity ratio per market
+
+	auto available_port_capacity = state.world.market_make_vectorizable_float_buffer();
+	auto price_port_capacity = state.world.market_make_vectorizable_float_buffer();
+
+	auto port_services_total_weight = state.world.market_make_vectorizable_float_buffer();
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + state.world.province_get_service_price(pid, services::list::port_capacity));
+		port_services_total_weight.set(mid, port_services_total_weight.get(mid) + local_weight);
+	});
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + price);
+		auto total_weight = port_services_total_weight.get(mid);
+		auto market_demand = 1.f;
+		auto local_demand = local_weight / total_weight;
+		auto sat = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
+		available_port_capacity.set(mid, available_port_capacity.get(mid) + local_demand * sat);
+		price_port_capacity.set(mid, price_port_capacity.get(mid) + local_demand * price);
+	});
+
 	// update trade volume based on potential profits right at the start
 	// we can't put it between demand and supply generation!
 	update_trade_routes_volume(
@@ -2280,7 +2317,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		export_tariff_buffer,
 		import_tariff_buffer,
 		coastal_capital_buffer,
-		state_naval_trade_is_blockaded
+		state_naval_trade_is_blockaded,
+		available_port_capacity,
+		price_port_capacity
 	);
 
 	set_profile_point("trade volume");
@@ -4630,6 +4669,12 @@ void resolve_constructions(sys::state& state) {
 		if(all_finished) {
 			if(state.world.province_get_building_level(for_province, uint8_t(t)) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), uint8_t(t))) {
 				state.world.province_set_building_level(for_province, uint8_t(t), uint8_t(state.world.province_get_building_level(for_province, uint8_t(t)) + 1));
+
+				if(t == province_building_type::naval_base) {
+					auto civilian = (uint8_t)(advanced_province_buildings::list::civilian_ports);
+					auto local_civilian_port = state.world.province_get_advanced_province_building_max_private_size(for_province, civilian);
+					state.world.province_set_advanced_province_building_max_private_size(for_province, civilian, local_civilian_port + 5000.f);
+				}
 
 				if(t == province_building_type::railroad) {
 					/* Notify the railroad mesh builder to update the railroads! */

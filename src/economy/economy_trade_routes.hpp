@@ -13,7 +13,7 @@ namespace economy {
 inline constexpr float merchant_cut_foreign = 0.05f;
 inline constexpr float merchant_cut_domestic = 0.001f;
 inline constexpr float effect_of_transportation_scale = 0.0005f;
-inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 100.f;
+inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 1.f;
 inline constexpr float invalid_trade_route_distance = 999999.f;
 inline constexpr float trade_loss_per_distance_unit = 0.0001f;
 inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
@@ -73,7 +73,9 @@ void update_trade_routes_volume(
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
 	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>& coastal_capital_buffer,
-	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied
+	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied,
+	ve::vectorizable_buffer<float, dcon::market_id>& available_port_capacity,
+	ve::vectorizable_buffer<float, dcon::market_id>& price_port_capacity
 );
 void update_trade_routes_consumption(sys::state& state);
 

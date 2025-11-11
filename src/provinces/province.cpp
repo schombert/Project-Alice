@@ -2537,6 +2537,10 @@ std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::provin
 			}
 			distance -= 0.03f * std::min(railroad_target, railroad_origin) * distance;
 
+			if(bits & province::border::river_connection_bit) {
+				distance = distance / 2.f;
+			}
+
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);

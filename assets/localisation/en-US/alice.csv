@@ -1804,3 +1804,5 @@ alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario 
 alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
+ports_size;Size of ports
+alice_infrastructure_tab;Infrastructure
