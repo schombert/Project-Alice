@@ -4670,6 +4670,12 @@ void resolve_constructions(sys::state& state) {
 			if(state.world.province_get_building_level(for_province, uint8_t(t)) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), uint8_t(t))) {
 				state.world.province_set_building_level(for_province, uint8_t(t), uint8_t(state.world.province_get_building_level(for_province, uint8_t(t)) + 1));
 
+				if(t == province_building_type::naval_base) {
+					auto civilian = (uint8_t)(advanced_province_buildings::list::civilian_ports);
+					auto local_civilian_port = state.world.province_get_advanced_province_building_max_private_size(for_province, civilian);
+					state.world.province_set_advanced_province_building_max_private_size(for_province, civilian, local_civilian_port + 5000.f);
+				}
+
 				if(t == province_building_type::railroad) {
 					/* Notify the railroad mesh builder to update the railroads! */
 					state.railroad_built.store(true, std::memory_order::release);
