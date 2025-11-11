@@ -558,8 +558,8 @@ void update_trade_routes_volume(
 		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
 
-		auto transport_availability_A = ve::select(is_land_route, 1.f, 0.f);
-		auto transport_availability_B = ve::select(is_land_route, 1.f, 0.f);
+		auto transport_availability_A = ve::select(is_land_route, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
+		auto transport_availability_B = ve::select(is_land_route, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
 
 		transport_availability_A = ve::select(is_sea_route, available_port_capacity.get(A), transport_availability_A);
 		transport_availability_B = ve::select(is_sea_route, available_port_capacity.get(B), transport_availability_B);
