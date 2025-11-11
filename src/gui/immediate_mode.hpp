@@ -87,6 +87,7 @@ enum class trade_volume_info_mode : uint8_t {
 	total
 };
 
+
 std::string inline localize_trade_volume_info_mode(trade_volume_info_mode mode) {
 	switch(mode) {
 	case trade_volume_info_mode::exported_volume:
@@ -99,6 +100,20 @@ std::string inline localize_trade_volume_info_mode(trade_volume_info_mode mode) 
 		return "trade_balance";
 	case trade_volume_info_mode::embargo:
 		return "embargo";
+	default:
+		return "alice_invalid_value";
+	}
+};
+
+enum class infrastructure_mode : uint8_t {
+	civilian_ports,
+	total
+};
+
+std::string inline localize_infrastructure_mode(infrastructure_mode mode) {
+	switch(mode) {
+	case infrastructure_mode::civilian_ports:
+		return "ports_size";
 	default:
 		return "alice_invalid_value";
 	}
@@ -119,7 +134,7 @@ void move_to(rect& rectangle, float x, float y);
 rect subrect(rect& rectangle, float w, float h, alignment_horizontal align_hor, alignment_vertical align_vert);
 
 enum iui_tab {
-	none, factory_types, markets, commodities_markets, wages, trade_volume
+	none, factory_types, markets, commodities_markets, wages, trade_volume, infrastructure
 };
 
 struct iui_state {
@@ -140,6 +155,8 @@ struct iui_state {
 
 	int32_t selected_labor_type = 0;
 	labor_info_mode selected_labor_info = labor_info_mode::price;
+
+	infrastructure_mode selected_infrastructure_mode = infrastructure_mode::civilian_ports;
 
 	trade_volume_info_mode selected_trade_info = trade_volume_info_mode::total_volume;
 

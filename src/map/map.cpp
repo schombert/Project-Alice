@@ -701,8 +701,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 1);
 	}
 	if (
-		state.map_state.active_map_mode == map_mode::mode::political
-		|| state.map_state.active_map_mode == map_mode::mode::terrain
+		(state.map_state.active_map_mode == map_mode::mode::political
+		|| state.map_state.active_map_mode == map_mode::mode::terrain)
+		&& (state.current_scene.id != game_scene::scene_id::in_game_economy_viewer)
 	) {
 		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 0);
 	} else {
