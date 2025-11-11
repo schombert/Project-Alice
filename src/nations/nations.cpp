@@ -271,6 +271,8 @@ void recalculate_markets_distance(sys::state& state) {
 				for(size_t i = 0; i < ps; i++) {
 					auto p_current = path[i];
 					auto adj = state.world.get_province_adjacency_by_province_pair(p_prev, p_current);
+					auto bits = state.world.province_adjacency_get_type(adj);
+
 					float distance = province::distance(state, adj);
 					float sum_mods =
 						state.world.province_get_modifier_values(p_current, sys::provincial_mod_offsets::movement_cost)
@@ -282,6 +284,11 @@ void recalculate_markets_distance(sys::state& state) {
 						local_effective_distance = local_effective_distance / 2.f;
 					}
 					local_effective_distance -= 0.03f * std::min(railroad_target, railroad_origin) * local_effective_distance;
+
+					if(bits & province::border::river_connection_bit) {
+						local_effective_distance = local_effective_distance / 2.f;
+					}
+
 					effective_distance += std::max(0.01f, local_effective_distance);
 					if(sum_mods > worst_movement_cost)
 						worst_movement_cost = std::max(0.01f, sum_mods);
