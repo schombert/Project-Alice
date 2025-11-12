@@ -95,7 +95,7 @@ public:
 			);
 		} else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
 			auto fcid = std::get<dcon::factory_construction_id>(content);
-			factory_construction_tooltip(state, contents, fcid);
+			economy::factory_construction_tooltip(state, contents, fcid);
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
@@ -437,24 +437,10 @@ public:
 			set_text(state, full_str);
 		}
 		else if(std::holds_alternative<dcon::factory_construction_id>(content)) {
-			auto st_con = fatten(state.world, std::get<dcon::factory_construction_id>(content));
-			auto ftid = state.world.factory_construction_get_type(st_con);
-
-			float total = 0.0f;
-			float purchased = 0.0f;
-			auto& goods = state.world.factory_type_get_construction_costs(st_con.get_type());
-
-			float factory_mod = economy::factory_build_cost_multiplier(state, st_con.get_nation(), st_con.get_province(), st_con.get_is_pop_project());
-			float refit_discount = (st_con.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
-
-			for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-				total += goods.commodity_amounts[i] * factory_mod * refit_discount;
-				purchased += st_con.get_purchased_goods().commodity_amounts[i];
-			}
-			auto progress = total > 0.0f ? purchased / total : 0.0f;
-
+			auto construction = std::get<dcon::factory_construction_id>(content);
+			auto ftid = state.world.factory_construction_get_type(construction);
+			auto progress = economy::factory_construction_progress(state, construction);
 			auto full_str = text::produce_simple_string(state, state.world.factory_type_get_name(ftid)) + " (" + text::format_percentage(progress, 0) + ")";
-
 			color = text::text_color::white;
 			set_text(state, full_str);
 		}

@@ -305,7 +305,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		factory_construction_tooltip(state, contents, target.factory_construction);
+		economy::factory_construction_tooltip(state, contents, target.factory_construction);
 	}
 };
 
