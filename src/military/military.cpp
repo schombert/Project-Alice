@@ -3488,6 +3488,22 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 				state.world.delete_province_naval_construction(*(nc.begin()));
 			}
 		}
+
+		state.world.nation_for_each_state_ownership(target, [&](auto soid) {
+			auto sid = state.world.state_ownership_get_state(soid);
+			// update naval base flags
+			bool any_naval_base = false;
+			province::for_each_province_in_state_instance(state, sid, [&](auto pid) {
+				if(state.world.province_get_building_level(pid, uint8_t(economy::province_building_type::naval_base)) > 0) {
+					any_naval_base = true;
+				}
+			});
+
+			if(!any_naval_base) {
+				state.world.state_instance_set_naval_base_is_taken(sid, false);
+			}
+		});
+
 		auto uc = state.world.nation_get_province_land_construction(target);
 		while(uc.begin() != uc.end()) {
 			state.world.delete_province_land_construction(*(uc.begin()));
