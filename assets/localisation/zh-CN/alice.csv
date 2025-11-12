@@ -3,7 +3,7 @@ uh_support_for_blank;上议院支持 $text$
 up_to;达到
 scaled_support;支持率 $text$
 scaled_unemployment;失业率
-stockpile_of;储备量 $text$
+stockpile_of;库存量 $text$
 create_general;新将领已产生
 create_admiral;新海军将领已产生
 add_war_goal;添加 $text$ 战争目标针对 $nation$
@@ -31,7 +31,7 @@ make_slave_pop;成为?Y奴隶?W
 research_points;研究点数
 change_tech_school;科研学派变成 ?Y$text$?W
 change_government_to;政体变成 ?Y$text$?W
-add_to_treasury;添加到国库
+add_to_treasury;收入国库
 war_exhaustion;厌战度
 become_blank;成为 ?Y$text$?W
 player_control_change;玩家操作国家变成 $text$
@@ -68,7 +68,7 @@ free_slave_state;成为自由区
 free_slave_pop;解放奴隶
 hold_election;举行选举
 issue_change;$issue$ 变成 $text$
-add_relative_income;最后收入到国库
+add_relative_income;收入国库
 make_neutral;解除所有同盟，释放所有附庸
 pop_size;人群规模
 move_pop_to;人群移动到 $text$
@@ -464,7 +464,7 @@ work;工作
 available_for;适于：
 support;支持
 percentage;比例
-stockpile;储备
+stockpile;库存
 this_nat_religion;此国国教
 from_nat_religion;来自此国国教
 event_show_requirements;此事件的条件：
@@ -548,11 +548,10 @@ pop_prom_1;?Y升职系数：?!
 pop_prom_2;来自国家焦点：?G$val$
 pop_prom_3;0（由于国家焦点）
 pop_prom_4;?Y降职系数：?!
-pop_prom_5;这个人群正在升职，因为升职系数大于降职系数
-pop_prom_6;这个人群正在降职，因为降职系数大于升职系数
-pop_prom_7;由于这两个因子都是负数，此人群将维持现状
-pop_prom_8;可能升职人数=人群规模*升职规模（$x$）*升职系数（$val$）*行政效率（$y$）
-pop_prom_9;可能降职人数=人群规模*降职规模（$x$）*降职系数（$val$）
+pop_prom_5;由于降职因子为负，该人群当前不降职
+pop_prom_7;由于升职因子为负，该人群当前不升职
+pop_prom_8;升职人数 = 人群规模 * 升职规模（$x$）* 升职因子（$val$）
+pop_prom_9;降职人数 = 人群规模 * 降职规模（$x$）* 降职因子（$val$）
 pop_con_1;每月觉醒度变化：
 pop_con_2;总计：
 pop_con_3;来自奢侈品满足度：?G+$x$
@@ -604,7 +603,7 @@ pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 
 pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
 pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
 pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子?W（?Y$y$?W）。
-pop_growth_12;最后，将?Y饥饿因子?W（?Y$x$?W）和?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的净惩罚值（?Y$val$?W），然后将其与其余的修正值相加。
+pop_growth_12;最后，将 ?Y饥饿因子?W（?Y$x$?W）和 ?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的惩罚净值（?Y$val$?W），然后将其与其余的修正值相加。
 pop_assim_1;每月人群同化：$x$
 pop_assim_2;奴隶不被同化
 pop_assim_3;可接受民族人群不被同化
@@ -633,17 +632,17 @@ pop_issue_attraction_5;政治改革诉求国内修正：$x$
 pop_issue_attraction_6;政见吸引力：$x$
 pop_ideology_attraction_1;意识形态吸引力：$x$
 pop_ideology_attraction_2;此意识形态目前不能
-trade_setting_drawing;使用库存
-trade_setting_filling;补充库存
-trade_setting_stable;不储备
+trade_setting_drawing;库存使用
+trade_setting_filling;库存买入
+trade_setting_stable;不库存
 trade_commodity_report_1;当前全球需求：$x$
 trade_commodity_report_2;当前全球生产：$x$
 trade_commodity_report_3;当前全球消费：$x$
 trade_commodity_report_4;全球市场数量：$x$
-trade_fill;补充
-trade_use;采购
-trade_stockpile_target;库存目标数量
-trade_stockpile_current;当前储备：
+trade_fill;买入
+trade_use;卖出
+trade_stockpile_target;库存目标
+trade_stockpile_current;当前库存：
 diplomacy_wx_1;每月厌战性：
 influence_explain_1;我们目前被禁止影响并且没有积累此国的影响力
 influence_explain_2;我们无法影响与我们达成休战协议的国家
@@ -911,7 +910,7 @@ chat_player_switch;$playername$ 选择了 $country$
 chat_player_oos;$playername$ 已断开连接！
 alice_status_stream;存档处理进度：$value$
 alice_play_pending_client;$playername$ 未准备
-alice_stockpile_button_0_0;国家仓储可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
+alice_stockpile_button_0_0;国家库存可以作为您日常经济商业活动的调节物，在 ?G绿色?W 线看到价格上涨，和 ?R红?W 线下降，像往常一样 我 ?Y不是?W 一个折线图，所以不总是被注意到：）
 alice_stockpile_button_1_0;如果你点了我十次你什么都得不到，相信我，别再点我了，?R否则?W……
 alice_stockpile_button_1_1;我明白了，好吧，现在我不会继续说，因为我知道你会一直点击，直到我说些 ?Y不同?W 的话，不过那也太无聊了
 alice_stockpile_button_1_2;好吧，我无法阻止你，但是或许这个可以？
@@ -1056,7 +1055,7 @@ alice_budget_scaled_10;社会支出：?R$value$
 alice_budget_scaled_11;军事支出：?R$value$
 alice_budget_scaled_12;国内投资：?R$value$
 alice_budget_scaled_13;海外支出：?R$value$
-alice_budget_scaled_14;储备补充：?R$value$
+alice_budget_scaled_14;库存买入：?R$value$
 alice_budget_scaled_15;战争援助：?R$value$
 alice_budget_scaled_16;外交投资：?G$value$
 alice_budget_scaled_17;黄金产出：?G$value$
@@ -1069,14 +1068,14 @@ alice_spending_factory_construction;工厂建设在 $name$：?R$cost$?W
 alice_spending_unit;在此单位上的总花费，取决于 $name$： ?R$cost$?W
 alice_spending_unit_1;此单位总花费：?R$cost$?W
 alice_spending_total;?Y总费用：?W
-alice_spending_commodity;?R$cost$?W - 需要$name$（$val$）的$need$
+alice_spending_commodity;?R$cost$?W - 需要 $name$（$val$）的$need$
 alice_spending_commodity_2;?R$cost$?W - 买入 $need$ 的 $name$（以 $val$ 为单位相乘）。进度：$x$/$y$
 alice_recommended_build;?G建议建造此工厂?W
 alice_factory_bonus;将获得 ?Y$x$?W 奖励，如果：
 alice_factory_inputs;投入所需：
 alice_factory_input_item;?R$cost$?W - 需要$name$（$val$）的$need$
-alice_factory_base_workforce;基础劳动力?Y$x$?W
-alice_factory_total_bonus;总和大约为?Y$x$?W
+alice_factory_base_workforce;基础劳动力 ?Y$x$?W
+alice_factory_total_bonus;总和约为 ?Y$x$?W
 alice_slider_controls;?Y左键?W 增加 ?Y$value$?W\n?YSHIFT+左键?W 增加 ?Y$x$?W\n?YSHIFT+右键?W 增加到最大值
 alice_slider_controls_2;?Y左键?W 减少 ?Y$value$?W\n?YSHIFT+左键?W 减少 ?Y$x$?W\n?YSHIFT+右键?W 减少到最小值
 explain_colonial_points;列强和次强会积累殖民点。
@@ -1232,8 +1231,8 @@ price;价格
 supply;供应
 demand;需求
 balance;结余
-market_stockpiles;库存
-national_stockpile;政府储备
+market_stockpiles;市场库存
+national_stockpile;政府库存
 government_need;政府采购
 factory_need;工厂投入
 pop_need;需求缺口
@@ -1241,7 +1240,7 @@ rgo_production;RGO产出
 artisan_production;工匠产出
 factory_production;工厂产出
 artisan_distribution;工匠优先级
-produced_nation;仓储
+produced_nation;库存
 consumed_nation;消费
 nation_name;国家
 demanded_nation;需求
@@ -1600,7 +1599,7 @@ trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
 trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
-trade_centre_money;资金储备：?Y$val$
+trade_centre_money;资金：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
 alice_sort_pops;种族
