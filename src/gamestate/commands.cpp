@@ -3694,7 +3694,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
 	if(bool(battle)) {
-		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
+		return !command::can_retreat_from_naval_battle(state, source, n, military::retreat_type::manual, dest).empty();
 	}
 	else {
 		return !command::can_move_navy(state, source, n, dest, true).empty();
@@ -3719,7 +3719,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 		command::stop_navy_movement(state, source, n);
 	} else {
 		if(bool(battle)) {
-			command::retreat_from_naval_battle(state, source, n, false , dest);
+			command::retreat_from_naval_battle(state, source, n, dest);
 		}
 		else {
 			command::move_navy(state, source, n, dest, true);
@@ -3739,7 +3739,7 @@ bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	if(!b)
 		return true;
-	if(!military::can_retreat_from_battle(state, b))
+	if(!military::is_battle_retreatable(state, b, military::retreat_type::manual))
 		return false;
 	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
 }
@@ -4874,25 +4874,27 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
 	command_data p{ command_type::naval_retreat, state.local_player_id };
-	auto data = retreat_from_naval_battle_data{ navy, dest, auto_retreat };
+	auto data = retreat_from_naval_battle_data{ navy, dest };
 	p << data;
 	add_to_command_queue(state, p);
 }
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
-	if(source != military::get_effective_unit_commander(state, navy)) {
-		return std::vector<dcon::province_id>{};
-	}
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest) {
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!bool(battle)) {
 		return std::vector<dcon::province_id>{};
 	}
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, retreat_type))
 		return std::vector<dcon::province_id>{};
+
+
+	if(source != military::get_effective_unit_commander(state, navy)) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(state.world.navy_get_is_retreating(navy))
 		return std::vector<dcon::province_id>{};
-	if(!auto_retreat) {
+	if(retreat_type == military::retreat_type::manual) {
 		if(dest == state.world.navy_get_location_from_navy_location(navy)) {
 			return std::vector<dcon::province_id>{};
 		}
@@ -4900,17 +4902,16 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 
 	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
 }
-void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ }) {
-	// so far, any valid naval retreat is basically always an "auto_retreat" (it will path to the nearest accessible port), so atm those parameters dosent really do anything
+void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ }) {
 	// This can be extended with diffrent retreat rules later, but to start this is compliant with Vic2 naval retreat behaviour
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, military::retreat_type::manual))
 		return;
 	// For navies, a retreat command will start retreating the navy from the battle.
 	// In Vic2, navies do not retreat from the battle instantly unlike land units. Each ship which is part of the navy will start to retreat, and when all ships of the navy are retreated, the navy will finally exit the battle.
 	// The navy retreats to the closest port province, regardless of which province the user clicked on when retreating
 	assert(battle);
-	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy);
+	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy, military::retreat_type::manual);
 	// navy must be able to retreat, otherwise it shouldnt have passed the "can_retreat_from_naval_battle" check
 	assert(can_retreat);
 	for(auto shp : state.world.navy_get_navy_membership(navy)) {
@@ -6464,7 +6465,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<command::retreat_from_naval_battle_data>();
-		return can_retreat_from_naval_battle(state, source, data.navy, data.auto_retreat, data.dest).size() != 0;
+		return can_retreat_from_naval_battle(state, source, data.navy, military::retreat_type::manual, data.dest).size() != 0;
 	}
 
 	case command_type::land_retreat:
@@ -7248,7 +7249,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<retreat_from_naval_battle_data>();
-		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.auto_retreat, data.dest);
+		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.dest);
 		break;
 	}
 	case command_type::land_retreat:

@@ -5227,13 +5227,13 @@ std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dc
 }
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n) {
+bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type) {
 	auto province_start = state.world.navy_get_location_from_navy_location(n);
 	auto nation_controller = state.world.navy_get_controller_from_navy_control(n);
 
 	if(!nation_controller)
 		return false;
-	auto retreat_path = command::can_retreat_from_naval_battle(state, nation_controller, n, true);
+	auto retreat_path = command::can_retreat_from_naval_battle(state, nation_controller, n, retreat_type);
 	if(retreat_path.size() > 0) {
 		state.world.navy_set_is_retreating(n, true);
 		auto existing_path = state.world.navy_get_path(n);
@@ -5264,8 +5264,8 @@ bool retreat(sys::state& state, dcon::navy_id n) {
 		return false;
 	}
 }
-template bool retreat<battle_is_ending::yes>(sys::state& state, dcon::navy_id n);
-template bool retreat<battle_is_ending::no>(sys::state& state, dcon::navy_id n);
+template bool retreat<battle_is_ending::yes>(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
+template bool retreat<battle_is_ending::no>(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
 bool retreat(sys::state& state, dcon::army_id n) {
 	auto province_start = state.world.army_get_location_from_army_location(n);
@@ -5978,15 +5978,20 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	state.world.delete_land_battle(b);
 }
 
-void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result) {
-	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(b);
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker, dcon::nation_id lead_defender) {
+ 	auto war = state.world.naval_battle_get_war_from_naval_battle_in_war(b);
 	auto location = state.world.naval_battle_get_location_from_naval_battle_location(b);
+
 
 	assert(war);
 	assert(location);
 
-	auto a_nation = get_naval_battle_lead_attacker(state, b);
-	auto d_nation = get_naval_battle_lead_defender(state, b);
+	if(!lead_attacker) {
+		lead_attacker = get_naval_battle_lead_attacker(state, b);;
+	}
+	if(!lead_defender) {
+		lead_defender = get_naval_battle_lead_defender(state, b);
+	}
 
 	for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
 		auto role_in_war = get_role(state, war, n.get_navy().get_controller_from_navy_control());
@@ -5997,7 +6002,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		if(battle_attacker && result == battle_result::defender_won) {
 			// If the navy is already in the retreating state (from having manually initiated a retreat earlier) we don't need to try to initiate another retreat.
 			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
-				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy(), retreat_type::automatic)) {
 					stackwipe_navy(state, n.get_navy());
 				}
 			}
@@ -6006,7 +6011,7 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 		}
 		else if(!battle_attacker && result == battle_result::attacker_won) {
 			if(!state.world.navy_get_is_retreating(n.get_navy()) && state.world.navy_get_path(n.get_navy()).size() == 0) {
-				if(!retreat<battle_is_ending::yes>(state, n.get_navy())) {
+				if(!retreat<battle_is_ending::yes>(state, n.get_navy(), retreat_type::automatic)) {
 					stackwipe_navy(state, n.get_navy());
 				}
 			}
@@ -6044,14 +6049,14 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 			}
 
 
-			if(a_nation && d_nation) {
-				nations::adjust_prestige(state, a_nation, score / 50.0f);
-				nations::adjust_prestige(state, d_nation, score / -50.0f);
+			if(lead_attacker && lead_defender) {
+				nations::adjust_prestige(state, lead_attacker, score / 50.0f);
+				nations::adjust_prestige(state, lead_defender, score / -50.0f);
 				adjust_leader_prestige(state, a_leader, score / 50.f / 100.f);
 				adjust_leader_prestige(state, b_leader, score / -50.f / 100.f);
 
 				// Report
-				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation) || state.local_player_nation == lead_defender || state.local_player_nation == lead_attacker) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -6097,14 +6102,14 @@ void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result
 				state.world.war_set_defender_battle_score(war, state.world.war_get_defender_battle_score(war) + score);
 			}
 
-			if(a_nation && d_nation) {
-				nations::adjust_prestige(state, a_nation, score / -50.0f);
-				nations::adjust_prestige(state, d_nation, score / 50.0f);
+			if(lead_attacker && lead_defender) {
+				nations::adjust_prestige(state, lead_attacker, score / -50.0f);
+				nations::adjust_prestige(state, lead_defender, score / 50.0f);
 				adjust_leader_prestige(state, a_leader, score / -50.f / 100.f);
 				adjust_leader_prestige(state, b_leader, score / 50.f / 100.f);
 
 				// Report
-				if(nation_participating_in_battle(state, b, state.local_player_nation)) {
+				if(nation_participating_in_battle(state, b, state.local_player_nation) || state.local_player_nation == lead_defender || state.local_player_nation == lead_attacker) {
 					naval_battle_report rep;
 					rep.attacker_big_losses = state.world.naval_battle_get_attacker_big_ships_lost(b);
 					rep.attacker_big_ships = state.world.naval_battle_get_attacker_big_ships(b);
@@ -8054,6 +8059,7 @@ A navy is also stackwiped if there is no accessible ports for the retreat to pat
 void update_naval_battles(sys::state& state) {
 	auto isize = state.world.naval_battle_size();
 	auto to_delete = ve::vectorizable_buffer<uint8_t, dcon::naval_battle_id>(isize);
+	auto last_retreat = tagged_vector<naval_battle_last_retreat, dcon::naval_battle_id>(isize);
 
 	concurrency::parallel_for(0, int32_t(isize), [&](int32_t index) {
 		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(index) };
@@ -8366,6 +8372,12 @@ void update_naval_battles(sys::state& state) {
 						battle_ship->ship = dcon::ship_id{ };
 
 					}
+					if(is_attacker_in_battle(state, navy)) {
+						last_retreat[b].last_retreat_attacker = state.world.navy_get_controller_from_navy_control(navy);
+					}
+					else {
+						last_retreat[b].last_retreat_defender = state.world.navy_get_controller_from_navy_control(navy);
+					}
 					state.world.delete_navy_battle_participation(*iterator);
 				}
 
@@ -8374,13 +8386,28 @@ void update_naval_battles(sys::state& state) {
 		if(!to_retreat.empty()) {
 			update_battle_leaders(state, b);
 		}
+		if(defender_ships == 0) {
+			to_delete.set(b, uint8_t(1));
+			return;
+		} else if(attacker_ships == 0) {
+			to_delete.set(b, uint8_t(2));
+			return;
+		}
 	});
 
 
 	for(auto i = isize; i-- > 0;) {
 		dcon::naval_battle_id b{ dcon::naval_battle_id::value_base_t(i) };
 		if(state.world.naval_battle_is_valid(b) && to_delete.get(b) != 0) {
-			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won);
+			auto lead_atk = get_naval_battle_lead_attacker(state, b);
+			auto lead_def = get_naval_battle_lead_defender(state, b);
+			if(!lead_atk) {
+				lead_atk = last_retreat[b].last_retreat_attacker;
+			}
+			if(!lead_def) {
+				lead_def = last_retreat[b].last_retreat_defender;
+			}
+			end_battle(state, b, to_delete.get(b) == uint8_t(1) ? battle_result::attacker_won : battle_result::defender_won, lead_atk, lead_def);
 		}
 	}
 
@@ -9978,8 +10005,14 @@ void advance_mobilizations(sys::state& state) {
 	}
 }
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle) {
-	return state.world.naval_battle_get_avg_distance_from_center_line(battle) <= required_avg_dist_to_center_for_retreat(state);
+bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type) {
+	// only manual battle retreat requires the distance from center line to match
+	if(retreat_type == retreat_type::manual) {
+		return state.world.naval_battle_get_avg_distance_from_center_line(battle) <= required_avg_dist_to_center_for_retreat(state);
+	}
+	else {
+		return true;
+	}
 }
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle) {
 	return (state.world.land_battle_get_start_date(battle) + days_before_retreat < state.current_date);

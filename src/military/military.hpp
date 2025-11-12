@@ -588,6 +588,16 @@ enum class battle_is_ending {
 	no, yes
 };
 
+enum class retreat_type : bool {
+	automatic = 0,
+	manual = 1,
+};
+
+struct naval_battle_last_retreat {
+	dcon::nation_id last_retreat_attacker;
+	dcon::nation_id last_retreat_defender;
+};
+
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
@@ -595,9 +605,9 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n);
+bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
-void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker = dcon::nation_id{ }, dcon::nation_id lead_defender = dcon::nation_id{ });
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
 void invalidate_unowned_wargoals(sys::state& state);
@@ -660,7 +670,7 @@ void run_gc(sys::state& state);
 void update_blackflag_status(sys::state& state);
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
+bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type);
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
 
 dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
