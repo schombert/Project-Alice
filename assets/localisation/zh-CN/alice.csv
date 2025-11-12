@@ -1801,3 +1801,5 @@ construction_cost;建筑成本：?Y$x$?!
 output_value;输出价值：?Y$x$?!
 input_value;输入价值：?Y$x$?!
 profitability;投入产出比：?Y$x$?!
+ports_size;港口规模
+alice_infrastructure_tab;基础设施
