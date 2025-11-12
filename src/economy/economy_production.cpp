@@ -1422,7 +1422,7 @@ void update_single_factory_consumption(
 		// if we are at max amount of workers and we are profitable, spend 10% of the profit on actual expansion
 		expansion_scale = std::min(expansion_scale, actual_profit * 0.1f / costs_data.total_cost);
 		// do not expand factories when direct inputs are scarce
-		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_expected - 0.5f);
 		save_inputs_to_buffers(state, p, buffer_demanded, buffer_consumed, costs, expansion_scale, costs_data.min_available);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
 		assert(std::isfinite(state.world.factory_get_size(fac)));
@@ -2091,10 +2091,10 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.01f, inputs_data.min_available - 0.3f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * inputs_data.min_expected, gradient);
 
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
-				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_available * 0.0001f;
+				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_expected * 0.0001f;
 
 				auto decay = decay_lack * decay_profit;
 
@@ -2882,7 +2882,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 			result.profit * 0.1f / construction_costs_data.total_cost
 		);
 		// reduce speed during shortage of direct inputs 
-		expansion_scale *= std::max(0.f, primary_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, primary_inputs_data.min_expected - 0.5f);
 	} else {
 		expansion_scale = 0.f;
 	}
