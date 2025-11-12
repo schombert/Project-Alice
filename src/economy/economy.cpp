@@ -4400,10 +4400,12 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 			float total = 0.0f;
 			float purchased = 0.0f;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				total +=
-					state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
+				auto current = pb_con.get_purchased_goods().commodity_amounts[i];
+				auto required = state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
 					* modifier;
-				purchased += pb_con.get_purchased_goods().commodity_amounts[i];
+
+				total += required;
+				purchased += std::min(current, required);
 			}
 			return construction_status{ total > 0.0f ? purchased / total : 0.0f, true };
 		}
