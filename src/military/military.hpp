@@ -636,8 +636,11 @@ uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id batt
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
 dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
-// Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This does NOT remove the ship from a battle if it it is in one!
-void delete_ship_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
+
+// Deletes the ship and removes it from any battle it may be in
+void delete_ship_safe(sys::state& state, dcon::ship_id ship);
+// Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
+void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);

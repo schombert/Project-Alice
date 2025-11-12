@@ -2710,19 +2710,20 @@ class u_row_strength : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		float total = 0.0f;
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			auto a = std::get<dcon::army_id>(foru);
+			float total = 0.0f;
 			for(auto r : state.world.army_get_army_membership(a)) {
 				total += r.get_regiment().get_strength() * state.defines.pop_size_per_regiment;
 			}
 			set_text(state, text::format_wholenum(int32_t(total)));
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			auto a = std::get<dcon::navy_id>(foru);
+			uint32_t total = 0;
 			for(auto r : state.world.navy_get_navy_membership(a)) {
-				total += r.get_ship().get_strength();
+				total += 1;
 			}
-			set_text(state, text::format_float(total, 1));
+			set_text(state, text::format_wholenum(total));
 		}
 	}
 };
