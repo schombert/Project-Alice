@@ -444,7 +444,6 @@ struct new_admiral_data {
 struct retreat_from_naval_battle_data {
 	dcon::navy_id navy;
 	dcon::province_id dest;
-	bool auto_retreat;
 };
 
 struct land_battle_data {
@@ -1162,8 +1161,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);

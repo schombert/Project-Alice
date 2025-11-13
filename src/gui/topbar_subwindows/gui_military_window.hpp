@@ -4,7 +4,6 @@
 #include "gui_leaders_window.hpp"
 #include "gui_stats_window.hpp"
 #include "gui_units_window.hpp"
-#include "gui_build_unit_large_window.hpp"
 
 namespace ui {
 

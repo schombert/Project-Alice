@@ -14,5 +14,6 @@ void active_modifiers_description(sys::state& state, text::layout_base& layout, 
 void active_modifiers_description(sys::state& state, text::layout_base& layout, dcon::nation_id n, int32_t identation,
 		dcon::national_modifier_value nmid, bool have_header);
 void display_battle_reinforcement_modifiers(sys::state& state, dcon::land_battle_id b, text::layout_base& contents, int32_t indent, bool attacker);
+void display_unit_stats(sys::state& state, text::columnar_layout& contents, dcon::nation_id controller, dcon::unit_type_id unit_type);
 
 } // namespace ui

@@ -3719,11 +3719,14 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
-	for(auto ids : state.world.in_pop) {
+	auto pop_size = state.world.pop_size();
+
+	concurrency::parallel_for(uint32_t(0), pop_size, [&](uint32_t i) {
+		auto ids = dcon::pop_id{ dcon::pop_id::value_base_t(i) };
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 
-		auto section = uint64_t(ids.id.index()) / 16;
+		auto section = uint64_t(ids.index()) / 16;
 		auto tranche = int32_t(section / days_in_month);
 		auto day_of_month = tranche - 10;
 		if(day_of_month <= 0)
@@ -3734,15 +3737,17 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 			auto target = impl::get_immigration_target(state, owners, ids, state.current_date + day_adjustment);
 			if(owners == n) {
 				if(target && uint32_t(target.index()) < sz) {
-					national_amounts[uint32_t(target.index())] -= est_amount;
+					std::atomic_ref<float> ref{ national_amounts[uint32_t(target.index())] };
+					ref -= est_amount;
 				}
 			} else if(target == n) {
 				if(uint32_t(owners.index()) < sz) {
-					national_amounts[uint32_t(owners.index())] += est_amount;
+					std::atomic_ref<float> ref{ national_amounts[uint32_t(owners.index())] };
+					ref += est_amount;
 				}
 			}
 		}
-	}
+	});
 }
 
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {

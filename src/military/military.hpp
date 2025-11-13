@@ -588,6 +588,16 @@ enum class battle_is_ending {
 	no, yes
 };
 
+enum class retreat_type : bool {
+	automatic = 0,
+	manual = 1,
+};
+
+struct naval_battle_last_retreat {
+	dcon::nation_id last_retreat_attacker;
+	dcon::nation_id last_retreat_defender;
+};
+
 template <apply_attrition_on_arrival attrition_tick = apply_attrition_on_arrival::no>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from = dcon::land_battle_id{}); // only for land provinces
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from = dcon::naval_battle_id{}); // only for sea provinces
@@ -595,9 +605,9 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n);
+bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
-void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result);
+void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker = dcon::nation_id{ }, dcon::nation_id lead_defender = dcon::nation_id{ });
 void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
 
 void invalidate_unowned_wargoals(sys::state& state);
@@ -607,6 +617,9 @@ void update_movement(sys::state& state);
 bool siege_potential(sys::state& state, dcon::nation_id army_controller, dcon::nation_id province_controller);
 void update_siege_progress(sys::state& state);
 void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::naval_battle_id battle);
+
+// stackwipes the given navy, sinks all of the ships currently in a battle, and removes all ships from the navy. The empty navy will still exist in a retreating state, but will be cleaned up by GC later
+void stackwipe_navy(sys::state& state, dcon::navy_id navy);
 float required_avg_dist_to_center_for_retreat(sys::state& state);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
@@ -623,6 +636,11 @@ uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id batt
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
 dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
+
+// Deletes the ship and removes it from any battle it may be in
+void delete_ship_safe(sys::state& state, dcon::ship_id ship);
+// Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
+void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
@@ -655,7 +673,7 @@ void run_gc(sys::state& state);
 void update_blackflag_status(sys::state& state);
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
-bool can_retreat_from_battle(sys::state& state, dcon::naval_battle_id battle);
+bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type);
 bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
 
 dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
