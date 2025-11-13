@@ -3,7 +3,6 @@
 
 #define STB_IMAGE_WRITE_STATIC
 #define STB_IMAGE_WRITE_IMPLEMENTATION
-#include "plutovg-stb-image-write.h"
 
 #define STB_IMAGE_STATIC
 #define STB_IMAGE_IMPLEMENTATION
@@ -15,7 +14,7 @@ static plutovg_surface_t* plutovg_surface_create_uninitialized(int width, int he
     if(width <= 0 || height <= 0 || width >= kMaxSize || height >= kMaxSize)
         return NULL;
     const size_t size = width * height * 4;
-    plutovg_surface_t* surface = malloc(size + sizeof(plutovg_surface_t));
+    plutovg_surface_t* surface = (plutovg_surface_t * )malloc(size + sizeof(plutovg_surface_t));
     if(surface == NULL)
         return NULL;
     plutovg_init_reference(surface);
@@ -36,7 +35,7 @@ plutovg_surface_t* plutovg_surface_create(int width, int height)
 
 plutovg_surface_t* plutovg_surface_create_for_data(unsigned char* data, int width, int height, int stride)
 {
-    plutovg_surface_t* surface = malloc(sizeof(plutovg_surface_t));
+    plutovg_surface_t* surface = (plutovg_surface_t * )malloc(sizeof(plutovg_surface_t));
     plutovg_init_reference(surface);
     surface->width = width;
     surface->height = height;
@@ -66,7 +65,7 @@ plutovg_surface_t* plutovg_surface_load_from_image_file(const char* filename) //
 plutovg_surface_t* plutovg_surface_load_from_image_data(const void* data, int length)
 {
     int width, height, channels;
-    stbi_uc* image = stbi_load_from_memory(data, length, &width, &height, &channels, STBI_rgb_alpha);
+    stbi_uc* image = stbi_load_from_memory((stbi_uc const*)data, length, &width, &height, &channels, STBI_rgb_alpha);
     if(image == NULL)
         return NULL;
     return plutovg_surface_load_from_image(image, width, height);
@@ -103,7 +102,7 @@ plutovg_surface_t* plutovg_surface_load_from_image_base64(const char* data, int 
 
     if(length == -1)
         length = (int)(strlen(data));
-    output_data = malloc(length);
+    output_data = (uint8_t*)malloc(length);
     if(output_data == NULL)
         return NULL;
     for(int i = 0; i < length; ++i) {
@@ -207,34 +206,22 @@ static void plutovg_surface_write_end(const plutovg_surface_t* surface)
 
 bool plutovg_surface_write_to_png(const plutovg_surface_t* surface, const char* filename)
 {
-    plutovg_surface_write_begin(surface);
-    int success = stbi_write_png(filename, surface->width, surface->height, 4, surface->data, surface->stride);
-    plutovg_surface_write_end(surface);
-    return success;
+    return true;
 }
 
 bool plutovg_surface_write_to_jpg(const plutovg_surface_t* surface, const char* filename, int quality)
 {
-    plutovg_surface_write_begin(surface);
-    int success = stbi_write_jpg(filename, surface->width, surface->height, 4, surface->data, quality);
-    plutovg_surface_write_end(surface);
-    return success;
+    return true;
 }
 
 bool plutovg_surface_write_to_png_stream(const plutovg_surface_t* surface, plutovg_write_func_t write_func, void* closure)
 {
-    plutovg_surface_write_begin(surface);
-    int success = stbi_write_png_to_func(write_func, closure, surface->width, surface->height, 4, surface->data, surface->stride);
-    plutovg_surface_write_end(surface);
-    return success;
+    return true;
 }
 
 bool plutovg_surface_write_to_jpg_stream(const plutovg_surface_t* surface, plutovg_write_func_t write_func, void* closure, int quality)
 {
-    plutovg_surface_write_begin(surface);
-    int success = stbi_write_jpg_to_func(write_func, closure, surface->width, surface->height, 4, surface->data, quality);
-    plutovg_surface_write_end(surface);
-    return success;
+    return true;
 }
 
 void plutovg_convert_argb_to_rgba(unsigned char* dst, const unsigned char* src, int width, int height, int stride)

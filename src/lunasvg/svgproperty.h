@@ -265,7 +265,7 @@ template<typename Enum>
 using SVGEnumerationEntry = std::pair<Enum, std::string_view>;
 
 template<typename Enum>
-class SVGEnumeration final : public SVGProperty {
+class SVGEnumeration : public SVGProperty {
 public:
     explicit SVGEnumeration(PropertyID id, Enum value)
         : SVGProperty(id)
@@ -273,7 +273,7 @@ public:
     {}
 
     Enum value() const { return m_value; }
-    bool parse(std::string_view input) final;
+    bool parse(std::string_view input) override;
 
 private:
     template<unsigned int N>

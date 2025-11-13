@@ -1506,7 +1506,7 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
         tags--;
       }
 
-      error = gray_move_to( &v_start, user );
+      error = gray_move_to( &v_start, (PWorker)user );
       if ( error )
         goto Exit;
 
@@ -1526,7 +1526,7 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
             vec.x = SCALED( point->x );
             vec.y = SCALED( point->y );
 
-            gray_line_to(user, UPSCALE(vec.x), UPSCALE(vec.y));
+            gray_line_to((PWorker)user, UPSCALE(vec.x), UPSCALE(vec.y));
             continue;
           }
 
@@ -1551,7 +1551,7 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
 
               if ( tag == PVG_FT_CURVE_TAG_ON )
               {
-                gray_render_conic(user, &v_control, &vec);
+                gray_render_conic((PWorker)user, &v_control, &vec);
                 continue;
               }
 
@@ -1561,13 +1561,13 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
               v_middle.x = ( v_control.x + vec.x ) / 2;
               v_middle.y = ( v_control.y + vec.y ) / 2;
 
-              gray_render_conic(user, &v_control, &v_middle);
+              gray_render_conic((PWorker)user, &v_control, &v_middle);
 
               v_control = vec;
               goto Do_Conic;
             }
 
-            gray_render_conic(user, &v_control, &v_start);
+            gray_render_conic((PWorker)user, &v_control, &v_start);
             goto Close;
           }
 
@@ -1597,18 +1597,18 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
               vec.x = SCALED( point->x );
               vec.y = SCALED( point->y );
 
-              gray_render_cubic(user, &vec1, &vec2, &vec);
+              gray_render_cubic((PWorker)user, &vec1, &vec2, &vec);
               continue;
             }
 
-            gray_render_cubic(user, &vec1, &vec2, &v_start);
+            gray_render_cubic((PWorker)user, &vec1, &vec2, &v_start);
             goto Close;
           }
         }
       }
 
       /* close the contour with a line segment */
-      gray_line_to(user, UPSCALE(v_start.x), UPSCALE(v_start.y));
+      gray_line_to((PWorker)user, UPSCALE(v_start.x), UPSCALE(v_start.y));
 
    Close:
       first = last + 1;
@@ -1873,17 +1873,20 @@ void PVG_FT_Outline_Get_CBox(const PVG_FT_Outline* outline, PVG_FT_BBox* acbox)
   {
       char stack[PVG_FT_MINIMUM_POOL_SIZE];
       size_t length = PVG_FT_MINIMUM_POOL_SIZE;
+      void* heap = NULL;
+      int rendered_spans = 0;
+      int error = 0;
 
       TWorker worker;
       worker.skip_spans = 0;
-      int rendered_spans = 0;
-      int error = gray_raster_render(&worker, stack, (long)length, params);
+      rendered_spans = 0;
+      error = gray_raster_render(&worker, stack, (long)length, params);
       while(error == ErrRaster_OutOfMemory) {
           if(worker.skip_spans < 0)
               rendered_spans += -worker.skip_spans;
           worker.skip_spans = rendered_spans;
           length *= 2;
-          void* heap = malloc(length);
+          heap = malloc(length);
           error = gray_raster_render(&worker, heap, (long)length, params);
           free(heap);
       }

@@ -15,7 +15,7 @@ const char* plutovg_version_string(void)
 
 static plutovg_state_t* plutovg_state_create(void)
 {
-    plutovg_state_t* state = malloc(sizeof(plutovg_state_t));
+    plutovg_state_t* state = (plutovg_state_t * )malloc(sizeof(plutovg_state_t));
     state->paint = NULL;
     state->font_face = NULL;
     state->color = PLUTOVG_BLACK_COLOR;
@@ -61,7 +61,7 @@ static void plutovg_state_copy(plutovg_state_t* state, const plutovg_state_t* so
     state->stroke.style = source->stroke.style;
     state->stroke.dash.offset = source->stroke.dash.offset;
     plutovg_array_clear(state->stroke.dash.array);
-    plutovg_array_append(state->stroke.dash.array, source->stroke.dash.array);
+    plutovg_array_append_float(state->stroke.dash.array, source->stroke.dash.array);
     plutovg_span_buffer_copy(&state->clip_spans, &source->clip_spans);
     state->winding = source->winding;
     state->op = source->op;
@@ -81,7 +81,7 @@ static void plutovg_state_destroy(plutovg_state_t* state)
 
 plutovg_canvas_t* plutovg_canvas_create(plutovg_surface_t* surface)
 {
-    plutovg_canvas_t* canvas = malloc(sizeof(plutovg_canvas_t));
+    plutovg_canvas_t* canvas = (plutovg_canvas_t * )malloc(sizeof(plutovg_canvas_t));
     plutovg_init_reference(canvas);
     canvas->surface = plutovg_surface_reference(surface);
     canvas->path = plutovg_path_create();
@@ -362,7 +362,7 @@ float plutovg_canvas_get_dash_offset(const plutovg_canvas_t* canvas)
 void plutovg_canvas_set_dash_array(plutovg_canvas_t* canvas, const float* dashes, int ndashes)
 {
     plutovg_array_clear(canvas->state->stroke.dash.array);
-    plutovg_array_append_data(canvas->state->stroke.dash.array, dashes, ndashes);
+    plutovg_array_append_data_float(canvas->state->stroke.dash.array, dashes, ndashes);
 }
 
 int plutovg_canvas_get_dash_array(const plutovg_canvas_t* canvas, const float** dashes)

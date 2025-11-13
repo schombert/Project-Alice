@@ -816,7 +816,7 @@ typedef struct
    int callback_already_read;
 
    stbi_uc *img_buffer, *img_buffer_end;
-   stbi_uc *img_buffer_original, *img_buffer_original_end;
+   stbi_uc const*img_buffer_original, *img_buffer_original_end;
 } stbi__context;
 
 
@@ -828,19 +828,22 @@ static void stbi__start_mem(stbi__context *s, stbi_uc const *buffer, int len)
    s->io.read = NULL;
    s->read_from_callbacks = 0;
    s->callback_already_read = 0;
-   s->img_buffer = s->img_buffer_original = (stbi_uc *) buffer;
-   s->img_buffer_end = s->img_buffer_original_end = (stbi_uc *) buffer+len;
+   s->img_buffer = (stbi_uc*)buffer;
+   s->img_buffer_original = buffer;
+   s->img_buffer_end = (stbi_uc*)(buffer+len);
+   s->img_buffer_original_end = buffer + len;
 }
 
 // initialize a callback-based context
-static void stbi__start_callbacks(stbi__context *s, stbi_io_callbacks *c, void *user)
+static void stbi__start_callbacks(stbi__context *s, stbi_io_callbacks const* c, void *user)
 {
    s->io = *c;
    s->io_user_data = user;
    s->buflen = sizeof(s->buffer_start);
    s->read_from_callbacks = 1;
    s->callback_already_read = 0;
-   s->img_buffer = s->img_buffer_original = s->buffer_start;
+   s->img_buffer = s->buffer_start;
+   s->img_buffer_original = s->buffer_start;
    stbi__refill_buffer(s);
    s->img_buffer_original_end = s->img_buffer_end;
 }
@@ -888,8 +891,8 @@ static void stbi__rewind(stbi__context *s)
    // conceptually rewind SHOULD rewind to the beginning of the stream,
    // but we just rewind to the beginning of the initial buffer, because
    // we only use it after doing 'test', which only ever looks at at most 92 bytes
-   s->img_buffer = s->img_buffer_original;
-   s->img_buffer_end = s->img_buffer_original_end;
+   s->img_buffer = (stbi_uc*)s->img_buffer_original;
+   s->img_buffer_end = (stbi_uc*)s->img_buffer_original_end;
 }
 
 enum
@@ -1422,7 +1425,7 @@ STBIDEF stbi_us *stbi_load_16_from_memory(stbi_uc const *buffer, int len, int *x
 STBIDEF stbi_us *stbi_load_16_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *channels_in_file, int desired_channels)
 {
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *)clbk, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const*)clbk, user);
    return stbi__load_and_postprocess_16bit(&s,x,y,channels_in_file,desired_channels);
 }
 
@@ -1436,7 +1439,7 @@ STBIDEF stbi_uc *stbi_load_from_memory(stbi_uc const *buffer, int len, int *x, i
 STBIDEF stbi_uc *stbi_load_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp)
 {
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *) clbk, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const*) clbk, user);
    return stbi__load_and_postprocess_8bit(&s,x,y,comp,req_comp);
 }
 
@@ -1485,7 +1488,7 @@ STBIDEF float *stbi_loadf_from_memory(stbi_uc const *buffer, int len, int *x, in
 STBIDEF float *stbi_loadf_from_callbacks(stbi_io_callbacks const *clbk, void *user, int *x, int *y, int *comp, int req_comp)
 {
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *) clbk, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const*) clbk, user);
    return stbi__loadf_main(&s,x,y,comp,req_comp);
 }
 
@@ -1560,7 +1563,7 @@ STBIDEF int      stbi_is_hdr_from_callbacks(stbi_io_callbacks const *clbk, void 
 {
    #ifndef STBI_NO_HDR
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *) clbk, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const*) clbk, user);
    return stbi__hdr_test(&s);
    #else
    STBI_NOTUSED(clbk);
@@ -3703,9 +3706,9 @@ static void stbi__YCbCr_to_RGB_simd(stbi_uc *out, stbi_uc const *y, stbi_uc cons
 
       for (; i+7 < count; i += 8) {
          // load
-         __m128i y_bytes = _mm_loadl_epi64((__m128i *) (y+i));
-         __m128i cr_bytes = _mm_loadl_epi64((__m128i *) (pcr+i));
-         __m128i cb_bytes = _mm_loadl_epi64((__m128i *) (pcb+i));
+         __m128i y_bytes = _mm_loadl_epi64((__m128i const*) (y+i));
+         __m128i cr_bytes = _mm_loadl_epi64((__m128i const*) (pcr+i));
+         __m128i cb_bytes = _mm_loadl_epi64((__m128i const *) (pcb+i));
          __m128i cr_biased = _mm_xor_si128(cr_bytes, signflip); // -128
          __m128i cb_biased = _mm_xor_si128(cb_bytes, signflip); // -128
 
@@ -4176,7 +4179,7 @@ static int stbi__zbuild_huffman(stbi__zhuffman *z, const stbi_uc *sizelist, int 
 
 typedef struct
 {
-   stbi_uc *zbuffer, *zbuffer_end;
+   stbi_uc const*zbuffer, *zbuffer_end;
    int num_bits;
    int hit_zeof_once;
    stbi__uint32 code_buffer;
@@ -4522,8 +4525,8 @@ STBIDEF char *stbi_zlib_decode_malloc_guesssize(const char *buffer, int len, int
    stbi__zbuf a;
    char *p = (char *) stbi__malloc(initial_size);
    if (p == NULL) return NULL;
-   a.zbuffer = (stbi_uc *) buffer;
-   a.zbuffer_end = (stbi_uc *) buffer + len;
+   a.zbuffer = (stbi_uc const *) buffer;
+   a.zbuffer_end = (stbi_uc const *) buffer + len;
    if (stbi__do_zlib(&a, p, initial_size, 1, 1)) {
       if (outlen) *outlen = (int) (a.zout - a.zout_start);
       return a.zout_start;
@@ -4543,8 +4546,8 @@ STBIDEF char *stbi_zlib_decode_malloc_guesssize_headerflag(const char *buffer, i
    stbi__zbuf a;
    char *p = (char *) stbi__malloc(initial_size);
    if (p == NULL) return NULL;
-   a.zbuffer = (stbi_uc *) buffer;
-   a.zbuffer_end = (stbi_uc *) buffer + len;
+   a.zbuffer = (stbi_uc const *) buffer;
+   a.zbuffer_end = (stbi_uc  const *) buffer + len;
    if (stbi__do_zlib(&a, p, initial_size, 1, parse_header)) {
       if (outlen) *outlen = (int) (a.zout - a.zout_start);
       return a.zout_start;
@@ -4557,8 +4560,8 @@ STBIDEF char *stbi_zlib_decode_malloc_guesssize_headerflag(const char *buffer, i
 STBIDEF int stbi_zlib_decode_buffer(char *obuffer, int olen, char const *ibuffer, int ilen)
 {
    stbi__zbuf a;
-   a.zbuffer = (stbi_uc *) ibuffer;
-   a.zbuffer_end = (stbi_uc *) ibuffer + ilen;
+   a.zbuffer = (stbi_uc const *) ibuffer;
+   a.zbuffer_end = (stbi_uc const *) ibuffer + ilen;
    if (stbi__do_zlib(&a, obuffer, olen, 0, 1))
       return (int) (a.zout - a.zout_start);
    else
@@ -4570,8 +4573,8 @@ STBIDEF char *stbi_zlib_decode_noheader_malloc(char const *buffer, int len, int 
    stbi__zbuf a;
    char *p = (char *) stbi__malloc(16384);
    if (p == NULL) return NULL;
-   a.zbuffer = (stbi_uc *) buffer;
-   a.zbuffer_end = (stbi_uc *) buffer+len;
+   a.zbuffer = (stbi_uc const *) buffer;
+   a.zbuffer_end = (stbi_uc const *) buffer+len;
    if (stbi__do_zlib(&a, p, 16384, 1, 0)) {
       if (outlen) *outlen = (int) (a.zout - a.zout_start);
       return a.zout_start;
@@ -4584,8 +4587,8 @@ STBIDEF char *stbi_zlib_decode_noheader_malloc(char const *buffer, int len, int 
 STBIDEF int stbi_zlib_decode_noheader_buffer(char *obuffer, int olen, const char *ibuffer, int ilen)
 {
    stbi__zbuf a;
-   a.zbuffer = (stbi_uc *) ibuffer;
-   a.zbuffer_end = (stbi_uc *) ibuffer + ilen;
+   a.zbuffer = (stbi_uc const *) ibuffer;
+   a.zbuffer_end = (stbi_uc const*) ibuffer + ilen;
    if (stbi__do_zlib(&a, obuffer, olen, 0, 0))
       return (int) (a.zout - a.zout_start);
    else
@@ -5743,10 +5746,11 @@ static int stbi__tga_get_comp(int bits_per_pixel, int is_grey, int* is_rgb16)
    switch(bits_per_pixel) {
       case 8:  return STBI_grey;
       case 16: if(is_grey) return STBI_grey_alpha;
-               // fallthrough
+	      if(is_rgb16) *is_rgb16 = 1;
+	      return STBI_rgb;
       case 15: if(is_rgb16) *is_rgb16 = 1;
                return STBI_rgb;
-      case 24: // fallthrough
+      case 24: return bits_per_pixel / 8;
       case 32: return bits_per_pixel/8;
       default: return 0;
    }
@@ -7145,10 +7149,12 @@ static void stbi__hdr_convert(float *output, stbi_uc *input, int req_comp)
       if (req_comp == 4) output[3] = 1;
    } else {
       switch (req_comp) {
-         case 4: output[3] = 1; /* fallthrough */
+         case 4: output[3] = 1; output[0] = output[1] = output[2] = 0;
+		 break;
          case 3: output[0] = output[1] = output[2] = 0;
                  break;
-         case 2: output[1] = 1; /* fallthrough */
+         case 2: output[1] = 1;  output[0] = 0;
+		 break;
          case 1: output[0] = 0;
                  break;
       }
@@ -7741,7 +7747,7 @@ STBIDEF int stbi_info_from_memory(stbi_uc const *buffer, int len, int *x, int *y
 STBIDEF int stbi_info_from_callbacks(stbi_io_callbacks const *c, void *user, int *x, int *y, int *comp)
 {
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *) c, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const *) c, user);
    return stbi__info_main(&s,x,y,comp);
 }
 
@@ -7755,7 +7761,7 @@ STBIDEF int stbi_is_16_bit_from_memory(stbi_uc const *buffer, int len)
 STBIDEF int stbi_is_16_bit_from_callbacks(stbi_io_callbacks const *c, void *user)
 {
    stbi__context s;
-   stbi__start_callbacks(&s, (stbi_io_callbacks *) c, user);
+   stbi__start_callbacks(&s, (stbi_io_callbacks const *) c, user);
    return stbi__is_16_main(&s);
 }
 

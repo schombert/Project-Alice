@@ -280,7 +280,7 @@ void SVGTextFragmentsBuilder::build(const SVGTextElement* textElement)
             auto dy = characterPosition.dy.value_or(0);
 
             auto shouldStartNewFragment = needsTextLengthSpacing || isVerticalText || applySpacingToNextCharacter
-                || characterPosition.x || characterPosition.y || dx || dy || angle || angle != lastAngle;
+                || characterPosition.x || characterPosition.y || dx != 0.0f || dy != 0.0f || angle != 0.0f || angle != lastAngle;
             if(shouldStartNewFragment && didStartTextFragment) {
                 recordTextFragment(startOffset, textOffset);
                 applySpacingToNextCharacter = false;
@@ -307,13 +307,13 @@ void SVGTextFragmentsBuilder::build(const SVGTextElement* textElement)
             }
 
             auto spacing = element->letter_spacing();
-            if(currentCharacter && lastCharacter && element->word_spacing()) {
+            if(currentCharacter && lastCharacter && element->word_spacing() != 0.0f) {
                 if(currentCharacter == ' ' && lastCharacter != ' ') {
                     spacing += element->word_spacing();
                 }
             }
 
-            if(spacing) {
+            if(spacing != 0.0f) {
                 applySpacingToNextCharacter = true;
                 if(isVerticalText) {
                     m_y += spacing;

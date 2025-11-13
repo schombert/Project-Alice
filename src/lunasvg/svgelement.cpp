@@ -714,25 +714,25 @@ void SVGRootElement::layout(SVGLayoutState& state)
     }
 
     const auto& viewBoxRect = viewBox().value();
-    if(!viewBoxRect.isEmpty() && (!m_intrinsicWidth || !m_intrinsicHeight)) {
+    if(!viewBoxRect.isEmpty() && (m_intrinsicWidth == 0.0f || m_intrinsicHeight == 0.0f)) {
         auto intrinsicRatio = viewBoxRect.w / viewBoxRect.h;
-        if(!m_intrinsicWidth && m_intrinsicHeight)
+        if(m_intrinsicWidth == 0.0f && m_intrinsicHeight != 0.0f)
             m_intrinsicWidth = m_intrinsicHeight * intrinsicRatio;
-        else if(m_intrinsicWidth && !m_intrinsicHeight) {
+        else if(m_intrinsicWidth != 0.0f && m_intrinsicHeight == 0.0f) {
             m_intrinsicHeight = m_intrinsicWidth / intrinsicRatio;
         }
     }
 
-    if(viewBoxRect.isValid() && (!m_intrinsicWidth || !m_intrinsicHeight)) {
+    if(viewBoxRect.isValid() && (m_intrinsicWidth == 0.0f || m_intrinsicHeight == 0.0f)) {
         m_intrinsicWidth = viewBoxRect.w;
         m_intrinsicHeight = viewBoxRect.h;
     }
 
-    if(!m_intrinsicWidth || !m_intrinsicHeight) {
+    if(m_intrinsicWidth == 0.0f || m_intrinsicHeight == 0.0f) {
         auto boundingBox = paintBoundingBox();
-        if(!m_intrinsicWidth)
+        if(m_intrinsicWidth == 0.0f)
             m_intrinsicWidth = boundingBox.right();
-        if(!m_intrinsicHeight) {
+        if(m_intrinsicHeight == 0.0f) {
             m_intrinsicHeight = boundingBox.bottom();
         }
     }

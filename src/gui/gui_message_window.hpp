@@ -28,7 +28,7 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, message_dismiss_notification{});
 	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(
 			!disabled
 			&&

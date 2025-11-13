@@ -512,7 +512,7 @@ extern "C" {
 // private structure
 typedef struct
 {
-   unsigned char *data;
+   unsigned char const *data;
    int cursor;
    int size;
 } stbtt__buf;
@@ -1169,7 +1169,7 @@ static stbtt__buf stbtt__new_buf(const void *p, size_t size)
 {
    stbtt__buf r;
    STBTT_assert(size < 0x40000000);
-   r.data = (stbtt_uint8*) p;
+   r.data = (stbtt_uint8 const*) p;
    r.size = (int) size;
    r.cursor = 0;
    return r;
@@ -2139,7 +2139,15 @@ static int stbtt__run_charstring(const stbtt_fontinfo *info, int glyph_index, st
                subrs = stbtt__cid_get_glyph_subrs(info, glyph_index);
             has_subrs = 1;
          }
-         // FALLTHROUGH
+	 if(sp < 1) return STBTT__CSERR("call(g|)subr stack");
+	 v = (int)s[--sp];
+	 if(subr_stack_height >= 10) return STBTT__CSERR("recursion limit");
+	 subr_stack[subr_stack_height++] = b;
+	 b = stbtt__get_subr(b0 == 0x0A ? subrs : info->gsubrs, v);
+	 if(b.size == 0) return STBTT__CSERR("subr not found");
+	 b.cursor = 0;
+	 clear_stack = 0;
+	 break;
       case 0x1D: // callgsubr
          if (sp < 1) return STBTT__CSERR("call(g|)subr stack");
          v = (int) s[--sp];
