@@ -78,6 +78,8 @@
 #include "blake2.cpp"
 #include "zstd.cpp"
 #include "pcp.cpp"
+#include "asvg.cpp"
+#include "uitemplate_serialization.cpp"
 #endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"

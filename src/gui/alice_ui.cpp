@@ -85,6 +85,509 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p) {
 	return true;
 }
 
+void template_icon_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(template_id == -1)
+		return;
+
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+	auto ms_after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_activated);
+	if(disabled) {
+		auto bg_id = state.ui_templates.iconic_button_t[template_id].disabled.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+		if(icon != -1) {
+			auto ico_color = state.ui_templates.iconic_button_t[template_id].disabled.icon_color;
+			auto l = state.ui_templates.iconic_button_t[template_id].disabled.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto t = state.ui_templates.iconic_button_t[template_id].disabled.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			auto r = state.ui_templates.iconic_button_t[template_id].disabled.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto b = state.ui_templates.iconic_button_t[template_id].disabled.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+		}
+	} else if(ms_after.count() < mouse_over_animation_ms && state.ui_templates.iconic_button_t[template_id].animate_active_transition) {
+		float percentage = float(ms_after.count()) / float(mouse_over_animation_ms);
+		if(this == state.ui_state.under_mouse) {
+			auto active_id = state.ui_templates.iconic_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+			auto bg_id = state.ui_templates.iconic_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			if(icon != -1) {
+				auto ico_color = state.ui_templates.iconic_button_t[template_id].active.icon_color;
+				auto l = state.ui_templates.iconic_button_t[template_id].active.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+				auto t = state.ui_templates.iconic_button_t[template_id].active.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+				auto r = state.ui_templates.iconic_button_t[template_id].active.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+				auto b = state.ui_templates.iconic_button_t[template_id].active.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		} else {
+			auto active_id = state.ui_templates.iconic_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			auto bg_id = state.ui_templates.iconic_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+
+			if(icon != -1) {
+				auto ico_color = state.ui_templates.iconic_button_t[template_id].primary.icon_color;
+				auto l = state.ui_templates.iconic_button_t[template_id].primary.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+				auto t = state.ui_templates.iconic_button_t[template_id].primary.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+				auto r = state.ui_templates.iconic_button_t[template_id].primary.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+				auto b = state.ui_templates.iconic_button_t[template_id].primary.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		}
+	} else if(this == state.ui_state.under_mouse) {
+		auto active_id = state.ui_templates.iconic_button_t[template_id].active.bg;
+		if(active_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+		if(icon != -1) {
+			auto ico_color = state.ui_templates.iconic_button_t[template_id].active.icon_color;
+			auto l = state.ui_templates.iconic_button_t[template_id].active.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto t = state.ui_templates.iconic_button_t[template_id].active.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			auto r = state.ui_templates.iconic_button_t[template_id].active.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto b = state.ui_templates.iconic_button_t[template_id].active.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+		}
+	} else {
+		auto bg_id = state.ui_templates.iconic_button_t[template_id].primary.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+		if(icon != -1) {
+			auto ico_color = state.ui_templates.iconic_button_t[template_id].primary.icon_color;
+			auto l = state.ui_templates.iconic_button_t[template_id].primary.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto t = state.ui_templates.iconic_button_t[template_id].primary.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			auto r = state.ui_templates.iconic_button_t[template_id].primary.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto b = state.ui_templates.iconic_button_t[template_id].primary.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+		}
+	}
+}
+
+void template_icon_button::on_hover(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover(state);
+}
+void template_icon_button::on_hover_end(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover_end(state);
+}
+
+
+bool auto_close_button::button_action(sys::state& state) noexcept {
+	state.ui_state.set_focus_target(state, nullptr);
+	parent->set_visible(state, false);
+	return true;
+}
+ui::message_result auto_close_button::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	if(key == sys::virtual_key::ESCAPE) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		state.ui_state.set_focus_target(state, nullptr);
+		parent->set_visible(state, false);
+		return ui::message_result::consumed;
+	}
+	return ui::message_result::unseen;
+}
+
+static text::alignment convert_align(template_project::aui_text_alignment a) {
+	switch(a) {
+	case template_project::aui_text_alignment::center: return text::alignment::center;
+	case template_project::aui_text_alignment::left: return text::alignment::left;
+	case template_project::aui_text_alignment::right: return text::alignment::right;
+	}
+	return text::alignment::left;
+}
+
+void template_label::set_text(sys::state& state, std::string_view new_text) {
+	if(new_text != cached_text) {
+		template_project::text_region_template region;
+		layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+		if(template_id != -1) {
+			region = state.ui_templates.label_t[template_id].primary;
+		}
+
+
+		cached_text = new_text;
+		{
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+
+			text::single_line_layout sl{ internal_layout,
+				text::layout_parameters{
+					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
+					convert_align(region.h_text_alignment), text::text_color::black, true, true
+				},
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+			sl.add_text(state, cached_text);
+		}
+	}
+}
+
+void template_label::on_reset_text(sys::state& state) noexcept {
+	if(default_text)
+		set_text(state, text::produce_simple_string(state, default_text));
+}
+void template_label::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_label::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+}
+
+void template_label::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	template_project::text_region_template region;
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+	if(template_id != -1) {
+		region = state.ui_templates.label_t[template_id].primary;
+	}
+	auto color = state.ui_templates.colors[region.text_color];
+
+	auto bg_id = region.bg;
+	if(bg_id != -1) {
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+			state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+	}
+
+	auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+	auto linesz = state.font_collection.line_height(state, fh);
+	if(linesz == 0.f)
+		return;
+
+	int32_t yoff = 0;
+	switch(region.v_text_alignment) {
+	case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
+	case template_project::aui_text_alignment::left: break;
+	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+	}
+
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(
+			state,
+			t,
+			float(x) + t.x + region.h_text_margins,
+			float(y + t.y + yoff),
+			fh,
+			ogl::color3f{ color.r, color.g, color.b },
+			ogl::color_modification::none
+		);
+	}
+}
+
+
+
+void template_mixed_button::set_text(sys::state& state, std::string_view new_text) {
+	if(new_text != cached_text) {
+		template_project::mixed_region_template region;
+		layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+		if(template_id != -1) {
+			region = state.ui_templates.mixed_button_t[template_id].primary;
+		}
+
+		cached_text = new_text;
+		{
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+			auto icon_space = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size));
+
+			text::single_line_layout sl{ internal_layout,
+				text::layout_parameters{
+					0, 0, static_cast<int16_t>(base_data.size.x - icon_space - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
+					convert_align(region.h_text_alignment), text::text_color::black, true, true
+				},
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+			sl.add_text(state, cached_text);
+		}
+	}
+}
+void template_mixed_button::on_hover(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover(state);
+}
+void template_mixed_button::on_hover_end(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover_end(state);
+}
+void template_mixed_button::on_reset_text(sys::state& state) noexcept {
+	if(default_text)
+		set_text(state, text::produce_simple_string(state, default_text));
+}
+void template_mixed_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_mixed_button::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+}
+
+void template_mixed_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	template_project::mixed_region_template region;
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+	if(template_id == -1)
+		return;
+
+	auto ms_after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_activated);
+	if(disabled) {
+		region = state.ui_templates.mixed_button_t[template_id].disabled;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	} else if(ms_after.count() < mouse_over_animation_ms && state.ui_templates.mixed_button_t[template_id].animate_active_transition) {
+		float percentage = float(ms_after.count()) / float(mouse_over_animation_ms);
+		if(this == state.ui_state.under_mouse) {
+			region = state.ui_templates.mixed_button_t[template_id].active;
+			auto active_id = state.ui_templates.mixed_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+			auto bg_id = state.ui_templates.mixed_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			
+		} else {
+			region = state.ui_templates.mixed_button_t[template_id].primary;
+			auto active_id = state.ui_templates.mixed_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			auto bg_id = state.ui_templates.mixed_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+		}
+	} else if(this == state.ui_state.under_mouse) {
+		region = state.ui_templates.mixed_button_t[template_id].active;
+		auto active_id = region.bg;
+		if(active_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+		
+	} else {
+		region = state.ui_templates.mixed_button_t[template_id].primary;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	}
+
+	auto color = state.ui_templates.colors[region.shared_color];
+	auto icon_space = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size));
+
+	{ // icon
+		if(icon_id != -1) {
+			auto l = region.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto t = region.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			auto r = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto b = region.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+				state.ui_templates.icons[icon_id].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, color.r, color.g, color.b));
+		}
+	}
+	{ // text
+		auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+		auto linesz = state.font_collection.line_height(state, fh);
+		if(linesz == 0.f)
+			return;
+
+		int32_t yoff = 0;
+		switch(region.v_text_alignment) {
+		case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
+		case template_project::aui_text_alignment::left: break;
+		case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+		}
+
+		for(auto& t : internal_layout.contents) {
+			ui::render_text_chunk(
+				state,
+				t,
+				float(x) + t.x + region.h_text_margins + icon_space,
+				float(y + t.y + yoff),
+				fh,
+				ogl::color3f{ color.r, color.g, color.b },
+				ogl::color_modification::none
+			);
+		}
+	}
+}
+
+
+void template_text_button::set_text(sys::state& state, std::string_view new_text) {
+	if(new_text != cached_text) {
+		template_project::text_region_template region;
+		layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+		if(template_id != -1) {
+			region = state.ui_templates.button_t[template_id].primary;
+		}
+
+		cached_text = new_text;
+		{
+			internal_layout.contents.clear();
+			internal_layout.number_of_lines = 0;
+
+			text::single_line_layout sl{ internal_layout,
+				text::layout_parameters{
+					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
+					convert_align(region.h_text_alignment), text::text_color::black, true, true
+				},
+				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+			sl.add_text(state, cached_text);
+		}
+	}
+}
+void template_text_button::on_hover(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover(state);
+}
+void template_text_button::on_hover_end(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
+	button_on_hover_end(state);
+}
+void template_text_button::on_reset_text(sys::state& state) noexcept {
+	if(default_text)
+		set_text(state, text::produce_simple_string(state, default_text));
+}
+void template_text_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_text_button::on_create(sys::state& state) noexcept {
+	on_reset_text(state);
+}
+
+void template_text_button::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	template_project::text_region_template region;
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+	if(template_id == -1)
+		return;
+
+	auto ms_after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_activated);
+	if(disabled) {
+		region = state.ui_templates.button_t[template_id].disabled;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	} else if(ms_after.count() < mouse_over_animation_ms && state.ui_templates.button_t[template_id].animate_active_transition) {
+		float percentage = float(ms_after.count()) / float(mouse_over_animation_ms);
+		if(this == state.ui_state.under_mouse) {
+			region = state.ui_templates.button_t[template_id].active;
+			auto active_id = state.ui_templates.button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+			auto bg_id = state.ui_templates.button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+
+		} else {
+			region = state.ui_templates.button_t[template_id].primary;
+			auto active_id = state.ui_templates.button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			auto bg_id = state.ui_templates.button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+		}
+	} else if(this == state.ui_state.under_mouse) {
+		region = state.ui_templates.button_t[template_id].active;
+		auto active_id = region.bg;
+		if(active_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+
+	} else {
+		region = state.ui_templates.button_t[template_id].primary;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	}
+
+	auto color = state.ui_templates.colors[region.text_color];
+
+	auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+	auto linesz = state.font_collection.line_height(state, fh);
+	if(linesz == 0.f)
+		return;
+
+	int32_t yoff = 0;
+	switch(region.v_text_alignment) {
+	case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
+	case template_project::aui_text_alignment::left: break;
+	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+	}
+
+	for(auto& t : internal_layout.contents) {
+		ui::render_text_chunk(
+			state,
+			t,
+			float(x) + t.x + region.h_text_margins,
+			float(y + t.y + yoff),
+			fh,
+			ogl::color3f{ color.r, color.g, color.b },
+			ogl::color_modification::none
+		);
+	}
+}
 
 void page_buttons::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	int16_t p = for_layout->current_page;
@@ -105,22 +608,110 @@ void page_buttons::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(last_size <= 1)
 		return;
 
-	auto fh = text::make_font_id(state, false, base_data.size.y);
-	auto linesz = state.font_collection.line_height(state, fh);
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false);
-	for(auto& t : text_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)), fh, ui::get_text_color(state, ((layout_window_element*)parent)->page_text_color), cmod);
+	if(for_layout->template_id == -1) {
+		auto fh = text::make_font_id(state, false, base_data.size.y);
+		auto linesz = state.font_collection.line_height(state, fh);
+		if(linesz == 0.0f) return;
+		auto ycentered = (base_data.size.y - linesz) / 2;
+		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false);
+		for(auto& t : text_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)), fh, ui::get_text_color(state, ((layout_window_element*)parent)->page_text_color), cmod);
+		}
+
+		int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+
+		// buttons, left
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && rel_mouse_x <= base_data.size.y, for_layout->current_page == 0, true), float(x), float(y), float(base_data.size.y), float(base_data.size.y), ogl::get_late_load_texture_handle(state, ((layout_window_element*)parent)->page_left_texture_id, ((layout_window_element*)parent)->page_left_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+		// right
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && (base_data.size.x - base_data.size.y) <= rel_mouse_x, for_layout->current_page >= int32_t(for_layout->page_starts.size()) - 1, true), float(x + base_data.size.x - base_data.size.y), float(y), float(base_data.size.y), float(base_data.size.y), ogl::get_late_load_texture_handle(state, ((layout_window_element*)parent)->page_right_texture_id, ((layout_window_element*)parent)->page_right_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+	} else {
+		int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+		layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+		if(auto button_template = state.ui_templates.layout_region_t[for_layout->template_id].left_button; button_template != -1) { // left button
+			auto icon = state.ui_templates.layout_region_t[for_layout->template_id].left_button_icon;
+			auto x_pos = x;
+			auto y_pos = y;
+			template_project::icon_region_template region;
+			if(for_layout->current_page == 0) {
+				region = state.ui_templates.iconic_button_t[button_template].disabled;
+			} else if(this == state.ui_state.under_mouse && rel_mouse_x <= base_data.size.y) {
+				region = state.ui_templates.iconic_button_t[button_template].active;
+			} else {
+				region = state.ui_templates.iconic_button_t[button_template].primary;
+			}
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x_pos), float(y_pos), float(base_data.size.y), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.y) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
+			if(icon != -1) {
+				auto ico_color = region.icon_color;
+				auto l = region.icon_left.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
+				auto t = region.icon_top.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
+				auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
+				auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		}
+		if(auto button_template = state.ui_templates.layout_region_t[for_layout->template_id].right_button; button_template != -1) { // right button
+			auto icon = state.ui_templates.layout_region_t[for_layout->template_id].right_button_icon;
+			auto x_pos = x + base_data.size.x - base_data.size.y;
+			auto y_pos = y;
+			template_project::icon_region_template region;
+			if(for_layout->current_page >= int32_t(for_layout->page_starts.size()) - 1) {
+				region = state.ui_templates.iconic_button_t[button_template].disabled;
+			} else if(this == state.ui_state.under_mouse && (base_data.size.x - base_data.size.y) <= rel_mouse_x) {
+				region = state.ui_templates.iconic_button_t[button_template].active;
+			} else {
+				region = state.ui_templates.iconic_button_t[button_template].primary;
+			}
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x_pos), float(y_pos), float(base_data.size.y), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.y) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
+			if(icon != -1) {
+				auto ico_color = region.icon_color;
+				auto l = region.icon_left.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
+				auto t = region.icon_top.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
+				auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
+				auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		}
+		{ // text
+			auto region = state.ui_templates.layout_region_t[for_layout->template_id].page_number_text;
+
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(base_data.size.y), float(y), float(base_data.size.x - 2 * base_data.size.y), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x -  2 * base_data.size.y) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
+
+			auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+			auto linesz = state.font_collection.line_height(state, fh);
+			if(linesz == 0.0f) return;
+
+			auto ycentered = (base_data.size.y - linesz) / 2;
+			auto color = state.ui_templates.colors[region.text_color];
+
+			for(auto& t : text_layout.contents) {
+				ui::render_text_chunk(
+					state,
+					t,
+					float(x) + t.x,
+					float(y + t.y + ycentered),
+					fh,
+					ogl::color3f{ color.r, color.g, color.b },
+					ogl::color_modification::none
+				);
+			}
+		}
 	}
-
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-
-	// buttons, left
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && rel_mouse_x <= base_data.size.y, for_layout->current_page == 0, true), float(x), float(y), float(base_data.size.y), float(base_data.size.y), ogl::get_late_load_texture_handle(state, ((layout_window_element*)parent)->page_left_texture_id, ((layout_window_element*)parent)->page_left_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-
-	// right
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && (base_data.size.x - base_data.size.y) <= rel_mouse_x, for_layout->current_page >= int32_t(for_layout->page_starts.size()) - 1, true), float(x + base_data.size.x - base_data.size.y), float(y), float(base_data.size.y), float(base_data.size.y), ogl::get_late_load_texture_handle(state, ((layout_window_element*)parent)->page_right_texture_id, ((layout_window_element*)parent)->page_right_texture_key), base_data.get_rotation(), false, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
 }
 ui::message_result page_buttons::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	if(last_size <= 1)
@@ -142,6 +733,35 @@ ui::message_result page_buttons::on_lbutton_down(sys::state& state, int32_t x, i
 }
 void page_buttons::on_update(sys::state& state) noexcept {
 
+}
+
+void layout_window_element::initialize_template(sys::state& state, int32_t id, int32_t gs, bool ac) {
+	window_template = id;
+	grid_size = gs;
+	if(ac) {
+		auto_close = std::make_unique<auto_close_button>();
+		auto_close->base_data.size.x = int16_t(grid_size * 3);
+		auto_close->base_data.size.y = int16_t(grid_size * 3);
+		auto_close->base_data.flags = uint8_t(ui::orientation::upper_right);
+		if(window_template != -1) {
+			auto_close->base_data.position.y = int16_t(state.ui_templates.window_t[window_template].v_close_button_margin * gs);
+			auto_close->base_data.position.x = int16_t(-grid_size * 3 - state.ui_templates.window_t[window_template].h_close_button_margin * gs);
+			auto_close->template_id = state.ui_templates.window_t[window_template].close_button_definition;
+			auto_close->icon = state.ui_templates.window_t[window_template].close_button_icon;
+		} else {
+			auto_close->base_data.position.y = int16_t(0);
+			auto_close->base_data.position.x = int16_t(-grid_size * 3);
+		}
+		auto_close->parent = this;
+	}
+}
+void layout_window_element::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(window_template != -1 && state.ui_templates.window_t[window_template].bg != -1) {
+		auto bgid = state.ui_templates.window_t[window_template].bg;
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bgid].renders.get_render(state, float(base_data.size.x) / float(grid_size), float(base_data.size.y) / float(grid_size), grid_size, state.user_settings.ui_scale));
+	}
+	render_layout_internal(layout, state, x, y);
 }
 
 layout_level* innermost_scroll_level(layout_level& current, int32_t x, int32_t y) {
@@ -337,6 +957,41 @@ void layout_window_element::clear_pages_internal(layout_level& lvl) {
 		if(holds_alternative<sub_layout>(m)) {
 			auto& i = std::get<sub_layout>(m);
 			clear_pages_internal(*i.layout);
+		}
+	}
+}
+void layout_window_element::render_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y) {
+	if(lvl.template_id != -1) {
+		auto bg = state.ui_templates.layout_region_t[lvl.template_id].bg;
+		if(bg != -1) {
+			auto top_margin = int32_t(lvl.margin_top);
+			auto bottom_margin = lvl.margin_bottom != -1 ? int32_t(lvl.margin_bottom) : top_margin;
+			auto left_margin = lvl.margin_left != -1 ? int32_t(lvl.margin_left) : bottom_margin;
+			auto right_margin = lvl.margin_right != -1 ? int32_t(lvl.margin_right) : left_margin;
+
+			auto x_pos = lvl.resolved_x_pos - left_margin;
+			auto y_pos = lvl.resolved_y_pos - top_margin;
+			auto width = lvl.resolved_x_size + left_margin + right_margin;
+			auto height = lvl.resolved_y_size + top_margin + bottom_margin;
+
+			if(lvl.paged) {
+				height += lvl.page_controls->base_data.size.y;
+			}
+
+			ogl::render_textured_rect_direct(state, float(x + x_pos), float(y + y_pos), float(width), float(height),
+				state.ui_templates.backgrounds[bg].renders.get_render(state, float(width) / float(grid_size), float(height) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
+		}
+	}
+
+	for(auto& c : lvl.contents) {
+		//sub_layout, texture_layer
+		if(std::holds_alternative<texture_layer>(c)) {
+			auto& i = std::get<texture_layer>(c);
+			auto cmod = ui::get_color_modification(false, false, false);
+			ogl::render_textured_rect(state, cmod, float(x + lvl.resolved_x_pos), float(y + lvl.resolved_y_pos), float(lvl.resolved_x_size), float(lvl.resolved_y_size), ogl::get_late_load_texture_handle(state, i.texture_id, i.texture), base_data.get_rotation(), false, state_is_rtl(state));
+		} else if(std::holds_alternative<sub_layout>(c)) {
+			auto& i = std::get<sub_layout>(c);
+			render_layout_internal(*i.layout, state, x, y);
 		}
 	}
 }
@@ -781,7 +1436,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 
 	// handle texture layers here: they do not depend on layout type
 
-	{
+	if(window_template == -1) { // temporary until all ui windows are handled by templates
 		layout_iterator place_it(lvl.contents);
 		while(place_it.has_more()) {
 			if(std::holds_alternative<texture_layer>(lvl.contents[place_it.index])) {

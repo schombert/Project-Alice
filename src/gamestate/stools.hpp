@@ -173,6 +173,10 @@ public:
 		auto s = read_variable<wchar_t>();
 		out = std::wstring(s.data(), s.size());
 	}
+	void read(std::u16string& out) {
+		auto s = read_variable<char16_t>();
+		out = std::u16string(s.data(), s.size());
+	}
 };
 
 template<>

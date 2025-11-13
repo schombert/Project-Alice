@@ -1,0 +1,64 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="printpattern" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image href="printbrush.png" height="[[P;64;0]]" width="[[P;64;0]]" />
+		</pattern>
+		<pattern id="lbfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
+			<image href="lbwc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
+		</pattern>
+		<mask  id="printmask">
+			<rect  x="0" y="0" fill="url(#printpattern)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+	</defs>
+		<path
+			style = "fill:url(#lbfill);fill-opacity:1;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:0"
+			x = "0"
+			y = "0"
+			d = "M 500,80
+			h [[W;1000;-1000]]
+			a 420, 420 0 0 1 420, 420
+			v [[H;1000;-1000]]
+			a 420, 420 0 0 1 -420, 420
+			h [[W;-1000;1000]]
+			a 420, 420 0 0 1 -420, -420
+			v [[H;-1000;1000]]
+			a 420, 420 0 0 1 420, -420
+			z"
+		/>
+	<g mask="url(#printmask)">
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
+			x = "0"
+			y = "0"
+			d = "M 500,80
+			h [[W;1000;-1000]]
+			a 420, 420 0 0 1 420, 420
+			v [[H;1000;-1000]]
+			a 420, 420 0 0 1 -420, 420
+			h [[W;-1000;1000]]
+			a 420, 420 0 0 1 -420, -420
+			v [[H;-1000;1000]]
+			a 420, 420 0 0 1 420, -420
+			z"
+		/>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
+			x = "0"
+			y = "0"
+			d = "
+			m [[P;0.80;0]],[[P;0.80;0]]
+			m [[W;1000;-203.015]],203.015
+			a 420, 420 0 0 1 123.015, 296.985
+			v [[H;1000;-1000]]
+			a 420, 420 0 0 1 -420, 420
+			h [[W;-1000;1000]]
+			a 420, 420 0 0 1 -296.985, -123.015
+			"
+		/>
+	</g>
+</svg>

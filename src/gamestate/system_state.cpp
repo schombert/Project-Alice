@@ -1787,6 +1787,29 @@ void state::on_create() {
 
 	// Load late ui defs
 
+	auto uitemplates = simple_fs::open_file(assets, NATIVE("the.tui"));
+	if(uitemplates) {
+		auto content = view_contents(*uitemplates);
+		serialization::in_buffer buffer(content.data, content.file_size);
+		ui_templates = template_project::bytes_to_project(buffer);
+		ui_templates.svg_directory.pop_back();
+		svg_image_files.root_directory = simple_fs::utf16_to_native(ui_templates.svg_directory);
+		auto svgdir = simple_fs::open_directory(assets, simple_fs::utf16_to_native(ui_templates.svg_directory));
+		for(auto& i : ui_templates.icons) {
+			auto f = simple_fs::open_file(svgdir, simple_fs::utf8_to_native(i.file_name));
+			if(f) {
+				auto contents = simple_fs::view_contents(*f);
+				i.renders = asvg::simple_svg(contents.data, size_t(contents.file_size));
+			}
+		}
+		for(auto& b : ui_templates.backgrounds) {
+			auto f = simple_fs::open_file(svgdir, simple_fs::utf8_to_native(b.file_name));
+			if(f) {
+				auto contents = simple_fs::view_contents(*f);
+				b.renders = asvg::svg(contents.data, size_t(contents.file_size), b.base_x, b.base_y);
+			}
+		}
+	}
 
 	for(auto gui_file : list_files(assets, NATIVE(".aui"))) {
 		auto file_name = simple_fs::get_file_name(gui_file);

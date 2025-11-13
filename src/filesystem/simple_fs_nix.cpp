@@ -698,6 +698,11 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	}
 	return result;
 }
+
+native_string utf16_to_native(std::u16string_view str) {
+	return utf16_to_utf8(str);
+}
+
 std::u16string utf8_to_utf16(std::string_view str) {
 	std::u16string result;
 

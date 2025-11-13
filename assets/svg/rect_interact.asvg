@@ -15,7 +15,7 @@
 			<rect  x="0" y="0" fill="url(#printpattern)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
 		</mask>
 	</defs>
-	<rect fill="url(#lbfill)" x="200" y="200" width="[[W;1000;-400]]" height="[[H;1000;-400]]" />
+	<rect fill="url(#lbfill)" x="100" y="100" width="[[W;1000;-200]]" height="[[H;1000;-200]]" />
 	<g mask="url(#printmask)">
 		<path
 			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
@@ -23,9 +23,9 @@
 			height = "[[H;1000;0]]"
 			x = "0"
 			y = "0"
-			d = "M [[W;1000;-200]],200
-			h [[W;-1000;400]]
-			v [[H;1000;-400]] "
+			d = "M [[W;1000;-100]],100
+			h [[W;-1000;200]]
+			v [[H;1000;-200]] "
 		/>
 		<path
 			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;2.5;0]];stroke-dasharray:none;stroke-opacity:1"
@@ -33,9 +33,9 @@
 			height = "[[H;1000;0]]"
 			x = "0"
 			y = "0"
-			d = "M [[W;1000;-200]],200
-				v [[H;1000;-400]]
-				h [[W;-1000;400]] "
+			d = "M [[W;1000;-100]],100
+				v [[H;1000;-200]]
+				h [[W;-1000;200]] "
 		/>
 	</g>
 </svg>

@@ -24,7 +24,39 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/graphics/xac.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/lunasvg/plutovg-blend.c"
+	"src/lunasvg/plutovg-canvas.c"
+	"src/lunasvg/plutovg-font.c"
+	"src/lunasvg/plutovg-ft-math.c"
+	"src/lunasvg/plutovg-ft-raster.c"
+	"src/lunasvg/plutovg-ft-stroker.c"
+	"src/lunasvg/plutovg-matrix.c"
+	"src/lunasvg/plutovg-paint.c"
+	"src/lunasvg/plutovg-path.c"
+	"src/lunasvg/plutovg-rasterize.c"
+	"src/lunasvg/plutovg-surface.c"
 )
+set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-font.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-math.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-raster.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-stroker.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-matrix.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-paint.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-path.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
@@ -100,6 +132,18 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
 	"src/gamerule/gamerule.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/graphics/asvg.cpp"
+	"src/gamestate/uitemplate_serialization.cpp"
 )
 
 if(WIN32)
@@ -261,6 +305,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd
+	${PROJECT_SOURCE_DIR}/src/lunasvg
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

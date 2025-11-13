@@ -106,8 +106,9 @@ enum class background_type : uint8_t {
 };
 
 struct texture_layer {
-	background_type texture_type = background_type::texture;
 	std::string texture;
+	dcon::texture_id texture_id;
+	background_type texture_type = background_type::texture;
 };
 
 using layout_item = std::variant<std::monostate, layout_control, layout_window, layout_glue, generator_instance, sub_layout, texture_layer>;
@@ -145,6 +146,7 @@ struct layout_level {
 	int16_t resolved_y_pos = 0;
 	int16_t resolved_x_size = 0;
 	int16_t resolved_y_size = 0;
+	int16_t template_id = -1;
 	layout_line_alignment line_alignment = layout_line_alignment::leading;
 	layout_line_alignment line_internal_alignment = layout_line_alignment::leading;
 	layout_type type = layout_type::single_horizontal;
@@ -193,18 +195,361 @@ struct positioned_texture {
 	background_type texture_type = background_type::texture;
 };
 
+inline constexpr int32_t mouse_over_animation_ms = 150;
+
+class template_icon_button : public ui::element_base {
+public:
+	int32_t template_id = -1;
+	int32_t icon = -1;
+	dcon::text_key default_tooltip;
+	std::chrono::steady_clock::time_point last_activated;
+	bool disabled = false;
+
+	void on_create(sys::state& state) noexcept override { }
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	virtual bool button_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_right_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+			if(result)
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_right_action(state);
+			else
+				result = button_right_action(state);
+			
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+
+			if(result) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				return ui::message_result::consumed;
+			}
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+	virtual void button_on_hover(sys::state& state) noexcept { }
+	virtual void button_on_hover_end(sys::state& state) noexcept { }
+};
+
+class auto_close_button : public template_icon_button {
+public:
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
+};
+
+class template_label : public ui::element_base {
+protected:
+	std::string cached_text;
+	text::layout internal_layout;
+public:
+	int32_t template_id = -1;
+	dcon::text_key default_text;
+	dcon::text_key default_tooltip;
+
+	void set_text(sys::state& state, std::string_view new_text);
+	void on_reset_text(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return cached_text;
+	}
+
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+};
+
+class template_text_button : public ui::element_base {
+protected:
+	std::string cached_text;
+	text::layout internal_layout;
+public:
+	int32_t template_id = -1;
+	std::chrono::steady_clock::time_point last_activated;
+	dcon::text_key default_text;
+	dcon::text_key default_tooltip;
+	bool disabled = false;
+
+	void set_text(sys::state& state, std::string_view new_text);
+	void on_reset_text(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return cached_text;
+	}
+
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	virtual bool button_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_right_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+			if(result)
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_right_action(state);
+			else
+				result = button_right_action(state);
+
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+
+			if(result) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				return ui::message_result::consumed;
+			}
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+	virtual void button_on_hover(sys::state& state) noexcept { }
+	virtual void button_on_hover_end(sys::state& state) noexcept { }
+};
+
+
+class template_mixed_button : public ui::element_base {
+protected:
+	std::string cached_text;
+	text::layout internal_layout;
+public:
+	int32_t template_id = -1;
+	std::chrono::steady_clock::time_point last_activated;
+	dcon::text_key default_text;
+	dcon::text_key default_tooltip;
+	int16_t icon_id = -1;
+	bool disabled = false;
+
+	void set_text(sys::state& state, std::string_view new_text);
+	void on_reset_text(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return cached_text;
+	}
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	virtual bool button_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_right_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+			if(result)
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_right_action(state);
+			else
+				result = button_right_action(state);
+
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+
+			if(result) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				return ui::message_result::consumed;
+			}
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+	virtual void button_on_hover(sys::state& state) noexcept {
+	}
+	virtual void button_on_hover_end(sys::state& state) noexcept {
+	}
+};
+
 class layout_window_element : public ui::non_owning_container_base {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
+	void render_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y);
 	void clear_pages_internal(layout_level& lvl);
 public:
 	layout_level layout;
+	std::unique_ptr<auto_close_button> auto_close;
 
 	std::string_view page_left_texture_key;
 	std::string_view page_right_texture_key;
 	dcon::texture_id page_left_texture_id;
 	dcon::texture_id page_right_texture_id;
 	text::text_color page_text_color = text::text_color::black;
+	int32_t window_template = -1;
+	int32_t grid_size = 8;
 
 	std::vector<positioned_texture> textures_to_render{};
 
@@ -215,9 +560,19 @@ public:
 			clear_pages_internal(layout);
 		remake_layout_internal(layout, state, 0, 0, base_data.size.x, base_data.size.y, remake_lists);
 		std::reverse(children.begin(), children.end());
+		if(auto_close)
+			children.push_back(auto_close.get());
 	}
 	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
 	void impl_on_update(sys::state& state) noexcept override;
+	void initialize_template(sys::state& state, int32_t id, int32_t grid_size, bool auto_close);
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(window_template != -1 && state.ui_templates.window_t[window_template].bg != -1)
+			return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
+		else
+			return ui::message_result::unseen;
+	}
 
 	friend struct layout_iterator;
 };

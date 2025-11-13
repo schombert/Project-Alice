@@ -37,6 +37,8 @@
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
 #include "enums.hpp"
+#include "asvg.hpp"
+#include "uitemplate.hpp"
 
 namespace ui {
 struct lua_scripted_element;
@@ -775,7 +777,10 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> jit_environment;
 #endif
 
-	//std::unique_ptr<lua_State> lua_environment;
+	//
+	// Lua scripting
+	//
+
 	lua_State* lua_ui_environment;
 	lua_State* lua_game_loop_environment;
 	std::vector<int> lua_on_daily_tick;
@@ -843,7 +848,6 @@ struct alignas(64) state {
 	//
 
 	user_settings_s user_settings;
-
 	host_settings_s host_settings;
 
 	//
@@ -882,13 +886,8 @@ struct alignas(64) state {
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;
 	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
 
-	// statistics
-	// variable for testing AI changes
-	// int pressed_wargoals = 0;
-
 	//army group
 	dcon::automated_army_group_id selected_army_group{};
-
 	army_group_order selected_army_group_order = army_group_order::none;
 
 	//current ui
@@ -906,6 +905,8 @@ struct alignas(64) state {
 	ui_cache ui_cached_data;					 // cached data to do heavy UI updates in separate thread
 	ogl::animation ui_animation;
 	text::font_manager font_collection;
+	asvg::file_bank svg_image_files;
+	template_project::project ui_templates;
 
 	// synchronization data (between main update logic and ui thread)
 	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
