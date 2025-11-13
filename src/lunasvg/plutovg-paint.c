@@ -501,7 +501,7 @@ void plutovg_paint_destroy(plutovg_paint_t* paint)
     }
 }
 
-int plutovg_paint_get_reference_count(const plutovg_paint_t* paint)
+int plutovg_paint_get_reference_count(plutovg_paint_t* paint)
 {
     return plutovg_get_reference_count(paint);
 }

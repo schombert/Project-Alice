@@ -61,7 +61,7 @@ void plutovg_path_destroy(plutovg_path_t* path)
     }
 }
 
-int plutovg_path_get_reference_count(const plutovg_path_t* path)
+int plutovg_path_get_reference_count(plutovg_path_t* path)
 {
     return plutovg_get_reference_count(path);
 }

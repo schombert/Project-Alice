@@ -857,9 +857,9 @@ STBTT_DEF int stbtt_GetGlyphShape(const stbtt_fontinfo *info, int glyph_index, s
 STBTT_DEF void stbtt_FreeShape(const stbtt_fontinfo *info, stbtt_vertex *vertices);
 // frees the data allocated above
 
-STBTT_DEF unsigned char *stbtt_FindSVGDoc(const stbtt_fontinfo *info, int gl);
-STBTT_DEF int stbtt_GetCodepointSVG(const stbtt_fontinfo *info, int unicode_codepoint, const char **svg);
-STBTT_DEF int stbtt_GetGlyphSVG(const stbtt_fontinfo *info, int gl, const char **svg);
+STBTT_DEF unsigned char *stbtt_FindSVGDoc(stbtt_fontinfo *info, int gl);
+STBTT_DEF int stbtt_GetCodepointSVG(stbtt_fontinfo *info, int unicode_codepoint, const char **svg);
+STBTT_DEF int stbtt_GetGlyphSVG(stbtt_fontinfo *info, int gl, const char **svg);
 // fills svg with the character's SVG data.
 // returns data size or 0 if SVG not found.
 
@@ -2682,7 +2682,7 @@ STBTT_DEF void stbtt_FreeShape(const stbtt_fontinfo *info, stbtt_vertex *v)
    STBTT_free(v, info->userdata);
 }
 
-STBTT_DEF stbtt_uint8 *stbtt_FindSVGDoc(const stbtt_fontinfo *info, int gl)
+STBTT_DEF stbtt_uint8 *stbtt_FindSVGDoc(stbtt_fontinfo *info, int gl)
 {
    int i;
    stbtt_uint8 *data = info->data;
@@ -2699,7 +2699,7 @@ STBTT_DEF stbtt_uint8 *stbtt_FindSVGDoc(const stbtt_fontinfo *info, int gl)
    return 0;
 }
 
-STBTT_DEF int stbtt_GetGlyphSVG(const stbtt_fontinfo *info, int gl, const char **svg)
+STBTT_DEF int stbtt_GetGlyphSVG(stbtt_fontinfo *info, int gl, const char **svg)
 {
    stbtt_uint8 *data = info->data;
    stbtt_uint8 *svg_doc;
@@ -2716,7 +2716,7 @@ STBTT_DEF int stbtt_GetGlyphSVG(const stbtt_fontinfo *info, int gl, const char *
    }
 }
 
-STBTT_DEF int stbtt_GetCodepointSVG(const stbtt_fontinfo *info, int unicode_codepoint, const char **svg)
+STBTT_DEF int stbtt_GetCodepointSVG(stbtt_fontinfo *info, int unicode_codepoint, const char **svg)
 {
    return stbtt_GetGlyphSVG(info, stbtt_FindGlyphIndex(info, unicode_codepoint), svg);
 }

@@ -124,7 +124,7 @@ void plutovg_canvas_destroy(plutovg_canvas_t* canvas)
     }
 }
 
-int plutovg_canvas_get_reference_count(const plutovg_canvas_t* canvas)
+int plutovg_canvas_get_reference_count(plutovg_canvas_t* canvas)
 {
     return plutovg_get_reference_count(canvas);
 }
@@ -234,7 +234,7 @@ bool plutovg_canvas_add_font_file(plutovg_canvas_t* canvas, const char* family, 
     return plutovg_font_face_cache_add_file(canvas->face_cache, family, bold, italic, filename, ttcindex);
 }
 
-bool plutovg_canvas_select_font_face(plutovg_canvas_t* canvas, const char* family, bool bold, bool italic)
+bool plutovg_canvas_select_font_face(plutovg_canvas_t* canvas, char* family, bool bold, bool italic)
 {
     if(canvas->face_cache == NULL)
         return false;

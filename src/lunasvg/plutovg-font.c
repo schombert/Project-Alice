@@ -336,7 +336,7 @@ void plutovg_font_face_destroy(plutovg_font_face_t* face)
     }
 }
 
-int plutovg_font_face_get_reference_count(const plutovg_font_face_t* face)
+int plutovg_font_face_get_reference_count(plutovg_font_face_t* face)
 {
     return plutovg_get_reference_count(face);
 }
@@ -552,7 +552,7 @@ void plutovg_font_face_cache_destroy(plutovg_font_face_cache_t* cache)
     }
 }
 
-int plutovg_font_face_cache_reference_count(const plutovg_font_face_cache_t* cache)
+int plutovg_font_face_cache_reference_count(plutovg_font_face_cache_t* cache)
 {
     return plutovg_get_reference_count(cache);
 }
@@ -640,14 +640,14 @@ static plutovg_font_face_entry_t* plutovg_font_face_entry_select(plutovg_font_fa
     return a_score > b_score ? a : b;
 }
 
-static int plutovg_font_face_entry_compare(const void* a, const void* b)
+static int plutovg_font_face_entry_compare(void const* a,  void const* b)
 {
     const plutovg_font_face_entry_t* a_entry = *(const plutovg_font_face_entry_t**)a;
     const plutovg_font_face_entry_t* b_entry = *(const plutovg_font_face_entry_t**)b;
     return strcmp(a_entry->family, b_entry->family);
 }
 
-plutovg_font_face_t* plutovg_font_face_cache_get(plutovg_font_face_cache_t* cache, const char* family, bool bold, bool italic)
+plutovg_font_face_t* plutovg_font_face_cache_get(plutovg_font_face_cache_t* cache, char* family, bool bold, bool italic)
 {
     plutovg_mutex_lock(&cache->mutex);
 
