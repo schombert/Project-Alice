@@ -109,8 +109,8 @@ typedef struct {
 
 static int color_entry_compare(const void* a, const void* b)
 {
-    const char* name = a;
-    const color_entry_t* entry = b;
+    const char* name = (const char*)a;
+    const color_entry_t* entry = (const color_entry_t*)b;
     return strcmp(name, entry->name);
 }
 
