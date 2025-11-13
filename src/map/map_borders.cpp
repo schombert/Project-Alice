@@ -1350,6 +1350,34 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 			auto potential_children = check_for_potential_child(river_data, runner, size);
 
+			// runner connects provinces around it:
+			if (!runner.waiting_for_merge) {
+				auto i = runner.x;
+				auto j = runner.y;
+				std::vector<dcon::province_id> provinces = {
+					province::from_map_id(safe_get_province(glm::ivec2(i - 1, j))),
+					province::from_map_id(safe_get_province(glm::ivec2(i + 1, j))),
+					province::from_map_id(safe_get_province(glm::ivec2(i, j - 1))),
+					province::from_map_id(safe_get_province(glm::ivec2(i, j + 1))),
+					province::from_map_id(safe_get_province(glm::ivec2(i, j)))
+				};
+				for(auto& origin : provinces) {
+					if(runner.position->width > 125) {
+						context.state.world.province_set_has_major_river(origin, true);
+					} else {
+						context.state.world.province_set_has_minor_river(origin, true);
+					}
+
+					for(auto& target : provinces) {
+						auto adj = context.state.world.get_province_adjacency_by_province_pair(origin, target);
+						if(adj) {
+							uint8_t& buffer = context.state.world.province_adjacency_get_type(adj);
+							buffer |= province::border::river_connection_bit;
+						}
+					}
+				}
+			}
+
 			if(potential_children.size() == 0) {
 				// extend to the sea:
 

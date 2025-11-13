@@ -647,10 +647,9 @@ pop_prom_1;?YPromotion factor:
 pop_prom_2;From national focus: ?G$val$
 pop_prom_3;0 (because of national focus)
 pop_prom_4;?YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
+pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
+pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:
@@ -1015,6 +1014,7 @@ col_invest_4;Without competition, you will be able to turn this state into a col
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
 col_invest_6;You have at least $x$ free colonial points
 activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
+activated_by_tech:Activated by technology ?Y$x$?!
 unit_max_speed;Max Speed ?G$x$?! KPH
 unit_attack;Attack ?G$x$
 unit_hull;Hull ?G$x$
@@ -1805,3 +1805,5 @@ alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario 
 alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
+ports_size;Size of ports
+alice_infrastructure_tab;Infrastructure

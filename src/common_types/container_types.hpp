@@ -194,6 +194,18 @@ struct gamerule_hash {
 	}
 };
 
+struct nation_hash {
+	using is_avalanching = void;
+
+	nation_hash() {
+	}
+
+	auto operator()(dcon::nation_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
 } // namespace sys
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>

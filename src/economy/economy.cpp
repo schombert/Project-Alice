@@ -369,6 +369,7 @@ void presimulate(sys::state& state) {
 	// set control to something reasonable to kickstart national economy
 	state.world.execute_serial_over_province([&](auto pids){
 		state.world.province_set_control_ratio(pids, 0.5f);
+		state.world.province_set_control_scale(pids, state.world.province_get_demographics(pids, demographics::total) * 0.5f);
 	});
 	// economic updates without construction
 #ifdef NDEBUG
@@ -788,6 +789,20 @@ void initialize(sys::state& state) {
 	state.world.for_each_nation([&](dcon::nation_id n) {
 		state.world.nation_set_stockpiles(n, money, 1000.f);
 	});
+
+
+	// civilian ports
+	state.world.for_each_province([&](auto pid) {
+		if(state.world.province_get_is_coast(pid)) {
+			auto naval_base_level = state.world.province_get_building_level(pid, (uint8_t)(economy::province_building_type::naval_base));
+			auto population = state.world.province_get_demographics(pid, demographics::total);
+			state.world.province_set_advanced_province_building_max_private_size(
+				pid,
+				advanced_province_buildings::list::civilian_ports,
+				naval_base_level * 25000.f + population * 0.0001f + 100.f
+			);
+		}
+	});
 }
 
 float sphere_leader_share_factor(sys::state& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
@@ -1052,6 +1067,10 @@ void populate_army_consumption(sys::state& state) {
 		auto owner = reg.get_army_from_army_membership().get_controller_from_army_control();
 		auto pop = reg.get_pop_from_regiment_source();
 		auto location = pop.get_pop_location().get_province().get_state_membership();
+		// if the regiment has no pop attached (may happen temporarily until it gets deleted) don't do army demand
+		if(!location) {
+			return;
+		}
 		auto market = location.get_market_from_local_market();
 		auto strength = reg.get_strength();
 
@@ -1619,10 +1638,10 @@ std::vector<full_construction_factory> estimate_private_investment_construct(sys
 		return res;
 	}
 
-	static std::vector<dcon::factory_type_id> desired_types;
+	std::vector<dcon::factory_type_id> desired_types;
 	desired_types.clear();
 
-	static std::vector<dcon::province_id> provinces_in_order;
+	std::vector<dcon::province_id> provinces_in_order;
 	provinces_in_order.clear();
 	for(auto si : n.get_province_ownership()) {
 		if(si.get_province().get_state_membership().get_capital().get_is_colonial() == false) {
@@ -2268,6 +2287,29 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// PROFILE
 	set_profile_point("land stats and inventions count");
 
+	// store available port capacity ratio per market
+
+	auto available_port_capacity = state.world.market_make_vectorizable_float_buffer();
+	auto price_port_capacity = state.world.market_make_vectorizable_float_buffer();
+
+	auto port_services_total_weight = state.world.market_make_vectorizable_float_buffer();
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + state.world.province_get_service_price(pid, services::list::port_capacity));
+		port_services_total_weight.set(mid, port_services_total_weight.get(mid) + local_weight);
+	});
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + price);
+		auto total_weight = port_services_total_weight.get(mid);
+		auto market_demand = 1.f;
+		auto local_demand = local_weight / total_weight;
+		auto sat = state.world.province_get_service_satisfaction(pid, services::list::port_capacity);
+		available_port_capacity.set(mid, available_port_capacity.get(mid) + local_demand * sat);
+		price_port_capacity.set(mid, price_port_capacity.get(mid) + local_demand * price);
+	});
+
 	// update trade volume based on potential profits right at the start
 	// we can't put it between demand and supply generation!
 	update_trade_routes_volume(
@@ -2275,7 +2317,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		export_tariff_buffer,
 		import_tariff_buffer,
 		coastal_capital_buffer,
-		state_naval_trade_is_blockaded
+		state_naval_trade_is_blockaded,
+		available_port_capacity,
+		price_port_capacity
 	);
 
 	set_profile_point("trade volume");
@@ -3763,6 +3807,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		rebalance_needs_weights(state, mid);
 	});
 
+
+
 	set_profile_point("need weights");
 
 	sanity_check(state);
@@ -4236,6 +4282,7 @@ float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n) {
 	return w_sub + w_reps + subject_payments;
 }
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n) {
+	// potential OOS in subject_payments (if parallelizing over nations while changing tax levels)
 	float w_sub = estimate_war_subsidies_income(state, n);
 	float w_reps = estimate_reparations_income(state, n);
 	float subject_payments = estimate_subject_payments_received(state, n);
@@ -4353,10 +4400,12 @@ construction_status province_building_construction(sys::state& state, dcon::prov
 			float total = 0.0f;
 			float purchased = 0.0f;
 			for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
-				total +=
-					state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
+				auto current = pb_con.get_purchased_goods().commodity_amounts[i];
+				auto required = state.economy_definitions.building_definitions[int32_t(t)].cost.commodity_amounts[i]
 					* modifier;
-				purchased += pb_con.get_purchased_goods().commodity_amounts[i];
+
+				total += required;
+				purchased += std::min(current, required);
 			}
 			return construction_status{ total > 0.0f ? purchased / total : 0.0f, true };
 		}
@@ -4623,6 +4672,12 @@ void resolve_constructions(sys::state& state) {
 			if(state.world.province_get_building_level(for_province, uint8_t(t)) < state.world.nation_get_max_building_level(state.world.province_get_nation_from_province_ownership(for_province), uint8_t(t))) {
 				state.world.province_set_building_level(for_province, uint8_t(t), uint8_t(state.world.province_get_building_level(for_province, uint8_t(t)) + 1));
 
+				if(t == province_building_type::naval_base) {
+					auto civilian = (uint8_t)(advanced_province_buildings::list::civilian_ports);
+					auto local_civilian_port = state.world.province_get_advanced_province_building_max_private_size(for_province, civilian);
+					state.world.province_set_advanced_province_building_max_private_size(for_province, civilian, local_civilian_port + 5000.f);
+				}
+
 				if(t == province_building_type::railroad) {
 					/* Notify the railroad mesh builder to update the railroads! */
 					state.railroad_built.store(true, std::memory_order::release);
@@ -4740,6 +4795,15 @@ void resolve_constructions(sys::state& state) {
 			}
 		}
 	}
+}
+
+// This is used specifically in AI calculations, and omits subject income calculation because that requires iterating over all subjects and calculating their tax income seperately, will will cause OOS when parallelized over nations in ai::update_budget
+float estimate_daily_income_ai(sys::state& state, dcon::nation_id n) {
+	auto tax = explain_tax_income(state, n);
+	auto tariff = estimate_tariff_export_income(state, n) + estimate_tariff_import_income(state, n);
+	auto gold = estimate_gold_income(state, n);
+	auto diplomacy = estimate_war_subsidies_income(state, n) + estimate_reparations_income(state, n);
+	return tax.mid + tax.poor + tax.rich + tariff + gold + diplomacy;
 }
 
 /* TODO -

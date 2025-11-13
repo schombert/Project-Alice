@@ -5318,15 +5318,12 @@ void pop_details_main_prom_bar_chart_t::on_update(sys::state& state) noexcept {
 // BEGIN main::prom_bar_chart::update
 	graph_content.clear();
 
-	auto type = state.world.pop_get_poptype(main.for_pop);
+	auto promotion_weights = demographics::get_pop_promotion_demotion_weights<demographics::promotion_type::promotion>(state, main.for_pop);
+
 	for(auto t : state.world.in_pop_type) {
-		if(t.get_strata() >= type.get_strata()) {
-			auto r = state.world.pop_type_get_promotion(type, t);
-			if(r) {
-				auto a = std::max(0.0f, trigger::evaluate_additive_modifier(state, r, trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-				if(a > 0)
-					graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), a });
-			}
+		auto amount = promotion_weights.pop_weights[t.id];
+		if(amount > 0) {
+			graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), amount });
 		}
 	}
 
@@ -5527,15 +5524,12 @@ void pop_details_main_dem_bar_chart_t::on_update(sys::state& state) noexcept {
 // BEGIN main::dem_bar_chart::update
 	graph_content.clear();
 
-	auto type = state.world.pop_get_poptype(main.for_pop);
+	auto promotion_weights = demographics::get_pop_promotion_demotion_weights<demographics::promotion_type::demotion>(state, main.for_pop);
+
 	for(auto t : state.world.in_pop_type) {
-		if(t.get_strata() <= type.get_strata()) {
-			auto r = state.world.pop_type_get_promotion(type, t);
-			if(r) {
-				auto a = std::max(0.0f, trigger::evaluate_additive_modifier(state, r, trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-				if(a > 0)
-					graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), a });
-			}
+		auto amount = promotion_weights.pop_weights[t.id];
+		if(amount > 0) {
+			graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), amount });
 		}
 	}
 
@@ -8834,10 +8828,24 @@ void pop_details_prom_row_content_t::on_update(sys::state& state) noexcept {
 	pop_details_prom_row_t& prom_row = *((pop_details_prom_row_t*)(parent)); 
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
 // BEGIN prom_row::content::update
-	set_name_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(prom_row.value)));
+
 	auto type = state.world.pop_get_poptype(main.for_pop);
-	auto aw = std::max(0.0f, trigger::evaluate_additive_modifier(state, state.world.pop_type_get_promotion(type, prom_row.value), trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-	set_weight_text(state, text::format_float(aw, 2));
+
+	auto this_pop_strata = state.world.pop_type_get_strata(type);
+	auto row_pop_strata = state.world.pop_type_get_strata(prom_row.value);
+
+	float weight;
+	// display promotions
+	if(row_pop_strata >= this_pop_strata) {
+		weight = demographics::get_single_promotion_demotion_target_weight<demographics::promotion_type::promotion>(state, main.for_pop, prom_row.value);
+	}
+	// display demotions
+	else {
+		weight = demographics::get_single_promotion_demotion_target_weight<demographics::promotion_type::demotion>(state, main.for_pop, prom_row.value);
+	}
+
+	set_name_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(prom_row.value)));
+	set_weight_text(state, text::format_float(weight, 2));
 // END
 }
 void pop_details_prom_row_content_t::on_create(sys::state& state) noexcept {

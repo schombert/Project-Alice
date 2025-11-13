@@ -1422,7 +1422,7 @@ void update_single_factory_consumption(
 		// if we are at max amount of workers and we are profitable, spend 10% of the profit on actual expansion
 		expansion_scale = std::min(expansion_scale, actual_profit * 0.1f / costs_data.total_cost);
 		// do not expand factories when direct inputs are scarce
-		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_expected - 0.5f);
 		save_inputs_to_buffers(state, p, buffer_demanded, buffer_consumed, costs, expansion_scale, costs_data.min_available);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
 		assert(std::isfinite(state.world.factory_get_size(fac)));
@@ -1606,25 +1606,27 @@ void update_rgo_production(sys::state& state) {
 
 	// registed calculated production
 	// can't do in parallel over provinces
-	// but independent commodities do not influence each other
+	// therefore do it in parallel over markets. Cannot do it over commodities because register_domestic_supply writes to market_gdp
 
-	concurrency::parallel_for(uint32_t(0), state.world.commodity_size(), [&](uint32_t k) {
-		dcon::commodity_id c{ dcon::commodity_id::value_base_t(k) };
-		auto rgo_output = state.world.commodity_get_rgo_amount(c);
-		if(rgo_output <= 0.f) {
+	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](uint32_t k) {
+		dcon::market_id local_market{ dcon::market_id::value_base_t(k) };
+		if(!state.world.market_is_valid(local_market)) {
 			return;
 		}
-		if(state.world.commodity_get_money_rgo(c)) {
-			return;
-		}
-		province::for_each_land_province(state, [&](auto province) {
-			auto local_state = state.world.province_get_state_membership(province);
-			auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
-			if(!local_market) {
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto rgo_output = state.world.commodity_get_rgo_amount(commodity);
+			if(rgo_output <= 0.f) {
 				return;
 			}
-			auto amount = state.world.province_get_rgo_output(province, c);
-			register_domestic_supply(state, local_market, c, amount, economy_reason::rgo);
+			if(state.world.commodity_get_money_rgo(commodity)) {
+				return;
+			}
+			auto state_instance = state.world.market_get_zone_from_local_market(local_market);
+			assert(state_instance);
+			province::for_each_province_in_state_instance(state, state_instance, [&](dcon::province_id province) {
+				auto amount = state.world.province_get_rgo_output(province, commodity);
+				register_domestic_supply(state, local_market, commodity, amount, economy_reason::rgo);
+			});
 		});
 	});
 }
@@ -2089,10 +2091,10 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.01f, inputs_data.min_available - 0.3f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * inputs_data.min_expected, gradient);
 
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
-				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_available * 0.0001f;
+				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_expected * 0.0001f;
 
 				auto decay = decay_lack * decay_profit;
 
@@ -2880,7 +2882,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 			result.profit * 0.1f / construction_costs_data.total_cost
 		);
 		// reduce speed during shortage of direct inputs 
-		expansion_scale *= std::max(0.f, primary_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, primary_inputs_data.min_expected - 0.5f);
 	} else {
 		expansion_scale = 0.f;
 	}
