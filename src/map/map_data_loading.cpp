@@ -284,6 +284,7 @@ std::vector<uint8_t> load_bmp(parsers::scenario_building_context& context, nativ
 	return output_data;
 }
 
+// maps packed RGB colors to terrain type IDs (color index from BPM file)
 ankerl::unordered_dense::map<uint32_t, uint8_t> internal_make_index_map() {
 	ankerl::unordered_dense::map<uint32_t, uint8_t> m;
 
@@ -357,6 +358,12 @@ ankerl::unordered_dense::map<uint32_t, uint8_t> internal_make_index_map() {
 	return m;
 }
 
+inline uint32_t extract_color_from_image(ogl::image& img, uint32_t x, uint32_t y, uint32_t size_x) {
+	uint8_t* ptr = img.data + (x + size_x * y) * 4;
+	return sys::pack_color(ptr[0], ptr[1], ptr[2]);
+}
+
+// Converts terrain images into a terrain map for game rendering.
 void display_data::load_terrain_data(parsers::scenario_building_context& context) {
 	if(!context.new_maps) {
 		terrain_id_map = load_bmp(context, NATIVE("terrain.bmp"), glm::ivec2(size_x, size_y), 255, nullptr);
@@ -367,6 +374,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		if(!terrain_file) {
 			terrain_file = open_file(map_dir, NATIVE("terrain.png"));
 		}
+		// In BMP format, water has color index 254, thus default color here is 255.
 		terrain_id_map.resize(size_x * size_y, uint8_t(255));
 
 		ogl::image terrain_data;
@@ -374,25 +382,28 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 			terrain_data = ogl::load_stb_image(*terrain_file);
 		}
 
+		// maps packed RGB colors to terrain type IDs (BMP color indexes)
 		auto terrain_resolution = internal_make_index_map();
 
 		if(terrain_data.size_x == int32_t(size_x) && terrain_data.size_y == int32_t(size_y)) {
 			for(uint32_t ty = 0; ty < size_y; ++ty) {
+				// Flip the Y-axis (image coordinates vs. world coordinates)
 				uint32_t y = size_y - ty - 1;
 				for(uint32_t x = 0; x < size_x; ++x) {
 
-
-					uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
-					auto color = sys::pack_color(ptr[0], ptr[1], ptr[2]);
-
+					// Extract color from the image with corrected Y-axis (south is down)
+					auto color = extract_color_from_image(terrain_data, x, y, size_x);
+					// If the exact color of the pixel exists in the terrain map, use that terrain ID
 					if(auto it = terrain_resolution.find(color); it != terrain_resolution.end()) {
 						terrain_id_map[ty * size_x + x] = it->second;
 					} else {
+					// If direct mapping fails, check adjacent pixels. Uses first valid neighbor's terrain ID to handle color variations at terrain boundaries
 						bool found_neightbor = false;
 
 						if(x > 0) {
+							
 							uint8_t* ptrb = terrain_data.data + (x - 1 + size_x * y) * 4;
-							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+							auto colorb = extract_color_from_image(terrain_data, x - 1, y, size_x);
 
 							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
 								terrain_id_map[ty * size_x + x] = itb->second;
@@ -400,8 +411,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 						}
 						if(!found_neightbor && y > 0) {
-							uint8_t* ptrb = terrain_data.data + (x  + size_x * (y-1)) * 4;
-							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+							auto colorb = extract_color_from_image(terrain_data, x, y - 1, size_x);
 
 							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
 								terrain_id_map[ty * size_x + x] = itb->second;
@@ -409,8 +419,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 						}
 						if(!found_neightbor && x < size_x - 1) {
-							uint8_t* ptrb = terrain_data.data + (x + 1 + size_x * y) * 4;
-							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+							auto colorb = extract_color_from_image(terrain_data, x + 1, y, size_x);
 
 							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
 								terrain_id_map[ty * size_x + x] = itb->second;
@@ -418,8 +427,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 						}
 						if(!found_neightbor && y < size_y - 1) {
-							uint8_t* ptrb = terrain_data.data + (x + size_x * (y + 1)) * 4;
-							auto colorb = sys::pack_color(ptrb[0], ptrb[1], ptrb[2]);
+							auto colorb = extract_color_from_image(terrain_data, x, y + 1, size_x);
 
 							if(auto itb = terrain_resolution.find(colorb); itb != terrain_resolution.end()) {
 								terrain_id_map[ty * size_x + x] = itb->second;
@@ -427,6 +435,9 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 							}
 						}
 
+						// If no neighbors have valid terrain IDs:
+						// Finds the closest matching color using squared Euclidean distance in RGB color space
+						// Uses the terrain ID of the closest color in the palette
 						if(!found_neightbor) {
 							uint8_t resolved_index = 255;
 							int32_t min_distance = std::numeric_limits<int32_t>::max();
@@ -437,6 +448,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 								auto r = sys::int_red_from_int(c);
 								auto g = sys::int_green_from_int(c);
 								auto b = sys::int_blue_from_int(c);
+								uint8_t* ptr = terrain_data.data + (x + size_x * y) * 4;
 								auto dist = (r - ptr[0]) * (r - ptr[0]) + (b - ptr[1]) * (b - ptr[1]) + (g - ptr[2]) * (g - ptr[2]);
 								if(dist < min_distance) {
 									min_distance = dist;
@@ -452,7 +464,7 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		}
 	}
 
-	// Gets rid of any stray land terrain that has been painted outside the borders
+	// Gets rid of any stray land terrain that has been painted outside the borders of provinces
 	for(uint32_t y = 0; y < size_y; ++y) {
 		for(uint32_t x = 0; x < size_x; ++x) {
 			if(province_id_map[y * size_x + x] == 0) { // If there is no province define at that location
@@ -467,35 +479,118 @@ void display_data::load_terrain_data(parsers::scenario_building_context& context
 		}
 	}
 
+	// Load winter world maps
+	{
+		auto const root = simple_fs::get_root(context.state.common_fs);
+		auto const map_dir = simple_fs::open_directory(root, NATIVE("assets"));
+		auto input_file = open_file(map_dir, NATIVE("winter_map_december.png"));
+
+		ogl::image winter_terrain_data;
+
+		assert(input_file);
+
+		if(input_file) {
+			winter_terrain_data = ogl::load_stb_image(*input_file);
+		}
+
+		assert(winter_terrain_data.data);
+
+		// schombert: needs to start from +1 here or you don't catch the last province
+		for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+			// Lookup color for the province's mid point as winter reference
+			auto p = province::from_map_id(uint16_t(i));
+			auto coord = context.state.world.province_get_mid_point(p);
+
+			// convert province coord into image coord
+			uint32_t y = size_y - (uint32_t) coord.y + 1;
+			uint32_t x = (uint32_t) coord.x;
+
+			assert(y >= 0);
+			assert(x >= 0);
+			assert(y < size_y);
+			assert(x < size_x);
+
+			auto color = extract_color_from_image(winter_terrain_data, x, y, size_x);
+			// Assume people will use shades of gray for winter coloring, then R=G=B, one is enough.
+			context.state.world.province_set_december_winter(p, (uint8_t) sys::int_red_from_int(color));
+		}
+	}
+	{
+		auto const root = simple_fs::get_root(context.state.common_fs);
+		auto const map_dir = simple_fs::open_directory(root, NATIVE("assets"));
+		auto input_file = open_file(map_dir, NATIVE("winter_map_june.png"));
+
+		ogl::image winter_terrain_data;
+
+		assert(input_file);
+
+		if(input_file) {
+			winter_terrain_data = ogl::load_stb_image(*input_file);
+		}
+
+		assert(winter_terrain_data.data);
+
+		// schombert: needs to start from +1 here or you don't catch the last province
+		for(int i = context.state.world.province_size() + 1; i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+			// Lookup color for the province's mid point as winter reference
+			auto p = province::from_map_id(uint16_t(i));
+			auto coord = context.state.world.province_get_mid_point(p);
+
+			// convert province coord into image coord
+			uint32_t y = size_y - (uint32_t)coord.y + 1;
+			uint32_t x = (uint32_t)coord.x;
+
+			assert(y >= 0);
+			assert(x >= 0);
+			assert(y < size_y);
+			assert(x < size_x);
+
+			auto color = extract_color_from_image(winter_terrain_data, x, y, size_x);
+			// Assume people will use shades of gray for winter coloring, then R=G=B, one is enough.
+			context.state.world.province_set_june_winter(p, (uint8_t)sys::int_red_from_int(color));
+		}
+	}
+
 	// Load the terrain
 	load_median_terrain_type(context);
 }
 
-
+// if not specified in the history files, the province terrain is whatever is the most common value found in the terrain map within the borders of the province
 void display_data::load_median_terrain_type(parsers::scenario_building_context& context) {
 	median_terrain_type.resize(context.state.world.province_size() + 1);
 	province_area.resize(context.state.world.province_size() + 1);
 	province_area_km2.resize(context.state.world.province_size() + 1);
 
+	// Earth's mean radius for area calculations on a spherical projection
 	float R = context.state.defines.alice_globe_mean_radius_km;
 
 	std::vector<std::array<int, 64>> terrain_histogram(context.state.world.province_size() + 1, std::array<int, 64>{});
+	// Iterate through every pixel in the map (in reverse order)
 	for(int i = size_x * size_y - 1; i-- > 0;) {
+		// Process each pixel to build terrain histograms and calculate areas
+
+		// Calculate # of pixels of particular terrain type per province (terrain histogram)
 		auto prov_id = province_id_map[i];
 		auto terrain_id = terrain_id_map[i];
+		// Terrain IDs beyond 64 are invalid
 		if(terrain_id < 64)
 			terrain_histogram[prov_id][terrain_id] += 1;
+
+		// Spherical Area Calculation (km2 area of a province)
 		auto x = i % size_x;
 		auto y = i / size_x;
 		// 0.5f is added to shift us to the center of the pixel;
 		// float s = (((float)x + 0.5f) / (float) size_x) * 2 * math::pi;
-		float t = (((float)y + 0.5f) / (float) size_y - 0.5f) * math::pi;
-		auto area_form = R * R * math::cos(t);
-		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi);
+		float t = (((float)y + 0.5f) / (float) size_y - 0.5f) * math::pi; // latitude in radians 
+		auto area_form = R * R * math::cos(t); // area form factor (accounts for Mercator projection distortion)
+		auto pixel_size = area_form * (1.f / (float)size_y * math::pi) * (1.f / (float)size_x * 2 * math::pi); // convert pixel to km2 size
 		province_area_km2[prov_id] += pixel_size;
 	}
 
+	// Terrain Mode Calculation
+	// For each province
 	for(int i = context.state.world.province_size(); i-- > 1;) { // map-id province 0 == the invalid province; we don't need to collect data for it
+		// Find most common terrain from terrain histogram
 		int max_index = 64;
 		int max = 0;
 		province_area[i] = 0;
@@ -507,10 +602,12 @@ void display_data::load_median_terrain_type(parsers::scenario_building_context& 
 			}
 		}
 		median_terrain_type[i] = uint8_t(max_index);
+		// Ensure each province has at least one pixel area
 		province_area[i] = std::max(province_area[i], uint32_t(1));
 	}
 }
 
+// Calculate and set province's mid_point in DCON in X and Y pixel coordinate space
 void display_data::load_provinces_mid_point(parsers::scenario_building_context& context) {
 	std::vector<glm::i64vec2> accumulated_tile_positions(context.state.world.province_size() + 1, glm::i64vec2(0));
 	std::vector<int64_t> tiles_number(context.state.world.province_size() + 1, 0);
@@ -540,6 +637,7 @@ void display_data::load_provinces_mid_point(parsers::scenario_building_context& 
 	}
 }
 
+// includes province mid-point calculations
 void display_data::load_province_data(parsers::scenario_building_context& context, ogl::image& image) {
 	uint32_t imsz = uint32_t(size_x * size_y);
 	if(!context.new_maps) {
