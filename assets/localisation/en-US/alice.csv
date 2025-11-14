@@ -1728,7 +1728,7 @@ alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
 open_details;Details
 rgo;RGO
-province_prices;Prices (% of worldwide)
+province_prices;Price (Relative)
 gdp_per_sector;GDP
 gdp_share;GDP %
 province_labor;Labor
@@ -1739,7 +1739,7 @@ gdp_artisans;Secondary sector (cottage industry):
 gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
 market_report;External trade in the local market of ?Y$province$?W
-market_prices_report;Prices in the local market of ?Y$province$?W
+market_prices_report;Prices in ?Y$province$?W
 rgo_report;Resource gathering operations in ?Y$province$?W
 trade_balance;Balance
 rgo_details_name;Name
@@ -1807,3 +1807,4 @@ alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompat
 alice_save_input_filename_label;Saved game filename (empty is default name):
 ports_size;Size of ports
 alice_infrastructure_tab;Infrastructure
+economy_overview_header;Economy overview
