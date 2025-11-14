@@ -45,7 +45,7 @@ public:
     const SVGElement* element() const { return m_element; }
     const SVGRenderState* parent() const { return m_parent; }
     const Transform& currentTransform() const { return m_currentTransform; }
-    const SVGRenderMode mode() const { return m_mode; }
+    SVGRenderMode mode() const { return m_mode; }
     const std::shared_ptr<Canvas>& canvas() const { return m_canvas; }
 
     Rect fillBoundingBox() const { return m_element->fillBoundingBox(); }

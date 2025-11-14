@@ -267,7 +267,7 @@ public:
 		}
 		return ui::message_result::consumed;
 	}
-	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
 			bool result = false;
 			if(mods == sys::key_modifiers::modifiers_shift)
@@ -405,7 +405,7 @@ public:
 		}
 		return ui::message_result::consumed;
 	}
-	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
 			bool result = false;
 			if(mods == sys::key_modifiers::modifiers_shift)
@@ -509,7 +509,7 @@ public:
 		}
 		return ui::message_result::consumed;
 	}
-	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
 			bool result = false;
 			if(mods == sys::key_modifiers::modifiers_shift)

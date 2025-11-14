@@ -421,7 +421,7 @@ bool FontFaceCache::addFontFace(const std::string& family, bool bold, bool itali
 
 FontFace FontFaceCache::getFontFace(const std::string& family, bool bold, bool italic) const
 {
-    if(auto face = plutovg_font_face_cache_get(m_cache, family.data(), bold, italic)) {
+    if(auto face = plutovg_font_face_cache_get(m_cache, const_cast<char*>(family.data()), bold, italic)) {
         return FontFace(face);
     }
 
@@ -444,7 +444,7 @@ FontFace FontFaceCache::getFontFace(const std::string& family, bool bold, bool i
 
     for(auto value : generic_fallbacks) {
         if(value.generic == family || family.empty()) {
-            return FontFace(plutovg_font_face_cache_get(m_cache, value.fallback, bold, italic));
+            return FontFace(plutovg_font_face_cache_get(m_cache, const_cast<char*>(value.fallback), bold, italic));
         }
     }
 
@@ -475,7 +475,7 @@ Font::Font(const FontFace& face, float size)
 
 float Font::xHeight() const
 {
-    plutovg_rect_t extents = {0};
+    plutovg_rect_t extents = {0.0f, 0.0f, 0.0f, 0.0f};
     if(m_size > 0.f && !m_face.isNull())
         plutovg_font_face_get_glyph_metrics(m_face.get(), m_size, 'x', nullptr, nullptr, &extents);
     return extents.h;
