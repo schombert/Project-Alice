@@ -1808,3 +1808,5 @@ alice_save_input_filename_label;Saved game filename (empty is default name):
 ports_size;Size of ports
 alice_infrastructure_tab;Infrastructure
 economy_overview_header;Economy overview
+alice_extra_armies_tooltip;+ ?Y$x$?W more armies
+alice_extra_navies_tooltip;+ ?Y$x$?W more navies
