@@ -1681,7 +1681,7 @@ modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
 open_details;细节
 rgo;RGO
-province_prices;全球溢价 %
+province_prices;价格（相对）
 gdp_per_sector;GDP
 gdp_share;GDP溢价 %
 province_labor;劳工
@@ -1692,7 +1692,7 @@ gdp_artisans;二级产业（手工业）：
 gdp_selected;所选省份GDP
 gdp_rest;国内其他省份GDP
 market_report;?Y$province$?W 当地市场出口贸易
-market_prices_report;?Y$province$?W 当地市场价格
+market_prices_report;?Y$province$?W 市场价格
 rgo_report;?Y$province$?W 资源运营
 trade_balance;结余
 rgo_details_name;名称
@@ -1803,3 +1803,7 @@ input_value;输入价值：?Y$x$?!
 profitability;投入产出比：?Y$x$?!
 ports_size;港口规模
 alice_infrastructure_tab;基础设施
+activated_by_tech:被科技激活 ?Y$x$?!
+economy_overview_header;经济概览
+alice_extra_armies_tooltip;+ ?Y$x$?W 更多陆军
+alice_extra_navies_tooltip;+ ?Y$x$?W 更多海军
