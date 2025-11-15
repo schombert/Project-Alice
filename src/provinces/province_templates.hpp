@@ -59,5 +59,15 @@ void for_each_province_building(sys::state& state, F const& function) {
 	}
 }
 
+template<typename F>
+void for_each_market_province_parallel_over_market(sys::state& state, F const& func) {
+	concurrency::parallel_for((size_t)(0), (size_t)(state.world.market_size()), [&](auto raw_mid) {
+		dcon::market_id mid{ (dcon::market_id::value_base_t) (raw_mid) };
+		auto sid = state.world.market_get_zone_from_local_market(mid);
+		province::for_each_province_in_state_instance(state, sid, [&](auto pid) {
+			func(mid, sid, pid);
+		});
+	});
+}
 
 } // namespace province

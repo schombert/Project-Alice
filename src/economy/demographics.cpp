@@ -1,11 +1,9 @@
 #include "demographics.hpp"
 #include "dcon_generated.hpp"
 #include "system_state.hpp"
-#include "prng.hpp"
 #include "province_templates.hpp"
 #include "nations.hpp"
 #include "nations_templates.hpp"
-#include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "container_types.hpp"
 #include "economy_stats.hpp"
@@ -2754,8 +2752,12 @@ int64_t get_monthly_pop_increase(sys::state& state, dcon::province_id n) {
 	return int64_t(t);
 }
 
-void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
-	pbuf.update(state.world.pop_size());
+
+
+
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf) {
+	promotion_buf.update(state.world.pop_size());
+	demotion_buf.update(state.world.pop_size());
 
 	/*
 	Pops appear to "promote" into other pops of the same or greater strata. Likewise they "demote" into pops of the same or lesser
@@ -2763,7 +2765,8 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 	*/
 
 	pexecute_staggered_blocks(offset, divisions, state.world.pop_size(), [&](auto ids) {
-		pbuf.amounts.set(ids, 0.0f);
+		promotion_buf.amounts.set(ids, 0.0f);
+		demotion_buf.amounts.set(ids, 0.0f);
 		auto owners = nations::owner_of_pop(state, ids);
 #ifdef CHECK_LLVM_RESULTS
 		auto promotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
@@ -2828,313 +2831,47 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					if(promoted_type) {
 						if(promoted_type == ptype) {
 							promotion_chance = 0.0f;
-						} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-							promotion_chance += promotion_bonus;
-						} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-							demotion_chance += promotion_bonus;
 						}
-					}
-
-					if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
-						return; // skip this pop
-
-					float current_size = state.world.pop_get_size(p);
-
-					bool promoting = promotion_chance >= demotion_chance;
-					float base_amount = promoting
-						? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
-						: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
-
-					if(!promoting) {
-						if(ptype == state.culture_definitions.artisans) {
-							base_amount *= 10.f;
-						}
-					}
-
-					/*if(current_size < small_pop_size && base_amount > 0.0f) {
-						pbuf.amounts.set(p, current_size);
-					} else*/ if(base_amount >= 0.001f) {
-						auto transfer_amount = std::min(current_size, base_amount);
-						pbuf.amounts.set(p, transfer_amount);
-					}
-
-					tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
-
-					/*
-					The promotion and demotion factors seem to be computed additively (by taking the sum of all true conditions). If
-					there is a national focus set towards a pop type in the state, that is also added into the chances to promote into
-					that type. If the net weight for the boosted pop type is > 0, that pop type always seems to be selected as the
-					promotion type. Otherwise, the type is chosen at random, proportionally to the weights. If promotion to farmer is
-					selected for a mine province, or vice versa, it is treated as selecting laborer instead (or vice versa). This
-					obviously has the effect of making those pop types even more likely than they otherwise would be.
-
-					As for demotion, there appear to an extra wrinkle. Pops do not appear to demote into pop types if there is more
-					unemployment in that demotion target than in their current pop type. Otherwise, the national focus appears to have
-					the same effect with respect to demotion.
-					*/
-
-					bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
-
-					if((promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))
-						|| (!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata && (is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false))) {
-
-						float chance = 0.0f;
-						if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, promoted_type); mfn != 0) {
-							using ftype = float(*)(int32_t);
-							ftype fn = (ftype)mfn;
-							float llvm_result = fn(p.index());
-#ifdef CHECK_LLVM_RESULTS
-							float interp_result = 0.0f;
-							if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
-								interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
+						else {
+							if(state.world.pop_type_get_strata(promoted_type) >= strata) {
+								promotion_chance += promotion_bonus;
 							}
-							assert(llvm_result == interp_result);
-#endif
-							chance = llvm_result + promotion_bonus;
-						} else {
-							if(auto mtrigger = state.world.pop_type_get_promotion(ptype, promoted_type); mtrigger) {
-								chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + promotion_bonus;
+							if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+								demotion_chance += promotion_bonus;
 							}
 						}
 
-						if(chance > 0) {
-							pbuf.types.set(p, promoted_type);
-							return; // early exit
-						}
-					} 
-
-					float chances_total = 0.0f;
-					state.world.for_each_pop_type([&](dcon::pop_type_id target_type) {
-						if(target_type == ptype) {
-							weights[target_type] = 0.0f; //don't promote to the same type
-						} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(target_type)) {
-							weights[target_type] = 0.0f; //don't promote if the pop is not in the state capital
-						} else if((promoting && state.world.pop_type_get_strata(promoted_type) >= strata) //if the selected type is higher strata
-							|| (!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) ) {   //if the selected type is lower strata
-
-							weights[target_type] = 0.0f;
-
-							if(auto mfn = state.world.pop_type_get_promotion_fns(ptype, target_type); mfn != 0) {
-								using ftype = float(*)(int32_t);
-								ftype fn = (ftype)mfn;
-								float llvm_result = fn(p.index());
-#ifdef CHECK_LLVM_RESULTS
-								float interp_result = 0.0f;
-								if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
-									interp_result = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0);
-								}
-								assert(llvm_result == interp_result);
-#endif
-								auto chance = llvm_result + (target_type == promoted_type ? promotion_bonus : 0.0f);
-								chances_total += chance;
-								weights[target_type] = chance;
-							} else {
-								if(auto mtrigger = state.world.pop_type_get_promotion(ptype, target_type); mtrigger) {
-									auto chance = trigger::evaluate_additive_modifier(state, mtrigger, trigger::to_generic(p), trigger::to_generic(p), 0) + (target_type == promoted_type ? promotion_bonus : 0.0f);
-									chances_total += chance;
-									weights[target_type] = chance;
-								}
-							}
-
-						} else {
-							weights[target_type] = 0.0f;
-						}
-					});
-
-					if(chances_total > 0.0f) {
-						auto rvalue = float(rng::get_random(state, uint32_t(p.index())) & 0xFFFF) / float(0xFFFF + 1);
-						for(uint32_t i = state.world.pop_type_size(); i-- > 0;) {
-							dcon::pop_type_id pr{dcon::pop_type_id::value_base_t(i)};
-							rvalue -= weights[pr] / chances_total;
-							if(rvalue < 0.0f) {
-								pbuf.types.set(p, pr);
-								return;
-							}
-						}
-						pbuf.amounts.set(p, 0.0f);
-						pbuf.types.set(p, dcon::pop_type_id{});
-					} else {
-						pbuf.amounts.set(p, 0.0f);
-						pbuf.types.set(p, dcon::pop_type_id{});
 					}
+
+					// get promotion data
+					if(promotion_chance > 0.0f) {
+						auto promotion_data = get_promotion_demotion_data<promotion_type::promotion>(state, p, promotion_chance);
+						promotion_buf.types.set(p, promotion_data.target);
+						promotion_buf.amounts.set(p, promotion_data.amount);
+
+					}
+					// get demotion data
+					if(demotion_chance > 0.0f) {
+						auto demotion_data = get_promotion_demotion_data<promotion_type::demotion>(state, p, demotion_chance);
+						demotion_buf.types.set(p, demotion_data.target);
+						demotion_buf.amounts.set(p, demotion_data.amount);
+
+					}
+
 				},
 				ids, owners, promotion_chances, demotion_chances);
 	});
 }
 
-float get_effective_estimation_type_change(sys::state& state, dcon::nation_id nation, dcon::pop_type_id target_type) {
-	float total_effective_change = .0f;
-
-	for(auto prov : state.world.nation_get_province_ownership(nation)) {
-		for(auto pop : prov.get_province().get_pop_location()) {
-
-			auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(pop.get_pop()), trigger::to_generic(pop.get_pop()), 0);
-			auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-					trigger::to_generic(pop.get_pop()), trigger::to_generic(pop.get_pop()), 0);
-			auto owner = nation;
-
-			auto p = pop.get_pop();
-
-			auto loc = state.world.pop_get_province_from_pop_location(pop.get_pop());
-			auto si = state.world.province_get_state_membership(loc);
-			auto nf = state.world.state_instance_get_owner_focus(si);
-			auto promoted_type = state.world.national_focus_get_promotion_type(nf);
-			auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
-			auto ptype = state.world.pop_get_poptype(pop.get_pop());
-			auto strata = state.world.pop_type_get_strata(ptype);
-
-			if(promoted_type) {
-				if(promoted_type == ptype) {
-					promotion_chance = 0.0f;
-				} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-					promotion_chance += promotion_bonus;
-				} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-					demotion_chance += promotion_bonus;
-				}
-			}
-
-			if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
-				continue; // skip this pop
-
-			float current_size = state.world.pop_get_size(p);
-
-			bool promoting = promotion_chance >= demotion_chance;
-			float base_amount = promoting
-				? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
-				: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
-
-			auto transfer_amount = base_amount >= 0.001f ? std::min(current_size, base_amount) : 0.0f;
-
-			tagged_vector<float, dcon::pop_type_id> weights(state.world.pop_type_size());
-
-			bool is_state_capital = state.world.state_instance_get_capital(state.world.province_get_state_membership(loc)) == loc;
-
-			if(promoted_type == target_type) {
-				if(promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) >= strata &&
-						(is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
-					auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-					if(promote_mod) {
-						auto chance =
-							trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
-							promotion_bonus;
-						if(chance > 0) {
-							total_effective_change += transfer_amount;
-							continue; // early exit
-						}
-					}
-				} else if(!promoting && promoted_type && state.world.pop_type_get_strata(promoted_type) <= strata &&
-									(is_state_capital || state.world.pop_type_get_state_capital_only(promoted_type) == false)) {
-					auto promote_mod = state.world.pop_type_get_promotion(ptype, promoted_type);
-					if(promote_mod) {
-						auto chance =
-							trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p), trigger::to_generic(p), 0) +
-							promotion_bonus;
-						if(chance > 0) {
-							total_effective_change += transfer_amount;
-							continue; // early exit
-						}
-					}
-				}
-			}
-
-			float chances_total = 0.0f;
-
-			state.world.for_each_pop_type([&](dcon::pop_type_id t_type) {
-				if(t_type == ptype) {
-					weights[t_type] = 0.0f; //don't promote to the same type
-				} else if(!is_state_capital && state.world.pop_type_get_state_capital_only(t_type)) {
-					weights[t_type] = 0.0f; //don't promote if the pop is not in the state capital
-				} else if(promoting && state.world.pop_type_get_strata(promoted_type) >= strata) { //if the selected type is higher strata
-					auto promote_mod = state.world.pop_type_get_promotion(ptype, t_type);
-					if(promote_mod) {
-						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-							trigger::to_generic(p), 0) +
-																			 (t_type == promoted_type ? promotion_bonus : 0.0f),
-								0.0f);
-						chances_total += chance;
-						weights[t_type] = chance;
-					} else {
-						weights[t_type] = 0.0f;
-					}
-				} else if(!promoting && state.world.pop_type_get_strata(promoted_type) <= strata) { //if the selected type is lower strata
-					auto promote_mod = state.world.pop_type_get_promotion(ptype, t_type);
-					if(promote_mod) {
-						auto chance = std::max(trigger::evaluate_additive_modifier(state, promote_mod, trigger::to_generic(p),
-							trigger::to_generic(p), 0) +
-																			 (t_type == promoted_type ? promotion_bonus : 0.0f),
-								0.0f);
-						chances_total += chance;
-						weights[t_type] = chance;
-					} else {
-						weights[t_type] = 0.0f;
-					}
-				} else {
-					weights[t_type] = 0.0f;
-				}
-			});
-
-			if(chances_total > 0.0f) {
-				total_effective_change += transfer_amount * weights[target_type]/chances_total;
-			}
-		}
-	}
-
-	//subtract the amount of target_pops that will get promoted / demoted / emmigrated and take in account the growth
-	for(auto prov : state.world.nation_get_province_ownership(nation)) {
-		for(auto pop : prov.get_province().get_pop_location()) {
-			if(pop.get_pop().get_poptype() == target_type) {
-				total_effective_change -= get_estimated_type_change(state, pop.get_pop());
-				total_effective_change += get_monthly_pop_increase(state, pop.get_pop());
-				total_effective_change -= get_estimated_emigration(state, pop.get_pop());
-			}
-		}
-	}
-	return total_effective_change;
-}
 
 float get_estimated_type_change(sys::state& state, dcon::pop_id ids) {
-	auto owner = nations::owner_of_pop(state, ids);
-	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
-	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
-
-	auto loc = state.world.pop_get_province_from_pop_location(ids);
-	auto si = state.world.province_get_state_membership(loc);
-	auto nf = state.world.state_instance_get_owner_focus(si);
-	auto promoted_type = state.world.national_focus_get_promotion_type(nf);
-	auto promotion_bonus = state.world.national_focus_get_promotion_amount(nf);
-	auto ptype = state.world.pop_get_poptype(ids);
-	auto strata = state.world.pop_type_get_strata(ptype);
-
-	if(promoted_type) {
-		if(promoted_type == ptype) {
-			promotion_chance = 0.0f;
-		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-			promotion_chance += promotion_bonus;
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-			demotion_chance += promotion_bonus;
-		}
-	}
-
-	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
-		return 0.0f; // skip this pop
-
-	float current_size = state.world.pop_get_size(ids);
-
-	bool promoting = promotion_chance >= demotion_chance;
-	return std::min(current_size, promoting
-			? (std::ceil(promotion_chance * state.defines.promotion_scale * current_size))
-			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
+	return get_estimated_promotion(state, ids) + get_estimated_demotion(state, ids);
 }
 
 float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
 	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
 			trigger::to_generic(ids), trigger::to_generic(ids), 0);
-	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
 	auto loc = state.world.pop_get_province_from_pop_location(ids);
 	auto si = state.world.province_get_state_membership(loc);
@@ -3149,25 +2886,18 @@ float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 			promotion_chance = 0.0f;
 		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
 			promotion_chance += promotion_bonus;
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
-			demotion_chance += promotion_bonus;
 		}
 	}
 
-	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+	if(promotion_chance <= 0.0f)
 		return 0.0f; // skip this pop
 
 	float current_size = state.world.pop_get_size(ids);
 
-	bool promoting = promotion_chance >= demotion_chance;
-	return std::min(current_size, promoting
-			? (std::ceil(promotion_chance *	state.defines.promotion_scale * current_size))
-			: 0.0f);
+	return std::min(current_size, std::ceil(promotion_chance * state.defines.promotion_scale * current_size));
 }
 float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);
-	auto promotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.promotion_chance,
-			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 	auto demotion_chance = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance,
 			trigger::to_generic(ids), trigger::to_generic(ids), 0);
 
@@ -3180,24 +2910,17 @@ float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {
 	auto strata = state.world.pop_type_get_strata(ptype);
 
 	if(promoted_type) {
-		if(promoted_type == ptype) {
-			promotion_chance = 0.0f;
-		} else if(state.world.pop_type_get_strata(promoted_type) >= strata) {
-			promotion_chance += promotion_bonus;
-		} else if(state.world.pop_type_get_strata(promoted_type) <= strata) {
+		if(state.world.pop_type_get_strata(promoted_type) <= strata) {
 			demotion_chance += promotion_bonus;
 		}
 	}
 
-	if(promotion_chance <= 0.0f && demotion_chance <= 0.0f)
+	if(demotion_chance <= 0.0f)
 		return 0.0f; // skip this pop
 
 	float current_size = state.world.pop_get_size(ids);
 
-	bool promoting = promotion_chance >= demotion_chance;
-	return std::min(current_size, promoting
-			? 0.0f
-			: (std::ceil(demotion_chance * state.defines.promotion_scale * current_size)));
+	return std::min(current_size,std::ceil(demotion_chance * state.defines.promotion_scale * current_size));
 }
 
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
@@ -3996,11 +3719,14 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 	auto next_month_start = ymd_date.month != 12 ? sys::year_month_day{ ymd_date.year, uint16_t(ymd_date.month + 1), uint16_t(1) } : sys::year_month_day{ ymd_date.year + 1, uint16_t(1), uint16_t(1) };
 	auto const days_in_month = uint32_t(sys::days_difference(month_start, next_month_start));
 
-	for(auto ids : state.world.in_pop) {
+	auto pop_size = state.world.pop_size();
+
+	concurrency::parallel_for(uint32_t(0), pop_size, [&](uint32_t i) {
+		auto ids = dcon::pop_id{ dcon::pop_id::value_base_t(i) };
 		auto loc = state.world.pop_get_province_from_pop_location(ids);
 		auto owners = state.world.province_get_nation_from_province_ownership(loc);
 
-		auto section = uint64_t(ids.id.index()) / 16;
+		auto section = uint64_t(ids.index()) / 16;
 		auto tranche = int32_t(section / days_in_month);
 		auto day_of_month = tranche - 10;
 		if(day_of_month <= 0)
@@ -4011,15 +3737,17 @@ void estimate_directed_immigration(sys::state& state, dcon::nation_id n, std::ve
 			auto target = impl::get_immigration_target(state, owners, ids, state.current_date + day_adjustment);
 			if(owners == n) {
 				if(target && uint32_t(target.index()) < sz) {
-					national_amounts[uint32_t(target.index())] -= est_amount;
+					std::atomic_ref<float> ref{ national_amounts[uint32_t(target.index())] };
+					ref -= est_amount;
 				}
 			} else if(target == n) {
 				if(uint32_t(owners.index()) < sz) {
-					national_amounts[uint32_t(owners.index())] += est_amount;
+					std::atomic_ref<float> ref{ national_amounts[uint32_t(owners.index())] };
+					ref += est_amount;
 				}
 			}
 		}
-	}
+	});
 }
 
 float get_estimated_emigration(sys::state& state, dcon::pop_id ids) {
@@ -4058,7 +3786,6 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 	} else if(!is_mine && ptid == state.culture_definitions.laborers) {
 		ptid = state.culture_definitions.farmers;
 	}
-	// TODO: fix state capital only type pops ?
 	for(auto pl : state.world.province_get_pop_location(loc)) {
 		if(pl.get_pop().get_culture() == cid && pl.get_pop().get_religion() == rid && pl.get_pop().get_poptype() == ptid) {
 			return pl.get_pop();
@@ -4155,19 +3882,36 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 }
 } // namespace impl
 
-void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf) {
-	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), pbuf.size), [&](auto ids) {
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf) {
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), promotion_buf.size), [&](auto ids) {
 		ve::apply(
 				[&](dcon::pop_id p) {
-					if(pbuf.amounts.get(p) > 0.0f && pbuf.types.get(p)) {
+					if(promotion_buf.amounts.get(p) > 0.0f && promotion_buf.types.get(p)) {
 						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
-								state.world.pop_get_culture(p), state.world.pop_get_religion(p), pbuf.types.get(p), pop_demographics::get_literacy(state, p));
-						state.world.pop_set_size(p, state.world.pop_get_size(p) - pbuf.amounts.get(p));
-						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + pbuf.amounts.get(p));
+								state.world.pop_get_culture(p), state.world.pop_get_religion(p), promotion_buf.types.get(p), pop_demographics::get_literacy(state, p));
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - promotion_buf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + promotion_buf.amounts.get(p));
 					}
 				},
 				ids);
 	});
+
+	execute_staggered_blocks(offset, divisions, std::min(state.world.pop_size(), demotion_buf.size), [&](auto ids) {
+		ve::apply(
+				[&](dcon::pop_id p) {
+					if(demotion_buf.amounts.get(p) > 0.0f && demotion_buf.types.get(p)) {
+						auto target_pop = impl::find_or_make_pop(state, state.world.pop_get_province_from_pop_location(p),
+								state.world.pop_get_culture(p), state.world.pop_get_religion(p), demotion_buf.types.get(p), pop_demographics::get_literacy(state, p));
+						state.world.pop_set_size(p, state.world.pop_get_size(p) - demotion_buf.amounts.get(p));
+						state.world.pop_set_size(target_pop, state.world.pop_get_size(target_pop) + demotion_buf.amounts.get(p));
+					}
+				},
+				ids);
+	});
+
+
+
+
 }
 
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf) {
@@ -4263,17 +4007,37 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 	});
 }
 
+void fixup_state_only_pops(sys::state& state) {
+
+	for(auto last = state.world.pop_size(); last-- > 0;) {
+		dcon::pop_id pop{ dcon::pop_id::value_base_t(last) };
+		auto pop_location = state.world.pop_get_province_from_pop_location(pop);
+		auto owner = state.world.province_get_nation_from_province_ownership(pop_location);
+		if(!owner) {
+			continue;
+		}
+		auto pop_type = state.world.pop_get_poptype(pop);
+		auto state_capital_only = state.world.pop_type_get_state_capital_only(pop_type);
+		if(state_capital_only) {
+			auto state_instance = state.world.province_get_state_membership(pop_location);
+			auto state_capital = state.world.state_instance_get_capital(state_instance);
+			if(pop_location != state_capital) {
+				auto new_pop = impl::find_or_make_pop(state, state_capital, state.world.pop_get_culture(pop), state.world.pop_get_religion(pop), pop_type, pop_demographics::get_literacy(state, pop));
+				float new_pop_size = state.world.pop_get_size(new_pop);
+				float old_pop_size = state.world.pop_get_size(pop);
+				state.world.pop_set_size(new_pop, new_pop_size + old_pop_size);
+				state.world.pop_set_size(pop, 0.0f);
+			}
+
+		}
+	}
+}
+
 void remove_size_zero_pops(sys::state& state) {
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{dcon::pop_id::value_base_t(last)};
 		if(state.world.pop_get_size(m) < 1.0f) {
-			//safely delete any regiment which has this pop as its source
-			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
-				auto reg = *(state.world.pop_get_regiment_source(m).begin());
-				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
-
-			}
 			state.world.delete_pop(m);
 		}
 	}
@@ -4284,12 +4048,6 @@ void remove_small_pops(sys::state& state) {
 	for(auto last = state.world.pop_size(); last-- > 0;) {
 		dcon::pop_id m{ dcon::pop_id::value_base_t(last) };
 		if(state.world.pop_get_size(m) < 20.0f) {
-			//safely delete any regiment which has this pop as its source
-			while(state.world.pop_get_regiment_source(m).begin() != state.world.pop_get_regiment_source(m).end()) {
-				auto reg = *(state.world.pop_get_regiment_source(m).begin());
-				military::delete_regiment_safe_wrapper(state, reg.get_regiment());
-
-			}
 			state.world.delete_pop(m);
 		}
 	}

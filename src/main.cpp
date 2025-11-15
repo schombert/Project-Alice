@@ -28,6 +28,7 @@
 #include "economy_trade_routes.cpp"
 #include "economy_government.cpp"
 #include "economy_production.cpp"
+#include "national_budget.cpp"
 #include "construction.cpp"
 #include "advanced_province_buildings.cpp"
 #include "demographics.cpp"
@@ -77,6 +78,8 @@
 #include "blake2.cpp"
 #include "zstd.cpp"
 #include "pcp.cpp"
+#include "asvg.cpp"
+#include "uitemplate_serialization.cpp"
 #endif
 #include "gui_element_types.cpp"
 #include "gui_main_menu.cpp"

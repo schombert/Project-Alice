@@ -131,16 +131,31 @@ void execute_set_rally_point(sys::state& state, dcon::nation_id source, dcon::pr
 	}
 }
 
-void save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename) {
 	command_data p{ command_type::save_game, state.local_player_id };
-	auto data = save_game_data{ and_quit };
+	uint8_t truncated_length = std::min<uint8_t>(uint8_t(filename.length()), std::numeric_limits<uint8_t>::max());
+	auto data = save_game_data{ and_quit,  truncated_length };
 	p << data;
+
+	p.push_ptr(filename.data(), truncated_length);
 	add_to_command_queue(state, p);
 
 }
 
-void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit) {
-	sys::write_save_file(state);
+bool can_save_game(sys::state& state, command_data& command) {
+	auto& payload = command.get_payload<save_game_data_recv>();
+
+	// check that the filename length is correct before reading from it
+	if(!command.check_variable_size_payload<save_game_data>(payload.base.filename_len)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+
+	return true;
+}
+
+void execute_save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename) {
+	sys::write_save_file(state, sys::save_type::normal, "", filename);
 
 	if(and_quit) {
 		window::close_window(state);
@@ -1724,36 +1739,33 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 	}
 }
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
 
 	command_data p{ command_type::finish_colonization, state.local_player_id };
-	auto data = generic_location_data{ pr };
+	auto data = generic_state_definition_data { d };
 	p << data;
 	add_to_command_queue(state, p);
 
 }
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	if(state.world.state_definition_get_colonization_stage(state_def) != 3)
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	if(state.world.state_definition_get_colonization_stage(d) != 3)
 		return false;
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 	if(rng.begin() == rng.end())
 		return false;
 	return (*rng.begin()).get_colonizer() == source;
 }
-void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-
-	for(auto pr : state.world.state_definition_get_abstract_state_membership(state_def)) {
+void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	for(auto pr : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(!pr.get_province().get_nation_from_province_ownership()) {
 			province::change_province_owner(state, pr.get_province(), source);
 		}
 	}
 
-	state.world.state_definition_set_colonization_temperature(state_def, 0.0f);
-	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
+	state.world.state_definition_set_colonization_temperature(d, 0.0f);
+	state.world.state_definition_set_colonization_stage(d, uint8_t(0));
 
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 
 	while(rng.begin() != rng.end()) {
 		state.world.delete_colonization(*rng.begin());
@@ -3682,7 +3694,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
 	if(bool(battle)) {
-		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
+		return !command::can_retreat_from_naval_battle(state, source, n, military::retreat_type::manual, dest).empty();
 	}
 	else {
 		return !command::can_move_navy(state, source, n, dest, true).empty();
@@ -3707,7 +3719,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 		command::stop_navy_movement(state, source, n);
 	} else {
 		if(bool(battle)) {
-			command::retreat_from_naval_battle(state, source, n, false , dest);
+			command::retreat_from_naval_battle(state, source, n, dest);
 		}
 		else {
 			command::move_navy(state, source, n, dest, true);
@@ -3727,7 +3739,7 @@ bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	if(!b)
 		return true;
-	if(!military::can_retreat_from_battle(state, b))
+	if(!military::is_battle_retreatable(state, b, military::retreat_type::manual))
 		return false;
 	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
 }
@@ -4862,25 +4874,27 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
 	command_data p{ command_type::naval_retreat, state.local_player_id };
-	auto data = retreat_from_naval_battle_data{ navy, dest, auto_retreat };
+	auto data = retreat_from_naval_battle_data{ navy, dest };
 	p << data;
 	add_to_command_queue(state, p);
 }
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
-	if(source != military::get_effective_unit_commander(state, navy)) {
-		return std::vector<dcon::province_id>{};
-	}
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest) {
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!bool(battle)) {
 		return std::vector<dcon::province_id>{};
 	}
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, retreat_type))
 		return std::vector<dcon::province_id>{};
+
+
+	if(source != military::get_effective_unit_commander(state, navy)) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(state.world.navy_get_is_retreating(navy))
 		return std::vector<dcon::province_id>{};
-	if(!auto_retreat) {
+	if(retreat_type == military::retreat_type::manual) {
 		if(dest == state.world.navy_get_location_from_navy_location(navy)) {
 			return std::vector<dcon::province_id>{};
 		}
@@ -4888,17 +4902,16 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 
 	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
 }
-void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ }) {
-	// so far, any valid naval retreat is basically always an "auto_retreat" (it will path to the nearest accessible port), so atm those parameters dosent really do anything
+void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ }) {
 	// This can be extended with diffrent retreat rules later, but to start this is compliant with Vic2 naval retreat behaviour
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, military::retreat_type::manual))
 		return;
 	// For navies, a retreat command will start retreating the navy from the battle.
 	// In Vic2, navies do not retreat from the battle instantly unlike land units. Each ship which is part of the navy will start to retreat, and when all ships of the navy are retreated, the navy will finally exit the battle.
 	// The navy retreats to the closest port province, regardless of which province the user clicked on when retreating
 	assert(battle);
-	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy);
+	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy, military::retreat_type::manual);
 	// navy must be able to retreat, otherwise it shouldnt have passed the "can_retreat_from_naval_battle" check
 	assert(can_retreat);
 	for(auto shp : state.world.navy_get_navy_membership(navy)) {
@@ -5701,8 +5714,8 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
 #endif
 					state.network_state.out_of_sync = true;
+					state.debug_save_oos_dump();
 				}
-				state.debug_save_oos_dump();
 			}
 		}
 		state.actual_game_speed = speed;
@@ -6193,8 +6206,8 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::finish_colonization:
 	{
-		auto& data = c.get_payload<command::generic_location_data>();
-		return can_finish_colonization(state, source, data.prov);
+		auto& data = c.get_payload<command::generic_state_definition_data>();
+		return can_finish_colonization(state, source, data.state_def);
 	}
 
 	case command_type::intervene_in_war:
@@ -6452,7 +6465,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<command::retreat_from_naval_battle_data>();
-		return can_retreat_from_naval_battle(state, source, data.navy, data.auto_retreat, data.dest).size() != 0;
+		return can_retreat_from_naval_battle(state, source, data.navy, military::retreat_type::manual, data.dest).size() != 0;
 	}
 
 	case command_type::land_retreat:
@@ -6526,7 +6539,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::save_game:
 	{
-		return true; //can_save_game(state, c.source, c.data.save_game.and_quit);
+		return can_save_game(state, c);
 	}
 
 	case command_type::cancel_factory_building_construction:
@@ -6971,8 +6984,8 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::finish_colonization:
 	{
-		auto& data = c.get_payload<generic_location_data>();
-		execute_finish_colonization(state, source_nation, data.prov);
+		auto& data = c.get_payload<generic_state_definition_data>();
+		execute_finish_colonization(state, source_nation, data.state_def);
 		break;
 	}
 	case command_type::intervene_in_war:
@@ -7236,7 +7249,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<retreat_from_naval_battle_data>();
-		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.auto_retreat, data.dest);
+		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.dest);
 		break;
 	}
 	case command_type::land_retreat:
@@ -7305,8 +7318,9 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::save_game:
 	{
-		auto& data = c.get_payload<save_game_data>();
-		execute_save_game(state, source_nation, data.and_quit);
+		auto& data = c.get_payload<save_game_data_recv>();
+		std::string str(data.filename, data.base.filename_len);
+		execute_save_game(state, source_nation, data.base.and_quit, str);
 		break;
 	}
 	case command_type::cancel_factory_building_construction:
@@ -7419,12 +7433,7 @@ bool execute_command(sys::state& state, command_data& c) {
 		// common mp commands
 	case command_type::chat_message:
 	{
-		// by this time we know that the msg_len is legit, after can_perform_command
 		auto& data = c.get_payload<chat_message_data_recv>();
-		/*size_t count = 0;
-		for(count = 0; count < sizeof(data.body); count++)
-			if(data.body[count] == '\0')
-				break;*/
 		std::string_view sv(data.body, data.data.msg_len);
 		execute_chat_message(state, source_nation, sv, data.data.target, c.header.player_id);
 		break;

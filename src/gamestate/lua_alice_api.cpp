@@ -5,7 +5,7 @@
 #include "text.hpp"
 #include "commands.hpp"
 
-sys::state* alice_state_ptr;
+static sys::state* alice_state_ptr;
 
 #include "lua_dcon_generated.cpp"
 

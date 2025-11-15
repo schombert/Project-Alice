@@ -183,6 +183,11 @@ struct make_leader_data {
 
 struct save_game_data {
 	bool and_quit;
+	uint8_t filename_len;
+};
+struct save_game_data_recv {
+	save_game_data base;
+	char filename[1];
 };
 
 struct province_building_data {
@@ -242,6 +247,10 @@ struct influence_priority_data {
 
 struct generic_location_data {
 	dcon::province_id prov;
+};
+
+struct generic_state_definition_data {
+	dcon::state_definition_id state_def;
 };
 
 struct cheat_location_data {
@@ -435,7 +444,6 @@ struct new_admiral_data {
 struct retreat_from_naval_battle_data {
 	dcon::navy_id navy;
 	dcon::province_id dest;
-	bool auto_retreat;
 };
 
 struct land_battle_data {
@@ -586,7 +594,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{command_type::upgrade_colony_to_state, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::invest_in_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::abandon_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
-	{command_type::finish_colonization, command_type_data{sizeof(command::generic_location_data),  sizeof(command::generic_location_data) } },
+	{command_type::finish_colonization, command_type_data{sizeof(command::generic_state_definition_data),  sizeof(command::generic_state_definition_data) } },
 	{command_type::intervene_in_war, command_type_data{sizeof(command::war_target_data),  sizeof(command::war_target_data) } },
 	{command_type::suppress_movement, command_type_data{ sizeof(command::movement_data), sizeof(command::movement_data) } },
 	{command_type::civilize_nation, command_type_data{ 0, 0 } },
@@ -843,7 +851,7 @@ static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(comm
 // decides whether the host should broadcast the command or execute it only for themself
 bool should_broadcast_command(sys::state& state, const command_data& command);
 
-void save_game(sys::state& state, dcon::nation_id source, bool and_quit);
+void save_game(sys::state& state, dcon::nation_id source, bool and_quit, const std::string& filename = "");
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable);
 
@@ -961,8 +969,8 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::provi
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
@@ -1153,8 +1161,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);

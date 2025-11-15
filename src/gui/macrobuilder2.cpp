@@ -1,6 +1,4 @@
 namespace alice_ui {
-struct macrobuilder2_main_close_button_t;
-struct macrobuilder2_main_header_text_t;
 struct macrobuilder2_main_apply_button_t;
 struct macrobuilder2_main_t;
 struct macrobuilder2_list_item_select_button_t;
@@ -12,97 +10,10 @@ struct macrobuilder2_grid_item_increase_count_t;
 struct macrobuilder2_grid_item_current_count_t;
 struct macrobuilder2_grid_item_t;
 struct macrobuilder2_spacer_t;
-struct macrobuilder2_main_close_button_t : public ui::element_base {
-// BEGIN main::close_button::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	dcon::text_key tooltip_key;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct macrobuilder2_main_header_text_t : public ui::element_base {
-// BEGIN main::header_text::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = true; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct macrobuilder2_main_apply_button_t : public ui::element_base {
+struct macrobuilder2_main_apply_button_t : public alice_ui::template_text_button {
 // BEGIN main::apply_button::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	bool disabled = false;
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::black;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct macrobuilder2_main_template_list_g_t : public layout_generator {
@@ -137,67 +48,16 @@ struct macrobuilder2_main_unit_grid_g_t : public layout_generator {
 	size_t item_count() override { return values.size(); };
 	void reset_pools() override;
 };
-struct macrobuilder2_list_item_select_button_t : public ui::element_base {
+struct macrobuilder2_list_item_select_button_t : public alice_ui::template_mixed_button {
 // BEGIN list_item::select_button::variables
 // END
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::black;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct macrobuilder2_list_item_delete_button_t : public ui::element_base {
+struct macrobuilder2_list_item_delete_button_t : public alice_ui::template_icon_button {
 // BEGIN list_item::delete_button::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	dcon::text_key tooltip_key;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct macrobuilder2_grid_item_unit_icon_t : public ui::element_base {
@@ -227,101 +87,37 @@ struct macrobuilder2_grid_item_unit_icon_t : public ui::element_base {
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct macrobuilder2_grid_item_decrease_count_t : public ui::element_base {
+struct macrobuilder2_grid_item_decrease_count_t : public alice_ui::template_icon_button {
 // BEGIN grid_item::decrease_count::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	bool disabled = false;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
+	bool button_shift_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct macrobuilder2_grid_item_increase_count_t : public ui::element_base {
+struct macrobuilder2_grid_item_increase_count_t : public alice_ui::template_icon_button {
 // BEGIN grid_item::increase_count::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	bool disabled = false;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
+	bool button_shift_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct macrobuilder2_grid_item_current_count_t : public ui::element_base {
+struct macrobuilder2_grid_item_current_count_t : public alice_ui::template_label {
 // BEGIN grid_item::current_count::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 struct macrobuilder2_main_t : public layout_window_element {
 // BEGIN main::variables
 // END
-	std::unique_ptr<macrobuilder2_main_close_button_t> close_button;
-	std::unique_ptr<macrobuilder2_main_header_text_t> header_text;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<template_label> header_text;
 	std::unique_ptr<macrobuilder2_main_apply_button_t> apply_button;
 	macrobuilder2_main_template_list_g_t template_list_g;
 	macrobuilder2_main_unit_grid_g_t unit_grid_g;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void on_hide(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
@@ -352,15 +148,15 @@ struct macrobuilder2_list_item_t : public layout_window_element {
 // BEGIN list_item::variables
 // END
 	int32_t value;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<macrobuilder2_list_item_select_button_t> select_button;
 	std::unique_ptr<macrobuilder2_list_item_delete_button_t> delete_button;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return ui::message_result::unseen;
-	}
+	void set_alternate(bool alt) noexcept;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "value") {
@@ -374,21 +170,16 @@ struct macrobuilder2_grid_item_t : public layout_window_element {
 // BEGIN grid_item::variables
 // END
 	dcon::unit_type_id value;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<macrobuilder2_grid_item_unit_icon_t> unit_icon;
 	std::unique_ptr<macrobuilder2_grid_item_decrease_count_t> decrease_count;
 	std::unique_ptr<macrobuilder2_grid_item_increase_count_t> increase_count;
 	std::unique_ptr<macrobuilder2_grid_item_current_count_t> current_count;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "value") {
@@ -401,6 +192,7 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_grid_item(sys::state& state
 struct macrobuilder2_spacer_t : public ui::non_owning_container_base {
 // BEGIN spacer::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
@@ -452,10 +244,11 @@ measure_result  macrobuilder2_main_template_list_g_t::place_item(sys::state& sta
 			list_item_pool[list_item_pool_used]->parent = destination;
 			destination->children.push_back(list_item_pool[list_item_pool_used].get());
 			((macrobuilder2_list_item_t*)(list_item_pool[list_item_pool_used].get()))->value = std::get<list_item_option>(values[index]).value;
+			((macrobuilder2_list_item_t*)(list_item_pool[list_item_pool_used].get()))->set_alternate(alternate);
 			list_item_pool[list_item_pool_used]->impl_on_update(state);
 			list_item_pool_used++;
 		}
-		alternate = true;
+		alternate = !alternate;
 		return measure_result{ list_item_pool[0]->base_data.size.x, list_item_pool[0]->base_data.size.y + 0, measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
@@ -529,85 +322,17 @@ void  macrobuilder2_main_unit_grid_g_t::reset_pools() {
 	grid_item_pool_used = 0;
 	spacer_pool_used = 0;
 }
-ui::message_result macrobuilder2_main_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+void macrobuilder2_main_apply_button_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::close_button::lbutton_action
-	main.set_visible(state, false);
-	auto sdir = simple_fs::get_or_create_templates_directory();
-	simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+// BEGIN main::apply_button::update
+	disabled = (state.ui_state.current_template == -1 || state.map_state.selected_province == dcon::province_id{} || state.world.province_get_nation_from_province_ownership(state.map_state.selected_province) != state.local_player_nation || state.world.province_get_nation_from_province_control(state.map_state.selected_province) != state.local_player_nation);
 // END
-	return ui::message_result::consumed;
 }
-ui::message_result macrobuilder2_main_close_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-ui::message_result macrobuilder2_main_close_button_t::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
-	if(key == sys::virtual_key::ESCAPE) {
-		on_lbutton_down(state, 0, 0, mods);
-		return ui::message_result::consumed;
-	}
-	return ui::message_result::unseen;
-}
-void macrobuilder2_main_close_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	text::add_line(state, contents, tooltip_key);
-}
-void macrobuilder2_main_close_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void macrobuilder2_main_close_button_t::on_update(sys::state& state) noexcept {
+bool macrobuilder2_main_apply_button_t::button_action(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
-// BEGIN main::close_button::update
-// END
-}
-void macrobuilder2_main_close_button_t::on_create(sys::state& state) noexcept {
-// BEGIN main::close_button::create
-// END
-}
-void macrobuilder2_main_header_text_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void macrobuilder2_main_header_text_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void macrobuilder2_main_header_text_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void macrobuilder2_main_header_text_t::on_update(sys::state& state) noexcept {
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
-// BEGIN main::header_text::update
-// END
-}
-void macrobuilder2_main_header_text_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::header_text::create
-// END
-}
-ui::message_result macrobuilder2_main_apply_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(disabled) return ui::message_result::consumed;
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
 // BEGIN main::apply_button::lbutton_action
 	if(state.ui_state.current_template < 0 || state.ui_state.current_template >= int32_t(state.ui_state.templates.size()))
-		return ui::message_result::consumed;
+		return true;
 
 	auto const& t = state.ui_state.templates[state.ui_state.current_template];
 
@@ -624,7 +349,7 @@ ui::message_result macrobuilder2_main_apply_button_t::on_lbutton_down(sys::state
 	std::vector<dcon::province_id> provinces;
 	state.fill_vector_of_connected_provinces(state.map_state.selected_province, is_land, provinces);
 	if(provinces.empty())
-		return ui::message_result::consumed;
+		return true;
 
 	if(is_land) {
 		std::array<uint8_t, sys::macro_builder_template::max_types> current_distribution;
@@ -678,49 +403,7 @@ ui::message_result macrobuilder2_main_apply_button_t::on_lbutton_down(sys::state
 	}
 	state.game_state_updated.store(true, std::memory_order::release);
 // END
-	return ui::message_result::consumed;
-}
-ui::message_result macrobuilder2_main_apply_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void macrobuilder2_main_apply_button_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void macrobuilder2_main_apply_button_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void macrobuilder2_main_apply_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void macrobuilder2_main_apply_button_t::on_update(sys::state& state) noexcept {
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent)); 
-// BEGIN main::apply_button::update
-	disabled = (state.ui_state.current_template == -1 || state.map_state.selected_province == dcon::province_id{} || state.world.province_get_nation_from_province_ownership(state.map_state.selected_province) != state.local_player_nation || state.world.province_get_nation_from_province_control(state.map_state.selected_province) != state.local_player_nation);
-// END
-}
-void macrobuilder2_main_apply_button_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::apply_button::create
-// END
+	return true;
 }
 ui::message_result macrobuilder2_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
@@ -729,17 +412,11 @@ ui::message_result macrobuilder2_main_t::on_lbutton_down(sys::state& state, int3
 ui::message_result macrobuilder2_main_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
-void macrobuilder2_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
+void macrobuilder2_main_t::on_hide(sys::state& state) noexcept {
+// BEGIN main::on_hide
+	auto sdir = simple_fs::get_or_create_templates_directory();
+	simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+// END
 }
 void macrobuilder2_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
@@ -766,10 +443,14 @@ void macrobuilder2_main_t::create_layout_level(sys::state& state, layout_level& 
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(90);
-		lvl.page_controls->base_data.size.y = int16_t(18);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -789,14 +470,18 @@ void macrobuilder2_main_t::create_layout_level(sys::state& state, layout_level& 
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
 				temp.ptr = nullptr;
-				if(cname == "close_button") {
-					temp.ptr = close_button.get();
-				}
 				if(cname == "header_text") {
 					temp.ptr = header_text.get();
-				}
+				} else
 				if(cname == "apply_button") {
 					temp.ptr = apply_button.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -862,42 +547,27 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		if(child_data.name == "close_button") {
-			close_button = std::make_unique<macrobuilder2_main_close_button_t>();
-			close_button->parent = this;
-			auto cptr = close_button.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
 		if(child_data.name == "header_text") {
-			header_text = std::make_unique<macrobuilder2_main_header_text_t>();
+			header_text = std::make_unique<template_label>();
 			header_text->parent = this;
 			auto cptr = header_text.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "apply_button") {
 			apply_button = std::make_unique<macrobuilder2_main_apply_button_t>();
 			apply_button->parent = this;
@@ -906,12 +576,33 @@ void macrobuilder2_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
-			cptr->text_key = state.lookup_key(child_data.text_key);
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -933,55 +624,16 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_main(sys::state& state) {
 	ptr->on_create(state);
 	return ptr;
 }
-ui::message_result macrobuilder2_list_item_select_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN list_item::select_button::lbutton_action
-	state.ui_state.current_template = list_item.value;
-	state.game_state_updated.store(true, std::memory_order::release);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result macrobuilder2_list_item_select_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void macrobuilder2_list_item_select_button_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void macrobuilder2_list_item_select_button_t::on_reset_text(sys::state& state) noexcept {
-}
-void macrobuilder2_list_item_select_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, true); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void macrobuilder2_list_item_select_button_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
 // BEGIN list_item::select_button::update
+	static const int32_t select_icon = template_project::icon_by_name(state.ui_templates, "select_tab.svg");
+
 	if(list_item.value == state.ui_state.current_template) {
-		is_active = true;
-		text_color = text::text_color::black;
+		icon_id = int16_t(select_icon);
 	} else {
-		is_active = false;
-		text_color = text::text_color::gold;
+		icon_id = -1;
 	}
 	if(list_item.value == -1) {
 		set_text(state, text::produce_simple_string(state, "macro_new_template"));
@@ -1002,14 +654,29 @@ void macrobuilder2_list_item_select_button_t::on_update(sys::state& state) noexc
 	set_text(state, accumulated);
 // END
 }
-void macrobuilder2_list_item_select_button_t::on_create(sys::state& state) noexcept {
-// BEGIN list_item::select_button::create
-// END
-}
-ui::message_result macrobuilder2_list_item_delete_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+bool macrobuilder2_list_item_select_button_t::button_action(sys::state& state) noexcept {
 	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+// BEGIN list_item::select_button::lbutton_action
+	state.ui_state.current_template = list_item.value;
+	state.game_state_updated.store(true, std::memory_order::release);
+// END
+	return true;
+}
+void macrobuilder2_list_item_delete_button_t::on_update(sys::state& state) noexcept {
+	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
+	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
+// BEGIN list_item::delete_button::update
+	if(list_item.value == state.ui_state.current_template && list_item.value != -1) {
+		element_base::flags &= ~element_base::is_invisible_mask;
+	} else {
+		element_base::flags |= element_base::is_invisible_mask;
+	}
+// END
+}
+bool macrobuilder2_list_item_delete_button_t::button_action(sys::state& state) noexcept {
+	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
+	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
 // BEGIN list_item::delete_button::lbutton_action
 	if(list_item.value != -1) {
 		if(list_item.value == state.ui_state.current_template) {
@@ -1020,42 +687,17 @@ ui::message_result macrobuilder2_list_item_delete_button_t::on_lbutton_down(sys:
 		main.impl_on_update(state);
 	}
 // END
+	return true;
+}
+void  macrobuilder2_list_item_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? -1 : 2;
+	select_button->template_id = alt ? 0 : 1;
+}
+ui::message_result macrobuilder2_list_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
-ui::message_result macrobuilder2_list_item_delete_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+ui::message_result macrobuilder2_list_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void macrobuilder2_list_item_delete_button_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	text::add_line(state, contents, tooltip_key);
-}
-void macrobuilder2_list_item_delete_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void macrobuilder2_list_item_delete_button_t::on_update(sys::state& state) noexcept {
-	macrobuilder2_list_item_t& list_item = *((macrobuilder2_list_item_t*)(parent)); 
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-// BEGIN list_item::delete_button::update
-	if(list_item.value != -1) {
-		element_base::flags &= ~element_base::is_invisible_mask;
-	} else {
-		element_base::flags |= element_base::is_invisible_mask;
-	}
-// END
-}
-void macrobuilder2_list_item_delete_button_t::on_create(sys::state& state) noexcept {
-// BEGIN list_item::delete_button::create
-// END
-}
-void macrobuilder2_list_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
 }
 void macrobuilder2_list_item_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1081,10 +723,14 @@ void macrobuilder2_list_item_t::create_layout_level(sys::state& state, layout_le
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(90);
-		lvl.page_controls->base_data.size.y = int16_t(18);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -1106,9 +752,16 @@ void macrobuilder2_list_item_t::create_layout_level(sys::state& state, layout_le
 				temp.ptr = nullptr;
 				if(cname == "select_button") {
 					temp.ptr = select_button.get();
-				}
+				} else
 				if(cname == "delete_button") {
 					temp.ptr = delete_button.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1168,6 +821,7 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "select_button") {
@@ -1178,17 +832,17 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->alt_texture_key = child_data.alt_texture;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			cptr->icon_id = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "delete_button") {
 			delete_button = std::make_unique<macrobuilder2_list_item_delete_button_t>();
 			delete_button->parent = this;
@@ -1198,8 +852,32 @@ void macrobuilder2_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->flags |= ui::element_base::wants_update_when_hidden_mask;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
 			cptr->texture_key = child_data.texture;
-			cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -1232,44 +910,17 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 	text::add_line(state, contents, state.military_definitions.unit_base_definitions[grid_item.value].name);
 	text::add_line_break_to_layout(state, contents);
 	auto utid = grid_item.value;
-	auto is_land = state.military_definitions.unit_base_definitions[utid].is_land;
-
-	float reconnaissance_or_fire_range = 0.f;
-	float siege_or_torpedo_attack = 0.f;
-	float attack_or_gun_power = 0.f;
-	float defence_or_hull = 0.f;
-	float discipline_or_evasion = std::numeric_limits<float>::max();
-	float support = 0.f;
-	float supply_consumption = 0.f;
-	float maximum_speed = std::numeric_limits<float>::max();
-	float maneuver = std::numeric_limits<float>::max();
-	int32_t supply_consumption_score = 0;
 	bool warn_overseas = false;
 	bool warn_culture = false;
 	bool warn_active = false;
 
-	
+	if(!state.military_definitions.unit_base_definitions[utid].active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
+		warn_active = true;
+	if(state.military_definitions.unit_base_definitions[utid].primary_culture)
+		warn_culture = true;
+	if(!state.military_definitions.unit_base_definitions[utid].can_build_overseas)
+		warn_overseas = true;
 
-		if(!state.military_definitions.unit_base_definitions[utid].active && !state.world.nation_get_active_unit(state.local_player_nation, utid))
-			warn_active = true;
-		if(state.military_definitions.unit_base_definitions[utid].primary_culture)
-			warn_culture = true;
-		if(!state.military_definitions.unit_base_definitions[utid].can_build_overseas)
-			warn_overseas = true;
-
-		reconnaissance_or_fire_range += state.world.nation_get_unit_stats(state.local_player_nation, utid).reconnaissance_or_fire_range;
-		siege_or_torpedo_attack += state.world.nation_get_unit_stats(state.local_player_nation, utid).siege_or_torpedo_attack;
-		attack_or_gun_power += state.world.nation_get_unit_stats(state.local_player_nation, utid).attack_or_gun_power;
-		defence_or_hull += state.world.nation_get_unit_stats(state.local_player_nation, utid).defence_or_hull ;
-		discipline_or_evasion += std::min(discipline_or_evasion, state.world.nation_get_unit_stats(state.local_player_nation, utid).discipline_or_evasion);
-		supply_consumption += state.world.nation_get_unit_stats(state.local_player_nation, utid).supply_consumption;
-		maximum_speed = std::min(maximum_speed, state.world.nation_get_unit_stats(state.local_player_nation, utid).maximum_speed);
-		if(is_land) {
-			support += state.world.nation_get_unit_stats(state.local_player_nation, utid).support ;
-			maneuver += state.world.nation_get_unit_stats(state.local_player_nation, utid).maneuver;
-		} else {
-			supply_consumption_score += state.military_definitions.unit_base_definitions[utid].supply_consumption_score;
-		}
 	
 
 	if(warn_overseas)
@@ -1278,40 +929,10 @@ void macrobuilder2_grid_item_unit_icon_t::update_tooltip(sys::state& state, int3
 		text::add_line(state, contents, "macro_warn_culture");
 	if(warn_active)
 		text::add_line(state, contents, "macro_warn_unlocked");
+
+
+	ui::display_unit_stats(state, contents, state.local_player_nation, utid);
 	
-	if(maximum_speed == std::numeric_limits<float>::max()) maximum_speed = 0.f;
-	if(discipline_or_evasion == std::numeric_limits<float>::max()) discipline_or_evasion = 0.f;
-	if(maneuver == std::numeric_limits<float>::max()) maneuver = 0.f;
-	if(is_land) {
-		if(reconnaissance_or_fire_range > 0.f) {
-			text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(reconnaissance_or_fire_range, 2));
-		}
-		if(siege_or_torpedo_attack > 0.f) {
-			text::add_line(state, contents, "unit_siege", text::variable_type::x, text::format_float(siege_or_torpedo_attack, 2));
-		}
-		text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(attack_or_gun_power, 2));
-		text::add_line(state, contents, "unit_defence", text::variable_type::x, text::format_float(defence_or_hull, 2));
-		text::add_line(state, contents, "unit_discipline", text::variable_type::x, text::format_percentage(discipline_or_evasion, 0));
-		if(support > 0.f) {
-			text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(support, 0));
-		}
-		text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(maneuver, 0));
-		text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(maximum_speed, 2));
-		text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(supply_consumption, 0));
-	} else {
-		text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(maximum_speed, 2));
-		text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(attack_or_gun_power, 2));
-		if(siege_or_torpedo_attack > 0.f) {
-			text::add_line(state, contents, "unit_torpedo_attack", text::variable_type::x, text::format_float(siege_or_torpedo_attack, 2));
-		}
-		text::add_line(state, contents, "unit_hull", text::variable_type::x, text::format_float(defence_or_hull, 2));
-		text::add_line(state, contents, "unit_fire_range", text::variable_type::x, text::format_float(reconnaissance_or_fire_range, 2));
-		if(discipline_or_evasion > 0.f) {
-			text::add_line(state, contents, "unit_evasion", text::variable_type::x, text::format_percentage(discipline_or_evasion, 0));
-		}
-		text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_percentage(supply_consumption, 0));
-		text::add_line(state, contents, "unit_supply_load", text::variable_type::x, supply_consumption_score);
-	}
 // END
 }
 void macrobuilder2_grid_item_unit_icon_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -1344,36 +965,6 @@ void macrobuilder2_grid_item_unit_icon_t::on_create(sys::state& state) noexcept 
 // BEGIN grid_item::unit_icon::create
 // END
 }
-ui::message_result macrobuilder2_grid_item_decrease_count_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(disabled) return ui::message_result::consumed;
-	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
-	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-	if(mods == sys::key_modifiers::modifiers_shift) {
-// BEGIN grid_item::decrease_count::lbutton_shift_action
-		if(state.ui_state.current_template != -1) {
-			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
-			v = uint8_t(std::clamp(v - 10, 0, 255));
-		}
-		state.game_state_updated.store(true, std::memory_order::release);
-// END
-		return ui::message_result::consumed;
-	}
-// BEGIN grid_item::decrease_count::lbutton_action
-	if(state.ui_state.current_template != -1) {
-		auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
-		v = uint8_t(std::clamp(v - 1, 0, 255));
-	}
-	state.game_state_updated.store(true, std::memory_order::release);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result macrobuilder2_grid_item_decrease_count_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void macrobuilder2_grid_item_decrease_count_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
 void macrobuilder2_grid_item_decrease_count_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1388,39 +979,39 @@ void macrobuilder2_grid_item_decrease_count_t::on_update(sys::state& state) noex
 	}
 // END
 }
-void macrobuilder2_grid_item_decrease_count_t::on_create(sys::state& state) noexcept {
-// BEGIN grid_item::decrease_count::create
-// END
-}
-ui::message_result macrobuilder2_grid_item_increase_count_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	if(disabled) return ui::message_result::consumed;
+bool macrobuilder2_grid_item_decrease_count_t::button_action(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-	if(mods == sys::key_modifiers::modifiers_shift) {
-// BEGIN grid_item::increase_count::lbutton_shift_action
+// BEGIN grid_item::decrease_count::lbutton_action
+	if(state.ui_state.current_template != -1) {
+		auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
+		v = uint8_t(std::clamp(v - 1, 0, 255));
+	}
+	state.game_state_updated.store(true, std::memory_order::release);
+// END
+	return true;
+}
+bool macrobuilder2_grid_item_decrease_count_t::button_shift_action(sys::state& state) noexcept {
+	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
+	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
+// BEGIN grid_item::decrease_count::lbutton_shift_action
 		if(state.ui_state.current_template != -1) {
 			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
-			v = uint8_t(std::clamp(v + 10, 0, 255));
-		} else {
-			state.ui_state.templates.emplace_back();
-			state.ui_state.current_template = int32_t(state.ui_state.templates.size() - 1);
-			main.template_list_g.add_list_item(int32_t(state.ui_state.templates.size() - 1));
-			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
-			v = uint8_t(std::clamp(v + 10, 0, 255));
-			main.impl_on_update(state);
-		}
-		bool is_land = state.military_definitions.unit_base_definitions[grid_item.value].is_land;
-		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size() && i < sys::macro_builder_template::max_types; ++i) {
-			dcon::unit_type_id id{ dcon::unit_type_id::value_base_t(i) };
-			if(is_land != state.military_definitions.unit_base_definitions[id].is_land) {
-				state.ui_state.templates[state.ui_state.current_template].amounts[i] = 0;
-			}
+			v = uint8_t(std::clamp(v - 10, 0, 255));
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
 // END
-		return ui::message_result::consumed;
-	}
+	return true;
+}
+void macrobuilder2_grid_item_increase_count_t::on_update(sys::state& state) noexcept {
+	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
+	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
+// BEGIN grid_item::increase_count::update
+// END
+}
+bool macrobuilder2_grid_item_increase_count_t::button_action(sys::state& state) noexcept {
+	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
+	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
 // BEGIN grid_item::increase_count::lbutton_action
 	if(state.ui_state.current_template != -1) {
 		auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
@@ -1442,45 +1033,33 @@ ui::message_result macrobuilder2_grid_item_increase_count_t::on_lbutton_down(sys
 	}
 	state.game_state_updated.store(true, std::memory_order::release);
 // END
-	return ui::message_result::consumed;
+	return true;
 }
-ui::message_result macrobuilder2_grid_item_increase_count_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void macrobuilder2_grid_item_increase_count_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, disabled, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void macrobuilder2_grid_item_increase_count_t::on_update(sys::state& state) noexcept {
+bool macrobuilder2_grid_item_increase_count_t::button_shift_action(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
-// BEGIN grid_item::increase_count::update
+// BEGIN grid_item::increase_count::lbutton_shift_action
+		if(state.ui_state.current_template != -1) {
+			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
+			v = uint8_t(std::clamp(v + 10, 0, 255));
+		} else {
+			state.ui_state.templates.emplace_back();
+			state.ui_state.current_template = int32_t(state.ui_state.templates.size() - 1);
+			main.template_list_g.add_list_item(int32_t(state.ui_state.templates.size() - 1));
+			auto& v = state.ui_state.templates[state.ui_state.current_template].amounts[grid_item.value.index()];
+			v = uint8_t(std::clamp(v + 10, 0, 255));
+			main.impl_on_update(state);
+		}
+		bool is_land = state.military_definitions.unit_base_definitions[grid_item.value].is_land;
+		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size() && i < sys::macro_builder_template::max_types; ++i) {
+			dcon::unit_type_id id{ dcon::unit_type_id::value_base_t(i) };
+			if(is_land != state.military_definitions.unit_base_definitions[id].is_land) {
+				state.ui_state.templates[state.ui_state.current_template].amounts[i] = 0;
+			}
+		}
+		state.game_state_updated.store(true, std::memory_order::release);
 // END
-}
-void macrobuilder2_grid_item_increase_count_t::on_create(sys::state& state) noexcept {
-// BEGIN grid_item::increase_count::create
-// END
-}
-void macrobuilder2_grid_item_current_count_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 18), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void macrobuilder2_grid_item_current_count_t::on_reset_text(sys::state& state) noexcept {
-}
-void macrobuilder2_grid_item_current_count_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 18);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
+	return true;
 }
 void macrobuilder2_grid_item_current_count_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_grid_item_t& grid_item = *((macrobuilder2_grid_item_t*)(parent)); 
@@ -1496,27 +1075,11 @@ void macrobuilder2_grid_item_current_count_t::on_update(sys::state& state) noexc
 	}
 // END
 }
-void macrobuilder2_grid_item_current_count_t::on_create(sys::state& state) noexcept {
-// BEGIN grid_item::current_count::create
-// END
-}
 ui::message_result macrobuilder2_grid_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result macrobuilder2_grid_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void macrobuilder2_grid_item_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(9), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
 }
 void macrobuilder2_grid_item_t::on_update(sys::state& state) noexcept {
 	macrobuilder2_main_t& main = *((macrobuilder2_main_t*)(parent->parent)); 
@@ -1545,10 +1108,14 @@ void macrobuilder2_grid_item_t::create_layout_level(sys::state& state, layout_le
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(90);
-		lvl.page_controls->base_data.size.y = int16_t(18);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -1570,15 +1137,22 @@ void macrobuilder2_grid_item_t::create_layout_level(sys::state& state, layout_le
 				temp.ptr = nullptr;
 				if(cname == "unit_icon") {
 					temp.ptr = unit_icon.get();
-				}
+				} else
 				if(cname == "decrease_count") {
 					temp.ptr = decrease_count.get();
-				}
+				} else
 				if(cname == "increase_count") {
 					temp.ptr = increase_count.get();
-				}
+				} else
 				if(cname == "current_count") {
 					temp.ptr = current_count.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1638,7 +1212,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	ui::element_base::flags |= ui::element_base::wants_update_when_hidden_mask;
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
@@ -1655,7 +1229,7 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "decrease_count") {
 			decrease_count = std::make_unique<macrobuilder2_grid_item_decrease_count_t>();
 			decrease_count->parent = this;
@@ -1664,12 +1238,15 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "increase_count") {
 			increase_count = std::make_unique<macrobuilder2_grid_item_increase_count_t>();
 			increase_count->parent = this;
@@ -1678,12 +1255,15 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "current_count") {
 			current_count = std::make_unique<macrobuilder2_grid_item_current_count_t>();
 			current_count->parent = this;
@@ -1692,10 +1272,33 @@ void macrobuilder2_grid_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
 			cptr->text_scale = child_data.text_scale;
 			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
 			cptr->text_alignment = child_data.text_alignment;
 			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -1734,6 +1337,28 @@ void macrobuilder2_spacer_t::on_create(sys::state& state) noexcept {
 	base_data.flags = uint8_t(win_data.orientation);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
 		pending_children.pop_back();
 	}
 // BEGIN spacer::create

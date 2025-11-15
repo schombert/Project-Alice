@@ -876,21 +876,24 @@ public:
 				float factor = economy::build_cost_multiplier(state, prov, pb_con.get_is_pop_project());
 
 				for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-					if(goods.commodity_type[i]) {
-						auto box = text::open_layout_box(contents, 0);
+					auto cid = goods.commodity_type[i];
+					if(!cid) break;
 
-						auto cid = goods.commodity_type[i];
-						std::string padding = cid.index() < 10 ? "0" : "";
-						std::string description = "@$" + padding + std::to_string(cid.index());
-						text::add_unparsed_text_to_layout_box(state, contents, box, description);
+					auto box = text::open_layout_box(contents, 0);
 
-						text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(goods.commodity_type[i]));
-						text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ cgoods.commodity_amounts[i] });
-						text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
-						text::add_to_layout_box(state, contents, box, text::fp_one_place{ goods.commodity_amounts[i] * factor });
-						text::close_layout_box(contents, box);
-					}
+					auto required = goods.commodity_amounts[i];
+					auto current = cgoods.commodity_amounts[i];
+
+					std::string padding = cid.index() < 10 ? "0" : "";
+					std::string description = "@$" + padding + std::to_string(cid.index());
+					text::add_unparsed_text_to_layout_box(state, contents, box, description);
+
+					text::add_to_layout_box(state, contents, box, state.world.commodity_get_name(cid));
+					text::add_to_layout_box(state, contents, box, std::string_view{ ": " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ current });
+					text::add_to_layout_box(state, contents, box, std::string_view{ " / " });
+					text::add_to_layout_box(state, contents, box, text::fp_one_place{ required * factor });
+					text::close_layout_box(contents, box);
 				}
 
 				return;
@@ -2021,14 +2024,14 @@ class province_protectorate_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		command::finish_colonization(state, state.local_player_nation, content);
+		command::finish_colonization(state, state.local_player_nation, state.world.province_get_state_from_abstract_state_membership(content));
 		state.ui_state.province_window->set_visible(state, false);
 		state.set_selected_province(dcon::province_id{});
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
-		disabled = !command::can_finish_colonization(state, state.local_player_nation, content);
+		disabled = !command::can_finish_colonization(state, state.local_player_nation, state.world.province_get_state_from_abstract_state_membership(content));
 	}
 };
 

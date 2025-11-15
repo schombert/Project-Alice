@@ -305,7 +305,7 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		factory_construction_tooltip(state, contents, target.factory_construction);
+		economy::factory_construction_tooltip(state, contents, target.factory_construction);
 	}
 };
 
@@ -332,7 +332,12 @@ public:
 
 		text::add_line(state, contents, "local_admin");
 
-		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_priority) });
+		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto admin_budget_approx = budget_priority * national_budget;
+		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
+		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration(state, n, budget_per_administration) });
 
 		auto records = economy::explain_local_administration_employment(state, target.province);
 		for(auto record : records) {
@@ -384,7 +389,12 @@ public:
 
 		text::add_line(state, contents, "capital_admin");
 
-		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_priority) });
+		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto admin_budget_approx = budget_priority * national_budget;
+		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
+		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
+
+		text::add_line(state, contents, "local_admin_spending", text::variable_type::value, text::fp_currency{ economy::estimate_spendings_administration_capital(state, n, budget_per_administration) });
 
 		text::add_line_break_to_layout(state, contents);
 

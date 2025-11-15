@@ -1050,9 +1050,17 @@ void rebel_risings_check(sys::state& state) {
 			for(auto pop : rf.get_pop_rebellion_membership()) {
 				if(counter == 0)
 					break;
-
-				if(pop_demographics::get_militancy(state, pop.get_pop()) >= state.defines.mil_to_join_rising) {
-					auto location = pop.get_pop().get_province_from_pop_location();
+				auto location = pop.get_pop().get_province_from_pop_location();
+				if(
+					pop_demographics::get_militancy(state, pop.get_pop()) >= state.defines.mil_to_join_rising
+					&&
+					// prevent pops at occupied locations from starting rebellion
+					(
+						location.get_nation_from_province_control() == location.get_nation_from_province_ownership()
+						||
+						!location.get_nation_from_province_control()
+					)
+				) {
 
 					// this is the logic we would use if we were creating rebel regiments
 					auto max_count = int32_t(state.world.pop_get_size(pop.get_pop()) * rebel_size_reduction / (province::is_overseas(state, pop.get_pop().get_province_from_pop_location()) ? (state.defines.pop_min_size_for_regiment_colony_multiplier * state.defines.pop_size_per_regiment) : state.defines.pop_size_per_regiment));

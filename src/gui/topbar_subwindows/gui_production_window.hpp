@@ -44,7 +44,7 @@ public:
 		auto ftid = state.world.factory_get_building_type(fid);
 		auto out = state.world.factory_type_get_output(ftid);
 		auto price = state.world.market_get_price(mid, out);
-		auto sold = state.world.market_get_supply_sold_ratio(mid, out);
+		auto sold = state.world.market_get_actual_probability_to_sell(mid, out);
 		auto wage_1 = state.world.province_get_labor_price(location, economy::labor::no_education);
 		auto wage_2 = state.world.province_get_labor_price(location, economy::labor::basic_education);
 
@@ -941,7 +941,7 @@ public:
 					dcon::commodity_id cid = cset.commodity_type[size_t(i)];
 					input_icons[size_t(i)]->frame = int32_t(state.world.commodity_get_icon(cid));
 					input_icons[size_t(i)]->com = cid;
-					bool is_lack = cid != dcon::commodity_id{} ? state.world.market_get_demand_satisfaction(market, cid) < 0.5f : false;
+					bool is_lack = cid != dcon::commodity_id{} ? state.world.market_get_actual_probability_to_buy(market, cid) < 0.5f : false;
 					input_lack_icons[size_t(i)]->set_visible(state, is_lack);
 				}
 			}

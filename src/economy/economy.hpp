@@ -185,9 +185,7 @@ float nation_total_imports(sys::state& state, dcon::nation_id n);
 float estimate_gold_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_import_income(sys::state& state, dcon::nation_id n);
 float estimate_tariff_export_income(sys::state& state, dcon::nation_id n);
-float estimate_social_spending(sys::state& state, dcon::nation_id n);
 float estimate_education_spending(sys::state& state, dcon::nation_id n);
-float estimate_pop_payouts_by_income_type(sys::state& state, dcon::nation_id n, culture::income_type in);
 float estimate_subsidy_spending(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_balance(sys::state& state, dcon::nation_id n);
 float estimate_diplomatic_income(sys::state& state, dcon::nation_id n);
@@ -197,7 +195,6 @@ float estimate_current_domestic_investment(sys::state& state, dcon::nation_id n)
 
 float estimate_land_spending(sys::state& state, dcon::nation_id n);
 float estimate_naval_spending(sys::state& state, dcon::nation_id n);
-float estimate_private_construction_spendings(sys::state& state, dcon::nation_id nid);
 float estimate_war_subsidies_spending(sys::state& state, dcon::nation_id n);
 float estimate_reparations_spending(sys::state& state, dcon::nation_id n);
 float estimate_war_subsidies_income(sys::state& state, dcon::nation_id n);
@@ -233,6 +230,7 @@ float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon
 float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n);
 float estimate_subject_payments_received(sys::state& state, dcon::nation_id o);
 
+float estimate_daily_income_ai(sys::state& state, dcon::nation_id n);
 float estimate_daily_income(sys::state& state, dcon::nation_id n);
 
 struct construction_status {

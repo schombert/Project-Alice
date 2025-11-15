@@ -1485,6 +1485,16 @@ object {
 		type{ bitfield }
 		tag{ save }
 	}
+	property{
+		name{ has_major_river }
+		type{ bitfield }
+		tag{ save }
+	}
+	property{
+		name{ has_minor_river }
+		type{ bitfield }
+		tag{ save }
+	}
 
 	property{
 		name{ crime }
@@ -1631,6 +1641,16 @@ object {
 		tag{ save }
 	}
 	property{
+		name{ rgo_max_efficiency }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ rgo_demand }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property{
 		name{ rgo_target_employment }
 		type{ array{commodity_id}{float} }
 		tag{ save }
@@ -1756,9 +1776,23 @@ object {
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
-
+	property {
+		name{ advanced_province_building_max_national_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
 	property {
 		name{ advanced_province_building_private_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ advanced_province_building_max_private_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ advanced_province_building_private_output }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}
@@ -4551,22 +4585,38 @@ object{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
-	property {
-		name{ demand_satisfaction }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property {
-		name{ supply_sold_ratio }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
-	property {
-		name{ direct_demand_satisfaction }
-		type{ array{commodity_id}{float} }
-		tag{ save }
-	}
 
+
+	property {
+		name{ aggregated_demand_history }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ aggregated_supply_history }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ expected_probability_to_buy }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ actual_probability_to_buy }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ expected_probability_to_sell }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
+	property {
+		name{ actual_probability_to_sell }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
 	
 
 	property{

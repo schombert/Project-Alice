@@ -28,6 +28,30 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, message_dismiss_notification{});
 	}
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		if(
+			!disabled
+			&&
+			base_data.get_element_type() == element_type::button
+			&&
+			(
+				key == sys::virtual_key::ESCAPE
+				||
+				key == sys::virtual_key::RETURN
+			)
+		) {
+			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			if(mods == sys::key_modifiers::modifiers_shift)
+				button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				button_ctrl_action(state);
+			else
+				button_action(state);
+			return message_result::consumed;
+		} else {
+			return message_result::unseen;
+		}
+	}
 };
 
 class message_count_text : public simple_text_element_base {
@@ -150,8 +174,9 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		button_element_base::on_create(state);
 		set_button_text(state, "Goto");
-
+		base_data.data.button.shortcut = sys::virtual_key::NONE;
 	}
+
 	void button_action(sys::state& state) noexcept override {
 		auto prov_source = retrieve<dcon::province_id>(state, parent);
 		auto nation_source = retrieve<dcon::nation_id>(state, parent);

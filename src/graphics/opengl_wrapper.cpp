@@ -967,6 +967,23 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
+void render_rect_slice(sys::state const& state, float x, float y, float width, float height, GLuint texture_handle, float start_slice, float end_slice) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, start_slice, end_slice - start_slice, 0.0f);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x + width * start_slice, y, width * (end_slice - start_slice), height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::sub_sprite };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
 
 
 GLuint get_flag_texture_handle_from_tag(sys::state& state, const char tag[3]) {

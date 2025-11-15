@@ -6,33 +6,9 @@ struct market_prices_report_list_header_t;
 struct market_prices_report_list_item_bg_t;
 struct market_prices_report_list_item_icon_t;
 struct market_prices_report_list_item_t;
-struct market_prices_report_body_header_t : public ui::element_base {
+struct market_prices_report_body_header_t : public alice_ui::template_label {
 // BEGIN body::header::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::black;
-	float text_scale = 1.000000f; 
-	bool text_is_header = true; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 struct market_prices_report_body_price_list_t : public layout_generator {
@@ -165,6 +141,7 @@ struct market_prices_report_list_item_icon_t : public ui::element_base {
 struct market_prices_report_body_t : public layout_window_element {
 // BEGIN body::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<market_prices_report_body_header_t> header;
 	market_prices_report_body_price_list_t price_list;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
@@ -213,11 +190,8 @@ struct market_prices_report_body_t : public layout_window_element {
 	std::string_view list_descending_icon_key;
 	dcon::texture_id list_descending_icon;
 	ogl::color3f list_divider_color{float(0.000000), float(0.000000), float(0.000000)};
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
@@ -247,6 +221,7 @@ std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& sta
 struct market_prices_report_list_header_t : public layout_window_element {
 // BEGIN list_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<market_prices_report_list_header_bg_t> bg;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -262,6 +237,7 @@ struct market_prices_report_list_item_t : public layout_window_element {
 // BEGIN list_item::variables
 // END
 	dcon::commodity_id cid;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<market_prices_report_list_item_bg_t> bg;
 	std::unique_ptr<market_prices_report_list_item_icon_t> icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
@@ -454,28 +430,6 @@ void  market_prices_report_body_price_list_t::reset_pools() {
 	list_header_pool_used = 0;
 	list_item_pool_used = 0;
 }
-void market_prices_report_body_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void market_prices_report_body_header_t::on_reset_text(sys::state& state) noexcept {
-}
-void market_prices_report_body_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void market_prices_report_body_header_t::on_update(sys::state& state) noexcept {
 	market_prices_report_body_t& body = *((market_prices_report_body_t*)(parent)); 
 // BEGIN body::header::update
@@ -485,28 +439,12 @@ void market_prices_report_body_header_t::on_update(sys::state& state) noexcept {
 	set_text(state, result);
 // END
 }
-void market_prices_report_body_header_t::on_create(sys::state& state) noexcept {
-// BEGIN body::header::create
-// END
-}
 ui::message_result market_prices_report_body_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
 }
 ui::message_result market_prices_report_body_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void market_prices_report_body_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
 }
 void market_prices_report_body_t::on_update(sys::state& state) noexcept {
 // BEGIN body::update
@@ -532,10 +470,14 @@ void market_prices_report_body_t::create_layout_level(sys::state& state, layout_
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -557,6 +499,13 @@ void market_prices_report_body_t::create_layout_level(sys::state& state, layout_
 				temp.ptr = nullptr;
 				if(cname == "header") {
 					temp.ptr = header.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -616,7 +565,7 @@ void market_prices_report_body_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "header") {
@@ -627,15 +576,16 @@ void market_prices_report_body_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tablist") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -699,6 +649,28 @@ void market_prices_report_body_t::on_create(sys::state& state) noexcept {
 			col_section.read(list_future_change_column_text_color);
 			col_section.read(list_future_change_header_text_color);
 			col_section.read(list_future_change_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		}
 		pending_children.pop_back();
@@ -997,10 +969,14 @@ void market_prices_report_list_header_t::create_layout_level(sys::state& state, 
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -1022,6 +998,13 @@ void market_prices_report_list_header_t::create_layout_level(sys::state& state, 
 				temp.ptr = nullptr;
 				if(cname == "bg") {
 					temp.ptr = bg.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1088,6 +1071,28 @@ void market_prices_report_list_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -1405,10 +1410,14 @@ void market_prices_report_list_item_t::create_layout_level(sys::state& state, la
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -1430,9 +1439,16 @@ void market_prices_report_list_item_t::create_layout_level(sys::state& state, la
 				temp.ptr = nullptr;
 				if(cname == "bg") {
 					temp.ptr = bg.get();
-				}
+				} else
 				if(cname == "icon") {
 					temp.ptr = icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1505,7 +1521,7 @@ void market_prices_report_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "icon") {
 			icon = std::make_unique<market_prices_report_list_item_icon_t>();
 			icon->parent = this;
@@ -1515,6 +1531,28 @@ void market_prices_report_list_item_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);

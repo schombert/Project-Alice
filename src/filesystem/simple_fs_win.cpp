@@ -257,6 +257,19 @@ native_string get_full_name(directory const& dir) {
 	return dir.relative_path;
 }
 
+native_string get_mod_save_dir_name(const simple_fs::file_system& fs) {
+	auto mod_roots = simple_fs::list_roots(fs);
+	native_string save_dir;
+	for(const auto& root : mod_roots) {
+		size_t found = root.find_last_of(NATIVE("\\"));
+		if(found == native_string::npos) {
+			continue;
+		}
+		save_dir += root.substr(found + 1);
+	}
+	return save_dir;
+}
+
 native_string get_dir_name(directory const& dir) {
 	size_t found;
 	found = dir.relative_path.find_last_of(NATIVE("\\"));
@@ -432,7 +445,7 @@ directory get_or_create_settings_directory() {
 	return directory(nullptr, base_path);
 }
 
-directory get_or_create_save_game_directory() {
+directory get_or_create_save_game_directory(native_string mod_dir) {
 	wchar_t* local_path_out = nullptr;
 	native_string base_path;
 	if(SHGetKnownFolderPath(FOLDERID_Documents, 0, nullptr, &local_path_out) == S_OK) {
@@ -443,6 +456,10 @@ directory get_or_create_save_game_directory() {
 		CreateDirectoryW(base_path.c_str(), nullptr);
 		base_path += NATIVE("\\saved games");
 		CreateDirectoryW(base_path.c_str(), nullptr);
+		if(mod_dir.length() > 0) {
+			base_path += (NATIVE("\\") + mod_dir);
+			CreateDirectoryW(base_path.c_str(), nullptr);
+		}
 	}
 	return directory(nullptr, base_path);
 }
@@ -610,6 +627,10 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	return std::string("");
 }
 
+native_string utf16_to_native(std::u16string_view str) {
+	return std::wstring((wchar_t const*)str.data(), str.length());
+}
+
 std::string remove_double_backslashes(std::string_view data_in) {
 	std::string res;
 	res.reserve(data_in.size());
@@ -623,6 +644,16 @@ std::string remove_double_backslashes(std::string_view data_in) {
 		}
 	}
 	return res;
+}
+
+native_string remove_file_extension(const native_string& str) {
+	size_t found = str.find_last_of(NATIVE("."));
+	if(found != native_string::npos) {
+		return native_string(str, 0, found);
+	}
+	else {
+		return native_string(str);
+	}
 }
 
 native_string correct_slashes(native_string_view path) {

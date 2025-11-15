@@ -1757,7 +1757,7 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 	}
 
 	if(state.local_player_id == player) {
-		state.set_local_player_nation_do_not_update_dcon(new_n);
+		state.set_local_player_nation(new_n);
 	}
 
 	// We will also re-assign all chat messages from this nation to the new one

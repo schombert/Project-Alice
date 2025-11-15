@@ -940,11 +940,13 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	// we have agreed to replace admin spending with national admin efficiency
 
 	// changed to local control/enforcement ratio
+	// it would be logical if decent control would be enough to fight against crime
+	// so we multiply control by 3: 33% of control would represent an ability to fight against crimes
 
 	auto si = state.world.province_get_state_membership(id);
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 	if(si && owner)
-		return state.world.province_get_control_ratio(id)
+		return state.world.province_get_control_ratio(id) * 3.f
 			* (1.f + state.world.nation_get_administrative_efficiency(owner))
 			* (
 				state.defines.max_crimefight_percent
@@ -2534,6 +2536,10 @@ std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::provin
 				distance = distance / 2.f;
 			}
 			distance -= 0.03f * std::min(railroad_target, railroad_origin) * distance;
+
+			if(bits & province::border::river_connection_bit) {
+				distance = distance / 2.f;
+			}
 
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {

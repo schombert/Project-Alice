@@ -25,6 +25,7 @@ void make_mod_file() {
 		parsers::error_handler err("");
 		auto root = get_root(fs_root);
 		auto common = open_directory(root, NATIVE("common"));
+		auto save_dir = simple_fs::get_mod_save_dir_name(fs_root);
 		parsers::bookmark_context bookmark_context;
 		if(auto f = open_file(common, NATIVE("bookmarks.txt")); f) {
 			auto bookmark_content = simple_fs::view_contents(*f);
@@ -46,6 +47,7 @@ void make_mod_file() {
 			err.accumulated_warnings.clear();
 			//
 			auto game_state = std::make_unique<sys::state>();
+			game_state->mod_save_dir = save_dir;
 			simple_fs::restore_state(game_state->common_fs, path);
 			game_state->load_scenario_data(err, bookmark_context.bookmark_dates[date_index].date_);
 			if(err.fatal)

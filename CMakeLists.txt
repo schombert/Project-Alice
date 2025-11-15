@@ -24,7 +24,39 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
 	"src/graphics/xac.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/lunasvg/plutovg-blend.c"
+	"src/lunasvg/plutovg-canvas.c"
+	"src/lunasvg/plutovg-font.c"
+	"src/lunasvg/plutovg-ft-math.c"
+	"src/lunasvg/plutovg-ft-raster.c"
+	"src/lunasvg/plutovg-ft-stroker.c"
+	"src/lunasvg/plutovg-matrix.c"
+	"src/lunasvg/plutovg-paint.c"
+	"src/lunasvg/plutovg-path.c"
+	"src/lunasvg/plutovg-rasterize.c"
+	"src/lunasvg/plutovg-surface.c"
 )
+set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-font.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-math.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-raster.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-stroker.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-matrix.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-paint.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-path.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
@@ -51,6 +83,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/economy/economy_production.cpp"
 	"src/economy/construction.cpp"
 	"src/economy/advanced_province_buildings.cpp"
+	"src/economy/national_budget.cpp"
 	"src/gamestate/commands.cpp"
 	"src/gamestate/diplomatic_messages.cpp"
 	"src/gamestate/modifiers.cpp"
@@ -99,6 +132,18 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
 	"src/gamerule/gamerule.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/graphics/asvg.cpp"
+	"src/gamestate/uitemplate_serialization.cpp"
 )
 
 if(WIN32)
@@ -152,16 +197,16 @@ if(WIN32)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -Wno-nrvo -fprofile-instr-use=code.profdata)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -Wno-nrvo -Wno-unused-function -Wno-cast-qual -Wno-format-security -fprofile-instr-use=code.profdata)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement  -Wno-undefined-func-template -Wno-bad-function-cast  -Wno-unused-function -Wno-cast-qual -Wno-format-security /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
-											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-switch-default -Wno-zero-length-array -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo /arch:AVX2
+											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-switch-default -Wno-zero-length-array -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement  -Wno-undefined-func-template -Wno-cast-qual -Wno-bad-function-cast -Wno-unused-function -Wno-format-security /arch:AVX2
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
@@ -202,7 +247,7 @@ else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20 #-Werror
+			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -Wno-declaration-after-statement #-Werror
 			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
 			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
@@ -260,6 +305,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd
+	${PROJECT_SOURCE_DIR}/src/lunasvg
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 

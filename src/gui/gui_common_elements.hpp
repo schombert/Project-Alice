@@ -66,6 +66,29 @@ struct production_selection_wrapper {
 	xy_pair focus_pos{ 0, 0 };
 };
 
+
+struct save_item {
+	native_string file_name;
+	uint64_t timestamp = 0;
+	sys::date save_date;
+	dcon::national_identity_id save_flag;
+	dcon::government_type_id as_gov;
+	bool is_new_game = false;
+	bool checksum_match = false;
+	std::string name = "fe_new_game";
+
+	bool is_bookmark() const {
+		return file_name.starts_with(NATIVE("bookmark_"));
+	}
+
+	bool operator==(save_item const& o) const {
+		return save_flag == o.save_flag && as_gov == o.as_gov && save_date == o.save_date && is_new_game == o.is_new_game && file_name == o.file_name && timestamp == o.timestamp;
+	}
+	bool operator!=(save_item const& o) const {
+		return !(*this == o);
+	}
+};
+
 // Open Build new Factory window
 void open_build_factory(sys::state& state, dcon::province_id pid);
 // Open Build new Factory abroad (investment) window
@@ -2458,6 +2481,29 @@ class go_to_base_game_button : public button_element_base {
 	}
 };
 
+
+class show_all_saves_checkbox : public checkbox_button {
+	void button_action(sys::state& state) noexcept override {
+		state.user_settings.show_all_saves = !state.user_settings.show_all_saves;
+		state.save_list_updated.store(true, std::memory_order::release); // update save list
+		state.game_state_updated.store(true, std::memory_order::release); //update ui
+		state.save_user_settings();
+	}
+	bool is_active(sys::state& state) noexcept override {
+		return state.user_settings.show_all_saves;
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_show_all_saves_tooltip");
+		text::close_layout_box(contents, box);
+
+	}
+
+};
+
 inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id prov_id, dcon::commodity_id c) {
 	auto rgo_good = dcon::fatten(state.world, c);
 	auto nat_id = state.world.province_get_nation_from_province_ownership(prov_id);
@@ -2533,56 +2579,6 @@ inline void province_owner_rgo_commodity_tooltip(sys::state& state, text::column
 };
 
 void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_id fid);
-
-inline void factory_construction_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_construction_id fcid) {
-	auto fat_fcid = dcon::fatten(state.world, fcid);
-	auto ftid = state.world.factory_construction_get_type(fcid);
-
-	float total = 0.0f;
-	float purchased = 0.0f;
-	auto& goods = state.world.factory_type_get_construction_costs(ftid);
-
-	float factory_mod = economy::factory_build_cost_multiplier(state, fat_fcid.get_nation(), fat_fcid.get_province(), fat_fcid.get_is_pop_project());
-	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
-	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
-
-	text::add_line(state, contents, state.world.factory_type_get_name(fat_fcid.get_type()));
-
-	if(fat_fcid.get_is_pop_project()) {
-		text::add_line(state, contents, "pop_project");
-	}
-	else {
-		text::add_line(state, contents, "state_project");
-	}
-
-	text::add_line(state, contents, "alice_construction_cost");
-
-	// List factory type construction costs
-	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
-		if(goods.commodity_type[i] && goods.commodity_amounts[i] > 0.0f) {
-
-			auto commodity_price = state.world.market_get_price(market, goods.commodity_type[i]);
-			auto amount = goods.commodity_amounts[i] * factory_mod * refit_discount;
-			total += amount * commodity_price;
-			purchased += fat_fcid.get_purchased_goods().commodity_amounts[i] * commodity_price;
-
-			text::substitution_map m;
-			text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(goods.commodity_type[i]));
-			text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ commodity_price });
-			text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ amount });
-			text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ commodity_price * amount });
-			auto box = text::open_layout_box(contents, 0);
-			text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
-			text::close_layout_box(contents, box);
-		}
-	}
-
-	text::add_line_break_to_layout(state, contents);
-	auto progress = total > 0.0f ? purchased / total : 0.0f;
-	text::add_line(state, contents, "alice_factory_construction_explain_3", text::variable_type::x, text::fp_currency{ purchased });
-	text::add_line(state, contents, "alice_factory_construction_explain_4", text::variable_type::x, text::fp_currency{ total });
-	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
-};
 
 inline void province_building_effect_tooltip(sys::state& state, text::columnar_layout& contents, dcon::province_id p, economy::province_building_type bt, float level = 1.f) {
 	auto def = state.economy_definitions.building_definitions[uint8_t(bt)];

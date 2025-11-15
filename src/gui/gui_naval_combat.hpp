@@ -1418,8 +1418,8 @@ public:
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
 		for(auto n : state.world.naval_battle_get_navy_battle_participation(b)) {
 			auto navy = n.get_navy();
-			if(!command::can_retreat_from_naval_battle(state, state.local_player_nation, navy, true).empty()) {
-				command::retreat_from_naval_battle(state, state.local_player_nation, navy, true);
+			if(!command::can_retreat_from_naval_battle(state, state.local_player_nation, navy, military::retreat_type::manual).empty()) {
+				command::retreat_from_naval_battle(state, state.local_player_nation, navy);
 			}
 			
 			
@@ -1428,7 +1428,7 @@ public:
 	}
 	void on_update(sys::state& state) noexcept override {
 		auto b = retrieve<dcon::naval_battle_id>(state, parent);
-		if(!military::can_retreat_from_battle(state, b) || province::make_naval_retreat_path(state, state.local_player_nation, state.world.naval_battle_get_location_from_naval_battle_location(b)).empty()) {
+		if(!military::is_battle_retreatable(state, b, military::retreat_type::manual) || province::make_naval_retreat_path(state, state.local_player_nation, state.world.naval_battle_get_location_from_naval_battle_location(b)).empty()) {
 			disabled = true;
 			return;
 		}

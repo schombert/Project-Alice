@@ -647,10 +647,9 @@ pop_prom_1;?YPromotion factor:
 pop_prom_2;From national focus: ?G$val$
 pop_prom_3;0 (because of national focus)
 pop_prom_4;?YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
+pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
+pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:
@@ -1015,6 +1014,7 @@ col_invest_4;Without competition, you will be able to turn this state into a col
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
 col_invest_6;You have at least $x$ free colonial points
 activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
+activated_by_tech:Activated by technology ?Y$x$?!
 unit_max_speed;Max Speed ?G$x$?! KPH
 unit_attack;Attack ?G$x$
 unit_hull;Hull ?G$x$
@@ -1307,6 +1307,14 @@ alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
+province_has_workers;Province has any workforce
+province_has_available_workers;Province has available workforce
+nation_is_factory_type_active;Necessary technology has been researched
+payback_time;Payback time: ?Y$x$?!
+construction_cost;Construction cost: ?Y$x$?!
+output_value;Output value: ?Y$x$?!
+input_value;Input value: ?Y$x$?!
+profitability;Profitability: ?Y$x$?!
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
@@ -1720,7 +1728,7 @@ alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
 open_details;Details
 rgo;RGO
-province_prices;Prices (% of worldwide)
+province_prices;Price (Relative)
 gdp_per_sector;GDP
 gdp_share;GDP %
 province_labor;Labor
@@ -1731,7 +1739,7 @@ gdp_artisans;Secondary sector (cottage industry):
 gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
 market_report;External trade in the local market of ?Y$province$?W
-market_prices_report;Prices in the local market of ?Y$province$?W
+market_prices_report;Prices in ?Y$province$?W
 rgo_report;Resource gathering operations in ?Y$province$?W
 trade_balance;Balance
 rgo_details_name;Name
@@ -1793,3 +1801,12 @@ alice_gamerule_auto_concession_peace;Auto-peace when conceding wargoals
 alice_gamerule_auto_concession_peace_desc;Specifies whether a conceding peacedeal (ie one side surrenders to ALL added wargoals, or 100 warscore) will always be accepted no matter what
 alice_gamerule_auto_concession_peace_opt_cannot_reject;Conceding peace offers cannot be rejected
 alice_gamerule_auto_concession_peace_opt_can_reject;Conceding peace offers can be rejected
+alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario than the currently loaded one. The save may be buggy, fail to load or crash the game.?W
+alice_show_all_saves_text;Show all saves
+alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
+alice_save_input_filename_label;Saved game filename (empty is default name):
+ports_size;Size of ports
+alice_infrastructure_tab;Infrastructure
+economy_overview_header;Economy overview
+alice_extra_armies_tooltip;+ ?Y$x$?W more armies
+alice_extra_navies_tooltip;+ ?Y$x$?W more navies

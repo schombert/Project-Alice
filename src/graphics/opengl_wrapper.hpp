@@ -354,58 +354,32 @@ std::string_view framebuffer_error(GLenum e);
 void render_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, ui::rotation r, bool flipped, bool rtl);
 void render_alpha_colored_rect(sys::state const& state, float x, float y, float width, float height, float red, float green, float blue, float alpha);
 void render_simple_rect(sys::state const& state, float x, float y, float width, float height, ui::rotation r, bool flipped, bool rtl);
-void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_textured_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
 void render_textured_rect_direct(sys::state const& state, float x, float y, float width, float height, uint32_t handle);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, lines& l);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, lines& l);
 void render_linegraph(sys::state const& state, color_modification enabled, float x, float y, float width, float height, float r, float g, float b, float a, lines& l);
-void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		data_texture& t, ui::rotation r, bool flipped, bool rtl);
-void render_ui_mesh(
-	sys::state const& state,
-	color_modification enabled,
-	float x, float y,
-	float width, float height,
-	generic_ui_mesh_triangle_strip& mesh,
-	data_texture& t
-);
+void render_barchart(sys::state const& state, color_modification enabled, float x, float y, float width, float height, data_texture& t, ui::rotation r, bool flipped, bool rtl);
+void render_ui_mesh( sys::state const& state, color_modification enabled, float x, float y, float width, float height, generic_ui_mesh_triangle_strip& mesh, data_texture& t);
 void render_piechart(sys::state const& state, color_modification enabled, float x, float y, float size, data_texture& t);
 void render_stripchart(sys::state const& state, color_modification enabled, float x, float y, float sizex, float sizey, data_texture& t);
-void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width,
-		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_rect_with_repeated_border(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
-		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_rect_with_repeated_corner(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width,
-		float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height,
-		GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width,
-		float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b,
-		GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
-void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y,
-		float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
-void render_tinted_rect(sys::state const& state, float x, float y, float width, float height,
-	float r, float g, float b, ui::rotation rot, bool flipped, bool rtl);
-void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y,
-		float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
-void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x,
-		float y, float size, color3f const& c, text::font& f);
-void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y,
-		color3f const& c, uint16_t font_id);
+void render_bordered_rect(sys::state const& state, color_modification enabled, float border_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_border(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_with_repeated_corner(sys::state const& state, color_modification enabled, float grid_size, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_masked_rect(sys::state const& state, color_modification enabled, float x, float y, float width, float height, GLuint texture_handle, GLuint mask_texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_progress_bar(sys::state const& state, color_modification enabled, float progress, float x, float y, float width, float height, GLuint left_texture_handle, GLuint right_texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_tinted_textured_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
+void render_subsprite(sys::state const& state, color_modification enabled, int frame, int total_frames, float x, float y, float width, float height, GLuint texture_handle, ui::rotation r, bool flipped, bool rtl);
+void render_rect_slice(sys::state const& state, float x, float y, float width, float height, GLuint texture_handle, float start_slice, float end_slice);
+void render_tinted_rect(sys::state const& state, float x, float y, float width, float height, float r, float g, float b, ui::rotation rot, bool flipped, bool rtl);
+void render_tinted_subsprite(sys::state const& state, int frame, int total_frames, float x, float y, float width, float height, float r, float g, float b, GLuint texture_handle, ui::rotation rot, bool flipped, bool rtl);
+void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f);
+void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id);
 void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
-void render_commodity_icon(
-	sys::state& state, dcon::commodity_id cid,
-	float x, float y, float w, float h
-);
-void render_text_commodity_icon(
-	sys::state& state, text::embedded_commodity_icon ico,
-	float x, float baseline_y,
-	float font_size, text::font& f
-);
+void render_commodity_icon(sys::state& state, dcon::commodity_id cid, float x, float y, float w, float h);
+void render_text_commodity_icon(sys::state& state, text::embedded_commodity_icon ico, float x, float baseline_y, float font_size, text::font& f);
 
 void deinitialize_framebuffer_for_province_indices(sys::state& state);
 void initialize_framebuffer_for_province_indices(sys::state& state, int32_t size_x, int32_t size_y);

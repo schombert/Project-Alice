@@ -250,9 +250,9 @@ detailed_commodity_set add_details_to_commodity_set(sys::state const& state, dco
 		result.commodity_base_amount[j] = set.commodity_amounts[j];
 		result.commodity_actual_amount[j] = set.commodity_amounts[j] * multiplier;
 		if(is_input) {
-			result.efficient_ratio[j] = state.world.market_get_demand_satisfaction(markets, cid);
+			result.efficient_ratio[j] = state.world.market_get_actual_probability_to_buy(markets, cid);
 		} else {
-			result.efficient_ratio[j] = state.world.market_get_supply_sold_ratio(markets, cid);
+			result.efficient_ratio[j] = state.world.market_get_actual_probability_to_sell(markets, cid);
 		}
 		result.commodity_price[j] = state.world.market_get_price(markets, cid);
 	}
@@ -264,25 +264,33 @@ template<typename M, typename SET>
 ve_inputs_data get_inputs_data(sys::state const& state, M markets, SET const& inputs) {
 	ve::fp_vector input_total = 0.0f;
 	ve::fp_vector min_available = 1.0f;
+	ve::fp_vector min_expected = 1.0f;
 	for(uint32_t j = 0; j < SET::set_size; ++j) {
 		if(inputs.commodity_type[j]) {
 			input_total =
 				input_total
 				+ inputs.commodity_amounts[j]
-				* ve_price(state, markets, inputs.commodity_type[j]);
+				* ve_price(state, markets, inputs.commodity_type[j]
+			);
 			min_available = ve::min(
 				min_available,
-				state.world.market_get_demand_satisfaction(markets, inputs.commodity_type[j]));
+				state.world.market_get_actual_probability_to_buy(markets, inputs.commodity_type[j])
+			);
+			min_expected = ve::min(
+				min_expected,
+				state.world.market_get_expected_probability_to_buy(markets, inputs.commodity_type[j])
+			);
 		} else {
 			break;
 		}
 	}
-	return { min_available, input_total };
+	return { min_expected, min_available, input_total };
 }
 template<typename SET>
 inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SET const& inputs) {
 	float input_total = 0.0f;
 	float min_available = 1.0f;
+	float min_expected = 1.0f;
 	for(uint32_t j = 0; j < SET::set_size; ++j) {
 		if(inputs.commodity_type[j]) {
 			input_total =
@@ -291,12 +299,15 @@ inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SE
 				* price(state, markets, inputs.commodity_type[j]);
 			min_available = std::min(
 				min_available,
-				state.world.market_get_demand_satisfaction(markets, inputs.commodity_type[j]));
+				state.world.market_get_actual_probability_to_buy(markets, inputs.commodity_type[j]));
+			min_expected = std::min(
+				min_expected,
+				state.world.market_get_expected_probability_to_buy(markets, inputs.commodity_type[j]));
 		} else {
 			break;
 		}
 	}
-	return { min_available, input_total };
+	return { min_expected, min_available, input_total };
 }
 
 template<typename PROV, typename SET, typename VALUE>
@@ -314,6 +325,31 @@ void save_inputs_to_buffers(
 			auto b_index = inputs.commodity_type[i].index();
 			buffer_demanded[b_index].set(provs, buffer_demanded[b_index].get(provs) + scale * inputs.commodity_amounts[i]);
 			buffer_consumed[b_index].set(provs, buffer_consumed[b_index].get(provs) + scale * inputs.commodity_amounts[i] * min_available);
+		} else {
+			break;
+		}
+	}
+}
+
+template<typename PROV, typename SET, typename VALUE>
+void save_inputs_to_buffers_rgo(
+	sys::state& state,
+	PROV provs,
+	std::vector<ve::vectorizable_buffer<float, dcon::province_id>>& buffer_demanded,
+	std::vector<ve::vectorizable_buffer<float, dcon::province_id>>& buffer_consumed,
+	SET const& inputs,
+	VALUE scale,
+	VALUE min_available
+) {
+	for(uint32_t i = 0; i < SET::set_size; ++i) {
+		if(inputs.commodity_type[i]) {
+			auto cid = inputs.commodity_type[i];
+			auto amount = inputs.commodity_amounts[i];
+			auto b_index = cid.index();
+			buffer_demanded[b_index].set(provs, buffer_demanded[b_index].get(provs) + scale * amount);
+			buffer_consumed[b_index].set(provs, buffer_consumed[b_index].get(provs) + scale * amount * min_available);
+			auto accumulated = state.world.province_get_rgo_demand(provs, cid);
+			state.world.province_set_rgo_demand(provs, cid, accumulated + scale * amount);
 		} else {
 			break;
 		}
@@ -848,14 +884,14 @@ void update_artisan_consumption(
 		);
 		total_profit =
 			total_profit
-			+ consumption_data.output * prepared_data.output_price * state.world.market_get_supply_sold_ratio(markets, cid)
+			+ consumption_data.output * prepared_data.output_price * state.world.market_get_actual_probability_to_sell(markets, cid)
 			- consumption_data.direct_inputs_cost;
 	}
 	state.world.province_set_artisan_profit(provinces, total_profit);
 }
 
 
-float factory_min_input_available(
+float factory_min_input_actually_available(
 	sys::state const& state,
 	dcon::market_id m,
 	dcon::factory_type_id fac_type
@@ -867,7 +903,28 @@ float factory_min_input_available(
 			min_input_available =
 				std::min(
 					min_input_available,
-					state.world.market_get_demand_satisfaction(m, inputs.commodity_type[i])
+					state.world.market_get_actual_probability_to_buy(m, inputs.commodity_type[i])
+				);
+		} else {
+			break;
+		}
+	}
+	return min_input_available;
+}
+
+float factory_min_input_expected_to_be_available(
+	sys::state const& state,
+	dcon::market_id m,
+	dcon::factory_type_id fac_type
+) {
+	float min_input_available = 1.0f;
+	auto& inputs = state.world.factory_type_get_inputs(fac_type);
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		if(inputs.commodity_type[i]) {
+			min_input_available =
+				std::min(
+					min_input_available,
+					state.world.market_get_expected_probability_to_buy(m, inputs.commodity_type[i])
 				);
 		} else {
 			break;
@@ -1149,7 +1206,7 @@ profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_
 	auto output_commodity = state.world.factory_type_get_output(ftid);
 	auto local_price = price(state, market, output_commodity);
 
-	auto last_output = state.world.factory_get_output(f) * local_price * state.world.market_get_supply_sold_ratio(market, output_commodity);
+	auto last_output = state.world.factory_get_output(f) * local_price * state.world.market_get_actual_probability_to_sell(market, output_commodity);
 	auto last_inputs = state.world.factory_get_input_cost(f);
 
 	auto wages = get_total_wage(state, f);
@@ -1354,7 +1411,7 @@ void update_single_factory_consumption(
 	float actual_profit =
 		data.output
 		* base_data.output_price
-		* state.world.market_get_supply_sold_ratio(m, fac_type.get_output())
+		* state.world.market_get_actual_probability_to_sell(m, fac_type.get_output())
 		- data.direct_inputs_cost
 		- data.efficiency_inputs_cost
 		- actual_wages
@@ -1365,7 +1422,7 @@ void update_single_factory_consumption(
 		// if we are at max amount of workers and we are profitable, spend 10% of the profit on actual expansion
 		expansion_scale = std::min(expansion_scale, actual_profit * 0.1f / costs_data.total_cost);
 		// do not expand factories when direct inputs are scarce
-		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, base_data.direct_inputs_data.min_expected - 0.5f);
 		save_inputs_to_buffers(state, p, buffer_demanded, buffer_consumed, costs, expansion_scale, costs_data.min_available);
 		state.world.factory_set_size(fac, current_size + base_size * expansion_scale * costs_data.min_available);
 		assert(std::isfinite(state.world.factory_get_size(fac)));
@@ -1443,8 +1500,11 @@ void update_rgo_consumption(
 	auto sid = state.world.province_get_state_membership(p);
 	auto m = state.world.state_instance_get_market_from_local_market(sid);
 
-	state.world.province_set_rgo_profit(p, 0.f);
-
+	// reset recorded demand
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		state.world.province_set_rgo_demand(p, c, 0.f);
+	});
+	
 	// update efficiency and consume efficiency_inputs:
 	state.world.for_each_commodity([&](dcon::commodity_id c) {
 		auto size = state.world.province_get_rgo_size(p, c);
@@ -1452,109 +1512,204 @@ void update_rgo_consumption(
 			return;
 		}
 
+		// recalculate max efficiency here (doesn't really matter where, just do it once)
 		auto max_efficiency = max_rgo_efficiency(state, n, p, c);
-		auto free_efficiency = max_efficiency * 0.1f;
-		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
-		// Calculation of e_inputs is duplicated in rgo_calculate_actual_efficiency_inputs function for use in the UI.
-		auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
-		auto e_inputs_data = get_inputs_data(state, m, e_inputs);
-		// we try to update our efficiency according to current profit derivative
-		// if higher efficiency brings profit, we increase it
-		// 10% of max efficiency is free
-		auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f);
+		state.world.province_set_rgo_max_efficiency(p, c, max_efficiency);
 
-		auto profit_derivative =
-			state.world.commodity_get_rgo_amount(c)
-			/ state.defines.alice_rgo_per_size_employment
-			* state.world.market_get_price(m, c);
-		auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
-		// we assume that we can maintain efficiency even when there is not enough goods on the market:
-		// efficiency goods are "preserved" (but still demanded to "update")
-		// it's very risky to decrease efficiency depending on available efficiency goods directly
-		// because it might lead to instability cycles
-		// there is some natural decay of efficiency
-		// we decrease efficiency outside of decay only if decreasing efficiency is profitable
-		// but to increase efficiency, there should be enough of goods on the local market unless it's a free efficiency
-
-		efficiency_growth = ve::select(
-			(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
-			efficiency_growth * e_inputs_data.min_available,
-			efficiency_growth
-		);
-
-		auto new_efficiency = ve::min(max_efficiency, ve::max(free_efficiency, current_efficiency * 0.9999f + efficiency_growth));
-		state.world.province_set_rgo_efficiency(p, c, ve::select(size == 0.f, 0.f, new_efficiency));
-
-		auto workers = state.world.province_get_rgo_target_employment(p, c)
+		// estimate amount of workers using previous day data
+		auto estimated_amount_of_workers = state.world.province_get_rgo_target_employment(p, c)
 			* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
 			* mobilization_impact;
-		auto demand_scale = workers * ve::max(new_efficiency - free_efficiency, 0.f);
 
-		save_inputs_to_buffers(state, p, buffer_demanded, buffer_consumed, e_inputs, demand_scale, e_inputs_data.min_available);
+		// DEMAND ON INPUTS
+
+		auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+		auto e_inputs_data = get_inputs_data(state, m, e_inputs);		
+		auto free_efficiency = max_efficiency * 0.1f;
+		auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
+		auto demand_scale = estimated_amount_of_workers * ve::max(current_efficiency - free_efficiency, 0.f);
+		save_inputs_to_buffers_rgo(state, p, buffer_demanded, buffer_consumed, e_inputs, demand_scale, e_inputs_data.min_available);
+
+		// DEMAND ON LABOR
 
 		auto target = state.world.province_get_rgo_target_employment(p, c);
 		auto cur_labor_demand = state.world.province_get_labor_demand(p, labor::no_education);
 		state.world.province_set_labor_demand(p, labor::no_education, cur_labor_demand + target);
 
+		// SAVE ADDITIONAL DATA
+
 		auto per_worker = state.world.commodity_get_rgo_amount(c)
 			* state.world.province_get_rgo_efficiency(p, c)
 			/ state.defines.alice_rgo_per_size_employment;
-		auto amount = workers * per_worker;
-
-		auto profit =
-			ve::select(
-				state.world.commodity_get_money_rgo(c),
-				amount * state.world.market_get_price(m, c),
-				amount * state.world.market_get_price(m, c) * state.world.market_get_supply_sold_ratio(m, c)
-			);
-
-		state.world.province_set_rgo_profit(p, state.world.province_get_rgo_profit(p) + profit);
-		auto wages = workers
-			* state.world.province_get_labor_price(p, labor::no_education);
-		auto spent_on_efficiency = demand_scale * e_inputs_data.total_cost * e_inputs_data.min_available;
-
-		state.world.province_set_rgo_profit(p, state.world.province_get_rgo_profit(p) - wages - spent_on_efficiency);
-		state.world.province_set_rgo_output(p, c, amount);
 		state.world.province_set_rgo_output_per_worker(p, c, per_worker);
 	});
 }
 
 void update_rgo_production(sys::state& state) {
-	state.world.for_each_province([&](auto province) {
-		auto local_state = state.world.province_get_state_membership(province);
-		auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
-		auto controller = state.world.province_get_nation_from_province_control(province);
-		auto owner = state.world.province_get_nation_from_province_ownership(province);
 
-		if(!owner) {
-			return;
-		}
+	// calculate production
 
+	province::ve_parallel_for_each_land_province(state, [&](auto p) {
+		auto sid = state.world.province_get_state_membership(p);
+		auto m = state.world.state_instance_get_market_from_local_market(sid);
+		auto nations = state.world.province_get_nation_from_province_ownership(p);
+		auto mobilization_impact =
+			ve::select(
+				state.world.nation_get_is_mobilized(nations),
+				military::ve_mobilization_impact(state, nations), 1.f
+			);
+
+		state.world.province_set_rgo_profit(p, 0.f);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
-			if(state.world.commodity_get_rgo_amount(c) < 0.f) {
+			auto size = state.world.province_get_rgo_size(p, c);
+			if(size.reduce() <= 0.f) {
 				return;
 			}
-			auto amount = state.world.province_get_rgo_output(province, c);
-			register_domestic_supply(state, local_market, c, amount, economy_reason::rgo);
 
-			// if the rgo is a money RGO and it is not rebel controlled, give the controller the cash from it
-			if(state.world.commodity_get_money_rgo(c) && bool(controller)) {
-				assert(
-					std::isfinite(
-						amount
-						* state.defines.gold_to_cash_rate
-						* state.world.commodity_get_cost(c)
-					)
-					&& amount * state.defines.gold_to_cash_rate >= 0.0f
-				);
+			// INPUT COMMODITY -> OUTPUT EFFICIENCY
+			auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
+			auto e_inputs_data = get_inputs_data(state, m, e_inputs);
+			auto max_efficiency = state.world.province_get_rgo_max_efficiency(p, c);
+			auto free_efficiency = max_efficiency * 0.1f;
+			auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
 
-				// #CAUTION# changes nation values!
-				auto& cur_money = state.world.nation_get_stockpiles(controller, money);
-				state.world.nation_set_stockpiles(controller, money, cur_money + amount
-					* state.defines.gold_to_cash_rate
-					* state.world.commodity_get_cost(c)
-				);
+			// update efficiency depending on expected profit change
+			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f);
+			auto profit_derivative =
+				state.world.commodity_get_rgo_amount(c)
+				/ state.defines.alice_rgo_per_size_employment
+				* state.world.market_get_price(m, c);
+			auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
+			efficiency_growth = ve::select(
+				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
+				efficiency_growth * e_inputs_data.min_available,
+				efficiency_growth
+			);
+
+			// old efficiency is preserved but decays
+			// reason: avoid first order instability
+			// caused by fluctuation of probability to buy inputs
+			auto new_efficiency = ve::min(max_efficiency, ve::max(free_efficiency, current_efficiency * 0.9999f + efficiency_growth));
+			state.world.province_set_rgo_efficiency(p, c, ve::select(size == 0.f, 0.f, new_efficiency));
+
+
+			// INPUT LABOUR -> COMMODITY			
+			auto actual_amount_of_workers =
+				state.world.province_get_rgo_target_employment(p, c)
+				* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+				* mobilization_impact;
+			auto per_worker = state.world.province_get_rgo_output_per_worker(p, c);
+			auto amount = actual_amount_of_workers * per_worker;
+			state.world.province_set_rgo_output(p, c, amount);
+		});
+	});
+
+	// registed calculated production
+	// can't do in parallel over provinces
+	// therefore do it in parallel over markets. Cannot do it over commodities because register_domestic_supply writes to market_gdp
+
+	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](uint32_t k) {
+		dcon::market_id local_market{ dcon::market_id::value_base_t(k) };
+		if(!state.world.market_is_valid(local_market)) {
+			return;
+		}
+		state.world.for_each_commodity([&](dcon::commodity_id commodity) {
+			auto rgo_output = state.world.commodity_get_rgo_amount(commodity);
+			if(rgo_output <= 0.f) {
+				return;
 			}
+			if(state.world.commodity_get_money_rgo(commodity)) {
+				return;
+			}
+			auto state_instance = state.world.market_get_zone_from_local_market(local_market);
+			assert(state_instance);
+			province::for_each_province_in_state_instance(state, state_instance, [&](dcon::province_id province) {
+				auto amount = state.world.province_get_rgo_output(province, commodity);
+				register_domestic_supply(state, local_market, commodity, amount, economy_reason::rgo);
+			});
+		});
+	});
+}
+
+void update_rgo_profit(sys::state& state) {
+	// reset profit
+	state.world.execute_serial_over_province([&](auto p) {
+		state.world.province_set_rgo_profit(p, 0.f);
+	});
+
+	// national gold profit is moved to nations:
+	// there is no opportunity to do things in parallel
+	state.world.for_each_commodity([&](dcon::commodity_id c) {
+		if(state.world.commodity_get_rgo_amount(c) < 0.f) {
+			return;
+		}
+		if(!state.world.commodity_get_money_rgo(c)) {
+			return;
+		}
+		state.world.for_each_province([&](auto province) {
+			auto local_state = state.world.province_get_state_membership(province);
+			auto local_market = state.world.state_instance_get_market_from_local_market(local_state);
+			auto controller = state.world.province_get_nation_from_province_control(province);
+			// if the rgo is a money RGO and it is not rebel controlled, give the controller the cash from it
+			if(!controller) {
+				return;
+			}
+			auto produced = state.world.province_get_rgo_output(province, c);
+			auto move_to_nation = produced
+				* state.defines.gold_to_cash_rate
+				* state.world.commodity_get_cost(c);
+			assert(std::isfinite(move_to_nation) && produced >= 0.0f);
+			// #CAUTION# changes nation values!
+			auto& cur_money = state.world.nation_get_stockpiles(controller, economy::money);
+			state.world.nation_set_stockpiles(controller, economy::money, cur_money + move_to_nation);
+		});
+	});
+
+	// otherwise profit is parallel over provinces
+	province::ve_parallel_for_each_land_province(state, [&](auto p) {
+		auto sid = state.world.province_get_state_membership(p);
+		auto m = state.world.state_instance_get_market_from_local_market(sid);
+		auto nations = state.world.province_get_nation_from_province_ownership(p);
+		auto mobilization_impact =
+			ve::select(
+				state.world.nation_get_is_mobilized(nations),
+				military::ve_mobilization_impact(state, nations), 1.f
+			);
+
+		state.world.province_set_rgo_profit(p, 0.f);
+		// sell goods and pay wages
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto size = state.world.province_get_rgo_size(p, c);
+			if(size.reduce() <= 0.f) {
+				return;
+			}
+			auto actual_amount_of_workers =
+				state.world.province_get_rgo_target_employment(p, c)
+				* state.world.province_get_labor_demand_satisfaction(p, labor::no_education)
+				* mobilization_impact;
+			auto per_worker = state.world.province_get_rgo_output_per_worker(p, c);
+			auto amount = actual_amount_of_workers * per_worker;
+			auto profit =
+				ve::select(
+					state.world.commodity_get_money_rgo(c),
+					amount * state.world.market_get_price(m, c),
+					amount * state.world.market_get_price(m, c) * state.world.market_get_actual_probability_to_sell(m, c)
+				);
+			auto wages =
+				actual_amount_of_workers
+				* state.world.province_get_labor_price(p, labor::no_education);			
+
+			auto recorded_profit = state.world.province_get_rgo_profit(p);
+			state.world.province_set_rgo_profit(p, recorded_profit + (profit - wages));
+		});
+
+		// buy inputs
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto recorded_profit = state.world.province_get_rgo_profit(p);
+			auto demand = state.world.province_get_rgo_demand(p, c);
+			auto bought = state.world.market_get_actual_probability_to_buy(m, c);
+			auto spent = bought * state.world.market_get_price(m, c);
+			state.world.province_set_rgo_profit(p, recorded_profit - spent);
 		});
 	});
 }
@@ -1685,6 +1840,8 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			return;
 		}
 
+
+
 		province::ve_for_each_land_province(state, [&](auto pids) {
 			auto state_instance = state.world.province_get_state_membership(pids);
 			auto m = state.world.state_instance_get_market_from_local_market(state_instance);
@@ -1698,15 +1855,16 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			auto current_employment = current_employment_target
 				* state.world.province_get_labor_demand_satisfaction(pids, labor::no_education);
 			auto output_per_worker = rgo_output * efficiency / state.defines.alice_rgo_per_size_employment;
+			
+			auto supply = state.world.market_get_aggregated_supply_history(m, c);
+			auto demand = state.world.market_get_aggregated_demand_history(m, c);
 			auto current_price = ve_price(state, m, c);
-			auto supply = state.world.market_get_supply(m, c);
-			auto demand = state.world.market_get_demand(m, c);
-
 			auto price_speed_change =
 				state.world.commodity_get_money_rgo(c)
 				? 0.f
 				: price_properties::change(current_price, supply, demand);
 			auto predicted_price = current_price + price_speed_change * 0.5f;
+						
 
 			auto gradient = gradient_employment_i<ve::fp_vector>(
 				output_per_worker * predicted_price,
@@ -1741,10 +1899,10 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 		auto factory_type = state.world.factory_get_building_type(facids);
 
 
-		auto min_available_input = ve::apply([&](auto ftid, auto factory_market) {
+		auto min_expected_input = ve::apply([&](auto ftid, auto factory_market) {
 			auto inputs = state.world.factory_type_get_inputs(ftid);
 			auto inputs_data = get_inputs_data(state, factory_market, inputs);
-			return inputs_data.min_available;
+			return inputs_data.min_expected;
 		}, factory_type, mid);
 
 		auto output = state.world.factory_type_get_output(factory_type);
@@ -1802,15 +1960,15 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_expected_input);
 
 		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_expected_input);
 
 		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_available_input);
+			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_expected_input);
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -1933,10 +2091,10 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 				// prevent artisans from expanding demand on missing goods too fast
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				gradient = ve::select(gradient > 0.f, gradient * ve::max(0.01f, inputs_data.min_available - 0.3f), gradient);
+				gradient = ve::select(gradient > 0.f, gradient * inputs_data.min_expected, gradient);
 
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.9f }, ve::fp_vector{ 1.f });
-				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_available * 0.0001f;
+				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_expected * 0.0001f;
 
 				auto decay = decay_lack * decay_profit;
 
@@ -1980,11 +2138,11 @@ efficiency consumption scale)
 
 void update_production_consumption(sys::state& state) {
 	std::vector<ve::vectorizable_buffer<float, dcon::province_id>> buffer_demanded{};
-	std::vector<ve::vectorizable_buffer<float, dcon::province_id>> buffer_consumed{};
+	std::vector<ve::vectorizable_buffer<float, dcon::province_id>> buffer_consumed_estimation{};
 
 	for(size_t i = 0; i < state.world.commodity_size(); i++) {
 		buffer_demanded.push_back(state.world.province_make_vectorizable_float_buffer());
-		buffer_consumed.push_back(state.world.province_make_vectorizable_float_buffer());
+		buffer_consumed_estimation.push_back(state.world.province_make_vectorizable_float_buffer());
 	}
 
 	province::ve_parallel_for_each_land_province(state, [&](auto ids) {
@@ -1994,8 +2152,8 @@ void update_production_consumption(sys::state& state) {
 				state.world.nation_get_is_mobilized(nations),
 				military::ve_mobilization_impact(state, nations), 1.f
 			);
-		update_artisan_consumption(state, ids, buffer_demanded, buffer_consumed, mobilization_impact);
-		update_rgo_consumption(state, ids, buffer_demanded, buffer_consumed, mobilization_impact);
+		update_artisan_consumption(state, ids, buffer_demanded, buffer_consumed_estimation, mobilization_impact);
+		update_rgo_consumption(state, ids, buffer_demanded, buffer_consumed_estimation, mobilization_impact);
 	});
 
 	concurrency::parallel_for(dcon::market_id::value_base_t(0), dcon::market_id::value_base_t(state.world.market_size()), [&](auto market_raw_index) {
@@ -2015,7 +2173,7 @@ void update_production_consumption(sys::state& state) {
 					p,
 					sid,
 					market,
-					nation, buffer_demanded, buffer_consumed,
+					nation, buffer_demanded, buffer_consumed_estimation,
 					mobilization_impact,
 					state.world.province_get_nation_from_province_control(p) != nation // is occupied
 				);
@@ -2031,7 +2189,7 @@ void update_production_consumption(sys::state& state) {
 
 			province::for_each_province_in_state_instance(state, sid, [&](auto p) {
 				auto demanded = buffer_demanded[cid.index()].get(p);
-				auto consumed = buffer_consumed[cid.index()].get(p);
+				auto consumed = buffer_consumed_estimation[cid.index()].get(p);
 				assert(std::isfinite(demanded));
 				assert(std::isfinite(consumed));
 				register_intermediate_demand(state, market, cid, demanded);
@@ -2146,7 +2304,7 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon
 				result +=
 					data.consumption.direct_inputs_scale
 					* direct_inputs.commodity_amounts[i]
-					* state.world.market_get_demand_satisfaction(markets, direct_inputs.commodity_type[i]);
+					* state.world.market_get_actual_probability_to_buy(markets, direct_inputs.commodity_type[i]);
 				break;
 			}
 		} else {
@@ -2159,7 +2317,7 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon
 				result +=
 					data.consumption.efficiency_inputs_scale
 					* efficiency_inputs.commodity_amounts[i]
-					* state.world.market_get_demand_satisfaction(markets, efficiency_inputs.commodity_type[i]);
+					* state.world.market_get_actual_probability_to_buy(markets, efficiency_inputs.commodity_type[i]);
 				break;
 			}
 		} else {
@@ -2291,7 +2449,7 @@ float rgo_efficiency_spending(sys::state& state, dcon::commodity_id c, dcon::pro
 	auto n = state.world.province_get_nation_from_province_ownership(p);
 	auto s = state.world.province_get_state_membership(p);
 	auto m = state.world.state_instance_get_market_from_local_market(s);
-	auto max_efficiency = max_rgo_efficiency<dcon::nation_id, dcon::province_id>(state, n, p, c);
+	auto max_efficiency = state.world.province_get_rgo_max_efficiency(p, c);
 	auto free_efficiency = max_efficiency * 0.1f;
 	auto efficiency = state.world.province_get_rgo_efficiency(p, c);
 	auto& e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
@@ -2377,7 +2535,7 @@ float rgo_income(sys::state& state, dcon::commodity_id c, dcon::province_id id) 
 	}
 	return rgo_output(state, c, id)
 		* price(state, mid, c)
-		* state.world.market_get_supply_sold_ratio(mid, c);
+		* state.world.market_get_actual_probability_to_sell(mid, c);
 }
 
 // Duplicates the calculation of RGO efficiency inputs consumption for the RGO tooltip.
@@ -2386,7 +2544,7 @@ commodity_set rgo_calculate_actual_efficiency_inputs(sys::state& state, dcon::na
 	if(size <= 0.f) {
 		return commodity_set{};
 	}
-	auto max_efficiency = max_rgo_efficiency<dcon::nation_id, dcon::province_id>(state, n, pid, c);
+	auto max_efficiency = state.world.province_get_rgo_max_efficiency(pid, c);
 	auto free_efficiency = max_efficiency * 0.1f;
 	auto current_efficiency = state.world.province_get_rgo_efficiency(pid, c);
 	auto e_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
@@ -2509,11 +2667,11 @@ breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c) {
 
 bool commodity_surplus(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id){
 	auto market = state.world.state_instance_get_market_from_local_market(id);
-	return state.world.market_get_supply_sold_ratio(market, c) < 1.f;
+	return state.world.market_get_expected_probability_to_sell(market, c) < 0.8f;
 }
 bool commodity_shortage(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id){
 	auto market = state.world.state_instance_get_market_from_local_market(id);
-	return state.world.market_get_demand_satisfaction(market, c) < 1.f;
+	return state.world.market_get_expected_probability_to_buy(market, c) < 0.8f;
 }
 bool labor_surplus(sys::state& state, int32_t c, dcon::province_id id){
 	return state.world.province_get_labor_supply_sold(id, c) < 1.f;
@@ -2666,7 +2824,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		* result.throughput_multipliers.total;
 
 	result.output_actually_sold_ratio =
-		state.world.market_get_supply_sold_ratio(m, result.output);
+		state.world.market_get_actual_probability_to_sell(m, result.output);
 	result.output_actual_amount =
 		result.output_amount_per_production_unit
 		* result.production_units;
@@ -2724,7 +2882,7 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 			result.profit * 0.1f / construction_costs_data.total_cost
 		);
 		// reduce speed during shortage of direct inputs 
-		expansion_scale *= std::max(0.f, primary_inputs_data.min_available - 0.5f);
+		expansion_scale *= std::max(0.f, primary_inputs_data.min_expected - 0.5f);
 	} else {
 		expansion_scale = 0.f;
 	}
@@ -2781,9 +2939,9 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 	};
 
 	result.employment_expected_change = {
-		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified, result.employment_available_ratio.unqualified * primary_inputs_data.min_available),
-		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary, result.employment_available_ratio.primary * primary_inputs_data.min_available),
-		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary, result.employment_available_ratio.secondary * primary_inputs_data.min_available),
+		gradient_to_employment_change(gradient.primary[0], result.employment_wages_per_person.unqualified, result.employment.unqualified, result.employment_available_ratio.unqualified * primary_inputs_data.min_expected),
+		gradient_to_employment_change(gradient.primary[1], result.employment_wages_per_person.primary, result.employment.primary, result.employment_available_ratio.primary * primary_inputs_data.min_expected),
+		gradient_to_employment_change(gradient.secondary, result.employment_wages_per_person.secondary, result.employment.secondary, result.employment_available_ratio.secondary * primary_inputs_data.min_expected),
 	};
 
 	return result;

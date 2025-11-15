@@ -300,7 +300,7 @@ public:
 		}
 		return message_result::consumed;
 	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
 		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
 			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
 			if(mods == sys::key_modifiers::modifiers_shift)

@@ -37,6 +37,8 @@
 #include "immediate_mode.hpp"
 #include "gamerule.hpp"
 #include "enums.hpp"
+#include "asvg.hpp"
+#include "uitemplate.hpp"
 
 namespace ui {
 struct lua_scripted_element;
@@ -376,7 +378,7 @@ struct user_settings_s {
 		message_response::ignore,//entered_automatic_alliance = 101,
 		message_response::standard_log,//chat_message = 102,
 	};
-	bool UNUSED_BOOL = false; // used to be fow == on/off
+	bool show_all_saves = true; 
 	map_label_mode map_label = map_label_mode::quadratic;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -767,6 +769,7 @@ struct alignas(64) state {
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
 	sys::checksum_key session_host_checksum;// for checking that the client can join a session
+	native_string mod_save_dir;
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
 
@@ -774,7 +777,10 @@ struct alignas(64) state {
 	std::unique_ptr<fif::environment> jit_environment;
 #endif
 
-	//std::unique_ptr<lua_State> lua_environment;
+	//
+	// Lua scripting
+	//
+
 	lua_State* lua_ui_environment;
 	lua_State* lua_game_loop_environment;
 	std::vector<int> lua_on_daily_tick;
@@ -842,7 +848,6 @@ struct alignas(64) state {
 	//
 
 	user_settings_s user_settings;
-
 	host_settings_s host_settings;
 
 	//
@@ -881,13 +886,8 @@ struct alignas(64) state {
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;
 	std::array<std::vector<dcon::navy_id>, 10> ctrl_navies;
 
-	// statistics
-	// variable for testing AI changes
-	// int pressed_wargoals = 0;
-
 	//army group
 	dcon::automated_army_group_id selected_army_group{};
-
 	army_group_order selected_army_group_order = army_group_order::none;
 
 	//current ui
@@ -905,6 +905,8 @@ struct alignas(64) state {
 	ui_cache ui_cached_data;					 // cached data to do heavy UI updates in separate thread
 	ogl::animation ui_animation;
 	text::font_manager font_collection;
+	asvg::file_bank svg_image_files;
+	template_project::project ui_templates;
 
 	// synchronization data (between main update logic and ui thread)
 	std::atomic<bool> game_state_updated = false;                    // game state -> ui signal
@@ -1125,8 +1127,7 @@ struct alignas(64) state {
 	}
 
 	void set_selected_province(dcon::province_id prov_id);
-	void set_local_player_nation_singleplayer(dcon::nation_id value);
-	void set_local_player_nation_do_not_update_dcon(dcon::nation_id value);
+	void set_local_player_nation(dcon::nation_id value);
 
 	void new_army_group(dcon::province_id hq);
 	void delete_army_group(dcon::automated_army_group_id group);

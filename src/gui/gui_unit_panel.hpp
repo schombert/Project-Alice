@@ -9,6 +9,7 @@
 #include "gui_leader_tooltip.hpp"
 #include "gui_leader_select.hpp"
 #include "gui_unit_grid_box.hpp"
+#include "gui_modifier_tooltips.hpp"
 
 namespace ui {
 
@@ -1725,7 +1726,7 @@ public:
 
 			dcon::commodity_id c = commodities.commodity_type[i];
 
-			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1778,7 +1779,7 @@ public:
 			}
 			dcon::commodity_id c = commodities.commodity_type[i];
 
-			auto satisfaction = state.world.market_get_demand_satisfaction(m, c);
+			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 			auto val = commodities.commodity_type[i];
 
 			max_supply += commodities.commodity_amounts[i];
@@ -1791,7 +1792,7 @@ public:
 		for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 			if(commodities.commodity_type[i] && commodities.commodity_amounts[i] > 0) {
 				dcon::commodity_id c = commodities.commodity_type[i];
-				float satisfaction = state.world.market_get_demand_satisfaction(m, c);
+				float satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
 				float wanted_commodity = commodities.commodity_amounts[i];
 				float actual_commodity = commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
 
@@ -2234,39 +2235,7 @@ class unit_type_listbox_entry_label : public button_element_base {
 		auto new_type = retrieve<dcon::unit_type_id>(state, parent);
 		auto const& ut = state.military_definitions.unit_base_definitions[new_type];
 
-		if(ut.is_land) {
-			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range > 0) {
-				text::add_line(state, contents, "unit_recon", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range, 2));
-			}
-			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack > 0) {
-				text::add_line(state, contents, "unit_siege", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack, 2));
-			}
-
-			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).attack_or_gun_power, 2));
-			text::add_line(state, contents, "unit_defence", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).defence_or_hull, 2));
-			text::add_line(state, contents, "unit_discipline", text::variable_type::x, text::format_percentage(ut.discipline_or_evasion, 0));
-			if(ut.support > 0) {
-				text::add_line(state, contents, "unit_support", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).support, 0));
-			}
-			text::add_line(state, contents, "unit_maneuver", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maneuver, 0));
-			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maximum_speed, 2));
-			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).supply_consumption * 100, 0));
-			text::add_line(state, contents, "unit_supply_load", text::variable_type::x, ut.supply_consumption_score);
-		}
-		else {
-			text::add_line(state, contents, "unit_max_speed", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).maximum_speed, 2));
-			text::add_line(state, contents, "unit_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).attack_or_gun_power, 2));
-			if(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack > 0) {
-				text::add_line(state, contents, "unit_torpedo_attack", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).siege_or_torpedo_attack, 2));
-			}
-			text::add_line(state, contents, "unit_hull", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).defence_or_hull, 2));
-			text::add_line(state, contents, "unit_fire_range", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).reconnaissance_or_fire_range, 2));
-			if(ut.discipline_or_evasion > 0) {
-				text::add_line(state, contents, "unit_evasion", text::variable_type::x, text::format_percentage(ut.discipline_or_evasion, 0));
-			}
-			text::add_line(state, contents, "unit_supply_consumption", text::variable_type::x, text::format_float(state.world.nation_get_unit_stats(state.local_player_nation, new_type).supply_consumption * 100, 0));
-			text::add_line(state, contents, "unit_supply_load", text::variable_type::x, ut.supply_consumption_score);
-		}
+		ui::display_unit_stats(state, contents, state.local_player_nation, new_type);
 
 		text::add_line_break_to_layout(state, contents);
 
@@ -2741,19 +2710,20 @@ class u_row_strength : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
-		float total = 0.0f;
 		if(std::holds_alternative<dcon::army_id>(foru)) {
 			auto a = std::get<dcon::army_id>(foru);
+			float total = 0.0f;
 			for(auto r : state.world.army_get_army_membership(a)) {
 				total += r.get_regiment().get_strength() * state.defines.pop_size_per_regiment;
 			}
 			set_text(state, text::format_wholenum(int32_t(total)));
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
 			auto a = std::get<dcon::navy_id>(foru);
+			uint32_t total = 0;
 			for(auto r : state.world.navy_get_navy_membership(a)) {
-				total += r.get_ship().get_strength();
+				total += 1;
 			}
-			set_text(state, text::format_float(total, 1));
+			set_text(state, text::format_wholenum(total));
 		}
 	}
 };
