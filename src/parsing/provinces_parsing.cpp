@@ -215,6 +215,8 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		return; //empty, tooltip metaregions
 	}
 
+	int16_t index = 1;
+
 	bool is_state = false;
 	bool is_region = false;
 	for(const auto prov : new_context.provinces) {
@@ -240,7 +242,9 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef); //include first, regions take priority over states!
 			if(!context.state.world.province_get_state_from_abstract_state_membership(prov)) {
-				context.state.world.force_create_abstract_state_membership(prov, sdef); //new assignment
+				auto new_rel = context.state.world.force_create_abstract_state_membership(prov, sdef); //new assignment
+				context.state.world.abstract_state_membership_set_priority(new_rel, index);
+				index++;
 			}
 		}
 		context.state.world.state_definition_set_name(sdef, name_id);
@@ -256,7 +260,9 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		auto sdef = context.state.world.create_state_definition();
 		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
 		for(const auto prov : new_context.provinces) {
-			context.state.world.force_create_abstract_state_membership(prov, sdef);
+			auto new_rel = context.state.world.force_create_abstract_state_membership(prov, sdef);
+			context.state.world.abstract_state_membership_set_priority(new_rel, index);
+			index++;
 		}
 		context.state.world.state_definition_set_name(sdef, name_id);
 	}
