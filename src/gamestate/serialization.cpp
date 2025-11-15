@@ -742,11 +742,15 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+		ptr_in = reinterpret_cast<uint8_t const*>(start);
+        ptr_in = read_decision_ignore_list(ptr_in, section_end, state);
 	} else {
 		dcon::load_record loadmask = state.world.make_serialize_record_store_save();
 		std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
 		state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded, loadmask);
+		ptr_in = reinterpret_cast<uint8_t const*>(start);
 	}
+
 	return section_end;
 }
 
@@ -780,6 +784,7 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.player_data_cache);
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
+	ptr_in = write_decision_ignore_list(ptr_in, state);
 
 	{ // national definitions
 		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variables);
@@ -829,6 +834,7 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.player_data_cache);
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
+	sz += sizeof_decision_ignore_list(state);
 
 	{ // national definitions
 		sz += serialize_size(state.national_definitions.global_flag_variables);
@@ -876,10 +882,46 @@ uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, s
 }
 
 
+size_t sizeof_decision_ignore_list(sys::state& state) {
+    std::vector<uint32_t> hidden;
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        if(state.world.decision_get_hide_notification(did)) {
+            hidden.push_back(i);
+        }
+    }
+    return serialize_size(hidden);
+}
 
+uint8_t* write_decision_ignore_list(uint8_t* ptr_in, sys::state& state) {
+    std::vector<uint32_t> hidden;
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        if(state.world.decision_get_hide_notification(did)) {
+            hidden.push_back(i);
+        }
+    }
+    return serialize(ptr_in, hidden);
+}
 
+uint8_t const* read_decision_ignore_list(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+    std::vector<uint32_t> hidden;
+    ptr_in = deserialize(ptr_in, hidden);
 
+    for(uint32_t i = 0; i < state.world.decision_size(); ++i) {
+        dcon::decision_id did{ dcon::decision_id::value_base_t(i) };
+        state.world.decision_set_hide_notification(did, false);
+    }
 
+    for(auto idx : hidden) {
+        if(idx < state.world.decision_size()) {
+            dcon::decision_id did{ dcon::decision_id::value_base_t(idx) };
+            state.world.decision_set_hide_notification(did, true);
+        }
+    }
+    state.game_state_updated.store(true, std::memory_order_release);
+    return ptr_in;
+}
 
 void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record) {
 
