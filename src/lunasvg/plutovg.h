@@ -410,7 +410,7 @@ PLUTOVG_API void plutovg_path_destroy(plutovg_path_t* path);
  * @param path A pointer to a `plutovg_path_t` object.
  * @return The current reference count of the path object.
  */
-PLUTOVG_API int plutovg_path_get_reference_count(const plutovg_path_t* path);
+PLUTOVG_API int plutovg_path_get_reference_count(plutovg_path_t* path);
 
 /**
  * @brief Retrieves the elements of a path.
@@ -828,7 +828,7 @@ PLUTOVG_API void plutovg_font_face_destroy(plutovg_font_face_t* face);
  * @param face A pointer to a `plutovg_font_face_t` object.
  * @return The reference count of the font face.
  */
-PLUTOVG_API int plutovg_font_face_get_reference_count(const plutovg_font_face_t* face);
+PLUTOVG_API int plutovg_font_face_get_reference_count(plutovg_font_face_t* face);
 
 /**
  * @brief Retrieves metrics for a font face at a specified size.
@@ -927,7 +927,7 @@ PLUTOVG_API void plutovg_font_face_cache_destroy(plutovg_font_face_cache_t* cach
  * @param cache A pointer to a `plutovg_font_face_cache_t` object.
  * @return The current reference count, or 0 if cache is NULL.
  */
-PLUTOVG_API int plutovg_font_face_cache_reference_count(const plutovg_font_face_cache_t* cache);
+PLUTOVG_API int plutovg_font_face_cache_reference_count(plutovg_font_face_cache_t* cache);
 
 /**
  * @brief Remove all entries from a font‐face cache.
@@ -969,7 +969,7 @@ PLUTOVG_API bool plutovg_font_face_cache_add_file(plutovg_font_face_cache_t* cac
  * @param italic Whether the font is italic.
  * @return A pointer to the matching `plutovg_font_face_t` object, or NULL if not found. The returned face is owned by the cache and must not be destroyed by the caller.
  */
-PLUTOVG_API plutovg_font_face_t* plutovg_font_face_cache_get(plutovg_font_face_cache_t* cache, const char* family, bool bold, bool italic);
+PLUTOVG_API plutovg_font_face_t* plutovg_font_face_cache_get(plutovg_font_face_cache_t* cache, char* family, bool bold, bool italic);
 
 /**
  * @brief Load all font faces from a file and add them to the cache.
@@ -1206,7 +1206,7 @@ PLUTOVG_API void plutovg_surface_destroy(plutovg_surface_t* surface);
  * @param surface Pointer to the `plutovg_surface_t` object.
  * @return The reference count of the surface.
  */
-PLUTOVG_API int plutovg_surface_get_reference_count(const plutovg_surface_t* surface);
+PLUTOVG_API int plutovg_surface_get_reference_count(plutovg_surface_t* surface);
 
 /**
  * @brief Gets the pixel data of the surface.
@@ -1443,7 +1443,7 @@ PLUTOVG_API void plutovg_paint_destroy(plutovg_paint_t* paint);
  * @param paint A pointer to the `plutovg_paint_t` object.
  * @return The reference count of the `plutovg_paint_t` object.
  */
-PLUTOVG_API int plutovg_paint_get_reference_count(const plutovg_paint_t* paint);
+PLUTOVG_API int plutovg_paint_get_reference_count(plutovg_paint_t* paint);
 
 /**
  * @brief Defines fill rule types for filling paths.
@@ -1523,7 +1523,7 @@ PLUTOVG_API void plutovg_canvas_destroy(plutovg_canvas_t* canvas);
  * @param canvas A pointer to a `plutovg_canvas_t` object.
  * @return The current reference count.
  */
-PLUTOVG_API int plutovg_canvas_get_reference_count(const plutovg_canvas_t* canvas);
+PLUTOVG_API int plutovg_canvas_get_reference_count(plutovg_canvas_t* canvas);
 
 /**
  * @brief Gets the surface associated with the canvas.
@@ -1703,7 +1703,7 @@ PLUTOVG_API bool plutovg_canvas_add_font_file(plutovg_canvas_t* canvas, const ch
  * @param italic Whether to match an italic variant.
  * @return `true` if a matching font was found and set, `false` otherwise.
  */
-PLUTOVG_API bool plutovg_canvas_select_font_face(plutovg_canvas_t* canvas, const char* family, bool bold, bool italic);
+PLUTOVG_API bool plutovg_canvas_select_font_face(plutovg_canvas_t* canvas, char* family, bool bold, bool italic);
 
 /**
  * @brief Sets the font face and size for text rendering on the canvas.

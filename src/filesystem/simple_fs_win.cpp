@@ -628,7 +628,7 @@ std::string utf16_to_utf8(std::u16string_view str) {
 }
 
 native_string utf16_to_native(std::u16string_view str) {
-	return std::wstring((wchar_t*)str.data(), str.length());
+	return std::wstring((wchar_t const*)str.data(), str.length());
 }
 
 std::string remove_double_backslashes(std::string_view data_in) {

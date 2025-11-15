@@ -241,7 +241,7 @@ void template_label::set_text(sys::state& state, std::string_view new_text) {
 
 			text::single_line_layout sl{ internal_layout,
 				text::layout_parameters{
-					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * par->grid_size * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
 					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
 					convert_align(region.h_text_alignment), text::text_color::black, true, true
 				},
@@ -285,15 +285,15 @@ void template_label::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	int32_t yoff = 0;
 	switch(region.v_text_alignment) {
 	case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
-	case template_project::aui_text_alignment::left: break;
-	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+	case template_project::aui_text_alignment::left: yoff = int32_t(region.v_text_margins * par->grid_size); break;
+	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz - region.v_text_margins * par->grid_size); break;
 	}
 
 	for(auto& t : internal_layout.contents) {
 		ui::render_text_chunk(
 			state,
 			t,
-			float(x) + t.x + region.h_text_margins,
+			float(x) + t.x + region.h_text_margins * par->grid_size,
 			float(y + t.y + yoff),
 			fh,
 			ogl::color3f{ color.r, color.g, color.b },
@@ -321,7 +321,7 @@ void template_mixed_button::set_text(sys::state& state, std::string_view new_tex
 
 			text::single_line_layout sl{ internal_layout,
 				text::layout_parameters{
-					0, 0, static_cast<int16_t>(base_data.size.x - icon_space - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					0, 0, static_cast<int16_t>(base_data.size.x - icon_space - region.h_text_margins * par->grid_size * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
 					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
 					convert_align(region.h_text_alignment), text::text_color::black, true, true
 				},
@@ -435,15 +435,15 @@ void template_mixed_button::render(sys::state& state, int32_t x, int32_t y) noex
 		int32_t yoff = 0;
 		switch(region.v_text_alignment) {
 		case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
-		case template_project::aui_text_alignment::left: break;
-		case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+		case template_project::aui_text_alignment::left: yoff = int32_t(region.v_text_margins * par->grid_size); break;
+		case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz - region.v_text_margins * par->grid_size); break;
 		}
 
 		for(auto& t : internal_layout.contents) {
 			ui::render_text_chunk(
 				state,
 				t,
-				float(x) + t.x + region.h_text_margins + icon_space,
+				float(x) + t.x + region.h_text_margins * par->grid_size + icon_space,
 				float(y + t.y + yoff),
 				fh,
 				ogl::color3f{ color.r, color.g, color.b },
@@ -470,7 +470,7 @@ void template_text_button::set_text(sys::state& state, std::string_view new_text
 
 			text::single_line_layout sl{ internal_layout,
 				text::layout_parameters{
-					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
+					0, 0, static_cast<int16_t>(base_data.size.x - region.h_text_margins * par->grid_size* 2), static_cast<int16_t>(base_data.size.y - region.v_text_margins * 2),
 					text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2), 0,
 					convert_align(region.h_text_alignment), text::text_color::black, true, true
 				},
@@ -572,15 +572,15 @@ void template_text_button::render(sys::state& state, int32_t x, int32_t y) noexc
 	int32_t yoff = 0;
 	switch(region.v_text_alignment) {
 	case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
-	case template_project::aui_text_alignment::left: break;
-	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz); break;
+	case template_project::aui_text_alignment::left: yoff = int32_t(region.v_text_margins * par->grid_size);  break;
+	case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz - region.v_text_margins * par->grid_size); break;
 	}
 
 	for(auto& t : internal_layout.contents) {
 		ui::render_text_chunk(
 			state,
 			t,
-			float(x) + t.x + region.h_text_margins,
+			float(x) + t.x + region.h_text_margins * par->grid_size,
 			float(y + t.y + yoff),
 			fh,
 			ogl::color3f{ color.r, color.g, color.b },

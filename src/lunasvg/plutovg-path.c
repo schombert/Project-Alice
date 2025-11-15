@@ -37,7 +37,7 @@ plutovg_path_command_t plutovg_path_iterator_next(plutovg_path_iterator_t* it, p
 
 plutovg_path_t* plutovg_path_create(void)
 {
-    plutovg_path_t* path = malloc(sizeof(plutovg_path_t));
+    plutovg_path_t* path = (plutovg_path_t * )malloc(sizeof(plutovg_path_t));
     plutovg_init_reference(path);
     path->num_points = 0;
     path->num_contours = 0;
@@ -61,7 +61,7 @@ void plutovg_path_destroy(plutovg_path_t* path)
     }
 }
 
-int plutovg_path_get_reference_count(const plutovg_path_t* path)
+int plutovg_path_get_reference_count(plutovg_path_t* path)
 {
     return plutovg_get_reference_count(path);
 }
@@ -76,7 +76,7 @@ int plutovg_path_get_elements(const plutovg_path_t* path, const plutovg_path_ele
 static plutovg_path_element_t* plutovg_path_add_command(plutovg_path_t* path, plutovg_path_command_t command, int npoints)
 {
     const int length = npoints + 1;
-    plutovg_array_ensure(path->elements, length);
+    plutovg_array_ensure_path(path->elements, length);
     plutovg_path_element_t* elements = path->elements.data + path->elements.size;
     elements->header.command = command;
     elements->header.length = length;
@@ -232,7 +232,7 @@ void plutovg_path_get_current_point(const plutovg_path_t* path, float* x, float*
 
 void plutovg_path_reserve(plutovg_path_t* path, int count)
 {
-    plutovg_array_ensure(path->elements, count);
+    plutovg_array_ensure_path(path->elements, count);
 }
 
 void plutovg_path_reset(plutovg_path_t* path)
@@ -375,7 +375,7 @@ void plutovg_path_transform(plutovg_path_t* path, const plutovg_matrix_t* matrix
 void plutovg_path_add_path(plutovg_path_t* path, const plutovg_path_t* source, const plutovg_matrix_t* matrix)
 {
     if(matrix == NULL) {
-        plutovg_array_append(path->elements, source->elements);
+        plutovg_array_append_path(path->elements, source->elements);
         path->start_point = source->start_point;
         path->num_points += source->num_points;
         path->num_contours += source->num_contours;
@@ -387,7 +387,7 @@ void plutovg_path_add_path(plutovg_path_t* path, const plutovg_path_t* source, c
     plutovg_path_iterator_init(&it, source);
 
     plutovg_point_t points[3];
-    plutovg_array_ensure(path->elements, source->elements.size);
+    plutovg_array_ensure_path(path->elements, source->elements.size);
     while(plutovg_path_iterator_has_next(&it)) {
         switch(plutovg_path_iterator_next(&it, points)) {
         case PLUTOVG_PATH_COMMAND_MOVE_TO:
@@ -614,7 +614,7 @@ void plutovg_path_traverse_dashed(const plutovg_path_t* path, float offset, cons
 plutovg_path_t* plutovg_path_clone(const plutovg_path_t* path)
 {
     plutovg_path_t* clone = plutovg_path_create();
-    plutovg_array_append(clone->elements, path->elements);
+    plutovg_array_append_path(clone->elements, path->elements);
     clone->start_point = path->start_point;
     clone->num_points = path->num_points;
     clone->num_contours = path->num_contours;

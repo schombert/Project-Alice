@@ -15,7 +15,7 @@ void plutovg_span_buffer_init(plutovg_span_buffer_t* span_buffer)
 void plutovg_span_buffer_init_rect(plutovg_span_buffer_t* span_buffer, int x, int y, int width, int height)
 {
     plutovg_array_clear(span_buffer->spans);
-    plutovg_array_ensure(span_buffer->spans, height);
+    plutovg_array_ensure_span(span_buffer->spans, height);
     plutovg_span_t* spans = span_buffer->spans.data;
     for(int i = 0; i < height; i++) {
         spans[i].x = x;
@@ -48,7 +48,7 @@ void plutovg_span_buffer_destroy(plutovg_span_buffer_t* span_buffer)
 void plutovg_span_buffer_copy(plutovg_span_buffer_t* span_buffer, const plutovg_span_buffer_t* source)
 {
     plutovg_array_clear(span_buffer->spans);
-    plutovg_array_append(span_buffer->spans, source->spans);
+    plutovg_array_append_span(span_buffer->spans, source->spans);
     span_buffer->x = source->x;
     span_buffer->y = source->y;
     span_buffer->w = source->w;
@@ -57,8 +57,8 @@ void plutovg_span_buffer_copy(plutovg_span_buffer_t* span_buffer, const plutovg_
 
 bool plutovg_span_buffer_contains(const plutovg_span_buffer_t* span_buffer, float x, float y)
 {
-    const int ix = (int)floorf(x);
-    const int iy = (int)floorf(y);
+    const int ix = (int)(floorf(x));
+    const int iy = (int)(floorf(y));
 
     for(int i = 0; i < span_buffer->spans.size; i++) {
         plutovg_span_t* span = &span_buffer->spans.data[i];
@@ -112,7 +112,7 @@ void plutovg_span_buffer_extents(plutovg_span_buffer_t* span_buffer, plutovg_rec
 void plutovg_span_buffer_intersect(plutovg_span_buffer_t* span_buffer, const plutovg_span_buffer_t* a, const plutovg_span_buffer_t* b)
 {
     plutovg_span_buffer_reset(span_buffer);
-    plutovg_array_ensure(span_buffer->spans, plutovg_max(a->spans.size, b->spans.size));
+    plutovg_array_ensure_span(span_buffer->spans, plutovg_max(a->spans.size, b->spans.size));
 
     plutovg_span_t* a_spans = a->spans.data;
     plutovg_span_t* a_end = a_spans + a->spans.size;
@@ -147,7 +147,7 @@ void plutovg_span_buffer_intersect(plutovg_span_buffer_t* span_buffer, const plu
         int x = plutovg_max(ax1, bx1);
         int len = plutovg_min(ax2, bx2) - x;
         if(len) {
-            plutovg_array_ensure(span_buffer->spans, 1);
+            plutovg_array_ensure_span(span_buffer->spans, 1);
             plutovg_span_t* span = span_buffer->spans.data + span_buffer->spans.size;
             span->x = x;
             span->len = len;
@@ -171,7 +171,7 @@ static PVG_FT_Outline* ft_outline_create(int points, int contours)
     size_t tags_size = ALIGN_SIZE((points + contours) * sizeof(char));
     size_t contours_size = ALIGN_SIZE(contours * sizeof(int));
     size_t contours_flag_size = ALIGN_SIZE(contours * sizeof(char));
-    PVG_FT_Outline* outline = malloc(points_size + tags_size + contours_size + contours_flag_size + sizeof(PVG_FT_Outline));
+    PVG_FT_Outline* outline = (PVG_FT_Outline * )malloc(points_size + tags_size + contours_size + contours_flag_size + sizeof(PVG_FT_Outline));
 
     PVG_FT_Byte* outline_data = (PVG_FT_Byte*)(outline + 1);
     outline->points = (PVG_FT_Vector*)(outline_data);
@@ -356,7 +356,7 @@ static PVG_FT_Outline* ft_outline_convert_stroke(const plutovg_path_t* path, con
 static void spans_generation_callback(int count, const PVG_FT_Span* spans, void* user)
 {
     plutovg_span_buffer_t* span_buffer = (plutovg_span_buffer_t*)(user);
-    plutovg_array_append_data(span_buffer->spans, spans, count);
+    plutovg_array_append_data_span(span_buffer->spans, spans, count);
 }
 
 void plutovg_rasterize(plutovg_span_buffer_t* span_buffer, const plutovg_path_t* path, const plutovg_matrix_t* matrix, const plutovg_rect_t* clip_rect, const plutovg_stroke_data_t* stroke_data, plutovg_fill_rule_t winding)

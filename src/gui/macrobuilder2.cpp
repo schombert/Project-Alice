@@ -117,6 +117,7 @@ struct macrobuilder2_main_t : public layout_window_element {
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
+	void on_hide(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
@@ -410,6 +411,12 @@ ui::message_result macrobuilder2_main_t::on_lbutton_down(sys::state& state, int3
 }
 ui::message_result macrobuilder2_main_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
+}
+void macrobuilder2_main_t::on_hide(sys::state& state) noexcept {
+// BEGIN main::on_hide
+	auto sdir = simple_fs::get_or_create_templates_directory();
+	simple_fs::write_file(sdir, state.loaded_scenario_file, reinterpret_cast<const char*>(state.ui_state.templates.data()), uint32_t(state.ui_state.templates.size()) * sizeof(sys::macro_builder_template));
+// END
 }
 void macrobuilder2_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update

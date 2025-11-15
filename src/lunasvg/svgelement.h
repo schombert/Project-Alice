@@ -127,7 +127,7 @@ public:
     static std::unique_ptr<SVGElement> create(Document* document, ElementID id);
 
     SVGElement(Document* document, ElementID id);
-    virtual ~SVGElement() = default;
+    virtual ~SVGElement() override = default;
 
     bool hasAttribute(const std::string_view& name) const;
     const std::string& getAttribute(const std::string_view& name) const;

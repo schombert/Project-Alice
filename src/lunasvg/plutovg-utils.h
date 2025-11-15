@@ -30,27 +30,70 @@
         (array).capacity = 0; \
     } while(0)
 
-#define plutovg_array_ensure(array, count) \
-    do { \
-        if((array).size + (count) > (array).capacity) { \
-            int capacity = (array).size + (count); \
-            int newcapacity = (array).capacity == 0 ? 8 : (array).capacity; \
-            while(newcapacity < capacity) { newcapacity *= 2; } \
-            (array).data = realloc((array).data, newcapacity * sizeof((array).data[0])); \
-            (array).capacity = newcapacity; \
-        } \
-    } while(0)
+#define plutovg_array_ensure_span(array, count) \
+do { \
+		if((array).size + (count) > (array).capacity) { \
+				int capacity = (array).size + (count); \
+				int newcapacity = (array).capacity == 0 ? 8 : (array).capacity; \
+				while(newcapacity < capacity) { newcapacity *= 2; } \
+					(array).data = (plutovg_span_t*)realloc((array).data, newcapacity * sizeof((array).data[0])); \
+					(array).capacity = newcapacity; \
+		} \
+} while(0)
 
-#define plutovg_array_append_data(array, newdata, count) \
-    do { \
-        if(newdata && count > 0) { \
-            plutovg_array_ensure(array, count); \
-            memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
-            (array).size += count; \
-        } \
-    } while(0)
+#define plutovg_array_ensure_path(array, count) \
+do { \
+		if((array).size + (count) > (array).capacity) { 	\
+				int capacity = (array).size + (count); \
+				int newcapacity = (array).capacity == 0 ? 8 : (array).capacity; \
+				while(newcapacity < capacity) { newcapacity *= 2; } \
+					(array).data = (plutovg_path_element_t*)realloc((array).data, newcapacity * sizeof((array).data[0])); \
+					(array).capacity = newcapacity; \
+		} \
+} while(0)
 
-#define plutovg_array_append(array, other) plutovg_array_append_data(array, (other).data, (other).size)
+#define plutovg_array_ensure_float(array, count) \
+do { \
+		if((array).size + (count) > (array).capacity) {	\
+				int capacity = (array).size + (count); \
+				int newcapacity = (array).capacity == 0 ? 8 : (array).capacity; \
+				while(newcapacity < capacity) { newcapacity *= 2; } \
+					(array).data = (float*)realloc((array).data, newcapacity * sizeof((array).data[0])); \
+					(array).capacity = newcapacity; \
+		} \
+} while(0)
+
+#define plutovg_array_append_data_float(array, newdata, count) \
+do { \
+		if(newdata && count > 0) { \
+				plutovg_array_ensure_float(array, count); \
+				memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
+				(array).size += count; \
+		} \
+} while(0)
+
+#define plutovg_array_append_data_path(array, newdata, count) \
+do { \
+		if(newdata && count > 0) { \
+				plutovg_array_ensure_path(array, count); \
+				memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
+				(array).size += count; \
+		} \
+} while(0)
+
+#define plutovg_array_append_data_span(array, newdata, count) \
+do { \
+		if(newdata && count > 0) { \
+				plutovg_array_ensure_span(array, count); \
+				memcpy((array).data + (array).size, newdata, (count) * sizeof((newdata)[0])); \
+				(array).size += count; \
+		} \
+} while(0)
+
+#define plutovg_array_append_float(array, other) plutovg_array_append_data_float(array, (other).data, (other).size)
+#define plutovg_array_append_path(array, other) plutovg_array_append_data_path(array, (other).data, (other).size)
+#define plutovg_array_append_span(array, other) plutovg_array_append_data_span(array, (other).data, (other).size)
+
 #define plutovg_array_clear(array) ((array).size = 0)
 #define plutovg_array_destroy(array) free((array).data)
 
@@ -77,6 +120,7 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
     float exponent = 0;
     int sign = 1;
     int expsign = 1;
+    float divisor = 1.f;
 
     if(it < end && *it == '+') {
         ++it;
@@ -97,7 +141,6 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
         ++it;
         if(it >= end || !PLUTOVG_IS_NUM(*it))
             return false;
-        float divisor = 1.f;
         do {
             fraction = 10.f * fraction + (*it++ - '0');
             divisor *= 10.f;
@@ -123,7 +166,7 @@ static inline bool plutovg_parse_number(const char** begin, const char* end, flo
 
     *begin = it;
     *number = sign * (integer + fraction);
-    if(exponent)
+    if(exponent != 0.0f)
         *number *= powf(10.f, expsign * exponent);
     return *number >= -FLT_MAX && *number <= FLT_MAX;
 }

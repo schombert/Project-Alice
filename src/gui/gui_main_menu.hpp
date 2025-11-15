@@ -702,6 +702,8 @@ public:
 				break;
 			case main_menu_sub_window::message_settings:
 				break;
+			case main_menu_sub_window::save_game:
+				break;
 			}
 			return message_result::consumed;
 		}
