@@ -1995,14 +1995,17 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	if(budget_categories::expanded[budget_categories::admin]) {
 		add_top_spacer();
 		auto fraction = float(state.world.nation_get_administrative_spending(state.local_player_nation)) / 100.0f;
-
+		auto national_budget = state.world.nation_get_stockpiles(state.local_player_nation, economy::money);
+		auto admin_budget_approx = fraction * national_budget;
+		float total = 0.f;
+		auto admin_count = economy::count_active_administrations(state, state.local_player_nation);
+		auto budget_per_administration = admin_count == 0.f ? 0.f : admin_budget_approx / admin_count;
 		add_budget_row(
 			"capital",
 			economy::estimate_spendings_administration_capital(
-				state, state.local_player_nation, fraction
+				state, state.local_player_nation, budget_per_administration
 			)
 		);
-
 		add_bottom_spacer();
 	} else {
 		add_neutral_spacer();

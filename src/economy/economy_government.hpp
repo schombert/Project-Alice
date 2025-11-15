@@ -13,13 +13,13 @@ inline constexpr float local_administration_efficiency = 0.5f;
 
 // ratio of taxes you can collect in a given province
 float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id);
-
+float count_active_administrations(sys::state& state, dcon::nation_id n);
 // these functions estimate spendings for given budget priority
 
 // estimate "imperial administration" spendings which are based on total population of the realm
-float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget_priority);
+float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget);
 // estimate total spendings for your administration
-float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget_priority);
+float estimate_spendings_administration(sys::state& state, dcon::nation_id n, float budget);
 // total current spendings
 float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget);
 // register demand on labor or produce control
