@@ -233,6 +233,7 @@ effect_body
 	add_crime                       value       text                member_fn
 	nationalize                     value       text                member_fn
 	build_factory_in_capital_state  value       text                member_fn
+	build_factory                   value       text                member_fn
 	activate_technology             value       text                member_fn
 	great_wars_enabled              value       bool                member_fn
 	world_wars_enabled              value       bool                member_fn

@@ -91,6 +91,7 @@ add_crime;Add crime $text$
 remove_crime;Remove active crime
 perform_nationalization;Perform nationalization
 build_factory_in_capital;Build $text$ in capital state
+build_factory;Build $text$ in the state
 enable_great_wars;Great wars are enabled
 enable_world_wars;World wars are enabled
 disable_great_wars;Great wars are no longer possible
