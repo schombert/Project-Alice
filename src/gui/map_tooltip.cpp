@@ -88,7 +88,13 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
 
 		// Supply in the target province tooltip
+		// Only show at max 10 armies to avoid wall of text
+		uint32_t army_count = 0;
 		for(const auto a : state.selected_armies) {
+			army_count++;
+			if(army_count > max_units_in_province_tooltip) {
+				break;
+			}
 			auto controller = dcon::fatten(state.world, state.local_player_nation);
 			ui::unitamounts amounts = ui::calc_amounts_from_army(state, dcon::fatten(state.world, a));
 			text::substitution_map sub{};
@@ -160,12 +166,23 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			text::close_layout_box(contents, box);
 		}
+		uint32_t extra_armies = uint32_t(state.selected_armies.size()) - army_count;
+		if(extra_armies > 0) {
+			text::add_line(state, contents, "alice_extra_armies_tooltip", text::variable_type::x, text::format_wholenum(extra_armies));
+		}
 	} else if(state.selected_navies.size() > 0) {
 		text::add_line(state, contents, "alice_supply_limit_desc", text::variable_type::x, text::int_wholenum{ military::supply_limit_in_province(state, state.local_player_nation, fat) });
 		ui::active_modifiers_description(state, contents, state.local_player_nation, 0, sys::national_mod_offsets::supply_limit, true);
 		ui::active_modifiers_description(state, contents, fat, 0, sys::provincial_mod_offsets::supply_limit, true);
+		uint32_t navy_count = 0;
 
 		for(const auto n : state.selected_navies) {
+
+			navy_count++;
+			if(navy_count > max_units_in_province_tooltip) {
+				break;
+			}
+
 			auto navy = dcon::fatten(state.world, n);
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
 			auto path = command::calculate_navy_path(state, state.local_player_nation, n, navy.get_location_from_navy_location(), prov);
@@ -239,6 +256,10 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 				text::close_layout_box(contents, box);
 			}
+		}
+		uint32_t extra_navies = uint32_t(state.selected_navies.size()) - navy_count;
+		if(extra_navies > 0) {
+			text::add_line(state, contents, "alice_extra_navies_tooltip", text::variable_type::x, text::format_wholenum(extra_navies));
 		}
 		// use caching to avoid calling "closest_naval_range_port_with_distance" on every update as it could be computationally expensive
 		static ankerl::unordered_dense::map<dcon::province_id, military::naval_range_display_data, sys::province_hash> cached_naval_range_distances{};

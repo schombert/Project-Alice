@@ -3420,6 +3420,11 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+	property{
+		name{priority}
+		type{int16_t}
+		tag{ scenario }
+	}
 }
 
 object {
