@@ -35,7 +35,7 @@
      fill="#000000"
      fill-opacity="0"
      stroke="#000000"
-     stroke-width="100"
+     stroke-width="170"
      stroke-dasharray="none"
      stroke-opacity="1"
      class="primarycolor"
@@ -44,12 +44,12 @@
      y1="216.23201"
      y2="785.36505"
      id="line1"
-     style="stroke-width:170.273;stroke-dasharray:none" />
+    />
   <line
      fill="#000000"
      fill-opacity="0"
      stroke="#000000"
-     stroke-width="80"
+     stroke-width="155"
      stroke-dasharray="none"
      stroke-opacity="1"
      class="primarycolor"
@@ -58,5 +58,5 @@
      y1="205.69212"
      y2="792.71075"
      id="line2"
-     style="stroke-width:155.634;stroke-dasharray:none" />
+     />
 </svg>

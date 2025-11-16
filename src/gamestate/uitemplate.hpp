@@ -147,7 +147,28 @@ struct progress_bar_template {
 
 	bool display_percentage_text = false;
 };
-
+struct color_region {
+	int32_t bg = -1;
+	int32_t color = 0;
+};
+struct toggle_region {
+	color_region primary;
+	color_region active;
+	color_region disabled;
+	int32_t font_choice;
+	float font_scale = 1.0f;
+	aui_text_alignment h_text_alignment = aui_text_alignment::left;
+	aui_text_alignment v_text_alignment = aui_text_alignment::left;
+	affine_transform text_margin_left = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_right = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_top = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_bottom = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+};
+struct toggle_button_template {
+	toggle_region on_region;
+	toggle_region off_region;
+	bool animate_active_transition = false;
+};
 struct project {
 	std::u16string svg_directory;
 	std::vector<label_template> label_t;
@@ -158,6 +179,7 @@ struct project {
 	std::vector<layout_region_template> layout_region_t;
 	std::vector< background_definition> backgrounds;
 	std::vector<mixed_template> mixed_button_t;
+	std::vector<toggle_button_template> toggle_button_t;
 	std::vector< icon_definition> icons;
 	std::vector<color_definition> colors;
 
