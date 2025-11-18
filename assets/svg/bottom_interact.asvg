@@ -8,11 +8,11 @@
 		<pattern id="lbfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
 			<image href="lbwc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
 		</pattern>
-		<linearGradient id="bottomfade" x1="0" x2="0" y1="0" y2="1">
-			<stop stop-color="black" offset="0%" />
-			<stop stop-color="black" offset="33%" />
-			<stop stop-color="white" offset="100%" />
-		</linearGradient>
+		<radialGradient id="bottomfade" cx="0.5" cy="1">
+			<stop stop-color="white" offset="0%" />
+			<stop stop-color="white" offset="33%" />
+			<stop stop-color="black" offset="100%" />
+		</radialGradient>
 		<mask  id="fademask">
 			<rect  x="0" y="0" fill="url(#bottomfade)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
 		</mask>
