@@ -454,6 +454,111 @@ void template_mixed_button::render(sys::state& state, int32_t x, int32_t y) noex
 }
 
 
+void template_mixed_button_ci::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	template_project::mixed_region_template region;
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+
+	if(template_id == -1)
+		return;
+
+	auto ms_after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_activated);
+	if(disabled) {
+		region = state.ui_templates.mixed_button_t[template_id].disabled;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	} else if(ms_after.count() < mouse_over_animation_ms && state.ui_templates.mixed_button_t[template_id].animate_active_transition) {
+		float percentage = float(ms_after.count()) / float(mouse_over_animation_ms);
+		if(this == state.ui_state.under_mouse) {
+			region = state.ui_templates.mixed_button_t[template_id].active;
+			auto active_id = state.ui_templates.mixed_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+			auto bg_id = state.ui_templates.mixed_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+
+		} else {
+			region = state.ui_templates.mixed_button_t[template_id].primary;
+			auto active_id = state.ui_templates.mixed_button_t[template_id].active.bg;
+			if(active_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					percentage, 1.0f);
+			}
+			auto bg_id = state.ui_templates.mixed_button_t[template_id].primary.bg;
+			if(bg_id != -1) {
+				ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+					0.0f, percentage);
+			}
+		}
+	} else if(this == state.ui_state.under_mouse) {
+		region = state.ui_templates.mixed_button_t[template_id].active;
+		auto active_id = region.bg;
+		if(active_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+
+	} else {
+		region = state.ui_templates.mixed_button_t[template_id].primary;
+		auto bg_id = region.bg;
+		if(bg_id != -1) {
+			ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+				state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+		}
+	}
+
+	auto color = state.ui_templates.colors[region.shared_color];
+	auto icon_space = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size));
+
+	{ // icon
+		if(icon_id != -1) {
+			auto l = region.icon_left.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto t = region.icon_top.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			auto r = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
+			auto b = region.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
+			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+				state.ui_templates.icons[icon_id].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, icon_color.r, icon_color.g, icon_color.b));
+		}
+	}
+	{ // text
+		auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+		auto linesz = state.font_collection.line_height(state, fh);
+		if(linesz == 0.f)
+			return;
+
+		int32_t yoff = 0;
+		switch(region.v_text_alignment) {
+		case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - linesz) / 2); break;
+		case template_project::aui_text_alignment::left: yoff = int32_t(region.v_text_margins * par->grid_size); break;
+		case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - linesz - region.v_text_margins * par->grid_size); break;
+		}
+
+		for(auto& t : internal_layout.contents) {
+			ui::render_text_chunk(
+				state,
+				t,
+				float(x) + t.x + region.h_text_margins * par->grid_size + icon_space,
+				float(y + t.y + yoff),
+				fh,
+				ogl::color3f{ color.r, color.g, color.b },
+				ogl::color_modification::none
+			);
+		}
+	}
+}
+
+
 void template_text_button::set_text(sys::state& state, std::string_view new_text) {
 	if(new_text != cached_text) {
 		template_project::text_region_template region;

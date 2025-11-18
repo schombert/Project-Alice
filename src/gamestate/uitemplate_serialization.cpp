@@ -254,6 +254,34 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 			indv_tb.read(i.animate_active_transition);
 		}
 
+
+		auto tables_section = buffer.read_section();
+		while(tables_section) {
+			result.table_t.emplace_back();
+			auto indv_tb = tables_section.read_section();
+			auto& i = result.table_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.arrow_increasing);
+			indv_tb.read(i.arrow_decreasing);
+			indv_tb.read(i.table_color);
+			indv_tb.read(i.interactable_header_bg);
+			indv_tb.read(i.active_header_bg);
+		}
+
+		auto stacked_bar_section = buffer.read_section();
+		while(stacked_bar_section) {
+			result.stacked_bar_t.emplace_back();
+			auto indv_tb = stacked_bar_section.read_section();
+			auto& i = result.stacked_bar_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.overlay_bg);
+			indv_tb.read(i.l_margin);
+			indv_tb.read(i.t_margin);
+			indv_tb.read(i.r_margin);
+			indv_tb.read(i.b_margin);
+		}
 	return result;
 }
 

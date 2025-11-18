@@ -534,6 +534,13 @@ public:
 	}
 };
 
+
+class template_mixed_button_ci : public template_mixed_button {
+public:
+	ogl::color3f icon_color;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
 class template_toggle_button : public ui::element_base {
 protected:
 	std::string cached_text;

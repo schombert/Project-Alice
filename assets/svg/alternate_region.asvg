@@ -1,0 +1,14 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="bgfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
+			<image href="mcwc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
+		</pattern>
+	</defs>
+	<rect fill="url(#bgfill)" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+	
+</svg>
