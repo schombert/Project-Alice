@@ -16,6 +16,7 @@
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
+#include "dcon_oos_reporter_generated.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"

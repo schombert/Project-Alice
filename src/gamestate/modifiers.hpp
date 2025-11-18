@@ -257,6 +257,12 @@ struct commodity_modifier {
 	float amount = 0.0f;
 	dcon::commodity_id type;
 	uint8_t padding[3] = {0};
+	bool operator==(const commodity_modifier& other) const {
+		return other.type == type && other.amount == amount;
+	}
+	bool operator!=(const commodity_modifier& other) const {
+		return !(other == *this);
+	}
 };
 static_assert(sizeof(commodity_modifier) ==
 	sizeof(commodity_modifier::amount)
@@ -302,6 +308,8 @@ struct unit_variable_stats {
 		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
 		discipline_or_evasion -= other.discipline_or_evasion;
 	}
+	bool operator==(const unit_variable_stats& other) const = default;
+	bool operator!=(const unit_variable_stats& other) const = default;
 };
 static_assert(sizeof(unit_variable_stats) ==
 	sizeof(unit_variable_stats::build_time)
@@ -319,6 +327,12 @@ static_assert(sizeof(unit_variable_stats) ==
 struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
 	uint8_t padding[3] = { 0 };
+	bool operator==(const unit_modifier& other) const {
+		return dynamic_cast<const unit_variable_stats&>(other) == dynamic_cast<const unit_variable_stats&>(*this) && other.type == type;
+	}
+	bool operator!=(const unit_modifier& other) const {
+		return !(other == *this);
+	}
 };
 static_assert(sizeof(unit_modifier) ==
 	sizeof(unit_variable_stats)
@@ -329,6 +343,12 @@ struct rebel_org_modifier {
 	float amount = 0.0f; //4
 	dcon::rebel_type_id type; //1 - no type set = all rebels
 	uint8_t padding[2] = { 0, 0 };
+	bool operator==(const rebel_org_modifier& other) const {
+		return other.amount == amount && other.type == type;
+	}
+	bool operator!=(const rebel_org_modifier& other) const {
+		return !(other == *this);
+	}
 };
 static_assert(sizeof(rebel_org_modifier) ==
 	sizeof(rebel_org_modifier::amount)
@@ -338,6 +358,8 @@ static_assert(sizeof(rebel_org_modifier) ==
 struct dated_modifier {
 	sys::date expiration;
 	dcon::modifier_id mod_id;
+	bool operator==(const dated_modifier& other) const = default;
+	bool operator!=(const dated_modifier& other) const = default;
 };
 static_assert(sizeof(dated_modifier) ==
 	sizeof(dated_modifier::expiration)

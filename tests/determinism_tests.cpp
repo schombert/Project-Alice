@@ -96,6 +96,10 @@ void compare_game_states(sys::state& ws1, sys::state& ws2) {
 	INFO(ymd.year << "." << ymd.month << "." << ymd.day);
 
 	// REQUIRE(std::memcmp(tmp1.get(), tmp2.get(), sizeof_save_section(ws1)) == 0);
+	if(ws1.get_mp_state_checksum().to_string() != ws2.get_mp_state_checksum().to_string()) {
+		dcon::load_record loaded = ws1.world.make_serialize_record_store_mp_checksum_excluded();
+		std::string oos_report = generate_oos_report(ws1.world, ws2.world, loaded);
+	}
 	REQUIRE(ws1.get_mp_state_checksum().to_string() == ws2.get_mp_state_checksum().to_string());
 }
 
