@@ -46,6 +46,8 @@ struct pop_details_mig_header_content_t;
 struct pop_details_mig_header_t;
 struct pop_details_mig_row_content_t;
 struct pop_details_mig_row_t;
+struct pop_details_fancy_separator_1_t;
+struct pop_details_fancy_separator_2_t;
 struct pop_details_main_location_value_t : public alice_ui::template_label {
 // BEGIN main::location_value::variables
 // END
@@ -284,10 +286,10 @@ struct pop_details_main_c_mig_value_t : public alice_ui::template_label {
 struct pop_details_main_ln_list_t : public layout_generator {
 // BEGIN main::ln_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -300,10 +302,10 @@ struct pop_details_main_ln_list_t : public layout_generator {
 struct pop_details_main_en_list_t : public layout_generator {
 // BEGIN main::en_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -316,10 +318,10 @@ struct pop_details_main_en_list_t : public layout_generator {
 struct pop_details_main_lx_list_t : public layout_generator {
 // BEGIN main::lx_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -445,6 +447,10 @@ struct pop_details_needs_row_content_t : public ui::element_base {
 	int32_t  cost_text_color = 0;
 	std::string cost_cached_text;
 	void set_cost_text(sys::state & state, std::string const& new_text);
+	text::layout weight_internal_layout;
+	int32_t  weight_text_color = 0;
+	std::string weight_cached_text;
+	void set_weight_text(sys::state & state, std::string const& new_text);
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
@@ -499,6 +505,8 @@ struct pop_details_needs_header_content_t : public ui::element_base {
 	std::string amount_cached_text;
 	text::layout cost_internal_layout;
 	std::string cost_cached_text;
+	text::layout weight_internal_layout;
+	std::string weight_cached_text;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
@@ -891,6 +899,14 @@ struct pop_details_main_t : public layout_window_element {
 	int8_t needs_table_cost_sort_direction = 0;
 	int16_t needs_table_cost_column_start = 0;
 	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
 	std::string_view needs_table_ascending_icon_key;
 	dcon::texture_id needs_table_ascending_icon;
 	std::string_view needs_table_descending_icon_key;
@@ -1013,6 +1029,7 @@ struct pop_details_needs_row_t : public layout_window_element {
 // END
 	dcon::commodity_id commodity;
 	float amount;
+	float weight;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_needs_row_content_t> content;
 	std::unique_ptr<pop_details_needs_row_need_icon_t> need_icon;
@@ -1029,6 +1046,9 @@ struct pop_details_needs_row_t : public layout_window_element {
 		}
 		if(name_parameter == "amount") {
 			return (void*)(&amount);
+		}
+		if(name_parameter == "weight") {
+			return (void*)(&weight);
 		}
 		return nullptr;
 	}
@@ -1198,8 +1218,30 @@ struct pop_details_mig_row_t : public layout_window_element {
 	}
 };
 std::unique_ptr<ui::element_base> make_pop_details_mig_row(sys::state& state);
-void pop_details_main_ln_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+struct pop_details_fancy_separator_1_t : public layout_window_element {
+// BEGIN fancy_separator_1::variables
+// END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_1(sys::state& state);
+struct pop_details_fancy_separator_2_t : public layout_window_element {
+// BEGIN fancy_separator_2::variables
+// END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state& state);
+void pop_details_main_ln_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_ln_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -1209,18 +1251,18 @@ void  pop_details_main_ln_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::ln_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_life_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_life_needs_weights(m, c));
 		}
 	}
-
-	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-	auto s = state.world.province_get_state_membership(l);
-	auto m = state.world.state_instance_get_market_from_local_market(s);
 // END
 	{
 	bool work_to_do = false;
@@ -1228,6 +1270,7 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -1268,6 +1311,18 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 						return -result == table_source->needs_table_cost_sort_direction;
 					});
 				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::ln_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_life_needs_weights(m, a.commodity), state.world.market_get_life_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
+					});
+				}
 			} else {
 				++i;
 			}
@@ -1299,6 +1354,7 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
@@ -1314,6 +1370,7 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
@@ -1327,8 +1384,8 @@ void  pop_details_main_ln_list_t::reset_pools() {
 	needs_header_pool_used = 0;
 	needs_row_pool_used = 0;
 }
-void pop_details_main_en_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+void pop_details_main_en_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_en_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -1338,12 +1395,16 @@ void  pop_details_main_en_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_en_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::en_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_everyday_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_everyday_needs_weights(m, c));
 		}
 	}
 // END
@@ -1353,6 +1414,7 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -1387,13 +1449,22 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::en_list::needs_table::sort::cost
-						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-						auto s = state.world.province_get_state_membership(l);
-						auto m = state.world.state_instance_get_market_from_local_market(s);
 						auto type = state.world.pop_get_poptype(main.for_pop);
 						result = cmp3(state.world.market_get_price(m, a.commodity) * state.world.pop_type_get_everyday_needs(type, a.commodity), state.world.market_get_price(m, b.commodity) * state.world.pop_type_get_everyday_needs(type, b.commodity));
 // END
 						return -result == table_source->needs_table_cost_sort_direction;
+					});
+				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::en_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_everyday_needs_weights(m, a.commodity), state.world.market_get_everyday_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
 					});
 				}
 			} else {
@@ -1427,6 +1498,7 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
@@ -1442,6 +1514,7 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
@@ -1455,8 +1528,8 @@ void  pop_details_main_en_list_t::reset_pools() {
 	needs_header_pool_used = 0;
 	needs_row_pool_used = 0;
 }
-void pop_details_main_lx_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+void pop_details_main_lx_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_lx_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -1466,12 +1539,16 @@ void  pop_details_main_lx_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::lx_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_luxury_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_luxury_needs_weights(m, c));
 		}
 	}
 // END
@@ -1481,6 +1558,7 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -1515,13 +1593,22 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::lx_list::needs_table::sort::cost
-						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-						auto s = state.world.province_get_state_membership(l);
-						auto m = state.world.state_instance_get_market_from_local_market(s);
 						auto type = state.world.pop_get_poptype(main.for_pop);
 						result = cmp3(state.world.market_get_price(m, a.commodity) * state.world.pop_type_get_luxury_needs(type, a.commodity), state.world.market_get_price(m, b.commodity) * state.world.pop_type_get_luxury_needs(type, b.commodity));
 // END
 						return -result == table_source->needs_table_cost_sort_direction;
+					});
+				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::lx_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_luxury_needs_weights(m, a.commodity), state.world.market_get_luxury_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
 					});
 				}
 			} else {
@@ -1555,6 +1642,7 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
@@ -1570,6 +1658,7 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
@@ -2380,7 +2469,7 @@ void pop_details_main_employment_value_t::on_update(sys::state& state) noexcept 
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::employment_value::update
 	if(state.world.pop_get_poptype(main.for_pop).get_has_unemployment()) {
-		set_text(state, text::format_percentage(pop_demographics::get_employment(state, main.for_pop), 0));
+		set_text(state, text::format_percentage(pop_demographics::get_raw_employment(state, main.for_pop), 0));
 	} else {
 		set_text(state, "–");
 	}
@@ -3080,6 +3169,12 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4059,6 +4154,15 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(needs_table_cost_column_text_color);
 			col_section.read(needs_table_cost_header_text_color);
 			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
 		} else 
 		if(child_data.name == ".tabprom_table") {
@@ -4256,6 +4360,14 @@ void pop_details_needs_row_content_t::tooltip_position(sys::state& state, int32_
 	}
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
 	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		ident = 4;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->needs_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->needs_table_weight_column_width);
+		return;
+	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
@@ -4269,6 +4381,8 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 	if(x >=  table_source->needs_table_amount_column_start && x <  table_source->needs_table_amount_column_start +  table_source->needs_table_amount_column_width) {
 	}
 	if(x >=  table_source->needs_table_cost_column_start && x <  table_source->needs_table_cost_column_start +  table_source->needs_table_cost_column_width) {
+	}
+	if(x >=  table_source->needs_table_weight_column_start && x <  table_source->needs_table_weight_column_start +  table_source->needs_table_weight_column_width) {
 	}
 }
 void pop_details_needs_row_content_t::set_icon_text(sys::state & state, std::string const& new_text) {
@@ -4319,6 +4433,19 @@ void pop_details_needs_row_content_t::set_cost_text(sys::state & state, std::str
 		{
 		text::single_line_layout sl{ cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
 		sl.add_text(state, cost_cached_text);
+		}
+	} else {
+	}
+}
+void pop_details_needs_row_content_t::set_weight_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (pop_details_main_t*)(parent->parent);
+	if(new_text !=  weight_cached_text) {
+		weight_cached_text = new_text;
+		weight_internal_layout.contents.clear();
+		weight_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, weight_cached_text);
 		}
 	} else {
 	}
@@ -4407,6 +4534,25 @@ void pop_details_needs_row_content_t::render(sys::state & state, int32_t x, int3
 			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_cost.r, col_color_cost.g, col_color_cost.b }, ogl::color_modification::none);
 		}
 	}
+	bool col_um_weight = rel_mouse_x >= table_source->needs_table_weight_column_start && rel_mouse_x < (table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
+		for(auto& t : weight_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
+		}
+	}
 }
 void pop_details_needs_row_content_t::on_update(sys::state& state) noexcept {
 	pop_details_needs_row_t& needs_row = *((pop_details_needs_row_t*)(parent)); 
@@ -4419,6 +4565,7 @@ void pop_details_needs_row_content_t::on_update(sys::state& state) noexcept {
 	auto s = state.world.province_get_state_membership(l);
 	auto m = state.world.state_instance_get_market_from_local_market(s);
 	set_cost_text(state, text::format_money(needs_row.amount * state.world.market_get_price(m, needs_row.commodity)));
+	set_weight_text(state, text::format_float(needs_row.weight * 100.f, 0));
 // END
 }
 void pop_details_needs_row_content_t::on_create(sys::state& state) noexcept {
@@ -4574,6 +4721,12 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -4686,6 +4839,7 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_name_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
@@ -4695,6 +4849,7 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
@@ -4704,7 +4859,18 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->needs_table_weight_sort_direction;
+		table_source->needs_table_name_sort_direction = 0;
+		table_source->needs_table_amount_sort_direction = 0;
+		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
 	return ui::message_result::consumed;}
@@ -4721,6 +4887,14 @@ void pop_details_needs_header_content_t::tooltip_position(sys::state& state, int
 	}
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
 	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		ident = 4;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->needs_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->needs_table_weight_column_width);
+		return;
+	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
@@ -4734,6 +4908,9 @@ void pop_details_needs_header_content_t::update_tooltip(sys::state& state, int32
 	if(x >=  table_source->needs_table_amount_column_start && x <  table_source->needs_table_amount_column_start +  table_source->needs_table_amount_column_width) {
 	}
 	if(x >=  table_source->needs_table_cost_column_start && x <  table_source->needs_table_cost_column_start +  table_source->needs_table_cost_column_width) {
+	}
+	if(x >=  table_source->needs_table_weight_column_start && x <  table_source->needs_table_weight_column_start +  table_source->needs_table_weight_column_width) {
+	text::add_line(state, contents, table_source->needs_table_weight_header_tooltip_key);
 	}
 }
 void pop_details_needs_header_content_t::on_reset_text(sys::state& state) noexcept {
@@ -4758,6 +4935,13 @@ void pop_details_needs_header_content_t::on_reset_text(sys::state& state) noexce
 	 cost_internal_layout.number_of_lines = 0;
 	text::single_line_layout sl{  cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cost_cached_text);
+	}
+	{
+	weight_cached_text = text::produce_simple_string(state, table_source->needs_table_weight_header_text_key);
+	 weight_internal_layout.contents.clear();
+	 weight_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, weight_cached_text);
 	}
 }
 void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
@@ -4882,6 +5066,40 @@ void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, i
 	if(!cost_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : cost_internal_layout.contents) {
 			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_cost.r, col_color_cost.g, col_color_cost.b }, ogl::color_modification::none);
+		}
+	}
+	bool col_um_weight = rel_mouse_x >= table_source->needs_table_weight_column_start && rel_mouse_x < (table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->needs_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->needs_table_weight_header_text_color]; 	if(table_source->needs_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
+	}
+	if(table_source->needs_table_weight_sort_direction < 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
+	}
+	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
+		for(auto& t : weight_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
@@ -5009,6 +5227,12 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -5375,6 +5599,12 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -5780,6 +6010,12 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -6141,6 +6377,12 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -6568,6 +6810,12 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -6929,6 +7177,12 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -7356,6 +7610,12 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -7717,6 +7977,12 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -8045,6 +8311,12 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
 				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -8135,8 +8407,120 @@ std::unique_ptr<ui::element_base> make_pop_details_mig_row(sys::state& state) {
 	ptr->on_create(state);
 	return ptr;
 }
+ui::message_result pop_details_fancy_separator_1_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result pop_details_fancy_separator_1_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void pop_details_fancy_separator_1_t::on_update(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
+// BEGIN fancy_separator_1::update
+// END
+}
+void pop_details_fancy_separator_1_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("pop_details::fancy_separator_1"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+// BEGIN fancy_separator_1::create
+// END
+}
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_1(sys::state& state) {
+	auto ptr = std::make_unique<pop_details_fancy_separator_1_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+ui::message_result pop_details_fancy_separator_2_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result pop_details_fancy_separator_2_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void pop_details_fancy_separator_2_t::on_update(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
+// BEGIN fancy_separator_2::update
+// END
+}
+void pop_details_fancy_separator_2_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("pop_details::fancy_separator_2"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+// BEGIN fancy_separator_2::create
+// END
+}
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state& state) {
+	auto ptr = std::make_unique<pop_details_fancy_separator_2_t>();
+	ptr->on_create(state);
+	return ptr;
+}
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
-////	main.set_visible(state, false);
+//////////////	main.set_visible(state, false);
 // END
 }
