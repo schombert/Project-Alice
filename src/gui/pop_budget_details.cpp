@@ -46,10 +46,10 @@ struct pop_budget_details_main_trade_value_t : public alice_ui::template_label {
 struct pop_budget_details_main_wage_per_labor_t : public layout_generator {
 // BEGIN main::wage_per_labor::variables
 // END
-	struct wage_income_option { int32_t labor_type_index; };
+	struct wage_income_option { int32_t labor_type_index; float ratio; float wage; };
 	std::vector<std::unique_ptr<ui::element_base>> wage_income_pool;
 	int32_t wage_income_pool_used = 0;
-	void add_wage_income( int32_t labor_type_index);
+	void add_wage_income( int32_t labor_type_index,  float ratio,  float wage);
 	std::vector<std::variant<std::monostate, wage_income_option>> values;
 	void on_create(sys::state& state, layout_window_element* container);
 	void update(sys::state& state, layout_window_element* container);
@@ -164,6 +164,8 @@ struct pop_budget_details_wage_income_t : public layout_window_element {
 // BEGIN wage_income::variables
 // END
 	int32_t labor_type_index;
+	float ratio;
+	float wage;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_budget_details_wage_income_labor_type_t> labor_type;
 	std::unique_ptr<pop_budget_details_wage_income_labor_ratio_t> labor_ratio;
@@ -178,6 +180,12 @@ struct pop_budget_details_wage_income_t : public layout_window_element {
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "labor_type_index") {
 			return (void*)(&labor_type_index);
+		}
+		if(name_parameter == "ratio") {
+			return (void*)(&ratio);
+		}
+		if(name_parameter == "wage") {
+			return (void*)(&wage);
 		}
 		return nullptr;
 	}
@@ -198,8 +206,8 @@ struct pop_budget_details_production_income_t : public layout_window_element {
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_budget_details_production_income(sys::state& state);
-void pop_budget_details_main_wage_per_labor_t::add_wage_income(int32_t labor_type_index) {
-	values.emplace_back(wage_income_option{labor_type_index});
+void pop_budget_details_main_wage_per_labor_t::add_wage_income(int32_t labor_type_index, float ratio, float wage) {
+	values.emplace_back(wage_income_option{labor_type_index, ratio, wage});
 }
 void  pop_budget_details_main_wage_per_labor_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
@@ -209,6 +217,11 @@ void  pop_budget_details_main_wage_per_labor_t::on_create(sys::state& state, lay
 void  pop_budget_details_main_wage_per_labor_t::update(sys::state& state, layout_window_element* parent) {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::wage_per_labor::update
+	values.clear();
+	auto list = economy::pops::estimate_wage(state, main.for_pop);
+	for(auto& item : list) {
+		add_wage_income(item.labor_type, item.ratio, item.wage);
+	}
 // END
 }
 measure_result  pop_budget_details_main_wage_per_labor_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
@@ -222,6 +235,8 @@ measure_result  pop_budget_details_main_wage_per_labor_t::place_item(sys::state&
 			wage_income_pool[wage_income_pool_used]->parent = destination;
 			destination->children.push_back(wage_income_pool[wage_income_pool_used].get());
 			((pop_budget_details_wage_income_t*)(wage_income_pool[wage_income_pool_used].get()))->labor_type_index = std::get<wage_income_option>(values[index]).labor_type_index;
+			((pop_budget_details_wage_income_t*)(wage_income_pool[wage_income_pool_used].get()))->ratio = std::get<wage_income_option>(values[index]).ratio;
+			((pop_budget_details_wage_income_t*)(wage_income_pool[wage_income_pool_used].get()))->wage = std::get<wage_income_option>(values[index]).wage;
 			((pop_budget_details_wage_income_t*)(wage_income_pool[wage_income_pool_used].get()))->set_alternate(alternate);
 			wage_income_pool[wage_income_pool_used]->impl_on_update(state);
 			wage_income_pool_used++;
@@ -287,7 +302,7 @@ void pop_budget_details_main_factories_value_t::on_update(sys::state& state) noe
 void pop_budget_details_main_rgo_value_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::rgo_value::update
-	set_text(state, text::format_money((float)(main.for_pop.value)));
+	set_text(state, text::format_money(economy::pops::estimate_rgo_income(state, main.for_pop)));
 // END
 }
 void pop_budget_details_main_nation_value_t::on_update(sys::state& state) noexcept {
@@ -981,18 +996,21 @@ void pop_budget_details_wage_income_labor_type_t::on_update(sys::state& state) n
 	pop_budget_details_wage_income_t& wage_income = *((pop_budget_details_wage_income_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN wage_income::labor_type::update
+	set_text(state, text::produce_simple_string(state, ui::labour_type_to_employment_name_text_key(wage_income.labor_type_index)));
 // END
 }
 void pop_budget_details_wage_income_labor_ratio_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_wage_income_t& wage_income = *((pop_budget_details_wage_income_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN wage_income::labor_ratio::update
+	set_text(state, text::format_percentage(wage_income.ratio));
 // END
 }
 void pop_budget_details_wage_income_labor_wage_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_wage_income_t& wage_income = *((pop_budget_details_wage_income_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN wage_income::labor_wage::update
+	set_text(state, text::format_money(wage_income.wage));
 // END
 }
 void  pop_budget_details_wage_income_t::set_alternate(bool alt) noexcept {

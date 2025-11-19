@@ -1814,7 +1814,7 @@ alice_pop_details_need_weight;W
 alice_pop_details_need_weight_tooltip;Budget priority of the selected commodity
 button_pop_budget;Open budget details
 pop_budget_details;Budget details
-pop_budget_unemployment;Unemployment benefits
+pop_budget_unemployment;Unemployment
 pop_budget_pension;Pension
 pop_budget_factory_ownership;Factories
 pop_budget_rgo_ownership;RGO
