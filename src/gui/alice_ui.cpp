@@ -85,6 +85,31 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p) {
 	return true;
 }
 
+
+void template_icon_graphic::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_icon_graphic::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(template_id == -1)
+		return;
+
+	ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+		state.ui_templates.icons[template_id].renders.get_render(state, int32_t(base_data.size.x), int32_t(base_data.size.y), state.user_settings.ui_scale, color.r, color.g, color.b));
+}
+
+
+void template_bg_graphic::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, default_tooltip);
+}
+void template_bg_graphic::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(template_id == -1)
+		return;
+
+	layout_window_element* par = static_cast<layout_window_element*>(parent);
+	ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+		state.ui_templates.backgrounds[template_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+}
+
 void template_icon_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	text::add_line(state, contents, default_tooltip);
 }
