@@ -17,7 +17,6 @@
 			<rect  x="0" y="0" fill="url(#bottomfade)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
 		</mask>
 	</defs>
-	<rect fill="#fef7f0" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
 	<g mask="url(#fademask)">
 		<rect fill="url(#lbfill)" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
 	</g>
