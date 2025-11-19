@@ -22,6 +22,7 @@ struct pop_details_main_iss_bar_chart_t;
 struct pop_details_main_emm_value_t;
 struct pop_details_main_i_mig_value_t;
 struct pop_details_main_c_mig_value_t;
+struct pop_details_main_to_pop_budget_t;
 struct pop_details_main_t;
 struct pop_details_needs_row_content_t;
 struct pop_details_needs_row_need_icon_t;
@@ -281,6 +282,12 @@ struct pop_details_main_c_mig_value_t : public alice_ui::template_label {
 		return ui::tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct pop_details_main_to_pop_budget_t : public alice_ui::template_text_button {
+// BEGIN main::to_pop_budget::variables
+// END
+	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct pop_details_main_ln_list_t : public layout_generator {
@@ -811,6 +818,7 @@ struct pop_details_mig_row_content_t : public ui::element_base {
 };
 struct pop_details_main_t : public layout_window_element {
 // BEGIN main::variables
+	ui::element_base* budget_w;
 // END
 	dcon::pop_id for_pop;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
@@ -863,6 +871,10 @@ struct pop_details_main_t : public layout_window_element {
 	std::unique_ptr<pop_details_main_i_mig_value_t> i_mig_value;
 	std::unique_ptr<template_label> c_mig_amount_label;
 	std::unique_ptr<pop_details_main_c_mig_value_t> c_mig_value;
+	std::unique_ptr<template_bg_graphic> fancy_bar_1;
+	std::unique_ptr<template_bg_graphic> fancy_bar_2;
+	std::unique_ptr<pop_details_main_to_pop_budget_t> to_pop_budget;
+	std::unique_ptr<template_bg_graphic> fancy_bar_3;
 	pop_details_main_ln_list_t ln_list;
 	pop_details_main_en_list_t en_list;
 	pop_details_main_lx_list_t lx_list;
@@ -2908,6 +2920,29 @@ void pop_details_main_c_mig_value_t::on_update(sys::state& state) noexcept {
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_colonial_migration(state, main.for_pop))));
 // END
 }
+void pop_details_main_to_pop_budget_t::on_update(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+// BEGIN main::to_pop_budget::update
+// END
+}
+bool pop_details_main_to_pop_budget_t::button_action(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+// BEGIN main::to_pop_budget::lbutton_action
+	main.budget_w->set_visible(state, true);
+
+	assert(main.budget_w);
+	auto pop_ptr = (dcon::pop_id*)main.budget_w->get_by_name(state, "for_pop");
+	*pop_ptr = main.for_pop;
+
+	if(!main.budget_w->is_visible())
+		main.budget_w->set_visible(state, true);
+	else
+		main.budget_w->impl_on_update(state);
+	main.budget_w->parent->move_child_to_front(main.budget_w);
+
+// END
+	return true;
+}
 ui::message_result pop_details_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -3120,6 +3155,18 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				} else
 				if(cname == "c_mig_value") {
 					temp.ptr = c_mig_value.get();
+				} else
+				if(cname == "fancy_bar_1") {
+					temp.ptr = fancy_bar_1.get();
+				} else
+				if(cname == "fancy_bar_2") {
+					temp.ptr = fancy_bar_2.get();
+				} else
+				if(cname == "to_pop_budget") {
+					temp.ptr = to_pop_budget.get();
+				} else
+				if(cname == "fancy_bar_3") {
+					temp.ptr = fancy_bar_3.get();
 				} else
 				{
 					std::string str_cname {cname};
@@ -4109,6 +4156,72 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == "fancy_bar_1") {
+			fancy_bar_1 = std::make_unique<template_bg_graphic>();
+			fancy_bar_1->parent = this;
+			auto cptr = fancy_bar_1.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "fancy_bar_2") {
+			fancy_bar_2 = std::make_unique<template_bg_graphic>();
+			fancy_bar_2->parent = this;
+			auto cptr = fancy_bar_2.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "to_pop_budget") {
+			to_pop_budget = std::make_unique<pop_details_main_to_pop_budget_t>();
+			to_pop_budget->parent = this;
+			auto cptr = to_pop_budget.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "fancy_bar_3") {
+			fancy_bar_3 = std::make_unique<template_bg_graphic>();
+			fancy_bar_3->parent = this;
+			auto cptr = fancy_bar_3.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if(child_data.name == ".tabneeds_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -4337,6 +4450,12 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 	page_text_color = win_data.page_text_color;
 	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN main::create
+	{
+		auto ptr = make_pop_budget_details_main(state);
+		budget_w = ptr.get();
+		budget_w->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(ptr));
+	}
 // END
 }
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state) {
@@ -8521,6 +8640,6 @@ std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state&
 }
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
-//////////////	main.set_visible(state, false);
+////////////////////	main.set_visible(state, false);
 // END
 }

@@ -1812,3 +1812,15 @@ alice_extra_armies_tooltip;+ ?Y$x$?W more armies
 alice_extra_navies_tooltip;+ ?Y$x$?W more navies
 alice_pop_details_need_weight;W
 alice_pop_details_need_weight_tooltip;Budget priority of the selected commodity
+button_pop_budget;Open budget details
+pop_budget_details;Budget details
+pop_budget_unemployment;Unemployment benefits
+pop_budget_pension;Pension
+pop_budget_factory_ownership;Factories
+pop_budget_rgo_ownership;RGO
+pop_budget_trade;Trade
+pop_budget_national_pay;National pay
+pop_budget_production_header;Production
+pop_budget_wages_header;Wages
+pop_budget_income;Income
+pop_budget_spending;Spending

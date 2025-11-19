@@ -778,6 +778,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_pop_budget_details_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
