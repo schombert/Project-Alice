@@ -290,6 +290,45 @@ public:
 	virtual void button_on_hover_end(sys::state& state) noexcept { }
 };
 
+
+class template_icon_graphic : public ui::element_base {
+public:
+	int32_t template_id = -1;
+	ogl::color3f color;
+	dcon::text_key default_tooltip;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+class template_bg_graphic : public ui::element_base {
+public:
+	int32_t template_id = -1;
+	dcon::text_key default_tooltip;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+
 class auto_close_button : public template_icon_button {
 public:
 	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
