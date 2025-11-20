@@ -311,10 +311,12 @@ float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::
 	auto artisans = state.world.state_instance_get_demographics(sids, artisan_key);
 	auto clerks = state.world.state_instance_get_demographics(sids, clerks_key);
 	auto capis = state.world.state_instance_get_demographics(sids, capis_key);
+	auto total = state.world.state_instance_get_demographics(sids, demographics::total);
 	auto artisans_weight = state.world.state_instance_get_demographics(sids, artisan_key) / 1000.f;
 	auto clerks_weight = state.world.state_instance_get_demographics(sids, clerks_key) * 100.f;
 	auto capis_weight = state.world.state_instance_get_demographics(sids, capis_key) * 100'000.f;
-	auto total_weight = artisans_weight + clerks_weight + capis_weight;
+	auto base_weight = total;
+	auto total_weight = artisans_weight + clerks_weight + capis_weight + base_weight;
 
 	if(total_weight == 0.f) {
 		return 0.f;
@@ -326,20 +328,22 @@ float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::
 	auto artisans_share = artisans_weight / total_weight * trade_dividents;
 	auto clerks_share = clerks_weight / total_weight * trade_dividents;
 	auto capis_share = capis_weight / total_weight * trade_dividents;
+	auto other_share = base_weight / total_weight * trade_dividents;
 
 	auto per_artisan = artisans > 0.f ? artisans_share / artisans : 0.f;
 	auto per_clerk = clerks > 0.f ? clerks_share / clerks : 0.f;
 	auto per_capi = capis > 0.f ? capis_share / capis : 0.f;
+	auto per_person = total > 0.f ? other_share / total : 0.f;
 
 	if(artisan_def == ptid) {
-		return state.inflation * size * per_artisan;
+		return state.inflation * size * (per_artisan + per_person);
 	} else if(clerks_def == ptid) {
-		return state.inflation * size * per_clerk;
+		return state.inflation * size * (per_clerk + per_person);
 	} else if(capis_def == ptid) {
-		return state.inflation * size * per_capi;
+		return state.inflation * size * (per_capi + per_person);
 	}
 
-	return 0.f;
+	return per_person;
 }
 
 float estimate_trade_income(sys::state const& state, dcon::pop_id pop) {
@@ -376,12 +380,14 @@ void update_income_trade(sys::state& state) {
 		auto artisans = state.world.state_instance_get_demographics(sids, artisan_key);
 		auto clerks = state.world.state_instance_get_demographics(sids, clerks_key);
 		auto capis = state.world.state_instance_get_demographics(sids, capis_key);
+		auto total = state.world.state_instance_get_demographics(sids, demographics::total);
 
-		auto artisans_weight = state.world.state_instance_get_demographics(sids, artisan_key) / 1000.f;
-		auto clerks_weight = state.world.state_instance_get_demographics(sids, clerks_key) * 100.f;
-		auto capis_weight = state.world.state_instance_get_demographics(sids, capis_key) * 100'000.f;
+		auto artisans_weight = artisans;
+		auto clerks_weight = clerks * 100.f;
+		auto capis_weight = capis * 100'000.f;
+		auto base_weight = total;
 
-		auto total_weight = artisans_weight + clerks_weight + capis_weight;
+		auto total_weight = artisans_weight + clerks_weight + capis_weight + base_weight;
 
 		auto balance = state.world.market_get_stockpile(markets, economy::money);
 		auto trade_dividents = ve::select(balance > 0.f, balance * 0.001f, ve::fp_vector{ 0.f });
@@ -390,15 +396,17 @@ void update_income_trade(sys::state& state) {
 		auto artisans_share = artisans_weight / total_weight * trade_dividents;
 		auto clerks_share = clerks_weight / total_weight * trade_dividents;
 		auto capis_share = capis_weight / total_weight * trade_dividents;
+		auto other_share = base_weight / total_weight * trade_dividents;
 
 		auto per_artisan = ve::select(artisans > 0.f, artisans_share / artisans, ve::fp_vector{ 0.f });
 		auto per_clerk = ve::select(clerks > 0.f, clerks_share / clerks, ve::fp_vector{ 0.f });
 		auto per_capi = ve::select(capis > 0.f, capis_share / capis, ve::fp_vector{ 0.f });
+		auto per_person = ve::select(total > 0.f, other_share / total, ve::fp_vector{ 0.f });
 
 		// proceeed payments:
 
-		ve::apply([&](auto sid, auto to_artisan, auto to_clerk, auto to_capi) {
-			if(to_artisan == 0.f && to_clerk == 0.f && to_capi == 0.f) {
+		ve::apply([&](auto sid, auto to_artisan, auto to_clerk, auto to_capi, auto to_everyone) {
+			if(to_artisan == 0.f && to_clerk == 0.f && to_capi == 0.f && to_everyone == 0.f) {
 				return;
 			}
 			province::for_each_province_in_state_instance(state, sid, [&](dcon::province_id p) {
@@ -408,25 +416,31 @@ void update_income_trade(sys::state& state) {
 					auto size = pop.get_size();
 
 					if(artisan_def == pl.get_pop().get_poptype()) {
-						pop.set_savings(savings + state.inflation * size * to_artisan);
+						pop.set_savings(savings + state.inflation * size * (to_artisan + to_everyone));
 #ifndef NDEBUG
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 #endif
 					} else if(clerks_def == pl.get_pop().get_poptype()) {
-						pop.set_savings(savings + state.inflation * size * to_clerk);
+						pop.set_savings(savings + state.inflation * size * (to_clerk + to_everyone));
 #ifndef NDEBUG
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 #endif
 					} else if(capis_def == pl.get_pop().get_poptype()) {
-						pop.set_savings(savings + state.inflation * size * to_capi);
+						pop.set_savings(savings + state.inflation * size * (to_capi + to_everyone));
+#ifndef NDEBUG
+						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
+#endif
+					} else {
+						pop.set_savings(savings + state.inflation * size * to_everyone);
 #ifndef NDEBUG
 						assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
 #endif
 					}
-					assert(std::isfinite(pl.get_pop().get_savings()) && pl.get_pop().get_savings() >= 0);
+
+
 				}
 			});
-		}, sids, per_artisan, per_clerk, per_capi);
+		}, sids, per_artisan, per_clerk, per_capi, per_person);
 	});
 }
 
@@ -750,7 +764,7 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 	return std::clamp(modified, 0.f, 0.1f);
 }
 
-constexpr inline float market_tax = 0.05f;
+constexpr inline float market_tax = 0.01f;
 
 void update_income_wages(sys::state& state){
 	// TODO: rewrite in vectorized way
