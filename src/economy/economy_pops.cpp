@@ -954,10 +954,8 @@ float estimate_tax_spending(
 	return next_day * (1.f - market_tax) * tax_rate;
 }
 
-}
-
 float estimate_pop_demand_internal_life(
-	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	sys::state const& state, dcon::commodity_id c, dcon::pop_id pop,
 	pops::vectorized_pops_budget<float>& budget,
 	float mult_per_strata[3], float need_weight, float invention_factor
 ) {
@@ -974,7 +972,7 @@ float estimate_pop_demand_internal_life(
 		/ state.defines.alice_needs_scaling_factor;
 }
 float estimate_pop_demand_internal_everyday(
-	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	sys::state const& state, dcon::commodity_id c, dcon::pop_id pop,
 	pops::vectorized_pops_budget<float>& budget,
 	float mult_per_strata[3], float need_weight, float invention_factor
 ) {
@@ -992,7 +990,7 @@ float estimate_pop_demand_internal_everyday(
 		* invention_factor;
 }
 float estimate_pop_demand_internal_luxury(
-	sys::state& state, dcon::commodity_id c, dcon::pop_id pop,
+	sys::state const& state, dcon::commodity_id c, dcon::pop_id pop,
 	pops::vectorized_pops_budget<float>& budget,
 	float mult_per_strata[3], float need_weight, float invention_factor
 ) {
@@ -1008,6 +1006,92 @@ float estimate_pop_demand_internal_luxury(
 		* pop_size
 		/ state.defines.alice_needs_scaling_factor
 		* invention_factor;
+}
+
+float estimate_pop_spending_life(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+	auto pid = state.world.pop_get_province_from_pop_location(pop);
+	auto nation = state.world.province_get_nation_from_province_ownership(pid);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+	auto budget = prepare_pop_budget(state, pop);
+	auto invention_count = 0.f;
+	state.world.for_each_invention([&](auto iid) {
+		invention_count += state.world.nation_get_active_inventions(nation, iid) ? 1.0f : 0.0f;
+	});
+	auto invention_factor = state.defines.invention_impact_on_demand * invention_count + 1.f;
+	auto weight = state.world.market_get_life_needs_weights(market, cid);
+	float mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_life_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_life_needs) + 1.0f
+	};
+	auto demand = pops::estimate_pop_demand_internal_life(
+		state, cid, pop, budget, mul, weight, invention_factor
+	);
+	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
+	auto cost = economy::price(state, cid);
+	return demand * actually_bought * cost;
+}
+
+float estimate_pop_spending_everyday(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+	auto pid = state.world.pop_get_province_from_pop_location(pop);
+	auto nation = state.world.province_get_nation_from_province_ownership(pid);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+	auto budget = prepare_pop_budget(state, pop);
+	auto invention_count = 0.f;
+	state.world.for_each_invention([&](auto iid) {
+		invention_count += state.world.nation_get_active_inventions(nation, iid) ? 1.0f : 0.0f;
+	});
+	auto invention_factor = state.defines.invention_impact_on_demand * invention_count + 1.f;
+	auto weight = state.world.market_get_everyday_needs_weights(market, cid);
+	float mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_everyday_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_everyday_needs) + 1.0f
+	};
+	auto demand = pops::estimate_pop_demand_internal_everyday(
+		state, cid, pop, budget, mul, weight, invention_factor
+	);
+	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
+	auto cost = economy::price(state, cid);
+	return demand * actually_bought * cost;
+}
+
+float estimate_pop_spending_luxury(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid) {
+	auto pid = state.world.pop_get_province_from_pop_location(pop);
+	auto nation = state.world.province_get_nation_from_province_ownership(pid);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+	auto budget = prepare_pop_budget(state, pop);
+	auto invention_count = 0.f;
+	state.world.for_each_invention([&](auto iid) {
+		invention_count += state.world.nation_get_active_inventions(nation, iid) ? 1.0f : 0.0f;
+	});
+	auto invention_factor = state.defines.invention_impact_on_demand * invention_count + 1.f;
+	auto weight = state.world.market_get_luxury_needs_weights(market, cid);
+	float mul[3] = {
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::poor_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::middle_luxury_needs) + 1.0f,
+		state.world.nation_get_modifier_values(
+			nation, sys::national_mod_offsets::rich_luxury_needs) + 1.0f
+	};
+	auto demand = pops::estimate_pop_demand_internal_luxury(
+		state, cid, pop, budget, mul, weight, invention_factor
+	);
+	auto actually_bought = state.world.market_get_actual_probability_to_buy(market, cid);
+	auto cost = economy::price(state, cid);
+	return demand * actually_bought * cost;
+}
+
 }
 
 float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p) {
@@ -1062,13 +1146,13 @@ float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::p
 
 		pops::vectorized_pops_budget<float> budget = pops::prepare_pop_budget(state, pop);
 
-		auto consumption_life = estimate_pop_demand_internal_life(
+		auto consumption_life = pops::estimate_pop_demand_internal_life(
 			state, c, pop, budget, life_mul, weight_life, invention_factor
 		);
-		auto consumption_everyday = estimate_pop_demand_internal_everyday(
+		auto consumption_everyday = pops::estimate_pop_demand_internal_everyday(
 			state, c, pop, budget, everyday_mul, weight_everyday, invention_factor
 		);
-		auto consumption_luxury = estimate_pop_demand_internal_luxury(
+		auto consumption_luxury = pops::estimate_pop_demand_internal_luxury(
 			state, c, pop, budget, luxury_mul, weight_luxury, invention_factor
 		);
 

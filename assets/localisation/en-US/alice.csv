@@ -1662,6 +1662,9 @@ alice_pop_details_assim;Assimilation:
 alice_pop_details_ln;Life Needs
 alice_pop_details_en;Everyday Needs
 alice_pop_details_lx;Luxury Needs
+alice_pop_details_ln_short;LN
+alice_pop_details_en_short;EN
+alice_pop_details_lx_short;LxN
 alice_pop_details_need_name_h;Name
 alice_pop_details_need_amount_h;Qty
 alice_pop_details_need_cost_h;Price
@@ -1828,3 +1831,4 @@ pop_budget_education;Education
 pop_budget_wages_header;Wages
 pop_budget_income;Income
 pop_budget_spending;Spending
+pop_budget_needs;Needs

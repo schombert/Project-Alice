@@ -9,6 +9,7 @@ struct pop_budget_details_main_tax_s_value_t;
 struct pop_budget_details_main_education_s_value_t;
 struct pop_budget_details_main_trade_s_value_t;
 struct pop_budget_details_main_investment_s_value_t;
+struct pop_budget_details_main_needs_s_value_t;
 struct pop_budget_details_main_t;
 struct pop_budget_details_wage_income_labor_type_t;
 struct pop_budget_details_wage_income_labor_ratio_t;
@@ -71,6 +72,11 @@ struct pop_budget_details_main_investment_s_value_t : public alice_ui::template_
 // END
 	void on_update(sys::state& state) noexcept override;
 };
+struct pop_budget_details_main_needs_s_value_t : public alice_ui::template_label {
+// BEGIN main::needs_s_value::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
 struct pop_budget_details_main_wage_per_labor_t : public layout_generator {
 // BEGIN main::wage_per_labor::variables
 // END
@@ -88,10 +94,10 @@ struct pop_budget_details_main_wage_per_labor_t : public layout_generator {
 struct pop_budget_details_main_needs_t : public layout_generator {
 // BEGIN main::needs::variables
 // END
-	struct consumption_option { dcon::commodity_id cid; uint8_t category; };
+	struct consumption_option { dcon::commodity_id cid; uint8_t category; float cost_val; float satisfaction_val; };
 	std::vector<std::unique_ptr<ui::element_base>> consumption_pool;
 	int32_t consumption_pool_used = 0;
-	void add_consumption( dcon::commodity_id cid,  uint8_t category);
+	void add_consumption( dcon::commodity_id cid,  uint8_t category,  float cost_val,  float satisfaction_val);
 	std::vector<std::variant<std::monostate, consumption_option>> values;
 	void on_create(sys::state& state, layout_window_element* container);
 	void update(sys::state& state, layout_window_element* container);
@@ -178,6 +184,8 @@ struct pop_budget_details_main_t : public layout_window_element {
 	std::unique_ptr<pop_budget_details_main_education_s_value_t> education_s_value;
 	std::unique_ptr<pop_budget_details_main_trade_s_value_t> trade_s_value;
 	std::unique_ptr<pop_budget_details_main_investment_s_value_t> investment_s_value;
+	std::unique_ptr<template_label> needs_s_label;
+	std::unique_ptr<pop_budget_details_main_needs_s_value_t> needs_s_value;
 	pop_budget_details_main_wage_per_labor_t wage_per_labor;
 	pop_budget_details_main_needs_t needs;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
@@ -266,6 +274,8 @@ struct pop_budget_details_consumption_t : public layout_window_element {
 // END
 	dcon::commodity_id cid;
 	uint8_t category;
+	float cost_val;
+	float satisfaction_val;
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_budget_details_consumption_name_t> name;
 	std::unique_ptr<pop_budget_details_consumption_satisfaction_t> satisfaction;
@@ -283,6 +293,12 @@ struct pop_budget_details_consumption_t : public layout_window_element {
 		}
 		if(name_parameter == "category") {
 			return (void*)(&category);
+		}
+		if(name_parameter == "cost_val") {
+			return (void*)(&cost_val);
+		}
+		if(name_parameter == "satisfaction_val") {
+			return (void*)(&satisfaction_val);
 		}
 		return nullptr;
 	}
@@ -331,8 +347,8 @@ measure_result  pop_budget_details_main_wage_per_labor_t::place_item(sys::state&
 void  pop_budget_details_main_wage_per_labor_t::reset_pools() {
 	wage_income_pool_used = 0;
 }
-void pop_budget_details_main_needs_t::add_consumption(dcon::commodity_id cid, uint8_t category) {
-	values.emplace_back(consumption_option{cid, category});
+void pop_budget_details_main_needs_t::add_consumption(dcon::commodity_id cid, uint8_t category, float cost_val, float satisfaction_val) {
+	values.emplace_back(consumption_option{cid, category, cost_val, satisfaction_val});
 }
 void  pop_budget_details_main_needs_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
@@ -342,6 +358,36 @@ void  pop_budget_details_main_needs_t::on_create(sys::state& state, layout_windo
 void  pop_budget_details_main_needs_t::update(sys::state& state, layout_window_element* parent) {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::needs::update
+	values.clear();
+
+	auto pid = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto nation = state.world.province_get_nation_from_province_ownership(pid);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+
+	// life
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_life(state, main.for_pop, cid);
+		if(cost > 0.001f) {
+			add_consumption(cid, 0, cost, state.world.market_get_actual_probability_to_buy(market, cid));
+		}
+	});
+
+	// everyday
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_everyday(state, main.for_pop, cid);
+		if(cost > 0.001f) {
+			add_consumption(cid, 1, cost, state.world.market_get_actual_probability_to_buy(market, cid));
+		}
+	});
+
+	//luxury
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_luxury(state, main.for_pop, cid);
+		if(cost > 0.001f) {
+			add_consumption(cid, 2, cost, state.world.market_get_actual_probability_to_buy(market, cid));
+		}
+	});
 // END
 }
 measure_result  pop_budget_details_main_needs_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
@@ -356,6 +402,8 @@ measure_result  pop_budget_details_main_needs_t::place_item(sys::state& state, u
 			destination->children.push_back(consumption_pool[consumption_pool_used].get());
 			((pop_budget_details_consumption_t*)(consumption_pool[consumption_pool_used].get()))->cid = std::get<consumption_option>(values[index]).cid;
 			((pop_budget_details_consumption_t*)(consumption_pool[consumption_pool_used].get()))->category = std::get<consumption_option>(values[index]).category;
+			((pop_budget_details_consumption_t*)(consumption_pool[consumption_pool_used].get()))->cost_val = std::get<consumption_option>(values[index]).cost_val;
+			((pop_budget_details_consumption_t*)(consumption_pool[consumption_pool_used].get()))->satisfaction_val = std::get<consumption_option>(values[index]).satisfaction_val;
 			((pop_budget_details_consumption_t*)(consumption_pool[consumption_pool_used].get()))->set_alternate(alternate);
 			consumption_pool[consumption_pool_used]->impl_on_update(state);
 			consumption_pool_used++;
@@ -435,6 +483,36 @@ void pop_budget_details_main_investment_s_value_t::on_update(sys::state& state) 
 // BEGIN main::investment_s_value::update
 	auto budget = economy::pops::prepare_pop_budget<dcon::pop_id>(state, main.for_pop);
 	set_text(state, text::format_money(budget.investments.spent + budget.bank_savings.spent));
+// END
+}
+void pop_budget_details_main_needs_s_value_t::on_update(sys::state& state) noexcept {
+	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
+// BEGIN main::needs_s_value::update
+	auto pid = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto nation = state.world.province_get_nation_from_province_ownership(pid);
+	auto zone = state.world.province_get_state_membership(pid);
+	auto market = state.world.state_instance_get_market_from_local_market(zone);
+
+	auto total = 0.f;
+	// life
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_life(state, main.for_pop, cid);
+		total += cost;
+	});
+
+	// everyday
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_everyday(state, main.for_pop, cid);
+		total += cost;
+	});
+
+	//luxury
+	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		auto cost = economy::pops::estimate_pop_spending_luxury(state, main.for_pop, cid);
+		total += cost;
+	});
+
+	set_text(state, text::format_money(total));
 // END
 }
 ui::message_result pop_budget_details_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
@@ -597,6 +675,12 @@ void pop_budget_details_main_t::create_layout_level(sys::state& state, layout_le
 				} else
 				if(cname == "investment_s_value") {
 					temp.ptr = investment_s_value.get();
+				} else
+				if(cname == "needs_s_label") {
+					temp.ptr = needs_s_label.get();
+				} else
+				if(cname == "needs_s_value") {
+					temp.ptr = needs_s_value.get();
 				} else
 				{
 					std::string str_cname {cname};
@@ -1266,6 +1350,42 @@ void pop_budget_details_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == "needs_s_label") {
+			needs_s_label = std::make_unique<template_label>();
+			needs_s_label->parent = this;
+			auto cptr = needs_s_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "needs_s_value") {
+			needs_s_value = std::make_unique<pop_budget_details_main_needs_s_value_t>();
+			needs_s_value->parent = this;
+			auto cptr = needs_s_value.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -1774,18 +1894,30 @@ void pop_budget_details_consumption_name_t::on_update(sys::state& state) noexcep
 	pop_budget_details_consumption_t& consumption = *((pop_budget_details_consumption_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN consumption::name::update
+	std::string modifier{};
+	if(consumption.category == 0) {
+		modifier = text::produce_simple_string(state, "alice_pop_details_ln_short");
+	} else if(consumption.category == 1) {
+		modifier = text::produce_simple_string(state, "alice_pop_details_en_short");
+	} else if(consumption.category == 2) {
+		modifier = text::produce_simple_string(state, "alice_pop_details_lx_short");
+	}
+	auto commodity_name = text::produce_simple_string(state, state.world.commodity_get_name(consumption.cid));		
+	set_text(state, "(" + modifier + ")" + commodity_name);
 // END
 }
 void pop_budget_details_consumption_satisfaction_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_consumption_t& consumption = *((pop_budget_details_consumption_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN consumption::satisfaction::update
+	set_text(state, text::format_percentage(consumption.satisfaction_val, 0));
 // END
 }
 void pop_budget_details_consumption_cost_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_consumption_t& consumption = *((pop_budget_details_consumption_t*)(parent)); 
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent->parent)); 
 // BEGIN consumption::cost::update
+	set_text(state, text::format_money(consumption.cost_val));
 // END
 }
 void  pop_budget_details_consumption_t::set_alternate(bool alt) noexcept {

@@ -451,6 +451,9 @@ float estimate_artisan_income(sys::state const& state, dcon::pop_id pop);
 money_from_nation estimate_income_from_nation(sys::state const& state, dcon::pop_id pop);
 float estimate_trade_spending(sys::state const& state, dcon::pop_id pop);
 float estimate_tax_spending(sys::state const& state, dcon::pop_id pop, float tax_rate);
+float estimate_pop_spending_life(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid);
+float estimate_pop_spending_everyday(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid);
+float estimate_pop_spending_luxury(sys::state& state, dcon::pop_id pop, dcon::commodity_id cid);
 }
 
 float estimate_pops_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
