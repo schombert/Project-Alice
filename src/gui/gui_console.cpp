@@ -1199,11 +1199,13 @@ int32_t* f_forever_reload(fif::state_stack& s, int32_t* p, fif::environment* e) 
 		state->world.delete_navy(navy);
 	}
 
-	// Reduce factories to a single level, and delete some
+	// Stop all factory constructions. Reduce factories to a base level, and delete some
 	for(auto fc : state->world.in_factory_construction) {
 		state->world.delete_factory_construction(fc);
 	}
-	state->world.execute_serial_over_factory([&](auto ids) { state.world.factory_set_size(ids, cid, ve::fp_vector{ 0.1f }); });
+	state->world.execute_serial_over_factory([&](auto ids) {
+		state.world.factory_set_size(ids, ve::fp_vector{ 0.1f });
+	});
 	for(auto f : state->world.in_factory) {
 		if(rng::get_random(*state, f.id.value * state->current_date.to_raw_value()) % 2 < 1.f) {
 			state->world.delete_factory(f);
