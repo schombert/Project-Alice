@@ -206,7 +206,9 @@ json format_state_link(sys::state& state, dcon::state_instance_id stid) {
 	return j;
 }
 
-json format_province(sys::state& state, dcon::province_id prov) {
+json format_province(sys::state& state, dcon::province_id pid) {
+	auto prov = dcon::fatten(state.world, pid);
+
 	auto province_name = text::produce_simple_string(state, state.world.province_get_name(prov));
 
 	auto owner = state.world.province_get_nation_from_province_ownership(prov);
@@ -217,7 +219,7 @@ json format_province(sys::state& state, dcon::province_id prov) {
 
 	json j = json::object();
 
-	j["id"] = prov.index();
+	j["id"] = prov.id.index();
 	j["name"] = province_name;
 	j["provid"] = state.world.province_get_provid(prov);
 
@@ -227,11 +229,12 @@ json format_province(sys::state& state, dcon::province_id prov) {
 	j["x"] = state.world.province_get_mid_point(prov).x;
 	j["y"] = state.world.province_get_mid_point(prov).y;
 
-	if(auto name = prov.get_terrain().get_name(); name) {
+	auto terrain = prov.get_terrain();
+	if(auto name = terrain.get_name(); name) {
 		json t = json::object();
 
-		t["id"] = prov.get_terrain().id.index();
-		t["key"] = state.to_string_view(state.world.province_get_terrain(prov).get_name());
+		t["id"] = terrain.id.index();
+		t["key"] = state.to_string_view(terrain.get_name());
 		// j["terrain_name"] = text::produce_simple_string(state, state.world.province_get_terrain(prov).get_name());
 		// j["terrain_icon"] = state.world.province_get_terrain(prov).get_icon();
 		// j["terrain_desc"] = text::produce_simple_string(state, state.world.province_get_terrain(prov).get_desc());
