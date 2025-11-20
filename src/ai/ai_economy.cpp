@@ -300,9 +300,10 @@ void build_or_upgrade_desired_factories(
 		if(craved_types.empty()) {
 			continue; // no craved factories
 		}
-		if(!province_has_workers(state, p)) {
-			continue; // no labor at all
-		}
+		// Stops small AIs from building if RGO size > available workforce
+		//if(!province_has_workers(state, p)) { 
+		//	continue; // no labor at all
+		//}
 		if(!province_has_available_workers(state, p))
 			continue; // no spare workers
 
