@@ -1690,6 +1690,7 @@ alice_toggle_administration;Establish or abolish local administration. Administr
 administration_tile;Local administration
 market_tile;Local market
 rgo_tile_header;Natural source of ?Y$good$?W
+province_market_commodity_tile_header;Commodity: ?Y$good$?W
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading

@@ -5418,7 +5418,16 @@ guiTypes = {
 
 	guiButtonType = {
         name = "toggle-tiles-province"
-        position = { x=405 y=100}
+        position = { x=405 y=90}
+        quadTextureSprite ="button-economy-province"
+        buttonText = ""
+        buttonFont = "vic_18_black"
+		extends = "province_view"
+    }
+
+	guiButtonType = {
+        name = "toggle-market-province"
+        position = { x=405 y=130}
         quadTextureSprite ="button-economy-province"
         buttonText = ""
         buttonFont = "vic_18_black"
@@ -5429,6 +5438,12 @@ guiTypes = {
         name = "province_tiles_window"
         position = { 445 0 }
         size = { 288 288 }
+    }
+
+	windowType = {
+        name = "province_market_window"
+        position = { 445 0 }
+        size = { 288 350 }
     }
 
 	iconType = {

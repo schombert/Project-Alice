@@ -15,6 +15,7 @@
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
 #include "gui_province_tiles_window.hpp"
+#include "gui_province_market_window.hpp"
 #include "construction.hpp"
 #include "economy_trade_routes.hpp"
 
@@ -2412,7 +2413,8 @@ public:
 
 enum province_subtab_toggle_signal {
 	economy = 1,
-	tiles = 2
+	tiles = 2,
+	market = 3
 };
 
 class economy_data_toggle : public button_element_base {
@@ -2433,6 +2435,17 @@ public:
 	}
 };
 
+class province_market_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::market);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		frame = 2;
+	}
+};
+
 
 class province_view_window : public window_element_base {
 private:
@@ -2445,6 +2458,8 @@ private:
 	element_base* economy_window = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* tiles_window = nullptr;
+	element_base* market_window = nullptr;
+
 
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -2460,6 +2475,11 @@ public:
 		tiles_window = ptr2.get();
 		tiles_window->set_visible(state, false);
 		add_child_to_front(std::move(ptr2));
+
+		auto ptr3 = make_element_by_type<province_market_window>(state, "province_market_window");
+		market_window = ptr3.get();
+		market_window->set_visible(state, false);
+		add_child_to_front(std::move(ptr3));
 	}
 
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
@@ -2486,12 +2506,36 @@ public:
 		} else if (payload.holds_type<province_subtab_toggle_signal>()) {
 			auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
 
+			// Show one out of 3 possible window-tabs. On second click - hide opened tab.
 			if(enum_val == province_subtab_toggle_signal::tiles) {
-				tiles_window->set_visible(state, !tiles_window->is_visible());
+				if(!tiles_window->is_visible()) {
+					tiles_window->set_visible(state, true);
+					economy_window->set_visible(state, false);
+					market_window->set_visible(state, false);
+				}
+				else {
+					tiles_window->set_visible(state, false);
+				}
 			}
 			else if(enum_val == province_subtab_toggle_signal::economy) {
-				
-				economy_window->set_visible(state, !economy_window->is_visible());
+				if(!economy_window->is_visible()) {
+					tiles_window->set_visible(state, false);
+					economy_window->set_visible(state, true);
+					market_window->set_visible(state, false);
+				}
+				else {
+					economy_window->set_visible(state, false);
+				}
+			}
+			else if(enum_val == province_subtab_toggle_signal::market) {
+				if(!market_window->is_visible()) {
+					tiles_window->set_visible(state, false);
+					economy_window->set_visible(state, false);
+					market_window->set_visible(state, true);
+				}
+				else {
+					market_window->set_visible(state, false);
+				}
 			}
 
 			return message_result::consumed;

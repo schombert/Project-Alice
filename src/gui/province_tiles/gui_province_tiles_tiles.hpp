@@ -507,4 +507,36 @@ public:
 	}
 };
 
+class commodity_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.world.commodity_get_name(target.commodity);
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return (state.world.commodity_get_is_mine(target.commodity) ? 3 : 2);
+	}
+
+	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override {
+		return target.commodity;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		// Switch to economy scene on click
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
+		text::add_line(state, contents, "province_market_commodity_tile_header", text::variable_type::good, commodity_name);
+		text::add_line_break_to_layout(state, contents);
+
+	}
+};
+
+
 } // namespace ui

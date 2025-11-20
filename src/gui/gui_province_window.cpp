@@ -202,6 +202,8 @@ std::unique_ptr<element_base> province_view_window::make_child(sys::state& state
 		return make_element_by_type<economy_data_toggle>(state, id);
 	} else if(name == "toggle-tiles-province") {
 		return make_element_by_type<province_tiles_toggle>(state, id);
+	} else if(name == "toggle-market-province") {
+		return make_element_by_type<province_market_toggle>(state, id);
 	} else {
 		return nullptr;
 	}

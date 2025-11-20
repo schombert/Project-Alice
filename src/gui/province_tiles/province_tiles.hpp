@@ -21,6 +21,7 @@ struct province_tile {
 	dcon::factory_construction_id factory_construction{};
 	bool has_province_building = false;
 	economy::province_building_type province_building = economy::province_building_type::railroad;
+	dcon::commodity_id commodity{};
 };
 
 std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::province_id p);
