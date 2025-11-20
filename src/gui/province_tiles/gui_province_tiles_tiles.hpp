@@ -543,15 +543,17 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto commodity_name = state.world.commodity_get_name(target.commodity);
-		text::add_line(state, contents, "province_market_header", text::variable_type::good, commodity_name);
 
 		auto sid = state.world.province_get_state_membership(target.province);
 		auto market = target.market;
 
 		text::add_line(state, contents, "province_market_market", text::variable_type::name, sid.get_definition().get_name());
+		text::add_line(state, contents, "province_market_header", text::variable_type::good, commodity_name);
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "province_market_price", text::variable_type::val, text::fp_currency{ state.world.market_get_price(market, target.commodity) });
+		text::add_line_break_to_layout(state, contents);
+
 		text::add_line(state, contents, "province_market_supply", text::variable_type::val, text::fp_two_places{ state.world.market_get_supply(market, target.commodity) });
 		text::add_line(state, contents, "province_market_demand", text::variable_type::val, text::fp_two_places{ state.world.market_get_demand(market, target.commodity) });
 		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
