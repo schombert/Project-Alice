@@ -1308,7 +1308,7 @@ alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-C
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
 province_has_workers;Province has any workforce
-province_has_available_workers;Province has available workforce
+province_has_available_workers;Province has unemployed workforce
 nation_is_factory_type_active;Necessary technology has been researched
 nation_is_factory_type_colonies;This is a colonial province and target factory type can be built in colonies.
 payback_time;Payback time: ?Y$x$?!

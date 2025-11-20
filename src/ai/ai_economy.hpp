@@ -8,7 +8,6 @@ struct state;
 namespace ai {
 
 bool province_has_available_workers(sys::state& state, dcon::province_id p);
-
 bool province_has_workers(sys::state& state, dcon::province_id p);
 
 void update_budget(sys::state& state, bool presim = false);
