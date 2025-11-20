@@ -518,7 +518,18 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override {
-		return (state.world.commodity_get_is_mine(target.commodity) ? 3 : 2);
+		auto market = target.market;
+
+		if(state.world.market_get_supply(market, target.commodity) < 0.01f) {
+			return 0;
+		}
+		else if(state.world.market_get_supply(market, target.commodity) > state.world.market_get_demand(market, target.commodity) * 1.25f) {
+			return 1;
+		}
+		else if(state.world.market_get_supply(market, target.commodity) < state.world.market_get_demand(market, target.commodity) * 0.75f) {
+			return 3;
+		}
+		return 2;
 	}
 
 	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override {
@@ -531,10 +542,41 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
-		text::add_line(state, contents, "province_market_commodity_tile_header", text::variable_type::good, commodity_name);
+		auto commodity_name = state.world.commodity_get_name(target.commodity);
+		text::add_line(state, contents, "province_market_header", text::variable_type::good, commodity_name);
+
+		auto sid = state.world.province_get_state_membership(target.province);
+		auto market = target.market;
+
+		text::add_line(state, contents, "province_market_market", text::variable_type::name, sid.get_definition().get_name());
 		text::add_line_break_to_layout(state, contents);
 
+		text::add_line(state, contents, "province_market_price", text::variable_type::val, text::fp_currency{ state.world.market_get_price(market, target.commodity) });
+		text::add_line(state, contents, "province_market_supply", text::variable_type::val, text::fp_two_places{ state.world.market_get_supply(market, target.commodity) });
+		text::add_line(state, contents, "province_market_demand", text::variable_type::val, text::fp_two_places{ state.world.market_get_demand(market, target.commodity) });
+		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
+		text::add_line(state, contents, "province_market_consumption", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_demand(market, target.commodity) - economy::trade_demand(state, market, target.commodity)) });
+		text::add_line(state, contents, "province_market_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile(market, target.commodity) });
+		{
+			auto supply = state.world.market_get_supply(market, target.commodity);
+			auto demand = state.world.market_get_demand(market, target.commodity);
+			auto shift = 0.001f;
+			auto balance = (supply + shift) / (demand + shift) - (demand + shift) / (supply + shift);
+
+			text::add_line(state, contents, "province_market_balance", text::variable_type::val, text::fp_two_places{ balance });
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "province_market_trade_in", text::variable_type::val, text::fp_two_places{ economy::trade_influx(state, market, target.commodity) });
+		text::add_line(state, contents, "province_market_trade_out", text::variable_type::val, text::fp_two_places{ economy::trade_outflux(state, market, target.commodity) });
+		{
+			auto supply = economy::trade_influx(state, market, target.commodity);
+			auto demand = economy::trade_outflux(state, market, target.commodity);
+			auto shift = 0.001f;
+			auto balance = supply - demand;
+			text::add_line(state, contents, "province_market_trade_balance", text::variable_type::val, text::fp_two_places{ balance });
+		}
 	}
 };
 
