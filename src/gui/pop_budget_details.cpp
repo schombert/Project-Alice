@@ -460,7 +460,17 @@ void pop_budget_details_main_tax_s_value_t::on_update(sys::state& state) noexcep
 // BEGIN main::tax_s_value::update
 	auto pid = state.world.pop_get_province_from_pop_location(main.for_pop);
 	auto nid = state.world.province_get_nation_from_province_control(pid);
-	auto tax_rate = float(state.world.nation_get_poor_tax(nid)) / 100.f;
+	// account for strata
+	auto pop_type = state.world.pop_get_poptype(main.for_pop);
+	auto strata = state.world.pop_type_get_strata(pop_type);
+	auto tax_rate = 0.f;
+	if(strata == (uint8_t)culture::pop_strata::poor) {
+		tax_rate = float(state.world.nation_get_poor_tax(nid)) / 100.f;
+	} else if(strata == (uint8_t)culture::pop_strata::middle) {
+		tax_rate = float(state.world.nation_get_middle_tax(nid)) / 100.f;
+	} else if(strata == (uint8_t)culture::pop_strata::rich) {
+		tax_rate = float(state.world.nation_get_rich_tax(nid)) / 100.f;
+	}
 	auto tax_efficiency = economy::tax_collection_rate(state, nid, pid);
 	set_text(state, text::format_money(economy::pops::estimate_tax_spending(state, main.for_pop, tax_rate * tax_efficiency)));
 // END
