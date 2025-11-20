@@ -1818,9 +1818,13 @@ pop_budget_unemployment;Unemployment
 pop_budget_pension;Pension
 pop_budget_factory_ownership;Factories
 pop_budget_rgo_ownership;RGO
-pop_budget_trade;Trade
 pop_budget_national_pay;National pay
-pop_budget_production_header;Production
+pop_budget_business;Entrepreneurship
+pop_budget_guild;Guild
+pop_budget_trade;Trade
+pop_budget_tax;Tax
+pop_budget_investment;Investment
+pop_budget_education;Education
 pop_budget_wages_header;Wages
 pop_budget_income;Income
 pop_budget_spending;Spending

@@ -3974,7 +3974,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				}
 			}
 			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {
-				auto const tax_eff = nations::tax_efficiency(state, n);
+				auto const tax_eff = nations::tribute_efficiency(state, n);
 				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
@@ -4235,7 +4235,7 @@ float estimate_reparations_income(sys::state& state, dcon::nation_id n) {
 	for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
 		if(uni.get_reparations() && state.current_date < uni.get_source().get_reparations_until()) {
 			auto source = uni.get_source();
-			auto const tax_eff = nations::tax_efficiency(state, n);
+			auto const tax_eff = nations::tribute_efficiency(state, n);
 			auto total_tax_base = state.world.nation_get_total_rich_income(source) +
 				state.world.nation_get_total_middle_income(source) +
 				state.world.nation_get_total_poor_income(source);
@@ -4263,7 +4263,7 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 	if(state.current_date < state.world.nation_get_reparations_until(n)) {
 		for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
 			if(uni.get_reparations()) {
-				auto const tax_eff = nations::tax_efficiency(state, n);
+				auto const tax_eff = nations::tribute_efficiency(state, n);
 				auto total_tax_base = state.world.nation_get_total_rich_income(n) +
 					state.world.nation_get_total_middle_income(n) +
 					state.world.nation_get_total_poor_income(n);
