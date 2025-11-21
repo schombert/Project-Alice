@@ -578,6 +578,10 @@ These relate to gamerules
 - `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, where 0.0 means it is off.
 - `alice_auto_concession_peace_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a peacedeal will be force-accepted if it is conceding all wargoals (or if the peacedeal concedes 100 warscore or higher). 1.0 means forced-peaces are disabled, where 0.0 means they are enabled.
 
+**AI**
+
+- `ai_insanely_good_factory_profitability = 20.0`, `ai_insanely_good_factory_payback_time = 20.0`, `ai_good_factory_profitability = 1.5` (150% margin), `ai_good_factory_payback_time = 365.0` (days). AI nations build factories matching insanely_good predictions (craved) first, and good predictions (desired) second. Factories not matching these will not be constructed by AI nations.
+
 ### Support for reforms based on party issues
 
 In issues.txt you can add a `vote_modifiers = { ... }` section to any particular issue option within the party issues section. For example, one could go here:

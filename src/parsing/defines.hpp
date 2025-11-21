@@ -770,6 +770,10 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_auto_concession_peace_default_setting, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_render_on_map_generals, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_economy_presim_days, 730.0) \
+	LUA_DEFINES_LIST_ELEMENT(ai_insanely_good_factory_profitability, 20.0) \
+	LUA_DEFINES_LIST_ELEMENT(ai_insanely_good_factory_payback_time, 20.0) \
+	LUA_DEFINES_LIST_ELEMENT(ai_good_factory_profitability, 1.5) \
+	LUA_DEFINES_LIST_ELEMENT(ai_good_factory_payback_time, 365.0) \
 
 // scales the needs values so that they are needs per this many pops
 // this value was arrived at by looking at farmers: 40'000 farmers produces enough grain to satisfy about 2/3

@@ -344,13 +344,13 @@ void build_or_upgrade_desired_factories(
 void update_ai_econ_construction(sys::state& state) {
 	constexpr float days_prepaid = 0.5f;
 
-	constexpr float insanely_good_profitability = 20.f;
+	static float insanely_good_profitability = state.defines.ai_insanely_good_factory_profitability;
 	constexpr float insanely_good_demand_supply_disbalance = 0.1f;
-	constexpr float insanely_good_payback_time = 20.f;
+	static float insanely_good_payback_time = state.defines.ai_insanely_good_factory_payback_time;
 
-	constexpr float good_profitability = 1.5f;
+	static float good_profitability = state.defines.ai_good_factory_profitability;
 	constexpr float good_demand_supply_disbalance = 0.8f;
-	constexpr float good_payback_time = 365.f;
+	static float good_payback_time = state.defines.ai_good_factory_payback_time;
 
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
