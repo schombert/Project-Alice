@@ -1,0 +1,23 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="lbfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
+			<image href="owc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
+		</pattern>
+		<radialGradient id="bottomfade" cx="0.5" cy="1">
+			<stop stop-color="white" offset="0%" />
+			<stop stop-color="white" offset="33%" />
+			<stop stop-color="black" offset="100%" />
+		</radialGradient>
+		<mask  id="fademask">
+			<rect  x="0" y="0" fill="url(#bottomfade)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+	</defs>
+	<g mask="url(#fademask)">
+		<rect fill="url(#lbfill)" x="0" y="0" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+	</g>
+</svg>

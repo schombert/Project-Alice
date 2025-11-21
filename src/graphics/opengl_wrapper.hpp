@@ -53,14 +53,6 @@ inline constexpr GLuint border_repeat = 25;
 inline constexpr GLuint corner_repeat = 26;
 } // namespace parameters
 
-enum class color_modification { none, disabled, interactable, interactable_disabled };
-
-struct color3f {
-	float r = 0.0f;
-	float g = 0.0f;
-	float b = 0.0f;
-};
-
 inline color3f unpack_color(uint32_t v) {
 	return color3f{ sys::red_from_int(v), sys::green_from_int(v), sys::blue_from_int(v) };
 }

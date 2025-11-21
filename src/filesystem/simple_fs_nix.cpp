@@ -539,7 +539,7 @@ directory get_or_create_settings_directory() {
 directory get_or_create_save_game_directory(native_string mod_dir) {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/saves/";
 	if(mod_dir.length() > 0) {
-		path += mod_dir;
+		path += mod_dir + NATIVE_DIR_SEPARATOR;
 	}
 	make_directories(path);
 

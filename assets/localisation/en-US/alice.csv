@@ -1662,6 +1662,9 @@ alice_pop_details_assim;Assimilation:
 alice_pop_details_ln;Life Needs
 alice_pop_details_en;Everyday Needs
 alice_pop_details_lx;Luxury Needs
+alice_pop_details_ln_short;LN
+alice_pop_details_en_short;EN
+alice_pop_details_lx_short;LxN
 alice_pop_details_need_name_h;Name
 alice_pop_details_need_amount_h;Qty
 alice_pop_details_need_cost_h;Price
@@ -1740,7 +1743,7 @@ gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
 market_report;External trade in the local market of ?Y$province$?W
 market_prices_report;Prices in ?Y$province$?W
-rgo_report;Resource gathering operations in ?Y$province$?W
+rgo_report;Resource extraction: ?Y$province$?W
 trade_balance;Balance
 rgo_details_name;Name
 rgo_efficiency_super_header;Efficiency
@@ -1810,3 +1813,22 @@ alice_infrastructure_tab;Infrastructure
 economy_overview_header;Economy overview
 alice_extra_armies_tooltip;+ ?Y$x$?W more armies
 alice_extra_navies_tooltip;+ ?Y$x$?W more navies
+alice_pop_details_need_weight;W
+alice_pop_details_need_weight_tooltip;Budget priority of the selected commodity
+button_pop_budget;Open budget details
+pop_budget_details;Budget details
+pop_budget_unemployment;Unemployment
+pop_budget_pension;Pension
+pop_budget_factory_ownership;Factories
+pop_budget_rgo_ownership;RGO
+pop_budget_national_pay;National pay
+pop_budget_business;Entrepreneurship
+pop_budget_guild;Guild
+pop_budget_trade;Trade
+pop_budget_tax;Tax
+pop_budget_investment;Investment
+pop_budget_education;Education
+pop_budget_wages_header;Wages
+pop_budget_income;Income
+pop_budget_spending;Spending
+pop_budget_needs;Needs
