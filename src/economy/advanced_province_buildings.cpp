@@ -156,6 +156,19 @@ void update_consumption(sys::state& state) {
 			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			if(expected_profit_per_size > 0.f && size > 0.8f * max_size) {
+				// calculate costs:
+				auto cost = 0.f;
+				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+					auto cid = costs.commodity_type[i];
+					if(!cid) {
+						break;
+					}
+					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
+					cost += amount * economy::price(state, mid, cid);
+				}
+				assert(cost != 0.f);
+				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / cost);
+
 				// if ports are profitable and size is close to max size, register demand on commodities
 				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
 					auto cid = costs.commodity_type[i];
@@ -163,7 +176,7 @@ void update_consumption(sys::state& state) {
 						break;
 					}
 					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
-					economy::register_demand(state, mid, cid, amount);
+					economy::register_demand(state, mid, cid, amount * scale);
 				}
 			}
 		});
@@ -220,6 +233,19 @@ void update_profit_and_refund(sys::state& state) {
 			auto expected_profit_per_size = output_cost * def.output_amount * efficiency - input_cost;
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			if(expected_profit_per_size > 0.f && size > 0.8f * max_size) {
+				// calculate costs:
+				auto total_cost = 0.f;
+				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+					auto cid = costs.commodity_type[i];
+					if(!cid) {
+						break;
+					}
+					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
+					total_cost += amount * economy::price(state, mid, cid);
+				}
+				assert(total_cost != 0.f);
+				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / total_cost);
+
 				auto expansion_scale = 1.f;
 				auto cost = 0.f;
 				// if ports are profitable and size is close to max size, register demand on commodities
@@ -231,7 +257,7 @@ void update_profit_and_refund(sys::state& state) {
 					auto probability = state.world.market_get_actual_probability_to_buy(mid, cid);
 					// we promised to buy - we spend money and throw away excess items
 					// otherwise we generated demand and then haven't fulfilled our promise
-					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * economy::price(state, mid, cid) * probability;
+					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * scale * economy::price(state, mid, cid) * probability;
 					if(probability < expansion_scale) {
 						expansion_scale = probability;
 					}
@@ -242,12 +268,16 @@ void update_profit_and_refund(sys::state& state) {
 
 				auto current_max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
 				state.world.province_set_advanced_province_building_max_private_size(
-					pid, id, current_max_size * ports_decay_speed + expansion_scale * max_port_expansion_speed
+					pid, id, std::max(500.f, current_max_size * ports_decay_speed + expansion_scale * max_port_expansion_speed)
+				);
+			} else {
+				auto current_max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
+				state.world.province_set_advanced_province_building_max_private_size(
+					pid, id, std::max(500.f, current_max_size * ports_decay_speed)
 				);
 			}
 		}
 	});
-
 }
 
 void update_private_size(sys::state& state) {
@@ -356,7 +386,8 @@ void update_production(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-			auto output = input_satisfaction * def.output_amount;
+			//assume that low trade volume doesn't require any additional infrastructure or workers
+			auto output = 1000.f + input_satisfaction * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
