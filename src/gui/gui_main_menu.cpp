@@ -36,67 +36,62 @@ uint32_t get_ui_scale_index(float current_scale) {
 }
 
 void ui_scale_left::button_action(sys::state& state) noexcept {
-	// Coarse Adjustment: Go to previous standard preset
 	auto current_scale = state.user_settings.ui_scale;
-	auto scale_index = get_ui_scale_index(current_scale);
+	auto current_index = get_ui_scale_index(current_scale);
 
-	if(scale_index > 0) {
-		state.update_ui_scale(sys::ui_scales[scale_index - 1]);
+	if(current_index > 0) {
+		// Calculate new index, preventing underflow
+		uint32_t new_index = (current_index >= 5) ? (current_index - 5) : 0;
+
+		state.update_ui_scale(sys::ui_scales[new_index]);
 		send(state, parent, notify_setting_update{});
 	}
 }
 
 void ui_scale_left::button_shift_action(sys::state& state) noexcept {
-	float current_scale = state.user_settings.ui_scale;
-	float min_scale = sys::ui_scales[0];
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
 
-	float new_scale = current_scale - 0.05f;
-	if(new_scale < min_scale) new_scale = min_scale;
-
-	// Only update if the value actually changed (float tolerance check)
-	if(std::abs(new_scale - current_scale) > 0.001f) {
-		state.update_ui_scale(new_scale);
+	if(current_index > 0) {
+		state.update_ui_scale(sys::ui_scales[current_index - 1]);
 		send(state, parent, notify_setting_update{});
 	}
 }
 
 void ui_scale_left::on_update(sys::state& state) noexcept {
-	// Disable button if we are at (or below) the minimum scale
+	// Disable if we are at the absolute minimum
 	disabled = (state.user_settings.ui_scale <= sys::ui_scales[0] + 0.001f);
 }
 void ui_scale_right::button_action(sys::state& state) noexcept {
-	// Coarse Adjustment: Go to next standard preset
-	float current_scale = state.user_settings.ui_scale;
-	auto scale_index = get_ui_scale_index(current_scale);
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+	auto max_index = uint32_t(sys::ui_scales_count - 1);
 
-	float next_preset_val = sys::ui_scales[scale_index];
+	if(current_index < max_index) {
+		// Calculate new index, clamping to max
+		uint32_t new_index = current_index + 5;
+		if(new_index > max_index) new_index = max_index;
 
-	if(current_scale < next_preset_val - 0.001f) {
-		// We are between presets (e.g. 1.05), snap to the current index (1.25)
-		state.update_ui_scale(next_preset_val);
-		send(state, parent, notify_setting_update{});
-	} else if(scale_index < uint32_t(sys::ui_scales_count - 1)) {
-		state.update_ui_scale(sys::ui_scales[scale_index + 1]);
+		state.update_ui_scale(sys::ui_scales[new_index]);
 		send(state, parent, notify_setting_update{});
 	}
 }
 
 void ui_scale_right::button_shift_action(sys::state& state) noexcept {
-	float current_scale = state.user_settings.ui_scale;
-	float max_scale = sys::ui_scales[sys::ui_scales_count - 1];
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+	auto max_index = uint32_t(sys::ui_scales_count - 1);
 
-	float new_scale = current_scale + 0.05f;
-	if(new_scale > max_scale) new_scale = max_scale;
-
-	if(std::abs(new_scale - current_scale) > 0.001f) {
-		state.update_ui_scale(new_scale);
+	if(current_index < max_index) {
+		state.update_ui_scale(sys::ui_scales[current_index + 1]);
 		send(state, parent, notify_setting_update{});
 	}
 }
 
 void ui_scale_right::on_update(sys::state& state) noexcept {
-	// Disable button if we are at (or above) the maximum scale
-	disabled = (state.user_settings.ui_scale >= sys::ui_scales[sys::ui_scales_count - 1] - 0.001f);
+	// Disable if we are at the absolute maximum
+	float max_scale = sys::ui_scales[sys::ui_scales_count - 1];
+	disabled = (state.user_settings.ui_scale >= max_scale - 0.001f);
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
 	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
