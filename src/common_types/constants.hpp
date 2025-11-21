@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <array>
 
 namespace sys {
 enum class virtual_key : uint8_t {
@@ -163,8 +164,16 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
-constexpr inline float ui_scales[] = {0.25f, 0.30f, 0.35f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
-constexpr inline uint32_t ui_scales_count = 12;
+constexpr inline float ui_scales[] = {
+	0.50f, 0.55f, 0.60f, 0.65f, 0.70f,
+	0.75f, 0.80f, 0.85f, 0.90f, 0.95f,
+	1.00f, 1.05f, 1.10f, 1.15f, 1.20f,
+	1.25f, 1.30f, 1.35f, 1.40f, 1.45f,
+	1.50f, 1.55f, 1.60f, 1.65f, 1.70f,
+	1.75f, 1.80f, 1.85f, 1.90f, 1.95f,
+	2.00f
+};
+constexpr inline uint32_t ui_scales_count = std::size(ui_scales); //I think it's beautiful and legal
 
 enum class autosave_frequency : uint8_t {
 	none = 0,
