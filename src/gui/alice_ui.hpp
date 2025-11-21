@@ -688,6 +688,110 @@ public:
 	}
 };
 
+class pop_up_menu_container : public ui::non_owning_container_base {
+public:
+	ui::element_base* scroll_redirect = nullptr;
+	int32_t bg_template = -1;
+	int32_t bg_grid_size = 8;
+	
+
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		if(scroll_redirect)
+			scroll_redirect->impl_on_scroll(state, x, y, amount, mods);
+		return ui::message_result::consumed;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return ui::message_result::consumed;
+	}
+
+	friend struct layout_iterator;
+};
+
+class template_drop_down_control;
+
+class drop_down_list_button : public template_mixed_button {
+public:
+	template_drop_down_control* owner_control = nullptr;
+	int32_t list_id = 0;
+
+	void on_update(sys::state& state) noexcept override;
+	bool button_action(sys::state& state) noexcept;
+};
+
+class drop_down_list_page_buttons : public ui::element_base {
+public:
+	text::layout text_layout;
+	template_drop_down_control* owner_control = nullptr;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+
+class template_drop_down_control : public ui::element_base {
+public:
+	std::unique_ptr< drop_down_list_page_buttons> page_controls;
+	std::vector<std::unique_ptr<drop_down_list_button>> list_buttons_pool;
+
+	int32_t template_id = -1;
+	int32_t list_page = 0;
+	int32_t items_per_page = 1;
+	int32_t total_items = 0;
+	int32_t selected_item = 0;
+
+	int32_t target_page_height = -1;
+	int32_t element_x_size = 1;
+	int32_t element_y_size = 1;
+	bool page_text_out_of_date = false;
+	bool two_columns = false;
+
+	std::chrono::steady_clock::time_point last_activated;
+	bool disabled = false;
+
+	template_drop_down_control() {
+		page_controls = std::make_unique<drop_down_list_page_buttons>();
+		page_controls->owner_control = this;
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		// in implementations: create a display element for the main value
+		// set element size
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			// do thing
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+
+	void open_list(sys::state& state);
+	void hide_list(sys::state& state);
+	void change_page(sys::state& state, int32_t to_page);
+
+	virtual ui::element_base* get_nth_item(sys::state& state, int32_t id, int32_t pool_id) = 0;
+	virtual void on_selection(sys::state& state, int32_t id) = 0; // must change the value stored in the display item and update selected_item
+};
+
 class layout_window_element : public ui::non_owning_container_base {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);

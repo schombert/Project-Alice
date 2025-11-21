@@ -22,6 +22,7 @@
 #include "unit_tooltip.hpp"
 #include "triggers.hpp"
 #include "effects.hpp"
+#include "alice_ui.hpp"
 
 namespace ui {
 
@@ -2842,6 +2843,7 @@ state::state() {
 	select_national_identity_root = std::make_unique<container_base>();
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;
+	popup_menu = std::make_unique<alice_ui::pop_up_menu_container>();
 }
 
 state::~state() = default;

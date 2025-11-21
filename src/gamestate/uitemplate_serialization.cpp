@@ -282,6 +282,28 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 			indv_tb.read(i.r_margin);
 			indv_tb.read(i.b_margin);
 		}
+
+		auto drop_down_section = buffer.read_section();
+		while(drop_down_section) {
+			result.drop_down_t.emplace_back();
+			auto indv_tb = drop_down_section.read_section();
+			auto& i = result.drop_down_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.primary_bg);
+			indv_tb.read(i.active_bg);
+			indv_tb.read(i.disabled_bg);
+
+			indv_tb.read(i.list_button);
+			indv_tb.read(i.list_button_alt);
+			indv_tb.read(i.selection_icon);
+			indv_tb.read(i.layout_region_base);
+
+			indv_tb.read(i.dropdown_window_bg);
+			indv_tb.read(i.dropdown_window_margin);
+
+			indv_tb.read(i.animate_active_transition);
+		}
 	return result;
 }
 

@@ -56,6 +56,8 @@ namespace ui {
 void create_in_game_windows(sys::state& state) {
 	state.ui_state.lazy_load_in_game = true;
 
+	state.ui_state.popup_menu = std::make_unique<alice_ui::pop_up_menu_container>();
+
 	state.ui_state.unit_details_box = ui::make_element_by_type<ui::grid_box>(state, state.ui_state.defs_by_name.find(state.lookup_key("alice_grid_panel"))->second.definition);
 	state.ui_state.unit_details_box->set_visible(state, false);
 
