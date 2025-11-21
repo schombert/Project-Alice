@@ -151,12 +151,13 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 		+ state.world.nation_get_modifier_values(n, nation_mod_offset);
 
 	VALUE result =
-		free_efficiency + main_rgo
+		free_efficiency
+		+ main_rgo
 		*
 			(
 				(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
 				/ (state.world.province_get_demographics(p, demographics::total) + 1.f)
-				+ 0.05f
+				+ 0.01f
 			)
 		* adaptive_ve::max<VALUE>(0.5f, throughput)
 		* state.defines.alice_rgo_boost // sizable compensation for efficiency being not free
@@ -165,7 +166,7 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 			+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output)
 			+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output)
 			+ state.world.nation_get_rgo_goods_output(n, c)
-		));
+		)) * 20.f;
 
 	return result;
 }
