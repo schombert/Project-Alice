@@ -3222,6 +3222,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				ve::fp_vector en_total = 0.0f;
 				ve::fp_vector lx_total = 0.0f;
 
+				ve::fp_vector ln_demanded = 0.0f;
+				ve::fp_vector en_demanded = 0.0f;
+				ve::fp_vector lx_demanded = 0.0f;
+
 				ve::fp_vector ln_max = 0.0f;
 				ve::fp_vector en_max = 0.0f;
 				ve::fp_vector lx_max = 0.0f;
@@ -3235,14 +3239,21 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto lx_val = state.world.pop_type_get_luxury_needs(pt, c);
 
 					ln_total = ln_total + ln_val;
+					ln_demanded = ln_demanded + ln_val * state.world.market_get_life_needs_weights(ids, c);
 					ln_max = ln_max + ln_val * sat * state.world.market_get_life_needs_weights(ids, c);
 
 					en_total = en_total + en_val;
+					en_demanded = en_demanded + en_val * state.world.market_get_everyday_needs_weights(ids, c);
 					en_max = en_max + en_val * sat * state.world.market_get_everyday_needs_weights(ids, c);
 
 					lx_total = lx_total + lx_val;
+					lx_demanded = lx_demanded + lx_val * state.world.market_get_luxury_needs_weights(ids, c);
 					lx_max = lx_max + lx_val * sat * state.world.market_get_luxury_needs_weights(ids, c);
 				}
+
+				ln_demanded = ve::select(ln_demanded > 0.f, ln_max / ln_demanded, 1.f);
+				en_demanded = ve::select(en_demanded > 0.f, en_max / en_demanded, 1.f);
+				lx_demanded = ve::select(lx_demanded > 0.f, lx_max / lx_demanded, 1.f);
 
 				ln_max = ve::select(ln_total > 0.f, ln_max / ln_total, 1.f);
 				en_max = ve::select(en_total > 0.f, en_max / en_total, 1.f);
@@ -3254,12 +3265,22 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					assert(everyday >= 0.f && everyday <= 1.f);
 					assert(luxury >= 0.f && luxury <= 1.f);
 				}, ln_max, en_max, lx_max);
+				ve::apply([](float life, float everyday, float luxury) {
+					assert(life >= 0.f && life <= 1.f);
+					assert(everyday >= 0.f && everyday <= 1.f);
+					assert(luxury >= 0.f && luxury <= 1.f);
+				}, ln_demanded, en_demanded, lx_demanded);
 #endif // !NDEBUG
 
-				// probability to increase corresponding satisfactio
-				state.world.market_set_max_life_needs_satisfaction(ids, pt, ln_max);
-				state.world.market_set_max_everyday_needs_satisfaction(ids, pt, en_max);
-				state.world.market_set_max_luxury_needs_satisfaction(ids, pt, lx_max);
+				// probability to increase corresponding satisfaction
+				state.world.market_set_satisfied_ratio_of_max_life_needs(ids, pt, ln_max);
+				state.world.market_set_satisfied_ratio_of_max_everyday_needs(ids, pt, en_max);
+				state.world.market_set_satisfied_ratio_of_max_luxury_needs(ids, pt, lx_max);
+
+				// ratio of actually spent money to calculate cashback
+				state.world.market_set_satisfied_ratio_of_demanded_life_needs(ids, pt, ln_demanded);
+				state.world.market_set_satisfied_ratio_of_demanded_everyday_needs(ids, pt, en_demanded);
+				state.world.market_set_satisfied_ratio_of_demanded_luxury_needs(ids, pt, lx_demanded);
 			});
 		}, pts);
 	});
@@ -3276,13 +3297,23 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		auto pop_type = state.world.pop_get_poptype(ids);
 
 		auto ln_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_max_life_needs_satisfaction(market, pt);
+			return state.world.market_get_satisfied_ratio_of_max_life_needs(market, pt);
 		}, local_market, pop_type);
 		auto en_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_max_everyday_needs_satisfaction(market, pt);
+			return state.world.market_get_satisfied_ratio_of_max_everyday_needs(market, pt);
 		}, local_market, pop_type);
 		auto lx_satisfaction = ve::apply([&](auto market, auto pt) {
-			return state.world.market_get_max_luxury_needs_satisfaction(market, pt);
+			return state.world.market_get_satisfied_ratio_of_max_luxury_needs(market, pt);
+		}, local_market, pop_type);
+
+		auto ln_spent = ve::apply([&](auto market, auto pt) {
+			return state.world.market_get_satisfied_ratio_of_demanded_life_needs(market, pt);
+		}, local_market, pop_type);
+		auto en_spent = ve::apply([&](auto market, auto pt) {
+			return state.world.market_get_satisfied_ratio_of_demanded_everyday_needs(market, pt);
+		}, local_market, pop_type);
+		auto lx_spent = ve::apply([&](auto market, auto pt) {
+			return state.world.market_get_satisfied_ratio_of_demanded_luxury_needs(market, pt);
 		}, local_market, pop_type);
 
 		// return money which were not actually spent
@@ -3299,9 +3330,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto pop_size = state.world.pop_get_size(ids);
 			auto unspent_money =
-				ln_cost * (1.f - ln_satisfaction) * demand_life.get(ids)
-				+ en_cost * (1.f - en_satisfaction) * demand_everyday.get(ids)
-				+ lx_cost * (1.f - lx_satisfaction) * demand_luxury.get(ids);
+				ln_cost * (1.f - ln_spent) * demand_life.get(ids)
+				+ en_cost * (1.f - en_spent) * demand_everyday.get(ids)
+				+ lx_cost * (1.f - lx_spent) * demand_luxury.get(ids);
 
 			auto savings = state.world.pop_get_savings(ids);
 			state.world.pop_set_savings(ids, savings + unspent_money);
@@ -3974,7 +4005,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				}
 			}
 			if(uni.get_reparations() && state.current_date < n.get_reparations_until()) {
-				auto const tax_eff = nations::tax_efficiency(state, n);
+				auto const tax_eff = nations::tribute_efficiency(state, n);
 				auto total_tax_base = n.get_total_rich_income() + n.get_total_middle_income() + n.get_total_poor_income();
 
 				auto payout = total_tax_base * tax_eff * state.defines.reparations_tax_hit;
@@ -4079,9 +4110,12 @@ void regenerate_unsaved_values(sys::state& state) {
 	state.world.market_resize_everyday_needs_scale(state.world.pop_type_size());
 	state.world.market_resize_luxury_needs_scale(state.world.pop_type_size());
 
-	state.world.market_resize_max_life_needs_satisfaction(state.world.pop_type_size());
-	state.world.market_resize_max_everyday_needs_satisfaction(state.world.pop_type_size());
-	state.world.market_resize_max_luxury_needs_satisfaction(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_max_life_needs(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_max_everyday_needs(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_max_luxury_needs(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_demanded_life_needs(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_demanded_everyday_needs(state.world.pop_type_size());
+	state.world.market_resize_satisfied_ratio_of_demanded_luxury_needs(state.world.pop_type_size());
 }
 
 float government_consumption(sys::state& state, dcon::nation_id n, dcon::commodity_id c) {
@@ -4235,7 +4269,7 @@ float estimate_reparations_income(sys::state& state, dcon::nation_id n) {
 	for(auto uni : state.world.nation_get_unilateral_relationship_as_target(n)) {
 		if(uni.get_reparations() && state.current_date < uni.get_source().get_reparations_until()) {
 			auto source = uni.get_source();
-			auto const tax_eff = nations::tax_efficiency(state, n);
+			auto const tax_eff = nations::tribute_efficiency(state, n);
 			auto total_tax_base = state.world.nation_get_total_rich_income(source) +
 				state.world.nation_get_total_middle_income(source) +
 				state.world.nation_get_total_poor_income(source);
@@ -4263,7 +4297,7 @@ float estimate_reparations_spending(sys::state& state, dcon::nation_id n) {
 	if(state.current_date < state.world.nation_get_reparations_until(n)) {
 		for(auto uni : state.world.nation_get_unilateral_relationship_as_source(n)) {
 			if(uni.get_reparations()) {
-				auto const tax_eff = nations::tax_efficiency(state, n);
+				auto const tax_eff = nations::tribute_efficiency(state, n);
 				auto total_tax_base = state.world.nation_get_total_rich_income(n) +
 					state.world.nation_get_total_middle_income(n) +
 					state.world.nation_get_total_poor_income(n);

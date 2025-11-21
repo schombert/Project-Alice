@@ -3718,9 +3718,12 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.market_resize_life_needs_scale(world.pop_type_size());
 	world.market_resize_everyday_needs_scale(world.pop_type_size());
 	world.market_resize_luxury_needs_scale(world.pop_type_size());
-	world.market_resize_max_life_needs_satisfaction(world.pop_type_size());
-	world.market_resize_max_everyday_needs_satisfaction(world.pop_type_size());
-	world.market_resize_max_luxury_needs_satisfaction(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_life_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_everyday_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_max_luxury_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_life_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_everyday_needs(world.pop_type_size());
+	world.market_resize_satisfied_ratio_of_demanded_luxury_needs(world.pop_type_size());
 
 	world.market_resize_import(world.commodity_size());
 	world.market_resize_export(world.commodity_size());
