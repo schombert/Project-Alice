@@ -1980,9 +1980,13 @@ float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m)
 	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
 }
 
-float tax_efficiency(sys::state& state, dcon::nation_id n) {
+float tax_efficiency(sys::state const& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
-	return std::clamp(state.defines.base_country_tax_efficiency + eff_mod, 0.01f, 1.f);
+	return std::max(state.defines.base_country_tax_efficiency + eff_mod, 0.01f);
+}
+
+float tribute_efficiency(sys::state const& state, dcon::nation_id n) {
+	return std::min(tax_efficiency(state, n), 1.f);
 }
 
 crisis_role involved_in_crisis_state(sys::state const& state, dcon::nation_id n) {

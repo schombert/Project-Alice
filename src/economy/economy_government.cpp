@@ -89,7 +89,7 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 		from_control = std::max(0.1f, from_control);
 	}
 
-	return base * from_control * efficiency;
+	return std::min(base * from_control * efficiency, 1.f);
 }
 
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget) {

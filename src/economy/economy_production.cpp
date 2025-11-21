@@ -1559,7 +1559,6 @@ void update_rgo_production(sys::state& state) {
 				military::ve_mobilization_impact(state, nations), 1.f
 			);
 
-		state.world.province_set_rgo_profit(p, 0.f);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			auto size = state.world.province_get_rgo_size(p, c);
 			if(size.reduce() <= 0.f) {
@@ -1708,7 +1707,7 @@ void update_rgo_profit(sys::state& state) {
 			auto recorded_profit = state.world.province_get_rgo_profit(p);
 			auto demand = state.world.province_get_rgo_demand(p, c);
 			auto bought = state.world.market_get_actual_probability_to_buy(m, c);
-			auto spent = bought * state.world.market_get_price(m, c);
+			auto spent = bought * demand * state.world.market_get_price(m, c);
 			state.world.province_set_rgo_profit(p, recorded_profit - spent);
 		});
 	});

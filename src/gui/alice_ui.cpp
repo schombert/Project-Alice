@@ -17,6 +17,7 @@
 #include "demographicswindow.cpp"
 #include "province_economy_overview.cpp"
 #include "pop_details.cpp"
+#include "pop_budget_details.cpp"
 #include "market_trade_report.cpp"
 #include "rgo_report.cpp"
 #include "market_prices_report.cpp"
