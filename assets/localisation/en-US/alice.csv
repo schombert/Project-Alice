@@ -1289,6 +1289,8 @@ alice_spending_unit_1;Total spent on this unit: ?R$cost$?W
 alice_spending_total;?YTotal spent:?W
 alice_spending_commodity;?R$cost$?W - Needs $need$ of $name$ ($val$)
 alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
+alice_building_id;Building ID: ?Y$val$?!
+alice_province_id;Province ID: ?Y$val$?!
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
@@ -1307,10 +1309,10 @@ alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
-province_has_workers;Province has any workforce
-province_has_available_workers;Province has unemployed workforce
-nation_is_factory_type_active;Necessary technology has been researched
-nation_is_factory_type_colonies;This is a colonial province and target factory type can be built in colonies.
+province_has_workers;Province has any workforce.
+province_has_available_workers;Province has unemployed workforce.
+nation_is_factory_type_active;Necessary technology has been researched.
+nation_is_factory_type_colonies;Target factory type can be built in colonies.
 payback_time;Payback time: ?Y$x$?!
 construction_cost;Construction cost: ?Y$x$?!
 output_value;Output value: ?Y$x$?!
