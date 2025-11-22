@@ -368,11 +368,11 @@ void update_production(sys::state& state) {
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, current_private_size * output);
 
 			auto current_public_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
 			auto current_public_supply = state.world.province_get_service_supply_public(pids, def.output);
 			state.world.province_set_service_supply_public(pids, def.output, current_public_supply + current_public_size * output);
-			state.world.province_set_advanced_province_building_private_output(pids, bid, current_public_size * output);
 		});
 
 		// TODO:

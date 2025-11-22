@@ -1839,7 +1839,7 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			return;
 		}
 
-
+		auto& inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 
 		province::ve_for_each_land_province(state, [&](auto pids) {
 			auto state_instance = state.world.province_get_state_membership(pids);
@@ -1863,12 +1863,22 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 				? 0.f
 				: price_properties::change(current_price, supply, demand);
 			auto predicted_price = current_price + price_speed_change * 0.5f;
-						
+
+			auto cost_per_efficiency = ve::fp_vector{ 0.f };
+			for(uint32_t input_index = 0; input_index < inputs.set_size; input_index++) {
+				auto input_cid = inputs.commodity_type[input_index];
+				if(input_cid) {
+					auto input_price = ve_price(state, m, input_cid);
+					cost_per_efficiency = cost_per_efficiency + inputs.commodity_amounts[input_index] * input_price;
+				} else {
+					break;
+				}
+			}
 
 			auto gradient = gradient_employment_i<ve::fp_vector>(
 				output_per_worker * predicted_price,
 				1.f,
-				wage_per_worker * (1.f + aristocrats_greed)
+				wage_per_worker * (1.f + aristocrats_greed) + cost_per_efficiency * (efficiency - free_efficiency)
 			);
 
 			auto mult = ve::select(
