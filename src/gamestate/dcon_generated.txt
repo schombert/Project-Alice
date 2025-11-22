@@ -3420,6 +3420,11 @@ relationship{
 		type{many}
 		index_storage{array}
 	}
+	property{
+		name{priority}
+		type{int16_t}
+		tag{ scenario }
+	}
 }
 
 object {
@@ -4652,17 +4657,33 @@ object{
 	}
 
 	property{
-		name{ max_life_needs_satisfaction }
+		name{ satisfied_ratio_of_max_life_needs }
 		type{ array{pop_type_id}{float} }
 		tag{ save }
 	}
 	property{
-		name{ max_everyday_needs_satisfaction }
+		name{ satisfied_ratio_of_max_everyday_needs }
 		type{ array{pop_type_id}{float} }
 		tag{ save }
 	}
 	property{
-		name{ max_luxury_needs_satisfaction }
+		name{ satisfied_ratio_of_max_luxury_needs }
+		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+
+	property{
+		name{ satisfied_ratio_of_demanded_life_needs }
+		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ satisfied_ratio_of_demanded_everyday_needs }
+		type{ array{pop_type_id}{float} }
+		tag{ save }
+	}
+	property{
+		name{ satisfied_ratio_of_demanded_luxury_needs }
 		type{ array{pop_type_id}{float} }
 		tag{ save }
 	}

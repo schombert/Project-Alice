@@ -290,6 +290,45 @@ public:
 	virtual void button_on_hover_end(sys::state& state) noexcept { }
 };
 
+
+class template_icon_graphic : public ui::element_base {
+public:
+	int32_t template_id = -1;
+	ogl::color3f color;
+	dcon::text_key default_tooltip;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+class template_bg_graphic : public ui::element_base {
+public:
+	int32_t template_id = -1;
+	dcon::text_key default_tooltip;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+
 class auto_close_button : public template_icon_button {
 public:
 	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
@@ -534,7 +573,254 @@ public:
 	}
 };
 
-class layout_window_element : public ui::non_owning_container_base {
+
+class template_mixed_button_ci : public template_mixed_button {
+public:
+	ogl::color3f icon_color;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+};
+
+class template_toggle_button : public ui::element_base {
+protected:
+	std::string cached_text;
+	text::layout internal_layout;
+private:
+	bool is_active = false;
+public:
+	int32_t template_id = -1;
+	std::chrono::steady_clock::time_point last_activated;
+	dcon::text_key default_text;
+	dcon::text_key default_tooltip;
+	bool disabled = false;
+	
+	void set_text(sys::state& state, std::string_view new_text);
+	void set_active(sys::state& state, bool active);
+	void on_reset_text(sys::state& state) noexcept override;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	std::string_view get_text(sys::state& state) const {
+		return cached_text;
+	}
+
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return default_tooltip ? ui::tooltip_behavior::tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	virtual bool button_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_right_action(sys::state& state) noexcept {
+		return false;
+	}
+	virtual bool button_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	virtual bool button_ctrl_shift_action(sys::state& state) noexcept {
+		return button_action(state);
+	}
+	virtual bool button_ctrl_shift_right_action(sys::state& state) noexcept {
+		return button_right_action(state);
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+			if(result)
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_right_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_right_action(state);
+			else
+				result = button_right_action(state);
+
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		if(!disabled && base_data.get_element_type() == ui::element_type::button && base_data.data.button.shortcut == key) {
+			bool result = false;
+			if(mods == sys::key_modifiers::modifiers_shift)
+				result = button_shift_action(state);
+			else if(mods == sys::key_modifiers::modifiers_ctrl)
+				result = button_ctrl_action(state);
+			else
+				result = button_action(state);
+
+			if(result) {
+				sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+				return ui::message_result::consumed;
+			}
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+	virtual void button_on_hover(sys::state& state) noexcept {
+	}
+	virtual void button_on_hover_end(sys::state& state) noexcept {
+	}
+};
+
+
+class grid_size_window : public ui::non_owning_container_base {
+public:
+	int32_t grid_size = 8;
+};
+
+class pop_up_menu_container : public grid_size_window {
+public:
+	ui::element_base* scroll_redirect = nullptr;
+	int32_t bg_template = -1;
+	
+
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		if(scroll_redirect)
+			scroll_redirect->impl_on_scroll(state, x, y, amount, mods);
+		return ui::message_result::consumed;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return ui::message_result::consumed;
+	}
+
+	friend struct layout_iterator;
+};
+
+class template_drop_down_control;
+
+class drop_down_list_button : public template_mixed_button {
+public:
+	template_drop_down_control* owner_control = nullptr;
+	int32_t list_id = 0;
+
+	void on_update(sys::state& state) noexcept override;
+	bool button_action(sys::state& state) noexcept;
+};
+
+class drop_down_list_page_buttons : public ui::element_base {
+public:
+	text::layout text_layout;
+	template_drop_down_control* owner_control = nullptr;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+
+class template_drop_down_control : public ui::element_base {
+public:
+	std::unique_ptr<drop_down_list_page_buttons> page_controls;
+	std::vector<std::unique_ptr<drop_down_list_button>> list_buttons_pool;
+	ui::element_base* label_window = nullptr;
+
+	int32_t template_id = -1;
+	int32_t list_page = 0;
+	int32_t items_per_page = 1;
+	int32_t total_items = 0;
+	int32_t selected_item = 0;
+
+	int32_t target_page_height = -1;
+	int32_t element_x_size = 1;
+	int32_t element_y_size = 1;
+	bool page_text_out_of_date = false;
+	bool two_columns = false;
+
+	std::chrono::steady_clock::time_point last_activated;
+	bool disabled = false;
+
+	template_drop_down_control() { }
+
+	ui::mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept final {
+		if(label_window->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *label_window);
+			auto res = label_window->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y, type);
+			if(res.under_mouse)
+				return res;
+		}
+		return element_base::impl_probe_mouse(state, x, y, type);
+	}
+	ui::message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		return label_window->impl_on_key_down(state, key, mods);
+	}
+	void impl_on_update(sys::state& state) noexcept final {
+		on_update(state);
+		label_window->impl_on_update(state);
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept final {
+		render(state, x, y);
+		if(label_window->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *label_window);
+			label_window->impl_render(state, x + relative_location.x, y + relative_location.y);
+		}
+	}
+	void impl_on_reset_text(sys::state& state) noexcept final {
+		label_window->impl_on_reset_text(state);
+	}
+
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+
+	void open_list(sys::state& state);
+	void hide_list(sys::state& state);
+	void change_page(sys::state& state, int32_t to_page);
+
+	virtual ui::element_base* get_nth_item(sys::state& state, int32_t id, int32_t pool_id) = 0;
+	virtual void on_selection(sys::state& state, int32_t id) = 0; // must change the value stored in the display item and update selected_item
+
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			open_list(state);
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+};
+
+class layout_window_element : public grid_size_window {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
 	void render_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y);
@@ -549,8 +835,7 @@ public:
 	dcon::texture_id page_right_texture_id;
 	text::text_color page_text_color = text::text_color::black;
 	int32_t window_template = -1;
-	int32_t grid_size = 8;
-
+	
 	std::vector<positioned_texture> textures_to_render{};
 
 	void remake_layout(sys::state& state, bool remake_lists) {
@@ -624,6 +909,7 @@ std::unique_ptr<ui::element_base> make_budgetwindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_demographicswindow_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_province_economy_overview_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_pop_budget_details_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);

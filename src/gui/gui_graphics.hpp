@@ -16,6 +16,10 @@ namespace parsers {
 struct building_gfx_context;
 }
 
+namespace alice_ui {
+class pop_up_menu_container;
+}
+
 namespace ui {
 
 class context_menu_window;
@@ -479,6 +483,7 @@ struct state {
 
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;
+	alice_ui::pop_up_menu_container* popup_menu = nullptr;
 	ankerl::unordered_dense::map<dcon::text_key, element_target, hash_text_key> defs_by_name;
 	ankerl::unordered_dense::map<dcon::text_key, dcon::gfx_object_id, hash_text_key> gfx_by_name;
 	ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes> new_ui_windows;

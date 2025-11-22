@@ -29,7 +29,7 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 			result.icons.emplace_back();
 			auto indv_icon = icons_section.read_section();
 			indv_icon.read(result.icons.back().file_name);
-			result.icons_by_name.insert_or_assign(result.icons.back().file_name, int32_t(result.colors.size() - 1));
+			result.icons_by_name.insert_or_assign(result.icons.back().file_name, int32_t(result.icons.size() - 1));
 		}
 
 		auto bg_section = buffer.read_section();
@@ -39,7 +39,7 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 			indv_bg.read(result.backgrounds.back().file_name);
 			indv_bg.read(result.backgrounds.back().base_x);
 			indv_bg.read(result.backgrounds.back().base_y);
-			result.backgrounds_by_name.insert_or_assign(result.backgrounds.back().file_name, int32_t(result.colors.size() - 1));
+			result.backgrounds_by_name.insert_or_assign(result.backgrounds.back().file_name, int32_t(result.backgrounds.size() - 1));
 		}
 
 		auto labels_section = buffer.read_section();
@@ -213,7 +213,98 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 
 			indv_mb.read(i.animate_active_transition);
 		}
-	
+
+		auto tb_section = buffer.read_section();
+		while(tb_section) {
+			result.toggle_button_t.emplace_back();
+			auto indv_tb = tb_section.read_section();
+			auto& i = result.toggle_button_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.on_region.primary.bg);
+			indv_tb.read(i.on_region.primary.color);
+			indv_tb.read(i.on_region.active.bg);
+			indv_tb.read(i.on_region.active.color);
+			indv_tb.read(i.on_region.disabled.bg);
+			indv_tb.read(i.on_region.disabled.color);
+			indv_tb.read(i.on_region.font_choice);
+			indv_tb.read(i.on_region.font_scale);
+			indv_tb.read(i.on_region.h_text_alignment);
+			indv_tb.read(i.on_region.v_text_alignment);
+			indv_tb.read(i.on_region.text_margin_left);
+			indv_tb.read(i.on_region.text_margin_right);
+			indv_tb.read(i.on_region.text_margin_top);
+			indv_tb.read(i.on_region.text_margin_bottom);
+
+			indv_tb.read(i.off_region.primary.bg);
+			indv_tb.read(i.off_region.primary.color);
+			indv_tb.read(i.off_region.active.bg);
+			indv_tb.read(i.off_region.active.color);
+			indv_tb.read(i.off_region.disabled.bg);
+			indv_tb.read(i.off_region.disabled.color);
+			indv_tb.read(i.off_region.font_choice);
+			indv_tb.read(i.off_region.font_scale);
+			indv_tb.read(i.off_region.h_text_alignment);
+			indv_tb.read(i.off_region.v_text_alignment);
+			indv_tb.read(i.off_region.text_margin_left);
+			indv_tb.read(i.off_region.text_margin_right);
+			indv_tb.read(i.off_region.text_margin_top);
+			indv_tb.read(i.off_region.text_margin_bottom);
+
+			indv_tb.read(i.animate_active_transition);
+		}
+
+
+		auto tables_section = buffer.read_section();
+		while(tables_section) {
+			result.table_t.emplace_back();
+			auto indv_tb = tables_section.read_section();
+			auto& i = result.table_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.arrow_increasing);
+			indv_tb.read(i.arrow_decreasing);
+			indv_tb.read(i.table_color);
+			indv_tb.read(i.interactable_header_bg);
+			indv_tb.read(i.active_header_bg);
+		}
+
+		auto stacked_bar_section = buffer.read_section();
+		while(stacked_bar_section) {
+			result.stacked_bar_t.emplace_back();
+			auto indv_tb = stacked_bar_section.read_section();
+			auto& i = result.stacked_bar_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.overlay_bg);
+			indv_tb.read(i.l_margin);
+			indv_tb.read(i.t_margin);
+			indv_tb.read(i.r_margin);
+			indv_tb.read(i.b_margin);
+		}
+
+		auto drop_down_section = buffer.read_section();
+		while(drop_down_section) {
+			result.drop_down_t.emplace_back();
+			auto indv_tb = drop_down_section.read_section();
+			auto& i = result.drop_down_t.back();
+
+			indv_tb.read(discard_string);
+			indv_tb.read(i.primary_bg);
+			indv_tb.read(i.active_bg);
+			indv_tb.read(i.disabled_bg);
+
+			indv_tb.read(i.list_button);
+			indv_tb.read(i.list_button_alt);
+			indv_tb.read(i.selection_icon);
+			indv_tb.read(i.layout_region_base);
+
+			indv_tb.read(i.dropdown_window_bg);
+			indv_tb.read(i.dropdown_window_margin);
+
+			indv_tb.read(i.animate_active_transition);
+			indv_tb.read(i.vertical_nudge);
+		}
 	return result;
 }
 

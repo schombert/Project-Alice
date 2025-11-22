@@ -448,7 +448,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	// use expectation because it's a behaviour-related update
 	auto bought_A = state.world.market_get_expected_probability_to_buy(A, cid);
 	auto bought_B = state.world.market_get_expected_probability_to_buy(B, cid);
-	auto bought = current_volume > 0.f ? bought_A :	bought_B;
+	auto bought = (current_volume + change) > 0.f ? bought_A : bought_B;
 
 	result.expected_to_buy_in_origin_ratio = bought;
 
@@ -635,7 +635,7 @@ void update_trade_routes_volume(
 			auto expected_to_buy_A = state.world.market_get_expected_probability_to_buy(A, c);
 			auto expected_to_buy_B = state.world.market_get_expected_probability_to_buy(B, c);
 			auto expected_to_buy_inputs = ve::select(
-				current_volume > 0.f,
+				current_volume + change > 0.f,
 				expected_to_buy_A,
 				expected_to_buy_B
 			) * transport_availability;

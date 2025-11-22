@@ -7,6 +7,7 @@
 #include "asvg.hpp"
 #include "stools.hpp"
 #include "unordered_dense.h"
+#include "container_types.hpp"
 
 namespace template_project {
 
@@ -36,6 +37,10 @@ struct color_definition {
 	float g = 0.0f;
 	float b = 0.0f;
 	float a = 1.0f;
+
+	operator ogl::color3f() {
+		return ogl::color3f{ r, g, b };
+	}
 };
 
 enum class dimension_relative : uint8_t {
@@ -147,6 +152,63 @@ struct progress_bar_template {
 
 	bool display_percentage_text = false;
 };
+struct color_region {
+	int32_t bg = -1;
+	int32_t color = 0;
+};
+struct toggle_region {
+	color_region primary;
+	color_region active;
+	color_region disabled;
+	int32_t font_choice;
+	float font_scale = 1.0f;
+	aui_text_alignment h_text_alignment = aui_text_alignment::left;
+	aui_text_alignment v_text_alignment = aui_text_alignment::left;
+	affine_transform text_margin_left = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_right = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_top = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+	affine_transform text_margin_bottom = affine_transform{ 0.0f, 0.0f, dimension_relative::height };
+};
+struct toggle_button_template {
+	toggle_region on_region;
+	toggle_region off_region;
+	bool animate_active_transition = false;
+};
+
+struct table_template {
+	int32_t arrow_increasing = -1;
+	int32_t arrow_decreasing = -1;
+	int32_t table_color = 0;
+	int32_t interactable_header_bg = -1;
+	int32_t active_header_bg = -1;
+};
+
+struct stacked_bar_template {
+	int32_t overlay_bg = -1;
+	float l_margin = 0.0f;
+	float t_margin = 0.0f;
+	float r_margin = 0.0f;
+	float b_margin = 0.0f;
+};
+
+
+struct drop_down_template {
+
+	int32_t primary_bg = -1;
+	int32_t active_bg = -1;
+	int32_t disabled_bg = -1;
+
+	int32_t list_button = -1;
+	int32_t list_button_alt = -1;
+	int32_t selection_icon = -1;
+
+	int32_t layout_region_base = -1;
+
+	int32_t dropdown_window_bg = -1;
+	float dropdown_window_margin = 0.5;
+	int32_t vertical_nudge = 0;
+	bool animate_active_transition = false;
+};
 
 struct project {
 	std::u16string svg_directory;
@@ -158,6 +220,10 @@ struct project {
 	std::vector<layout_region_template> layout_region_t;
 	std::vector< background_definition> backgrounds;
 	std::vector<mixed_template> mixed_button_t;
+	std::vector<toggle_button_template> toggle_button_t;
+	std::vector<table_template> table_t;
+	std::vector< stacked_bar_template> stacked_bar_t;
+	std::vector< drop_down_template> drop_down_t;
 	std::vector< icon_definition> icons;
 	std::vector<color_definition> colors;
 

@@ -89,7 +89,7 @@ float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_i
 		from_control = std::max(0.1f, from_control);
 	}
 
-	return base * from_control * efficiency;
+	return std::min(base * from_control * efficiency, 1.f);
 }
 
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget) {
@@ -437,7 +437,7 @@ std::vector<employment_record> explain_capital_administration_employment(sys::st
 	auto record = employment_record{ economy::labor::high_education_and_accepted, 0.f, 0.f, 0.f };
 
 	record.target_employment = state.world.nation_get_administration_employment_target_in_capital(n);
-	record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital, economy::labor::high_education_and_accepted);
+	record.satisfaction = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 	record.actual_employment = record.target_employment * record.satisfaction;
 	
 	return std::vector<employment_record> {record};
