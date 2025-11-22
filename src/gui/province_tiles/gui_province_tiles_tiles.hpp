@@ -7,6 +7,7 @@
 #include "military.hpp"
 #include "ai.hpp"
 #include "labour_details.hpp"
+#include "advanced_province_buildings.hpp"
 
 namespace ui {
 
@@ -231,6 +232,31 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		province_building_tooltip(state, contents, target.province, target.province_building);
+	}
+};
+
+class province_port_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("civilian_port");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 22;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		// Switch to economy scene on click
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		text::add_line(state, contents, "civilian_port");
+		text::add_line(state, contents, "civilian_port_size", text::variable_type::val, text::fp_one_place { state.world.province_get_advanced_province_building_max_private_size(target.province, advanced_province_buildings::list::civilian_ports) });
 	}
 };
 

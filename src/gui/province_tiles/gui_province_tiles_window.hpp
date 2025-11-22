@@ -12,6 +12,7 @@ inline static factory_tile factory_tile_logic;
 inline static rgo_tile rgo_tile_logic;
 inline static regiment_tile regiment_tile_logic;
 inline static province_building_tile province_building_tile_logic;
+inline static province_port_tile province_port_tile_logic;
 inline static province_resource_potential_tile province_resource_potential_tile_logic;
 inline static province_build_new_tile province_build_new_tile_logic;
 inline static factory_construction_tile factory_construction_tile_logic;
@@ -59,6 +60,9 @@ public:
 		}
 		else if(tile.has_province_building) {
 			tile_logic = &province_building_tile_logic;
+		}
+		else if(tile.is_civilian_port) {
+			tile_logic = &province_port_tile_logic;
 		}
 		else if(tile.factory_construction) {
 			tile_logic = &factory_construction_tile_logic;

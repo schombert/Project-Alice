@@ -89,6 +89,14 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tile.province = p;
 			push_tile(tiles, tile, curind);
 		}
+		if (state.world.province_get_advanced_province_building_max_private_size(p, advanced_province_buildings::list::civilian_ports) > 0) {
+			// Port tile
+			auto tile = province_tile{};
+			tile.is_civilian_port = true;
+			tile.empty = false;
+			tile.province = p;
+			push_tile(tiles, tile, curind);
+		}
 
 		for(auto f : state.world.in_factory) {
 			if(f.get_factory_location().get_province() == p) {
