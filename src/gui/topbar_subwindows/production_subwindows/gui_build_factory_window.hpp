@@ -284,8 +284,12 @@ public:
 
 		text::add_line_with_condition(state, contents, "nation_is_factory_type_active", state.world.nation_get_active_building(n, content) || state.world.factory_type_get_is_available_from_start(content), 15);
 
-
 		auto p = state.world.state_instance_get_capital(sid);
+
+		if(state.world.province_get_is_colonial(p)) {
+			text::add_line_with_condition(state, contents, "nation_is_factory_type_colonies", state.world.factory_type_get_can_be_built_in_colonies(content), 15);
+		}
+
 		auto const tax_eff = economy::tax_collection_rate(state, n, p);
 
 		auto mid = state.world.state_instance_get_market_from_local_market(sid);
@@ -311,6 +315,11 @@ public:
 		text::add_line(state, contents, "alice_pop_show_details");
 		
 		text::add_line_with_condition(state, contents, "province_has_workers", ai::province_has_workers(state, p));
+
+		if(state.cheat_data.ui_debug_mode) {
+			text::add_line(state, contents, "alice_building_id", text::variable_type::val, content.id.value);
+			text::add_line(state, contents, "alice_province_id", text::variable_type::val, p.id.value);
+		}
 	}
 };
 

@@ -22,6 +22,7 @@
 #include "unit_tooltip.hpp"
 #include "triggers.hpp"
 #include "effects.hpp"
+#include "alice_ui.hpp"
 
 namespace ui {
 

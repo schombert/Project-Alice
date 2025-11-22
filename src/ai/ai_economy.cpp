@@ -217,7 +217,7 @@ bool province_has_available_workers(sys::state& state, dcon::province_id p) {
 	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.95f;
 }
 
-inline bool province_has_workers(sys::state& state, dcon::province_id p) {
+bool province_has_workers(sys::state& state, dcon::province_id p) {
 	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 5000.f;
 }
 
@@ -300,7 +300,7 @@ void build_or_upgrade_desired_factories(
 		if(craved_types.empty()) {
 			continue; // no craved factories
 		}
-		if(!province_has_workers(state, p)) {
+		if(!province_has_workers(state, p)) { 
 			continue; // no labor at all
 		}
 
