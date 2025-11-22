@@ -343,7 +343,7 @@ float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::
 		return state.inflation * size * (per_capi + per_person);
 	}
 
-	return per_person;
+	return state.inflation * size * per_person;
 }
 
 float estimate_trade_income(sys::state const& state, dcon::pop_id pop) {
