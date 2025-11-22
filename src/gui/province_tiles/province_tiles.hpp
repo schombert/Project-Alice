@@ -14,8 +14,8 @@ struct province_tile {
 	bool capital_administration = false;
 	bool no_administration_tile = false;
 	dcon::market_id market{};
-	dcon::commodity_id rgo_commodity{};
-	dcon::commodity_id potential_commodity{};
+	bool is_rgo = false;
+	bool is_resource_potential = false;
 	dcon::factory_id factory{};
 	dcon::regiment_id regiment{};
 	dcon::factory_construction_id factory_construction{};

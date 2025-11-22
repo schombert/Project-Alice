@@ -101,7 +101,7 @@ public:
 class rgo_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.world.commodity_get_name(target.rgo_commodity);
+		return state.world.commodity_get_name(target.commodity);
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -109,11 +109,18 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override  {
-		return (state.world.commodity_get_is_mine(target.rgo_commodity) ? 3 : 2);
+
+		if(state.to_string_view(state.world.commodity_get_name(target.commodity)) == "fish") {
+			return 11;
+		}
+		if(state.to_string_view(state.world.commodity_get_name(target.commodity)) == "timber") {
+			return 4;
+		}
+		return (state.world.commodity_get_is_mine(target.commodity) ? 3 : 2);
 	}
 
 	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override  {
-		return target.rgo_commodity;
+		return target.commodity;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
@@ -122,11 +129,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
+		auto commodity_name = state.world.commodity_get_name(target.commodity);
 		text::add_line(state, contents, "rgo_tile_header", text::variable_type::good, commodity_name);
 		text::add_line_break_to_layout(state, contents);
 
-		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.rgo_commodity);
+		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.commodity);
 	}
 };
 
@@ -238,20 +245,20 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, province_tile target) noexcept override  {
+	int get_frame(sys::state& state, province_tile target) noexcept override {
 		return 13;
 	}
 
 	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override  {
-		return target.potential_commodity;
+		return target.commodity;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity) / 10000.f;
-		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.potential_commodity),
+		auto limit = state.world.province_get_factory_max_size(target.province, target.commodity) / 10000.f;
+		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.commodity),
 			text::variable_type::val, (int)limit);
 	}
 };

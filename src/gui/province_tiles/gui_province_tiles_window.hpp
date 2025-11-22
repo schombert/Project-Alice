@@ -45,10 +45,10 @@ public:
 		else if(tile.market) {
 			tile_logic = &market_tile_logic;
 		}
-		else if(tile.rgo_commodity) {
+		else if(tile.is_rgo) {
 			tile_logic = &rgo_tile_logic;
 		}
-		else if(tile.potential_commodity) {
+		else if(tile.is_resource_potential) {
 			tile_logic = &province_resource_potential_tile_logic;
 		}
 		else if(tile.factory) {
@@ -110,8 +110,10 @@ public:
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
 				auto ptr = make_element_by_type<province_tile_button>(state, "province_tiles_tile");
-				ptr->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				auto ystep = ptr->base_data.size.y + 2;
+				auto xstep = ptr->base_data.size.x + 2;
+				ptr->base_data.position.y += int16_t(ystep * i);
+				ptr->base_data.position.x += int16_t(xstep * j);
 
 				tiles[i * 8 + j] = ptr.get();
 				tiles[i * 8 + j]->ind = i * 8 + j;
@@ -119,13 +121,13 @@ public:
 
 				auto ptr2 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_commodity");
 				ptr->subicon_commodity = ptr2.get();
-				ptr2->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr2->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				ptr2->base_data.position.y += int16_t(ystep * i);
+				ptr2->base_data.position.x += int16_t(xstep * j);
 
 				auto ptr3 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_unit");
 				ptr->subicon_unit = ptr3.get();
-				ptr3->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr3->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				ptr3->base_data.position.y += int16_t(ystep * i);
+				ptr3->base_data.position.x += int16_t(xstep * j);
 				ptr->subicon_unit->set_visible(state, false);
 
 				add_child_to_front(std::move(ptr));

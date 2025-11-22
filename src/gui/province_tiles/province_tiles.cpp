@@ -61,6 +61,11 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			push_tile(tiles, tile, curind);
 		}
 
+		// Skip to the next row
+		while(curind % 8 != 0) {
+			curind++;
+		}
+
 		// Market is located in the capital of the state instabce
 		if(state.world.state_instance_get_capital(si) == p) {
 			auto market = state.world.state_instance_get_market_from_local_market(si);
@@ -70,16 +75,10 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tile.province = p;
 			push_tile(tiles, tile, curind);
 		}
+	}
 
-		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
-			auto tile = province_tile{};
-			tile.province_building = economy::province_building_type::naval_base;
-			tile.empty = false;
-			tile.has_province_building = true;
-			tile.province = p;
-			push_tile(tiles, tile, curind);
-		}
-
+	// Display factories and factories under construction for provinces with owner (colonized)
+	if(owner) {
 		// Display dirt roads when there are no railroads
 		// if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad) > 0) {
 		{
@@ -91,46 +90,6 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			push_tile(tiles, tile, curind);
 		}
 
-		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
-			auto tile = province_tile{};
-			tile.province_building = economy::province_building_type::fort;
-			tile.empty = false;
-			tile.has_province_building = true;
-			tile.province = p;
-			push_tile(tiles, tile, curind);
-		}
-	}
-
-	// Skip to the next row
-	while(curind % 8 != 0) {
-		curind++;
-	}
-
-	// Main province RGOs
-	{
-		auto tile = province_tile{};
-		tile.rgo_commodity = state.world.province_get_rgo(p);
-		tile.empty = false;
-		tile.province = p;
-		push_tile(tiles, tile, curind);
-	}
-
-	// Secondary RGOs
-	for(auto c : state.world.in_commodity) {
-		if(c == state.world.province_get_rgo(p)) {
-			continue;
-		}
-		if(economy::rgo_max_employment(state, c, p) > 100.f) {
-			auto tile = province_tile{};
-			tile.rgo_commodity = c;
-			tile.empty = false;
-			tile.province = p;
-			push_tile(tiles, tile, curind);
-		}
-	}
-
-	// Display factories and factories under construction for provinces with owner (colonized)
-	if(owner) {
 		for(auto f : state.world.in_factory) {
 			if(f.get_factory_location().get_province() == p) {
 				auto tile = province_tile{};
@@ -159,6 +118,36 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		push_tile(tiles, tile, curind);
 	}
 
+	// Skip to the next row
+	while(curind % 8 != 0) {
+		curind++;
+	}
+
+	// Main province RGOs
+	{
+		auto tile = province_tile{};
+		tile.commodity = state.world.province_get_rgo(p);
+		tile.is_rgo = true;
+		tile.empty = false;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
+	}
+
+	// Secondary RGOs
+	for(auto c : state.world.in_commodity) {
+		if(c == state.world.province_get_rgo(p)) {
+			continue;
+		}
+		if(economy::rgo_max_employment(state, c, p) > 100.f) {
+			auto tile = province_tile{};
+			tile.commodity = c;
+			tile.is_rgo = true;
+			tile.empty = false;
+			tile.province = p;
+			push_tile(tiles, tile, curind);
+		}
+	}
+
 	// Unexploited resource potentials
 	for(auto c : state.world.in_commodity) {
 		if(state.world.province_get_factory_max_size(p, c) > 0) {
@@ -179,7 +168,8 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 				continue;
 			}
 			auto tile = province_tile{};
-			tile.potential_commodity = c;
+			tile.commodity = c;
+			tile.is_resource_potential = true;
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
@@ -189,6 +179,24 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	// Skip to the next row
 	while(curind % 8 != 0) {
 		curind++;
+	}
+
+	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
+		auto tile = province_tile{};
+		tile.province_building = economy::province_building_type::fort;
+		tile.empty = false;
+		tile.has_province_building = true;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
+	}
+
+	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
+		auto tile = province_tile{};
+		tile.province_building = economy::province_building_type::naval_base;
+		tile.empty = false;
+		tile.has_province_building = true;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
 	}
 
 	// Display regiments originating from the province
