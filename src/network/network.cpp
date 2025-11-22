@@ -44,6 +44,7 @@ using fmt::format;
 #endif
 
 #include <webapi/json.hpp>
+#include <dcon_oos_reporter_generated.hpp>
 using json = nlohmann::json;
 
 namespace network {
@@ -1042,6 +1043,116 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	ZSTD_decompress(temp_buffer.get(), decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
 	function(temp_buffer.get(), decompressed_length);
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
+}
+
+std::string add_line_to_oos_report(const std::string& member_name, const std::string& value_1, const std::string& value_2) {
+	return "\tObject " + member_name + ": " + value_1 + ", " + value_2 + "\n";
+
+}
+template<typename T>
+std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, const std::string& member_name, uint32_t index) {
+	if(item_1 != item_2) {
+		if constexpr(std::is_arithmetic<T>::value) {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		}
+		else if constexpr(std::is_same<T, char>::value) {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1 + ", " + item_2 + "\n";
+		}
+		else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		}
+		else if constexpr(std::is_enum<T>::value) {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
+		}
+		else if constexpr(std::is_same<T, bool>::value) {
+			std::string item_1_str = (item_1) ? "true" : "false";
+			std::string item_2_str = (item_2) ? "true" : "false";
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1_str + ", " + item_2_str + "\n";
+		}
+		else {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ":\n";
+		}
+	}
+	else {
+		return "";
+	}
+}
+
+template<typename T>
+std::string add_compare_to_oos_report(const T& item_1, const T& item_2, const std::string& member_name) {
+	if(item_1 != item_2) {
+		if constexpr(std::is_arithmetic<T>::value) {
+			return "\tobject " + member_name + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		} else if constexpr(std::is_same<T, char>::value) {
+			return  "\tobject " + member_name + ": " + item_1 + ", " + item_2 + "\n";
+		} else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
+			return "\tobject " + member_name + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		}
+		else if constexpr(std::is_enum<T>::value) {
+			return "\tobject " + member_name + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
+		}
+		else if constexpr(std::is_same<T, bool>::value) {
+			std::string item_1_str = (item_1) ? "true" : "false";
+			std::string item_2_str = (item_2) ? "true" : "false";
+			return "\tobject " + member_name + ": " + item_1_str + ", " + item_2_str + "\n";
+		}
+		else {
+			return "\tobject " + member_name + ":\n";
+		}
+	}
+	else {
+		return "";
+	}
+}
+
+template<typename T>
+std::string add_collection_compare_to_oos_report(const std::span<const T> collection_1, const std::span<const T> collection_2, const std::string& member_name) {
+	std::string result{ };
+	if(collection_1.size() != collection_2.size()) {
+		result += "\tSize mismatch in " + member_name + ", 1st size: " + std::to_string(collection_1.size()) + ", 2nd size: " + std::to_string(collection_2.size()) + "\n";
+	}
+	uint32_t smallest_size = std::min(uint32_t(collection_1.size()), uint32_t(collection_2.size()));
+	for(uint32_t i = 0; i < smallest_size; i++) {
+		result += add_compare_to_oos_report_indexed<T>(collection_1[i], collection_2[i], member_name, i);
+	}
+	return result;
+}
+
+std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
+	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
+	std::string report = generate_oos_report(state_1.world, state_2.world, record);
+	report += "HANDWRITTEN CONTRIBUTION\n";
+	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
+		add_collection_compare_to_oos_report<int32_t>(state_1.unit_names_indices, state_2.unit_names_indices, "unit_names_indices") +
+		add_compare_to_oos_report(state_1.local_player_nation, state_2.local_player_nation, "local_player_nation") +
+		add_compare_to_oos_report(state_1.current_date, state_2.current_date, "current_date") +
+		add_compare_to_oos_report(state_1.game_seed, state_2.game_seed, "game_seed") +
+		add_compare_to_oos_report(state_1.current_crisis_state, state_2.current_crisis_state, "current_crisis_state") +
+		add_collection_compare_to_oos_report<sys::crisis_member_def>(state_1.crisis_participants, state_2.crisis_participants, "crisis_participants") +
+		add_compare_to_oos_report(state_1.crisis_temperature, state_2.crisis_temperature, "crisis_temperature") +
+		add_compare_to_oos_report(state_1.crisis_attacker, state_2.crisis_attacker, "crisis_attacker") +
+		add_compare_to_oos_report(state_1.crisis_defender, state_2.crisis_defender, "crisis_defender") +
+		add_compare_to_oos_report(state_1.primary_crisis_attacker, state_2.primary_crisis_attacker, "primary_crisis_attacker") +
+		add_compare_to_oos_report(state_1.primary_crisis_defender, state_2.primary_crisis_defender, "primary_crisis_defender") +
+		add_compare_to_oos_report(state_1.crisis_state_instance, state_2.crisis_state_instance, "crisis_state_instance") +
+		add_compare_to_oos_report(state_1.crisis_last_checked_gp, state_2.crisis_last_checked_gp, "crisis_last_checked_gp") +
+		add_compare_to_oos_report(state_1.crisis_war, state_2.crisis_war, "crisis_war") +
+		add_compare_to_oos_report(state_1.last_crisis_end_date, state_2.last_crisis_end_date, "last_crisis_end_date") +
+		add_collection_compare_to_oos_report<sys::full_wg>(state_1.crisis_defender_wargoals, state_2.crisis_defender_wargoals, "crisis_defender_wargoals") +
+		add_collection_compare_to_oos_report<sys::full_wg>(state_1.crisis_attacker_wargoals, state_2.crisis_attacker_wargoals, "crisis_attacker_wargoals") +
+		add_compare_to_oos_report(state_1.inflation, state_2.inflation, "inflation") +
+		add_collection_compare_to_oos_report<sys::great_nation>(state_1.great_nations, state_2.great_nations, "great_nations") +
+		add_collection_compare_to_oos_report<event::pending_human_n_event>(state_1.pending_n_event, state_2.pending_n_event, "pending_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_f_n_event>(state_1.pending_f_n_event, state_2.pending_f_n_event, "pending_f_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_p_event>(state_1.pending_p_event, state_2.pending_p_event, "pending_p_event") +
+		add_collection_compare_to_oos_report<event::pending_human_f_p_event>(state_1.pending_f_p_event, state_2.pending_f_p_event, "pending_f_p_event") +
+		add_collection_compare_to_oos_report<diplomatic_message::message>(state_1.pending_messages, state_2.pending_messages, "pending_messages") +
+		add_collection_compare_to_oos_report<event::pending_human_n_event>(state_1.future_n_event, state_2.future_n_event, "future_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_p_event>(state_1.future_p_event, state_2.future_p_event, "future_p_event") +
+		add_collection_compare_to_oos_report<dcon::bitfield_type>(state_1.national_definitions.global_flag_variables, state_2.national_definitions.global_flag_variables, "global_flag_variables") +
+		add_compare_to_oos_report(state_1.military_definitions.great_wars_enabled, state_2.military_definitions.great_wars_enabled, "great_wars_enabled") +
+		add_compare_to_oos_report(state_1.military_definitions.world_wars_enabled, state_2.military_definitions.world_wars_enabled, "world_wars_enabled");
+	return report;
 }
 
 

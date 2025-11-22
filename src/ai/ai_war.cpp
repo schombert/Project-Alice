@@ -1037,16 +1037,17 @@ void update_crisis_leaders(sys::state& state) {
 							prepare_list_of_targets_for_cb(state, potential_states, par.id, target, offer_cb, dcon::war_id{ });
 							for(auto s : potential_states) {
 								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
-									diplomatic_message::message m;
-									memset(&m, 0, sizeof(diplomatic_message::message));
+									diplomatic_message::message m{ };
 									m.to = par.id;
 									m.from = state.primary_crisis_attacker;
-									m.data.crisis_offer.added_by = m.to;
-									m.data.crisis_offer.target_nation = target;
-									m.data.crisis_offer.secondary_nation = dcon::nation_id{};
-									m.data.crisis_offer.state = s.state_def;
-									m.data.crisis_offer.wg_tag = dcon::national_identity_id{};
-									m.data.crisis_offer.cb = offer_cb;
+									sys::full_wg wargoal{ };
+									wargoal.added_by = m.to;
+									wargoal.target_nation = target;
+									wargoal.secondary_nation = dcon::nation_id{};
+									wargoal.state = s.state_def;
+									wargoal.wg_tag = dcon::national_identity_id{};
+									wargoal.cb = offer_cb;
+									m.data.emplace<sys::full_wg>(wargoal);
 									m.type = diplomatic_message::type::take_crisis_side_offer;
 									diplomatic_message::post(state, m);
 
@@ -1054,16 +1055,19 @@ void update_crisis_leaders(sys::state& state) {
 								}
 							}
 						} else {
-							diplomatic_message::message m;
-							memset(&m, 0, sizeof(diplomatic_message::message));
+							diplomatic_message::message m{ };
 							m.to = par.id;
 							m.from = state.primary_crisis_attacker;
-							m.data.crisis_offer.added_by = m.to;
-							m.data.crisis_offer.target_nation = target;
-							m.data.crisis_offer.secondary_nation = dcon::nation_id{};
-							m.data.crisis_offer.state = dcon::state_definition_id{};
-							m.data.crisis_offer.wg_tag = dcon::national_identity_id{};
-							m.data.crisis_offer.cb = offer_cb;
+
+							sys::full_wg wargoal{ };
+
+							wargoal.added_by = m.to;
+							wargoal.target_nation = target;
+							wargoal.secondary_nation = dcon::nation_id{};
+							wargoal.state = dcon::state_definition_id{};
+							wargoal.wg_tag = dcon::national_identity_id{};
+							wargoal.cb = offer_cb;
+							m.data.emplace<sys::full_wg>(wargoal);
 							m.type = diplomatic_message::type::take_crisis_side_offer;
 							diplomatic_message::post(state, m);
 						}
@@ -1111,16 +1115,17 @@ void update_crisis_leaders(sys::state& state) {
 							for(auto s : potential_states) {
 								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
 
-									diplomatic_message::message m;
-									memset(&m, 0, sizeof(diplomatic_message::message));
+									diplomatic_message::message m{ };
 									m.to = par.id;
 									m.from = state.primary_crisis_defender;
-									m.data.crisis_offer.added_by = m.to;
-									m.data.crisis_offer.target_nation = target;
-									m.data.crisis_offer.secondary_nation = dcon::nation_id{};
-									m.data.crisis_offer.state = s.state_def;
-									m.data.crisis_offer.wg_tag = dcon::national_identity_id{};
-									m.data.crisis_offer.cb = offer_cb;
+									sys::full_wg wargoal{ };
+									wargoal.added_by = m.to;
+									wargoal.target_nation = target;
+									wargoal.secondary_nation = dcon::nation_id{};
+									wargoal.state = s.state_def;
+									wargoal.wg_tag = dcon::national_identity_id{};
+									wargoal.cb = offer_cb;
+									m.data.emplace<sys::full_wg>(wargoal);
 									m.type = diplomatic_message::type::take_crisis_side_offer;
 									diplomatic_message::post(state, m);
 
@@ -1128,16 +1133,17 @@ void update_crisis_leaders(sys::state& state) {
 								}
 							}
 						} else {
-							diplomatic_message::message m;
-							memset(&m, 0, sizeof(diplomatic_message::message));
+							diplomatic_message::message m{ };
 							m.to = par.id;
 							m.from = state.primary_crisis_defender;
-							m.data.crisis_offer.added_by = m.to;
-							m.data.crisis_offer.target_nation = target;
-							m.data.crisis_offer.secondary_nation = dcon::nation_id{};
-							m.data.crisis_offer.state = dcon::state_definition_id{};
-							m.data.crisis_offer.wg_tag = dcon::national_identity_id{};
-							m.data.crisis_offer.cb = offer_cb;
+							sys::full_wg wargoal{ };
+							wargoal.added_by = m.to;
+							wargoal.target_nation = target;
+							wargoal.secondary_nation = dcon::nation_id{};
+							wargoal.state = dcon::state_definition_id{};
+							wargoal.wg_tag = dcon::national_identity_id{};
+							wargoal.cb = offer_cb;
+							m.data.emplace<sys::full_wg>(wargoal);
 							m.type = diplomatic_message::type::take_crisis_side_offer;
 							diplomatic_message::post(state, m);
 						}

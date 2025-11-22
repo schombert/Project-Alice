@@ -24,20 +24,16 @@ enum class type_t : uint8_t {
 /// Holds data regarding a diplomatic message between two specified nations at a certain date, whether it be an alliance request, peace offer, calling an ally, etc. Also contains other optional data such as a pertinent war, crisis, state, etc.
 /// </summary>
 struct message {
-	union dtype {
-		dcon::war_id war; //2
-		dcon::peace_offer_id peace; //2
-		sys::full_wg crisis_offer; //10
-		dcon::state_definition_id state; //2
-		dtype() {
-			memset(this, 0, sizeof(*this));
-		}
-	} data; //10
+	std::variant<dcon::war_id, dcon::peace_offer_id, sys::full_wg, dcon::state_definition_id> data;
 	sys::date when; //2
 	dcon::nation_id from; //2
 	dcon::nation_id to; //2
 	type_t type = diplomatic_message::type_t::none; //1
 	bool automatic_call = false; // This was 1 byte padding previously, now used for checking if war call-to-arms were done automatically (by attacker by having the "call all allies" btn checked, or defender allies when they are automatically called when declared on
+
+	bool operator==(const message& other) const = default;
+	bool operator!=(const message& other) const = default;
+
 
 	message() : type(diplomatic_message::type_t::none) { }
 };

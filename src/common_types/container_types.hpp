@@ -500,6 +500,10 @@ struct full_wg {
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
+
+	bool operator==(const full_wg& other) const = default;
+	bool operator!=(const full_wg& other) const = default;
+
 };
 
 struct aui_pending_bytes {
