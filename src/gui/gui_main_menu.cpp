@@ -34,7 +34,6 @@ uint32_t get_ui_scale_index(float current_scale) {
 	}
 	return uint32_t(sys::ui_scales_count - 1);
 }
-
 void ui_scale_left::button_action(sys::state& state) noexcept {
 	auto current_scale = state.user_settings.ui_scale;
 	auto current_index = get_ui_scale_index(current_scale);
@@ -92,9 +91,6 @@ void ui_scale_right::on_update(sys::state& state) noexcept {
 	// Disable if we are at the absolute maximum
 	float max_scale = sys::ui_scales[sys::ui_scales_count - 1];
 	disabled = (state.user_settings.ui_scale >= max_scale - 0.001f);
-}
-void ui_scale_display::on_update(sys::state& state) noexcept {
-	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
 	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
