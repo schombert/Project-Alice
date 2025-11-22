@@ -96,7 +96,8 @@ default: break;
 }
 
 void main() {
-	vec2 normal_vector = normalize(normal_direction) * width * 0.000001f * 0.5f;
+	float adj_width = (width * (1.f / zoom) + 300.f * (1.f - 1.f / zoom));
+	vec2 normal_vector = normalize(normal_direction) * adj_width * 0.000001f;
 	vec2 world_pos = vertex_position;
 
 	world_pos.x *= map_size.x / map_size.y;
@@ -117,7 +118,7 @@ void main() {
 	space_coords = vec3(x, y, z);
     
 	gl_Position = temp;
-	tex_coord = texture_coord * width;
-	width_factor = width;
+	tex_coord = texture_coord * adj_width;
+	width_factor = adj_width;
 	o_dist = -time + distance * 50.f;
 }
