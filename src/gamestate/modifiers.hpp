@@ -235,6 +235,26 @@ struct provincial_modifier_definition {
 	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	dcon::provincial_modifier_value offsets[modifier_definition_size] = {dcon::provincial_modifier_value{}};
 	uint16_t padding = 0;
+
+
+
+	bool operator==(const provincial_modifier_definition& other) const {
+		return std::memcmp(this->values, other.values, sizeof(values)) == 0 && std::memcmp(this->offsets, other.offsets, sizeof(offsets)) == 0;
+	}
+	bool operator!=(const provincial_modifier_definition& other) const {
+		return !(other == *this);
+	}
+	std::string to_string() const {
+		std::string result{ };
+		result += "(offset;value) => ";
+		for(uint8_t i = 0; i < modifier_definition_size; i++) {
+			result += std::to_string(offsets[i].value) + ";" + std::to_string(values[i]) + " ";
+		}
+		return result;
+	}
+
+
+
 };
 static_assert(sizeof(provincial_modifier_definition) ==
 	sizeof(provincial_modifier_definition::values)
@@ -247,6 +267,21 @@ struct national_modifier_definition {
 	float values[modifier_definition_size] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
 	uint16_t padding = 0;
+
+	bool operator==(const national_modifier_definition& other) const {
+		return std::memcmp(this->values, other.values, sizeof(values)) == 0 && std::memcmp(this->offsets, other.offsets, sizeof(offsets)) == 0;
+	}
+	bool operator!=(const national_modifier_definition& other) const {
+		return !(other == *this);
+	}
+	std::string to_string() const {
+		std::string result{ };
+		result += "(offset;value) => ";
+		for(uint8_t i = 0; i < modifier_definition_size; i++) {
+			result += std::to_string(offsets[i].value) + ";" + std::to_string(values[i]) + " ";
+		}
+		return result;
+	}
 };
 static_assert(sizeof(national_modifier_definition) ==
 	sizeof(national_modifier_definition::values)
@@ -263,6 +298,10 @@ struct commodity_modifier {
 	bool operator!=(const commodity_modifier& other) const {
 		return !(other == *this);
 	}
+	std::string to_string() const {
+		return "(amount:type) => " + std::to_string(amount) + ";" + std::to_string(type.value);
+	}
+
 };
 static_assert(sizeof(commodity_modifier) ==
 	sizeof(commodity_modifier::amount)
@@ -349,6 +388,9 @@ struct rebel_org_modifier {
 	bool operator!=(const rebel_org_modifier& other) const {
 		return !(other == *this);
 	}
+	std::string to_string() const {
+		return "(amount;type) => " + std::to_string(amount) + ";" + std::to_string(type.value);
+	}
 };
 static_assert(sizeof(rebel_org_modifier) ==
 	sizeof(rebel_org_modifier::amount)
@@ -360,6 +402,10 @@ struct dated_modifier {
 	dcon::modifier_id mod_id;
 	bool operator==(const dated_modifier& other) const = default;
 	bool operator!=(const dated_modifier& other) const = default;
+
+	std::string to_string() const {
+		return "(expiration;mod_id) => " + std::to_string(expiration.value) + ";" + std::to_string(mod_id.value);
+	}
 };
 static_assert(sizeof(dated_modifier) ==
 	sizeof(dated_modifier::expiration)

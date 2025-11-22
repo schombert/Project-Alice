@@ -116,6 +116,15 @@ struct event_option {
 	dcon::text_key name;
 	dcon::value_modifier_key ai_chance;
 	dcon::effect_key effect;
+
+	bool operator==(const event_option& other) const = default;
+	bool operator!=(const event_option& other) const = default;
+
+	std::string to_string() const {
+		return "(name;ai_chance;effect) => " + std::to_string(name.value) + ";" + std::to_string(ai_chance.value) + ";" + std::to_string(effect.value);
+	}
+
+
 };
 static_assert(sizeof(event_option) ==
 	sizeof(event_option::name)
@@ -130,6 +139,13 @@ struct gamerule_option {
 	dcon::text_key name;
 	dcon::effect_key on_select;
 	dcon::effect_key on_deselect;
+
+	bool operator==(const gamerule_option& other) const = default;
+	bool operator!=(const gamerule_option& other) const = default;
+
+	std::string to_string() const {
+		return "(name;on_select;on_deselect) => " + std::to_string(name.value) + ";" + std::to_string(on_select.value) + ";" + std::to_string(on_deselect.value);
+	}
 
 };
 
@@ -312,6 +328,22 @@ struct commodity_set {
 
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
+
+	bool operator==(const commodity_set& other) const {
+		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
+	}
+	bool operator!=(const commodity_set& other) const {
+		return !(other == *this);
+	}
+	std::string to_string() const {
+		std::string result{ };
+		result += "(commodity_id;amount) => ";
+		for(uint8_t i = 0; i < set_size; i++) {
+			result += std::to_string(commodity_type[i].value) + ";" + std::to_string(commodity_amounts[i]) + " ";
+		}
+		return result;
+	}
+
 };
 static_assert(sizeof(commodity_set) ==
 	sizeof(commodity_set::commodity_amounts)
@@ -323,6 +355,24 @@ struct small_commodity_set {
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 	uint16_t padding = 0;
+
+	bool operator==(const small_commodity_set& other) const {
+		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
+	}
+	bool operator!=(const small_commodity_set& other) const {
+		return !(other == *this);
+	}
+	std::string to_string() const {
+		std::string result{ };
+		result += "(commodity_id;amount) => ";
+		for(uint8_t i = 0; i < set_size; i++) {
+			result += std::to_string(commodity_type[i].value) + ";" + std::to_string(commodity_amounts[i]) + " ";
+		}
+		return result;
+	}
+
+
+
 };
 static_assert(sizeof(small_commodity_set) ==
 	sizeof(small_commodity_set::commodity_amounts)
