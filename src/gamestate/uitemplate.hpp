@@ -206,7 +206,7 @@ struct drop_down_template {
 
 	int32_t dropdown_window_bg = -1;
 	float dropdown_window_margin = 0.5;
-
+	int32_t vertical_nudge = 0;
 	bool animate_active_transition = false;
 };
 

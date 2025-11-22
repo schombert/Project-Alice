@@ -303,6 +303,7 @@ project bytes_to_project(serialization::in_buffer& buffer) {
 			indv_tb.read(i.dropdown_window_margin);
 
 			indv_tb.read(i.animate_active_transition);
+			indv_tb.read(i.vertical_nudge);
 		}
 	return result;
 }
