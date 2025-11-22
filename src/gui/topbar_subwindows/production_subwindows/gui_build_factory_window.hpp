@@ -311,7 +311,6 @@ public:
 		text::add_line(state, contents, "alice_pop_show_details");
 		
 		text::add_line_with_condition(state, contents, "province_has_workers", ai::province_has_workers(state, p));
-		text::add_line_with_condition(state, contents, "province_has_available_workers", ai::province_has_available_workers(state, p));
 	}
 };
 
