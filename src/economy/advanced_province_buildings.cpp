@@ -393,6 +393,7 @@ void update_production(sys::state& state) {
 			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, output);
 		});
 	}
 }
