@@ -5725,7 +5725,7 @@ void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id 
 
 	auto min_exp = std::clamp(state.world.nation_get_modifier_values(n, sys::national_mod_offsets::regular_experience_level) / 100.f, 0.f, 1.f);
 
-	v = std::clamp(v + value * state.defines.exp_gain_div, min_exp, 1.f);
+	v = std::clamp(v + value, min_exp, 1.f);
 	state.world.ship_set_experience(r, v); //from regular_experience_level to 100%
 }
 
@@ -9752,7 +9752,7 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
 			assert(std::isfinite(reinforcement));
 			reg.get_regiment().set_strength(reg.get_regiment().get_strength() + reinforcement);
-			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), reinforcement * 5.f * state.defines.exp_gain_div);
+			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), (reinforcement * 5.f * state.defines.exp_gain_div) * -1.0f);
 		}
 	}
 	// reset all reinforcement buffers
@@ -9831,7 +9831,7 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 				auto ship = reg.get_ship();
 				auto reinforcement = ship_calculate_reinforcement(state, ship, combined);
 				ship.set_strength(ship.get_strength() + reinforcement);
-				adjust_ship_experience(state, in_nation.id, reg.get_ship(), std::min(0.f, reinforcement * 5.f * state.defines.exp_gain_div));
+				adjust_ship_experience(state, in_nation.id, reg.get_ship(), (reinforcement * 5.f * state.defines.exp_gain_div) * -1.0f);
 			}
 		}
 	}
