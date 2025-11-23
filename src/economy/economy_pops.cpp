@@ -66,14 +66,13 @@ void update_consumption(
 		demand_education_public_forbidden.set(
 			ids,
 			pop_size
-			* (1.f - data.can_use_free_services)
 			* data.education.demand_scale * data.education.satisfied_with_money_ratio
 		);
 		demand_education_public_allowed.set(
 			ids,
 			pop_size
 			* data.can_use_free_services
-			* data.education.demand_scale * (data.education.satisfied_with_money_ratio + data.education.satisfied_for_free_ratio)
+			* data.education.demand_scale * data.education.satisfied_for_free_ratio
 		);
 
 		to_bank.set(ids, data.bank_savings.spent);
