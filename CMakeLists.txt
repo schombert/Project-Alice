@@ -114,7 +114,6 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
-	"src/gamestate/dcon_oos_reporter_generated.cpp"
 	"src/nations/nations.cpp"
 	"src/network/SHA512.cpp"
 	"src/network/network.cpp"

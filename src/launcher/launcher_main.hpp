@@ -5,6 +5,7 @@
 #include "common_types.cpp"
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
+#include "dcon_oos_reporter_generated.cpp"
 #ifndef INCREMENTAL
 #include "parsers.cpp"
 #include "text.cpp"
@@ -16,7 +17,6 @@
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
-#include "dcon_oos_reporter_generated.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
