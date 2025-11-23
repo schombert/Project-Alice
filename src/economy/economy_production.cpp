@@ -1452,6 +1452,12 @@ void update_single_factory_consumption(
 	fac.set_input_cost(data.direct_inputs_cost + data.efficiency_inputs_cost);
 }
 
+void set_initial_factory_values(sys::state& state, dcon::factory_id f) {
+	auto ftid = state.world.factory_get_building_type(f);
+	auto output = state.world.factory_type_get_output_amount(ftid);
+	auto base_workforce = state.world.factory_type_get_base_workforce(ftid);
+	state.world.factory_set_output_per_worker(f, output / base_workforce);
+}
 
 void update_artisan_production(sys::state& state) {
 

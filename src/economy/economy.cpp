@@ -4533,6 +4533,7 @@ void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon:
 	new_fac.set_primary_employment(0.f);
 	new_fac.set_secondary_employment(0.f);
 	state.world.try_create_factory_location(new_fac, p);
+	set_initial_factory_values(state, new_fac);
 }
 
 void change_factory_type_in_province(sys::state& state, dcon::province_id p, dcon::factory_type_id t, dcon::factory_type_id refit_target) {
@@ -5086,7 +5087,7 @@ void prune_factories(sys::state& state) {
 			++factory_count;
 			auto desired_employment = factory_total_desired_employment(state, f.get_factory());
 			bool unprofitable = f.get_factory().get_unprofitable();
-			if(((desired_employment < 100.f) && unprofitable) && (!deletion_choice || state.world.factory_get_size(deletion_choice) > f.get_factory().get_size())) {
+			if(((desired_employment < 0.5f) && unprofitable) && (!deletion_choice || state.world.factory_get_size(deletion_choice) > f.get_factory().get_size())) {
 				deletion_choice = f.get_factory();
 			}
 		}

@@ -122,7 +122,7 @@ void filter_factories_disjunctive(
 	bool pop_project,
 	std::vector<dcon::factory_type_id>& desired_types,
 	float filter_profitability,
-	float filter_output_demand_satisfaction,
+	float filter_output_probability_to_buy,
 	float filter_payback_time,
 	float effective_profit
 ) {
@@ -144,11 +144,19 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		bool output_is_in_demand = state.world.market_get_expected_probability_to_buy(mid, type.get_output()) < filter_output_demand_satisfaction;
+		auto estimated_probability_to_buy_output = economy::estimate_probability_to_buy_after_supply_increase(
+			state,
+			mid,
+			state.world.factory_type_get_output(type),
+			state.world.factory_type_get_output_amount(type) * 0.1f
+		);
+		bool output_is_in_demand = estimated_probability_to_buy_output < filter_output_probability_to_buy;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
-		// -50%;50% range of miscalculation
+		// we add a probability to make a mistake:
+		// if output is equal to 1, then we can underestimate it to be 0.75 or overestimate it to be equal to 1.25 at most
+		// it provides a quite wide range of potential mistakes which makes the process a bit more interesting
+		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (1.f + std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
 		float input = economy::factory_type_input_cost(state, n, mid, type) + 0.1f;
 		float profitability = (output - input - wage * type.get_base_workforce()) / input;
 		float payback_time = cost / std::max(0.00001f, (output - input - wage * type.get_base_workforce()));
