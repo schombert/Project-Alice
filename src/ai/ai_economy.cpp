@@ -144,7 +144,7 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		bool output_is_in_demand = state.world.market_get_expected_probability_to_sell(mid, type.get_output()) < filter_output_demand_satisfaction;
+		bool output_is_in_demand = state.world.market_get_expected_probability_to_buy(mid, type.get_output()) < filter_output_demand_satisfaction;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
 		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
@@ -213,12 +213,12 @@ void retrieve_list_of_provinces_for_national_construction(sys::state& state, dco
 	});
 }
 
-inline bool province_has_available_workers(sys::state& state, dcon::province_id p) {
+bool province_has_available_workers(sys::state& state, dcon::province_id p) {
 	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.95f;
 }
 
-inline bool province_has_workers(sys::state& state, dcon::province_id p) {
-	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 1000.f;
+bool province_has_workers(sys::state& state, dcon::province_id p) {
+	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 5000.f;
 }
 
 bool can_build(sys::state& state, dcon::province_id p, dcon::factory_type_id ftid) {
@@ -300,11 +300,9 @@ void build_or_upgrade_desired_factories(
 		if(craved_types.empty()) {
 			continue; // no craved factories
 		}
-		if(!province_has_workers(state, p)) {
+		if(!province_has_workers(state, p)) { 
 			continue; // no labor at all
 		}
-		if(!province_has_available_workers(state, p))
-			continue; // no spare workers
 
 		auto type_selection = craved_types[rng::get_random(state, uint32_t(n.index() + int32_t(budget))) % craved_types.size()];
 		assert(type_selection);
@@ -348,9 +346,9 @@ void update_ai_econ_construction(sys::state& state) {
 	constexpr float insanely_good_demand_supply_disbalance = 0.1f;
 	constexpr float insanely_good_payback_time = 20.f;
 
-	constexpr float good_profitability = 1.5f;
+	constexpr float good_profitability = 0.5f;
 	constexpr float good_demand_supply_disbalance = 0.8f;
-	constexpr float good_payback_time = 365.f;
+	constexpr float good_payback_time = 365.f * 4.f;
 
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money

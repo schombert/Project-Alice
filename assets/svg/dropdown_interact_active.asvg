@@ -1,0 +1,130 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="printpattern" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image href="printbrush.png" height="[[P;64;0]]" width="[[P;64;0]]" />
+		</pattern>
+		<pattern id="lbfill" x="0" y="0" width="[[P;128;0]]" height="[[P;128;0]]" patternUnits="userSpaceOnUse" >
+			<image href="owc.png" height="[[P;128;0]]" width="[[P;128;0]]" />
+		</pattern>
+		<pattern id="stripefill" x="0" y="0" width="[[P;32;0]]" height="[[P;32;0]]" patternUnits="userSpaceOnUse" >
+			<image href="stripes1.png" height="[[P;32;0]]" width="[[P;32;0]]" />
+		</pattern>
+		<linearGradient id="leftfade">
+			<stop stop-color="black" offset="0%" />
+			<stop stop-color="white" offset="100%" />
+		</linearGradient>
+		<mask  id="fademask">
+			<rect  x="0" y="0" fill="url(#leftfade)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+		<mask  id="printmask">
+			<rect  x="0" y="0" fill="url(#printpattern)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+	</defs>
+	
+	<g mask="url(#fademask)">
+		<path
+			fill="url(#lbfill)"
+			stroke-opacity="0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m [[H;-1000;0]],[[P;1.25;0]]
+				v [[H;1000;-300]]
+				H 100
+				v [[H;-1000;300]] 
+				Z"
+		/>
+	</g>
+		<path
+			fill="url(#lbfill)"
+			stroke-opacity="0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m [[H;-1000;0]],0
+				m [[P;1;0]],0
+				m 0,[[P;-0.625;0]]
+				v [[H;1000;-300]]
+				h [[H;1000;-100]]
+				v [[H;-1000;300]] 
+				Z"
+		/>
+		
+	<g mask="url(#printmask)">
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;2.5;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m [[H;-1000;0]],[[P;1.25;0]]
+				H 100
+				v [[H;1000;-300]] "
+		/>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m [[H;-1000;0]],0
+				v [[P;0.75;0]]
+				v [[H;1000;-300]]
+				H 100 "
+		/>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m 0,[[P;-0.625;0]]
+				h [[H;-1000;0]],0
+				v 1 "
+		/>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;2.5;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m 0,[[P;-0.625;0]]
+				v [[H;1000;-300]]
+				v [[P;0.625;0]]
+				h [[H;-1000;0]] "
+		/>
+		
+		<g transform="translate(0 [[P;-0.625;0]])">
+		
+		<path
+			fill="#32291f"
+			fill-opacity="1"
+			stroke-opacity="0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-100]],150
+				m 0,[[H;250;0]]
+				m [[H;-275;0]],0
+				h [[H;-450;0]]
+				l [[H;225;0]],[[H;400;0]]
+				Z"
+		/>
+		</g>
+		
+	</g>
+</svg>

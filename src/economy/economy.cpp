@@ -3855,11 +3855,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	adjust prices based on global production & consumption
 	*/
 	state.world.execute_serial_over_market([&](auto ids) {
-		auto costs = state.world.market_get_everyday_needs_costs(ids, state.culture_definitions.laborers);
+		//auto costs = state.world.market_get_everyday_needs_costs(ids, state.culture_definitions.laborers);
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, ve::min(costs * 10.f, state.world.commodity_get_cost(c)));
+			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c));
 		});
 	});
 
@@ -3883,8 +3883,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// labor price control
 
 			ve::fp_vector price_control = ve::fp_vector{ 0.f };
-			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.2f;
-			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 0.5f;
+			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 10.f;
+			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 5.f;
 
 			// we reduce min wage if unemployment is too high
 			// base min wage is decided by national multipliers

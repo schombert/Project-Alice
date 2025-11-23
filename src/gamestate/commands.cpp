@@ -5429,7 +5429,7 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sy
 }
 
 bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings && !gamerule::check_gamerule(state, gamerule, new_setting);
+	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings;
 }
 
 void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
