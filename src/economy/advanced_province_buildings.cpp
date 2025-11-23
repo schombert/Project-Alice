@@ -75,7 +75,7 @@ void match_supply_and_demand(sys::state& state) {
 			// for public service it doesn't matter how much of produced services were actually consumed
 			// the only interesting things is how much of demand on public service was satisfied
 
-			auto free_ratio = ve::select(demand_public == 0.f, 0.f, matched_free_demand / demand_public);
+			auto free_ratio = ve::select(demand_public == 0.f, 1.f, matched_free_demand / demand_public);
 
 			// for paid demand, business as usual
 

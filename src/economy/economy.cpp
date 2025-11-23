@@ -3887,8 +3887,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// labor price control
 
 			ve::fp_vector price_control = ve::fp_vector{ 0.f };
-			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 10.f;
-			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 5.f;
+			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
+			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
 
 			// we reduce min wage if unemployment is too high
 			// base min wage is decided by national multipliers

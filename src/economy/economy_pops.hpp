@@ -374,7 +374,7 @@ auto inline prepare_pop_budget(
 				(1.f - literacy)
 				* adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f)
 				/ result.education.required			
-			) - 1.f
+			) - 0.1f
 		)
 	);
 	auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * rich_but_uneducated));
