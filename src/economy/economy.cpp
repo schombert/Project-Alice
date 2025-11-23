@@ -3369,7 +3369,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					* literacy_sat_public
 					+ potential_ratio_education_private.get(ids)
 					* literacy_sat_paid
-					- 2.f
+					- 0.9f
 				)
 				* pop_demographics::pop_u16_scaling;
 			pop_demographics::set_literacy(state, ids, ve::min(1.f, ve::max(0.f, literacy)));

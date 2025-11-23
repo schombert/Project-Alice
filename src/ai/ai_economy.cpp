@@ -705,8 +705,8 @@ void update_budget(sys::state& state, bool presim) {
 			sea_budget_ratio = 0.5f;
 			
 		}
-		float education_budget_ratio = 0.25f;
-		float investments_budget_ratio = 0.20f;
+		float education_budget_ratio = 0.30f;
+		float investments_budget_ratio = 0.15f;
 		float soldiers_budget_ratio = 0.30f;
 		float construction_budget_ratio = 0.45f;
 		float overseas_maintenance_budget_ratio = 0.10f;
@@ -747,7 +747,7 @@ void update_budget(sys::state& state, bool presim) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 	
-		n.set_administrative_spending(35);
+		n.set_administrative_spending(15);
 
 		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);
