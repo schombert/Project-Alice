@@ -2989,7 +2989,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			state.world.market_set_stockpile(
 				ids, economy::money,
-				state.world.market_get_stockpile(ids, economy::money) * state.inflation
+				state.world.market_get_stockpile(ids, economy::money)
 				+ (
 					merchants_supply * new_actual_probability_to_sell
 					- merchants_demand * new_actual_probability_to_buy
@@ -3015,14 +3015,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				if(do_it) {
 					auto bought_from_nation_cost =
 						bought_from_nation
-						* state.world.market_get_price(ids_i, c)
-						* state.inflation;
+						* state.world.market_get_price(ids_i, c);
 					state.world.nation_set_stockpiles(nations_i, c, national_stockpile_i - bought_from_nation);
 					auto treasury = state.world.nation_get_stockpiles(nations_i, economy::money);
 					state.world.nation_set_stockpiles(nations_i, economy::money, treasury + bought_from_nation_cost);
 				}
 			}, capital_mask && draw_from_stockpile, national_stockpile * new_actual_probability_to_sell, national_stockpile, nations, ids);
 		}
+
+		state.world.market_set_stockpile(
+				ids, economy::money,
+				state.world.market_get_stockpile(ids, economy::money) * state.inflation
+		);
 	});
 
 	set_profile_point("clear_market");
