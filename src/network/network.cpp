@@ -1055,6 +1055,9 @@ std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, 
 		if constexpr(std::is_arithmetic<T>::value) {
 			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
 		}
+		else if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.v) + ", " + std::to_string(item_2.v) + "\n";
+		}
 		else if constexpr(std::is_same<T, char>::value) {
 			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1 + ", " + item_2 + "\n";
 		}
@@ -1080,7 +1083,7 @@ std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, 
 
 template<typename T>
 std::string add_compare_to_oos_report(const T& item_1, const T& item_2, const std::string& member_name) {
-	if(item_1 != item_2) {
+	if((std::is_same<T, dcon::bitfield_type>::value && item_1.v != item_2.v) || item_1 != item_2) {
 		if constexpr(std::is_arithmetic<T>::value) {
 			return "\tobject " + member_name + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
 		} else if constexpr(std::is_same<T, char>::value) {
