@@ -1051,7 +1051,14 @@ std::string add_line_to_oos_report(const std::string& member_name, const std::st
 }
 template<typename T>
 std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, const std::string& member_name, uint32_t index) {
-	if(item_1 != item_2) {
+	bool equal = false;
+	// have to have this special case as bitfield type does not have a comparison operator and is an external dependency
+	if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+		equal = (item_1.v == item_2.v);
+	} else {
+		equal = (item_1 == item_2);
+	}
+	if(!equal) {
 		if constexpr(std::is_arithmetic<T>::value) {
 			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
 		}
