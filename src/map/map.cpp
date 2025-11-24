@@ -1257,13 +1257,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
 		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
-		//glUseProgram(shaders[shader_text_line]);
-
 		load_shader(shader_text_line);
-
 		state.font_collection.mfont.ready_textures();
 
-		//glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendEquation(GL_FUNC_ADD);
 		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
@@ -1273,10 +1269,6 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
 		else
 			glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f);
-
-		//auto location = glGetUniformLocation(shader_text_line, "color");
-		//location = glGetUniformLocation(shader_text_line, "glyphs");
-		//location = glGetUniformLocation(shader_text_line, "curves");
 
 		location = shader_uniforms[shader_text_line][uniform_glyphs];
 		glUniform1i(location, 0);
@@ -1292,15 +1284,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 		glActiveTexture(GL_TEXTURE0);
 
-		//glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
-		//glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
-
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
-				glDrawArrays(GL_TRIANGLES, i * 6, 6);
-			}
+			glDrawArrays(GL_TRIANGLES, 0, int32_t(text_line_vertices.size()));
 		}
 
 		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
@@ -2864,7 +2851,6 @@ void display_data::update_sprawl(sys::state& state) {
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
-	text_line_texture_per_quad.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
 	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
@@ -3003,7 +2989,11 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			float x_advance = float(e.text.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 			float x_offset = float(e.text.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
 			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
+
+			state.font_collection.mfont.make_glyph(e.text.glyph_info[i].codepoint);
+			auto& map_font_gi = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint];
+
+			if(map_font_gi.curveCount > 0) {
 				// Add up baseline and kerning offsets
 				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
 
@@ -3024,27 +3014,23 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				float tx = float(gso.texture_slot & 7) * step;
 				float ty = float((gso.texture_slot & 63) >> 3) * step;
 
-				state.font_collection.mfont.make_glyph(e.text.glyph_info[i].codepoint);
-				auto index = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint].bufferIndex;
 
-				auto& mfg = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint];
+				float u0 = float(map_font_gi.ft_x_bearing) / (64.0f * 64.0f);
+				float v0 = float(map_font_gi.ft_y_bearing - map_font_gi.ft_height) / (64.0f * 64.0f);
+				float u1 = float(map_font_gi.ft_x_bearing + map_font_gi.ft_width) / (64.0f * 64.0f);
+				float v1 = float(map_font_gi.ft_y_bearing) / (64.0f * 64.0f);
 
-				float u0 = float(mfg.ft_x_bearing) / (64.0f * 64.0f);
-				float v0 = float(mfg.ft_y_bearing - mfg.ft_height) / (64.0f * 64.0f);
-				float u1 = float(mfg.ft_x_bearing + mfg.ft_width) / (64.0f * 64.0f);
-				float v1 = float(mfg.ft_y_bearing) / (64.0f * 64.0f);
+				float height_scale = float(map_font_gi.ft_height) / (64.0f * 64.0f);
+				float width_scale = float(map_font_gi.ft_width) / (64.0f * 64.0f);
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(u0, v1), real_text_size / 2.0f, index);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(u0, v0), real_text_size / 2.0f, index);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(u1, v0), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(p0, glm::vec2(-width_scale, -height_scale), shader_direction, glm::vec2(u0, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(p0, glm::vec2(width_scale, -height_scale), shader_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(u1, v0), real_text_size / 2.0f, index);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(u1, v1), real_text_size / 2.0f, index);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(u0, v1), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(width_scale, -height_scale), shader_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(p0, glm::vec2(width_scale, height_scale), shader_direction, glm::vec2(u1, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(p0, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
 
-			
-
-				text_line_texture_per_quad.emplace_back(f.textures[gso.texture_slot >> 6]);
 			}
 			float glyph_advance = x_advance * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {

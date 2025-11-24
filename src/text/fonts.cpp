@@ -1189,6 +1189,9 @@ void map_font::ready_textures() {
 		glGenBuffers(1, &glyph_buffer);
 		glGenBuffers(1, &curve_buffer);
 
+		glBindBuffer(GL_TEXTURE_BUFFER, glyph_buffer);
+		glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
+
 		glBindTexture(GL_TEXTURE_BUFFER, glyph_texture);
 		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, glyph_buffer);
 		glBindTexture(GL_TEXTURE_BUFFER, 0);
