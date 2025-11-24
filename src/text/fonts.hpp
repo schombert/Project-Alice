@@ -138,6 +138,61 @@ struct stored_glyphs {
 	}
 };
 
+class map_font {
+public:
+	struct map_font_glyph {
+		int32_t bufferIndex;
+		int32_t curveCount;
+		int32_t ft_x_bearing;
+		int32_t ft_y_bearing;
+		int32_t ft_width;
+		int32_t ft_height;
+	};
+
+	struct map_font_buffer_glyph {
+		int32_t start;
+		int32_t count; // range of bezier curves belonging to this glyph
+	};
+
+	struct map_font_buffer_curve {
+		float x0;
+		float y0;
+		float x1;
+		float y1;
+		float x2;
+		float y2;
+	};
+
+	std::vector<map_font_buffer_glyph> buffer_glyphs;
+	std::vector<map_font_buffer_curve> buffer_curves;
+	ankerl::unordered_dense::map<uint32_t, map_font_glyph> glyphs;
+	std::unique_ptr<FT_Byte[]> file_data;
+
+	FT_Face face = nullptr;
+
+	GLuint glyph_texture = 0;
+	GLuint curve_texture = 0;
+	GLuint glyph_buffer = 0;
+	GLuint curve_buffer = 0;
+
+	// The glyph quads are expanded by this amount to enable proper
+	// anti-aliasing. Value is relative to emSize.
+	float dilation = 0;
+
+	map_font(map_font const&) = delete;
+	map_font& operator=(map_font const&) = delete;
+	map_font(map_font&& o) noexcept = delete;
+	map_font& operator=(map_font&& o) noexcept = delete;
+
+	map_font() = default;
+	~map_font();
+	void make_glyph(uint32_t glyph_id);
+	void upload_buffers();
+	void convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex);
+	void load_font(FT_Library& ft_library, char const* file_data, uint32_t file_size);
+	void ready_textures();
+};
+
 class font {
 private:
 	font(font const&) = delete;
@@ -208,6 +263,7 @@ public:
 		internal_top_adj = o.internal_top_adj;
 		first_free_slot = o.first_free_slot;
 		only_raw_codepoints = o.only_raw_codepoints;
+		return *this;
 	}
 };
 
@@ -223,6 +279,8 @@ private:
 	std::vector<font> font_array;
 	dcon::locale_id current_locale;
 public:
+	map_font mfont;
+
 	std::vector<uint8_t> compiled_ubrk_rules;
 	std::vector<uint8_t> compiled_char_ubrk_rules;
 	std::vector<uint8_t> compiled_word_ubrk_rules;

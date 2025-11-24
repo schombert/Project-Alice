@@ -253,20 +253,23 @@ void create_text_line_vbo(GLuint vbo) {
 	// Set up vertex attribute format for the direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 3, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
 	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glVertexAttribIFormat(5, 1, GL_INT, offsetof(text_line_vertex, buffer_index_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
+	//glEnableVertexAttribArray(6);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
 	glVertexAttribBinding(4, 0);
 	glVertexAttribBinding(5, 0);
+	//glVertexAttribBinding(6, 0);
 }
 
 void create_drag_box_vbo(GLuint vbo) {
@@ -397,8 +400,8 @@ void display_data::create_meshes() {
 	create_unit_arrow_vbo(vbo_array[vo_other_objective_unit_arrow], other_objective_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
-	glBindVertexArray(vao_array[vo_province_text_line]);
-	create_text_line_vbo(vbo_array[vo_province_text_line]);
+	//glBindVertexArray(vao_array[vo_province_text_line]);
+	//create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(vao_array[vo_square]);
@@ -463,8 +466,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
 
-	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
-	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	//auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
+	//auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_f.glsl"));
 
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
 	auto tline_width_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_variable_width_v.glsl"));
@@ -547,6 +552,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_sprite_texture_size] = glGetUniformLocation(shaders[i], "texture_size");
 		shader_uniforms[i][uniform_is_national_border] = glGetUniformLocation(shaders[i], "is_national_border");
 		shader_uniforms[i][uniform_graphics_mode] = glGetUniformLocation(shaders[i], "graphics_mode");
+		shader_uniforms[i][uniform_color] = glGetUniformLocation(shaders[i], "color");
+		shader_uniforms[i][uniform_glyphs] = glGetUniformLocation(shaders[i], "glyphs");
+		shader_uniforms[i][uniform_curves] = glGetUniformLocation(shaders[i], "curves");
 	}
 }
 
@@ -562,24 +570,36 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(shaders[program]);
-		glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
-		glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
-		glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
-		glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
-		glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
-		glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
-		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
-		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-		glUniform3f(shader_uniforms[program][uniform_light_direction],
-			state.map_state.light_direction.x,
-			state.map_state.light_direction.y,
-			state.map_state.light_direction.z
-		);
-		if(state.map_state.light_on) {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
-		} else {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		if(shader_uniforms[program][uniform_offset] != -1)
+			glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
+		if(shader_uniforms[program][uniform_aspect_ratio] != -1)
+			glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
+		if(shader_uniforms[program][uniform_screen_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
+		if(shader_uniforms[program][uniform_zoom] != -1)
+			glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
+		if(shader_uniforms[program][uniform_map_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
+		if(shader_uniforms[program][uniform_rotation] != -1)
+			glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		if(shader_uniforms[program][uniform_gamma] != -1)
+			glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
+		if(shader_uniforms[program][uniform_subroutines_index] != -1)
+			glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
+		if(shader_uniforms[program][uniform_time] != -1)
+			glUniform1f(shader_uniforms[program][uniform_time], time_counter);
+		if(shader_uniforms[program][uniform_light_direction] != -1)
+			glUniform3f(shader_uniforms[program][uniform_light_direction],
+				state.map_state.light_direction.x,
+				state.map_state.light_direction.y,
+				state.map_state.light_direction.z
+			);
+		if(shader_uniforms[program][uniform_ignore_light] != -1) {
+			if(state.map_state.light_on) {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
+			} else {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+			}
 		}
 	};
 
@@ -1237,19 +1257,53 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
 		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
+		//glUseProgram(shaders[shader_text_line]);
+
 		load_shader(shader_text_line);
-		glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
-		glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
+
+		state.font_collection.mfont.ready_textures();
+
+		//glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+		auto location = shader_uniforms[shader_text_line][uniform_color];
+		if(state.user_settings.black_map_font)
+			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
+		else
+			glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		//auto location = glGetUniformLocation(shader_text_line, "color");
+		//location = glGetUniformLocation(shader_text_line, "glyphs");
+		//location = glGetUniformLocation(shader_text_line, "curves");
+
+		location = shader_uniforms[shader_text_line][uniform_glyphs];
+		glUniform1i(location, 0);
+		
+		location = shader_uniforms[shader_text_line][uniform_curves];
+		glUniform1i(location, 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
+
+		glActiveTexture(GL_TEXTURE0);
+
+		//glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
+		//glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
+
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform1f(shader_uniforms[shader_text_line][uniform_opaque], 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, text_line_texture_per_quad[i]);
 				glDrawArrays(GL_TRIANGLES, i * 6, 6);
 			}
 		}
+
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	}
 
 	/*
@@ -1584,6 +1638,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
 
+	
 	if(ogl::msaa_enabled(state)) {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.msaa_interbuffer);
@@ -1601,6 +1656,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		//glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.msaa_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+	
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
@@ -2968,13 +3024,26 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				float tx = float(gso.texture_slot & 7) * step;
 				float ty = float((gso.texture_slot & 63) >> 3) * step;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
+				state.font_collection.mfont.make_glyph(e.text.glyph_info[i].codepoint);
+				auto index = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint].bufferIndex;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
+				auto& mfg = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint];
+
+				float u0 = float(mfg.ft_x_bearing) / (64.0f * 64.0f);
+				float v0 = float(mfg.ft_y_bearing - mfg.ft_height) / (64.0f * 64.0f);
+				float u1 = float(mfg.ft_x_bearing + mfg.ft_width) / (64.0f * 64.0f);
+				float v1 = float(mfg.ft_y_bearing) / (64.0f * 64.0f);
+
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(u0, v1), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec2(u0, v0), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(u1, v0), real_text_size / 2.0f, index);
+
+				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec2(u1, v0), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec2(u1, v1), real_text_size / 2.0f, index);
+				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec2(u0, v1), real_text_size / 2.0f, index);
+
+			
+
 				text_line_texture_per_quad.emplace_back(f.textures[gso.texture_slot >> 6]);
 			}
 			float glyph_advance = x_advance * size / 64.f;
@@ -2996,6 +3065,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 }
 
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	/*
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
 	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
@@ -3091,6 +3161,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * province_text_line_vertices.size(), &province_text_line_vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+	*/
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {

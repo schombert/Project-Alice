@@ -393,7 +393,17 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 			font_array.back().file_name = fname;
 			resolved = &(font_array.back());
 		}
-
+		{
+			auto r = simple_fs::get_root(state.common_fs);
+			auto assets = simple_fs::open_directory(r, NATIVE("assets"));
+			auto fonts = simple_fs::open_directory(assets, NATIVE("fonts"));
+			auto ff = simple_fs::open_file(fonts, simple_fs::utf8_to_native(fname));
+			if(!ff) {
+				std::abort();
+			}
+			auto content = simple_fs::view_contents(*ff);
+			mfont.load_font(ft_library, content.data, content.file_size);
+		}
 		state.world.locale_set_resolved_map_font(l, count);
 	}
 
@@ -522,11 +532,11 @@ void font::make_glyph(char32_t ch_in) {
 	// load all glyph metrics
 	if(ch_in) {
 		FT_Load_Glyph(font_face, ch_in, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
+		glyph_sub_offset gso;
 
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			glyph_sub_offset gso;
 			gso.x = 0.f;
 			gso.y = 0.f;
 			gso.x_advance = 0.f;
@@ -545,7 +555,6 @@ void font::make_glyph(char32_t ch_in) {
 		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
 		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
 
-		glyph_sub_offset gso;
 		gso.x = (hb_x - float(btmap_x_off)) * 1.0f / float(magnification_factor);
 		gso.y = (-hb_y - float(btmap_y_off)) * 1.0f / float(magnification_factor);
 		gso.x_advance = float(font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
@@ -1135,6 +1144,223 @@ uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size)
 		auto jvalue = state.font_collection.get_font(state, font_selection::body_font).line_height(1);
 		calculated_size = int32_t((target_line_size / jvalue) * 6.0f / 5.0f);
 		return uint16_t((0 << 7) | (0x3F & calculated_size));
+	}
+}
+
+void map_font::load_font(FT_Library& ft_library, char const* file_data_in, uint32_t file_size) {
+	buffer_glyphs.clear();
+	buffer_curves.clear();
+	glyphs.clear();
+	if(face)
+		FT_Done_Face(face);
+
+	file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
+
+	memcpy(file_data.get(), file_data_in, file_size);
+	FT_New_Memory_Face(ft_library, file_data.get(), file_size, 0, &face);
+	FT_Select_Charmap(face, FT_ENCODING_UNICODE);
+	FT_Set_Pixel_Sizes(face, 64, 64);
+
+
+	if(glyph_texture) {
+		glDeleteTextures(1, &glyph_texture);
+		glyph_texture = 0;
+	}
+	if(curve_texture)
+		glDeleteTextures(1, &curve_texture);
+	if(glyph_buffer)
+		glDeleteBuffers(1, &glyph_buffer);
+	if(curve_buffer)
+		glDeleteBuffers(1, &curve_buffer);
+}
+map_font::~map_font() {
+	glDeleteTextures(1, &glyph_texture);
+	glDeleteTextures(1, &curve_texture);
+
+	glDeleteBuffers(1, &glyph_buffer);
+	glDeleteBuffers(1, &curve_buffer);
+
+	//FT_Done_Face(face);
+}
+void map_font::ready_textures() {
+	if(!glyph_texture) {
+		glGenTextures(1, &glyph_texture);
+		glGenTextures(1, &curve_texture);
+		glGenBuffers(1, &glyph_buffer);
+		glGenBuffers(1, &curve_buffer);
+
+		glBindTexture(GL_TEXTURE_BUFFER, glyph_texture);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32I, glyph_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+
+		glBindTexture(GL_TEXTURE_BUFFER, curve_texture);
+		glTexBuffer(GL_TEXTURE_BUFFER, GL_RG32F, curve_buffer);
+		glBindTexture(GL_TEXTURE_BUFFER, 0);
+	}
+}
+void map_font::make_glyph(uint32_t glyph_id) {
+	ready_textures();
+
+	if(glyphs.contains(glyph_id))
+		return;
+
+	map_font_buffer_glyph temp_buffer_glyph;
+	temp_buffer_glyph.start = static_cast<int32_t>(buffer_curves.size());
+
+	FT_Load_Glyph(face, glyph_id, FT_LOAD_NO_BITMAP);
+
+	short start = 0;
+	for(int i = 0; i < face->glyph->outline.n_contours; i++) {
+		// Note: The end indices in face->glyph->outline.contours are inclusive.
+		convert_contour(&face->glyph->outline, start, face->glyph->outline.contours[i]);
+		start = face->glyph->outline.contours[i] + 1;
+	}
+
+	temp_buffer_glyph.count = static_cast<int32_t>(buffer_curves.size()) - temp_buffer_glyph.start;
+
+	int32_t bufferIndex = static_cast<int32_t>(buffer_glyphs.size());
+	buffer_glyphs.push_back(temp_buffer_glyph);
+
+	map_font_glyph glyph;
+
+	glyph.ft_height = face->glyph->metrics.height;
+	glyph.ft_width = face->glyph->metrics.width;
+	glyph.ft_x_bearing = face->glyph->metrics.horiBearingX;
+	glyph.ft_y_bearing = face->glyph->metrics.horiBearingY;
+
+	glyph.bufferIndex = bufferIndex;
+	glyph.curveCount = temp_buffer_glyph.count;
+	glyphs[glyph_id] = glyph;
+
+	upload_buffers();
+}
+void map_font::upload_buffers() {
+	glBindBuffer(GL_TEXTURE_BUFFER, glyph_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_glyph) * buffer_glyphs.size(), buffer_glyphs.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+
+	glBindBuffer(GL_TEXTURE_BUFFER, curve_buffer);
+	glBufferData(GL_TEXTURE_BUFFER, sizeof(map_font_buffer_curve) * buffer_curves.size(), buffer_curves.data(), GL_STATIC_DRAW);
+	glBindBuffer(GL_TEXTURE_BUFFER, 0);
+}
+void map_font::convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex) {
+	if(firstIndex == lastIndex) return;
+
+	short dIndex = 1;
+	if(outline->flags & FT_OUTLINE_REVERSE_FILL) {
+		auto tmpIndex = lastIndex;
+		lastIndex = firstIndex;
+		firstIndex = tmpIndex;
+		dIndex = -1;
+	}
+
+	auto convert = [](const FT_Vector& v) {
+		return glm::vec2(
+			(float)v.x / (64.0f * 64.0f),
+			(float)v.y / (64.0f * 64.0f)
+		);
+	};
+
+	auto makeMidpoint = [](const glm::vec2& a, const glm::vec2& b) {
+		return 0.5f * (a + b);
+		};
+
+	auto makeCurve = [](const glm::vec2& p0, const glm::vec2& p1, const glm::vec2& p2) {
+		map_font_buffer_curve result;
+		result.x0 = p0.x;
+		result.y0 = p0.y;
+		result.x1 = p1.x;
+		result.y1 = p1.y;
+		result.x2 = p2.x;
+		result.y2 = p2.y;
+		return result;
+	};
+
+	// Find a point that is on the curve and remove it from the list.
+	glm::vec2 first;
+	bool firstOnCurve = (outline->tags[firstIndex] & FT_CURVE_TAG_ON);
+	if(firstOnCurve) {
+		first = convert(outline->points[firstIndex]);
+		firstIndex += dIndex;
+	} else {
+		bool lastOnCurve = (outline->tags[lastIndex] & FT_CURVE_TAG_ON);
+		if(lastOnCurve) {
+			first = convert(outline->points[lastIndex]);
+			lastIndex -= dIndex;
+		} else {
+			first = makeMidpoint(convert(outline->points[firstIndex]), convert(outline->points[lastIndex]));
+			// This is a virtual point, so we don't have to remove it.
+		}
+	}
+
+	glm::vec2 start = first;
+	glm::vec2 control = first;
+	glm::vec2 previous = first;
+	char previousTag = FT_CURVE_TAG_ON;
+	for(auto index = firstIndex; index != lastIndex + dIndex; index += dIndex) {
+		glm::vec2 current = convert(outline->points[index]);
+		char currentTag = FT_CURVE_TAG(outline->tags[index]);
+		if(currentTag == FT_CURVE_TAG_CUBIC) {
+			// No-op, wait for more points.
+			control = previous;
+		} else if(currentTag == FT_CURVE_TAG_ON) {
+			if(previousTag == FT_CURVE_TAG_CUBIC) {
+				glm::vec2& b0 = start;
+				glm::vec2& b1 = control;
+				glm::vec2& b2 = previous;
+				glm::vec2& b3 = current;
+
+				glm::vec2 c0 = b0 + 0.75f * (b1 - b0);
+				glm::vec2 c1 = b3 + 0.75f * (b2 - b3);
+
+				glm::vec2 d = makeMidpoint(c0, c1);
+
+				buffer_curves.push_back(makeCurve(b0, c0, d));
+				buffer_curves.push_back(makeCurve(d, c1, b3));
+			} else if(previousTag == FT_CURVE_TAG_ON) {
+				// Linear segment.
+				buffer_curves.push_back(makeCurve(previous, makeMidpoint(previous, current), current));
+			} else {
+				// Regular bezier curve.
+				buffer_curves.push_back(makeCurve(start, previous, current));
+			}
+			start = current;
+			control = current;
+		} else /* currentTag == FT_CURVE_TAG_CONIC */ {
+			if(previousTag == FT_CURVE_TAG_ON) {
+				// No-op, wait for third point.
+			} else {
+				// Create virtual on point.
+				glm::vec2 mid = makeMidpoint(previous, current);
+				buffer_curves.push_back(makeCurve(start, previous, mid));
+				start = mid;
+				control = mid;
+			}
+		}
+		previous = current;
+		previousTag = currentTag;
+	}
+
+	// Close the contour.
+	if(previousTag == FT_CURVE_TAG_CUBIC) {
+		glm::vec2& b0 = start;
+		glm::vec2& b1 = control;
+		glm::vec2& b2 = previous;
+		glm::vec2& b3 = first;
+
+		glm::vec2 c0 = b0 + 0.75f * (b1 - b0);
+		glm::vec2 c1 = b3 + 0.75f * (b2 - b3);
+
+		glm::vec2 d = makeMidpoint(c0, c1);
+
+		buffer_curves.push_back(makeCurve(b0, c0, d));
+		buffer_curves.push_back(makeCurve(d, c1, b3));
+
+	} else if(previousTag == FT_CURVE_TAG_ON) {
+		// Linear segment.
+		buffer_curves.push_back(makeCurve(previous, makeMidpoint(previous, first), first));
+	} else {
+		buffer_curves.push_back(makeCurve(start, previous, first));
 	}
 }
 

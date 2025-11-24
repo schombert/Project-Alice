@@ -8640,6 +8640,6 @@ std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state&
 }
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
-////////////////////	main.set_visible(state, false);
+////////////////////////////////////	main.set_visible(state, false);
 // END
 }
