@@ -554,11 +554,16 @@ void initialize(sys::state& state) {
 
 	int most_common_value = -1;
 	int second_most_common_value = -1;
+	int third_most_common_value = -1;
 	int most_common_count = -1;
 	int second_most_common_count = -1;
+	int third_most_common_count = -1;
 
 	for(size_t i = 0; i < rgo_efficiency_inputs_amount.size(); i++) {
 		if(rgo_efficiency_inputs_count[i] >= most_common_count) {
+			third_most_common_value = second_most_common_value;
+			third_most_common_count = second_most_common_count;
+
 			second_most_common_value = most_common_value;
 			second_most_common_count = most_common_count;
 
@@ -581,6 +586,13 @@ void initialize(sys::state& state) {
 		base_rgo_e_inputs.commodity_amounts[1] =
 			rgo_efficiency_inputs_amount[second_most_common_value]
 			/ (float)second_most_common_count * 0.005f;
+	}
+
+	if(third_most_common_count > 0) {
+		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ uint8_t(third_most_common_value - 1) };
+		base_rgo_e_inputs.commodity_amounts[2] =
+			rgo_efficiency_inputs_amount[third_most_common_value]
+			/ (float)third_most_common_count * 0.005f;
 	}
 
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
