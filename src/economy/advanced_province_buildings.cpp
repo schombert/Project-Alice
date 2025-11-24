@@ -21,10 +21,13 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 void update_price(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
 		state.world.execute_serial_over_province([&](auto pids) {
-			auto supply = state.world.province_get_service_supply_private(pids, i)
-				+ state.world.province_get_service_supply_public(pids, i);
-			auto demand = state.world.province_get_service_demand_allowed_public_supply(pids, i)
-				+ state.world.province_get_service_demand_forbidden_public_supply(pids, i);
+			// public demand doesn't matter: it doesn't have any money behind it
+			// we are interested only in balance on the "market"
+			// which could be indirectly influenced by public supply,
+			// but at this point we are only interested in probability to sell our services in current conditions
+
+			auto supply = state.world.province_get_service_supply_private(pids, i);
+			auto demand = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 			auto price = state.world.province_get_service_price(pids, i);
 			auto change = economy::price_properties::change(price, supply, demand);
 			auto new_price = ve::min(ve::max(price + change, economy::price_properties::service::min), economy::price_properties::service::max);
@@ -60,25 +63,24 @@ void match_supply_and_demand(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
 		//state.world.execute_serial_over_province([&](auto pids) {
 		state.world.for_each_province([&](auto pids) {
-			auto demand_can_be_free = state.world.province_get_service_demand_allowed_public_supply(pids, i);
-			auto demand_only_paid = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
+			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
+			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 
-			auto supply_free = state.world.province_get_service_supply_public(pids, i);
-			auto supply_paid = state.world.province_get_service_supply_private(pids, i);
+			auto supply_public = state.world.province_get_service_supply_public(pids, i);
+			auto supply_private = state.world.province_get_service_supply_private(pids, i);
 
-			auto matched_free_demand = ve::min(demand_can_be_free, supply_free);
-			auto demand_paid = demand_can_be_free - matched_free_demand + demand_only_paid;
-			auto matched_paid_demand = ve::min(demand_paid, supply_paid);
+			auto matched_free_demand = ve::min(demand_public, supply_public);
+			auto matched_paid_demand = ve::min(demand_private, supply_private);
 
-			// free demand is always satisfied by 100% because remaining demand is always moved to paid demand
-			// but we are interested in ratio of satisfied free demand to total demand which is eligible to be free
+			// for public service it doesn't matter how much of produced services were actually consumed
+			// the only interesting things is how much of demand on public service was satisfied
 
-			auto free_ratio = ve::select(demand_can_be_free == 0.f, 0.f, matched_free_demand / demand_can_be_free);
+			auto free_ratio = ve::select(demand_public == 0.f, 1.f, matched_free_demand / demand_public);
 
 			// for paid demand, business as usual
 
-			auto satisfaction_paid = ve::select(demand_paid == 0.f, 0.f, ve::min(1.f, supply_paid / demand_paid));
-			auto supply_sold_paid = ve::select(supply_paid == 0.f, 0.f, ve::min(1.f, demand_paid / supply_paid));
+			auto satisfaction_paid = ve::select(demand_private == 0.f, 0.f, ve::min(1.f, supply_private / demand_private));
+			auto supply_sold_paid = ve::select(supply_private == 0.f, 0.f, ve::min(1.f, demand_private / supply_private));
 
 			state.world.province_set_service_satisfaction_for_free(pids, i, free_ratio);
 			state.world.province_set_service_satisfaction(pids, i, satisfaction_paid);
@@ -391,6 +393,7 @@ void update_production(sys::state& state) {
 			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, output);
 		});
 	}
 }

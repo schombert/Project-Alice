@@ -30,6 +30,8 @@ struct inputs_data {
 	float total_cost = 0.f;
 };
 
+void set_initial_factory_values(sys::state& state, dcon::factory_id f);
+
 template<typename SET>
 inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SET const& inputs);
 
