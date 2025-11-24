@@ -143,7 +143,8 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 //for sea trade routes
 std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
-
+//for "trade display" routes from province to the market center
+std::vector<dcon::province_id> make_whatever_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 

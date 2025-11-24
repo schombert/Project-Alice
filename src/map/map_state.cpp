@@ -61,6 +61,40 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	return vertex.position * map_size;
 }
 
+glm::vec2 get_port_direction(sys::state& state, dcon::province_id p) {
+	auto pt = state.world.province_get_port_to(p);
+	if(!pt)
+		return glm::vec2{};
+
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
+	assert(adj);
+	auto id = adj.index();
+	auto& map_data = state.map_state.map_data;
+	auto& border = map_data.borders[id];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+
+	auto& next_vertex = vertex.next_point;
+	auto& prev_vertex = vertex.previous_point;
+
+	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
+	auto center = state.world.province_get_mid_point(p) / map_size;
+	auto from_center_to_port = vertex.position - center;
+
+	if(glm::length(next_vertex - prev_vertex) < 0.0001f) {
+		return glm::normalize(from_center_to_port * map_size);
+	}
+
+	auto tangent_direction = glm::normalize(next_vertex - prev_vertex);
+	auto candidate_direction = glm::vec2(tangent_direction.y, -tangent_direction.x);
+
+
+	if(glm::dot(from_center_to_port, candidate_direction) < 0.f){
+		candidate_direction = -candidate_direction;
+	}
+
+	return glm::normalize(candidate_direction * map_size);
+}
+
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
 	return prov_id.index() >= state.province_definitions.first_sea_province.index();
 }
@@ -150,7 +184,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	std::map<int32_t, std::map<int32_t, float>> trade_graph;
 	
 	std::map<int32_t, float> trade_graph_toward_port;
-
+	/*
 	state.world.for_each_province([&](dcon::province_id province) {
 		auto local_in = economy::estimate_intermediate_consumption(state, cid, province) + economy::estimate_pops_consumption(state, cid, province);
 		auto local_out = economy::estimate_production(state, cid, province);
@@ -221,7 +255,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			}
 		}
 	});
-
+	*/
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
@@ -244,7 +278,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 
-		bool is_sea = state.world.trade_route_get_distance(trade_route) == state.world.trade_route_get_sea_distance(trade_route);
+		bool is_sea = state.world.trade_route_get_is_sea_route(trade_route);
 		if(is_sea) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
@@ -638,72 +672,102 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		return std::abs(volume) / std::max(0.05f, the_most_fat_route) * 40000.f;
 	};
 
-	for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
-		auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
-
-		glm::vec2 current_pos = get_army_location(state, coastal_province);
-		glm::vec2 next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
-
-		if(volume < 0.f) {
-			current_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
-			next_pos = put_in_local(get_army_location(state, coastal_province), current_pos, size_x);
-		}
-
-		glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
-
-		auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
-		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		auto norm_next_pos = next_pos / glm::vec2(size_x, size_y);
-
-		auto old_size = map_data.trade_flow_vertices.size();
-		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-
-		auto width = volume_to_width(volume);
-
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_pos,
-			+start_normal,
-			0.f,
-			0.0f,
-			width
-		});
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_pos,
-			-start_normal,
-			1.f,
-			0.0f,
-			width
-		});
-
-		// assume that province is a square
-		auto distance =
-			std::sqrt(float(state.map_state.map_data.province_area[province::to_map_id(coastal_province)]))
-			/ 20000.f;
-
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_next_pos,
-			+start_normal,
-			0.f,
-			distance,
-			width
-		});
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_next_pos,
-			-start_normal,
-			1.f,
-			distance,
-			width
-		});
-
-		map_data.trade_flow_arrow_counts.push_back(
-			GLsizei(map_data.trade_flow_vertices.size() - old_size)
-		);
-	}
+	//for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
+	//	auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
+	//	glm::vec2 current_pos = get_army_location(state, coastal_province);
+	//	glm::vec2 next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
+	//	auto port_direction = get_port_direction(state, coastal_province);
+	//	if(volume < 0.f) {
+	//		current_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
+	//		next_pos = put_in_local(get_army_location(state, coastal_province), current_pos, size_x);
+	//		port_direction = -port_direction;
+	//	}
+	//	glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
+	//	auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
+	//	auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+	//	auto norm_next_pos = next_pos / glm::vec2(size_x, size_y);
+	//	auto old_size = map_data.trade_flow_vertices.size();
+	//	map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+	//	auto width = volume_to_width(volume);
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_pos,
+	//		+start_normal,
+	//		0.f,
+	//		0.0f,
+	//		width
+	//	});
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_pos,
+	//		-start_normal,
+	//		1.f,
+	//		0.0f,
+	//		width
+	//	});
+	//	// assume that province is a square
+	//	auto distance =
+	//		std::sqrt(float(state.map_state.map_data.province_area[province::to_map_id(coastal_province)]))
+	//		/ 20000.f;
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_next_pos,
+	//		+start_normal,
+	//		0.f,
+	//		distance,
+	//		width
+	//	});
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_next_pos,
+	//		-start_normal,
+	//		1.f,
+	//		distance,
+	//		width
+	//	});
+	//	map_data.trade_flow_arrow_counts.push_back(
+	//		GLsizei(map_data.trade_flow_vertices.size() - old_size)
+	//	);
+	//}
 
 	std::map<int32_t, bool> vertices_built;
 	state.world.for_each_province([&](dcon::province_id origin) { vertices_built[origin.index()] = false; });
 
-
+	auto build_bezier = [&](glm::vec2 start, glm::vec2 start_tangent, float start_width, glm::vec2 end, glm::vec2 end_tangent, float end_width, float& distance) {
+		auto old_size = map_data.trade_flow_vertices.size();
+		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+		auto start_normal = glm::vec2(-start_tangent.y, start_tangent.x);
+		auto norm_pos = start / glm::vec2(size_x, size_y);
+		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			start_normal,
+			0.f,
+			distance,
+			start_width
+		});
+		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			-start_normal,
+			1.f,
+			distance,
+			start_width
+		});
+		add_bezier_to_buffer_variable_width(
+			map_data.trade_flow_vertices,
+			start,
+			end,
+			start_tangent,
+			end_tangent,
+			1.0f,
+			false,
+			size_x,
+			size_y,
+			40,
+			distance,
+			start_width,
+			end_width,
+			end_width
+		);
+		map_data.trade_flow_arrow_counts.push_back(
+			GLsizei(map_data.trade_flow_vertices.size() - old_size)
+		);
+	};
 
 	state.world.for_each_province([&](dcon::province_id origin) {
 		
@@ -724,18 +788,25 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto left_outgoing = total_outgoing;
 			auto left_incoming = total_incoming;
 
-			auto max_incoming = 0.f;
-			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
-				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
-					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+			//auto max_incoming = 0.f;
+			//for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+			//	for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+			//		auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+			//		auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+			//	}
+			//}
 
-				}
-			}
+			
 
 			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
 				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
 					glm::vec2 current_pos = get_army_location(state, origin);
+
+					auto volume_start =
+						source_volume;
+					auto volume_end =
+						volume_start
+						* map_data.particle_next_node_probability[origin.index()][target_index];
 
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
 					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
@@ -744,11 +815,20 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
 
 					if(source == target) {
+						// model of probabilistic movement is not perfect, so we have to ignore something when we attempt to move in a loop
+						left_incoming -= volume_end;
+						left_outgoing -= volume_end;
 						continue;
 					}
 
+					// by default: connect centers of the segments between midpoints of provinces and use their tangents as start and end tangents
 
-					// sea->[port]->sea
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					glm::vec2 tangent_end = glm::normalize(next_pos - current_pos);
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = (current_pos + next_pos) / 2.f;
+
+					// sea -> [port->land->port] -> sea
 					if(
 						is_sea(target)
 						&&
@@ -756,46 +836,57 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 						&&
 						is_sea(source)
 					) {
+						// if we are entering a port from sea and then go back to sea, use port location instead of actual center
 						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+
+						// adjust tangents and start/end positions
+						tangent_start = glm::normalize(current_pos - prev_pos);
+						tangent_end = glm::normalize(next_pos - current_pos);
+						start = (current_pos + prev_pos) / 2.f;
+						end = (current_pos + next_pos) / 2.f;
+					} else {
+						// ??? -> sea -> [port->land]
+						if(
+							is_sea(origin)
+							&&
+							!is_sea(target)
+						) {
+							// if we are currently at sea, but next position is a port, use port location as the end of the path
+							end = put_in_local(get_port_location(state, target), current_pos, size_x);
+							tangent_end = -get_port_direction(state, target);
+						}
+						// sea -> [port->land] -> ???
+						if(
+							!is_sea(origin)
+							&&
+							is_sea(source)
+						) {
+							// currently we are at center of the province and we want to connect start with a path which was terminated at port
+							start = put_in_local(get_port_location(state, origin), current_pos, size_x);
+							tangent_start = -get_port_direction(state, origin);
+						}
+
+						// ??? -> [land->port] -> sea
+						if(
+							!is_sea(origin)
+							&&
+							is_sea(target)
+						) {
+							// currently we are at center of the province and we want to connect end with a path which starts at port
+							end = put_in_local(get_port_location(state, origin), current_pos, size_x);
+							tangent_end = get_port_direction(state, origin);
+						}
+						// [land->port] -> sea -> ???
+						if(
+							!is_sea(source)
+							&&
+							is_sea(origin)
+						) {
+							// if we are currently at sea, but previous position is a port, use port location as the start of the path
+							start = put_in_local(get_port_location(state, source), current_pos, size_x);
+							tangent_start = get_port_direction(state, source);
+						}					
 					}
-
-					// sea->sea->[port]
-					// [port]->sea->[port]
-					if(
-						!is_sea(target)
-						&&
-						is_sea(origin)
-					) {
-						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
-					}
-					// [port]->sea->sea
-					// [port]->sea->[port]
-					if(
-						!is_sea(source)
-						&&
-						is_sea(origin)
-					) {
-						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
-					}
-
-					// if land->[port]->sea - abort
-					// if sea->[port]->land - abort
-					if(is_sea(source) && !is_sea(origin) && !is_sea(target))continue;
-					if(!is_sea(source) && !is_sea(origin) && is_sea(target))continue;
-
-					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
-					glm::vec2 tangent_end = glm::normalize(next_pos - current_pos);
-
-					glm::vec2 start = (current_pos + prev_pos) / 2.f;
-					glm::vec2 end = (current_pos + next_pos) / 2.f;
-
-					float distance = distance_field[source_index];
-
-					auto volume_start =
-						source_volume;
-					auto volume_end =
-						volume_start
-						* map_data.particle_next_node_probability[origin.index()][target_index];
 
 					left_incoming -= volume_end;
 					left_outgoing -= volume_end;
@@ -805,202 +896,119 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					}
 
 					auto start_width = volume_to_width(trade_graph_max_incoming[origin.index()][source_index]);
-
-					if(start_width < 10.f) {
+					if(start_width < 50.f) {
 						continue;
 					}
-					if(volume_to_width(volume_end) < 10.f) {
+					if(volume_to_width(volume_end) < 50.f) {
 						continue;
 					}
 
 					// finally
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_pos = start / glm::vec2(size_x, size_y);
-
-
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_pos,
-						start_normal,
-						0.f,
-						distance,
-						start_width
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_pos,
-						-start_normal,
-						1.f,
-						distance,
-						start_width
-					});
-
-					add_bezier_to_buffer_variable_width(
-						map_data.trade_flow_vertices,
-						start,
-						end,
-						tangent_start,
-						tangent_end,
-						1.0f,
-						false,
-						size_x,
-						size_y,
-						40,
-						distance,
-						start_width,
-						volume_to_width(volume_end),
-						volume_to_width(volume_end)
-					);
-
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					float distance = distance_field[source_index];
+					build_bezier(
+						start, tangent_start, start_width, end, tangent_end, volume_to_width(volume_end), distance
 					);
 				}
 			}
 
-			auto distance = distance_field[origin.index()];
+			
+
 
 			if(left_incoming > 0.001f) {
+				// here we treat the case when some volume in was not matched with volume out
+				// in this case we assume that the remaining volume is "consumed" in the middle of the province
 				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
-					glm::vec2 current_pos = get_army_location(state, origin);
-
+					auto distance = distance_field[source_index];
 					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+
+					glm::vec2 current_pos = get_army_location(state, origin);
 					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
 
-					//[port]->sea
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					glm::vec2 tangent_end = tangent_start;
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = current_pos;
+
+					//source -> origin
+
+
+					//[land->port] -> sea
 					if(
 						!is_sea(source)
 						&&
 						is_sea(origin)
 					) {
-						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
+						// just start from the (port location, port direction) and stop at (origin midpoint, direction from port to origin)
+						start = put_in_local(get_port_location(state, source), current_pos, size_x);
+						tangent_start = get_port_direction(state, source);
 					}
 
-					//sea->[port]
+					//sea -> [port->land]
 					if(
 						is_sea(source)
 						&&
 						!is_sea(origin)
 					) {
-						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						start = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						tangent_start = -get_port_direction(state, origin);
 					}
 
-					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					auto volume_start =	source_volume * left_incoming / total_incoming;
+					auto volume_end = volume_start;
+					auto width_start = volume_to_width(volume_start);
+					auto width_end = volume_to_width(volume_end);
+					if(width_start < 50.f || width_end < 50.f) {
+						continue;
+					}
 
-					glm::vec2 start = (current_pos + prev_pos) / 2.f;
-					glm::vec2 end = current_pos;
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_start = start / glm::vec2(size_x, size_y);
-					auto norm_end = end / glm::vec2(size_x, size_y);
-
-					auto volume = source_volume * left_incoming / total_incoming;
-
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						start_normal,
-						0.f,
-						distance - glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						-start_normal,
-						1.f,
-						distance - glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						start_normal,
-						0.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						-start_normal,
-						1.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					build_bezier(
+						start, tangent_start, width_start, end, tangent_end, width_end, distance
 					);
 				}
 			}
 
 			if(left_outgoing > 0.001f) {
 				for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
-					glm::vec2 current_pos = get_army_location(state, origin);
-
+					auto distance = distance_field[origin.index()];
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
 
-					//sea->[port]
+					glm::vec2 current_pos = get_army_location(state, origin);
+					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
+					glm::vec2 tangent_start = glm::normalize(next_pos - current_pos);
+					glm::vec2 tangent_end = tangent_start;
+
+					//origin -> target
+
+					//sea -> [port->land]
 					if(
 						!is_sea(target)
 						&&
 						is_sea(origin)
 					) {
 						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
+						tangent_end = -get_port_direction(state, target);
 					}
 
-					//[port]->sea
+					//[land->port] -> sea
 					if(
 						is_sea(target)
 						&&
 						!is_sea(origin)
 					) {
-						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						next_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						tangent_end = get_port_direction(state, origin);
 					}
 
-					glm::vec2 tangent_start = glm::normalize(next_pos - current_pos);
+					auto volume_start =	target_volume * left_outgoing / total_outgoing;
+					auto volume_end = volume_start;
+					auto width_start = volume_to_width(volume_start);
+					auto width_end = volume_to_width(volume_end);
+					if(width_start < 50.f || width_end < 50.f) {
+						continue;
+					}
 
-					glm::vec2 start = current_pos;
-					glm::vec2 end = (current_pos + next_pos) / 2.f;
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_start = start / glm::vec2(size_x, size_y);
-					auto norm_end = end / glm::vec2(size_x, size_y);
-
-					auto volume = target_volume * left_outgoing / total_outgoing;
-
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						start_normal,
-						0.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						-start_normal,
-						1.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						start_normal,
-						0.f,
-						distance + glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						-start_normal,
-						1.f,
-						distance + glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					build_bezier(
+						current_pos, tangent_start, width_start, next_pos, tangent_end, width_end, distance
 					);
 				}
 			}
