@@ -17,6 +17,7 @@
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
+#include "debug_string_convertions.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
