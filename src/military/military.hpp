@@ -85,9 +85,6 @@ struct ship_in_battle {
 
 	}
 
-	std::string to_string() const {
-		return "(ship;taget_slot;flags;ships_targeting_this) => " + std::to_string(ship.value) + ";" + std::to_string(target_slot) + ";" + std::to_string(flags) + ";" + std::to_string(ships_targeting_this);
-	}
 
 
 };
@@ -102,10 +99,6 @@ struct mobilization_order {
 	dcon::province_id where; //2
 	bool operator==(const mobilization_order& other) const = default;
 	bool operator!=(const mobilization_order& other) const = default;
-
-	std::string to_string() const {
-		return "(when;where) => " + std::to_string(when.value) + ";" + std::to_string(where.value);
-	}
 };
 static_assert(sizeof(mobilization_order) ==
 	sizeof(mobilization_order::where)
@@ -125,9 +118,6 @@ struct reserve_regiment {
 	bool operator==(const reserve_regiment& other) const = default;
 	bool operator!=(const reserve_regiment& other) const = default;
 
-	std::string to_string() const {
-		return "(regiment;flags) => " + std::to_string(regiment.value) + ";" + std::to_string(flags);
-	}
 
 };
 static_assert(sizeof(reserve_regiment) ==
@@ -230,10 +220,6 @@ struct available_cb {
 	dcon::state_definition_id target_state;
 	bool operator==(const available_cb& other) const = default;
 	bool operator!=(const available_cb& other) const = default;
-
-	std::string to_string() const {
-		return "(expiration;target;cb_type;target_state) => " + std::to_string(expiration.value) + ";" + std::to_string(target.value) + ";" + std::to_string(cb_type.value) + ";" + std::to_string(target_state.value);
-	}
 
 
 };

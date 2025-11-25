@@ -2800,11 +2800,12 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 	if(!can_state_transfer(state, asker, target, sid))
 		return;
 
-	diplomatic_message::message m{ };
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
 	m.type = diplomatic_message::type::state_transfer;
-	m.data.emplace<dcon::state_definition_id>(sid);
+	m.data.state = sid;
 	diplomatic_message::post(state, m);
 }
 
@@ -2952,10 +2953,11 @@ void execute_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation
 	auto& current_diplo = state.world.nation_get_diplomatic_points(asker);
 	state.world.nation_set_diplomatic_points(asker, current_diplo - state.defines.callally_diplomatic_cost);
 
-	diplomatic_message::message m{ };
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = asker;
-	m.data.emplace<dcon::war_id>(w);
+	m.data.war = w;
 	m.type = diplomatic_message::type::call_ally_request;
 	m.automatic_call = automatic_call;
 
@@ -3567,10 +3569,11 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source) {
 		return;
 	}
 	else {
-		diplomatic_message::message m{ };
+		diplomatic_message::message m;
+		memset(&m, 0, sizeof(diplomatic_message::message));
 		m.to = target;
 		m.from = source;
-		m.data.emplace<dcon::peace_offer_id>(pending_offer);
+		m.data.peace = pending_offer;
 		m.type = diplomatic_message::type::peace_offer;
 
 		diplomatic_message::post(state, m);
@@ -3609,10 +3612,11 @@ void execute_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) 
 
 	auto target = state.primary_crisis_attacker == source ? state.primary_crisis_defender : state.primary_crisis_attacker;
 
-	diplomatic_message::message m{ };
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = target;
 	m.from = source;
-	m.data.emplace<dcon::peace_offer_id>(pending_offer);
+	m.data.peace = pending_offer;
 	m.type = diplomatic_message::type::crisis_peace_offer;
 
 	diplomatic_message::post(state, m);
@@ -5038,18 +5042,16 @@ void execute_invite_to_crisis(sys::state& state, dcon::nation_id source, crisis_
 	auto& current_diplo = state.world.nation_get_diplomatic_points(source);
 	state.world.nation_set_diplomatic_points(source, current_diplo - 1.0f);
 
-	diplomatic_message::message m{ };
+	diplomatic_message::message m;
+	memset(&m, 0, sizeof(diplomatic_message::message));
 	m.to = data.invited;
 	m.from = source;
-	sys::full_wg wargoal{ };
-	wargoal.added_by = m.to;
-	wargoal.target_nation = data.target;
-	wargoal.secondary_nation = data.cb_secondary_nation;
-	wargoal.state = data.cb_state;
-	wargoal.wg_tag = data.cb_tag;
-	wargoal.cb = data.cb_type;
-
-	m.data.emplace<sys::full_wg>(wargoal);
+	m.data.crisis_offer.added_by = m.to;
+	m.data.crisis_offer.target_nation = data.target;
+	m.data.crisis_offer.secondary_nation = data.cb_secondary_nation;
+	m.data.crisis_offer.state = data.cb_state;
+	m.data.crisis_offer.wg_tag = data.cb_tag;
+	m.data.crisis_offer.cb = data.cb_type;
 
 	m.type = diplomatic_message::type::take_crisis_side_offer;
 

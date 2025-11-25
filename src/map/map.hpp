@@ -87,13 +87,14 @@ struct textured_line_vertex_b_enriched_with_province_index {
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec3 texture_coord, float thickness)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }  { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float thickness, int32_t buffer_index)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }, buffer_index_(buffer_index) { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
-	glm::vec3 texture_coord_;
+	glm::vec2 texture_coord_;
 	float thickness_ = 0.f;
+	int32_t buffer_index_ = 0;
 };
 
 struct text_line_generator_data {
@@ -191,7 +192,6 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
-	std::vector<GLuint> text_line_texture_per_quad;
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -337,7 +337,10 @@ public:
 	static constexpr uint32_t uniform_terrainsheet_texture_sampler_array = 43;
 	static constexpr uint32_t uniform_terrain_is_array = 44;
 	static constexpr uint32_t uniform_map_mode_is_data = 45;
-	static constexpr uint32_t uniform_count = 46;
+	static constexpr uint32_t uniform_color = 46;
+	static constexpr uint32_t uniform_glyphs = 47;
+	static constexpr uint32_t uniform_curves = 48;
+	static constexpr uint32_t uniform_count = 49;
 	GLuint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

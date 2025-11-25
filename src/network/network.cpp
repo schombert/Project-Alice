@@ -44,7 +44,7 @@ using fmt::format;
 #endif
 
 #include <webapi/json.hpp>
-#include <dcon_oos_reporter_generated.hpp>
+#include "dcon_oos_reporter_generated.hpp"
 using json = nlohmann::json;
 
 namespace network {

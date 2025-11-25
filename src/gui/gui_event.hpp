@@ -70,7 +70,7 @@ public:
 		auto font_index = text::font_index_from_font_id(state, fh);
 		auto font_size = text::size_from_font_id(fh);
 		auto& font = state.font_collection.get_font(state, font_index);
-		auto text_height = int32_t(std::ceil(font.line_height(font_size)));
+		auto text_height = int32_t(std::ceil(font.retrieve_instance(state, font_size).line_height(state)));
 		base_data.size.y = int16_t((text_height - 15) * 2);
 	}
 	void on_update(sys::state& state) noexcept override;

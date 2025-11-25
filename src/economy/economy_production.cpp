@@ -150,9 +150,7 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 		+ state.world.province_get_modifier_values(p, prov_mod_offset)
 		+ state.world.nation_get_modifier_values(n, nation_mod_offset);
 
-	VALUE result =
-		free_efficiency
-		+ main_rgo
+	VALUE result = main_rgo
 		*
 			(
 				(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
@@ -166,9 +164,13 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 			+ state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::local_rgo_output)
 			+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::rgo_output)
 			+ state.world.nation_get_rgo_goods_output(n, c)
-		)) * 20.f;
+		));
 
-	return result;
+	if(state.world.commodity_get_money_rgo(c)) {
+		return free_efficiency + result * 0.05f;
+	}
+
+	return free_efficiency + result;
 }
 
 rgo_workers_breakdown rgo_relevant_population(sys::state& state, dcon::province_id p, dcon::nation_id n) {
@@ -1452,6 +1454,12 @@ void update_single_factory_consumption(
 	fac.set_input_cost(data.direct_inputs_cost + data.efficiency_inputs_cost);
 }
 
+void set_initial_factory_values(sys::state& state, dcon::factory_id f) {
+	auto ftid = state.world.factory_get_building_type(f);
+	auto output = state.world.factory_type_get_output_amount(ftid);
+	auto base_workforce = state.world.factory_type_get_base_workforce(ftid);
+	state.world.factory_set_output_per_worker(f, output / base_workforce);
+}
 
 void update_artisan_production(sys::state& state) {
 
@@ -1576,9 +1584,8 @@ void update_rgo_production(sys::state& state) {
 			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f);
 			auto profit_derivative =
 				state.world.commodity_get_rgo_amount(c)
-				/ state.defines.alice_rgo_per_size_employment
 				* state.world.market_get_price(m, c);
-			auto efficiency_growth = 100.f * (profit_derivative - cost_derivative);
+			auto efficiency_growth = 0.1f * (profit_derivative - cost_derivative * state.defines.alice_rgo_per_size_employment);
 			efficiency_growth = ve::select(
 				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
 				efficiency_growth * e_inputs_data.min_available,
