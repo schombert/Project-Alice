@@ -2869,12 +2869,12 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
+		};
 		auto dpoly_fn = [&](float x) {
 			// y = a + 1bx^1 + 1cx^2 + 1dx^3
 			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-			};
+		};
 
 
 		//cutting box if graph goes outside
@@ -2940,47 +2940,33 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
-		// fixed step
-
-		/*
-		float size_step = 30.f;
-
-		if(size > size_step * 6.f) {
-			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
-		}
-
-		if(size > ratio.x / 2.f) {
-			size = ratio.x / 2.f;
-		}
-		if(size > ratio.y / 2.f) {
-			size = ratio.y / 2.f;
-		}
-
-		size = std::round(size / size_step) * size_step;
-
-		if(size < size_step) {
-			continue;
-		}
-		*/
-
 		auto real_text_size = size / (size_x * 2.0f);
 
-		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
-		if(state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale())) {
-			letter_spacing_map = 0.f;
+		// fixed step
+		
+
+		float letter_spacing_map = 0.f;
+		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
+			letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
 		}
 
-		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
+		// curve = 2 * margin + text_length * size + (glyphs - 1) * spacing
+
+		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
 		float x = left;
 		for(float accumulated_length = 0.f; ; x += x_step) {
 			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
 				x += x_step * (margin - accumulated_length) / added_distance;
+				assert(x - left < margin / curve_length + 0.02f);
 				break;
 			}
 			accumulated_length += added_distance;
 		}
 
+		auto left_margin_ratio = x - left;
+
+		assert(margin / curve_length > left_margin_ratio - 0.02f);
 
 		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
 		for(unsigned int i = 0; i < glyph_count; i++) {
@@ -3032,16 +3018,22 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
 
 			}
+			auto current_spacing = letter_spacing_map;
+			if(i == glyph_count - 1) {
+				current_spacing = 0.f;
+			}
 			float glyph_advance = x_advance * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
-				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
-					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
+				if(glyph_length + added_distance >= glyph_advance + current_spacing) {
+					x += x_step * (glyph_advance + current_spacing - glyph_length) / added_distance;
 					break;
 				}
 				glyph_length += added_distance;
 			}
 		}
+		if (is_linear)
+			assert(abs(right - (x + left_margin_ratio)) < 0.03f);
 	}
 	if(text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
