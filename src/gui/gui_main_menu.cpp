@@ -158,7 +158,6 @@ void language_left::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 	//
 
@@ -209,7 +208,6 @@ void language_right::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 
 	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
@@ -683,7 +681,6 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
-	state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	//
 	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)

@@ -19,8 +19,7 @@ inline constexpr int dr_size = 64 * magnification_factor;
 
 enum class font_selection {
 	body_font,
-	header_font,
-	map_font
+	header_font
 };
 
 uint16_t name_into_font_id(sys::state& state, std::string_view text);
@@ -29,10 +28,13 @@ bool is_black_from_font_id(uint16_t id);
 font_selection font_index_from_font_id(sys::state& state, uint16_t id);
 
 struct glyph_sub_offset {
-	float x = 0.0f;
-	float y = 0.0f;
-	float x_advance = 0.0f;
-	uint16_t texture_slot = 0;
+	uint16_t x = 0;
+	uint16_t y = 0;
+	uint16_t width = 0;
+	uint16_t height = 0;
+	uint16_t tx_sheet = 0;
+	int16_t bitmap_left = 0;
+	int16_t bitmap_top = 0;
 };
 
 class font_manager;
@@ -72,18 +74,10 @@ struct ex_grapheme_cluster_info {
 
 	constexpr static uint8_t f_is_word_start = 0x01;
 	constexpr static uint8_t f_is_word_end = 0x02;
-	constexpr static uint8_t f_is_line_start = 0x04;
-	constexpr static uint8_t f_is_line_end = 0x08;
 	constexpr static uint8_t f_has_rtl_directionality = 0x10;
 
 	inline bool has_rtl_directionality() {
 		return (flags & f_has_rtl_directionality) != 0;
-	}
-	inline bool is_line_end() {
-		return (flags & f_is_line_end) != 0;
-	}
-	inline bool is_line_start() {
-		return (flags & f_is_line_start) != 0;
 	}
 	inline bool is_word_start() {
 		return (flags & f_is_word_start) != 0;
@@ -114,7 +108,6 @@ struct stored_glyph {
 
 struct layout_details {
 	std::vector<ex_grapheme_cluster_info> grapheme_placement;
-	float scaling_factor = 0.0f;
 	uint8_t total_lines = 0;
 };
 
@@ -126,60 +119,107 @@ struct stored_glyphs {
 	stored_glyphs() = default;
 	stored_glyphs(stored_glyphs const& other) noexcept = default;
 	stored_glyphs(stored_glyphs&& other) noexcept = default;
-	stored_glyphs(sys::state& state, font_selection type, std::string const& s);
-	stored_glyphs(std::string const& s, font& f);
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
-	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr);
-	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
+	stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr);
+	stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, no_bidi);
 
-	void set_text(sys::state& state, font_selection type, std::string const& s);
+	//void set_text(sys::state& state, font_selection type, std::string const& s);
 	void clear() {
 		glyph_info.clear();
 	}
 };
 
-class font {
-private:
-	font(font const&) = delete;
-	font& operator=(font const&) = delete;
+class map_font {
 public:
-	font() = default;
+	struct map_font_glyph {
+		int32_t bufferIndex;
+		int32_t curveCount;
+		int32_t ft_x_bearing;
+		int32_t ft_y_bearing;
+		int32_t ft_width;
+		int32_t ft_height;
+	};
 
-	std::string file_name;
-	FT_Face font_face = nullptr;
+	struct map_font_buffer_glyph {
+		int32_t start;
+		int32_t count; // range of bezier curves belonging to this glyph
+	};
+
+	struct map_font_buffer_curve {
+		float x0;
+		float y0;
+		float x1;
+		float y1;
+		float x2;
+		float y2;
+	};
+
+	std::vector<map_font_buffer_glyph> buffer_glyphs;
+	std::vector<map_font_buffer_curve> buffer_curves;
+	ankerl::unordered_dense::map<uint32_t, map_font_glyph> glyphs;
+	std::unique_ptr<FT_Byte[]> file_data;
+
+	FT_Face face = nullptr;
 	hb_font_t* hb_font_face = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
 
+	GLuint glyph_texture = 0;
+	GLuint curve_texture = 0;
+	GLuint glyph_buffer = 0;
+	GLuint curve_buffer = 0;
+
+	// The glyph quads are expanded by this amount to enable proper
+	// anti-aliasing. Value is relative to emSize.
+	float dilation = 0;
+
+	map_font(map_font const&) = delete;
+	map_font& operator=(map_font const&) = delete;
+	map_font(map_font&& o) noexcept = delete;
+	map_font& operator=(map_font&& o) noexcept = delete;
+
+	map_font() = default;
+	~map_font();
+	void make_glyph(uint32_t glyph_id);
+	void upload_buffers();
+	void convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex);
+	void load_font(FT_Library& ft_library, char const* file_data, uint32_t file_size);
+	void ready_textures();
+	void remake_map_cache(sys::state& state, stored_glyphs& txt, std::string const& source);
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
+};
+
+class font_at_size {
+private:
 	float internal_line_height = 0.0f;
 	float internal_ascender = 0.0f;
 	float internal_descender = 0.0f;
 	float internal_top_adj = 0.0f;
-	ankerl::unordered_dense::map<char32_t, glyph_sub_offset> glyph_positions;
+
+	uint32_t internal_tx_line_height = 0;
+	uint32_t internal_tx_line_xpos = 1024;
+	uint32_t internal_tx_line_ypos = 1024;
+	int32_t px_size = 0;
+public:
+	FT_Face font_face = nullptr;
+	hb_font_t* hb_font_face = nullptr;
+	hb_buffer_t* hb_buf = nullptr;
+
+	ankerl::unordered_dense::map<uint16_t, glyph_sub_offset> glyph_positions;
 	std::vector<uint32_t> textures;
-	std::array<FT_ULong, 256> win1252_codepoints;
 
-	uint16_t first_free_slot = 0;
-	std::unique_ptr<FT_Byte[]> file_data;
-	bool only_raw_codepoints = false;
-
-	~font();
-	bool can_display(char32_t ch_in) const;
-	void make_glyph(char32_t ch_in);
-	float base_glyph_width(char32_t ch_in);
-	float line_height(int32_t size) const;
-	float ascender(int32_t size) const;
-	float descender(int32_t size) const;
-	float top_adjustment(int32_t size) const;
-	float font_scaling_factor(int32_t size) const;
-	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
-	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
-	void remake_cache(stored_glyphs& txt, std::string const& source);
+	void make_glyph(uint16_t glyph_in);
+	void reset();
+	void create(FT_Library lib, FT_Byte* file_data, size_t file_size, int32_t real_size);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr);
 	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
+	float line_height(sys::state& state) const;
+	float ascender(sys::state& state) const;
+	float descender(sys::state& state) const;
+	float top_adjustment(sys::state& state) const;
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
 
-	friend class font_manager;
-
-	font(font&& o) noexcept : file_name(std::move(o.file_name)), textures(std::move(o.textures)), glyph_positions(std::move(o.glyph_positions)), file_data(std::move(o.file_data)), first_free_slot(o.first_free_slot), only_raw_codepoints(o.only_raw_codepoints) {
+	font_at_size() = default;
+	font_at_size(font_at_size&& o) noexcept : glyph_positions(std::move(o.glyph_positions)), textures(o.textures) {
 		font_face = o.font_face;
 		o.font_face = nullptr;
 		hb_font_face = o.hb_font_face;
@@ -190,10 +230,11 @@ public:
 		internal_ascender = o.internal_ascender;
 		internal_descender = o.internal_descender;
 		internal_top_adj = o.internal_top_adj;
+		internal_tx_line_height = o.internal_tx_line_height;
+		internal_tx_line_xpos = o.internal_tx_line_xpos;
+		internal_tx_line_ypos = o.internal_tx_line_ypos;
 	}
-	font& operator=(font&& o) noexcept {
-		file_name = std::move(o.file_name);
-		file_data = std::move(o.file_data);
+	font_at_size& operator=(font_at_size&& o) noexcept {
 		glyph_positions = std::move(o.glyph_positions);
 		textures = std::move(o.textures);
 		font_face = o.font_face;
@@ -206,8 +247,43 @@ public:
 		internal_ascender = o.internal_ascender;
 		internal_descender = o.internal_descender;
 		internal_top_adj = o.internal_top_adj;
-		first_free_slot = o.first_free_slot;
-		only_raw_codepoints = o.only_raw_codepoints;
+		internal_tx_line_height = o.internal_tx_line_height;
+		internal_tx_line_xpos = o.internal_tx_line_xpos;
+		internal_tx_line_ypos = o.internal_tx_line_ypos;
+		return *this;
+	}
+};
+
+class font {
+private:
+	font(font const&) = delete;
+	font& operator=(font const&) = delete;
+public:
+	font() = default;
+
+	ankerl::unordered_dense::map<int32_t, font_at_size> sized_fonts;
+	std::string file_name;
+
+	std::unique_ptr<FT_Byte[]> file_data;
+	size_t file_size = 0;
+
+	~font();
+
+	bool can_display(char32_t ch_in) const;
+	font_at_size& retrieve_instance(sys::state& state, int32_t base_size);
+	void reset_instances();
+
+	friend class font_manager;
+
+	font(font&& o) noexcept : file_name(std::move(o.file_name)),  file_data(std::move(o.file_data)) {
+		file_size = o.file_size;
+	}
+	font& operator=(font&& o) noexcept {
+		file_name = std::move(o.file_name);
+		file_data = std::move(o.file_data);
+		file_size = o.file_size;
+		o.file_size = 0;
+		return *this;
 	}
 };
 
@@ -223,6 +299,8 @@ private:
 	std::vector<font> font_array;
 	dcon::locale_id current_locale;
 public:
+	map_font mfont;
+
 	std::vector<uint8_t> compiled_ubrk_rules;
 	std::vector<uint8_t> compiled_char_ubrk_rules;
 	std::vector<uint8_t> compiled_word_ubrk_rules;
@@ -232,15 +310,13 @@ public:
 		return current_locale;
 	}
 	void change_locale(sys::state& state, dcon::locale_id l);
+	void reset_fonts();
 	font& get_font(sys::state& state, font_selection s = font_selection::body_font);
 	void load_font(font& fnt, char const* file_data, uint32_t file_size);
 	float line_height(sys::state& state, uint16_t font_id);
-	float scaling_factor(sys::state& state, uint16_t font_id);
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, uint16_t font_id);
-	void set_classic_fonts(bool v);
 };
 
-std::string_view classic_unligate_utf8(text::font& font, char32_t c);
 uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size);
 
 } // namespace text

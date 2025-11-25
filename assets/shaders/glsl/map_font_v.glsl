@@ -1,15 +1,13 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
 layout (location = 1) in vec2 normal_direction;
-layout (location = 2) in float texture_coord;
-layout (location = 3) in float distance;
-layout (location = 4) in float width;
+layout (location = 2) in vec2 direction;
+layout (location = 3) in vec2 vertexUV;
+layout (location = 4) in float thickness;
+layout (location = 5) in int vertexIndex;
 
-out float tex_coord;
-out float o_dist;
-out float width_factor;
-out vec2 map_coord;
-out vec3 space_coords;
+out vec2 uv;
+flat out int bufferIndex;
 
 uniform vec2 offset;
 uniform float aspect_ratio;
@@ -18,6 +16,7 @@ uniform vec2 map_size;
 uniform mat3 rotation;
 uniform float time;
 uniform uint subroutines_index;
+
 
 vec4 globe_coords(vec2 world_pos) {
 
@@ -96,29 +95,22 @@ default: break;
 }
 
 void main() {
-	float adj_width = (width * (1.f / zoom) + 300.f * (1.f - 1.f / zoom));
-	vec2 normal_vector = normalize(normal_direction) * adj_width * 0.000001f;
-	vec2 world_pos = vertex_position;
+	vec2 unadj_direction = vec2(direction.x / 2.0f, direction.y);
+	vec2 unadj_normal = vec2(-direction.y / 2.0f, direction.x);
 
-	world_pos.x *= map_size.x / map_size.y;
-	world_pos += normal_vector;
-	world_pos.x /= map_size.x / map_size.y;
+	vec4 center_point = calc_gl_position(vertex_position);
+	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_direction * 0.0001) - center_point);
 
-	map_coord = world_pos;    
+	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_normal * 0.0001) - center_point);
+
+	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
     
-    vec4 temp = calc_gl_position(world_pos);
-
-	float angle_x = 2 * vertex_position.x * PI;
-	float x = cos(angle_x);
-	float y = sin(angle_x);
-	float angle_y = vertex_position.y * PI;
-	x *= sin(angle_y);
-	y *= sin(angle_y);
-	float z = cos(angle_y);
-	space_coords = vec3(x, y, z);
-    
-	gl_Position = temp;
-	tex_coord = texture_coord * adj_width;
-	width_factor = adj_width;
-	o_dist = -time + distance * 50.f;
+    float opacity = 1.f;    
+    opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
+        
+	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
+   
+	gl_Position = temp_result;
+	uv = vertexUV;
+	bufferIndex = vertexIndex;
 }

@@ -244,14 +244,6 @@ struct provincial_modifier_definition {
 	bool operator!=(const provincial_modifier_definition& other) const {
 		return !(other == *this);
 	}
-	std::string to_string() const {
-		std::string result{ };
-		result += "(offset;value) => ";
-		for(uint8_t i = 0; i < modifier_definition_size; i++) {
-			result += std::to_string(offsets[i].value) + ";" + std::to_string(values[i]) + " ";
-		}
-		return result;
-	}
 
 
 
@@ -274,14 +266,6 @@ struct national_modifier_definition {
 	bool operator!=(const national_modifier_definition& other) const {
 		return !(other == *this);
 	}
-	std::string to_string() const {
-		std::string result{ };
-		result += "(offset;value) => ";
-		for(uint8_t i = 0; i < modifier_definition_size; i++) {
-			result += std::to_string(offsets[i].value) + ";" + std::to_string(values[i]) + " ";
-		}
-		return result;
-	}
 };
 static_assert(sizeof(national_modifier_definition) ==
 	sizeof(national_modifier_definition::values)
@@ -297,9 +281,6 @@ struct commodity_modifier {
 	}
 	bool operator!=(const commodity_modifier& other) const {
 		return !(other == *this);
-	}
-	std::string to_string() const {
-		return "(amount:type) => " + std::to_string(amount) + ";" + std::to_string(type.value);
 	}
 
 };
@@ -388,9 +369,6 @@ struct rebel_org_modifier {
 	bool operator!=(const rebel_org_modifier& other) const {
 		return !(other == *this);
 	}
-	std::string to_string() const {
-		return "(amount;type) => " + std::to_string(amount) + ";" + std::to_string(type.value);
-	}
 };
 static_assert(sizeof(rebel_org_modifier) ==
 	sizeof(rebel_org_modifier::amount)
@@ -402,10 +380,6 @@ struct dated_modifier {
 	dcon::modifier_id mod_id;
 	bool operator==(const dated_modifier& other) const = default;
 	bool operator!=(const dated_modifier& other) const = default;
-
-	std::string to_string() const {
-		return "(expiration;mod_id) => " + std::to_string(expiration.value) + ";" + std::to_string(mod_id.value);
-	}
 };
 static_assert(sizeof(dated_modifier) ==
 	sizeof(dated_modifier::expiration)

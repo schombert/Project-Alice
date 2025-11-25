@@ -120,10 +120,6 @@ struct event_option {
 	bool operator==(const event_option& other) const = default;
 	bool operator!=(const event_option& other) const = default;
 
-	std::string to_string() const {
-		return "(name;ai_chance;effect) => " + std::to_string(name.value) + ";" + std::to_string(ai_chance.value) + ";" + std::to_string(effect.value);
-	}
-
 
 };
 static_assert(sizeof(event_option) ==
@@ -143,9 +139,6 @@ struct gamerule_option {
 	bool operator==(const gamerule_option& other) const = default;
 	bool operator!=(const gamerule_option& other) const = default;
 
-	std::string to_string() const {
-		return "(name;on_select;on_deselect) => " + std::to_string(name.value) + ";" + std::to_string(on_select.value) + ";" + std::to_string(on_deselect.value);
-	}
 
 };
 
@@ -335,14 +328,6 @@ struct commodity_set {
 	bool operator!=(const commodity_set& other) const {
 		return !(other == *this);
 	}
-	std::string to_string() const {
-		std::string result{ };
-		result += "(commodity_id;amount) => ";
-		for(uint8_t i = 0; i < set_size; i++) {
-			result += std::to_string(commodity_type[i].value) + ";" + std::to_string(commodity_amounts[i]) + " ";
-		}
-		return result;
-	}
 
 };
 static_assert(sizeof(commodity_set) ==
@@ -361,14 +346,6 @@ struct small_commodity_set {
 	}
 	bool operator!=(const small_commodity_set& other) const {
 		return !(other == *this);
-	}
-	std::string to_string() const {
-		std::string result{ };
-		result += "(commodity_id;amount) => ";
-		for(uint8_t i = 0; i < set_size; i++) {
-			result += std::to_string(commodity_type[i].value) + ";" + std::to_string(commodity_amounts[i]) + " ";
-		}
-		return result;
 	}
 
 

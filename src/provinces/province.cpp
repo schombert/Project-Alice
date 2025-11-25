@@ -2688,9 +2688,6 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 	return path_result;
 }
 
-
-
-
 // for sea trade routes
 std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end) {
 

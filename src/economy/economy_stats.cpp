@@ -1331,6 +1331,21 @@ float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon:
 	return target_demand == 0.f ? 0.f : std::min(1.f, historical_supply / target_demand);
 }
 
+float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
+	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
+	auto target_supply = historical_supply + additional_supply;
+	return historical_demand == 0.f ? 0.f : std::min(1.f, target_supply / historical_demand);
+}
+
+float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
+	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
+	auto target_supply = historical_supply + additional_supply;
+	return target_supply == 0.f ? 0.f : std::min(1.f, historical_demand / target_supply);
+}
+
+
 float estimate_next_budget(sys::state& state, dcon::nation_id n) {
 	// treasury is remainder after spending + income
 	// so there is no need to account for income as it's already there

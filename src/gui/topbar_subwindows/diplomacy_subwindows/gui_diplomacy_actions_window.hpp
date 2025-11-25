@@ -442,7 +442,7 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 					m.type = diplomatic_message::type::call_ally_request;
 					m.from = state.local_player_nation;
 					m.to = target;
-					m.data.emplace<dcon::war_id>(war_par.get_war());
+					m.data.war = war_par.get_war();
 					if(diplomatic_message::ai_will_accept(state, m)) {
 						return true;
 						break;
@@ -491,11 +491,11 @@ class diplomacy_action_call_ally_button : public diplomacy_action_btn_logic {
 				war = war_par.get_war();
 				possible_war = true;
 				if(!state.world.nation_get_is_player_controlled(target)) {
-					diplomatic_message::message m{ };
+					diplomatic_message::message m;
 					m.type = diplomatic_message::type::call_ally_request;
 					m.from = state.local_player_nation;
 					m.to = target;
-					m.data.emplace<dcon::war_id>(war_par.get_war());
+					m.data.war = war_par.get_war();
 					m.automatic_call = false;
 					if(diplomatic_message::ai_will_accept(state, m)) {
 						that_ai_will_accept = true;

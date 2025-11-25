@@ -172,7 +172,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 		break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		severity_str = "Notification";
-		break;
+		return; // don't print notifications
 	default:
 		break;
 	}
