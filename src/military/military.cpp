@@ -9752,7 +9752,9 @@ max possible regiments (feels like a bug to me) or 0.5 if mobilized)
 			auto reinforcement = regiment_calculate_reinforcement(state, reg.get_regiment(), combined);
 			assert(std::isfinite(reinforcement));
 			reg.get_regiment().set_strength(reg.get_regiment().get_strength() + reinforcement);
-			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), (reinforcement * 5.f * state.defines.exp_gain_div) * -1.0f);
+			auto old_experience = reg.get_regiment().get_experience();
+			auto lost_xp = old_experience - (old_experience / (reinforcement / 3 + 1));
+			adjust_regiment_experience(state, in_nation.id, reg.get_regiment(), -lost_xp);
 		}
 	}
 	// reset all reinforcement buffers
@@ -9831,7 +9833,9 @@ maximum-strength x (technology-repair-rate + provincial-modifier-to-repair-rate 
 				auto ship = reg.get_ship();
 				auto reinforcement = ship_calculate_reinforcement(state, ship, combined);
 				ship.set_strength(ship.get_strength() + reinforcement);
-				adjust_ship_experience(state, in_nation.id, reg.get_ship(), (reinforcement * 5.f * state.defines.exp_gain_div) * -1.0f);
+				auto old_experience = ship.get_experience();
+				auto lost_xp = old_experience - (old_experience / (reinforcement / 3 + 1));
+				adjust_ship_experience(state, in_nation.id, reg.get_ship(),  -lost_xp);
 			}
 		}
 	}
