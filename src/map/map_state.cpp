@@ -1518,6 +1518,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		};
 
 		// prepare points for a local grid
+		float aversion_radius = 1.5f;
 		for(int roughness = 1; roughness < 3; roughness++) {		
 			for(int j = 0; j < height_steps / roughness; j++) {
 				float y = rough_box_bottom + j * local_step.y * roughness;
@@ -1528,10 +1529,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 					float weight = 0.f;
 
 					weight += check_point(x, y);
-					weight += check_point(x - local_step.x * roughness, y);
-					weight += check_point(x + local_step.x * roughness, y);
-					weight += check_point(x, y - local_step.y * roughness);
-					weight += check_point(x, y + local_step.y * roughness);
+					weight += check_point(x - local_step.x * roughness * aversion_radius, y);
+					weight += check_point(x + local_step.x * roughness * aversion_radius, y);
+					weight += check_point(x, y - local_step.y * roughness * aversion_radius);
+					weight += check_point(x, y + local_step.y * roughness * aversion_radius);
 
 					if(weight >= 2.f) {
 						points.push_back(glm::vec3{ candidate, weight });
