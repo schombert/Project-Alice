@@ -3025,7 +3025,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				text_line_vertices.emplace_back(p0, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
 
 			}
-			float glyph_advance = x_advance * size / 64.f;
+			float glyph_advance = x_advance * size / 32.0f;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {

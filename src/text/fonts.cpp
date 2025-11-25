@@ -1181,7 +1181,7 @@ float map_font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
+		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6)));
 		x_total += x_advance;
 	}
 	return x_total;
