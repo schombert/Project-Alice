@@ -76,7 +76,7 @@ struct ship_in_battle {
 	bool operator == (const ship_in_battle&) const = default;
 	bool operator != (const ship_in_battle&) const = default;
 
-	uint16_t get_distance() {
+	uint16_t get_distance() const {
 		return flags & distance_mask;
 	}
 	void set_distance(uint16_t distance) {
@@ -84,6 +84,9 @@ struct ship_in_battle {
 		flags |= distance_mask & (distance);
 
 	}
+
+
+
 };
 static_assert(sizeof(ship_in_battle) ==
 	sizeof(ship_in_battle::ship)
@@ -94,6 +97,8 @@ static_assert(sizeof(ship_in_battle) ==
 struct mobilization_order {
 	sys::date when; //2
 	dcon::province_id where; //2
+	bool operator==(const mobilization_order& other) const = default;
+	bool operator!=(const mobilization_order& other) const = default;
 };
 static_assert(sizeof(mobilization_order) ==
 	sizeof(mobilization_order::where)
@@ -109,6 +114,11 @@ struct reserve_regiment {
 
 	dcon::regiment_id regiment;
 	uint16_t flags = 0;
+
+	bool operator==(const reserve_regiment& other) const = default;
+	bool operator!=(const reserve_regiment& other) const = default;
+
+
 };
 static_assert(sizeof(reserve_regiment) ==
 	sizeof(reserve_regiment::regiment)
@@ -208,6 +218,10 @@ struct available_cb {
 	dcon::nation_id target; //2
 	dcon::cb_type_id cb_type; //2
 	dcon::state_definition_id target_state;
+	bool operator==(const available_cb& other) const = default;
+	bool operator!=(const available_cb& other) const = default;
+
+
 };
 static_assert(sizeof(available_cb) ==
 	+sizeof(available_cb::target)

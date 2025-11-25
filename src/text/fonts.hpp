@@ -19,8 +19,7 @@ inline constexpr int dr_size = 64 * magnification_factor;
 
 enum class font_selection {
 	body_font,
-	header_font,
-	map_font
+	header_font
 };
 
 uint16_t name_into_font_id(sys::state& state, std::string_view text);
@@ -72,18 +71,10 @@ struct ex_grapheme_cluster_info {
 
 	constexpr static uint8_t f_is_word_start = 0x01;
 	constexpr static uint8_t f_is_word_end = 0x02;
-	constexpr static uint8_t f_is_line_start = 0x04;
-	constexpr static uint8_t f_is_line_end = 0x08;
 	constexpr static uint8_t f_has_rtl_directionality = 0x10;
 
 	inline bool has_rtl_directionality() {
 		return (flags & f_has_rtl_directionality) != 0;
-	}
-	inline bool is_line_end() {
-		return (flags & f_is_line_end) != 0;
-	}
-	inline bool is_line_start() {
-		return (flags & f_is_line_start) != 0;
 	}
 	inline bool is_word_start() {
 		return (flags & f_is_word_start) != 0;
@@ -126,13 +117,11 @@ struct stored_glyphs {
 	stored_glyphs() = default;
 	stored_glyphs(stored_glyphs const& other) noexcept = default;
 	stored_glyphs(stored_glyphs&& other) noexcept = default;
-	stored_glyphs(sys::state& state, font_selection type, std::string const& s);
-	stored_glyphs(std::string const& s, font& f);
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr);
 	stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi);
 
-	void set_text(sys::state& state, font_selection type, std::string const& s);
+	//void set_text(sys::state& state, font_selection type, std::string const& s);
 	void clear() {
 		glyph_info.clear();
 	}
@@ -169,6 +158,8 @@ public:
 	std::unique_ptr<FT_Byte[]> file_data;
 
 	FT_Face face = nullptr;
+	hb_font_t* hb_font_face = nullptr;
+	hb_buffer_t* hb_buf = nullptr;
 
 	GLuint glyph_texture = 0;
 	GLuint curve_texture = 0;
@@ -191,6 +182,8 @@ public:
 	void convert_contour(const FT_Outline* outline, int32_t firstIndex, int32_t lastIndex);
 	void load_font(FT_Library& ft_library, char const* file_data, uint32_t file_size);
 	void ready_textures();
+	void remake_map_cache(sys::state& state, stored_glyphs& txt, std::string const& source);
+	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
 };
 
 class font {
@@ -227,8 +220,6 @@ public:
 	float top_adjustment(int32_t size) const;
 	float font_scaling_factor(int32_t size) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size);
-	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::string const& source);
-	void remake_cache(stored_glyphs& txt, std::string const& source);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr);
 	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 
