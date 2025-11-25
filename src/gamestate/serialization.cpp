@@ -896,12 +896,8 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	scenario_header header;
 	header.count = count;
 	header.timestamp = uint64_t(std::time(nullptr));
-	memcpy(header.mod_save_dir, state.mod_save_dir.c_str(), std::min(state.mod_save_dir.length(), size_t(63)) * sizeof(native_char));
-	if(name.length() < 63) {
-		header.mod_save_dir[state.mod_save_dir.length()] = 0;
-	} else {
-		header.mod_save_dir[63] = 0;
-	}
+	std::string save_dir_utf8 = simple_fs::native_to_utf8(state.mod_save_dir);
+	memcpy(header.mod_save_dir, save_dir_utf8.data(), std::min(save_dir_utf8.length(), sizeof(header.mod_save_dir)));
 
 	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
@@ -968,7 +964,7 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
-		state.mod_save_dir = header.mod_save_dir;
+		state.mod_save_dir = simple_fs::utf8_to_native( std::string( header.mod_save_dir));
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;
 
@@ -1005,7 +1001,7 @@ bool try_read_scenario_and_save_file(sys::state& state, native_string_view name)
 		state.scenario_counter = header.count;
 		state.scenario_time_stamp = header.timestamp;
 		state.scenario_checksum = header.checksum;
-		state.mod_save_dir = header.mod_save_dir;
+		state.mod_save_dir = simple_fs::utf8_to_native(std::string(header.mod_save_dir));
 
 		state.loaded_save_file = NATIVE("");
 		state.loaded_scenario_file = name;

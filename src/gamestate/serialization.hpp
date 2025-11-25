@@ -12,9 +12,9 @@ inline size_t serialize_size(std::vector<T> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-inline size_t serialize_size(std::wstring const& s) {
-	return sizeof(uint32_t) + sizeof(wchar_t) * s.size();
-}
+//inline size_t serialize_size(std::wstring const& s) {
+//	return sizeof(uint32_t) + sizeof(wchar_t) * s.size();
+//}
 
 inline size_t serialize_size(std::string const& s) {
 	return sizeof(uint32_t) + sizeof(char) * s.size();
@@ -37,20 +37,20 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
 }
 
-inline uint8_t* serialize(uint8_t* ptr_in, std::wstring const& s) {
-	uint32_t length = uint32_t(s.size());
-	memcpy(ptr_in, &length, sizeof(uint32_t));
-	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(wchar_t) * s.size());
-	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * s.size();
-}
+//inline uint8_t* serialize(uint8_t* ptr_in, std::wstring const& s) {
+//	uint32_t length = uint32_t(s.size());
+//	memcpy(ptr_in, &length, sizeof(uint32_t));
+//	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(wchar_t) * s.size());
+//	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * s.size();
+//}
 
-inline uint8_t const* deserialize(uint8_t const* ptr_in, std::wstring& s) {
-	uint32_t length = 0;
-	memcpy(&length, ptr_in, sizeof(uint32_t));
-	s.resize(length);
-	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(wchar_t) * length);
-	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * length;
-}
+//inline uint8_t const* deserialize(uint8_t const* ptr_in, std::wstring& s) {
+//	uint32_t length = 0;
+//	memcpy(&length, ptr_in, sizeof(uint32_t));
+//	s.resize(length);
+//	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(wchar_t) * length);
+//	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * length;
+//}
 
 inline uint8_t* serialize(uint8_t* ptr_in, std::string const& s) {
 	uint32_t length = uint32_t(s.size());
@@ -198,7 +198,7 @@ struct scenario_header {
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
 	checksum_key checksum;
-	native_char mod_save_dir[128] = { 0 };
+	char mod_save_dir[128] = { 0 };
 };
 
 struct save_header {
