@@ -4480,12 +4480,6 @@ void pop_details_needs_row_content_t::tooltip_position(sys::state& state, int32_
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
 	}
 	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
-		ident = 4;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.top_left.x += int16_t(table_source->needs_table_weight_column_start);
-		subrect.size = base_data.size;
-		subrect.size.x = int16_t(table_source->needs_table_weight_column_width);
-		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -5828,6 +5822,12 @@ void pop_details_prom_row_content_t::tooltip_position(sys::state& state, int32_t
 	if(x >= table_source->prom_table_name_column_start && x < table_source->prom_table_name_column_start + table_source->prom_table_name_column_width) {
 	}
 	if(x >= table_source->prom_table_weight_column_start && x < table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width) {
+		ident = 2;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->prom_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->prom_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -6604,6 +6604,12 @@ void pop_details_weights_row_content_t::tooltip_position(sys::state& state, int3
 	if(x >= table_source->weights_table_item_column_start && x < table_source->weights_table_item_column_start + table_source->weights_table_item_column_width) {
 	}
 	if(x >= table_source->weights_table_weight_column_start && x < table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->weights_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->weights_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -7404,6 +7410,12 @@ void pop_details_emm_row_content_t::tooltip_position(sys::state& state, int32_t 
 	if(x >= table_source->emm_table_destination_column_start && x < table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width) {
 	}
 	if(x >= table_source->emm_table_weight_column_start && x < table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->emm_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->emm_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -8203,6 +8215,12 @@ void pop_details_mig_row_content_t::tooltip_position(sys::state& state, int32_t 
 	if(x >= table_source->mig_table_destination_column_start && x < table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width) {
 	}
 	if(x >= table_source->mig_table_weight_column_start && x < table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->mig_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->mig_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -8640,6 +8658,6 @@ std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state&
 }
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
-////////////////////////////////////	main.set_visible(state, false);
+//////////////////////////////////////	main.set_visible(state, false);
 // END
 }
