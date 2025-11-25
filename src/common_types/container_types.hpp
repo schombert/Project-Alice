@@ -116,6 +116,11 @@ struct event_option {
 	dcon::text_key name;
 	dcon::value_modifier_key ai_chance;
 	dcon::effect_key effect;
+
+	bool operator==(const event_option& other) const = default;
+	bool operator!=(const event_option& other) const = default;
+
+
 };
 static_assert(sizeof(event_option) ==
 	sizeof(event_option::name)
@@ -130,6 +135,10 @@ struct gamerule_option {
 	dcon::text_key name;
 	dcon::effect_key on_select;
 	dcon::effect_key on_deselect;
+
+	bool operator==(const gamerule_option& other) const = default;
+	bool operator!=(const gamerule_option& other) const = default;
+
 
 };
 
@@ -312,6 +321,14 @@ struct commodity_set {
 
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
+
+	bool operator==(const commodity_set& other) const {
+		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
+	}
+	bool operator!=(const commodity_set& other) const {
+		return !(other == *this);
+	}
+
 };
 static_assert(sizeof(commodity_set) ==
 	sizeof(commodity_set::commodity_amounts)
@@ -323,6 +340,16 @@ struct small_commodity_set {
 	float commodity_amounts[set_size] = {0.0f};
 	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
 	uint16_t padding = 0;
+
+	bool operator==(const small_commodity_set& other) const {
+		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
+	}
+	bool operator!=(const small_commodity_set& other) const {
+		return !(other == *this);
+	}
+
+
+
 };
 static_assert(sizeof(small_commodity_set) ==
 	sizeof(small_commodity_set::commodity_amounts)
@@ -500,6 +527,10 @@ struct full_wg {
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
+
+	bool operator==(const full_wg& other) const = default;
+	bool operator!=(const full_wg& other) const = default;
+
 };
 
 struct aui_pending_bytes {

@@ -540,7 +540,8 @@ float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::m
 float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
 
 float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id, dcon::commodity_id, float additional_demand);
-
+float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
+float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
 float estimate_next_budget(sys::state& state, dcon::nation_id n);
 
 }

@@ -39,6 +39,24 @@ struct message {
 	type_t type = diplomatic_message::type_t::none; //1
 	bool automatic_call = false; // This was 1 byte padding previously, now used for checking if war call-to-arms were done automatically (by attacker by having the "call all allies" btn checked, or defender allies when they are automatically called when declared on
 
+	bool operator==(const message& other) const {
+		// Comparing the unused members of a union is technically UB.
+		// so it is copied into a buffer first before comparing them
+		// there is a very small chance that two seperate unions can be equal even though they hold diffrent types.
+		char data_buffer[sizeof(data)];
+		std::memcpy(data_buffer, &data, sizeof(data));
+
+		char data_buffer_other[sizeof(data)];
+		std::memcpy(data_buffer_other, &other.data, sizeof(data));
+
+		return std::memcmp(data_buffer, data_buffer_other, sizeof(data)) == 0 && when == other.when && from == other.from && to == other.to && type == other.type && automatic_call == other.automatic_call;
+
+	}
+	bool operator!=(const message& other) const {
+		return !(*this == other);
+	}
+
+
 	message() : type(diplomatic_message::type_t::none) { }
 };
 static_assert(sizeof(message) ==

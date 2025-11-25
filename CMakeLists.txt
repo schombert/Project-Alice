@@ -114,6 +114,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
+	"src/common_types/debug_string_convertions.cpp"
 	"src/nations/nations.cpp"
 	"src/network/SHA512.cpp"
 	"src/network/network.cpp"
@@ -260,6 +261,7 @@ else() # GCC or CLANG
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainerLua)
+target_link_libraries(AliceCommon INTERFACE dependency_DataContainerOOSReporter)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
 target_link_libraries(AliceCommon INTERFACE freetype)
@@ -459,6 +461,14 @@ add_custom_command(
 	VERBATIM
 )
 
+add_custom_command(
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp
+	COMMAND DataContainer_OOS_Reporter alice ${CONTAINER_PATH}.txt dcon_oos_reporter_generated.cpp dcon_oos_reporter_generated.hpp ${PROJECT_SOURCE_DIR}/src/gamestate/
+	DEPENDS ${CONTAINER_PATH}.txt
+	DEPENDS DataContainer_OOS_Reporter
+	VERBATIM
+)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
@@ -471,6 +481,11 @@ add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINER_LUA)
 add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
+
+
+add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
+add_dependencies(Alice GENERATE_CONTAINER_OOS)
+add_dependencies(AliceIncremental GENERATE_CONTAINER_OOS)
 
 # The command to build the generated parsers file
 add_custom_command(

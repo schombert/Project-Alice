@@ -449,6 +449,11 @@ struct crisis_member_def {
 
 	bool supports_attacker = false;
 	bool merely_interested = false;
+
+	bool operator==(const crisis_member_def& other) const = default;
+	bool operator!=(const crisis_member_def& other) const = default;
+
+
 };
 static_assert(sizeof(crisis_member_def) ==
 	sizeof(crisis_member_def::id)
@@ -461,6 +466,11 @@ enum class crisis_state : uint32_t { inactive = 0, finding_attacker = 1, finding
 struct great_nation {
 	sys::date last_greatness = sys::date(0);
 	dcon::nation_id nation;
+
+
+
+	bool operator==(const great_nation& other) const = default;
+	bool operator!=(const great_nation& other) const = default;
 
 	great_nation(sys::date last_greatness, dcon::nation_id nation) : last_greatness(last_greatness), nation(nation) { }
 	great_nation() = default;
