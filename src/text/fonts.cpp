@@ -8,6 +8,7 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#include "constants.hpp"
 #ifdef _WIN32
 #include <icu.h>
 #else
@@ -145,31 +146,47 @@ float font_manager::text_extent(sys::state& state, stored_glyphs const& txt, uin
 		}
 		return text::get_bm_font(state, font_id).get_string_width(state, codepoints.c_str(), uint32_t(codepoints.size()));
 	}
-	return float(font.text_extent(state, txt, starting_offset, count, size));
+	return float(font.retrieve_instance(state, size).text_extent(state, txt, starting_offset, count));
 }
 
 float font_manager::line_height(sys::state& state, uint16_t font_id) {
 	if(state.user_settings.use_classic_fonts) {
 		return text::get_bm_font(state, font_id).get_height();
 	}
-	return float(get_font(state, text::font_index_from_font_id(state, font_id)).line_height(text::size_from_font_id(font_id)));
-}
-float font_manager::scaling_factor(sys::state& state, uint16_t font_id) {
-	return float(get_font(state, text::font_index_from_font_id(state, font_id)).font_scaling_factor(text::size_from_font_id(font_id)));
+	return float(get_font(state, text::font_index_from_font_id(state, font_id)).retrieve_instance(state, text::size_from_font_id(font_id)).line_height(state));
 }
 
 font_manager::font_manager() {
 	FT_Init_FreeType(&ft_library);
 }
 font_manager::~font_manager() {
-	FT_Done_FreeType(ft_library);
+	//FT_Done_FreeType(ft_library);
+}
+
+void font_at_size::reset() {
+	if(hb_font_face)
+		hb_font_destroy(hb_font_face);
+	if(hb_buf)
+		hb_buffer_destroy(hb_buf);
+	if(font_face)
+		FT_Done_Face(font_face);
+	hb_font_face = nullptr;
+	hb_buf = nullptr;
+	font_face = nullptr;
+
+	internal_tx_line_height = 0;
+	internal_tx_line_xpos = 1024;
+	internal_tx_line_ypos = 1024;
+
+	for(auto& t : textures) {
+		glDeleteTextures(1, &t);
+	}
+	glyph_positions.clear();
+	textures.clear();
 }
 
 font::~font() {
-	if(hb_buf)
-		hb_buffer_destroy(hb_buf);
-	// if(loaded)
-	//	FT_Done_Face(font_face);
+
 }
 
 int32_t transform_offset_b(int32_t x, int32_t y, int32_t btmap_x_off, int32_t btmap_y_off, uint32_t width, uint32_t height,
@@ -193,6 +210,12 @@ void init_in_map(bool in_map[dr_size * dr_size], uint8_t const* bmp_data, int32_
 			in_map[i + dr_size * j] = (boff != -1) ? (bmp_data[boff] > 127) : false;
 		}
 	}
+}
+
+void font::reset_instances() {
+	for(auto& inst : sized_fonts)
+		inst.second.reset();
+	sized_fonts.clear();
 }
 
 //
@@ -281,6 +304,10 @@ void dead_reckoning(float distance_map[dr_size * dr_size], bool const in_map[dr_
 	}
 }
 
+void font_manager::reset_fonts() {
+	for(auto& f : font_array)
+		f.reset_instances();
+}
 void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 	current_locale = l;
 
@@ -323,7 +350,6 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 			font_array.emplace_back();
 			auto content = simple_fs::view_contents(*ff);
 			load_font(font_array.back(), content.data, content.file_size);
-			font_array.back().only_raw_codepoints = state.user_settings.use_classic_fonts;
 			font_array.back().file_name = fname;
 			resolved = &(font_array.back());
 		}
@@ -356,7 +382,6 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 			font_array.emplace_back();
 			auto content = simple_fs::view_contents(*ff);
 			load_font(font_array.back(), content.data, content.file_size);
-			font_array.back().only_raw_codepoints = state.user_settings.use_classic_fonts;
 			font_array.back().file_name = fname;
 			resolved = &(font_array.back());
 		}
@@ -389,7 +414,6 @@ void font_manager::change_locale(sys::state& state, dcon::locale_id l) {
 			font_array.emplace_back();
 			auto content = simple_fs::view_contents(*ff);
 			load_font(font_array.back(), content.data, content.file_size);
-			font_array.back().only_raw_codepoints = state.user_settings.use_classic_fonts;
 			font_array.back().file_name = fname;
 			resolved = &(font_array.back());
 		}
@@ -480,133 +504,146 @@ font& font_manager::get_font(sys::state& state, font_selection s) {
 
 }
 
-void font_manager::load_font(font& fnt, char const* file_data, uint32_t file_size) {
-	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[file_size]);
-
-	memcpy(fnt.file_data.get(), file_data, file_size);
-	FT_New_Memory_Face(ft_library, fnt.file_data.get(), file_size, 0, &fnt.font_face);
-	FT_Select_Charmap(fnt.font_face, FT_ENCODING_UNICODE);
-	FT_Set_Pixel_Sizes(fnt.font_face, dr_size, dr_size);
-	fnt.hb_font_face = hb_ft_font_create(fnt.font_face, nullptr);
-	fnt.hb_buf = hb_buffer_create();
-
-	fnt.internal_line_height = float(fnt.font_face->size->metrics.height) / float((1 << 6) * magnification_factor);
-	fnt.internal_ascender = float(fnt.font_face->size->metrics.ascender) / float((1 << 6) * magnification_factor);
-	fnt.internal_descender = -float(fnt.font_face->size->metrics.descender) / float((1 << 6) * magnification_factor);
-	fnt.internal_top_adj = (fnt.internal_line_height - (fnt.internal_ascender + fnt.internal_descender)) / 2.0f;
+font_at_size& font::retrieve_instance(sys::state& state, int32_t base_size) {
+	if(auto it = sized_fonts.find(int32_t(base_size * state.user_settings.ui_scale)); it != sized_fonts.end()) {
+		return it->second;
+	}
+	auto t = sized_fonts.insert_or_assign(int32_t(base_size * state.user_settings.ui_scale), font_at_size{});
+	t.first->second.create(state.font_collection.ft_library, file_data.get(), file_size, int32_t(base_size * state.user_settings.ui_scale));
+	return t.first->second;
 }
 
-float font::font_scaling_factor(int32_t size) const {
-	return float(size) / float(64 * (1 << 6) * magnification_factor);
+font_at_size& font::retrieve_stateless_instance(FT_Library lib, int32_t base_size) {
+	if(auto it = sized_fonts.find(base_size); it != sized_fonts.end()) {
+		return it->second;
+	}
+	auto t = sized_fonts.insert_or_assign(base_size , font_at_size{});
+	t.first->second.create(lib, file_data.get(), file_size, base_size);
+	return t.first->second;
 }
-float font::line_height(int32_t size) const {
-	return internal_line_height * size / 64.0f;
+
+void font_at_size::create(FT_Library lib, FT_Byte* file_data, size_t file_size, int32_t real_size) {
+	FT_New_Memory_Face(lib, file_data, FT_Long(file_size), 0, &font_face);
+	FT_Select_Charmap(font_face, FT_ENCODING_UNICODE);
+	FT_Set_Pixel_Sizes(font_face, real_size, real_size);
+	hb_font_face = hb_ft_font_create(font_face, nullptr);
+	hb_buf = hb_buffer_create();
+	px_size = real_size;
+
+	internal_line_height = float(font_face->size->metrics.height) / text::fixed_to_fp;
+	internal_ascender = float(font_face->size->metrics.ascender) / text::fixed_to_fp;
+	internal_descender = -float(font_face->size->metrics.descender) / text::fixed_to_fp;
+	internal_top_adj = (internal_line_height - (internal_ascender + internal_descender)) / 2.0f;
 }
-float font::ascender(int32_t size) const {
-	return internal_ascender * size / 64.0f;
+
+void font_manager::load_font(font& fnt, char const* file_data, uint32_t fz) {
+	fnt.file_data = std::unique_ptr<FT_Byte[]>(new FT_Byte[fz]);
+	fnt.file_size = fz;
+	memcpy(fnt.file_data.get(), file_data, fz);
 }
-float font::descender(int32_t size) const {
-	return internal_descender * size / 64.0f;
+
+float font_at_size::line_height(sys::state& state) const {
+	return internal_line_height / state.user_settings.ui_scale;
 }
-float font::top_adjustment(int32_t size) const {
-	return internal_top_adj * size / 64.0f;
+float font_at_size::ascender(sys::state& state) const {
+	return internal_ascender / state.user_settings.ui_scale;
+}
+float font_at_size::descender(sys::state& state) const {
+	return internal_descender / state.user_settings.ui_scale;
+}
+float font_at_size::top_adjustment(sys::state& state) const {
+	return internal_top_adj  / state.user_settings.ui_scale;
 }
 
 bool font::can_display(char32_t ch_in) const {
-	return FT_Get_Char_Index(font_face, ch_in) != 0;
+	if(sized_fonts.empty())
+		return true;
+	return FT_Get_Char_Index(sized_fonts.begin()->second.font_face, ch_in) != 0;
 }
 
-float font::base_glyph_width(char32_t ch_in) {
-	if(auto it = glyph_positions.find(ch_in); it != glyph_positions.end())
-		return it->second.x_advance;
-
-	make_glyph(ch_in);
-	return glyph_positions[ch_in].x_advance;
-}
-void font::make_glyph(char32_t ch_in) {
-	if(glyph_positions.find(ch_in) != glyph_positions.end())
+void font_at_size::make_glyph(uint16_t glyph_in) {
+	if(glyph_positions.find(glyph_in) != glyph_positions.end())
 		return;
 
 	// load all glyph metrics
-	if(ch_in) {
-		FT_Load_Glyph(font_face, ch_in, FT_LOAD_TARGET_NORMAL | FT_LOAD_RENDER);
+	if(glyph_in) {
+		FT_Load_Glyph(font_face, glyph_in, FT_LOAD_TARGET_LIGHT | FT_LOAD_RENDER);
 		glyph_sub_offset gso;
 
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			gso.x = 0.f;
-			gso.y = 0.f;
-			gso.x_advance = 0.f;
-			gso.texture_slot = 0;
-			glyph_positions.insert_or_assign(ch_in, gso);
+			glyph_positions.insert_or_assign(glyph_in, gso);
 			return;
 		}
 
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
-		float const hb_x = float(font_face->glyph->metrics.horiBearingX) / 64.f;
-		float const hb_y = float(font_face->glyph->metrics.horiBearingY) / 64.f;
-
-		
-		uint8_t pixel_buffer[64 * 64] = { 0 };
-		int const btmap_x_off = 32 * magnification_factor - bitmap.width / 2;
-		int const btmap_y_off = 32 * magnification_factor - bitmap.rows / 2;
-
-		gso.x = (hb_x - float(btmap_x_off)) * 1.0f / float(magnification_factor);
-		gso.y = (-hb_y - float(btmap_y_off)) * 1.0f / float(magnification_factor);
-		gso.x_advance = float(font_face->glyph->metrics.horiAdvance) / float((1 << 6) * magnification_factor);
-
-		bool in_map[dr_size * dr_size] = {false};
-		float distance_map[dr_size * dr_size] = {0.0f};
-		init_in_map(in_map, bitmap.buffer, btmap_x_off, btmap_y_off, bitmap.width, bitmap.rows, uint32_t(bitmap.pitch));
-		dead_reckoning(distance_map, in_map);
-		for(int y = 0; y < 64; ++y) {
-			for(int x = 0; x < 64; ++x) {
-				const size_t index = size_t(x + y * 64);
-				float const distance_value = distance_map[(x * magnification_factor + magnification_factor / 2) + (y * magnification_factor + magnification_factor / 2) * dr_size] / float(magnification_factor * 64);
-				int const int_value = int(distance_value * -255.0f + 128.0f);
-				const uint8_t small_value = uint8_t(std::min(255, std::max(0, int_value)));
-				pixel_buffer[index] = small_value;
-			}
+		assert(bitmap.rows <= 1024 && bitmap.width <= 1024);
+		if(bitmap.rows > 1024 || bitmap.width > 1024) { // too large to render
+			FT_Done_Glyph(g_result);
+			glyph_positions.insert_or_assign(glyph_in, gso);
+			return;
 		}
-		//The array
-		gso.texture_slot = first_free_slot;
+		if(bitmap.width + internal_tx_line_xpos >= 1024) { // new line
+			internal_tx_line_xpos = 0;
+			internal_tx_line_ypos += internal_tx_line_height;
+			internal_tx_line_height = 0;
+		}
 		GLuint texid = 0;
-		if((first_free_slot & 63) == 0) {
-			GLuint new_text = 0;
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		if(bitmap.rows + internal_tx_line_ypos >= 1024) { // new bitmap
+			internal_tx_line_xpos = 0;
+			internal_tx_line_ypos = 0;
+			internal_tx_line_height = 0;
+
 			glGenTextures(1, &texid);
 			glBindTexture(GL_TEXTURE_2D, texid);
-			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 64 * 8, 64 * 8);
+			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 1024, 1024);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			textures.push_back(texid);
 			uint32_t clearvalue = 0;
-			glClearTexImage(GL_TEXTURE_2D, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
+			glClearTexImage(texid, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
 		} else {
-			assert(textures.size() > 0);
 			texid = textures.back();
-			assert(texid);
 			glBindTexture(GL_TEXTURE_2D, texid);
 		}
-		if(texid) {
-			auto sub_index = first_free_slot & 63;
-			glTexSubImage2D(GL_TEXTURE_2D, 0, (sub_index & 7) * 64, ((sub_index >> 3) & 7) * 64, 64, 64, GL_RED, GL_UNSIGNED_BYTE, pixel_buffer);
+		gso.x = uint16_t(internal_tx_line_xpos + 1);
+		gso.y = uint16_t(internal_tx_line_ypos + 1);
+		gso.width = uint16_t(bitmap.width);
+		gso.height = uint16_t(bitmap.rows);
+		gso.tx_sheet = uint16_t(textures.size() - 1);
+		gso.bitmap_left = int16_t(((FT_BitmapGlyphRec*)g_result)->left);
+		gso.bitmap_top = int16_t(((FT_BitmapGlyphRec*)g_result)->top);
+
+		internal_tx_line_xpos += bitmap.width + 1;
+		internal_tx_line_height = std::max(internal_tx_line_height, bitmap.rows + 1);
+
+		if(bitmap.pitch == int32_t(bitmap.width)) {
+			glTexSubImage2D(GL_TEXTURE_2D, 0, int32_t(gso.x), int32_t(gso.y), bitmap.width, bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, bitmap.buffer);
+		} else {
+			uint8_t* temp = new uint8_t[bitmap.width * bitmap.rows];
+			for(uint32_t j = 0; j < bitmap.rows; ++j) {
+				for(uint32_t i = 0; i < bitmap.width; ++i) {
+					temp[i + j * bitmap.width] = uint8_t(bitmap.buffer[i + j * bitmap.pitch]);
+				}
+			}
+			glTexSubImage2D(GL_TEXTURE_2D, 0, int32_t(gso.x), int32_t(gso.y), bitmap.width, bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, temp);
+			delete temp;
 		}
 		FT_Done_Glyph(g_result);
-		//after texture slot
-		glyph_positions.insert_or_assign(ch_in, gso);
-		++first_free_slot;
+		glyph_positions.insert_or_assign(glyph_in, gso);
 	}
 }
 
-stored_glyphs::stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d) {
-	state.font_collection.get_font(state, type).remake_cache(state, type, *this, s, details_offset, d);
+stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
+	state.font_collection.get_font(state, type).retrieve_instance(state, size).remake_cache(state, type, *this, s, details_offset, d, font_handle);
 }
-stored_glyphs::stored_glyphs(sys::state& state, font_selection type, std::span<uint16_t> s, no_bidi) {
-	state.font_collection.get_font(state, type).remake_bidiless_cache(state, type, *this, s);
+stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, no_bidi) {
+	state.font_collection.get_font(state, type).retrieve_instance(state, size).remake_bidiless_cache(state, type, *this, s);
 }
 
 stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count) {
@@ -614,18 +651,51 @@ stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t cou
 	std::copy_n(other.glyph_info.data() + offset, count, glyph_info.data());
 }
 
-void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset, layout_details* d) {
+void font_at_size::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
 	txt.glyph_info.clear();
 
 	if(source.size() == 0)
 		return;
 
-	if(only_raw_codepoints) {
+
+	if(state.user_settings.use_classic_fonts) {
+		auto& bm_font = text::get_bm_font(state, font_handle);
+		std::string char_str_copy;
+		if(d) {
+			for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
+				char_str_copy.push_back(char(source[i]));
+			}
+		}
+
 		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
 			text::stored_glyph glyph;
 			glyph.codepoint = source[i];
 			glyph.cluster = i;
 			txt.glyph_info.push_back(glyph);
+
+			if(d) {
+				d->grapheme_placement.emplace_back();
+				if(d->grapheme_placement.size() != 1) {
+					d->grapheme_placement.back().visual_left = int16_t(d->grapheme_placement.size() - 2);
+					d->grapheme_placement[d->grapheme_placement.size() - 2].visual_right = int16_t(d->grapheme_placement.size() - 1);
+				}
+				if(source[i] == uint16_t(L' ') || source[i] == uint16_t(L'\t') || source[i] == uint16_t(L'\r') || source[i] == uint16_t(L'\n')) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_start | ex_grapheme_cluster_info::f_is_word_end);
+					if(d->grapheme_placement.size() != 1) {
+						d->grapheme_placement[d->grapheme_placement.size() - 2].flags |= int16_t(ex_grapheme_cluster_info::f_is_word_end);
+					}
+				}
+				if(i == 0) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_start);
+				}
+				if(i == uint32_t(source.size() - 1)) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_end);
+				}
+				d->grapheme_placement.back().source_offset = uint16_t(details_offset + i);
+				d->grapheme_placement.back().x_offset = int16_t(bm_font.get_string_width(state, char_str_copy.c_str(), i));
+				d->grapheme_placement.back().width = int16_t(bm_font.get_string_width(state, char_str_copy.c_str(), i + 1) - d->grapheme_placement.back().x_offset);
+				d->grapheme_placement.back().unit_length = 1;
+			}
 		}
 		return;
 	}
@@ -655,7 +725,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 
 	if(U_SUCCESS(errorCode)) {
 		auto runcount = ubidi_countRuns(para, &errorCode);
-		int64_t total_x_advance = 0;
+		float total_x_advance = 0;
 
 		if(U_SUCCESS(errorCode)) {
 			// TODO -- find any previous added to the same line
@@ -799,17 +869,17 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 						bool matched_exactly = false;
 						int32_t best_match = -1;
 						uint32_t best_match_index = 0;
-						int32_t accumulated_advance = 0;
+						float accumulated_advance = 0;
 
 						for(unsigned int j = 0; j < gcount; j++) {
 							auto rendering_details_for = glyph_info[j].cluster + details_offset;
 							if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset) {
-								accumulated_advance += glyph_pos[j].x_advance;
+								accumulated_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
 							}
 							if(uint16_t(rendering_details_for) == d->grapheme_placement[k].source_offset) {
 								matched_exactly = true;
-								d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance));
-								d->grapheme_placement[k].width = int16_t(d->scaling_factor * glyph_pos[j].x_advance);
+								d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance);
+								d->grapheme_placement[k].width = int16_t(glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale));
 								break;
 							} else if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset
 								&& int32_t(rendering_details_for) > best_match) {
@@ -822,7 +892,7 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 							if(best_match != -1) {
 								// scan added exgc to find the range associated with this grapheme cluster
 								auto rendering_details_for = glyph_info[best_match_index].cluster + details_offset;
-								accumulated_advance -= glyph_pos[best_match_index].x_advance;
+								accumulated_advance -= glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
 
 								int32_t start_exgc = -1;
 
@@ -839,20 +909,20 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 									// adjust positions and widths for entire cluster range
 									if(direction == UBIDI_RTL) {
 										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
-											d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance +
-												(glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc + 1))) / count_in_range));
-											d->grapheme_placement[k].width = int16_t(d->scaling_factor * (
-												(glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc))) / count_in_range
-												- (glyph_pos[best_match_index].x_advance * (count_in_range - (m - start_exgc + 1))) / count_in_range)
+											d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance +
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range);
+											d->grapheme_placement[k].width = int16_t(
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc))) / count_in_range
+												- (glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range
 											);
 										}
 									} else {
 										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
-											d->grapheme_placement[k].x_offset = int16_t(d->scaling_factor * (accumulated_advance + total_x_advance +
-												(glyph_pos[best_match_index].x_advance * (m - start_exgc)) / count_in_range));
-											d->grapheme_placement[k].width = int16_t(d->scaling_factor * (
-												(glyph_pos[best_match_index].x_advance * (1 + m - start_exgc)) / count_in_range
-												- (glyph_pos[best_match_index].x_advance * (m - start_exgc)) / count_in_range)
+											d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance +
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range);
+											d->grapheme_placement[k].width = int16_t(
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (1 + m - start_exgc)) / count_in_range
+												- (glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range
 											);
 										}
 									}
@@ -863,8 +933,8 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 				}
 
 				for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
-					total_x_advance += glyph_pos[j].x_advance;
-					make_glyph(glyph_info[j].codepoint);
+					total_x_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
+					make_glyph(uint16_t(glyph_info[j].codepoint));
 					txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 				}
 			}
@@ -880,12 +950,12 @@ void font::remake_cache(sys::state& state, font_selection type, stored_glyphs& t
 	ubidi_close(para);
 }
 
-void font::remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source) {
+void font_at_size::remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source) {
 	txt.glyph_info.clear();
 	if(source.size() == 0)
 		return;
 
-	if(only_raw_codepoints) {
+	if(state.user_settings.use_classic_fonts) {
 		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
 			text::stored_glyph glyph;
 			glyph.codepoint = source[i];
@@ -924,7 +994,7 @@ void font::remake_bidiless_cache(sys::state& state, font_selection type, stored_
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &gcount);
 
 	for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
-		make_glyph(glyph_info[j].codepoint);
+		make_glyph(uint16_t(glyph_info[j].codepoint));
 		txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 	}
 
@@ -1045,20 +1115,14 @@ void map_font::remake_map_cache(sys::state& state, stored_glyphs& txt, std::stri
 	}
 }
 
-float font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count, int32_t size) {
+float font_at_size::text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count) {
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-		x_total += x_advance * size / 64.f;
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
+		x_total += x_advance;
 	}
-	return x_total;
-}
-
-void font_manager::set_classic_fonts(bool v) {
-	for(auto& fnt : font_array) {
-		fnt.only_raw_codepoints = v;
-	}
+	return x_total / state.user_settings.ui_scale;
 }
 
 uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size) {
@@ -1069,14 +1133,14 @@ uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size)
 			return state.ui_state.default_body_font;
 		}
 	}
-	int32_t calculated_size = 1;
+	int32_t calculated_size = int32_t(target_line_size);
 	if(as_header) {
-		auto jvalue = state.font_collection.get_font(state, font_selection::header_font).line_height(1);
-		calculated_size = int32_t((target_line_size / jvalue) * 4.0f / 3.0f);
+		//auto jvalue = state.font_collection.get_font(state, font_selection::header_font).line_height(1);
+		//calculated_size = int32_t((target_line_size / jvalue) * 4.0f / 3.0f);
 		return uint16_t((1 << 7) | (0x3F & calculated_size));
 	} else {
-		auto jvalue = state.font_collection.get_font(state, font_selection::body_font).line_height(1);
-		calculated_size = int32_t((target_line_size / jvalue) * 6.0f / 5.0f);
+		//auto jvalue = state.font_collection.get_font(state, font_selection::body_font).line_height(1);
+		//calculated_size = int32_t((target_line_size / jvalue) * 6.0f / 5.0f);
 		return uint16_t((0 << 7) | (0x3F & calculated_size));
 	}
 }
@@ -1117,6 +1181,8 @@ map_font::~map_font() {
 	glDeleteBuffers(1, &glyph_buffer);
 	glDeleteBuffers(1, &curve_buffer);
 
+	if(hb_font_face)
+		hb_font_destroy(hb_font_face);
 	if(hb_buf)
 		hb_buffer_destroy(hb_buf);
 
@@ -1181,7 +1247,7 @@ float map_font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6)));
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
 		x_total += x_advance;
 	}
 	return x_total;

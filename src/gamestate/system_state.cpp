@@ -2360,6 +2360,8 @@ void state::load_user_settings() {
 
 		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
 		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
+
+		//user_settings.use_classic_fonts = false;
 	}
 
 	// find most recent autosave
@@ -2465,6 +2467,30 @@ void state::update_ui_scale(float new_scale) {
 	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
 	if(ui_state.outliner_window)
 		ui_state.outliner_window->impl_on_update(*this);
+	for(auto& s : ui_templates.backgrounds) {
+		s.renders.release_renders();
+	}
+	for(auto& s : ui_templates.icons) {
+		s.renders.release_renders();
+	}
+	//font_collection.reset_fonts();
+
+	if(ui_state.units_root)
+		ui_state.units_root->impl_on_reset_text(*this);
+	if(ui_state.rgos_root)
+		ui_state.rgos_root->impl_on_reset_text(*this);
+	if(ui_state.root)
+		ui_state.root->impl_on_reset_text(*this);
+	if(ui_state.nation_picker)
+		ui_state.nation_picker->impl_on_reset_text(*this);
+	if(ui_state.select_states_legend)
+		ui_state.select_states_legend->impl_on_reset_text(*this);
+	if(ui_state.end_screen)
+		ui_state.end_screen->impl_on_reset_text(*this);
+
+	province_ownership_changed.store(true, std::memory_order::release); //update map
+	game_state_updated.store(true, std::memory_order::release); //update ui
+
 	// TODO move windows
 }
 

@@ -1028,7 +1028,7 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 
 void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
 	float scale = 1.f;
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + (f.retrieve_instance(state, int32_t(font_size)).ascender(state)) - font_size;
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 	glActiveTexture(GL_TEXTURE0);
@@ -1078,7 +1078,7 @@ void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float
 }
 
 void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + (f.retrieve_instance(state, int32_t(font_size)).ascender(state)) - font_size;
 
 	auto fat_id = dcon::fatten(state.world, ico.tag);
 	auto nation = fat_id.get_nation_from_identity_holder();
@@ -1102,8 +1102,9 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 }
 
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	auto ascender_size = f.ascender(int32_t(font_size));
-	auto top_adj = f.top_adjustment(int32_t(font_size));
+	auto ascender_size = f.retrieve_instance(state, int32_t(font_size)).ascender(state);
+	auto top_adj = f.retrieve_instance(state, int32_t(font_size)).top_adjustment(state);
+
 	float icon_baseline = baseline_y + top_adj + ascender_size;
 	//float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
 
@@ -1172,7 +1173,7 @@ void render_text_commodity_icon(
 	float x, float baseline_y,
 	float font_size, text::font& f
 ) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + f.retrieve_instance(state, int32_t(font_size)).ascender(state) - font_size;
 
 	render_commodity_icon(
 		state, ico.commodity,
@@ -1182,26 +1183,42 @@ void render_text_commodity_icon(
 }
 
 void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
-	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::filter };
+	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
+	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::subsprite_b };
 	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
-	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	auto& font_instance = f.retrieve_instance(state, int32_t(size));
+	auto ui_scale = state.user_settings.ui_scale;
+
+	x = int32_t(x * ui_scale) / ui_scale;
+	baseline_y = int32_t(baseline_y * ui_scale) / ui_scale;
 
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-		float x_offset = float(txt.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-		float y_offset = float(gso.y) - float(txt.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
-		assert(uint32_t(gso.texture_slot >> 6) < f.textures.size());
-		assert(f.textures[gso.texture_slot >> 6]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
-		glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += x_advance * size / 64.f;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
+		auto& gso = font_instance.glyph_positions[uint16_t(glyphid)];
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
+
+		if(gso.width != 0) {
+			float x_offset = float(txt.glyph_info[i].x_offset) / text::fixed_to_fp + float(gso.bitmap_left);
+			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / text::fixed_to_fp;
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
+
+			auto rounded_x = int32_t(x * ui_scale + x_offset) / ui_scale;
+
+			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, rounded_x, baseline_y + y_offset / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
+			glUniform4f(state.open_gl.ui_shader_subrect_uniform, float(gso.x) / float(1024) /* x offset */,
+					float(gso.width) / float(1024) /* x width */, float(gso.y) / float(1024) /* y offset */,
+					float(gso.height) / float(1024) /* y height */
+			);
+
+			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+		}
+
+		x += x_advance / ui_scale;
+		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp) / ui_scale;
 	}
 }
 
@@ -1251,7 +1268,6 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 				float(f.height) / float(font.width) /* y height */
 		);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		//float x_advance = float(txt.glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		x += f.x_advance;
 	}
 }
