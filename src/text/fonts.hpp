@@ -271,6 +271,7 @@ public:
 
 	bool can_display(char32_t ch_in) const;
 	font_at_size& retrieve_instance(sys::state& state, int32_t base_size);
+	font_at_size& retrieve_stateless_instance(FT_Library lib, int32_t base_size);
 	void reset_instances();
 
 	friend class font_manager;

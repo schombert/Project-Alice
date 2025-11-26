@@ -513,6 +513,15 @@ font_at_size& font::retrieve_instance(sys::state& state, int32_t base_size) {
 	return t.first->second;
 }
 
+font_at_size& font::retrieve_stateless_instance(FT_Library lib, int32_t base_size) {
+	if(auto it = sized_fonts.find(base_size); it != sized_fonts.end()) {
+		return it->second;
+	}
+	auto t = sized_fonts.insert_or_assign(base_size , font_at_size{});
+	t.first->second.create(lib, file_data.get(), file_size, base_size);
+	return t.first->second;
+}
+
 void font_at_size::create(FT_Library lib, FT_Byte* file_data, size_t file_size, int32_t real_size) {
 	FT_New_Memory_Face(lib, file_data, FT_Long(file_size), 0, &font_face);
 	FT_Select_Charmap(font_face, FT_ENCODING_UNICODE);
