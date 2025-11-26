@@ -104,5 +104,6 @@ public:
 };
 
 void update_text_lines(sys::state& state, display_data& map_data);
+void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size);
 
 } // namespace map
