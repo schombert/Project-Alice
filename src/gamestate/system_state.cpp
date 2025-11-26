@@ -2361,7 +2361,7 @@ void state::load_user_settings() {
 		if(!std::isfinite(user_settings.zoom_speed)) user_settings.zoom_speed = 15.0f;
 		user_settings.zoom_speed = std::clamp(user_settings.zoom_speed, 15.f, 25.f);
 
-		user_settings.use_classic_fonts = false;
+		//user_settings.use_classic_fonts = false;
 	}
 
 	// find most recent autosave

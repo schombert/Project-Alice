@@ -120,7 +120,7 @@ struct stored_glyphs {
 	stored_glyphs(stored_glyphs const& other) noexcept = default;
 	stored_glyphs(stored_glyphs&& other) noexcept = default;
 	stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t count);
-	stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr);
+	stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset = 0, layout_details* d = nullptr, uint16_t font_handle = 0);
 	stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, no_bidi);
 
 	//void set_text(sys::state& state, font_selection type, std::string const& s);
@@ -210,7 +210,7 @@ public:
 	void make_glyph(uint16_t glyph_in);
 	void reset();
 	void create(FT_Library lib, FT_Byte* file_data, size_t file_size, int32_t real_size);
-	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr);
+	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr, uint16_t font_handle = 0);
 	void remake_bidiless_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source);
 	float line_height(sys::state& state) const;
 	float ascender(sys::state& state) const;

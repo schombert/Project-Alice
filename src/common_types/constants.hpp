@@ -676,7 +676,8 @@ enum class army_activity {
 	attack_gathered = 7,
 	attack_transport = 8,
 };
+}
 
-
-
+namespace text {
+constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to convert the 26.6 fixed point representation used in many places by fonts to a floating point value
 }

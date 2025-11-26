@@ -8,6 +8,7 @@
 #include "parsers.hpp"
 #include "simple_fs.hpp"
 #include "system_state.hpp"
+#include "constants.hpp"
 #ifdef _WIN32
 #include <icu.h>
 #else
@@ -520,9 +521,9 @@ void font_at_size::create(FT_Library lib, FT_Byte* file_data, size_t file_size, 
 	hb_buf = hb_buffer_create();
 	px_size = real_size;
 
-	internal_line_height = float(font_face->size->metrics.height) / float((1 << 6));
-	internal_ascender = float(font_face->size->metrics.ascender) / float((1 << 6));
-	internal_descender = -float(font_face->size->metrics.descender) / float((1 << 6));
+	internal_line_height = float(font_face->size->metrics.height) / text::fixed_to_fp;
+	internal_ascender = float(font_face->size->metrics.ascender) / text::fixed_to_fp;
+	internal_descender = -float(font_face->size->metrics.descender) / text::fixed_to_fp;
 	internal_top_adj = (internal_line_height - (internal_ascender + internal_descender)) / 2.0f;
 }
 
@@ -629,8 +630,8 @@ void font_at_size::make_glyph(uint16_t glyph_in) {
 	}
 }
 
-stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d) {
-	state.font_collection.get_font(state, type).retrieve_instance(state, size).remake_cache(state, type, *this, s, details_offset, d);
+stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
+	state.font_collection.get_font(state, type).retrieve_instance(state, size).remake_cache(state, type, *this, s, details_offset, d, font_handle);
 }
 stored_glyphs::stored_glyphs(sys::state& state, int32_t size, font_selection type, std::span<uint16_t> s, no_bidi) {
 	state.font_collection.get_font(state, type).retrieve_instance(state, size).remake_bidiless_cache(state, type, *this, s);
@@ -641,11 +642,54 @@ stored_glyphs::stored_glyphs(stored_glyphs& other, uint32_t offset, uint32_t cou
 	std::copy_n(other.glyph_info.data() + offset, count, glyph_info.data());
 }
 
-void font_at_size::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset, layout_details* d) {
+void font_at_size::remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset, layout_details* d, uint16_t font_handle) {
 	txt.glyph_info.clear();
 
 	if(source.size() == 0)
 		return;
+
+
+	if(state.user_settings.use_classic_fonts) {
+		auto& bm_font = text::get_bm_font(state, font_handle);
+		std::string char_str_copy;
+		if(d) {
+			for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
+				char_str_copy.push_back(char(source[i]));
+			}
+		}
+
+		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
+			text::stored_glyph glyph;
+			glyph.codepoint = source[i];
+			glyph.cluster = i;
+			txt.glyph_info.push_back(glyph);
+
+			if(d) {
+				d->grapheme_placement.emplace_back();
+				if(d->grapheme_placement.size() != 1) {
+					d->grapheme_placement.back().visual_left = int16_t(d->grapheme_placement.size() - 2);
+					d->grapheme_placement[d->grapheme_placement.size() - 2].visual_right = int16_t(d->grapheme_placement.size() - 1);
+				}
+				if(source[i] == uint16_t(L' ') || source[i] == uint16_t(L'\t') || source[i] == uint16_t(L'\r') || source[i] == uint16_t(L'\n')) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_start | ex_grapheme_cluster_info::f_is_word_end);
+					if(d->grapheme_placement.size() != 1) {
+						d->grapheme_placement[d->grapheme_placement.size() - 2].flags |= int16_t(ex_grapheme_cluster_info::f_is_word_end);
+					}
+				}
+				if(i == 0) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_start);
+				}
+				if(i == uint32_t(source.size() - 1)) {
+					d->grapheme_placement.back().flags |= (ex_grapheme_cluster_info::f_is_word_end);
+				}
+				d->grapheme_placement.back().source_offset = uint16_t(details_offset + i);
+				d->grapheme_placement.back().x_offset = int16_t(bm_font.get_string_width(state, char_str_copy.c_str(), i));
+				d->grapheme_placement.back().width = int16_t(bm_font.get_string_width(state, char_str_copy.c_str(), i + 1) - d->grapheme_placement.back().x_offset);
+				d->grapheme_placement.back().unit_length = 1;
+			}
+		}
+		return;
+	}
 
 	auto locale = state.font_collection.get_current_locale();
 	UBiDi* para;
@@ -821,12 +865,12 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 						for(unsigned int j = 0; j < gcount; j++) {
 							auto rendering_details_for = glyph_info[j].cluster + details_offset;
 							if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset) {
-								accumulated_advance += glyph_pos[j].x_advance / (float(1 << 6) * state.user_settings.ui_scale);
+								accumulated_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
 							}
 							if(uint16_t(rendering_details_for) == d->grapheme_placement[k].source_offset) {
 								matched_exactly = true;
 								d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance);
-								d->grapheme_placement[k].width = int16_t(glyph_pos[j].x_advance / (float(1 << 6) * state.user_settings.ui_scale));
+								d->grapheme_placement[k].width = int16_t(glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale));
 								break;
 							} else if(uint16_t(rendering_details_for) < d->grapheme_placement[k].source_offset
 								&& int32_t(rendering_details_for) > best_match) {
@@ -839,7 +883,7 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 							if(best_match != -1) {
 								// scan added exgc to find the range associated with this grapheme cluster
 								auto rendering_details_for = glyph_info[best_match_index].cluster + details_offset;
-								accumulated_advance -= glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale);
+								accumulated_advance -= glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
 
 								int32_t start_exgc = -1;
 
@@ -857,19 +901,19 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 									if(direction == UBIDI_RTL) {
 										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
 											d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance +
-												(glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range);
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range);
 											d->grapheme_placement[k].width = int16_t(
-												(glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc))) / count_in_range
-												- (glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc))) / count_in_range
+												- (glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (count_in_range - (m - start_exgc + 1))) / count_in_range
 											);
 										}
 									} else {
 										for(int32_t m = start_exgc; m <= int32_t(k); ++m) {
 											d->grapheme_placement[k].x_offset = int16_t(accumulated_advance + total_x_advance +
-												(glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range);
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range);
 											d->grapheme_placement[k].width = int16_t(
-												(glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (1 + m - start_exgc)) / count_in_range
-												- (glyph_pos[best_match_index].x_advance / (float(1 << 6) * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range
+												(glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (1 + m - start_exgc)) / count_in_range
+												- (glyph_pos[best_match_index].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale) * (m - start_exgc)) / count_in_range
 											);
 										}
 									}
@@ -880,7 +924,7 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 				}
 
 				for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
-					total_x_advance += glyph_pos[j].x_advance / (float(1 << 6) * state.user_settings.ui_scale);
+					total_x_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
 					make_glyph(uint16_t(glyph_info[j].codepoint));
 					txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 				}
@@ -901,6 +945,16 @@ void font_at_size::remake_bidiless_cache(sys::state& state, font_selection type,
 	txt.glyph_info.clear();
 	if(source.size() == 0)
 		return;
+
+	if(state.user_settings.use_classic_fonts) {
+		for(uint32_t i = 0; i < uint32_t(source.size()); i++) {
+			text::stored_glyph glyph;
+			glyph.codepoint = source[i];
+			glyph.cluster = i;
+			txt.glyph_info.push_back(glyph);
+		}
+		return;
+	}
 
 	auto locale = state.font_collection.get_current_locale();
 	
@@ -1056,7 +1110,7 @@ float font_at_size::text_extent(sys::state& state, stored_glyphs const& txt, uin
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float(1 << 6));
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
 		x_total += x_advance;
 	}
 	return x_total / state.user_settings.ui_scale;
@@ -1184,7 +1238,7 @@ float map_font::text_extent(sys::state& state, stored_glyphs const& txt, uint32_
 	float x_total = 0.0f;
 	for(uint32_t i = starting_offset; i < starting_offset + count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6)));
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
 		x_total += x_advance;
 	}
 	return x_total;

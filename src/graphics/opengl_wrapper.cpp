@@ -1197,11 +1197,11 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
 		auto& gso = font_instance.glyph_positions[uint16_t(glyphid)];
-		float x_advance = float(txt.glyph_info[i].x_advance) / float(1 << 6);
+		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
 
 		if(gso.width != 0) {
-			float x_offset = float(txt.glyph_info[i].x_offset) / float(1 << 6) + float(gso.bitmap_left);
-			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / float(1 << 6);
+			float x_offset = float(txt.glyph_info[i].x_offset) / text::fixed_to_fp + float(gso.bitmap_left);
+			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / text::fixed_to_fp;
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
@@ -1218,7 +1218,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		}
 
 		x += x_advance / ui_scale;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / float(1 << 6)) / ui_scale;
+		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp) / ui_scale;
 	}
 }
 
@@ -1268,7 +1268,6 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 				float(f.height) / float(font.width) /* y height */
 		);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		//float x_advance = float(txt.glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		x += f.x_advance;
 	}
 }
