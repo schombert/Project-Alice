@@ -3700,12 +3700,11 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	//cleanup regiments with no pop attached
-	for(uint32_t i = world.regiment_size(); i-- > 0; ) {
-		dcon::regiment_id n{ dcon::regiment_id::value_base_t(i) };
+	world.for_each_regiment([&](auto n) {
 		if(!world.regiment_get_pop_from_regiment_source(n)) {
 			world.delete_regiment(n);
 		}
-	}
+	});
 
 	world.nation_resize_modifier_values(sys::national_mod_offsets::count);
 	world.nation_resize_rgo_goods_output(world.commodity_size());
