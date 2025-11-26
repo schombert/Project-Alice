@@ -4129,6 +4129,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			if(opened_file) {
 				auto content = view_contents(*opened_file);
 				lua_combined_script += content.data;
+				std::erase(lua_combined_script, '\r');
 				lua_combined_script += "\n";
 			}
 		}
@@ -4147,7 +4148,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(game_loop) {
 			auto content = view_contents(*game_loop);
 			lua_game_loop_script += content.data;
-			std::erase(lua_combined_script, '\r');
+			std::erase(lua_game_loop_script, '\r');
 			lua_game_loop_script += "\n";
 		}
 
@@ -4157,7 +4158,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(ui_script) {
 			auto content = view_contents(*ui_script);
 			lua_ui_script += content.data;
-			std::erase(lua_combined_script, '\r');
+			std::erase(lua_ui_script, '\r');
 			lua_ui_script += "\n";
 		}
 	}
