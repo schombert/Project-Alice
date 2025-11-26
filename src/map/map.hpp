@@ -11,6 +11,8 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "projections.hpp"
+
 namespace sys {
 struct state;
 };
@@ -192,6 +194,11 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
+	bool new_arbitrary_map_triangle = false;
+	std::vector<square::point> arbitrary_map_triangles;
+	std::vector<GLint> arbitrary_map_triangles_starts;
+	std::vector<GLsizei> arbitrary_map_triangles_counts;
+	//
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -232,7 +239,8 @@ public:
 	static constexpr uint32_t vo_trade_flow = 15;
 	static constexpr uint32_t vo_square = 16;
 	static constexpr uint32_t vo_cities = 17;
-	static constexpr uint32_t vo_count = 18;
+	static constexpr uint32_t vo_arbitrary_map_triangles = 18;
+	static constexpr uint32_t vo_count = 19;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -287,7 +295,8 @@ public:
 	static constexpr uint32_t shader_borders_provinces = 12;
 	static constexpr uint32_t shader_map_sprite = 13;
 	static constexpr uint32_t shader_textured_triangle = 14;
-	static constexpr uint32_t shader_count = 15;
+	static constexpr uint32_t shader_map_triangle = 15;
+	static constexpr uint32_t shader_count = 16;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;

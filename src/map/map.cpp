@@ -15,6 +15,7 @@
 #include "system_state.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
+#include "projections.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -382,6 +383,17 @@ void display_data::create_meshes() {
 		glVertexAttribBinding(0, 0);
 		glVertexAttribBinding(1, 0);
 	}
+	{
+		// Create and populate the border VBO
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		// Bind the VBO to 0 of the VAO
+		glBindVertexBuffer(0, vbo_array[vo_arbitrary_map_triangles], 0, sizeof(square::point));
+		// Set up vertex attribute format for the position
+		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(square::point, data));
+		glEnableVertexAttribArray(0);
+		glVertexAttribBinding(0, 0);
+	}
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_trade_flow]);
@@ -458,6 +470,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto triangles_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_v.glsl"));
 	auto triangles_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_f.glsl"));
 
+	// even more generic on-map shader
+	auto map_triangle_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_v.glsl"));
+	auto map_triangle_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_f.glsl"));
+
 	// On-map sprite shader
 	auto sprite_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_v.glsl"));
 	auto sprite_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_f.glsl"));
@@ -502,6 +518,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 	shaders[shader_map_sprite] = create_program(*sprite_vshader, *sprite_fshader);
 	shaders[shader_textured_triangle] = create_program(*triangles_vshader, *triangles_fshader);
+	shaders[shader_map_triangle] = create_program(*map_triangle_vshader, *map_triangle_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
@@ -1074,6 +1091,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 
+	// arbitrary things
+
+	{
+		glDisable(GL_CULL_FACE);
+		load_shader(shader_map_triangle);
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		glMultiDrawArrays(GL_TRIANGLES, arbitrary_map_triangles_starts.data(), arbitrary_map_triangles_counts.data(), GLsizei(arbitrary_map_triangles_starts.size()));
+		glEnable(GL_CULL_FACE);
+	}
+
 	// trade flow
 	if(state.selected_trade_good && !trade_flow_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE0);
@@ -1097,102 +1125,102 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				state.ui_defs.gui[
 					state.ui_state.defs_by_name.find(
 						state.lookup_key("gfx_storage_commodity")
-					)->second.definition
+							)->second.definition
 				].data.image.gfx_object;
-			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto frame = state.world.commodity_get_icon(state.selected_trade_good);
-			auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+				auto& gfx_def = state.ui_defs.gfx[gfx_id];
+				auto frame = state.world.commodity_get_icon(state.selected_trade_good);
+				auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-			glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
 
-			glBindVertexArray(vao_array[vo_square]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-			const float speed = 0.5f;
+				const float speed = 0.5f;
 
-			bool spawned_something = false;
+				bool spawned_something = false;
 
-			for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-				auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
 
-				// update movement
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
-					auto direction = p.target_ - p.position_;
-					auto length = float(glm::length(direction));
-					if(length < speed * 2) {
-						p.trade_graph_node_prev = p.trade_graph_node_current;
-						p.trade_graph_node_current = p.trade_graph_node_next;
-						p.trade_graph_node_next = -1;
-					} else {
-						p.position_ += direction / length * speed;
-					}
-				}
-
-				// choose target
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
-					// choose next target according to probability
-					// use time as random engine for simplicity
-					auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
-
-					int target = -1;
-
-					auto accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
-						accumulated += probability;
-						// prevent trivial loops
-						if(random < accumulated && candidate != p.trade_graph_node_prev) {
-							target = candidate;
-							break;
+					// update movement
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
+						auto direction = p.target_ - p.position_;
+						auto length = float(glm::length(direction));
+						if(length < speed * 2) {
+							p.trade_graph_node_prev = p.trade_graph_node_current;
+							p.trade_graph_node_current = p.trade_graph_node_next;
+							p.trade_graph_node_next = -1;
+						} else {
+							p.position_ += direction / length * speed;
 						}
 					}
 
-					// moving to itself or having no paths to go out implies deletion
-					if(target == -1 || target == p.trade_graph_node_current) {
-						p.trade_graph_node_current = -1;
-					} else {
-						p.trade_graph_node_next = target;
-						p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
-					}
-				}
+					// choose target
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
+						// choose next target according to probability
+						// use time as random engine for simplicity
+						auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
 
+						int target = -1;
 
-				if(p.trade_graph_node_current != -1) {
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
-					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-				}
+						auto accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
+							accumulated += probability;
+							// prevent trivial loops
+							if(random < accumulated && candidate != p.trade_graph_node_prev) {
+								target = candidate;
+								break;
+							}
+						}
 
-				// spawn "new" particles
-				// don't spawn them too often
-				if(!spawned_something && p.trade_graph_node_current == -1) {
-					spawned_something = true;
-
-					auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
-
-					int target = -1;
-					float accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_creation_probability) {
-						accumulated += probability;
-						if(random < accumulated) {
-							target = candidate;
-							break;
+						// moving to itself or having no paths to go out implies deletion
+						if(target == -1 || target == p.trade_graph_node_current) {
+							p.trade_graph_node_current = -1;
+						} else {
+							p.trade_graph_node_next = target;
+							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
 						}
 					}
 
-					if(target != -1) {
-						p.trade_graph_node_current = target;
-						p.position_ = trade_node_position[target];
-						p.target_ = trade_node_position[target];
-						p.trade_graph_node_next = -1;
-						p.trade_graph_node_prev = -1;
+
+					if(p.trade_graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+
+					// spawn "new" particles
+					// don't spawn them too often
+					if(!spawned_something && p.trade_graph_node_current == -1) {
+						spawned_something = true;
+
+						auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
+
+						int target = -1;
+						float accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_creation_probability) {
+							accumulated += probability;
+							if(random < accumulated) {
+								target = candidate;
+								break;
+							}
+						}
+
+						if(target != -1) {
+							p.trade_graph_node_current = target;
+							p.position_ = trade_node_position[target];
+							p.target_ = trade_node_position[target];
+							p.trade_graph_node_next = -1;
+							p.trade_graph_node_prev = -1;
+						}
 					}
 				}
-			}
 		}
 	}
 
@@ -2938,7 +2966,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
-		auto real_text_size = size / (size_x * 2.f);
+		auto real_text_size = size / (size_x * 4.f);
 
 		// fixed step
 		
@@ -2997,13 +3025,19 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			float y_bearing = float(map_font_gi.ft_y_bearing) * letter_scale;
 
 			if(map_font_gi.curveCount > 0) {
-				glm::vec2 forward_direction = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-				glm::vec2 up_direction = glm::vec2(-forward_direction.y, forward_direction.x);
+				glm::vec2 forward_direction_raw = glm::vec2(ratio.x / (float)size_x, ratio.y / (float)size_y * dpoly_fn(x));
+				auto norm = sqrt(equirectangular::dot({ forward_direction_raw }, { forward_direction_raw }, (float)size_x, (float)size_y));
+				auto forward_direction = forward_direction_raw / norm * (float)size_x;
+				glm::vec2 up_direction = equirectangular::rotate_left({ forward_direction }, (float)size_x, (float)size_y).data;
+
+				auto actual_dot_product = equirectangular::dot({ forward_direction }, { up_direction }, (float)size_x, (float)size_y);
+
+				assert(actual_dot_product < 0.001f);
 
 				//forward_direction.x *= state.map_state.map_data.size_y / state.map_state.map_data.size_x;
 				//up_direction.x *= state.map_state.map_data.size_y / state.map_state.map_data.size_x;
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+				//glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
 
 				auto raw_central_point = glm::vec2(x, poly_fn(x)) * ratio + basis;
 				auto central_point = raw_central_point / glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
@@ -3011,7 +3045,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				// shift text down so "pen" stands at baseline
 				auto actual_center = central_point
 					+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up_direction * real_text_size / 64.f
-					+ (0.5f * glyph_width + x_offset + x_bearing) * forward_direction * real_text_size / 64.f;
+					+ (+glyph_width + x_offset) * forward_direction * real_text_size / 64.f;
 
 				float u0 = float(map_font_gi.ft_x_bearing) / (64.0f * text::dr_size);
 				float v0 = float(map_font_gi.ft_y_bearing - map_font_gi.ft_height) / (64.0f * text::dr_size);
@@ -3021,13 +3055,13 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				float height_scale = float(map_font_gi.ft_height) / (64.0f * text::dr_size);
 				float width_scale = float(map_font_gi.ft_width) / (64.0f * text::dr_size);
 
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, -height_scale), shader_direction, glm::vec2(u0, v0), real_text_size, map_font_gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), shader_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), forward_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, -height_scale), forward_direction, glm::vec2(u0, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), forward_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
 
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), shader_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, height_scale), shader_direction, glm::vec2(u1, v1), real_text_size, map_font_gi.bufferIndex);
-				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), shader_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), forward_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, height_scale), forward_direction, glm::vec2(u1, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), forward_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
 
 			}
 			auto current_spacing = letter_spacing_map;
