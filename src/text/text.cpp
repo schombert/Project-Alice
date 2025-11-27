@@ -975,6 +975,58 @@ dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n) {
 	return state.world.government_type_get_ruler_name(gov);
 }
 
+std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_name(state, n));
+}
+std::string get_name_as_string(sys::state& state, dcon::ideology_id n) {
+	return text::produce_simple_string(state, state.world.ideology_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::political_party_id n) {
+	return text::produce_simple_string(state, state.world.political_party_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::religion_id n) {
+	return text::produce_simple_string(state, state.world.religion_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::technology_id n){
+	return text::produce_simple_string(state, state.world.technology_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::culture_id n){
+	return text::produce_simple_string(state, state.world.culture_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::commodity_id n) {
+	return text::produce_simple_string(state, state.world.commodity_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::issue_id n) {
+	return text::produce_simple_string(state, state.world.issue_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::issue_option_id n) {
+	return text::produce_simple_string(state, state.world.issue_option_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::modifier_id n) {
+	return text::produce_simple_string(state, state.world.modifier_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::province_id n) {
+	return text::produce_simple_string(state, state.world.province_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::national_identity_id n) {
+	return text::produce_simple_string(state, state.world.national_identity_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::reform_option_id n) {
+	return text::produce_simple_string(state, state.world.reform_option_get_name(n));
+}
+std::string get_name_as_string(sys::state& state, dcon::state_definition_id n) {
+	return text::produce_simple_string(state, state.world.state_definition_get_name(n));
+}
+dcon::text_key get_adjective(sys::state& state, dcon::national_identity_id ident) {
+	return state.world.national_identity_get_adjective(ident);
+}
+std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
+std::string get_adjective_as_string(sys::state& state, dcon::national_identity_id n) {
+	return text::produce_simple_string(state, get_adjective(state, n));
+}
+
 std::string get_focus_category_name(sys::state const& state, nations::focus_type category) {
 	switch(category) {
 	case nations::focus_type::rail_focus:

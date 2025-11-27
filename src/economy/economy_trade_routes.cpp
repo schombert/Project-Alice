@@ -6,6 +6,8 @@
 #include "adaptive_ve.hpp"
 #include "province_templates.hpp"
 #include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
+#include "economy_templates.hpp"
 
 // implements trade routes
 // when changing logic of trade routes please update it everywhere

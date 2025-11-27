@@ -7,6 +7,7 @@
 #include "gui_trade_window.hpp"
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
+#include "economy_commands_data.hpp"
 #include "lua_alice_api.hpp"
 #include "demographics.hpp"
 #include "economy_pops.hpp"

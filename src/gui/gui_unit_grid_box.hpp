@@ -5,7 +5,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"

@@ -1,5 +1,6 @@
 #include "system_state.hpp"
 #include "serialization.hpp"
+#include "parsers_declarations.hpp"
 
 #ifndef UNICODE
 #define UNICODE

@@ -149,7 +149,7 @@ ef_change_party_position
 
 ef_change_factory_limit
 	trade_good                       value     text                           member_fn
-	value                            value     float                          member
+	value                            value     int                          member
 
 ef_random_list
 	#any                            extern      add_to_random_list  member_fn

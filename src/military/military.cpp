@@ -1,6 +1,6 @@
 #include "military.hpp"
 #include "military_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "prng.hpp"
 #include "effects.hpp"
 #include "events.hpp"

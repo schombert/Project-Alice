@@ -1,7 +1,60 @@
 #pragma once
 
 #include <vector>
-#include "dcon_generated.hpp"
+#include "unordered_dense.h"
+#include "dcon_generated_ids.hpp"
+
+namespace ui {
+
+struct chat_message {
+	dcon::nation_id source{};
+	dcon::nation_id target{};
+	std::string body;
+	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
+	std::unique_ptr<uint8_t> sender_name;
+
+	chat_message() {
+		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
+	}
+	chat_message(const chat_message& m) {
+		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+	}
+	chat_message(chat_message&&) = default;
+	chat_message& operator=(const chat_message& m) {
+		if(this == &m)
+			return *this;
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+		return *this;
+	}
+	chat_message& operator=(chat_message&&) = default;
+	~chat_message() {
+	}
+
+	bool operator==(chat_message const& o) const {
+		return source == o.source && target == o.target && body == o.body;
+	}
+	bool operator!=(chat_message const& o) const {
+		return !(*this == o);
+	}
+	void set_sender_name(const std::array<uint8_t, 24>& name) {
+		for(uint16_t i = 0; i < 24; i++) {
+			sender_name.get()[i] = name[i];
+		}
+	}
+	std::array<uint8_t, 24> get_sender_name() {
+		std::array<uint8_t, 24> result;
+		memcpy(&result, sender_name.get(), sizeof(result));
+		return result;
+	}
+};
+}
 
 namespace sys {
 struct state; // this is here simply to declare the state struct in a very general location
@@ -540,13 +593,4 @@ struct aui_pending_bytes {
 
 } // namespace sys
 
-namespace ogl {
 
-enum class color_modification {  none, disabled, interactable, interactable_disabled };
-struct color3f {
-	float r = 0.0f;
-	float g = 0.0f;
-	float b = 0.0f;
-};
-
-}

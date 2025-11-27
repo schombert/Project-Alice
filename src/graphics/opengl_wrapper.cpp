@@ -5,6 +5,9 @@
 #include "bmfont.hpp"
 #include "gui_element_base.hpp"
 
+#undef STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 namespace ogl {
 
 std::string_view opengl_get_error_name(GLenum t) {

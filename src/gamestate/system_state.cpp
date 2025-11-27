@@ -2,7 +2,6 @@
 #include <functional>
 #include <thread>
 #include "system_state.hpp"
-#include "dcon_generated.hpp"
 #include "lua_alice_api.hpp"
 #include "map_modes.hpp"
 #include "opengl_wrapper.hpp"

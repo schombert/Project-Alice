@@ -1,4 +1,7 @@
 #ifdef _WIN64 // WINDOWS
+#define UNICODE
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif

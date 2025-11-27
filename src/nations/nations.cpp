@@ -1,6 +1,6 @@
 #include "nations.hpp"
 #include "nations_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "modifiers.hpp"
 #include "politics.hpp"
