@@ -1905,6 +1905,11 @@ void state::on_create() {
 // string pool functions
 //
 
+
+void remove_carriage_returns(std::string& str) {
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+}
+
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
@@ -2046,17 +2051,41 @@ dcon::text_key state::add_key_utf8(std::string_view new_text) {
 	if(ekey)
 		return ekey;
 
-	auto start = key_data.size();
-	auto length = new_text.length();
-	if(length == 0)
-		return dcon::text_key();
-	key_data.resize(start + length + 1, char(0));
-	std::copy_n(new_text.data(), length, key_data.data() + start);
-	key_data.back() = 0;
+	auto found_pos = new_text.find_first_of('\r');
+	if(found_pos == std::string_view::npos) {
+		auto start = key_data.size();
+		auto length = new_text.length();
+		if(length == 0)
+			return dcon::text_key();
+		key_data.resize(start + length + 1, char(0));
+		std::copy_n(new_text.data(), length, key_data.data() + start);
+		key_data.back() = 0;
 
-	auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
-	untrans_key_to_text_sequence.insert(ret);
-	return ret;
+		auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
+		untrans_key_to_text_sequence.insert(ret);
+		return ret;
+	}
+	else {
+		std::string trimmed_str = std::string{ new_text };
+		auto rem_pos = std::remove(trimmed_str.begin(), trimmed_str.end(), '\r');
+		trimmed_str.erase(rem_pos, trimmed_str.end());
+
+		auto start = key_data.size();
+		auto length = trimmed_str.length();
+		if(length == 0)
+			return dcon::text_key();
+		key_data.resize(start + length + 1, char(0));
+		std::copy_n(trimmed_str.data(), length, key_data.data() + start);
+		key_data.back() = 0;
+
+		auto ret = dcon::text_key(dcon::text_key::value_base_t(start));
+		untrans_key_to_text_sequence.insert(ret);
+		return ret;
+
+
+	}
+
+	
 }
 uint32_t state::add_locale_data_win1252(std::string const& text) {
 	return add_locale_data_win1252(std::string_view(text));
