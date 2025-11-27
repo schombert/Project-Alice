@@ -414,7 +414,7 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 			if(result != -1 && S_ISREG(stat_buf.st_mode)) {
 				return std::optional<unopened_file>(unopened_file(full_path, file_name));
 			}
-			if(file_name.length() > 0 && isalpha(file_name[0]) {
+			if(file_name.length() > 0 && isalpha(file_name[0])) {
 				native_string other_filename{ file_name };
 				if(std::is_lower(file_name[0])) {
 					other_filename[0] = toupper(other_filename[0]);
@@ -437,7 +437,7 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 		if(result != -1 && S_ISREG(stat_buf.st_mode)) {
 			return std::optional<unopened_file>(unopened_file(full_path, file_name));
 		}
-		if(file_name.length() > 0 && isalpha(file_name[0]) {
+		if(file_name.length() > 0 && isalpha(file_name[0])) {
 			native_string other_filename{ file_name };
 			if(std::is_lower(file_name[0])) {
 				other_filename[0] = toupper(other_filename[0]);
