@@ -4,13 +4,16 @@
 #include <array>
 #include <chrono>
 #include "constants.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "unordered_dense.h"
 #include "container_types.hpp"
 #include "constants.hpp"
 #include "parsers.hpp"
 #include "cyto_any.hpp"
 #include "military.hpp"
+#include "simple_fs.hpp"
+#include "constants_ui.hpp"
+#include "container_types_ui.hpp"
 
 namespace parsers {
 struct building_gfx_context;
@@ -81,42 +84,6 @@ struct gfx_object {
 };
 static_assert(sizeof(gfx_object) == 16);
 
-enum class element_type : uint8_t { // 3 bits
-	button = 0x01,
-	text = 0x02,
-	image = 0x03,
-	position = 0x04,
-	overlapping = 0x05,
-	listbox = 0x06,
-	scrollbar = 0x07,
-	window = 0x00
-};
-
-enum class alignment : uint8_t { // 2 bits
-	left = 0x00,
-	right = 0x01,
-	centered = 0x02,
-	justified = 0x03
-};
-
-inline constexpr int32_t rotation_bit_offset = 3;
-enum class rotation : uint8_t { // 2 bits
-	upright = (0x00 << rotation_bit_offset),
-	r90_left = (0x01 << rotation_bit_offset),
-	r90_right = (0x02 << rotation_bit_offset)
-};
-
-inline constexpr int32_t orientation_bit_offset = 5;
-enum class orientation : uint8_t { // 3 bits
-	upper_left = (0x00 << orientation_bit_offset),
-	upper_right = (0x01 << orientation_bit_offset),
-	lower_left = (0x02 << orientation_bit_offset),
-	lower_right = (0x03 << orientation_bit_offset),
-	upper_center = (0x04 << orientation_bit_offset),
-	lower_center = (0x05 << orientation_bit_offset),
-	center = (0x06 << orientation_bit_offset)
-};
-
 struct text_base_data {
 	static constexpr uint16_t alignment_mask = 0x03;
 
@@ -129,23 +96,6 @@ struct text_base_data {
 	}
 };
 static_assert(sizeof(text_base_data) == 8);
-
-inline constexpr int32_t clicksound_bit_offset = 2;
-enum class clicksound : uint16_t { // 2 bits
-	none = (0x00 << clicksound_bit_offset),
-	click = (0x01 << clicksound_bit_offset),
-	close_window = (0x02 << clicksound_bit_offset),
-	start_game = (0x03 << clicksound_bit_offset)
-};
-
-inline constexpr int32_t checkbox_bit_offset = clicksound_bit_offset + 2;
-
-inline constexpr int32_t button_scripting_bit_offset = checkbox_bit_offset + 1;
-enum class button_scripting : uint16_t { // 2 bits
-	none = (0x00 << button_scripting_bit_offset),
-	province = (0x01 << button_scripting_bit_offset),
-	nation = (0x02 << button_scripting_bit_offset)
-};
 
 struct button_data : public text_base_data {
 	static constexpr uint16_t clicksound_mask = (0x03 << clicksound_bit_offset);
@@ -170,13 +120,6 @@ struct button_data : public text_base_data {
 };
 static_assert(sizeof(button_data) == sizeof(text_base_data) + 8);
 
-inline constexpr int32_t text_background_bit_offset = 2;
-enum class text_background : uint8_t { // 2 bits
-	none = (0x00 << text_background_bit_offset),
-	tiles_dialog = (0x01 << text_background_bit_offset),
-	transparency = (0x02 << text_background_bit_offset),
-	small_tiles_dialog = (0x03 << text_background_bit_offset)
-};
 
 struct text_data : public text_base_data {
 	static constexpr uint8_t background_mask = (0x03 << text_background_bit_offset);
@@ -383,54 +326,6 @@ class grid_box;
 
 template<class T>
 class unit_details_window;
-
-struct chat_message {
-	dcon::nation_id source{};
-	dcon::nation_id target{};
-	std::string body;
-	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
-	std::unique_ptr<uint8_t> sender_name;
-
-	chat_message() {
-		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
-	}
-	chat_message(const chat_message& m) {
-		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
-		source = m.source;
-		target = m.target;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-	}
-	chat_message(chat_message&&) = default;
-	chat_message& operator=(const chat_message& m) {
-		if(this == &m)
-			return *this;
-		source = m.source;
-		target = m.target;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-		return *this;
-	}
-	chat_message& operator=(chat_message&&) = default;
-	~chat_message() { }
-
-	bool operator==(chat_message const& o) const {
-		return source == o.source && target == o.target && body == o.body;
-	}
-	bool operator!=(chat_message const& o) const {
-		return !(*this == o);
-	}
-	void set_sender_name(const std::array<uint8_t, 24>& name) {
-		for(uint16_t i = 0; i < 24; i++) {
-			sender_name.get()[i] = name[i];
-		}
-	}
-	std::array<uint8_t, 24> get_sender_name() {
-		std::array<uint8_t, 24> result;
-		memcpy(&result, sender_name.get(), sizeof(result));
-		return result;
-	}
-};
 
 struct hash_text_key {
 	using is_avalanching = void;

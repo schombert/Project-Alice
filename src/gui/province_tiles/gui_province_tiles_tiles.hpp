@@ -7,6 +7,7 @@
 #include "military.hpp"
 #include "ai.hpp"
 #include "labour_details.hpp"
+#include "economy_tooltips.hpp"
 
 namespace ui {
 

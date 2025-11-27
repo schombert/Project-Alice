@@ -3,7 +3,7 @@
 #include "color.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "province.hpp"
 #include "nations.hpp"
 #include "economy_stats.hpp"

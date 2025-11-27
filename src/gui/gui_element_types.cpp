@@ -9,7 +9,7 @@
 #include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"

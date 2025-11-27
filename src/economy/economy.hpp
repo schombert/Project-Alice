@@ -1,8 +1,9 @@
 #pragma once
 
 #include "container_types.hpp"
-#include "dcon_generated.hpp"
-#include "commands.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state_forward.hpp"
+#include "constants.hpp"
 
 namespace economy {
 
@@ -225,7 +226,7 @@ std::vector<full_construction_province> estimate_private_investment_province(sys
 
 // NOTE: used to estimate how much you will pay if you were to subsidize a particular nation,
 // *not* how much you are paying at the moment
-float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon::nation_fat_id source);
+float estimate_war_subsidies(sys::state& state, dcon::nation_id target, dcon::nation_id source);
 
 float estimate_subject_payments_paid(sys::state& state, dcon::nation_id n);
 float estimate_subject_payments_received(sys::state& state, dcon::nation_id o);
@@ -292,6 +293,4 @@ bool do_resource_potentials_allow_construction(sys::state& state, dcon::nation_i
 bool do_resource_potentials_allow_upgrade(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type);
 bool do_resource_potentials_allow_refit(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id from, dcon::factory_type_id refit_target);
 
-command::budget_settings_data budget_minimums(sys::state& state, dcon::nation_id n);
-command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id n);
 } // namespace economy

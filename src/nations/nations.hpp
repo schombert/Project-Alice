@@ -1,5 +1,5 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "culture.hpp"
 #include "military.hpp"
 

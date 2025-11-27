@@ -18,6 +18,7 @@ test_fs_support_case_sensitivity
 
 # Generated parsers
 *_generated.hpp
+*_generated_ids.hpp
 *lua_dcon_generated.cpp
 *dcon_oos_reporter_generated.cpp
 */local_user_settings.hpp

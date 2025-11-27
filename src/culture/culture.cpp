@@ -1,5 +1,5 @@
 #include "culture.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "gui_element_base.hpp"
 #include "prng.hpp"

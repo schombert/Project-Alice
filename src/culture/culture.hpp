@@ -1,7 +1,9 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state_forward.hpp"
 #include <vector>
+#include "container_types.hpp"
 
 namespace issue_rule {
 

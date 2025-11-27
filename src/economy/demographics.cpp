@@ -1,5 +1,5 @@
 #include "demographics.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 #include "province_templates.hpp"
 #include "nations.hpp"

@@ -1,9 +1,11 @@
 #pragma once
 
+#include "system_state_forward.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include "map.hpp"
+#include "constants.hpp"
 
 namespace sys {
 struct state;

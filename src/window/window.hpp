@@ -2,6 +2,14 @@
 
 #include <chrono>
 
+#include "constants.hpp"
+#include "system_state_forward.hpp"
+
+namespace ui {
+class element_base;
+}
+
+
 struct ITfThreadMgr;
 
 namespace window {
@@ -29,6 +37,14 @@ public:
 }
 
 #ifdef _WIN64
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+#include "Windows.h"
+
 typedef struct HWND__* HWND;
 typedef struct HDC__* HDC;
 

@@ -3009,7 +3009,7 @@ void trade_dashboard_main_gdp_sphere_t::update_tooltip(sys::state& state, int32_
 			}
 		}
 		if(sphere) {
-			text::add_to_layout_box(state, contents, box, text::get_adjective_as_string(state, sphere));
+			text::add_to_layout_box(state, contents, box, text::get_adjective_as_string(state, sphere.id));
 		} else if (temp != selected_key) {
 			text::add_to_layout_box(state, contents, box, text::get_adjective_as_string(state, temp));
 		}

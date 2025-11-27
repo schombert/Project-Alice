@@ -1,6 +1,6 @@
 #pragma once
 #include <span>
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
 

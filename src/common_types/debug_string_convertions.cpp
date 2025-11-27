@@ -1,3 +1,8 @@
+#include "debug_string_convertions.hpp"
+#include "container_types.hpp"
+#include "military.hpp"
+#include "modifiers.hpp"
+
 namespace sys {
 std::string to_debug_string(const event_option& obj) {
 	return "(name;ai_chance;effect) => " + std::to_string(obj.name.value) + ";" + std::to_string(obj.ai_chance.value) + ";" + std::to_string(obj.effect.value);

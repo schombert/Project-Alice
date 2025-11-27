@@ -1,6 +1,6 @@
 #pragma once
 
-// #include "../gamestate/system_state.hpp"
+#include "../gamestate/system_state_forward.hpp"
 
 namespace map_mode {
 
