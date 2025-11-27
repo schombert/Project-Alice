@@ -2,8 +2,8 @@ message(STATUS "Fetching DataContainer...")
 
 FetchContent_Declare(
 	DataContainer
-	GIT_REPOSITORY https://github.com/ineveraskedforthis/DataContainer/
-	GIT_TAG to_upstream
+	GIT_REPOSITORY https://github.com/schombert/DataContainer
+	GIT_TAG master
 	GIT_SHALLOW 1
 	GIT_PROGRESS TRUE
 )
