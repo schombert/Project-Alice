@@ -787,7 +787,7 @@ void fileseperators_from_standard_to_native(std::vector<char> input) {
 }
 
 std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char> input) {
-	std::span<char> result{ input };
+	std::vector<char> result{ input };
 	for(char& c : result) {
 		if(c == '/') {
 			c = '\\';
@@ -796,7 +796,7 @@ std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<
 	return result;
 }
 std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char> input) {
-	std::span<char> result{ input };
+	std::vector<char> result{ input };
 	for(char& c : result) {
 		if(c == '\\') {
 			c = '/';
