@@ -13,6 +13,8 @@
 
 #include "economy_pops.hpp"
 
+#include "projections.hpp"
+
 //#include <filesystem>
 
 #include <set>
@@ -1028,6 +1030,37 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	}
 }
 
+void clear_drawing(sys::state& state, display_data& map_data) {
+	map_data.arbitrary_map_triangles_counts.clear();
+	map_data.arbitrary_map_triangles_starts.clear();
+	map_data.arbitrary_map_triangles.clear();
+	map_data.new_arbitrary_map_triangle = true;
+}
+
+void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size) {
+	auto current_size = map_data.arbitrary_map_triangles.size();
+	map_data.arbitrary_map_triangles_starts.push_back(GLint(current_size));
+
+	square::point top_right = { {x.data.x + size, x.data.y + size} };
+	square::point top_left = { {x.data.x - size, x.data.y + size} };
+	square::point bottom_right = { {x.data.x + size, x.data.y - size} };
+	square::point bottom_left = { {x.data.x - size, x.data.y - size} };
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(top_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_right);
+
+	map_data.arbitrary_map_triangles_counts.push_back(
+		GLsizei(map_data.arbitrary_map_triangles.size() - current_size)
+	);
+
+	map_data.new_arbitrary_map_triangle = true;
+}
+
 void update_unit_arrows(sys::state& state, display_data& map_data) {
 	map_data.unit_arrow_vertices.clear();
 	map_data.unit_arrow_counts.clear();
@@ -1265,6 +1298,9 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
+
+	//clear_drawing(state, state.map_state.map_data);
+
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
 	std::vector<bool> visited(65536, false);
@@ -1273,6 +1309,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 	std::vector<uint16_t> group_of_regions;
 
 	std::unordered_map<uint16_t, std::set<uint16_t>> regions_graph;
+
+	std::vector<dcon::nation_id> sea_owner;
+	sea_owner.resize(state.world.province_size());
 
 	// generate graph of regions:
 	for(auto candidate : state.world.in_province) {
@@ -1309,6 +1348,44 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
+
+	// update mapping from provinces to regions
+
+	for(auto p : state.world.in_province) {
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(owner) {
+			continue;
+		}
+
+		dcon::nation_id current_owner = { };
+		bool sea_is_claimed = false;
+
+		for(auto neigh : p.get_province_adjacency()) {
+			auto other_idx = neigh.get_connected_provinces(0) != p.id ? 0 : 1;
+			auto other = neigh.get_connected_provinces(other_idx);
+
+			auto other_owner = other.get_nation_from_province_ownership();
+
+			if(other_owner.id) {
+				if(!current_owner) {
+					current_owner = other_owner;
+					sea_is_claimed = true;
+				} else {
+					auto top_overlord = get_top_overlord(state, other_owner);
+					if(top_overlord != current_owner) {
+						sea_is_claimed = false;
+					}
+				}
+			}
+		}
+
+		if(sea_is_claimed) {
+			sea_owner[p.id.index()] = current_owner;
+		} else {
+			sea_owner[p.id.index()] = { };
+		}
+	}
+
 	for(auto p : state.world.in_province) {
 		if(p.id.index() >= state.province_definitions.first_sea_province.index())
 			break;
@@ -1472,8 +1549,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			continue;
 		}
 
-		float step_x = 10.f;
-		float step_y = 10.f;
+		float step_x = 40.f;
+		float step_y = 25.f;
 
 		std::vector<glm::vec3> points;
 		std::vector<glm::vec2> bad_points;
@@ -1487,10 +1564,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float rough_box_height = rough_box_top - rough_box_bottom;
 
 		float rough_box_ratio = rough_box_width / rough_box_height;
-		float height_steps = 20.f;
-		float width_steps = std::max(10.f, height_steps * rough_box_ratio);
+		int height_steps = 30;
+		int width_steps = 30; //(int)std::max(10.f, (float)height_steps* rough_box_ratio);
 
-		glm::vec2 local_step = glm::vec2(rough_box_width, rough_box_height) / glm::vec2(width_steps, height_steps);
+		glm::vec2 local_step = glm::vec2(rough_box_width, rough_box_height) / glm::vec2((float)width_steps, (float)height_steps);
 
 		float best_y = 0.f;
 		//float best_y_length = 0.f;
@@ -1507,17 +1584,141 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
 			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
 			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			if(!pid) {
+				return 0.f;
+			}
 			auto owner = state.world.province_get_nation_from_province_ownership(pid);
-			if(!owner) return -1.f;
+			if(!owner) {
+				if(sea_owner[pid.index()] == n) {
+					return 0.85f;
+				}
+				return 0.2f;
+			}
 			for(auto visited_region : group_of_regions) {
 				if(state.world.province_get_connected_region_id(pid) == visited_region) {
 					return 1.f;
 				}
 			}
-			return -4.f;
+			return 0.f;
 		};
 
+		std::vector<float> original_weights{ };
+		std::vector<float> weights_buffer{ };
+		std::vector<glm::vec3> grid{ };
+
+		auto get = [&](int x, int y) {
+			return grid[y * width_steps + x].z;
+		};
+
+		for(int j = 0; j < height_steps; j++) {
+			for(int i = 0; i < width_steps; i++) {
+				float y = rough_box_bottom + float(j) * local_step.y;
+				float x = rough_box_left + float(i) * local_step.x;
+				//glm::vec2 candidate = { x, y };
+				float weight = check_point(x, y);
+				grid.push_back(glm::vec3{ x, y, weight });
+				original_weights.push_back(weight);
+				weights_buffer.push_back(0.f);
+			}
+		}
+
+		for(int iteration = 0; iteration < 10; iteration++) {
+			// smooth image
+			{		
+				float corner = 1.f;
+				float edge = 2.f;
+				float center = 3.f;
+
+				float total = 4.f * corner + 4.f * edge + center;
+
+				corner /= total;
+				edge /= total;
+				center /= total;
+
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						if(i == 0 || j == 0 || i == width_steps - 1 || j == height_steps - 1) {
+							weights_buffer[j * width_steps + i] = 0.f;
+							continue;
+						}
+
+						auto smooth =
+							corner * get(i - 1, j - 1) + edge * get(i - 1, j) + corner * get(i - 1, j + 1)
+							+ edge * get(i, j - 1) + center * get(i, j) + edge * get(i, j + 1)
+							+ edge * get(i + 1, j - 1) + center * get(i + 1, j) + edge * get(i + 1, j + 1);
+
+						weights_buffer[j * width_steps + i] = std::min(3.f, smooth * (0.05f + original_weights[j * width_steps + i]));
+					}
+				}
+			}
+
+			// push buffer to grid:
+			{
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						grid[j * width_steps + i].z = weights_buffer[j * width_steps + i];
+					}
+				}
+			}
+
+			// threshold
+			{
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						if(grid[j * width_steps + i].z < 0.2f) {
+							grid[j * width_steps + i].z = 0.f;
+						}
+					}
+				}
+			}
+		}
+
+		for(int j = 0; j < height_steps; j++) {
+			for(int i = 0; i < width_steps; i++) {
+				if(grid[j * width_steps + i].z > 0.5f) {
+					points.push_back(grid[j * width_steps + i]);
+				}
+			}
+		}
+
+		/*
+		// remove edges
+		for(int j = 0; j < height_steps; j++) {
+			for(int i = 0; i < width_steps; i++) {
+				bool is_edge = false;
+				if(i == 0 || j == 0) {
+					is_edge = true;
+				}
+				if(i == width_steps - 1 || j == height_steps - 1) {
+					is_edge = true;
+				}
+				{
+					auto x = grid[j * width_steps + i].x;
+					auto y = grid[j * width_steps + i].y;
+					auto weight = grid[j * width_steps + i].z;
+					draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00005f * weight);
+				}
+				
+				if(!is_edge) {
+					auto sobel_i =
+						get(i - 1, j - 1) + 2.f * get(i - 1, j) + get(i - 1, j + 1)
+						- (get(i + 1, j - 1) + 2.f * get(i + 1, j) + get(i + 1, j + 1));
+					auto sobel_j =
+						get(i - 1, j - 1) + 2.f * get(i, j - 1) + get(i + 1, j - 1)
+						- (get(i - 1, j + 1) + 2.f * get(i, j + 1) + get(i + 1, j + 1));
+
+					auto grad_norm = sqrt(sobel_i * sobel_i + sobel_j * sobel_j);
+
+					if(grad_norm > 0.2f) {
+						continue;
+					}
+				}
+			}
+		}
+		*/
+
 		// prepare points for a local grid
+		/*
 		float aversion_radius = 1.5f;
 		for(int roughness = 1; roughness < 3; roughness++) {		
 			for(int j = 0; j < height_steps / roughness; j++) {
@@ -1536,11 +1737,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 					if(weight >= 2.f) {
 						points.push_back(glm::vec3{ candidate, weight });
+
+						
 					}
 				}
 			}
 		}
-
+		*/
 		// print points into files
 
 		static int file_index = 0;
@@ -1915,6 +2118,18 @@ void map_state::update(sys::state& state) {
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
+
+	if(state.map_state.map_data.new_arbitrary_map_triangle) {
+		state.map_state.map_data.new_arbitrary_map_triangle = false;
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_arbitrary_map_triangles]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(square::point)
+			* map_data.arbitrary_map_triangles.size(),
+			map_data.arbitrary_map_triangles.data(),
+			GL_STATIC_DRAW
+		);
+	}
 
 	if(state.selected_trade_good && state.update_trade_flow.load(std::memory_order::acquire)) {
 		update_trade_flow_arrows(state, map_data);

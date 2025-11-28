@@ -5,7 +5,8 @@
 #include "economy_trade_routes.hpp"
 #include "construction.hpp"
 #include "demographics.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "economy_templates.hpp"
 #include "ai_economy.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
@@ -4388,11 +4389,11 @@ float estimate_naval_spending(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon::nation_fat_id source) {
+float estimate_war_subsidies(sys::state& state, dcon::nation_id target, dcon::nation_id source) {
 	/* total-nation-tax-base x defines:WARSUBSIDIES_PERCENT */
 
-	auto target_m_costs = (target.get_total_rich_income() + target.get_total_middle_income() + target.get_total_poor_income()) * state.defines.warsubsidies_percent;
-	auto source_m_costs = (source.get_total_rich_income() + source.get_total_middle_income() + source.get_total_poor_income()) * state.defines.warsubsidies_percent;
+	auto target_m_costs = (state.world.nation_get_total_rich_income(target) + state.world.nation_get_total_middle_income(target) + state.world.nation_get_total_poor_income(target)) * state.defines.warsubsidies_percent;
+	auto source_m_costs = (state.world.nation_get_total_rich_income(source) + state.world.nation_get_total_middle_income(source) + state.world.nation_get_total_poor_income(source)) * state.defines.warsubsidies_percent;
 	return std::min(target_m_costs, source_m_costs);
 }
 

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "dcon_generated.hpp"
-#include "system_state.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state_forward.hpp"
 #include "container_types.hpp"
+#include "date_interface.hpp"
 
 namespace diplomatic_message {
 

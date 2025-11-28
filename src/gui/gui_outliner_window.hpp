@@ -4,6 +4,7 @@
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "unit_tooltip.hpp"
+#include "economy_tooltips.hpp"
 
 namespace ui {
 

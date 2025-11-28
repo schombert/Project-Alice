@@ -1,5 +1,26 @@
 #pragma once
 
+#ifndef GLEW_STATIC
+#define GLEW_STATIC
+#endif
+#include "glew.h"
+#include "constants_ui.hpp"
+#include "dcon_generated_ids.hpp"
+#include "unordered_dense.h"
+#include "container_types_ui.hpp"
+#include "fonts.hpp"
+
+
+namespace text {
+struct text_chunk;
+struct endless_layout;
+struct layout;
+}
+
+namespace ogl {
+struct color3f;
+}
+
 namespace sys {
 struct state;
 };

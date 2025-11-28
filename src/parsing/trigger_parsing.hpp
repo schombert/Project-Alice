@@ -2725,10 +2725,10 @@ struct trigger_body {
 					"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-		} else if(auto it = context.outer_context.map_of_region_names.find(std::string(v)); it != context.outer_context.map_of_region_names.end()) {
+		} else if(auto it_region = context.outer_context.map_of_region_names.find(std::string(v)); it_region != context.outer_context.map_of_region_names.end()) {
 			if(context.main_slot == trigger::slot_contents::nation) {
 				context.compiled_trigger.push_back(uint16_t(trigger::owns_region_proper | association_to_bool_code(a)));
-				context.compiled_trigger.push_back(trigger::payload(it->second).value);
+				context.compiled_trigger.push_back(trigger::payload(it_region->second).value);
 			} else {
 				err.accumulated_errors += "owns trigger used in an incorrect scope type " + slot_contents_to_string(context.main_slot) +
 					"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
@@ -3549,7 +3549,7 @@ struct trigger_body {
 				return;
 			}
 			context.compiled_trigger.push_back(trigger::payload(it->second).value);
-		} else if(auto it = context.outer_context.map_of_region_names.find(std::string(value)); it != context.outer_context.map_of_region_names.end()) {
+		} else if(auto it_region = context.outer_context.map_of_region_names.find(std::string(value)); it_region != context.outer_context.map_of_region_names.end()) {
 			if(context.main_slot == trigger::slot_contents::province) {
 				context.compiled_trigger.push_back(uint16_t(trigger::region_proper | association_to_bool_code(a)));
 			} else if(context.main_slot == trigger::slot_contents::state) {
@@ -3561,7 +3561,7 @@ struct trigger_body {
 					"(" + err.file_name + ", line " + std::to_string(line) + ")\n";
 				return;
 			}
-			context.compiled_trigger.push_back(trigger::payload(it->second).value);
+			context.compiled_trigger.push_back(trigger::payload(it_region->second).value);
 		} else {
 			err.accumulated_errors +=
 					"region trigger not supplied with a state name (" + err.file_name + ", line " + std::to_string(line) + ")\n";

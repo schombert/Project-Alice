@@ -1,5 +1,7 @@
 #pragma once
 
+#include "system_state_forward.hpp"
+#include "container_types.hpp"
 #include "economy_stats.hpp"
 
 // this .cpp and .hpp pair of files contains:

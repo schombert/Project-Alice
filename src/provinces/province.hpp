@@ -1,7 +1,10 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "constants.hpp"
+#include "unordered_dense.h"
+#include "container_types.hpp"
+#include "system_state_forward.hpp"
 
 namespace province {
 

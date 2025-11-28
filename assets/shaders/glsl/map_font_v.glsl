@@ -1,6 +1,6 @@
 // Goes from 0 to 1
 layout (location = 0) in vec2 vertex_position;
-layout (location = 1) in vec2 normal_direction;
+layout (location = 1) in vec2 corner_direction;
 layout (location = 2) in vec2 direction;
 layout (location = 3) in vec2 vertexUV;
 layout (location = 4) in float thickness;
@@ -94,16 +94,24 @@ default: break;
 	return vec4(0.f);
 }
 
+vec2 rotate(vec2 v) {
+	vec2 scaled = v * map_size;
+	vec2 rotated = vec2(-scaled.y, scaled.x);
+	return rotated / map_size;
+}
+
 void main() {
-	vec2 unadj_direction = vec2(direction.x / 2.0f, direction.y);
-	vec2 unadj_normal = vec2(-direction.y / 2.0f, direction.x);
+	//vec2 unadj_direction = vec2(direction.x / 2.f, direction.y);
+	//vec2 unadj_normal = vec2(-direction.y / 2.f, direction.x);
+
+	vec2 normal_dir = rotate(direction);
 
 	vec4 center_point = calc_gl_position(vertex_position);
-	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_direction * 0.0001) - center_point);
+	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + direction * 0.0001) - center_point);
 
-	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + unadj_normal * 0.0001) - center_point);
+	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + normal_dir * 0.0001) - center_point);
 
-	vec4 temp_result = center_point + (normal_direction.x * right_point + normal_direction.y * top_point);
+	vec4 temp_result = center_point + (corner_direction.x * right_point + corner_direction.y * top_point);
     
     float opacity = 1.f;    
     opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);

@@ -1,6 +1,6 @@
 #include "province.hpp"
 #include "province_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "nations.hpp"
 #include "system_state.hpp"
