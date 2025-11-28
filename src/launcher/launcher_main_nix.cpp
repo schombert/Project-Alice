@@ -1031,45 +1031,45 @@ int create_window() {
 	}
 
 	if(font_set_load == 0) {
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/LibreCaslonText-Regular.ttf"));
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Regular.ttf"));
 		if(font_a) {
 			auto file_content = simple_fs::view_contents(*font_a);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[0], file_content.data, file_content.file_size);
 		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/LibreCaslonText-Italic.ttf"));
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/LibreCaslonText-Italic.ttf"));
 		if(font_b) {
 			auto file_content = simple_fs::view_contents(*font_b);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[1], file_content.data, file_content.file_size);
 		}
 	} else if(font_set_load == 1) { //chinese
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/STZHONGS.TTF"));
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/STZHONGS.TTF"));
 		if(font_a) {
 			auto file_content = simple_fs::view_contents(*font_a);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[0], file_content.data, file_content.file_size);
 		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/STZHONGS.TTF"));
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/STZHONGS.TTF"));
 		if(font_b) {
 			auto file_content = simple_fs::view_contents(*font_b);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[1], file_content.data, file_content.file_size);
 		}
 	} else if(font_set_load == 2) { //arabic
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/NotoNaskhArabic-Bold.ttf"));
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Bold.ttf"));
 		if(font_a) {
 			auto file_content = simple_fs::view_contents(*font_a);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[0], file_content.data, file_content.file_size);
 		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/NotoNaskhArabic-Regular.ttf"));
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoNaskhArabic-Regular.ttf"));
 		if(font_b) {
 			auto file_content = simple_fs::view_contents(*font_b);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[1], file_content.data, file_content.file_size);
 		}
 	} else if(font_set_load == 3) { //cyrillic
-		auto font_a = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/NotoSerif-Regular.ttf"));
+		auto font_a = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerif-Regular.ttf"));
 		if(font_a) {
 			auto file_content = simple_fs::view_contents(*font_a);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[0], file_content.data, file_content.file_size);
 		}
-		auto font_b = simple_fs::open_file(root, NATIVE("assets/launcher::ogl::fonts/NotoSerif-Regular.ttf"));
+		auto font_b = simple_fs::open_file(root, NATIVE("assets/fonts/NotoSerif-Regular.ttf"));
 		if(font_b) {
 			auto file_content = simple_fs::view_contents(*font_b);
 			launcher::ogl::font_collection.load_font(launcher::ogl::fonts[1], file_content.data, file_content.file_size);
