@@ -304,6 +304,7 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
 	ptr_in = deserialize(ptr_in, state.key_data);
+	simple_fs::fileseperators_from_standard_to_native(state.key_data);
 	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
@@ -492,7 +493,7 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.effect_data_indices);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
-	ptr_in = serialize(ptr_in, state.key_data);
+	ptr_in = serialize(ptr_in, simple_fs::fileseperators_from_native_to_standard_copy(state.key_data));
 	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 

@@ -771,4 +771,40 @@ native_string correct_slashes(native_string_view path) {
 	return res;
 }
 
+void fileseperators_from_native_to_standard(std::vector<char>input) {
+	for(char& c : input) {
+		if(c == '/') {
+			c = '\\';
+		}
+	}
+}
+void fileseperators_from_standard_to_native(std::vector<char> input) {
+	for(char& c : input) {
+		if(c == '\\') {
+			c = '/';
+		}
+	}
+}
+
+std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char> input) {
+	std::span<char> result{ input };
+	for(char& c : result) {
+		if(c == '/') {
+			c = '\\';
+		}
+	}
+	return result;
+}
+std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char> input) {
+	std::span<char> result{ input };
+	for(char& c : result) {
+		if(c == '\\') {
+			c = '/';
+		}
+	}
+	return result;
+}
+
+
+
 } // namespace simple_fs
