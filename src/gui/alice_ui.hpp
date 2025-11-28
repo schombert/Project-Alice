@@ -862,6 +862,26 @@ public:
 	friend struct layout_iterator;
 };
 
+template<std::unique_ptr<ui::element_base>(*GEN_FN)(sys::state&) >
+void display_at_front(sys::state& state) {
+	static const ui::element_base* saved_ptr = [&]() {
+		auto current_root = state.current_scene.get_root(state);
+		auto new_item = GEN_FN(state);
+		auto ptr = new_item.get();
+		current_root->add_child_to_back(std::move(new_item));
+		return ptr;
+	}();
+
+	auto current_root = state.current_scene.get_root(state);
+	if(saved_ptr->parent != current_root) {
+		auto take_child = saved_ptr->parent->remove_child(state.ui_state.popup_menu);
+		current_root->add_child_to_front(std::move(take_child));
+	} else {
+		current_root->move_child_to_front(saved_ptr);
+	}
+	saved_ptr->set_visible(state, true);
+}
+
 namespace budget_categories {
 inline constexpr int32_t diplomatic_income = 0;
 inline constexpr int32_t poor_tax = 1;
