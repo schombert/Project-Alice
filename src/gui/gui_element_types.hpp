@@ -517,7 +517,8 @@ protected:
 	int32_t mouse_entry_position = 0;
 	int32_t temp_selection_start = 0;
 	int32_t temp_selection_end = 0;
-	
+	std::chrono::steady_clock::time_point last_activated;
+
 	bool multiline = false;
 	bool changes_made = false;
 
@@ -530,6 +531,9 @@ protected:
 	int32_t visually_right_on_line(int32_t line);
 	ui::urect get_edit_bounds(sys::state& state) const;
 public:
+	int32_t template_id = -1;
+	bool disabled = false;
+
 	void set_text(sys::state& state, std::u16string const& new_text);
 
 	virtual void edit_box_update(sys::state& state, std::u16string_view s) noexcept { }

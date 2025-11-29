@@ -679,11 +679,32 @@ void button_element_base::on_create(sys::state& state) noexcept {
 }
 
 void edit_box_element_base::internal_move_cursor_to_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) {
-	auto xpos = x - base_data.data.text.border_size.x;
-	auto ypos = y - base_data.data.text.border_size.y;
+	int32_t hmargin = 0;
+	int32_t vmargin = 0;
+	uint16_t fonthandle = 0;
+	float lineheight = 0;
 
-	auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
-	auto lineheight = state.font_collection.line_height(state, fonthandle);
+	if(template_id != -1) {
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+		hmargin = int32_t(state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size);
+
+		fonthandle = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+		lineheight = state.font_collection.line_height(state, fonthandle);
+		switch(state.ui_templates.button_t[template_id].primary.v_text_alignment) {
+		case template_project::aui_text_alignment::center: vmargin = int32_t((base_data.size.y - lineheight) / 2); break;
+		case template_project::aui_text_alignment::left: vmargin = int32_t(state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size);  break;
+		case template_project::aui_text_alignment::right: vmargin = int32_t(base_data.size.y - lineheight - state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size); break;
+		}
+	} else {
+		hmargin = base_data.data.text.border_size.x;
+		vmargin = base_data.data.text.border_size.y;
+		fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+		lineheight = state.font_collection.line_height(state, fonthandle);
+	}
+
+	auto xpos = x - hmargin;
+	auto ypos = y - vmargin;
+
 
 	auto line = int32_t(ypos / lineheight);
 	if(!multiline) {
@@ -756,11 +777,31 @@ void edit_box_element_base::set_text_selection(sys::state& state, int32_t cursor
 	internal_on_selection_changed(state);
 }
 sys::text_mouse_test_result edit_box_element_base::detailed_text_mouse_test(sys::state& state, int32_t x, int32_t y) noexcept {
-	auto xpos = x - base_data.data.text.border_size.x;
-	auto ypos = y - base_data.data.text.border_size.y;
+	int32_t hmargin = 0;
+	int32_t vmargin = 0;
+	uint16_t fonthandle = 0;
+	float lineheight = 0;
 
-	auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
-	auto lineheight = state.font_collection.line_height(state, fonthandle);
+	if(template_id != -1) {
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+		hmargin = int32_t(state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size);
+
+		fonthandle = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+		lineheight = state.font_collection.line_height(state, fonthandle);
+		switch(state.ui_templates.button_t[template_id].primary.v_text_alignment) {
+		case template_project::aui_text_alignment::center: vmargin = int32_t((base_data.size.y - lineheight) / 2); break;
+		case template_project::aui_text_alignment::left: vmargin = int32_t(state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size);  break;
+		case template_project::aui_text_alignment::right: vmargin = int32_t(base_data.size.y - lineheight - state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size); break;
+		}
+	} else {
+		hmargin = base_data.data.text.border_size.x;
+		vmargin = base_data.data.text.border_size.y;
+		fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+		lineheight = state.font_collection.line_height(state, fonthandle);
+	}
+
+	auto xpos = x - hmargin;
+	auto ypos = y - vmargin;
 
 	auto line = int32_t(ypos / lineheight);
 	if(!multiline) {
@@ -1027,14 +1068,10 @@ void edit_box_element_base::on_reset_text(sys::state& state) noexcept {
 	} else if(base_data.get_element_type() == element_type::text) {
 		u16_text_element_base::black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
 	}
+	internal_on_text_changed(state);
 }
 
 void edit_box_element_base::on_create(sys::state& state) noexcept {
-	if(base_data.get_element_type() == element_type::button) {
-		//u16_text_element_base::text_offset = 0.0f;
-	} else if(base_data.get_element_type() == element_type::text) {
-		//u16_text_element_base::text_offset = base_data.data.text.border_size.x;
-	}
 	on_reset_text(state);
 	ts_obj = state.win_ptr->text_services.create_text_service_object(state, *this);
 }
@@ -1056,8 +1093,18 @@ void edit_box_element_base::set_cursor_visibility(sys::state& state, bool visibl
 	// TODO: create/destroy system caret
 #ifdef _WIN64
 	if(visible) {
-		auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
-		auto lineheight = state.font_collection.line_height(state, fonthandle);
+		uint16_t fonthandle = 0;
+		float lineheight = 0;
+
+		if(template_id != -1) {
+			alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+			fonthandle = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+			lineheight = state.font_collection.line_height(state, fonthandle);
+		} else {
+			fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+			lineheight = state.font_collection.line_height(state, fonthandle);
+		}
+
 		CreateCaret(state.win_ptr->hwnd, nullptr, 1, int32_t(lineheight * state.user_settings.ui_scale));
 	} else {
 		DestroyCaret();
@@ -1070,16 +1117,33 @@ void edit_box_element_base::on_lose_focus(sys::state& state) noexcept {
 	changes_made = false;
 }
 void edit_box_element_base::on_hover(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
 	window::change_cursor(state, window::cursor_type::text);
 }
 void edit_box_element_base::on_hover_end(sys::state& state) noexcept {
+	last_activated = std::chrono::steady_clock::now();
 	window::change_cursor(state, window::cursor_type::normal);
 }
 void edit_box_element_base::internal_on_text_changed(sys::state& state) {
 	changes_made = true;
 
 	//TODO multiline must save and restore visible line
-	if(base_data.get_element_type() == element_type::button) {
+	if(template_id != -1) {
+		glyph_details.grapheme_placement.clear();
+		glyph_details.total_lines = 0;
+
+		internal_layout.contents.clear();
+		internal_layout.number_of_lines = 0;
+
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+		auto hmargin = int32_t(state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size);
+		auto al = text::to_text_alignment(base_data.data.button.get_alignment());
+		auto fh = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+
+		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - hmargin * 2), static_cast<int16_t>(base_data.size.y), fh, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+		sl.edit_details = &glyph_details;
+		sl.add_text(state, cached_text);
+	} else if(base_data.get_element_type() == element_type::button) {
 		glyph_details.grapheme_placement.clear();
 		glyph_details.total_lines = 0;
 
@@ -1121,6 +1185,24 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 	// if(acc_obj && win.is_visible(l_id))
 	// 	win.accessibility_interface.on_text_selection_changed(acc_obj);
 	
+	int32_t hmargin = 0;
+	int32_t vmargin = 0;
+
+	if(template_id != -1) {
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+		hmargin = int32_t(state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size);
+
+		auto fh = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+		auto linesz = state.font_collection.line_height(state, fh);
+		switch(state.ui_templates.button_t[template_id].primary.v_text_alignment) {
+		case template_project::aui_text_alignment::center: vmargin = int32_t((base_data.size.y - linesz) / 2); break;
+		case template_project::aui_text_alignment::left: vmargin = int32_t(state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size);  break;
+		case template_project::aui_text_alignment::right: vmargin = int32_t(base_data.size.y - linesz - state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size); break;
+		}
+	} else {
+		hmargin = base_data.data.text.border_size.x;
+		vmargin = base_data.data.text.border_size.y;
+	}
 
 	if(state.ui_state.edit_target_internal == this) {
 #ifdef _WIN64
@@ -1134,7 +1216,7 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 		if(glyph_details.grapheme_placement.size() == 0) {
 			rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
 			if(rtl)
-				cursor_x = base_data.size.x - base_data.data.text.border_size.x * 2;
+				cursor_x = base_data.size.x - hmargin * 2;
 		} else {
 			if(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
 				rtl = glyph_details.grapheme_placement[cursor_position].has_rtl_directionality();
@@ -1153,8 +1235,8 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 			}
 		}
 
-		auto xpos = float(location.x + base_data.data.text.border_size.x + cursor_x);
-		auto ypos = float(location.y + base_data.data.text.border_size.y);
+		auto xpos = float(location.x + hmargin + cursor_x);
+		auto ypos = float(location.y + vmargin);
 
 		SetCaretPos(int32_t(xpos), int32_t(ypos));
 #endif
@@ -1169,6 +1251,9 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 }
 
 void edit_box_element_base::insert_codepoint(sys::state& state, uint32_t codepoint, sys::key_modifiers mods) {
+	if(disabled)
+		return;
+
 	if(!multiline && (codepoint == uint32_t('\n') || codepoint == uint32_t('\r')))
 		return;
 
@@ -1245,8 +1330,18 @@ ui::urect edit_box_element_base::text_bounds(sys::state& state, int32_t position
 	int32_t right = 0;
 	int32_t bottom = 0;
 	bool first = true;
-	auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
-	auto lineheight = state.font_collection.line_height(state, fonthandle);
+
+	uint16_t fonthandle = 0;
+	float lineheight = 0;
+
+	if(template_id != -1) {
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+		fonthandle = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+		lineheight = state.font_collection.line_height(state, fonthandle);
+	} else {
+		fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+		lineheight = state.font_collection.line_height(state, fonthandle);
+	}
 
 	auto abs_pos = ui::get_absolute_location(state, *this);
 
@@ -1267,7 +1362,26 @@ ui::urect edit_box_element_base::text_bounds(sys::state& state, int32_t position
 		}
 	}
 	if(!first) {
-		return urect{ {int16_t(abs_pos.x + base_data.data.text.border_size.x + left),int16_t(abs_pos.y + base_data.data.text.border_size.y + top)},{int16_t(right - left), int16_t(bottom-top) } };
+		int32_t hmargin = 0;
+		int32_t vmargin = 0;
+
+		if(template_id != -1) {
+			alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+			hmargin = int32_t(state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size);
+
+			auto fh = text::make_font_id(state, state.ui_templates.button_t[template_id].primary.font_choice == 1, state.ui_templates.button_t[template_id].primary.font_scale * par->grid_size * 2);
+			auto linesz = state.font_collection.line_height(state, fh);
+			switch(state.ui_templates.button_t[template_id].primary.v_text_alignment) {
+			case template_project::aui_text_alignment::center: vmargin = int32_t((base_data.size.y - linesz) / 2); break;
+			case template_project::aui_text_alignment::left: vmargin = int32_t(state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size);  break;
+			case template_project::aui_text_alignment::right: vmargin = int32_t(base_data.size.y - linesz - state.ui_templates.button_t[template_id].primary.v_text_margins * par->grid_size); break;
+			}
+		} else {
+			hmargin = base_data.data.text.border_size.x;
+			vmargin = base_data.data.text.border_size.y;
+		}
+
+		return urect{ {int16_t(abs_pos.x + hmargin + left),int16_t(abs_pos.y + vmargin + top)},{int16_t(right - left), int16_t(bottom-top) } };
 	} else {
 		return urect{ {0,0},{0,0} };
 	}
@@ -1351,6 +1465,9 @@ bool edit_box_element_base::edit_consume_mouse_event(sys::state& state, int32_t 
 	return false;
 }
 void edit_box_element_base::on_edit_command(sys::state& state, edit_command command, sys::key_modifiers mods) noexcept {
+	if(disabled)
+		return;
+
 	switch(command) {
 	case edit_command::new_line:
 		if(multiline == false) {
@@ -1995,7 +2112,32 @@ void edit_box_element_base::on_edit_command(sys::state& state, edit_command comm
 	}
 }
 void edit_box_element_base::set_text(sys::state& state, std::u16string const& new_text) {
-	if(base_data.get_element_type() == element_type::button) {
+	if(template_id != -1) {
+		if(new_text != cached_text) {
+			alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+			auto hmargin = state.ui_templates.button_t[template_id].primary.h_text_margins * par->grid_size;
+
+			glyph_details.grapheme_placement.clear();
+			glyph_details.total_lines = 0;
+
+			if(!changes_made)
+				edit_undo_buffer.push_state(undo_item{ cached_text, int16_t(anchor_position), int16_t(cursor_position), true });
+
+			cached_text = new_text;
+			{
+				internal_layout.contents.clear();
+				internal_layout.number_of_lines = 0;
+
+				auto al = text::to_text_alignment(base_data.data.button.get_alignment());
+				auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+				text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x - hmargin* 2), static_cast<int16_t>(base_data.size.y),
+							fonthandle, 0, al, black_text ? text::text_color::black : text::text_color::white, true, true },
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+				sl.edit_details = &glyph_details;
+				sl.add_text(state, cached_text);
+			}
+		}
+	} else if(base_data.get_element_type() == element_type::button) {
 		if(new_text != cached_text) {
 			glyph_details.grapheme_placement.clear();
 			glyph_details.total_lines = 0;
@@ -2039,32 +2181,132 @@ void edit_box_element_base::set_text(sys::state& state, std::u16string const& ne
 	anchor_position = cursor_position;
 }
 void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(base_data.get_element_type() == element_type::text) {
-		dcon::texture_id background_texture_id;
-		if((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
-			background_texture_id = definitions::tiles_dialog;
-		} else if((base_data.data.text.flags & uint8_t(ui::text_background::transparency)) != 0) {
-			background_texture_id = definitions::transparency;
-		} else if((base_data.data.text.flags & uint8_t(ui::text_background::small_tiles_dialog)) != 0) {
-			background_texture_id = definitions::small_tiles_dialog;
+	float hmargin = 0;
+	float vmargin = 0;
+	ogl::color3f base_color;
+	uint16_t fonthandle = 0;
+	float lineheight =0;
+
+	if(template_id != -1) {
+		template_project::text_region_template region;
+		alice_ui::grid_size_window* par = static_cast<alice_ui::grid_size_window*>(parent);
+
+		auto ms_after = std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - last_activated);
+		if(disabled) {
+			region = state.ui_templates.button_t[template_id].disabled;
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
+		} else if(ms_after.count() < alice_ui::mouse_over_animation_ms && state.ui_templates.button_t[template_id].animate_active_transition) {
+			float percentage = float(ms_after.count()) / float(alice_ui::mouse_over_animation_ms);
+			if(this == state.ui_state.under_mouse) {
+				region = state.ui_templates.button_t[template_id].active;
+				auto active_id = state.ui_templates.button_t[template_id].active.bg;
+				if(active_id != -1) {
+					ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+						0.0f, percentage);
+				}
+				auto bg_id = state.ui_templates.button_t[template_id].primary.bg;
+				if(bg_id != -1) {
+					ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+						percentage, 1.0f);
+				}
+
+			} else {
+				region = state.ui_templates.button_t[template_id].primary;
+				auto active_id = state.ui_templates.button_t[template_id].active.bg;
+				if(active_id != -1) {
+					ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+						percentage, 1.0f);
+				}
+				auto bg_id = state.ui_templates.button_t[template_id].primary.bg;
+				if(bg_id != -1) {
+					ogl::render_rect_slice(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+						state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale),
+						0.0f, percentage);
+				}
+			}
+		} else if(this == state.ui_state.under_mouse) {
+			region = state.ui_templates.button_t[template_id].active;
+			auto active_id = region.bg;
+			if(active_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[active_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
+
+		} else {
+			region = state.ui_templates.button_t[template_id].primary;
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
+			}
 		}
-		// TODO: Partial transparency is ignored, might cause issues with "transparency"?
-		// is-vertically-flipped is also ignored, also the border size **might** be
-		// variable/stored somewhere, but I don't know where?
-		if(bool(background_texture_id)) {
-			ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
-				float(base_data.size.y), ogl::get_texture_handle(state, background_texture_id, true), base_data.get_rotation(), false,
-				state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+
+		auto color = state.ui_templates.colors[region.text_color];
+
+		fonthandle = text::make_font_id(state, region.font_choice == 1, region.font_scale * par->grid_size * 2);
+		lineheight = state.font_collection.line_height(state, fonthandle);
+		if(lineheight == 0.f)
+			return;
+
+		int32_t yoff = 0;
+		switch(region.v_text_alignment) {
+		case template_project::aui_text_alignment::center: yoff = int32_t((base_data.size.y - lineheight) / 2); break;
+		case template_project::aui_text_alignment::left: yoff = int32_t(region.v_text_margins * par->grid_size);  break;
+		case template_project::aui_text_alignment::right: yoff = int32_t(base_data.size.y - lineheight - region.v_text_margins * par->grid_size); break;
 		}
+
+		for(auto& t : internal_layout.contents) {
+			ui::render_text_chunk(
+				state,
+				t,
+				float(x) + t.x + region.h_text_margins * par->grid_size,
+				float(y + t.y + yoff),
+				fonthandle,
+				ogl::color3f{ color.r, color.g, color.b },
+				ogl::color_modification::none
+			);
+		}
+		hmargin = region.h_text_margins * par->grid_size;
+		vmargin = yoff;
+	} else {
+		if(base_data.get_element_type() == element_type::text) {
+			dcon::texture_id background_texture_id;
+			if((base_data.data.text.flags & uint8_t(ui::text_background::tiles_dialog)) != 0) {
+				background_texture_id = definitions::tiles_dialog;
+			} else if((base_data.data.text.flags & uint8_t(ui::text_background::transparency)) != 0) {
+				background_texture_id = definitions::transparency;
+			} else if((base_data.data.text.flags & uint8_t(ui::text_background::small_tiles_dialog)) != 0) {
+				background_texture_id = definitions::small_tiles_dialog;
+			}
+			// TODO: Partial transparency is ignored, might cause issues with "transparency"?
+			// is-vertically-flipped is also ignored, also the border size **might** be
+			// variable/stored somewhere, but I don't know where?
+			if(bool(background_texture_id)) {
+				ogl::render_bordered_rect(state, ogl::color_modification::none, 16.0f, float(x), float(y), float(base_data.size.x),
+					float(base_data.size.y), ogl::get_texture_handle(state, background_texture_id, true), base_data.get_rotation(), false,
+					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
+			}
+		}
+		u16_text_element_base::render(state, x, y);
+
+		vmargin = base_data.data.text.border_size.y;
+		hmargin = base_data.data.text.border_size.x;
+		base_color = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
+		fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
+		lineheight = state.font_collection.line_height(state, fonthandle);
 	}
 
-	u16_text_element_base::render(state, x, y);
+	if(disabled)
+		return;
 
-	auto fonthandle = (base_data.get_element_type() == element_type::button) ? base_data.data.button.font_handle : base_data.data.text.font_handle;
-	auto lineheight = state.font_collection.line_height(state, fonthandle);
-	auto base_color = get_text_color(state, black_text ? text::text_color::black : text::text_color::white);
 	ogl::color3f invert_color{ 1.0f - base_color.r, 1.0f - base_color.g, 1.0f - base_color.b };
-	if(lineheight == 0) return;
 
 	// render selection
 	if(cursor_position != anchor_position) {
@@ -2089,23 +2331,23 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 				if(min_x != max_x) {
 					ogl::scissor_box bounds{
 						state,
-						x + base_data.data.text.border_size.x + min_x + 1,
-						int32_t(y + base_data.data.text.border_size.y + lineheight * line),
+						int32_t(x + hmargin + min_x + 1),
+						int32_t(y + vmargin + lineheight * line),
 						max_x - min_x,
 						int32_t(lineheight + 1)
 					};
 
 					ogl::render_alpha_colored_rect(state,
-						float(x + base_data.data.text.border_size.x + min_x + 1),
-						y + base_data.data.text.border_size.y + lineheight * line,
+						float(x + hmargin + min_x + 1),
+						y + vmargin + lineheight * line,
 						float(max_x - min_x), float(lineheight + 1),
 						base_color.r, base_color.g, base_color.b, 1.0f);
 
 					for(auto& t : internal_layout.contents) {
 						render_text_chunk(
 							state, t,
-							float(x + base_data.data.text.border_size.x) + t.x,
-							float(y + base_data.data.text.border_size.y),
+							float(x + hmargin) + t.x,
+							float(y + vmargin),
 							fonthandle, invert_color, ogl::color_modification::none
 						);
 					}
@@ -2164,23 +2406,23 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 				if(min_x != max_x) {
 					ogl::scissor_box bounds{
 						state,
-						x + base_data.data.text.border_size.x + min_x + 1,
-						int32_t(y + base_data.data.text.border_size.y + lineheight * line),
+						int32_t(x + hmargin + min_x + 1),
+						int32_t(y + vmargin + lineheight * line),
 						max_x - min_x,
 						int32_t(lineheight + 1)
 					};
 
 					ogl::render_alpha_colored_rect(state,
-						float(x + base_data.data.text.border_size.x + min_x + 1),
-						y + base_data.data.text.border_size.y + lineheight * line,
+						float(x + hmargin + min_x + 1),
+						y + vmargin + lineheight * line,
 						float(max_x - min_x), float(lineheight + 1),
 						base_color.r, base_color.g, base_color.b, 1.0f);
 
 					for(auto& t : internal_layout.contents) {
 						render_text_chunk(
 							state, t,
-							float(x + base_data.data.text.border_size.x) + t.x,
-							float(y + base_data.data.text.border_size.y),
+							float(x + hmargin) + t.x,
+							float(y + vmargin),
 							fonthandle, invert_color, ogl::color_modification::none
 						);
 					}
@@ -2214,7 +2456,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		if(glyph_details.grapheme_placement.size() == 0) {
 			rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
 			if(rtl)
-				cursor_x = base_data.size.x - base_data.data.text.border_size.x * 2;
+				cursor_x = base_data.size.x - hmargin;
 		} else {
 			if(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
 				rtl = glyph_details.grapheme_placement[cursor_position].has_rtl_directionality();
@@ -2233,8 +2475,8 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 			}
 		}
 
-		auto xpos = float(x + base_data.data.text.border_size.x + cursor_x);
-		auto ypos = float(y + base_data.data.text.border_size.y);
+		auto xpos = float(x + hmargin + cursor_x);
+		auto ypos = float(y + vmargin);
 		
 
 		auto alpha = window::cursor_blink_ms() > 0 ? (std::cos(float(ms_count % window::cursor_blink_ms()) /  float(window::cursor_blink_ms()) * 2.0f * 3.14159f) + 1.0f) / 2.0f : 1.0f;

@@ -1209,7 +1209,7 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
 
-			auto rounded_x = int32_t(x * ui_scale + x_offset) / ui_scale;
+			auto rounded_x = int32_t(std::round(x * ui_scale + x_offset)) / ui_scale;
 
 			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, rounded_x, baseline_y + y_offset / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
 			glUniform4f(state.open_gl.ui_shader_subrect_uniform, float(gso.x) / float(1024) /* x offset */,

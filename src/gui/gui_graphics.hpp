@@ -387,8 +387,6 @@ struct state {
 	std::vector<uint32_t> rebel_flags;
 
 	// elements we are keeping track of
-	element_base* main_menu = nullptr; // Settings window
-	element_base* r_main_menu = nullptr; // Settings window for non-in-game modes
 	element_base* fps_counter = nullptr;
 	element_base* console_window = nullptr; // console window
 	element_base* console_window_r = nullptr;
@@ -488,9 +486,6 @@ void populate_definitions_map(sys::state& state);
 void make_size_from_graphics(sys::state& state, ui::element_data& dat);
 std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
-
-void show_main_menu_nation_basic(sys::state& state);
-void show_main_menu_nation_picker(sys::state& state);
 
 int32_t ui_width(sys::state const& state);
 int32_t ui_height(sys::state const& state);
