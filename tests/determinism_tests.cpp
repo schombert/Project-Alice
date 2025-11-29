@@ -127,6 +127,29 @@ void test_load_save(sys::state& state, uint8_t* ptr_in, uint32_t length) {
 
 constexpr uint32_t test_game_seed = 808080;
 
+
+
+// Compares and tests cross-platform scenarios to see if they are equal after loading. Requires the scenarios to be created and put in the scenario folder before running this
+TEST_CASE("compare_crossplatform_scenarios", "[determinism]") {
+	std::unique_ptr<sys::state> game_state_1 = std::make_unique<sys::state>();
+	std::unique_ptr<sys::state> game_state_2 = std::make_unique<sys::state>();
+	if(!sys::try_read_scenario_and_save_file(*game_state_1, NATIVE("windows_scenario.bin"))) {
+		std::abort();
+	}
+	else {
+		game_state_1->fill_unsaved_data();
+	}
+	if(!sys::try_read_scenario_and_save_file(*game_state_2, NATIVE("linux_scenario.bin"))) {
+		std::abort();
+	}
+	else {
+		game_state_2->fill_unsaved_data();
+	}
+
+	compare_game_states(*game_state_1, *game_state_2);
+
+}
+
 void do_sim_game_test(const native_string& savefile = native_string{ }) {
 	std::unique_ptr<sys::state> game_state_1;
 	std::unique_ptr<sys::state> game_state_2;
