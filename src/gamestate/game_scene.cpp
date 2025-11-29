@@ -7,6 +7,7 @@
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "simple_fs.hpp"
+#include "alice_ui.hpp"
 
 namespace game_scene {
 

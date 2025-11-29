@@ -731,7 +731,7 @@ public:
 	int32_t list_id = 0;
 
 	void on_update(sys::state& state) noexcept override;
-	bool button_action(sys::state& state) noexcept;
+	bool button_action(sys::state& state) noexcept override;
 };
 
 class drop_down_list_page_buttons : public ui::element_base {
@@ -828,7 +828,7 @@ public:
 		}
 		return ui::message_result::consumed;
 	}
-	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
 		if(total_items <= items_per_page)
 			return ui::message_result::consumed;
 
