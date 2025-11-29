@@ -2237,7 +2237,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 				ogl::color_modification::none
 			);
 		}
-		hmargin = region.h_text_margins * par->grid_size;
+		hmargin = float(region.h_text_margins * par->grid_size);
 		vmargin = float(yoff);
 	} else {
 		if(base_data.get_element_type() == element_type::text) {
