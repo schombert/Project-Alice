@@ -55,32 +55,40 @@ void read_mod_path(uint8_t const* ptr_in, uint8_t const* lim, native_string& pat
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
 
-	if(size_t(lim - ptr_in) < sizeof(uint32_t) + length * sizeof(native_char))
+	if(size_t(lim - ptr_in) < sizeof(uint32_t) + length * sizeof(char))
 		return;
 
-	path_out = native_string(native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
+	const char* path_char_ptr = reinterpret_cast<const char*>(ptr_in);
+	auto path_str = std::string{ path_char_ptr, length };
+	path_out =  simple_fs::utf8_to_native(path_str);
 }
 uint8_t const* load_mod_path(uint8_t const* ptr_in, sys::state& state) {
 	uint32_t length = 0;
 	memcpy(&length, ptr_in, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
+	const char* path_char_ptr = reinterpret_cast<const char *>(ptr_in);
+	auto path_str = std::string{ path_char_ptr, length };
+	auto native_str = simple_fs::utf8_to_native(path_str);
+	auto str_view = native_string_view{ native_str };
 
-	simple_fs::restore_state(state.common_fs, native_string_view(reinterpret_cast<native_char const*>(ptr_in), length));
-	return ptr_in + length * sizeof(native_char);
+	simple_fs::restore_state(state.common_fs, str_view);
+	return ptr_in + length * sizeof(char);
 }
 uint8_t* write_mod_path(uint8_t* ptr_in, native_string const& path_in) {
-	uint32_t length = uint32_t(path_in.length());
+	auto uf8_path = simple_fs::native_to_utf8(path_in);
+	uint32_t length = uint32_t(uf8_path.length());
 	memcpy(ptr_in, &length, sizeof(uint32_t));
 	ptr_in += sizeof(uint32_t);
-	memcpy(ptr_in, path_in.c_str(), length * sizeof(native_char));
-	ptr_in += length * sizeof(native_char);
+	memcpy(ptr_in, uf8_path.c_str(), length * sizeof(char));
+	ptr_in += length * sizeof(char);
 	return ptr_in;
 }
 size_t sizeof_mod_path(native_string const& path_in) {
+	auto uf8_path = simple_fs::native_to_utf8(path_in);
 	size_t sz = 0;
-	uint32_t length = uint32_t(path_in.length());
+	uint32_t length = uint32_t(uf8_path.length());
 	sz += sizeof(uint32_t);
-	sz += length * sizeof(native_char);
+	sz += length * sizeof(char);
 	return sz;
 }
 
