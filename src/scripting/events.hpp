@@ -1,8 +1,10 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "script_constants.hpp"
 #include "container_types.hpp"
+#include "date_interface.hpp"
+#include "nations.hpp"
 
 namespace event {
 

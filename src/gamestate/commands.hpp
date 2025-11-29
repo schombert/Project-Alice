@@ -1,8 +1,10 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "common_types.hpp"
 #include "events.hpp"
 #include "diplomatic_messages.hpp"
+#include "constants.hpp"
+#include "container_types.hpp"
 
 namespace command {
 
@@ -788,7 +790,7 @@ struct command_data {
 		
 		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
 
-		msg.header.payload_size = msg.payload.size();
+		msg.header.payload_size = (uint32_t)msg.payload.size();
 
 		return msg;
 	}
@@ -800,7 +802,7 @@ struct command_data {
 
 		std::memcpy(payload.data() + curr_size, ptr, sizeof(data_type) * size);
 
-		header.payload_size = payload.size();
+		header.payload_size = (uint32_t)payload.size();
 	}
 
 
@@ -814,7 +816,7 @@ struct command_data {
 		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
 		msg.payload.resize(i);
 
-		msg.header.payload_size = msg.payload.size();
+		msg.header.payload_size = (uint32_t)msg.payload.size();
 
 		return msg;
 

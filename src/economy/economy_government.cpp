@@ -1,4 +1,4 @@
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 
 #include "demographics.hpp"
@@ -29,11 +29,10 @@ inline constexpr float base_tax_collection_capacity = 10000.f;
 //
 // account for difficult conditions
 // account for representing only the capital bureacracy
-// with multiplying by 10
 // 
-// 2000 people per administrator
+// 8000 people per administrator
 // 
-inline constexpr float base_population_per_admin = 2000.f;
+inline constexpr float base_population_per_admin = 8000.f;
 
 // multiplier to convert the vanilla administrative_multiplier into the normalized admin divisor that we use. 100.0f corrosponds to a 10% increase in required admin per pop per level of administrative_multiplier with default defines.
 inline constexpr float admin_reform_mult = 100.0f;
@@ -76,20 +75,15 @@ float count_active_administrations(sys::state& state, dcon::nation_id n) {
 }
 
 float tax_collection_rate(sys::state& state, dcon::nation_id n, dcon::province_id pid) {
-	// assume that in perfect conditions
-	// without techs we can collect only this ratio
-	// of desired taxes.
-	auto base = 0.5f;
 	auto from_control = state.world.province_get_control_ratio(pid);
 	auto efficiency = nations::tax_efficiency(state, n);
-
 	// we can always collect at least some taxes in the capital:
 	auto capital = state.world.nation_get_capital(n);
 	if(pid == capital) {
 		from_control = std::max(0.1f, from_control);
 	}
 
-	return std::min(base * from_control * efficiency, 1.f);
+	return std::min(1.f * from_control * (1.f + efficiency), 1.f);
 }
 
 float estimate_spendings_administration_capital(sys::state& state, dcon::nation_id n, float budget) {

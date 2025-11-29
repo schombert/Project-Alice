@@ -5,27 +5,6 @@
 
 namespace ui {
 
-void show_main_menu_nation_picker(sys::state& state) {
-	if(!state.ui_state.r_main_menu) {
-		auto new_mm = make_element_by_type<restricted_main_menu_window>(state, "alice_main_menu");
-		state.ui_state.r_main_menu = new_mm.get();
-		state.ui_state.nation_picker->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.r_main_menu->set_visible(state, true);
-		state.ui_state.nation_picker->move_child_to_front(state.ui_state.r_main_menu);
-	}
-}
-
-void show_main_menu_nation_basic(sys::state& state) {
-	if(!state.ui_state.main_menu) {
-		auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
-		state.ui_state.main_menu = new_mm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.main_menu->set_visible(state, true);
-		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
-	}
-}
 
 uint32_t get_ui_scale_index(float current_scale) {
 	for(uint32_t i = 0; i < sys::ui_scales_count; ++i) {
@@ -158,7 +137,6 @@ void language_left::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 	//
 
@@ -209,7 +187,6 @@ void language_right::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 
 	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
@@ -683,7 +660,6 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
-	state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	//
 	window::change_cursor(state, window::cursor_type::busy);
 	if(state.ui_state.units_root)
@@ -737,7 +713,8 @@ void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 		else
 			sound::stop_music(state);
 	}
-	send(state, parent, notify_setting_update{});
+	state.user_setting_changed = true;
+	parent->impl_on_update(state);
 }
 void music_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 	auto float_v = float(v) / 128.0f;

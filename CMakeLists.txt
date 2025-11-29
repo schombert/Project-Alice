@@ -18,6 +18,7 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/main.cpp"
+	"src/map/projections.cpp"
 	"src/gui/alice_ui.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map_data_loading.cpp"
@@ -418,6 +419,7 @@ target_precompile_headers(AliceIncremental
 	PRIVATE [["constants.hpp"]]
 	PRIVATE [["unordered_dense.h"]]
 	PRIVATE [["dcon_generated.hpp"]]
+	PRIVATE [["dcon_generated_ids.hpp"]]
 	PRIVATE [["container_types.hpp"]]
 	PRIVATE [["parsers_declarations.hpp"]]
 	PRIVATE [["cyto_any.hpp"]]
@@ -427,7 +429,7 @@ target_precompile_headers(AliceIncremental
 
 target_precompile_headers(AliceIncremental
 	PRIVATE [["system_state.hpp"]]
-	)
+)
 
 if(WIN32)
 else()
@@ -442,7 +444,7 @@ set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)
 
 # The command to build the generated file
 add_custom_command(
-	OUTPUT ${CONTAINER_PATH}.hpp
+	OUTPUT ${CONTAINER_PATH}.hpp ${CONTAINER_PATH}_ids.hpp
 	COMMAND DCONGENERATOR ${CONTAINER_PATH}.txt
 	DEPENDS ${CONTAINER_PATH}.txt
 	VERBATIM)

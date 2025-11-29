@@ -491,7 +491,7 @@ struct ef_change_party_position {
 };
 struct ef_change_factory_limit {
 	dcon::commodity_id trade_good_;
-	int16_t value;
+	int32_t value;
 	void trade_good(association_type t, std::string_view v, error_handler& err, int32_t line, effect_building_context& context) {
 		if(auto it = context.outer_context.map_of_commodity_names.find(std::string(v)); it != context.outer_context.map_of_commodity_names.end()) {
 			trade_good_ = it->second;
@@ -3737,7 +3737,7 @@ struct effect_body {
 		}
 		context.compiled_effect.push_back(effect::change_factory_limit);
 		context.compiled_effect.push_back(trigger::payload(value.trade_good_).value);
-		context.compiled_effect.push_back(trigger::payload(value.value).value);
+		context.compiled_effect.push_back(trigger::payload((int16_t)value.value).value);
 	}
 	void build_railway_in_capital(ef_build_railway_in_capital const& value, error_handler& err, int32_t line, effect_building_context& context) {
 		if(context.main_slot != trigger::slot_contents::nation) {

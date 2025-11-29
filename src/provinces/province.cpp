@@ -1,6 +1,6 @@
 #include "province.hpp"
 #include "province_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "nations.hpp"
 #include "system_state.hpp"
@@ -2687,9 +2687,6 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 	assert_path_result(path_result);
 	return path_result;
 }
-
-
-
 
 // for sea trade routes
 std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end) {

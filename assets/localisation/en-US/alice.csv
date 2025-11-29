@@ -1343,7 +1343,7 @@ alice_factory_worker_1;Employed: ?G$x$?W
 alice_factory_worker_2;Unemployed: ?R$x$?W
 alice_rgo_unemployment_country_alert;The following states have unemployed RGOs:
 pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
-alice_readme;?GWelcome to Project Alice!?W\nProject Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.\n?GNew features!?W\n?YGlobe?W: ?GLoved?W by many, ?Rhated?W by some, turn it off if it bothers you!\n?YTech queue:?W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)\n?YDomestic investment:?W Instead of investing on individual projects, do it in one go\n?YPerformance:?W The ticks per second (not FPS) are atleast, x10 times faster\n?YLinter:?W Get coverage errors and warnings in your mods, catch bugs and typos easily\n?YMacro builder:?W Build units with varying compositions using our macro builder\n?Y11 new mapmodes:?W Religion, fort, employment, etc\n?YBuild in entire country:?W SHIFT Right-click to build in the entire country!\n?GControls:?W\n?YTAB?W: Open chat window\n?YESC?W: Open main menu and settings menu\n?YTilde (`)?W or ?YTilde (~)?W: Open console\n?GEnjoy the game! =^w^=?W
+alice_readme;?GWelcome to Project Alice!?W\nProject Alice is a reimagining of your favorite victorian-era video game. In other words, we tweak some mechanics to make the world more dynamic and entertaining, fix old bugs (such as with crises), and implement new quality of life features.\n?GNew features!?W\n?YGlobe?W: ?GLoved?W by many, ?Rhated?W by some, turn it off if it bothers you!\n?YTech queue:?W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)\n?YDomestic investment:?W Instead of investing on individual projects, do it in one go\n?YPerformance:?W The ticks per second (not FPS) are at least, 10 times faster\n?YLinter:?W Get coverage errors and warnings in your mods, catch bugs and typos easily\n?YMacro builder:?W Build units with varying compositions using our macro builder\n?Y11 new mapmodes:?W Religion, fort, employment, etc\n?YBuild in entire country:?W SHIFT Right-click to build in the entire country!\n?GControls:?W\n?YTAB?W: Open chat window\n?YESC?W: Open main menu and settings menu\n?YTilde (`)?W or ?YTilde (~)?W: Open console\n?GEnjoy the game! =^w^=?W
 alice_nf_controls;?YLeft-click?W to select or replace\n?YRight-click?W to remove
 unit_controls_tooltip_1;?YLeft-click?W select (deselecting everything else)\n?YSHIFT-Left-click?W add to selection
 unit_controls_tooltip_2;?YRight-click on a province?W partial retreat (?Gcycling/rotation?W) to province
@@ -1836,3 +1836,11 @@ pop_budget_income;Income
 pop_budget_spending;Spending
 pop_budget_needs;Needs
 alice_gamerules_header;Game Rules
+zoom_slowest;Slowest
+zoom_slow;Slow
+zoom_medium;Medium
+zoom_fast;Fast
+zoom_fastest;Fastest
+amsg_embargod;The nation has been embargoed
+save_name_label;File name (blank = auto)
+save_warning_tooltip;A file with this name already exists

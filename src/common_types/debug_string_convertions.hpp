@@ -1,4 +1,30 @@
+#pragma once
+
+#include <string>
+
+
+namespace economy {
+struct commodity_set;
+struct small_commodity_set;
+}
+
+namespace military {
+struct ship_in_battle;
+struct mobilization_order;
+struct reserve_regiment;
+struct available_cb;
+}
+
 namespace sys {
+
+struct event_option;
+struct gamerule_option;
+struct provincial_modifier_definition;
+struct national_modifier_definition;
+struct commodity_modifier;
+struct rebel_org_modifier;
+struct dated_modifier;
+
 std::string to_debug_string(const event_option& obj);
 
 std::string to_debug_string(const gamerule_option& obj);

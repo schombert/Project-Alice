@@ -5,7 +5,8 @@
 #include "economy_trade_routes.hpp"
 #include "construction.hpp"
 #include "demographics.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "economy_templates.hpp"
 #include "ai_economy.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
@@ -554,11 +555,16 @@ void initialize(sys::state& state) {
 
 	int most_common_value = -1;
 	int second_most_common_value = -1;
+	int third_most_common_value = -1;
 	int most_common_count = -1;
 	int second_most_common_count = -1;
+	int third_most_common_count = -1;
 
 	for(size_t i = 0; i < rgo_efficiency_inputs_amount.size(); i++) {
 		if(rgo_efficiency_inputs_count[i] >= most_common_count) {
+			third_most_common_value = second_most_common_value;
+			third_most_common_count = second_most_common_count;
+
 			second_most_common_value = most_common_value;
 			second_most_common_count = most_common_count;
 
@@ -581,6 +587,13 @@ void initialize(sys::state& state) {
 		base_rgo_e_inputs.commodity_amounts[1] =
 			rgo_efficiency_inputs_amount[second_most_common_value]
 			/ (float)second_most_common_count * 0.005f;
+	}
+
+	if(third_most_common_count > 0) {
+		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ uint8_t(third_most_common_value - 1) };
+		base_rgo_e_inputs.commodity_amounts[2] =
+			rgo_efficiency_inputs_amount[third_most_common_value]
+			/ (float)third_most_common_count * 0.005f;
 	}
 
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
@@ -2989,7 +3002,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			state.world.market_set_stockpile(
 				ids, economy::money,
-				state.world.market_get_stockpile(ids, economy::money) * state.inflation
+				state.world.market_get_stockpile(ids, economy::money)
 				+ (
 					merchants_supply * new_actual_probability_to_sell
 					- merchants_demand * new_actual_probability_to_buy
@@ -3015,14 +3028,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				if(do_it) {
 					auto bought_from_nation_cost =
 						bought_from_nation
-						* state.world.market_get_price(ids_i, c)
-						* state.inflation;
+						* state.world.market_get_price(ids_i, c);
 					state.world.nation_set_stockpiles(nations_i, c, national_stockpile_i - bought_from_nation);
 					auto treasury = state.world.nation_get_stockpiles(nations_i, economy::money);
 					state.world.nation_set_stockpiles(nations_i, economy::money, treasury + bought_from_nation_cost);
 				}
 			}, capital_mask && draw_from_stockpile, national_stockpile * new_actual_probability_to_sell, national_stockpile, nations, ids);
 		}
+
+		state.world.market_set_stockpile(
+				ids, economy::money,
+				state.world.market_get_stockpile(ids, economy::money) * state.inflation
+		);
 	});
 
 	set_profile_point("clear_market");
@@ -3365,7 +3382,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					* literacy_sat_public
 					+ potential_ratio_education_private.get(ids)
 					* literacy_sat_paid
-					- 2.f
+					- 0.9f
 				)
 				* pop_demographics::pop_u16_scaling;
 			pop_demographics::set_literacy(state, ids, ve::min(1.f, ve::max(0.f, literacy)));
@@ -3859,7 +3876,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
 			if(!state.world.commodity_get_money_rgo(c))
 				return;
-			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c));
+			state.world.market_set_price(ids, c, state.world.commodity_get_cost(c) * 0.1f);
 		});
 	});
 
@@ -3883,8 +3900,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// labor price control
 
 			ve::fp_vector price_control = ve::fp_vector{ 0.f };
-			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 10.f;
-			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 5.f;
+			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
+			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
 
 			// we reduce min wage if unemployment is too high
 			// base min wage is decided by national multipliers
@@ -4372,11 +4389,11 @@ float estimate_naval_spending(sys::state& state, dcon::nation_id n) {
 	return total;
 }
 
-float estimate_war_subsidies(sys::state& state, dcon::nation_fat_id target, dcon::nation_fat_id source) {
+float estimate_war_subsidies(sys::state& state, dcon::nation_id target, dcon::nation_id source) {
 	/* total-nation-tax-base x defines:WARSUBSIDIES_PERCENT */
 
-	auto target_m_costs = (target.get_total_rich_income() + target.get_total_middle_income() + target.get_total_poor_income()) * state.defines.warsubsidies_percent;
-	auto source_m_costs = (source.get_total_rich_income() + source.get_total_middle_income() + source.get_total_poor_income()) * state.defines.warsubsidies_percent;
+	auto target_m_costs = (state.world.nation_get_total_rich_income(target) + state.world.nation_get_total_middle_income(target) + state.world.nation_get_total_poor_income(target)) * state.defines.warsubsidies_percent;
+	auto source_m_costs = (state.world.nation_get_total_rich_income(source) + state.world.nation_get_total_middle_income(source) + state.world.nation_get_total_poor_income(source)) * state.defines.warsubsidies_percent;
 	return std::min(target_m_costs, source_m_costs);
 }
 
@@ -4529,6 +4546,7 @@ void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon:
 	new_fac.set_primary_employment(0.f);
 	new_fac.set_secondary_employment(0.f);
 	state.world.try_create_factory_location(new_fac, p);
+	set_initial_factory_values(state, new_fac);
 }
 
 void change_factory_type_in_province(sys::state& state, dcon::province_id p, dcon::factory_type_id t, dcon::factory_type_id refit_target) {
@@ -5082,7 +5100,7 @@ void prune_factories(sys::state& state) {
 			++factory_count;
 			auto desired_employment = factory_total_desired_employment(state, f.get_factory());
 			bool unprofitable = f.get_factory().get_unprofitable();
-			if(((desired_employment < 100.f) && unprofitable) && (!deletion_choice || state.world.factory_get_size(deletion_choice) > f.get_factory().get_size())) {
+			if(((desired_employment < 0.5f) && unprofitable) && (!deletion_choice || state.world.factory_get_size(deletion_choice) > f.get_factory().get_size())) {
 				deletion_choice = f.get_factory();
 			}
 		}

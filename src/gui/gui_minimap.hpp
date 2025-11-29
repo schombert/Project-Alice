@@ -865,16 +865,7 @@ public:
 class minimap_menu_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
-		if(!state.ui_state.main_menu) {
-			auto window = make_element_by_type<main_menu_window>(state, "alice_main_menu");
-			state.ui_state.main_menu = window.get();
-			state.ui_state.root->add_child_to_front(std::move(window));
-		} else if(state.ui_state.main_menu->is_visible()) {
-			state.ui_state.main_menu->set_visible(state, false);
-		} else {
-			state.ui_state.main_menu->set_visible(state, true);
-			state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
-		}
+		alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::tooltip;

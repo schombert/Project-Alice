@@ -352,22 +352,33 @@ auto inline prepare_pop_budget(
 	// education
 	// #########
 
+	auto education_price = state.world.province_get_service_price(provs, services::list::education);
+
 	auto literacy = pop_demographics::get_literacy(state, ids);
 	result.education.demand_scale = literacy * literacy / 0.5f + 0.1f;
 	auto required_education = result.education.demand_scale * pop_size;
-	result.education.required = required_education * state.world.province_get_service_price(provs, services::list::education);
+	result.education.required = required_education * education_price;
+
+	// if education is crazy expensive and impossible to access, we want to spend 0 because it's hopeless
+
+
 	auto rich_but_uneducated = adaptive_ve::select<BOOL_VALUE, VALUE>(
 		required_education == 0.f,
 		1.f,
-		adaptive_ve::min<VALUE>
+		adaptive_ve::max<VALUE>
 		(
-			1000.f,
-			(1.f - literacy) * adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f) / result.education.required
+			0.f,
+			adaptive_ve::min<VALUE>
+			(
+				1000.f,
+				(1.f - literacy)
+				* adaptive_ve::max<VALUE>(0.f, spend_on_education - result.education.required * 5.f)
+				/ result.education.required			
+			) - 0.1f
 		)
 	);
-	auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * (1.f + rich_but_uneducated)));
-
-	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education) / (1.f + rich_but_uneducated);
+	auto supposed_to_spend = adaptive_ve::min<VALUE>(savings, adaptive_ve::min<VALUE>(spend_on_education, result.education.required * rich_but_uneducated));
+	auto potentially_free_ratio = state.world.province_get_service_satisfaction_for_free(provs, services::list::education) / adaptive_ve::max<VALUE>(1.f, rich_but_uneducated);
 	auto ratio_of_free_education = decltype(potentially_free_ratio)(0.f);
 	ratio_of_free_education = adaptive_ve::select<BOOL_VALUE, VALUE>(result.can_use_free_services > 0.f, potentially_free_ratio, ratio_of_free_education);
 	result.education.satisfied_for_free_ratio = ratio_of_free_education;

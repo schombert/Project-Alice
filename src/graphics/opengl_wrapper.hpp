@@ -10,8 +10,17 @@
 #include "glew.h"
 
 #include "container_types.hpp"
+#include "container_types_ui.hpp"
 #include "texture.hpp"
 #include "fonts.hpp"
+#include "constants_ui.hpp"
+
+namespace text {
+struct embedded_flag;
+struct embedded_commodity_icon;
+struct embedded_unit_icon;
+class font;
+}
 
 namespace ogl {
 namespace parameters {
@@ -172,7 +181,7 @@ inline void debug_callback(GLenum source, GLenum type, GLuint id, GLenum severit
 		break;
 	case GL_DEBUG_SEVERITY_NOTIFICATION:
 		severity_str = "Notification";
-		break;
+		return; // don't print notifications
 	default:
 		break;
 	}
@@ -368,6 +377,7 @@ void render_tinted_subsprite(sys::state const& state, int frame, int total_frame
 void render_new_text(sys::state const& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f);
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id);
 void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
+
 void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification = ogl::color_modification::none);
 void render_commodity_icon(sys::state& state, dcon::commodity_id cid, float x, float y, float w, float h);

@@ -1,5 +1,5 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_nation_picker.hpp"
 #include "gui_ledger_window.hpp"

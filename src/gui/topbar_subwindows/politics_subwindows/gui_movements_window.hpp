@@ -1,7 +1,7 @@
 #pragma once
 
 #include "cyto_any.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"

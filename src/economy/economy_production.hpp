@@ -1,5 +1,7 @@
 #pragma once
 
+#include "system_state_forward.hpp"
+#include "container_types.hpp"
 #include "economy_stats.hpp"
 
 // this .cpp and .hpp pair of files contains:
@@ -29,6 +31,8 @@ struct inputs_data {
 	float min_available = 0.f;
 	float total_cost = 0.f;
 };
+
+void set_initial_factory_values(sys::state& state, dcon::factory_id f);
 
 template<typename SET>
 inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SET const& inputs);

@@ -1,4 +1,4 @@
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 #include "serialization.hpp"
 #include <random>

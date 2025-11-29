@@ -7,6 +7,7 @@
 #include "gui_trade_window.hpp"
 #include "gui_deserialize.hpp"
 #include "alice_ui.hpp"
+#include "economy_commands_data.hpp"
 #include "lua_alice_api.hpp"
 #include "demographics.hpp"
 #include "economy_pops.hpp"
@@ -22,6 +23,7 @@
 #include "rgo_report.cpp"
 #include "market_prices_report.cpp"
 #include "trade_dashboard.cpp"
+#include "main_menu.cpp"
 
 namespace alice_ui {
 
@@ -278,6 +280,7 @@ void template_label::set_text(sys::state& state, std::string_view new_text) {
 }
 
 void template_label::on_reset_text(sys::state& state) noexcept {
+	cached_text.clear();
 	if(default_text)
 		set_text(state, text::produce_simple_string(state, default_text));
 }
@@ -365,6 +368,7 @@ void template_mixed_button::on_hover_end(sys::state& state) noexcept {
 	button_on_hover_end(state);
 }
 void template_mixed_button::on_reset_text(sys::state& state) noexcept {
+	cached_text.clear();
 	if(default_text)
 		set_text(state, text::produce_simple_string(state, default_text));
 }
@@ -619,6 +623,7 @@ void template_text_button::on_hover_end(sys::state& state) noexcept {
 	button_on_hover_end(state);
 }
 void template_text_button::on_reset_text(sys::state& state) noexcept {
+	cached_text.clear();
 	if(default_text)
 		set_text(state, text::produce_simple_string(state, default_text));
 }
@@ -758,6 +763,7 @@ void template_toggle_button::on_hover_end(sys::state& state) noexcept {
 	button_on_hover_end(state);
 }
 void template_toggle_button::on_reset_text(sys::state& state) noexcept {
+	cached_text.clear();
 	if(default_text)
 		set_text(state, text::produce_simple_string(state, default_text));
 }
@@ -1030,7 +1036,7 @@ void drop_down_list_page_buttons::render(sys::state& state, int32_t x, int32_t y
 		return;
 	auto lt = state.ui_templates.drop_down_t[tid].layout_region_base;
 
-	auto total_pages = owner_control->total_items / owner_control->items_per_page;
+	auto total_pages = (owner_control->total_items + owner_control->items_per_page  -1) / owner_control->items_per_page;
 
 	if(owner_control->page_text_out_of_date) {
 		text_layout.contents.clear();
@@ -1082,7 +1088,7 @@ void drop_down_list_page_buttons::render(sys::state& state, int32_t x, int32_t y
 		auto x_pos = x + base_data.size.x - base_data.size.y;
 		auto y_pos = y;
 		template_project::icon_region_template region;
-		if(owner_control->list_page >= total_pages) {
+		if(owner_control->list_page + 1 >= total_pages) {
 			region = state.ui_templates.iconic_button_t[button_template].disabled;
 		} else if(this == state.ui_state.under_mouse && (base_data.size.x - base_data.size.y) <= rel_mouse_x) {
 			region = state.ui_templates.iconic_button_t[button_template].active;
@@ -1255,7 +1261,9 @@ void template_drop_down_control::open_list(sys::state& state) {
 	if(two_columns)
 		items_per_page *= 2;
 
+	state.ui_state.popup_menu->scroll_redirect = this;
 	change_page(state, 0);
+
 	state.ui_state.popup_menu->grid_size = par->grid_size;
 	state.ui_state.popup_menu->bg_template = state.ui_templates.drop_down_t[template_id].dropdown_window_bg;
 
@@ -1266,15 +1274,17 @@ void template_drop_down_control::open_list(sys::state& state) {
 	} else {
 		current_root->move_child_to_front(state.ui_state.popup_menu);
 	}
-	
 	state.ui_state.set_mouse_sensitive_target(state, state.ui_state.popup_menu);
 }
 void template_drop_down_control::hide_list(sys::state& state) {
-	if(state.ui_state.popup_menu)
+	if(state.ui_state.popup_menu) {
 		state.ui_state.popup_menu->set_visible(state, false);
+	}
 }
 void template_drop_down_control::change_page(sys::state& state, int32_t to_page) {
 	if(template_id == -1)
+		return;
+	if(!state.ui_state.popup_menu || state.ui_state.popup_menu->scroll_redirect != this) // menu not open
 		return;
 
 	state.ui_state.popup_menu->children.clear();
@@ -1304,7 +1314,7 @@ void template_drop_down_control::change_page(sys::state& state, int32_t to_page)
 	auto index = 0;
 	while(index < items_per_page) { // place elements
 		auto effective_index = to_page * items_per_page + index;
-		if(effective_index > total_items)
+		if(effective_index >= total_items)
 			break;
 
 		auto x_offset = (two_columns && index >= items_per_page / 2 ? elm_h_size : 0) + (elm_h_size - element_x_size)  + state.ui_templates.drop_down_t[template_id].dropdown_window_margin * par->grid_size;
@@ -1326,7 +1336,7 @@ void template_drop_down_control::change_page(sys::state& state, int32_t to_page)
 			alt = false;
 
 		auto effective_index = to_page * items_per_page + index;
-		if(effective_index > total_items)
+		if(effective_index >= total_items)
 			break;
 
 		auto x_offset = (two_columns && index >= items_per_page / 2 ? elm_h_size : 0) + state.ui_templates.drop_down_t[template_id].dropdown_window_margin * par->grid_size;
@@ -2636,6 +2646,118 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		} // end lines loop
 	} break;
 	}
+}
+
+
+std::string_view get_setting_text_key(int32_t type) {
+	static char const* key_str[] = {
+		"amsg_revolt",								  // revolt
+		"amsg_war_on_nation",						  // war_on_nation
+		"amsg_war_by_nation",						  // war_by_nation
+		"amsg_wargoal_added",						  // wargoal_added
+		"amsg_siegeover_by_nation",					  // siegeover_by_nation
+		"amsg_siegeover_on_nation",					  // siegeover_on_nation
+		"amsg_colony_finished",						  // colony_finished
+		"amsg_reform_gained",						  // reform_gained
+		"amsg_reform_lost",							  // reform_lost
+		"amsg_ruling_party_change",					  // ruling_party_change
+		"amsg_upperhouse",							  // upperhouse
+		"amsg_electionstart",						  // electionstart
+		"amsg_electiondone",							  // electiondone
+		"amsg_breakcountry",							  // breakcountry
+		"amsg_peace_accepted_from_nation",			  // peace_accepted_from_nation
+		"amsg_peace_rejected_from_nation",			  // peace_rejected_from_nation
+		"amsg_peace_accepted_by_nation",				  // peace_accepted_by_nation
+		"amsg_peace_rejected_by_nation",				  // peace_rejected_by_nation
+		"amsg_mobilization_start",					  // mobilization_start
+		"amsg_mobilization_end",						  // mobilization_end
+		"amsg_factory_complete",						  // factory_complete
+		"amsg_rr_complete",							  // rr_complete
+		"amsg_fort_complete",						  // fort_complete
+		"amsg_naval_base_complete",					  // naval_base_complete
+		"amsg_province_event",						  // province_event
+		"amsg_national_event",						  // national_event
+		"amsg_major_event",							  // major_event
+		"amsg_invention",							  // invention
+		"amsg_tech",									  // tech
+		"amsg_leader_dies",							  // leader_dies
+		"amsg_land_combat_starts_on_nation",			  // land_combat_starts_on_nation
+		"amsg_naval_combat_starts_on_nation",		  // naval_combat_starts_on_nation
+		"amsg_land_combat_starts_by_nation",			  // land_combat_starts_by_nation
+		"amsg_naval_combat_starts_by_nation",		  // naval_combat_starts_by_nation
+		"amsg_movement_finishes",					  // movement_finishes
+		"amsg_decision",								  // decision
+		"amsg_lose_great_power",						  // lose_great_power
+		"amsg_become_great_power",					  // become_great_power
+		"amsg_war_subsidies_start_by_nation",		  // war_subsidies_start_by_nation
+		"amsg_war_subsidies_start_on_nation",		  // war_subsidies_start_on_nation
+		"amsg_war_subsidies_end_by_nation",			  // war_subsidies_end_by_nation
+		"amsg_war_subsidies_end_on_nation",			  // war_subsidies_end_on_nation
+		"amsg_reparations_start_by_nation",			  // reparations_start_by_nation
+		"amsg_reparations_start_on_nation",			  // reparations_start_on_nation
+		"amsg_reparations_end_by_nation",			  // reparations_end_by_nation
+		"amsg_reparations_end_on_nation",			  // reparations_end_on_nation
+		"amsg_mil_access_start_by_nation",			  // mil_access_start_by_nation
+		"amsg_mil_access_start_on_nation",			  // mil_access_start_on_nation
+		"amsg_mil_access_end_by_nation",				  // mil_access_end_by_nation
+		"amsg_mil_access_end_on_nation",				  // mil_access_end_on_nation
+		"amsg_mil_access_declined_by_nation",		  // mil_access_declined_by_nation
+		"amsg_mil_access_declined_on_nation",		  // mil_access_declined_on_nation
+		"amsg_alliance_starts",						  // alliance_starts
+		"amsg_alliance_ends",						  // alliance_ends
+		"amsg_alliance_declined_by_nation",			  // alliance_declined_by_nation
+		"amsg_alliance_declined_on_nation",			  // alliance_declined_on_nation
+		"amsg_ally_called_accepted_by_nation",		  // ally_called_accepted_by_nation
+		"amsg_ally_called_declined_by_nation",		  // ally_called_declined_by_nation
+		"amsg_discredit_by_nation",					  // discredit_by_nation
+		"amsg_ban_by_nation",						  // ban_by_nation
+		"amsg_expell_by_nation",						  // expell_by_nation
+		"amsg_discredit_on_nation",					  // discredit_on_nation
+		"amsg_ban_on_nation",						  // ban_on_nation
+		"amsg_expell_on_nation",						  // expell_on_nation
+		"amsg_increase_opinion",						  // increase_opinion
+		"amsg_decrease_opinion_by_nation",			  // decrease_opinion_by_nation
+		"amsg_decrease_opinion_on_nation",			  // decrease_opinion_on_nation
+		"amsg_rem_sphere_by_nation",					  // rem_sphere_by_nation
+		"amsg_rem_sphere_on_nation",					  // rem_sphere_on_nation
+		"amsg_removed_from_sphere",					  // removed_from_sphere
+		"amsg_add_sphere",							  // add_sphere
+		"amsg_added_to_sphere",						  // added_to_sphere
+		"amsg_increase_relation_by_nation",			  // increase_relation_by_nation
+		"amsg_increase_relation_on_nation",			  // increase_relation_on_nation
+		"amsg_decrease_relation_by_nation",			  // decrease_relation_by_nation
+		"amsg_decrease_relation_on_nation",			  // decrease_relation_on_nation
+		"amsg_join_war_by_nation",					  // join_war_by_nation
+		"amsg_join_war_on_nation",					  // join_war_on_nation
+		"amsg_gw_unlocked",							  // gw_unlocked
+		"amsg_war_becomes_great",					  // war_becomes_great
+		"amsg_cb_detected_on_nation",				  // cb_detected_on_nation
+		"amsg_cb_detected_by_nation",				  // cb_detected_by_nation
+		"amsg_crisis_join_offer_accepted_by_nation",	  // crisis_join_offer_accepted_by_nation
+		"amsg_crisis_join_offer_declined_by_nation",	  // crisis_join_offer_declined_by_nation
+		"amsg_crisis_join_offer_accepted_from_nation", // crisis_join_offer_accepted_from_nation
+		"amsg_crisis_join_offer_declined_from_nation", // crisis_join_offer_declined_from_nation
+		"amsg_crisis_resolution_accepted",			  // crisis_resolution_accepted
+		"amsg_crisis_becomes_war",					  // crisis_becomes_war
+		"amsg_crisis_resolution_declined_from_nation", // crisis_resolution_declined_from_nation
+		"amsg_crisis_starts",						  // crisis_starts
+		"amsg_crisis_attacker_backer",				  // crisis_attacker_backer
+		"amsg_crisis_defender_backer",				  // crisis_defender_backer
+		"amsg_crisis_fizzle",						  // crisis_fizzle
+		"amsg_war_join_by",							  // war_join_by
+		"amsg_war_join_on",							  // war_join_on
+		"amsg_cb_fab_finished",						  // cb_fab_finished
+		"amsg_cb_fab_cancelled",						  // cb_fab_cancelled
+		"amsg_crisis_voluntary_join",				  // crisis_voluntary_join
+		"amsg_army_built", // army_built
+		"amsg_navy_built", // navy_built
+		"amsg_bankruptcy", //bankruptcy
+		"amsg_entered_automatic_alliance",//entered_automatic_alliance
+		"amsg_chat_message",//chat_message
+		"amsg_embargo",
+		"amsg_embargod"
+	};
+	return std::string_view{ key_str[type] };
 }
 
 
