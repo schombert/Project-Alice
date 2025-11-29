@@ -8,6 +8,7 @@
 #include "gui_combat.hpp"
 #include "gui_units.hpp"
 #include "gui_leaders.hpp"
+#include "alice_ui.hpp"
 
 namespace game_scene {
 
@@ -556,7 +557,7 @@ sys::virtual_key replace_keycodes(sys::state& state, sys::virtual_key keycode, s
 void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.nation_picker->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
 		if(keycode == sys::virtual_key::ESCAPE) {
-			ui::show_main_menu_nation_picker(state);
+			alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 		} else if(keycode == sys::virtual_key::TAB) {
 			state.current_scene.open_chat(state);
 		}
@@ -663,7 +664,7 @@ void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_m
 		deselect_units(state);
 		state.game_state_updated.store(true, std::memory_order::release);
 	} else {
-		ui::show_main_menu_nation_basic(state);
+		alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 	}
 }
 

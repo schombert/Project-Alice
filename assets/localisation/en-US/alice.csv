@@ -1836,3 +1836,11 @@ pop_budget_income;Income
 pop_budget_spending;Spending
 pop_budget_needs;Needs
 alice_gamerules_header;Game Rules
+zoom_slowest;Slowest
+zoom_slow;Slow
+zoom_medium;Medium
+zoom_fast;Fast
+zoom_fastest;Fastest
+amsg_embargod;The nation has been embargoed
+save_name_label;File name (blank = auto)
+save_warning_tooltip;A file with this name already exists

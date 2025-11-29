@@ -351,9 +351,6 @@ void make_size_from_graphics(sys::state& state, ui::element_data& dat);
 std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id); // bypasses global map
 
-void show_main_menu_nation_basic(sys::state& state);
-void show_main_menu_nation_picker(sys::state& state);
-
 int32_t ui_width(sys::state const& state);
 int32_t ui_height(sys::state const& state);
 

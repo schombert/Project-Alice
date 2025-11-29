@@ -710,7 +710,16 @@ public:
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
 		return ui::message_result::consumed;
 	}
-
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		if(key == sys::virtual_key::ESCAPE) {
+			set_visible(state, false);
+			return ui::message_result::consumed;
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		scroll_redirect = nullptr;
+	}
 	friend struct layout_iterator;
 };
 
@@ -819,6 +828,13 @@ public:
 		}
 		return ui::message_result::consumed;
 	}
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		if(total_items <= items_per_page)
+			return ui::message_result::consumed;
+
+		change_page(state, std::clamp(list_page + ((amount < 0) ? 1 : -1), 0, (total_items + items_per_page - 1) / items_per_page - 1));
+		return ui::message_result::consumed;
+	}
 };
 
 class layout_window_element : public grid_size_window {
@@ -862,6 +878,27 @@ public:
 
 	friend struct layout_iterator;
 };
+
+template<std::unique_ptr<ui::element_base>(*GEN_FN)(sys::state&) >
+void display_at_front(sys::state& state) {
+	static ui::element_base* saved_ptr = [&]() {
+		auto current_root = state.current_scene.get_root(state);
+		auto new_item = GEN_FN(state);
+		auto ptr = new_item.get();
+		current_root->add_child_to_back(std::move(new_item));
+		ptr->impl_on_update(state);
+		return ptr;
+	}();
+
+	auto current_root = state.current_scene.get_root(state);
+	if(saved_ptr->parent != current_root) {
+		auto take_child = saved_ptr->parent->remove_child(saved_ptr);
+		current_root->add_child_to_front(std::move(take_child));
+	} else {
+		current_root->move_child_to_front(saved_ptr);
+	}
+	saved_ptr->set_visible(state, true);
+}
 
 namespace budget_categories {
 inline constexpr int32_t diplomatic_income = 0;
@@ -915,6 +952,7 @@ std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& stat
 std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_main_menu_base(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 
@@ -927,6 +965,7 @@ int8_t cmp3(T const& a, T const& b) {
 	return (a < b) ? int8_t(-1) : int8_t(1);
 }
 
+std::string_view get_setting_text_key(int32_t type);
 void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
