@@ -2273,7 +2273,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 				ogl::color_modification::none
 			);
 		}
-		hmargin = region.h_text_margins * par->grid_size;
+		hmargin = float(region.h_text_margins * par->grid_size);
 		vmargin = yoff;
 	} else {
 		if(base_data.get_element_type() == element_type::text) {
@@ -2456,7 +2456,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 		if(glyph_details.grapheme_placement.size() == 0) {
 			rtl = state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
 			if(rtl)
-				cursor_x = base_data.size.x - hmargin;
+				cursor_x = int32_t(base_data.size.x - hmargin);
 		} else {
 			if(cursor_position < int32_t(glyph_details.grapheme_placement.size())) {
 				rtl = glyph_details.grapheme_placement[cursor_position].has_rtl_directionality();
