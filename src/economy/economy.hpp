@@ -1,9 +1,9 @@
 #pragma once
 
-#include "container_types.hpp"
+#include "container_types_dcon.hpp"
 #include "dcon_generated_ids.hpp"
 #include "system_state_forward.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 
 namespace economy {
 

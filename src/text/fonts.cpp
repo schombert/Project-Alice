@@ -632,7 +632,7 @@ void font_at_size::make_glyph(uint16_t glyph_in) {
 				}
 			}
 			glTexSubImage2D(GL_TEXTURE_2D, 0, int32_t(gso.x), int32_t(gso.y), bitmap.width, bitmap.rows, GL_RED, GL_UNSIGNED_BYTE, temp);
-			delete temp;
+			delete[] temp;
 		}
 		FT_Done_Glyph(g_result);
 		glyph_positions.insert_or_assign(glyph_in, gso);

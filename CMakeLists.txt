@@ -61,6 +61,11 @@ set_source_files_properties(src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOM
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
+	"src/gamestate/user_interactions.cpp"
+	"src/gamestate/create_windows.cpp"
+	"src/gui/ui_state.cpp"
+	"src/gui/gui_element_base.cpp"
+	"src/gui/gui_other.cpp"
 	"src/ai/ai.cpp"
 	"src/ai/ai_campaign.cpp"
 	"src/ai/ai_campaign_values.cpp"
@@ -96,7 +101,24 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_effect_tooltips.cpp"
 	"src/gui/widgets/table.cpp"
 	"src/gui/gui_graphics.cpp"
-	"src/gui/gui_leader_select.cpp"
+	"src/gui/gui_leaders.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_leaders_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_stats_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_units_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_build_unit_large_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_decision_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_movements_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_reforms_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_release_nation_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_unciv_reforms_window.cpp"
+	"src/gui/gui_message_window.cpp"
+	"src/gui/gui_chat_window.cpp"
+	"src/gui/gui_combat.cpp"
+	"src/gui/gui_units.cpp"
+	"src/gui/gui_unit_panel_subwindow.cpp"
+	"src/gui/gui_diplomacy_request.cpp"
+	"src/gui/gui_lookup.cpp"
+	"src/gui/topbar_subwindows/gui_trade_window.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
 	"src/gui/gui_modifier_tooltips.cpp"
 	"src/gui/province_tiles/province_tiles.cpp"
@@ -364,6 +386,7 @@ target_precompile_headers(Alice
 	PRIVATE <new>
 	PRIVATE <limits>
 	PRIVATE <iterator>
+	PRIVATE <utility>
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE <vector>
@@ -384,7 +407,9 @@ target_precompile_headers(AliceIncremental
 	PRIVATE <new>
 	PRIVATE <limits>
 	PRIVATE <iterator>
+	PRIVATE <utility>
 )
+
 # Aliases for C library
 target_precompile_headers(Alice
 	PRIVATE <cstdlib>
@@ -416,20 +441,24 @@ target_precompile_headers(Alice
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
+	PRIVATE [["constants_dcon.hpp"]]
 	PRIVATE [["unordered_dense.h"]]
 	PRIVATE [["dcon_generated.hpp"]]
 	PRIVATE [["dcon_generated_ids.hpp"]]
+	PRIVATE [["container_types_dcon.hpp"]]
 	PRIVATE [["container_types.hpp"]]
 	PRIVATE [["parsers_declarations.hpp"]]
 	PRIVATE [["cyto_any.hpp"]]
+	PRIVATE [["gui_lookup.hpp"]]
+	PRIVATE [["gui_templates.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
+	PRIVATE [["glm/glm.hpp"]]
 )
 
-target_precompile_headers(AliceIncremental
-	PRIVATE [["system_state.hpp"]]
-)
+#target_precompile_headers(AliceIncremental
+#	PRIVATE [["system_state.hpp"]]
+#)
 
 if(WIN32)
 else()

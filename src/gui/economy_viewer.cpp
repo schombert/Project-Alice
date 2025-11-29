@@ -1,5 +1,6 @@
 #include <numbers>
 
+#include "system_state.hpp"
 #include "economy_viewer.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"

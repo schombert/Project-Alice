@@ -3,6 +3,7 @@
 #include "gui_event.hpp"
 #include "gui_modifier_tooltips.hpp"
 #include "gui_trigger_tooltips.hpp"
+#include "gui_templates.hpp"
 #include "prng.hpp"
 #include "script_constants.hpp"
 #include "effects.hpp"

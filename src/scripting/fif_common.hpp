@@ -1,7 +1,9 @@
 #pragma once
+#include "dcon_generated_ids.hpp"
 #include "fif.hpp"
 #include "politics.hpp"
 #include "economy_stats.hpp"
+#include "triggers.hpp"
 
 namespace fif {
 

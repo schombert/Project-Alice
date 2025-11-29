@@ -1,6 +1,7 @@
 #include "map_modes.hpp"
 
 #include "color.hpp"
+#include "color_templates.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated_ids.hpp"

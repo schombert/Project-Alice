@@ -1,8 +1,12 @@
 #pragma once
+// this is a fairly big header which depends on system state
+// kind souls might consider splitting it into cpp and hpp files and include the hpp
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "province_templates.hpp"
+#include "system_state.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
 

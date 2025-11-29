@@ -5,6 +5,7 @@
 #include "economy_trade_routes.hpp"
 #include "construction.hpp"
 #include "demographics.hpp"
+#include "demographics_templates.hpp"
 #include "dcon_generated_ids.hpp"
 #include "economy_templates.hpp"
 #include "ai_economy.hpp"

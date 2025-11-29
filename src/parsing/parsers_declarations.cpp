@@ -4,6 +4,7 @@
 #include "fonts.hpp"
 #include "demographics.hpp"
 #include "military_templates.hpp"
+#include "demographics_templates.hpp"
 
 namespace parsers {
 

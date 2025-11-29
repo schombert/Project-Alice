@@ -5,7 +5,7 @@
 #include <string_view>
 #include <string>
 
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "parsers.hpp"
 #include "script_constants.hpp"
 #include "nations.hpp"

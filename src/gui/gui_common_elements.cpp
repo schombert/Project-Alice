@@ -1,5 +1,8 @@
 #include "gui_common_elements.hpp"
+#include "gui_listbox_templates.hpp"
+#include "gui_templates.hpp"
 #include "ai_alliances.hpp"
+
 
 namespace ui {
 bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b) {
@@ -487,5 +490,60 @@ void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, d
 		text::add_line_break_to_layout(state, contents);
 	}
 };
+
+
+class national_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "focus_icon") {
+			return make_element_by_type<national_focus_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
+
+class national_focus_category_list : public overlapping_listbox_element_base<national_focus_item, dcon::national_focus_id> {
+public:
+	std::string_view get_row_element_name() override {
+		return "focus_item";
+	}
+};
+
+std::unique_ptr<element_base> national_focus_category::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "name") {
+		auto ptr = make_element_by_type<simple_text_element_base>(state, id);
+		category_label = ptr.get();
+		return ptr;
+	} else if(name == "focus_icons") {
+		auto ptr = make_element_by_type<national_focus_category_list>(state, id);
+		focus_list = ptr.get();
+		return ptr;
+	} else {
+		return nullptr;
+	}
+}
+
+message_result national_focus_category::set(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<nations::focus_type>()) {
+		auto category = any_cast<nations::focus_type>(payload);
+		if(category_label)
+			category_label->set_text(state, text::get_focus_category_name(state, category));
+
+		if(focus_list) {
+			focus_list->row_contents.clear();
+			state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
+				auto fat_id = dcon::fatten(state.world, focus_id);
+				if(fat_id.get_type() == uint8_t(category))
+					focus_list->row_contents.push_back(focus_id);
+			});
+			focus_list->update(state);
+		}
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
 
 } // namespace ui

@@ -2,6 +2,14 @@
 #include <cmath>
 
 #include "system_state.hpp"
+#include "gui_modifier_tooltips.hpp"
+#include "economy_trade_routes.hpp"
+#include "color_templates.hpp"
+#include "economy_templates.hpp"
+#include "demographics_templates.hpp"
+#include "economy_tooltips.hpp"
+#include "gui_common_elements.hpp"
+#include "gui_templates.hpp"
 #include "gui_element_base.hpp"
 #include "gui_element_types.hpp"
 #include "gui_trade_window.hpp"

@@ -5,12 +5,86 @@
 #include "gui_console.hpp"
 #include "gui_fps_counter.hpp"
 #include "nations.hpp"
+#include "fif.hpp"
 #include "fif_dcon_generated.hpp"
 #include "fif_common.hpp"
-
+#include "gui_element_base.hpp"
+#include "gui_templates.hpp"
+#include "constants_ui.hpp"
 #define STB_IMAGE_WRITE_IMPLEMENTATION 1
 #include "stb_image_write.h"
 
+
+void ui::console_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
+
+std::unique_ptr<ui::element_base> ui::console_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "console_list") {
+		auto ptr = make_element_by_type<console_list>(state, id);
+		console_output_list = ptr.get();
+		return ptr;
+	} else if(name == "console_edit") {
+		auto ptr = make_element_by_type<console_edit>(state, id);
+		edit_box = ptr.get();
+		return ptr;
+	} else {
+		return nullptr;
+	}
+}
+
+ui::message_result ui::console_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<std::string>()) {
+		auto entry = any_cast<std::string>(payload);
+		console_output_list->raw_text += entry + "\\n";
+		console_output_list->text_pending = true;
+		console_output_list->impl_on_update(state);
+		return message_result::consumed;
+	} else if(payload.holds_type<console_edit*>()) {
+		//console_output_list->scroll_to_bottom(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
+void ui::console_window::clear_list(sys::state& state) noexcept {
+	console_output_list->raw_text.clear();
+	console_output_list->impl_on_update(state);
+}
+
+void ui::console_window::on_visible(sys::state& state) noexcept {
+	//console_output_list->scroll_to_bottom(state);
+	state.ui_state.set_focus_target(state, edit_box);
+}
+void ui::console_window::on_hide(sys::state& state) noexcept {
+	state.ui_state.set_focus_target(state, nullptr);
+}
+
+void ui::console_list::on_update(sys::state & state) noexcept {
+	std::string new_content;
+	{
+		std::lock_guard lg{ state.lock_console_strings };
+		new_content = state.console_command_result;
+		state.console_command_result.clear();
+	}
+	if(new_content.size() > 0) {
+		raw_text += new_content;
+		text_pending = true;
+	}
+	if(text_pending) {
+		text_pending = false;
+		auto contents = text::create_endless_layout(state, delegate->internal_layout,
+			text::layout_parameters{ 10, 10, int16_t(base_data.size.x), int16_t(base_data.size.y),
+			base_data.data.text.font_handle, 0, text::alignment::left,
+			text::is_black_from_font_id(base_data.data.text.font_handle) ? text::text_color::black : text::text_color::white, false });
+		auto box = text::open_layout_box(contents);
+		text::add_unparsed_text_to_layout_box(state, contents, box, raw_text);
+		text::close_layout_box(contents, box);
+		calibrate_scrollbar(state);
+	}
+}
 
 void log_to_console(sys::state& state, ui::element_base* parent, std::u16string_view s) noexcept {
 	Cyto::Any output = simple_fs::utf16_to_utf8(s);

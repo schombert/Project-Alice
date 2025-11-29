@@ -2,17 +2,9 @@
 #include "parsers_declarations.hpp"
 #include "system_state.hpp"
 #include "fonts.hpp"
+#include "text_utility.hpp"
 
 namespace parsers {
-std::string lowercase_str(std::string_view sv) {
-	std::string result;
-	result.reserve(sv.length());
-	for(auto ch : sv) {
-		result += char(tolower(ch));
-	}
-	return result;
-}
-
 struct obj_and_horizontal {
 	ui::gfx_object* obj = nullptr;
 	bool horizontal = false;
@@ -695,9 +687,9 @@ void scrollbar::icontype(image const& v, error_handler& err, int32_t line, build
 	children.push_back(v.target);
 }
 auto find_in_children(std::string_view name, std::vector<ui::element_data> const& v, sys::state const& state) {
-	auto lname = lowercase_str(name);
+	auto lname = text::lowercase_str(name);
 	for(size_t i = v.size(); i-- > 0;) {
-		if(lowercase_str(state.to_string_view(v[i].name)) == lname) {
+		if(text::lowercase_str(state.to_string_view(v[i].name)) == lname) {
 			return i;
 		}
 	}

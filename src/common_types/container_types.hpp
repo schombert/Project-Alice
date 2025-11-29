@@ -143,57 +143,8 @@ inline uint32_t hsv_to_rgb(hsv v) {
 	);
 }
 
-struct value_modifier_segment {
-	float factor = 0.0f;
-	dcon::trigger_key condition;
-	uint16_t padding = 0;
-};
-static_assert(sizeof(value_modifier_segment) ==
-	sizeof(value_modifier_segment::factor)
-	+ sizeof(value_modifier_segment::condition)
-	+ sizeof(value_modifier_segment::padding));
-
-struct value_modifier_description {
-	float factor = 0.0f;
-	float base = 0.0f;
-	uint16_t first_segment_offset = 0;
-	uint16_t segments_count = 0;
-};
-static_assert(sizeof(value_modifier_description) ==
-	sizeof(value_modifier_description::factor)
-	+ sizeof(value_modifier_description::base)
-	+ sizeof(value_modifier_description::first_segment_offset)
-	+ sizeof(value_modifier_description::segments_count));
-
-struct event_option {
-	dcon::text_key name;
-	dcon::value_modifier_key ai_chance;
-	dcon::effect_key effect;
-
-	bool operator==(const event_option& other) const = default;
-	bool operator!=(const event_option& other) const = default;
 
 
-};
-static_assert(sizeof(event_option) ==
-	sizeof(event_option::name)
-	+ sizeof(event_option::ai_chance)
-	+ sizeof(event_option::effect));
-
-
-
-
-
-struct gamerule_option {
-	dcon::text_key name;
-	dcon::effect_key on_select;
-	dcon::effect_key on_deselect;
-
-	bool operator==(const gamerule_option& other) const = default;
-	bool operator!=(const gamerule_option& other) const = default;
-
-
-};
 
 
 
@@ -367,49 +318,6 @@ public:
 	}
 };
 
-namespace economy {
-
-struct commodity_set {
-	static constexpr uint32_t set_size = 8;
-
-	float commodity_amounts[set_size] = {0.0f};
-	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
-
-	bool operator==(const commodity_set& other) const {
-		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
-	}
-	bool operator!=(const commodity_set& other) const {
-		return !(other == *this);
-	}
-
-};
-static_assert(sizeof(commodity_set) ==
-	sizeof(commodity_set::commodity_amounts)
-	+ sizeof(commodity_set::commodity_type));
-
-struct small_commodity_set {
-	static constexpr uint32_t set_size = 6;
-
-	float commodity_amounts[set_size] = {0.0f};
-	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
-	uint16_t padding = 0;
-
-	bool operator==(const small_commodity_set& other) const {
-		return std::memcmp(this->commodity_amounts, other.commodity_amounts, sizeof(commodity_amounts)) == 0 && std::memcmp(this->commodity_type, other.commodity_type, sizeof(commodity_type)) == 0;
-	}
-	bool operator!=(const small_commodity_set& other) const {
-		return !(other == *this);
-	}
-
-
-
-};
-static_assert(sizeof(small_commodity_set) ==
-	sizeof(small_commodity_set::commodity_amounts)
-	+ sizeof(small_commodity_set::commodity_type)
-	+ sizeof(small_commodity_set::padding));
-
-} // namespace economy
 
 namespace sys {
 

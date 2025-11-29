@@ -10,15 +10,14 @@
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
-#include "gui_diplomacy_request_topbar.hpp"
+#include "gui_diplomacy_request_templates.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "rebels.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
 #include "gui_event.hpp"
-
-#include "gui_armygroups.hpp"
+#include "gui_units.hpp"
 
 namespace ui {
 

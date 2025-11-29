@@ -5,6 +5,7 @@
 #include "nations_templates.hpp"
 #include "prng.hpp"
 #include "province_templates.hpp"
+#include "demographics_templates.hpp"
 #include "ve_scalar_extensions.hpp"
 #include "script_constants.hpp"
 #include "politics.hpp"

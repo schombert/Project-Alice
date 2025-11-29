@@ -1,6 +1,7 @@
 #pragma once
 #include <span>
 #include "dcon_generated_ids.hpp"
+#include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
 
@@ -50,79 +51,6 @@ constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval
 
 constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
 
-
-struct ship_in_battle {
-	static constexpr uint16_t distance_mask = 0x03FF;
-
-	static constexpr uint16_t mode_mask = 0x1C00;
-	static constexpr uint16_t mode_seeking = 0x0400;
-	static constexpr uint16_t mode_approaching = 0x0800;
-	static constexpr uint16_t mode_engaged = 0x0C00;
-	static constexpr uint16_t mode_retreating = 0x1000;
-	static constexpr uint16_t mode_retreated = 0x1400;
-	static constexpr uint16_t mode_sunk = 0x0000;
-
-	static constexpr uint16_t is_attacking = 0x2000;
-
-	static constexpr uint16_t type_mask = 0xC000;
-	static constexpr uint16_t type_big = 0x4000;
-	static constexpr uint16_t type_small = 0x8000;
-	static constexpr uint16_t type_transport = 0x0000;
-
-	dcon::ship_id ship;
-	int16_t target_slot = -1;
-	uint16_t flags = 0;
-	uint16_t ships_targeting_this = 0;
-	bool operator == (const ship_in_battle&) const = default;
-	bool operator != (const ship_in_battle&) const = default;
-
-	uint16_t get_distance() const {
-		return flags & distance_mask;
-	}
-	void set_distance(uint16_t distance) {
-		flags &= ~distance_mask;
-		flags |= distance_mask & (distance);
-
-	}
-
-
-
-};
-static_assert(sizeof(ship_in_battle) ==
-	sizeof(ship_in_battle::ship)
-	+ sizeof(ship_in_battle::ships_targeting_this)
-	+ sizeof(ship_in_battle::target_slot)
-	+ sizeof(ship_in_battle::flags));
-
-struct mobilization_order {
-	sys::date when; //2
-	dcon::province_id where; //2
-	bool operator==(const mobilization_order& other) const = default;
-	bool operator!=(const mobilization_order& other) const = default;
-};
-static_assert(sizeof(mobilization_order) ==
-	sizeof(mobilization_order::where)
-	+ sizeof(mobilization_order::when));
-
-struct reserve_regiment {
-	static constexpr uint16_t is_attacking = 0x0001;
-
-	static constexpr uint16_t type_mask = 0x0006;
-	static constexpr uint16_t type_infantry = 0x0000;
-	static constexpr uint16_t type_cavalry = 0x0002;
-	static constexpr uint16_t type_support = 0x0004;
-
-	dcon::regiment_id regiment;
-	uint16_t flags = 0;
-
-	bool operator==(const reserve_regiment& other) const = default;
-	bool operator!=(const reserve_regiment& other) const = default;
-
-
-};
-static_assert(sizeof(reserve_regiment) ==
-	sizeof(reserve_regiment::regiment)
-	+ sizeof(reserve_regiment::flags));
 
 constexpr inline uint8_t defender_bonus_crossing_mask = 0xC0;
 constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
@@ -213,21 +141,6 @@ struct global_military_state {
 	bool pending_blackflag_update = false;
 };
 
-struct available_cb {
-	sys::date expiration; //2
-	dcon::nation_id target; //2
-	dcon::cb_type_id cb_type; //2
-	dcon::state_definition_id target_state;
-	bool operator==(const available_cb& other) const = default;
-	bool operator!=(const available_cb& other) const = default;
-
-
-};
-static_assert(sizeof(available_cb) ==
-	+sizeof(available_cb::target)
-	+ sizeof(available_cb::expiration)
-	+ sizeof(available_cb::cb_type) +
-	sizeof(available_cb::target_state));
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;

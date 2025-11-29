@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "ai_war.hpp"
 #include "ai_campaign_values.hpp"
 #include "prng.hpp"

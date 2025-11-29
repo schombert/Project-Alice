@@ -1,5 +1,4 @@
-#pragma once
-
+#include "gui_politics_subwindows.hpp"
 #include "culture.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
@@ -7,6 +6,8 @@
 #include "politics.hpp"
 #include "system_state.hpp"
 #include <cstdint>
+#include "gui_listbox_templates.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 
@@ -228,37 +229,34 @@ public:
 	}
 };
 
-class unciv_reforms_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
+void unciv_reforms_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "civ_progress") {
-			return make_element_by_type<nation_westernization_progress_bar>(state, id);
-		} else if(name == "westernize_button") {
-			return make_element_by_type<unciv_reforms_westernize_button>(state, id);
-		} else if(name == "research_points_val") {
-			return make_element_by_type<nation_research_points_text>(state, id);
-		} else if(auto reform_id = politics::get_reform_by_name(state, name); bool(reform_id)) {
-			auto ptr = make_element_by_type<unciv_reforms_reform_window>(state, id);
-			Cyto::Any payload = reform_id;
-			ptr->impl_set(state, payload);
-			return ptr;
-		} else if(name == "mil_plusminus_icon") {
-			return make_element_by_type<nation_military_reform_multiplier_icon>(state, id);
-		} else if(name == "eco_plusminus_icon") {
-			return make_element_by_type<nation_economic_reform_multiplier_icon>(state, id);
-		} else if(name == "eco_main_icon" || name == "mil_main_icon") {
-			auto ptr = make_element_by_type<image_element_base>(state, id);
-			ptr->frame -= 1;
-			return ptr;
-		} else {
-			return nullptr;
-		}
+std::unique_ptr<element_base> unciv_reforms_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "civ_progress") {
+		return make_element_by_type<nation_westernization_progress_bar>(state, id);
+	} else if(name == "westernize_button") {
+		return make_element_by_type<unciv_reforms_westernize_button>(state, id);
+	} else if(name == "research_points_val") {
+		return make_element_by_type<nation_research_points_text>(state, id);
+	} else if(auto reform_id = politics::get_reform_by_name(state, name); bool(reform_id)) {
+		auto ptr = make_element_by_type<unciv_reforms_reform_window>(state, id);
+		Cyto::Any payload = reform_id;
+		ptr->impl_set(state, payload);
+		return ptr;
+	} else if(name == "mil_plusminus_icon") {
+		return make_element_by_type<nation_military_reform_multiplier_icon>(state, id);
+	} else if(name == "eco_plusminus_icon") {
+		return make_element_by_type<nation_economic_reform_multiplier_icon>(state, id);
+	} else if(name == "eco_main_icon" || name == "mil_main_icon") {
+		auto ptr = make_element_by_type<image_element_base>(state, id);
+		ptr->frame -= 1;
+		return ptr;
+	} else {
+		return nullptr;
 	}
-};
+}
 
 } // namespace ui

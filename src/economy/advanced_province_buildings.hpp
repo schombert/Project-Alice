@@ -1,5 +1,5 @@
 #pragma once
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "system_state_forward.hpp"
 #include "dcon_generated_ids.hpp"
 

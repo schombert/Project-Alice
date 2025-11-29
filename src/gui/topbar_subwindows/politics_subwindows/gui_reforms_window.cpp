@@ -1,8 +1,10 @@
-#pragma once
-
+#include "system_state.hpp"
+#include "gui_politics_subwindows.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "gui_listbox_templates.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 
@@ -376,23 +378,20 @@ public:
 	}
 };
 
-class reforms_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
+void reforms_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(auto issue_id = politics::get_issue_by_name(state, name); bool(issue_id)) {
-			auto ptr = make_element_by_type<reforms_reform_window>(state, id);
-			Cyto::Any payload = issue_id;
-			ptr->impl_set(state, payload);
-			return ptr;
-		} else {
-			return nullptr;
-		}
+std::unique_ptr<element_base> reforms_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(auto issue_id = politics::get_issue_by_name(state, name); bool(issue_id)) {
+		auto ptr = make_element_by_type<reforms_reform_window>(state, id);
+		Cyto::Any payload = issue_id;
+		ptr->impl_set(state, payload);
+		return ptr;
+	} else {
+		return nullptr;
 	}
-};
+}
 
 } // namespace ui

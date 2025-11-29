@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "national_budget.hpp"
 #include "economy_government.hpp"
 #include "economy.hpp"

@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 #include "economy_trade_routes.hpp"

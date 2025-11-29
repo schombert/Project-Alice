@@ -722,7 +722,7 @@ public:
 	int32_t list_id = 0;
 
 	void on_update(sys::state& state) noexcept override;
-	bool button_action(sys::state& state) noexcept;
+	bool button_action(sys::state& state) noexcept override;
 };
 
 class drop_down_list_page_buttons : public ui::element_base {

@@ -15,4 +15,9 @@ inline constexpr float trade_base_additive_decay = 0.075f;
 inline constexpr float min_trade_expansion_multiplier = 0.01f;
 inline constexpr float trade_demand_satisfaction_cutoff = 0.7f;
 
+float constexpr inline base_qol = 0.5f;
+constexpr inline uint32_t build_factory = issue_rule::pop_build_factory;
+constexpr inline uint32_t expand_factory = issue_rule::pop_expand_factory;
+constexpr inline uint32_t can_invest = expand_factory | build_factory;
+
 }
