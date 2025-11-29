@@ -1,6 +1,6 @@
 #pragma once
 #include <stdint.h>
-#include <iterator>	
+#include <iterator>
 
 namespace sys {
 enum class virtual_key : uint8_t {
@@ -210,30 +210,6 @@ enum class map_vassal_color_mode : uint8_t {
 	inherit = 0,
 	same = 1,
 	none = 2
-};
-
-enum class army_group_regiment_status : uint8_t {
-	move_to_target,
-	move_to_port,
-	standby,
-	await_transport,
-	is_transported,
-	disembark,
-	embark
-};
-
-enum class army_group_regiment_task : uint8_t {
-	idle,
-	gather_at_hq,
-	defend_position,
-	siege,
-};
-
-enum class army_group_order : uint8_t {
-	siege,
-	defend,
-	designate_port,
-	none
 };
 
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, industrial_and_consumer_goods, count };
@@ -595,8 +571,7 @@ enum class graphics_mode {
 	ugly, classic, modern, total
 };
 
-constexpr int32_t max_event_options = 8;
-constexpr uint32_t max_gamerule_settings = 15;
+
 constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
@@ -606,15 +581,6 @@ enum save_type : uint8_t {
 };
 
 } // namespace sys
-
-namespace culture {
-inline constexpr int32_t max_issue_options = 6;
-}
-
-namespace economy {
-enum class province_building_type : uint8_t { railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator };
-constexpr inline int32_t max_building_types = 5;
-}
 
 namespace ui {
 

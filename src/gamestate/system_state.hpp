@@ -7,7 +7,7 @@
 #include <condition_variable>
 
 #include "window.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "dcon_generated.hpp"
 #include "gui_graphics.hpp"
 #include "game_scene.hpp"
@@ -29,7 +29,6 @@
 #include "SPSCQueue.h"
 #include "commands.hpp"
 #include "diplomatic_messages.hpp"
-#include "events.hpp"
 #include "notifications.hpp"
 #include "network.hpp"
 #include "fif.hpp"
@@ -39,6 +38,7 @@
 #include "enums.hpp"
 #include "asvg.hpp"
 #include "uitemplate.hpp"
+#include "ui_state.hpp"
 
 namespace ui {
 struct lua_scripted_element;
@@ -1014,10 +1014,10 @@ struct alignas(64) state {
 	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
 	void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window::window_state win_state);
-	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
+
 	bool filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons);
 	void pass_edit_command(ui::edit_command command, sys::key_modifiers mod);
 	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
@@ -1088,8 +1088,7 @@ struct alignas(64) state {
 	void console_log(std::string_view message);
 	void lua_notification(std::string message);
 	void log_player_nations();
-
-	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
+	void open_diplomacy(dcon::nation_id target);
 
 	int get_edit_x();
 	int get_edit_y();

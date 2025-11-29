@@ -2,6 +2,7 @@
 #include "economy_production.hpp"
 #include "price.hpp"
 #include "province_templates.hpp"
+#include "economy_templates.hpp"
 #include "demographics.hpp"
 
 namespace economy {

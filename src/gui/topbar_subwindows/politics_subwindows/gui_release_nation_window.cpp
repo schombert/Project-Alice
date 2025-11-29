@@ -1,20 +1,14 @@
-#pragma once
-
+#include "gui_politics_subwindows.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "nations.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "gui_templates.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
-
-struct release_query_wrapper {
-	dcon::nation_id content;
-};
-struct release_emplace_wrapper {
-	dcon::nation_id content;
-};
 
 class release_play_as_button : public button_element_base {
 public:
@@ -137,21 +131,17 @@ public:
 	}
 };
 
-class release_nation_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
+void release_nation_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
+std::unique_ptr<element_base> release_nation_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "nations") {
+		return make_element_by_type<release_nation_listbox>(state, id);
+	} else {
+		return nullptr;
 	}
-
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "nations") {
-			return make_element_by_type<release_nation_listbox>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
+}
 
 // NOTE FOR OTHERS - THIS CODE IS NOT INTERCHANGEABLE WITH ITS SIMIARLY NAMED VERSION ABOVE DO NOT REMOVE THIS
 class release_nation_window_description_text : public generic_multiline_text<dcon::national_identity_id> {
@@ -239,5 +229,9 @@ public:
 		return message_result::unseen;
 	}
 };
+
+std::unique_ptr<element_base> make_release_nation_window(sys::state& state, std::string_view name) {
+	return make_element_by_type<politics_release_nation_window>(state, name);
+}
 
 } // namespace ui

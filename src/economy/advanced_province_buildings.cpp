@@ -2,7 +2,7 @@
 #include "price.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "province_templates.hpp"
 
 namespace services {

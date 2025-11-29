@@ -1,14 +1,16 @@
-#pragma once
-
+#include "gui_politics_subwindows.hpp"
 #include <vector>
-
+#include "system_state.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_element_types.hpp"
 #include "triggers.hpp"
 #include "text.hpp"
+#include "gui_listbox_templates.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 
-inline void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
+void produce_decision_substitutions(sys::state& state, text::substitution_map& m, dcon::nation_id n) {
 	text::add_to_substitution_map(m, text::variable_type::country_adj, text::get_adjective(state, n));
 	text::add_to_substitution_map(m, text::variable_type::country, n);
 	text::add_to_substitution_map(m, text::variable_type::countryname, n);
@@ -379,20 +381,17 @@ public:
 // Decision Window
 // ----------------
 
-class decision_window : public window_element_base {
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
+void decision_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "decision_listbox") {
-			return make_element_by_type<decision_listbox>(state, id);
-		} else {
-			return nullptr;
-		}
+std::unique_ptr<element_base> decision_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "decision_listbox") {
+		return make_element_by_type<decision_listbox>(state, id);
+	} else {
+		return nullptr;
 	}
-};
+}
 
 } // namespace ui

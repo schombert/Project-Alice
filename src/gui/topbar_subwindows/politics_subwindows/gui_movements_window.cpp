@@ -1,5 +1,4 @@
-#pragma once
-
+#include "gui_politics_subwindows.hpp"
 #include "cyto_any.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
@@ -7,6 +6,8 @@
 #include "gui_graphics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
+#include "gui_templates.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
 
@@ -265,50 +266,45 @@ public:
 	}
 };
 
-class movements_window : public window_element_base {
-private:
-	movements_list* movements_listbox = nullptr;
 
-public:
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		set_visible(state, false);
-	}
+void movements_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	set_visible(state, false);
+}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "sortby_size_button") {
-			auto ptr = make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::size);
-			ptr->base_data.position.y -= 1; // Nudge
-			return ptr;
-		} else if(name == "sortby_radical_button") {
-			auto ptr = make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::radicalism);
-			ptr->base_data.position.y -= 1; // Nudge
-			return ptr;
-		} else if(name == "sortby_name_button") {
-			return make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::name);
-		} else if(name == "rebel_listbox") {
-			return make_element_by_type<movements_rebel_list>(state, id);
-		} else if(name == "movements_listbox") {
-			auto ptr = make_element_by_type<movements_list>(state, id);
-			movements_listbox = ptr.get();
-			return ptr;
-		} else if(name == "suppression_value") {
-			return make_element_by_type<nation_suppression_points_text>(state, id);
-		} else {
-			return nullptr;
-		}
+std::unique_ptr<element_base> movements_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "sortby_size_button") {
+		auto ptr = make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::size);
+		ptr->base_data.position.y -= 1; // Nudge
+		return ptr;
+	} else if(name == "sortby_radical_button") {
+		auto ptr = make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::radicalism);
+		ptr->base_data.position.y -= 1; // Nudge
+		return ptr;
+	} else if(name == "sortby_name_button") {
+		return make_element_by_type<movements_sort_order_button>(state, id, movements_sort_order::name);
+	} else if(name == "rebel_listbox") {
+		return make_element_by_type<movements_rebel_list>(state, id);
+	} else if(name == "movements_listbox") {
+		auto ptr = make_element_by_type<movements_list>(state, id);
+		movements_listbox = ptr.get();
+		return ptr;
+	} else if(name == "suppression_value") {
+		return make_element_by_type<nation_suppression_points_text>(state, id);
+	} else {
+		return nullptr;
 	}
+}
 
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<movements_sort_order>()) {
-			auto enum_val = any_cast<movements_sort_order>(payload);
-			movements_listbox->order = enum_val;
-			movements_listbox->impl_on_update(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
+message_result movements_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<movements_sort_order>()) {
+		auto enum_val = any_cast<movements_sort_order>(payload);
+		movements_listbox->order = enum_val;
+		movements_listbox->impl_on_update(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
 	}
-};
+}
 
 } // namespace ui

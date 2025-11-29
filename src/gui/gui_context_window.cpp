@@ -2,6 +2,7 @@
 #include "gui_context_window.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_factory_refit_window.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 

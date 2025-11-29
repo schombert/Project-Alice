@@ -1444,43 +1444,6 @@ public:
 	}
 };
 
-class upper_house_piechart : public piechart<dcon::ideology_id> {
-protected:
-	void on_update(sys::state& state) noexcept override {
-		auto nat_id = retrieve<dcon::nation_id>(state, parent);
-		distribution.clear();
-		for(auto id : state.world.in_ideology) {
-			distribution.emplace_back(id.id, float(state.world.nation_get_upper_house(nat_id, id)));
-		}
-		update_chart(state);
-	}
-};
-
-class voter_ideology_piechart : public piechart<dcon::ideology_id> {
-protected:
-	void on_update(sys::state& state) noexcept override {
-		auto nat_id = retrieve<dcon::nation_id>(state, parent);
-		distribution.clear();
-		for(auto id : state.world.in_ideology) {
-			distribution.emplace_back(id.id, 0.0f);
-		}
-		for(auto p : state.world.nation_get_province_ownership(nat_id)) {
-			for(auto pop_loc : state.world.province_get_pop_location(p.get_province())) {
-				auto pop_id = pop_loc.get_pop();
-				float vote_size = politics::pop_vote_weight(state, pop_id, nat_id);
-				if(vote_size > 0) {
-					state.world.for_each_ideology([&](dcon::ideology_id iid) {
-						auto dkey = pop_demographics::to_key(state, iid);
-						distribution[iid.index()].value += pop_demographics::get_demo(state, pop_id.id, dkey) * vote_size;
-					});
-				}
-			}
-		}
-
-		update_chart(state);
-	}
-};
-
 class province_population_text : public simple_text_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -2109,64 +2072,15 @@ public:
 	}
 };
 
-class national_focus_item : public listbox_row_element_base<dcon::national_focus_id> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "focus_icon") {
-			return make_element_by_type<national_focus_icon>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-
-class national_focus_category_list : public overlapping_listbox_element_base<national_focus_item, dcon::national_focus_id> {
-public:
-	std::string_view get_row_element_name() override {
-		return "focus_item";
-	}
-};
+class national_focus_category_list;
 
 class national_focus_category : public window_element_base {
 private:
 	simple_text_element_base* category_label = nullptr;
 	national_focus_category_list* focus_list = nullptr;
-
 public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "name") {
-			auto ptr = make_element_by_type<simple_text_element_base>(state, id);
-			category_label = ptr.get();
-			return ptr;
-		} else if(name == "focus_icons") {
-			auto ptr = make_element_by_type<national_focus_category_list>(state, id);
-			focus_list = ptr.get();
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-
-	message_result set(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(payload.holds_type<nations::focus_type>()) {
-			auto category = any_cast<nations::focus_type>(payload);
-			if(category_label)
-				category_label->set_text(state, text::get_focus_category_name(state, category));
-
-			if(focus_list) {
-				focus_list->row_contents.clear();
-				state.world.for_each_national_focus([&](dcon::national_focus_id focus_id) {
-					auto fat_id = dcon::fatten(state.world, focus_id);
-					if(fat_id.get_type() == uint8_t(category))
-						focus_list->row_contents.push_back(focus_id);
-				});
-				focus_list->update(state);
-			}
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
+	message_result set(sys::state& state, Cyto::Any& payload) noexcept override;
 };
 
 class national_focus_remove_button : public button_element_base {
@@ -2257,17 +2171,6 @@ public:
 	}
 };
 
-class overlapping_wg_icon : public listbox_row_element_base<military::wg_summary> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "wargoal_icon") {
-			return make_element_by_type<wg_icon>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
-
 class full_wg_icon : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
@@ -2297,16 +2200,7 @@ public:
 	}
 };
 
-class overlapping_full_wg_icon : public listbox_row_element_base<sys::full_wg> {
-public:
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "wargoal_icon") {
-			return make_element_by_type<full_wg_icon>(state, id);
-		} else {
-			return nullptr;
-		}
-	}
-};
+
 
 class province_colony_button : public standard_state_instance_button {
 public:

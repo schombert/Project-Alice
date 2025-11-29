@@ -1,10 +1,79 @@
-#pragma once
 
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "diplomatic_messages.hpp"
+#include "gui_diplomacy_request_templates.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
+
+std::string_view diplomatic_message_topbar_button::get_type_key(diplomatic_message::type_t type) {
+	switch(type) {
+	case diplomatic_message::type_t::none:
+		return "???";
+	case diplomatic_message::type_t::access_request:
+		return "askmilitaryaccess_di";
+	case diplomatic_message::type_t::alliance_request:
+		return "alliance_di";
+	case diplomatic_message::type_t::call_ally_request:
+		return "callally_di";
+	case diplomatic_message::type_t::be_crisis_primary_defender:
+		return "back_crisis_di";
+	case diplomatic_message::type_t::be_crisis_primary_attacker:
+		return "back_crisis_di";
+	case diplomatic_message::type_t::peace_offer:
+		return "peace_di";
+	case diplomatic_message::type_t::take_crisis_side_offer:
+		return "back_crisis_di";
+	case diplomatic_message::type_t::crisis_peace_offer:
+		return "crisis_offer_di";
+	case diplomatic_message::type_t::state_transfer:
+		return "state_transfer_di";
+	case diplomatic_message::type_t::free_trade_agreement:
+		return "free_trade_di";
+	default:
+		return "???";
+	}
+}
+
+void diplomatic_message_topbar_button::on_update(sys::state& state) noexcept {
+	auto const m = retrieve<diplomatic_message::message>(state, parent);
+	/*
+		requestmilaccess = 0,
+		offermilaccess = 1,
+		offeralliance = 2,
+		calltoarms = 3,
+		offerpeace = 4,
+		invitecrisis = 5,
+	*/
+	switch(m.type) {
+	case diplomatic_message::type_t::none:
+	case diplomatic_message::type_t::state_transfer:
+		frame = 0;
+		break;
+	case diplomatic_message::type_t::access_request:
+		frame = 1;
+		break;
+	case diplomatic_message::type_t::alliance_request:
+		frame = 2;
+		break;
+	case diplomatic_message::type_t::call_ally_request:
+		frame = 3;
+		break;
+	case diplomatic_message::type_t::take_crisis_side_offer:
+	case diplomatic_message::type_t::peace_offer:
+	case diplomatic_message::type_t::crisis_peace_offer:
+		frame = 4;
+		break;
+	case diplomatic_message::type_t::be_crisis_primary_defender:
+	case diplomatic_message::type_t::be_crisis_primary_attacker:
+		frame = 5;
+		break;
+	default:
+		break;
+	}
+}
+
 
 template<bool Left>
 class diplomacy_request_lr_button : public button_element_base {
@@ -290,115 +359,197 @@ public:
 	}
 };
 
-class diplomacy_request_window : public window_element_base {
-	simple_text_element_base* count_text = nullptr;
-	int32_t index = 0;
+ 
+void diplomacy_request_window::on_create(sys::state& state) noexcept {
+	window_element_base::on_create(state);
+	xy_pair cur_pos{ 0, 0 };
+	{
+		auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
+		cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
+		cur_pos.y = ptr->base_data.size.y * 1;
+		ptr->base_data.position = cur_pos;
+		add_child_to_front(std::move(ptr));
+	}
+	{
+		auto ptr = make_element_by_type<diplomacy_request_count_text>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_page_count"))->second.definition);
+		cur_pos.x -= ptr->base_data.size.x;
+		ptr->base_data.position = cur_pos;
+		count_text = ptr.get();
+		add_child_to_front(std::move(ptr));
+	}
+	{
+		auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(state,
+				state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
+		cur_pos.x -= ptr->base_data.size.x;
+		ptr->base_data.position = cur_pos;
+		add_child_to_front(std::move(ptr));
+	}
+	set_visible(state, false);
+}
 
-public:
-	std::vector<diplomatic_message::message> messages;
+std::unique_ptr<element_base> diplomacy_request_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "title") {
+		return make_element_by_type<diplomacy_request_title_text>(state, id);
+	} else if(name == "description") {
+		return make_element_by_type<diplomacy_request_desc_text>(state, id);
+	} else if(name == "agreebutton") {
+		return make_element_by_type<diplomacy_request_reply_button<true>>(state, id);
+	} else if(name == "declinebutton") {
+		return make_element_by_type<diplomacy_request_reply_button<false>>(state, id);
+	} else if(name == "leftshield") {
+		return make_element_by_type<diplomacy_request_player_flag_button>(state, id);
+	} else if(name == "rightshield") {
+		return make_element_by_type<diplomacy_request_flag_button>(state, id);
+	} else if(name == "background") {
+		auto ptr = make_element_by_type<draggable_target>(state, id);
+		ptr->base_data.size = base_data.size;
+		return ptr;
+	} else {
+		return nullptr;
+	}
+}
 
-	void on_create(sys::state& state) noexcept override {
-		window_element_base::on_create(state);
-		xy_pair cur_pos{0, 0};
-		{
-			auto ptr = make_element_by_type<diplomacy_request_lr_button<false>>(state,
-					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
-			cur_pos.x = base_data.size.x - (ptr->base_data.size.x * 2);
-			cur_pos.y = ptr->base_data.size.y * 1;
-			ptr->base_data.position = cur_pos;
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<diplomacy_request_count_text>(state,
-					state.ui_state.defs_by_name.find(state.lookup_key("alice_page_count"))->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			count_text = ptr.get();
-			add_child_to_front(std::move(ptr));
-		}
-		{
-			auto ptr = make_element_by_type<diplomacy_request_lr_button<true>>(state,
-					state.ui_state.defs_by_name.find(state.lookup_key("alice_left_right_button"))->second.definition);
-			cur_pos.x -= ptr->base_data.size.x;
-			ptr->base_data.position = cur_pos;
-			add_child_to_front(std::move(ptr));
-		}
+void diplomacy_request_window::on_update(sys::state& state) noexcept {
+	auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
+		return m.when + (int32_t)state.defines.alice_message_expiration_days <= state.current_date
+			|| !diplomatic_message::can_accept(state, m);
+	});
+	messages.erase(it, messages.end());
+
+	if(messages.empty()) {
 		set_visible(state, false);
 	}
 
-	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
-		if(name == "title") {
-			return make_element_by_type<diplomacy_request_title_text>(state, id);
-		} else if(name == "description") {
-			return make_element_by_type<diplomacy_request_desc_text>(state, id);
-		} else if(name == "agreebutton") {
-			return make_element_by_type<diplomacy_request_reply_button<true>>(state, id);
-		} else if(name == "declinebutton") {
-			return make_element_by_type<diplomacy_request_reply_button<false>>(state, id);
-		} else if(name == "leftshield") {
-			return make_element_by_type<diplomacy_request_player_flag_button>(state, id);
-		} else if(name == "rightshield") {
-			return make_element_by_type<diplomacy_request_flag_button>(state, id);
-		} else if(name == "background") {
-			auto ptr = make_element_by_type<draggable_target>(state, id);
-			ptr->base_data.size = base_data.size;
-			return ptr;
-		} else {
-			return nullptr;
-		}
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto it = std::remove_if(messages.begin(), messages.end(), [&](auto& m) {
-			return m.when + (int32_t) state.defines.alice_message_expiration_days <= state.current_date
-				|| !diplomatic_message::can_accept(state, m);
-		});
-		messages.erase(it, messages.end());
-
-		if(messages.empty()) {
-			set_visible(state, false);
-		}
-
-		count_text->set_text(state, std::to_string(int32_t(index + 1)) + "/" + std::to_string(int32_t(messages.size())));
-	}
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
-		if(messages.empty()) {
+	count_text->set_text(state, std::to_string(int32_t(index + 1)) + "/" + std::to_string(int32_t(messages.size())));
+}
+message_result diplomacy_request_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(messages.empty()) {
+		index = 0;
+	} else {
+		if(index >= int32_t(messages.size()))
 			index = 0;
-		} else {
-			if(index >= int32_t(messages.size()))
-				index = 0;
-			else if(index < 0)
-				index = int32_t(messages.size()) - 1;
-		}
+		else if(index < 0)
+			index = int32_t(messages.size()) - 1;
+	}
 
-		if(payload.holds_type<dcon::nation_id>()) {
-			if(messages.empty()) {
-				payload.emplace<dcon::nation_id>(dcon::nation_id{});
-			} else {
-				payload.emplace<dcon::nation_id>(messages[index].from);
-			}
-			return message_result::consumed;
-		} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
-			bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
-			index += b ? -1 : +1;
-			impl_on_update(state);
-			return message_result::consumed;
-		} else if(payload.holds_type<diplomatic_message::message>()) {
-			if(messages.empty()) {
-				payload.emplace<diplomatic_message::message>(diplomatic_message::message{});
-			} else {
-				payload.emplace<diplomatic_message::message>(messages[index]);
-			}
-			return message_result::consumed;
-		} else if(payload.holds_type<diplomacy_reply_taken_notification>()) {
-			if(!messages.empty()) {
-				messages.erase(messages.begin() + size_t(index));
-				impl_on_update(state);
-			}
-			return message_result::consumed;
+	if(payload.holds_type<dcon::nation_id>()) {
+		if(messages.empty()) {
+			payload.emplace<dcon::nation_id>(dcon::nation_id{});
+		} else {
+			payload.emplace<dcon::nation_id>(messages[index].from);
 		}
-		return window_element_base::get(state, payload);
+		return message_result::consumed;
+	} else if(payload.holds_type<element_selection_wrapper<bool>>()) {
+		bool b = any_cast<element_selection_wrapper<bool>>(payload).data;
+		index += b ? -1 : +1;
+		impl_on_update(state);
+		return message_result::consumed;
+	} else if(payload.holds_type<diplomatic_message::message>()) {
+		if(messages.empty()) {
+			payload.emplace<diplomatic_message::message>(diplomatic_message::message{});
+		} else {
+			payload.emplace<diplomatic_message::message>(messages[index]);
+		}
+		return message_result::consumed;
+	} else if(payload.holds_type<diplomacy_reply_taken_notification>()) {
+		if(!messages.empty()) {
+			messages.erase(messages.begin() + size_t(index));
+			impl_on_update(state);
+		}
+		return message_result::consumed;
+	}
+	return window_element_base::get(state, payload);
+}
+
+tooltip_behavior diplomatic_message_topbar_button::has_tooltip(sys::state& state) noexcept {
+	return tooltip_behavior::variable_tooltip;
+}
+
+void diplomatic_message_topbar_button::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	auto m = retrieve<diplomatic_message::message>(state, parent);
+	auto box = text::open_layout_box(contents);
+	auto tstr = text::produce_simple_string(state, get_type_key(m.type));
+	text::substitution_map sub{};
+	text::add_to_substitution_map(sub, text::variable_type::nation, m.from);
+	text::add_to_substitution_map(sub, text::variable_type::date, m.when + (int32_t)state.defines.alice_message_expiration_days);
+	text::add_to_substitution_map(sub, text::variable_type::type, std::string_view(tstr.c_str()));
+	text::localised_format_box(state, contents, box, std::string_view("diploicon_tip"), sub);
+	text::close_layout_box(contents, box);
+}
+
+class diplomatic_message_topbar_flag_button : public flag_button {
+public:
+	void button_action(sys::state& state) noexcept override;
+	void button_right_action(sys::state& state) noexcept override;
+};
+
+std::unique_ptr<element_base> diplomatic_message_topbar_entry_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
+	if(name == "diplomessageicon_button") {
+		auto ptr = make_element_by_type<diplomatic_message_topbar_button>(state, id);
+		btn = ptr.get();
+		return ptr;
+	} else if(name == "flag") {
+		return make_element_by_type<diplomatic_message_topbar_flag_button>(state, id);
+	} else if(name == "messageicon_bg_overlay") {
+		return make_element_by_type<image_element_base>(state, id);
+	} else {
+		return nullptr;
+	}
+}
+message_result diplomatic_message_topbar_entry_window::get(sys::state& state, Cyto::Any& payload) noexcept {
+	if(payload.holds_type<dcon::nation_id>()) {
+		payload.emplace<dcon::nation_id>(content.from);
+		return message_result::consumed;
+	} else if(payload.holds_type<dcon::national_identity_id>()) {
+		payload.emplace<dcon::national_identity_id>(state.world.nation_get_identity_from_identity_holder(content.from));
+		return message_result::consumed;
+	}
+	return listbox_row_element_base<diplomatic_message::message>::get(state, payload);
+}
+
+void diplomatic_message_topbar_button::button_action(sys::state& state) noexcept {
+	auto const m = retrieve<diplomatic_message::message>(state, parent);
+	//Invoke window
+	auto dpw = static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window);
+	dpw->messages.push_back(m);
+	dpw->set_visible(state, true);
+	dpw->impl_on_update(state);
+	//Remove from listbox
+	auto dmtl = static_cast<diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox);
+	auto it = std::remove_if(dmtl->messages.begin(), dmtl->messages.end(),
+			[&](auto& e) { return e.from == m.from && e.to == m.to && e.type == m.type && e.when == m.when; });
+	auto r = std::distance(it, dmtl->messages.end());
+	dmtl->messages.erase(it, dmtl->messages.end());
+	dmtl->impl_on_update(state);
+};
+
+void diplomatic_message_topbar_button::button_right_action(sys::state& state) noexcept {
+	auto const m = retrieve<diplomatic_message::message>(state, parent);
+	//Remove from listbox
+	auto dmtl = static_cast<diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox);
+	auto it = std::remove_if(dmtl->messages.begin(), dmtl->messages.end(),
+			[&](auto& e) { return e.from == m.from && e.to == m.to && e.type == m.type && e.when == m.when; });
+	auto r = std::distance(it, dmtl->messages.end());
+	dmtl->messages.erase(it, dmtl->messages.end());
+	dmtl->impl_on_update(state);
+};
+
+void diplomatic_message_topbar_flag_button::button_action(sys::state& state) noexcept {
+	if(parent) {
+		auto win = static_cast<diplomatic_message_topbar_entry_window*>(parent);
+		if(win->btn)
+			win->btn->button_action(state);
 	}
 };
 
-} // namespace ui
+void diplomatic_message_topbar_flag_button::button_right_action(sys::state& state) noexcept {
+	if(parent) {
+		auto win = static_cast<diplomatic_message_topbar_entry_window*>(parent);
+		if(win->btn)
+			win->btn->button_right_action(state);
+	}
+};
+
+}

@@ -4,6 +4,7 @@
 #include "resource.h"
 #include "system_state.hpp"
 #include "gui_element_base.hpp"
+#include "user_interactions.hpp"
 
 #ifndef UNICODE
 #define UNICODE
@@ -386,7 +387,7 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		return 0;
 	}
 	case WM_MOUSEWHEEL: {
-		state->on_mouse_wheel(state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
+		sys::on_mouse_wheel(*state, state->mouse_x_position, state->mouse_y_position, get_current_modifiers(), (float)(GET_WHEEL_DELTA_WPARAM(wParam)) / 120.0f);
 		return 0;
 	}
 	case WM_KEYDOWN: // fallthrough

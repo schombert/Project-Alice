@@ -3,6 +3,7 @@
 #include "common_types.hpp"
 #include "events.hpp"
 #include "diplomatic_messages.hpp"
+#include "constants_dcon.hpp"
 #include "constants.hpp"
 #include "container_types.hpp"
 

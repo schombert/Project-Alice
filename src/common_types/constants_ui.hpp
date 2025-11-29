@@ -32,6 +32,16 @@ enum class alignment : uint8_t {
 
 namespace ui{
 
+enum class message_result {
+	unseen, seen, consumed
+};
+enum class focus_result {
+	ignored, accepted
+};
+enum class tooltip_behavior {
+	tooltip, variable_tooltip, position_sensitive_tooltip, no_tooltip
+};
+
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,
 	text = 0x02,

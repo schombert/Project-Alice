@@ -23,46 +23,10 @@
 #include "triggers.hpp"
 #include "effects.hpp"
 #include "alice_ui.hpp"
+#include "text_utility.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
-
-void state::set_focus_target(sys::state& state, element_base* target) {
-	if(edit_target_internal && !target) {
-		state.win_ptr->text_services.suspend_keystroke_handling();
-		state.win_ptr->text_services.set_focus(state, nullptr);
-	}
-	if(!edit_target_internal && target)
-		state.win_ptr->text_services.resume_keystroke_handling();
-	if(edit_target_internal && edit_target_internal != target) {
-		edit_target_internal->on_lose_focus(state);
-	}
-	if(edit_target_internal != target) {
-		if(target && target->on_get_focus(state) != ui::focus_result::ignored)
-			edit_target_internal = target;
-		else
-			edit_target_internal = nullptr;
-	}
-}
-void state::set_mouse_sensitive_target(sys::state& state, element_base* target) {
-	if(mouse_sensitive_target) {
-		mouse_sensitive_target->set_visible(state, false);
-	}
-	mouse_sensitive_target = target;
-	if(target) {
-		auto size = target->base_data.size;
-		target_ul_bounds = ui::get_absolute_location(state, *target);
-		target_lr_bounds = ui::xy_pair{ int16_t(target_ul_bounds.x + size.x), int16_t(target_ul_bounds.y + size.y) };
-
-		auto mx = int32_t(state.mouse_x_position / state.user_settings.ui_scale);
-		auto my = int32_t(state.mouse_y_position / state.user_settings.ui_scale);
-
-		auto x_distance = std::max(std::max(target_ul_bounds.x - mx, 0), std::max(mx - target_lr_bounds.x, 0));
-		auto y_distance = std::max(std::max(target_ul_bounds.y - my, 0), std::max(my - target_lr_bounds.y, 0));
-		target_distance = std::max(x_distance, y_distance);
-
-		target->set_visible(state, true);
-	}
-}
 
 inline message_result greater_result(message_result a, message_result b) {
 	if(a == message_result::consumed || b == message_result::consumed)
@@ -234,7 +198,7 @@ void container_base::add_child_to_back(std::unique_ptr<element_base> child) noex
 	children.emplace_back(std::move(child));
 }
 element_base* container_base::get_child_by_name(sys::state const& state, std::string_view name) noexcept {
-	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return parsers::lowercase_str(state.to_string_view(p->base_data.name)) == parsers::lowercase_str(name); }); it != children.end()) {
+	if(auto it = std::find_if(children.begin(), children.end(), [&state, name](std::unique_ptr<element_base>& p) { return text::lowercase_str(state.to_string_view(p->base_data.name)) == text::lowercase_str(name); }); it != children.end()) {
 		return it->get();
 	}
 	return nullptr;
@@ -2274,7 +2238,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 			);
 		}
 		hmargin = float(region.h_text_margins * par->grid_size);
-		vmargin = yoff;
+		vmargin = float(yoff);
 	} else {
 		if(base_data.get_element_type() == element_type::text) {
 			dcon::texture_id background_texture_id;
@@ -3095,7 +3059,7 @@ void window_element_base::on_create(sys::state& state) noexcept {
 		auto num_children = base_data.data.window.num_children;
 		for(auto ex : state.ui_defs.extensions) {
 			if(ex.window == base_data.name) {
-				auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
+				auto ch_res = make_child(state, text::lowercase_str(state.to_string_view(state.ui_defs.gui[ex.child].name)), ex.child);
 				if(!ch_res) {
 					ch_res = ui::make_element_immediate(state, ex.child);
 				}
@@ -3106,7 +3070,7 @@ void window_element_base::on_create(sys::state& state) noexcept {
 		}
 		for(uint32_t i = num_children; i-- > 0;) {
 			auto child_tag = dcon::gui_def_id(dcon::gui_def_id::value_base_t(i + first_child.index()));
-			auto ch_res = make_child(state, parsers::lowercase_str(state.to_string_view(state.ui_defs.gui[child_tag].name)), child_tag);
+			auto ch_res = make_child(state, text::lowercase_str(state.to_string_view(state.ui_defs.gui[child_tag].name)), child_tag);
 			if(!ch_res) {
 				ch_res = ui::make_element_immediate(state, child_tag);
 			}
@@ -3212,161 +3176,6 @@ message_result scrollable_text::get(sys::state& state, Cyto::Any& payload) noexc
 	} else {
 		return message_result::unseen;
 	}
-}
-
-void listbox2_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
-	send(state, parent, listbox2_scroll_event{ });
-}
-
-message_result listbox2_row_element::get(sys::state& state, Cyto::Any& payload) noexcept {
-	send(state, parent, listbox2_row_view{ this });
-	return message_result::unseen;
-}
-
-
-
-template<class RowConT>
-message_result listbox_row_button_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<RowConT>()) {
-		payload.emplace<RowConT>(content);
-		return message_result::consumed;
-	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
-		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
-		update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<typename contents_type>
-message_result listbox2_base<contents_type>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if(int32_t(row_contents.size()) > visible_row_count) {
-		//amount = is_reversed() ? -amount : amount;
-		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
-		impl_on_update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<typename contents_type>
-void listbox2_base<contents_type>::on_update(sys::state& state) noexcept {
-	auto content_off_screen = int32_t(row_contents.size()) - visible_row_count;
-	int32_t scroll_pos = list_scrollbar->raw_value();
-
-	if(content_off_screen <= 0) {
-		list_scrollbar->set_visible(state, false);
-		list_scrollbar->update_raw_value(state, 0);
-
-		int32_t i = 0;
-		for(; i < int32_t(row_contents.size()); ++i) {
-			row_windows[i]->set_visible(state, true);
-		}
-		for(; i < int32_t(row_windows.size()); ++i) {
-			row_windows[i]->set_visible(state, false);
-		}
-	} else {
-		list_scrollbar->change_settings(state, mutable_scrollbar_settings{ 0, content_off_screen, 0, 0, false });
-		list_scrollbar->set_visible(state, true);
-		scroll_pos = std::min(scroll_pos, content_off_screen);
-
-		int32_t i = 0;
-		for(; i < visible_row_count; ++i) {
-			row_windows[i]->set_visible(state, true);
-		}
-		for(; i < int32_t(row_windows.size()); ++i) {
-			row_windows[i]->set_visible(state, false);
-		}
-	}
-}
-
-template<typename contents_type>
-message_result listbox2_base<contents_type>::get(sys::state& state, Cyto::Any& payload) noexcept  {
-	if(payload.holds_type<listbox2_scroll_event>()) {
-		impl_on_update(state);
-		return message_result::consumed;
-	} else if(payload.holds_type<listbox2_row_view>()) {
-		listbox2_row_view ptr = any_cast<listbox2_row_view>(payload);
-		for(int32_t index = 0; index < int32_t(row_windows.size()); ++index) {
-			if(row_windows[index] == ptr.row) {
-				stored_index = index + list_scrollbar->raw_value();
-				return message_result::consumed;
-			}
-		}
-		stored_index = -1;
-		return message_result::consumed;
-	} else if(payload.holds_type<contents_type>()) {
-		if(0 <= stored_index && stored_index < int32_t(row_contents.size())) {
-			payload = row_contents[stored_index];
-		}
-		return message_result::consumed;
-	} else {
-		return message_result::unseen;
-	}
-}
-
-template<typename contents_type>
-void listbox2_base<contents_type>::resize(sys::state& state, int32_t height) {
-	int32_t row_height = row_windows[0]->base_data.position.y + row_windows[0]->base_data.size.y;
-	int32_t height_covered = int32_t(row_windows.size()) * row_height;
-	int32_t required_rows = (height - height_covered) / row_height;
-
-	while(required_rows > 0) {
-		auto new_row = make_row(state);
-		row_windows.push_back(new_row.get());
-		new_row->base_data.position.y += int16_t(height_covered);
-		add_child_to_back(std::move(new_row));
-
-		height_covered += row_height;
-		--required_rows;
-	}
-
-	visible_row_count = height / row_height;
-	base_data.size.y = int16_t(row_height * visible_row_count);
-
-	if(visible_row_count != 0) {
-		if(scrollbar_is_internal)
-			base_data.size.x -= 16;
-		list_scrollbar->scale_to_parent();
-		if(scrollbar_is_internal)
-			base_data.size.x += 16;
-	}
-}
-
-template<typename contents_type>
-void listbox2_base<contents_type>::on_create(sys::state& state) noexcept {
-	auto ptr = make_element_by_type<listbox2_scrollbar>(state, "standardlistbox_slider");
-	list_scrollbar = static_cast<listbox2_scrollbar*>(ptr.get());
-	add_child_to_back(std::move(ptr));
-
-	auto base_row = make_row(state);
-	row_windows.push_back(base_row.get());
-	add_child_to_back(std::move(base_row));
-
-	resize(state, base_data.size.y);
-}
-template<typename contents_type>
-void listbox2_base<contents_type>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
-	if(gid) {
-		auto const& gfx_def = state.ui_defs.gfx[gid];
-		if(gfx_def.primary_texture_handle) {
-			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
-					float(base_data.size.x), float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			} else {
-				ogl::render_textured_rect(state, get_color_modification(false, false, true), float(x), float(y), float(base_data.size.x),
-					float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			}
-		}
-	}
-	container_base::render(state, x, y);
 }
 
 std::string_view overlapping_flags_box::get_row_element_name() {
@@ -4198,18 +4007,6 @@ message_result scrollbar::get(sys::state& state, Cyto::Any& payload) noexcept {
 	}
 }
 
-void unit_frame_bg::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	auto display_unit = retrieve< unit_var>(state, parent);
-	if(std::holds_alternative<dcon::army_id>(display_unit))
-		single_unit_tooltip(state, contents, std::get<dcon::army_id>(display_unit));
-	else if(std::holds_alternative<dcon::navy_id>(display_unit))
-		single_unit_tooltip(state, contents, std::get<dcon::navy_id>(display_unit));
-	text::add_line(state, contents, "unit_controls_tooltip_1");
-	if(state.network_mode != sys::network_mode_type::single_player)
-		text::add_line(state, contents, "unit_controls_tooltip_2");
-	text::add_line(state, contents, "unit_control_group_tooltip");
-}
-
 void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::columnar_layout& contents) noexcept {
 	if(elm.base_data.get_element_type() != ui::element_type::button)
 		return;
@@ -4430,6 +4227,154 @@ void populate_shortcut_tooltip(sys::state& state, ui::element_base& elm, text::c
 		"\"", //QUOTE = 0xDE
 	};
 	text::add_line(state, contents, "shortcut_tooltip", text::variable_type::x, key_names[uint8_t(elm.base_data.data.button.shortcut)]);
+}
+
+
+bool image_element_base::get_horizontal_flip(sys::state& state) noexcept {
+	return state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
+}
+
+message_result image_element_base::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	if(has_tooltip(state) == tooltip_behavior::no_tooltip)
+		return message_result::unseen;
+	return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
+}
+
+message_result partially_transparent_image::test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
+	if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
+		auto& texhandle = state.open_gl.asset_textures[texture_id];
+		uint8_t* texture = texhandle.data;
+		int32_t size_x = texhandle.size_x;
+		int32_t size_y = texhandle.size_y;
+		int32_t channels = texhandle.channels;
+		size_t size_m = (texhandle.size_x * texhandle.size_y) * 4;
+		if(texture && channels == 4) {
+			// texture memory layout RGBA accessed through uint8_t pointer
+			size_t index = (x + (y * size_x)) * 4 + 3;
+			if(index < size_m && texture[index] == 0x00) {
+				return message_result::unseen;
+			}
+		}
+		return message_result::consumed;
+	}
+	return message_result::unseen;
+}
+
+void partially_transparent_image::on_create(sys::state& state) noexcept {
+	opaque_element_base::on_create(state);
+	dcon::gfx_object_id gid;
+	if(base_data.get_element_type() == element_type::image) {
+		gid = base_data.data.image.gfx_object;
+	} else if(base_data.get_element_type() == element_type::button) {
+		gid = base_data.data.button.button_image;
+	}
+	if(gid) {
+		texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
+	}
+}
+
+// MAYBE this function has to be changed when make_element_by_type() is changed
+std::unique_ptr<partially_transparent_image> partially_transparent_image::make_element_by_type_alias(sys::state& state, dcon::gui_def_id id) {
+	auto res = std::make_unique<partially_transparent_image>();
+	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
+
+	dcon::gfx_object_id gfx_handle;
+
+	if(res->base_data.get_element_type() == ui::element_type::image) {
+		gfx_handle = res->base_data.data.image.gfx_object;
+	} else if(res->base_data.get_element_type() == ui::element_type::button) {
+		gfx_handle = res->base_data.data.button.button_image;
+	}
+	if(gfx_handle) {
+		auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
+		if(tex_handle) {
+			state.ui_defs.gfx[gfx_handle].flags |= ui::gfx_object::do_transparency_check;
+		}
+	}
+
+	make_size_from_graphics(state, res->base_data);
+	res->on_create(state);
+	return res;
+}
+
+
+message_result button_element_base::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!state.user_settings.left_mouse_click_hold_and_release && !disabled) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		if(mods == sys::key_modifiers::modifiers_shift)
+			button_shift_action(state);
+		else if(mods == sys::key_modifiers::modifiers_ctrl)
+			button_ctrl_action(state);
+		else
+			button_action(state);
+	}
+	return message_result::consumed;
+}
+message_result button_element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!disabled) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		if(mods == sys::key_modifiers::modifiers_shift)
+			button_shift_right_action(state);
+		else if(mods == sys::key_modifiers::modifiers_ctrl)
+			button_ctrl_right_action(state);
+		else
+			button_right_action(state);
+	}
+	return message_result::consumed;
+}
+message_result button_element_base::on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept {
+	if(state.user_settings.left_mouse_click_hold_and_release && !disabled && under_mouse) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		if(mods == sys::key_modifiers::modifiers_shift)
+			button_shift_action(state);
+		else if(mods == sys::key_modifiers::modifiers_ctrl)
+			button_ctrl_action(state);
+		else
+			button_action(state);
+	}
+	return message_result::consumed;
+}
+message_result button_element_base::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
+	if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		if(mods == sys::key_modifiers::modifiers_shift)
+			button_shift_action(state);
+		else if(mods == sys::key_modifiers::modifiers_ctrl)
+			button_ctrl_action(state);
+		else
+			button_action(state);
+		return message_result::consumed;
+	} else {
+		return message_result::unseen;
+	}
+}
+
+message_result right_click_button_element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!disabled) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		button_right_action(state);
+	}
+	return message_result::consumed;
+}
+
+message_result tinted_right_click_button_element_base::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(!disabled) {
+		sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		button_right_action(state);
+	}
+	return message_result::consumed;
+}
+dcon::national_identity_id overlapping_truce_flag_button::get_current_nation(sys::state& state) noexcept {
+	return state.world.nation_get_identity_from_identity_holder(n);
+}
+
+
+void listbox2_scrollbar::on_value_change(sys::state& state, int32_t v) noexcept {
+	send(state, parent, listbox2_scroll_event{ });
+}
+message_result listbox2_row_element::get(sys::state& state, Cyto::Any& payload) noexcept {
+	send(state, parent, listbox2_row_view{ this });
+	return message_result::unseen;
 }
 
 } // namespace ui

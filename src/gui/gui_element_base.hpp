@@ -1,18 +1,20 @@
 #pragma once
 
-#include "system_state.hpp"
+#include "system_state_forward.hpp"
 #include "enums.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
 
-namespace sys {
-struct state;
-}
 
 namespace ui {
 
 enum class mouse_probe_type { click, tooltip, scroll };
 enum class insertion_source { user, ui_automation, text_services, other };
+
+template<typename T, typename ...Params>
+std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name, Params&&... params);
+template<typename T, typename ...Params>
+std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
 
 class element_base {
 public:
@@ -62,23 +64,9 @@ public:
 		on_drag_finish(state);
 	}
 
-	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
-		if(state.cheat_data.ui_debug_mode)
-			return tooltip_behavior::tooltip;
-		return tooltip_behavior::no_tooltip;
-	}
-	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept {
-		ident = 0;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-	}
-	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-		if(state.cheat_data.ui_debug_mode) {
-			text::add_line(state, contents, "ui_element_name", text::variable_type::x, base_data.name);
-			text::add_line(state, contents, "ui_element_position", text::variable_type::x, base_data.position.x, text::variable_type::y, base_data.position.y);
-			text::add_line(state, contents, "ui_element_size", text::variable_type::x, base_data.size.x, text::variable_type::y, base_data.size.y);
-		}
-	}
+	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept;
+	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept;
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept;
 
 	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
 	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
@@ -119,11 +107,12 @@ protected:
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
-	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
-	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
+public:
+	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
+	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
@@ -152,9 +141,6 @@ public:
 
 	friend std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
-	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
-	friend void sys::state::on_text(char32_t c);
-	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
 	template<typename T, typename ...Params>

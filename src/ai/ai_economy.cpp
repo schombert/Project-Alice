@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "ai_economy.hpp"
 #include "ai_campaign_values.hpp"
 #include "economy_stats.hpp"

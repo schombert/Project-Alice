@@ -1,5 +1,6 @@
 
 #include "gui_factory_refit_window.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 

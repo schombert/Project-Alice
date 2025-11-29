@@ -1,12 +1,13 @@
-#include "gui_unit_grid_box.hpp"
-#include "gui_unit_panel.hpp"
 #include "gui_province_window.hpp"
-#include "gui_land_combat.hpp"
 #include "gui_console.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "simple_fs.hpp"
+#include "user_interactions.hpp"
+#include "gui_combat.hpp"
+#include "gui_units.hpp"
+#include "gui_leaders.hpp"
 #include "alice_ui.hpp"
 
 namespace game_scene {
@@ -188,9 +189,9 @@ void open_diplomacy(
 ) {
 	auto owner = state.world.province_get_nation_from_province_ownership(target);
 	if(owner) {
-		state.open_diplomacy(owner);
+		sys::open_diplomacy_window(state, owner);
 	} else {
-		state.open_diplomacy(nation);
+		sys::open_diplomacy_window(state, nation);
 	}
 }
 
@@ -558,7 +559,7 @@ void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key
 		if(keycode == sys::virtual_key::ESCAPE) {
 			alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		}
 		state.map_state.on_key_down(keycode, mod);
 	}
@@ -685,7 +686,7 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::HOME) {
 			center_on_capital(state, state.local_player_nation);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
 			// Battleplanner scene hotkey
 			switch_scene(state, scene_id::in_game_military);

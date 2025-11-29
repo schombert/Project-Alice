@@ -4,6 +4,7 @@
 #include "construction.hpp"
 #include "province_tiles.hpp"
 #include "gui_province_tiles_tiles.hpp"
+#include "gui_factory_refit_window.hpp"
 
 namespace ui {
 

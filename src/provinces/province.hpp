@@ -1,8 +1,9 @@
 #pragma once
 
 #include "dcon_generated_ids.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "unordered_dense.h"
+#include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "system_state_forward.hpp"
 
