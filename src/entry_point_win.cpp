@@ -5,6 +5,7 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include "system_state.hpp"
+#include "game_scene.hpp"
 #include "serialization.hpp"
 #include "parsers_declarations.hpp"
 

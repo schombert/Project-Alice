@@ -3,6 +3,7 @@
 #include "script_constants.hpp"
 #include "trigger_parsing.hpp"
 #include "text.hpp"
+#include "money.hpp"
 
 namespace economy {
 dcon::modifier_id get_province_selector_modifier(sys::state& state);

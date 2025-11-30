@@ -5,6 +5,7 @@
 #include "unit_tooltip.hpp"
 #include "economy_production.hpp"
 #include "economy_stats.hpp"
+#include "province.hpp"
 
 namespace ui {
 

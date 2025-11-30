@@ -4,11 +4,13 @@
 #include "advanced_province_buildings.hpp"
 #include "demographics.hpp"
 #include "adaptive_ve.hpp"
+#include "economy_templates_pure.hpp"
 
 namespace economy {
 
 namespace pops {
 
+vectorized_pops_budget<float> prepare_pop_budget(const sys::state& state, dcon::pop_id ids);
 
 void update_consumption(
 	sys::state& state,

@@ -8,8 +8,8 @@
 #include "container_types.hpp"
 #include "economy_stats.hpp"
 #include "economy_pops.hpp"
-#include "economy_templates.hpp"
 #include "demographics_templates.hpp"
+#include "province.hpp"
 
 // #define CHECK_LLVM_RESULTS
 

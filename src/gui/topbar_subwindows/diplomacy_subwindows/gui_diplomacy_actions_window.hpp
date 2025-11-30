@@ -4,6 +4,7 @@
 #include "military.hpp"
 #include "ai_campaign_values.hpp"
 #include "ai_alliances.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace ui {
 

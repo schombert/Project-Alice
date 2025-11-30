@@ -3,6 +3,7 @@
 #include "system_state_forward.hpp"
 #include "container_types.hpp"
 #include "economy_stats.hpp"
+#include "economy_common_api_containers.hpp"
 
 // this .cpp and .hpp pair of files contains:
 // - employment updates of productive forces
@@ -290,19 +291,9 @@ breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c);
 
 
 namespace gdp {
-
-struct breakdown {
-	float primary;
-	float secondary_factory;
-	float secondary_artisan;
-	float total;
-	float total_non_negative;
-};
-
 float value_nation(sys::state& state, dcon::nation_id n);
 float value_market(sys::state& state, dcon::market_id n);
 float value_nation_adjusted(sys::state& state, dcon::nation_id n);
-
 breakdown breakdown_province(sys::state& state, dcon::province_id pid);
 }
 

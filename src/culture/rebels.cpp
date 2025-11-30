@@ -8,6 +8,7 @@
 #include "politics.hpp"
 #include "province_templates.hpp"
 #include "prng.hpp"
+#include "province.hpp"
 
 namespace rebel {
 

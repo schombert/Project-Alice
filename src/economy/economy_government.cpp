@@ -6,6 +6,7 @@
 #include "economy_government.hpp"
 #include "economy_stats.hpp"
 #include "province_templates.hpp"
+#include "money.hpp"
 
 namespace economy {
 

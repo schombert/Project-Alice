@@ -4,24 +4,13 @@
 #include "system_state_forward.hpp"
 #include "economy_stats.hpp"
 #include "adaptive_ve.hpp"
+#include "economy_templates_pure.hpp"
 
 namespace sys {
 struct state;
 }
 
 namespace economy {
-trade_and_tariff<ve::contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
-	sys::state& state,
-	ve::contiguous_tags<dcon::trade_route_id> trade_route,
-	tariff_data<ve::contiguous_tags<dcon::trade_route_id>>& additional_data,
-	dcon::commodity_id cid
-);
-trade_and_tariff<ve::partial_contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
-	sys::state& state,
-	ve::partial_contiguous_tags<dcon::trade_route_id> trade_route,
-	tariff_data<ve::partial_contiguous_tags<dcon::trade_route_id>>& additional_data,
-	dcon::commodity_id cid
-);
 
 void update_trade_routes_volume(
 	sys::state& state,
@@ -80,12 +69,6 @@ embargo_explanation embargo_exists(
 	sys::state& state, dcon::nation_id n_A, dcon::nation_id n_B
 );
 
-
-//template <typename TRADE_ROUTE>
-//trade_and_tariff<TRADE_ROUTE> explain_trade_route_commodity(sys::state& state, TRADE_ROUTE trade_route, tariff_data<TRADE_ROUTE>& additional_data, dcon::commodity_id cid);
-
-trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
-
 struct trade_breakdown_item {
 	dcon::nation_id trade_partner;
 	dcon::commodity_id commodity;
@@ -94,5 +77,37 @@ struct trade_breakdown_item {
 };
 std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dcon::nation_id n, bool import_flag, bool export_flag);
 
+
+trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
+trade_and_tariff<ve::contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
+	sys::state& state,
+	ve::contiguous_tags<dcon::trade_route_id> trade_route,
+	tariff_data<ve::contiguous_tags<dcon::trade_route_id>>& additional_data,
+	dcon::commodity_id cid
+);
+trade_and_tariff<ve::partial_contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
+	sys::state& state,
+	ve::partial_contiguous_tags<dcon::trade_route_id> trade_route,
+	tariff_data<ve::partial_contiguous_tags<dcon::trade_route_id>>& additional_data,
+	dcon::commodity_id cid
+);
+
+void fill_trade_buffers(
+	sys::state& state,
+
+	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
+	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
+
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_payment_0,
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_payment_1,
+
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_tariff_0,
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_tariff_1,
+
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_export_0,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_export_1,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_import_0,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_import_1
+);
 
 }

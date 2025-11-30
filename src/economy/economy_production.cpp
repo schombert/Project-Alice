@@ -11,6 +11,9 @@
 
 #include "province_templates.hpp"
 #include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
+#include "money.hpp"
+#include "economy.hpp"
 
 namespace economy {
 
