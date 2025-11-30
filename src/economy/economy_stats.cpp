@@ -2,6 +2,9 @@
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 #include "economy_trade_routes.hpp"
+#include "economy_constants.hpp"
+#include "money.hpp"
+#include "economy_templates_pure.hpp"
 
 namespace economy {
 
@@ -357,7 +360,7 @@ float domestic_trade_volume(
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
 
 		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-			trade_and_tariff explanation = explain_trade_route_commodity(state, trade_route, c);
+			trade_and_tariff<dcon::trade_route_id> explanation = explain_trade_route_commodity(state, trade_route, c);
 			if(explanation.origin_nation == s && explanation.target_nation == s)
 				total_volume += explanation.amount_origin;
 		});

@@ -4,6 +4,7 @@
 #include "economy_stats.hpp"
 #include "constants_dcon.hpp"
 #include "province_templates.hpp"
+#include "money.hpp"
 
 namespace services {
 

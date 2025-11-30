@@ -29,6 +29,10 @@
 #include "serialization.hpp"
 #include "province_templates.hpp"
 #include "gui_event.hpp"
+#include "game_scene.hpp"
+#include "economy_production.hpp"
+#include "money.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace sys {
 

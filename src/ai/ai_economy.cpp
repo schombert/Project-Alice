@@ -9,6 +9,9 @@
 #include "demographics.hpp"
 #include "prng.hpp"
 #include "math_fns.hpp"
+#include "economy.hpp"
+#include "province.hpp"
+#include "money.hpp"
 
 namespace ai {
 

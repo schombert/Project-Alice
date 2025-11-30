@@ -7,38 +7,29 @@
 #include <condition_variable>
 
 #include "window.hpp"
-#include "constants_dcon.hpp"
-#include "dcon_generated.hpp"
-#include "gui_graphics.hpp"
-#include "game_scene.hpp"
-#include "simple_fs.hpp"
-#include "text.hpp"
-#include "opengl_wrapper.hpp"
-#include "fonts.hpp"
 #include "sound.hpp"
-#include "map_state.hpp"
-#include "economy.hpp"
-#include "economy_production.hpp"
-#include "culture.hpp"
-#include "military.hpp"
-#include "nations.hpp"
-#include "date_interface.hpp"
+#include "dcon_generated.hpp"
+#include "containers_state.hpp"
+#include "constants_state.hpp"
+#include "constants_dcon.hpp"
+#include "constants.hpp"
+// whenever we change defines, we have to recreate scenario anyway...
 #include "defines.hpp"
-#include "province.hpp"
-#include "events.hpp"
-#include "SPSCQueue.h"
-#include "commands.hpp"
-#include "diplomatic_messages.hpp"
-#include "notifications.hpp"
-#include "network.hpp"
-#include "fif.hpp"
-#include "lua.hpp"
-#include "immediate_mode.hpp"
 #include "gamerule.hpp"
-#include "enums.hpp"
+#include "lua.hpp"
+#include "fif.hpp"
+#include "map_modes.hpp"
 #include "asvg.hpp"
 #include "uitemplate.hpp"
-#include "ui_state.hpp"
+#include "SPSCQueue.h"
+#include "notifications.hpp"
+#include "map_state.hpp"
+#include "immediate_mode_state.hpp"
+#include "network.hpp"
+
+namespace game_scene {
+scene_properties nation_picker();
+}
 
 namespace ui {
 struct lua_scripted_element;

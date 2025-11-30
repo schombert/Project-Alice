@@ -9,6 +9,7 @@
 #include "nations.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
+#include "economy_viewer.hpp"
 
 #include <unordered_map>
 
