@@ -845,11 +845,8 @@ struct pop_details_main_t : public layout_window_element {
 	std::unique_ptr<pop_details_main_growth_value_t> growth_value;
 	std::unique_ptr<template_label> assim_header;
 	std::unique_ptr<pop_details_main_assim_value_t> assim_value;
-	std::unique_ptr<template_label> ln_header;
 	std::unique_ptr<pop_details_main_ln_total_t> ln_total;
-	std::unique_ptr<template_label> en_header;
 	std::unique_ptr<pop_details_main_en_total_t> en_total;
-	std::unique_ptr<template_label> lx_header;
 	std::unique_ptr<pop_details_main_lx_total_t> lx_total;
 	std::unique_ptr<template_label> prom_header;
 	std::unique_ptr<template_label> prom_amount_label;
@@ -875,6 +872,12 @@ struct pop_details_main_t : public layout_window_element {
 	std::unique_ptr<template_bg_graphic> fancy_bar_2;
 	std::unique_ptr<pop_details_main_to_pop_budget_t> to_pop_budget;
 	std::unique_ptr<template_bg_graphic> fancy_bar_3;
+	std::unique_ptr<template_label> ln_header;
+	std::unique_ptr<template_label> en_header;
+	std::unique_ptr<template_label> lx_header;
+	std::unique_ptr<template_icon_graphic> ln_icon;
+	std::unique_ptr<template_icon_graphic> en_icon;
+	std::unique_ptr<template_icon_graphic> lx_icon;
 	pop_details_main_ln_list_t ln_list;
 	pop_details_main_en_list_t en_list;
 	pop_details_main_lx_list_t lx_list;
@@ -1046,6 +1049,44 @@ struct pop_details_needs_row_t : public layout_window_element {
 	std::unique_ptr<pop_details_needs_row_content_t> content;
 	std::unique_ptr<pop_details_needs_row_need_icon_t> need_icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	uint8_t needs_table_icon_header_text_color = 0;
+	uint8_t needs_table_icon_column_text_color = 0;
+	text::alignment needs_table_icon_text_alignment = text::alignment::center;
+	int16_t needs_table_icon_column_start = 0;
+	int16_t needs_table_icon_column_width = 0;
+	std::string_view needs_table_name_header_text_key;
+	uint8_t needs_table_name_header_text_color = 0;
+	uint8_t needs_table_name_column_text_color = 0;
+	text::alignment needs_table_name_text_alignment = text::alignment::left;
+	int8_t needs_table_name_sort_direction = 0;
+	int16_t needs_table_name_column_start = 0;
+	int16_t needs_table_name_column_width = 0;
+	std::string_view needs_table_amount_header_text_key;
+	uint8_t needs_table_amount_header_text_color = 0;
+	uint8_t needs_table_amount_column_text_color = 0;
+	text::alignment needs_table_amount_text_alignment = text::alignment::left;
+	int8_t needs_table_amount_sort_direction = 0;
+	int16_t needs_table_amount_column_start = 0;
+	int16_t needs_table_amount_column_width = 0;
+	std::string_view needs_table_cost_header_text_key;
+	uint8_t needs_table_cost_header_text_color = 0;
+	uint8_t needs_table_cost_column_text_color = 0;
+	text::alignment needs_table_cost_text_alignment = text::alignment::left;
+	int8_t needs_table_cost_sort_direction = 0;
+	int16_t needs_table_cost_column_start = 0;
+	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
+	std::string_view needs_table_ascending_icon_key;
+	dcon::texture_id needs_table_ascending_icon;
+	std::string_view needs_table_descending_icon_key;
+	dcon::texture_id needs_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1072,6 +1113,44 @@ struct pop_details_needs_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_needs_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	uint8_t needs_table_icon_header_text_color = 0;
+	uint8_t needs_table_icon_column_text_color = 0;
+	text::alignment needs_table_icon_text_alignment = text::alignment::center;
+	int16_t needs_table_icon_column_start = 0;
+	int16_t needs_table_icon_column_width = 0;
+	std::string_view needs_table_name_header_text_key;
+	uint8_t needs_table_name_header_text_color = 0;
+	uint8_t needs_table_name_column_text_color = 0;
+	text::alignment needs_table_name_text_alignment = text::alignment::left;
+	int8_t needs_table_name_sort_direction = 0;
+	int16_t needs_table_name_column_start = 0;
+	int16_t needs_table_name_column_width = 0;
+	std::string_view needs_table_amount_header_text_key;
+	uint8_t needs_table_amount_header_text_color = 0;
+	uint8_t needs_table_amount_column_text_color = 0;
+	text::alignment needs_table_amount_text_alignment = text::alignment::left;
+	int8_t needs_table_amount_sort_direction = 0;
+	int16_t needs_table_amount_column_start = 0;
+	int16_t needs_table_amount_column_width = 0;
+	std::string_view needs_table_cost_header_text_key;
+	uint8_t needs_table_cost_header_text_color = 0;
+	uint8_t needs_table_cost_column_text_color = 0;
+	text::alignment needs_table_cost_text_alignment = text::alignment::left;
+	int8_t needs_table_cost_sort_direction = 0;
+	int16_t needs_table_cost_column_start = 0;
+	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
+	std::string_view needs_table_ascending_icon_key;
+	dcon::texture_id needs_table_ascending_icon;
+	std::string_view needs_table_descending_icon_key;
+	dcon::texture_id needs_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1086,6 +1165,29 @@ struct pop_details_prom_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_prom_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	uint8_t prom_table_icon_header_text_color = 0;
+	uint8_t prom_table_icon_column_text_color = 0;
+	text::alignment prom_table_icon_text_alignment = text::alignment::center;
+	int16_t prom_table_icon_column_start = 0;
+	int16_t prom_table_icon_column_width = 0;
+	std::string_view prom_table_name_header_text_key;
+	uint8_t prom_table_name_header_text_color = 0;
+	uint8_t prom_table_name_column_text_color = 0;
+	text::alignment prom_table_name_text_alignment = text::alignment::right;
+	int8_t prom_table_name_sort_direction = 0;
+	int16_t prom_table_name_column_start = 0;
+	int16_t prom_table_name_column_width = 0;
+	std::string_view prom_table_weight_header_text_key;
+	uint8_t prom_table_weight_header_text_color = 0;
+	uint8_t prom_table_weight_column_text_color = 0;
+	text::alignment prom_table_weight_text_alignment = text::alignment::right;
+	int8_t prom_table_weight_sort_direction = 0;
+	int16_t prom_table_weight_column_start = 0;
+	int16_t prom_table_weight_column_width = 0;
+	std::string_view prom_table_ascending_icon_key;
+	dcon::texture_id prom_table_ascending_icon;
+	std::string_view prom_table_descending_icon_key;
+	dcon::texture_id prom_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1102,6 +1204,29 @@ struct pop_details_prom_row_t : public layout_window_element {
 	std::unique_ptr<pop_details_prom_row_content_t> content;
 	std::unique_ptr<pop_details_prom_row_job_icon_t> job_icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	uint8_t prom_table_icon_header_text_color = 0;
+	uint8_t prom_table_icon_column_text_color = 0;
+	text::alignment prom_table_icon_text_alignment = text::alignment::center;
+	int16_t prom_table_icon_column_start = 0;
+	int16_t prom_table_icon_column_width = 0;
+	std::string_view prom_table_name_header_text_key;
+	uint8_t prom_table_name_header_text_color = 0;
+	uint8_t prom_table_name_column_text_color = 0;
+	text::alignment prom_table_name_text_alignment = text::alignment::right;
+	int8_t prom_table_name_sort_direction = 0;
+	int16_t prom_table_name_column_start = 0;
+	int16_t prom_table_name_column_width = 0;
+	std::string_view prom_table_weight_header_text_key;
+	uint8_t prom_table_weight_header_text_color = 0;
+	uint8_t prom_table_weight_column_text_color = 0;
+	text::alignment prom_table_weight_text_alignment = text::alignment::right;
+	int8_t prom_table_weight_sort_direction = 0;
+	int16_t prom_table_weight_column_start = 0;
+	int16_t prom_table_weight_column_width = 0;
+	std::string_view prom_table_ascending_icon_key;
+	dcon::texture_id prom_table_ascending_icon;
+	std::string_view prom_table_descending_icon_key;
+	dcon::texture_id prom_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1122,6 +1247,24 @@ struct pop_details_weights_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_weights_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view weights_table_item_header_text_key;
+	uint8_t weights_table_item_header_text_color = 0;
+	uint8_t weights_table_item_column_text_color = 0;
+	text::alignment weights_table_item_text_alignment = text::alignment::right;
+	int8_t weights_table_item_sort_direction = 0;
+	int16_t weights_table_item_column_start = 0;
+	int16_t weights_table_item_column_width = 0;
+	std::string_view weights_table_weight_header_text_key;
+	uint8_t weights_table_weight_header_text_color = 0;
+	uint8_t weights_table_weight_column_text_color = 0;
+	text::alignment weights_table_weight_text_alignment = text::alignment::right;
+	int8_t weights_table_weight_sort_direction = 0;
+	int16_t weights_table_weight_column_start = 0;
+	int16_t weights_table_weight_column_width = 0;
+	std::string_view weights_table_ascending_icon_key;
+	dcon::texture_id weights_table_ascending_icon;
+	std::string_view weights_table_descending_icon_key;
+	dcon::texture_id weights_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1139,6 +1282,24 @@ struct pop_details_weights_row_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_weights_row_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view weights_table_item_header_text_key;
+	uint8_t weights_table_item_header_text_color = 0;
+	uint8_t weights_table_item_column_text_color = 0;
+	text::alignment weights_table_item_text_alignment = text::alignment::right;
+	int8_t weights_table_item_sort_direction = 0;
+	int16_t weights_table_item_column_start = 0;
+	int16_t weights_table_item_column_width = 0;
+	std::string_view weights_table_weight_header_text_key;
+	uint8_t weights_table_weight_header_text_color = 0;
+	uint8_t weights_table_weight_column_text_color = 0;
+	text::alignment weights_table_weight_text_alignment = text::alignment::right;
+	int8_t weights_table_weight_sort_direction = 0;
+	int16_t weights_table_weight_column_start = 0;
+	int16_t weights_table_weight_column_width = 0;
+	std::string_view weights_table_ascending_icon_key;
+	dcon::texture_id weights_table_ascending_icon;
+	std::string_view weights_table_descending_icon_key;
+	dcon::texture_id weights_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1165,6 +1326,26 @@ struct pop_details_emm_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_emm_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t emm_table_flag_column_start = 0;
+	int16_t emm_table_flag_column_width = 0;
+	std::string_view emm_table_destination_header_text_key;
+	uint8_t emm_table_destination_header_text_color = 0;
+	uint8_t emm_table_destination_column_text_color = 0;
+	text::alignment emm_table_destination_text_alignment = text::alignment::right;
+	int8_t emm_table_destination_sort_direction = 0;
+	int16_t emm_table_destination_column_start = 0;
+	int16_t emm_table_destination_column_width = 0;
+	std::string_view emm_table_weight_header_text_key;
+	uint8_t emm_table_weight_header_text_color = 0;
+	uint8_t emm_table_weight_column_text_color = 0;
+	text::alignment emm_table_weight_text_alignment = text::alignment::right;
+	int8_t emm_table_weight_sort_direction = 0;
+	int16_t emm_table_weight_column_start = 0;
+	int16_t emm_table_weight_column_width = 0;
+	std::string_view emm_table_ascending_icon_key;
+	dcon::texture_id emm_table_ascending_icon;
+	std::string_view emm_table_descending_icon_key;
+	dcon::texture_id emm_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1181,6 +1362,26 @@ struct pop_details_emm_row_t : public layout_window_element {
 	std::unique_ptr<pop_details_emm_row_content_t> content;
 	std::unique_ptr<pop_details_emm_row_dest_flag_t> dest_flag;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	int16_t emm_table_flag_column_start = 0;
+	int16_t emm_table_flag_column_width = 0;
+	std::string_view emm_table_destination_header_text_key;
+	uint8_t emm_table_destination_header_text_color = 0;
+	uint8_t emm_table_destination_column_text_color = 0;
+	text::alignment emm_table_destination_text_alignment = text::alignment::right;
+	int8_t emm_table_destination_sort_direction = 0;
+	int16_t emm_table_destination_column_start = 0;
+	int16_t emm_table_destination_column_width = 0;
+	std::string_view emm_table_weight_header_text_key;
+	uint8_t emm_table_weight_header_text_color = 0;
+	uint8_t emm_table_weight_column_text_color = 0;
+	text::alignment emm_table_weight_text_alignment = text::alignment::right;
+	int8_t emm_table_weight_sort_direction = 0;
+	int16_t emm_table_weight_column_start = 0;
+	int16_t emm_table_weight_column_width = 0;
+	std::string_view emm_table_ascending_icon_key;
+	dcon::texture_id emm_table_ascending_icon;
+	std::string_view emm_table_descending_icon_key;
+	dcon::texture_id emm_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1201,6 +1402,24 @@ struct pop_details_mig_header_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_mig_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view mig_table_destination_header_text_key;
+	uint8_t mig_table_destination_header_text_color = 0;
+	uint8_t mig_table_destination_column_text_color = 0;
+	text::alignment mig_table_destination_text_alignment = text::alignment::right;
+	int8_t mig_table_destination_sort_direction = 0;
+	int16_t mig_table_destination_column_start = 0;
+	int16_t mig_table_destination_column_width = 0;
+	std::string_view mig_table_weight_header_text_key;
+	uint8_t mig_table_weight_header_text_color = 0;
+	uint8_t mig_table_weight_column_text_color = 0;
+	text::alignment mig_table_weight_text_alignment = text::alignment::right;
+	int8_t mig_table_weight_sort_direction = 0;
+	int16_t mig_table_weight_column_start = 0;
+	int16_t mig_table_weight_column_width = 0;
+	std::string_view mig_table_ascending_icon_key;
+	dcon::texture_id mig_table_ascending_icon;
+	std::string_view mig_table_descending_icon_key;
+	dcon::texture_id mig_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -1216,6 +1435,24 @@ struct pop_details_mig_row_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_mig_row_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	std::string_view mig_table_destination_header_text_key;
+	uint8_t mig_table_destination_header_text_color = 0;
+	uint8_t mig_table_destination_column_text_color = 0;
+	text::alignment mig_table_destination_text_alignment = text::alignment::right;
+	int8_t mig_table_destination_sort_direction = 0;
+	int16_t mig_table_destination_column_start = 0;
+	int16_t mig_table_destination_column_width = 0;
+	std::string_view mig_table_weight_header_text_key;
+	uint8_t mig_table_weight_header_text_color = 0;
+	uint8_t mig_table_weight_column_text_color = 0;
+	text::alignment mig_table_weight_text_alignment = text::alignment::right;
+	int8_t mig_table_weight_sort_direction = 0;
+	int16_t mig_table_weight_column_start = 0;
+	int16_t mig_table_weight_column_width = 0;
+	std::string_view mig_table_ascending_icon_key;
+	dcon::texture_id mig_table_ascending_icon;
+	std::string_view mig_table_descending_icon_key;
+	dcon::texture_id mig_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
 	void set_alternate(bool alt) noexcept;
@@ -3078,20 +3315,11 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				if(cname == "assim_value") {
 					temp.ptr = assim_value.get();
 				} else
-				if(cname == "ln_header") {
-					temp.ptr = ln_header.get();
-				} else
 				if(cname == "ln_total") {
 					temp.ptr = ln_total.get();
 				} else
-				if(cname == "en_header") {
-					temp.ptr = en_header.get();
-				} else
 				if(cname == "en_total") {
 					temp.ptr = en_total.get();
-				} else
-				if(cname == "lx_header") {
-					temp.ptr = lx_header.get();
 				} else
 				if(cname == "lx_total") {
 					temp.ptr = lx_total.get();
@@ -3167,6 +3395,24 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				} else
 				if(cname == "fancy_bar_3") {
 					temp.ptr = fancy_bar_3.get();
+				} else
+				if(cname == "ln_header") {
+					temp.ptr = ln_header.get();
+				} else
+				if(cname == "en_header") {
+					temp.ptr = en_header.get();
+				} else
+				if(cname == "lx_header") {
+					temp.ptr = lx_header.get();
+				} else
+				if(cname == "ln_icon") {
+					temp.ptr = ln_icon.get();
+				} else
+				if(cname == "en_icon") {
+					temp.ptr = en_icon.get();
+				} else
+				if(cname == "lx_icon") {
+					temp.ptr = lx_icon.get();
 				} else
 				{
 					std::string str_cname {cname};
@@ -3704,24 +3950,6 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
-		if(child_data.name == "ln_header") {
-			ln_header = std::make_unique<template_label>();
-			ln_header->parent = this;
-			auto cptr = ln_header.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
 		if(child_data.name == "ln_total") {
 			ln_total = std::make_unique<pop_details_main_ln_total_t>();
 			ln_total->parent = this;
@@ -3740,46 +3968,10 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
-		if(child_data.name == "en_header") {
-			en_header = std::make_unique<template_label>();
-			en_header->parent = this;
-			auto cptr = en_header.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
 		if(child_data.name == "en_total") {
 			en_total = std::make_unique<pop_details_main_en_total_t>();
 			en_total->parent = this;
 			auto cptr = en_total.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
-		if(child_data.name == "lx_header") {
-			lx_header = std::make_unique<template_label>();
-			lx_header->parent = this;
-			auto cptr = lx_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -4215,6 +4407,111 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "ln_header") {
+			ln_header = std::make_unique<template_label>();
+			ln_header->parent = this;
+			auto cptr = ln_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "en_header") {
+			en_header = std::make_unique<template_label>();
+			en_header->parent = this;
+			auto cptr = en_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "lx_header") {
+			lx_header = std::make_unique<template_label>();
+			lx_header->parent = this;
+			auto cptr = lx_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "ln_icon") {
+			ln_icon = std::make_unique<template_icon_graphic>();
+			ln_icon->parent = this;
+			auto cptr = ln_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "en_icon") {
+			en_icon = std::make_unique<template_icon_graphic>();
+			en_icon->parent = this;
+			auto cptr = en_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "lx_icon") {
+			lx_icon = std::make_unique<template_icon_graphic>();
+			lx_icon->parent = this;
+			auto cptr = lx_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
 			if(child_data.tooltip_text_key.length() > 0)
 				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
@@ -4908,6 +5205,62 @@ void pop_details_needs_row_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabneeds_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			needs_table_ascending_icon_key = main_section.read<std::string_view>();
+			needs_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_icon_column_start = running_w_total;
+			col_section.read(needs_table_icon_column_width);
+			running_w_total += needs_table_icon_column_width;
+			col_section.read(needs_table_icon_column_text_color);
+			col_section.read(needs_table_icon_header_text_color);
+			col_section.read(needs_table_icon_text_alignment);
+			needs_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_name_column_start = running_w_total;
+			col_section.read(needs_table_name_column_width);
+			running_w_total += needs_table_name_column_width;
+			col_section.read(needs_table_name_column_text_color);
+			col_section.read(needs_table_name_header_text_color);
+			col_section.read(needs_table_name_text_alignment);
+			needs_table_amount_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_amount_column_start = running_w_total;
+			col_section.read(needs_table_amount_column_width);
+			running_w_total += needs_table_amount_column_width;
+			col_section.read(needs_table_amount_column_text_color);
+			col_section.read(needs_table_amount_header_text_color);
+			col_section.read(needs_table_amount_text_alignment);
+			needs_table_cost_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_cost_column_start = running_w_total;
+			col_section.read(needs_table_cost_column_width);
+			running_w_total += needs_table_cost_column_width;
+			col_section.read(needs_table_cost_column_text_color);
+			col_section.read(needs_table_cost_header_text_color);
+			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -5401,6 +5754,62 @@ void pop_details_needs_header_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabneeds_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			needs_table_ascending_icon_key = main_section.read<std::string_view>();
+			needs_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_icon_column_start = running_w_total;
+			col_section.read(needs_table_icon_column_width);
+			running_w_total += needs_table_icon_column_width;
+			col_section.read(needs_table_icon_column_text_color);
+			col_section.read(needs_table_icon_header_text_color);
+			col_section.read(needs_table_icon_text_alignment);
+			needs_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_name_column_start = running_w_total;
+			col_section.read(needs_table_name_column_width);
+			running_w_total += needs_table_name_column_width;
+			col_section.read(needs_table_name_column_text_color);
+			col_section.read(needs_table_name_header_text_color);
+			col_section.read(needs_table_name_text_alignment);
+			needs_table_amount_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_amount_column_start = running_w_total;
+			col_section.read(needs_table_amount_column_width);
+			running_w_total += needs_table_amount_column_width;
+			col_section.read(needs_table_amount_column_text_color);
+			col_section.read(needs_table_amount_header_text_color);
+			col_section.read(needs_table_amount_text_alignment);
+			needs_table_cost_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_cost_column_start = running_w_total;
+			col_section.read(needs_table_cost_column_width);
+			running_w_total += needs_table_cost_column_width;
+			col_section.read(needs_table_cost_column_text_color);
+			col_section.read(needs_table_cost_header_text_color);
+			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -5771,6 +6180,44 @@ void pop_details_prom_header_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabprom_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			prom_table_ascending_icon_key = main_section.read<std::string_view>();
+			prom_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_icon_column_start = running_w_total;
+			col_section.read(prom_table_icon_column_width);
+			running_w_total += prom_table_icon_column_width;
+			col_section.read(prom_table_icon_column_text_color);
+			col_section.read(prom_table_icon_header_text_color);
+			col_section.read(prom_table_icon_text_alignment);
+			prom_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_name_column_start = running_w_total;
+			col_section.read(prom_table_name_column_width);
+			running_w_total += prom_table_name_column_width;
+			col_section.read(prom_table_name_column_text_color);
+			col_section.read(prom_table_name_header_text_color);
+			col_section.read(prom_table_name_text_alignment);
+			prom_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_weight_column_start = running_w_total;
+			col_section.read(prom_table_weight_column_width);
+			running_w_total += prom_table_weight_column_width;
+			col_section.read(prom_table_weight_column_text_color);
+			col_section.read(prom_table_weight_header_text_color);
+			col_section.read(prom_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
 		} else 
 		if (child_data.is_lua) { 
@@ -6203,6 +6650,44 @@ void pop_details_prom_row_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabprom_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			prom_table_ascending_icon_key = main_section.read<std::string_view>();
+			prom_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_icon_column_start = running_w_total;
+			col_section.read(prom_table_icon_column_width);
+			running_w_total += prom_table_icon_column_width;
+			col_section.read(prom_table_icon_column_text_color);
+			col_section.read(prom_table_icon_header_text_color);
+			col_section.read(prom_table_icon_text_alignment);
+			prom_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_name_column_start = running_w_total;
+			col_section.read(prom_table_name_column_width);
+			running_w_total += prom_table_name_column_width;
+			col_section.read(prom_table_name_column_text_color);
+			col_section.read(prom_table_name_header_text_color);
+			col_section.read(prom_table_name_text_alignment);
+			prom_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_weight_column_start = running_w_total;
+			col_section.read(prom_table_weight_column_width);
+			running_w_total += prom_table_weight_column_width;
+			col_section.read(prom_table_weight_column_text_color);
+			col_section.read(prom_table_weight_header_text_color);
+			col_section.read(prom_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -6555,6 +7040,35 @@ void pop_details_weights_header_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabweights_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			weights_table_ascending_icon_key = main_section.read<std::string_view>();
+			weights_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			weights_table_item_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_item_column_start = running_w_total;
+			col_section.read(weights_table_item_column_width);
+			running_w_total += weights_table_item_column_width;
+			col_section.read(weights_table_item_column_text_color);
+			col_section.read(weights_table_item_header_text_color);
+			col_section.read(weights_table_item_text_alignment);
+			weights_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_weight_column_start = running_w_total;
+			col_section.read(weights_table_weight_column_width);
+			running_w_total += weights_table_weight_column_width;
+			col_section.read(weights_table_weight_column_text_color);
+			col_section.read(weights_table_weight_header_text_color);
+			col_section.read(weights_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
 		} else 
 		if (child_data.is_lua) { 
@@ -6995,6 +7509,35 @@ void pop_details_weights_row_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabweights_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			weights_table_ascending_icon_key = main_section.read<std::string_view>();
+			weights_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			weights_table_item_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_item_column_start = running_w_total;
+			col_section.read(weights_table_item_column_width);
+			running_w_total += weights_table_item_column_width;
+			col_section.read(weights_table_item_column_text_color);
+			col_section.read(weights_table_item_header_text_color);
+			col_section.read(weights_table_item_text_alignment);
+			weights_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_weight_column_start = running_w_total;
+			col_section.read(weights_table_weight_column_width);
+			running_w_total += weights_table_weight_column_width;
+			col_section.read(weights_table_weight_column_text_color);
+			col_section.read(weights_table_weight_header_text_color);
+			col_section.read(weights_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -7361,6 +7904,44 @@ void pop_details_emm_header_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabemm_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			emm_table_ascending_icon_key = main_section.read<std::string_view>();
+			emm_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_flag_column_start = running_w_total;
+			col_section.read(emm_table_flag_column_width);
+			running_w_total += emm_table_flag_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			emm_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_destination_column_start = running_w_total;
+			col_section.read(emm_table_destination_column_width);
+			running_w_total += emm_table_destination_column_width;
+			col_section.read(emm_table_destination_column_text_color);
+			col_section.read(emm_table_destination_header_text_color);
+			col_section.read(emm_table_destination_text_alignment);
+			emm_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_weight_column_start = running_w_total;
+			col_section.read(emm_table_weight_column_width);
+			running_w_total += emm_table_weight_column_width;
+			col_section.read(emm_table_weight_column_text_color);
+			col_section.read(emm_table_weight_header_text_color);
+			col_section.read(emm_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
 		} else 
 		if (child_data.is_lua) { 
@@ -7814,6 +8395,44 @@ void pop_details_emm_row_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabemm_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			emm_table_ascending_icon_key = main_section.read<std::string_view>();
+			emm_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_flag_column_start = running_w_total;
+			col_section.read(emm_table_flag_column_width);
+			running_w_total += emm_table_flag_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			emm_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_destination_column_start = running_w_total;
+			col_section.read(emm_table_destination_column_width);
+			running_w_total += emm_table_destination_column_width;
+			col_section.read(emm_table_destination_column_text_color);
+			col_section.read(emm_table_destination_header_text_color);
+			col_section.read(emm_table_destination_text_alignment);
+			emm_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_weight_column_start = running_w_total;
+			col_section.read(emm_table_weight_column_width);
+			running_w_total += emm_table_weight_column_width;
+			col_section.read(emm_table_weight_column_text_color);
+			col_section.read(emm_table_weight_header_text_color);
+			col_section.read(emm_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -8168,6 +8787,35 @@ void pop_details_mig_header_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == ".tabmig_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			mig_table_ascending_icon_key = main_section.read<std::string_view>();
+			mig_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			mig_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_destination_column_start = running_w_total;
+			col_section.read(mig_table_destination_column_width);
+			running_w_total += mig_table_destination_column_width;
+			col_section.read(mig_table_destination_column_text_color);
+			col_section.read(mig_table_destination_header_text_color);
+			col_section.read(mig_table_destination_text_alignment);
+			mig_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_weight_column_start = running_w_total;
+			col_section.read(mig_table_weight_column_width);
+			running_w_total += mig_table_weight_column_width;
+			col_section.read(mig_table_weight_column_text_color);
+			col_section.read(mig_table_weight_header_text_color);
+			col_section.read(mig_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -8506,6 +9154,35 @@ void pop_details_mig_row_t::on_create(sys::state& state) noexcept {
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabmig_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			mig_table_ascending_icon_key = main_section.read<std::string_view>();
+			mig_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			mig_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_destination_column_start = running_w_total;
+			col_section.read(mig_table_destination_column_width);
+			running_w_total += mig_table_destination_column_width;
+			col_section.read(mig_table_destination_column_text_color);
+			col_section.read(mig_table_destination_header_text_color);
+			col_section.read(mig_table_destination_text_alignment);
+			mig_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_weight_column_start = running_w_total;
+			col_section.read(mig_table_weight_column_width);
+			running_w_total += mig_table_weight_column_width;
+			col_section.read(mig_table_weight_column_text_color);
+			col_section.read(mig_table_weight_header_text_color);
+			col_section.read(mig_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
 		} else 
 		if (child_data.is_lua) { 

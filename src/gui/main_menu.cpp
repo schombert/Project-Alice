@@ -2882,6 +2882,7 @@ void main_menu_misc_language_dropdown_t::clear_list() {	list_contents.clear();
 void main_menu_misc_language_dropdown_t::on_update(sys::state& state) noexcept {
 	main_menu_misc_t& misc = *((main_menu_misc_t*)(parent)); 
 // BEGIN misc::language_dropdown::update
+	clear_list();
 	int32_t i = 0;
 	for(auto loc : state.world.in_locale) {
 		auto ln = state.world.locale_get_locale_name(loc);
