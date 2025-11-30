@@ -406,11 +406,11 @@ public:
 
 
 std::unique_ptr<element_base> make_compact_chat_messages_list(sys::state& state, std::string_view name) {
-	return ui::make_element_by_type<ui::chat_message_listbox<false>>(state, "chat_list");
+	return ui::make_element_by_type<ui::chat_message_listbox<false>>(state, name);
 }
 
 std::unique_ptr<element_base> make_chat_window(sys::state& state, std::string_view name) {
-	return ui::make_element_by_type<ui::chat_window>(state, "chat_list");
+	return ui::make_element_by_type<ui::chat_window>(state, name);
 }
 
 void open_chat_before_game(sys::state& state) {
