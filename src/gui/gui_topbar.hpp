@@ -6,7 +6,6 @@
 #include "gui_diplomacy_window.hpp"
 #include "gui_technology_window.hpp"
 #include "gui_politics_window.hpp"
-#include "gui_population_window.hpp"
 #include "gui_military_window.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_common_elements.hpp"
@@ -79,6 +78,34 @@ public:
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::prestige, true);
 		text::add_line_break_to_layout(state, contents);
 		active_modifiers_description(state, contents, nation_id, 0, sys::national_mod_offsets::permanent_prestige, true);
+	}
+};
+
+
+class nation_militancy_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto militancy = state.world.nation_get_demographics(nation_id, demographics::militancy);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(militancy / total_pop);
+	}
+};
+
+class nation_consciousness_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto consciousness = state.world.nation_get_demographics(nation_id, demographics::consciousness);
+		auto total_pop = state.world.nation_get_demographics(nation_id, demographics::total);
+		return text::format_float(consciousness / total_pop);
+	}
+};
+
+class nation_colonial_power_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto fcp = nations::free_colonial_points(state, nation_id);
+		auto mcp = nations::max_colonial_points(state, nation_id);
+		return text::format_ratio(fcp, mcp);
 	}
 };
 

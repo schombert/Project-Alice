@@ -7,7 +7,6 @@
 #include "demographics.hpp"
 #include "demographics_templates.hpp"
 #include "dcon_generated_ids.hpp"
-#include "economy_templates.hpp"
 #include "ai_economy.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
@@ -17,9 +16,10 @@
 #include "price.hpp"
 #include "economy_pops.hpp"
 #include "commodities.hpp"
-#include "adaptive_ve.hpp"
 #include "province.hpp"
 #include "money.hpp"
+#include "economy_constants.hpp"
+#include "economy_factory_view.hpp"
 
 
 namespace economy {
@@ -415,13 +415,21 @@ bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n) {
 	auto rng = state.world.nation_get_factory_construction(n);
 	return rng.begin() != rng.end();
 }
+
+bool factory_is_closed(sys::state const& state, dcon::factory_id f) {
+	auto basic_scale = state.world.factory_get_primary_employment(f) + state.world.factory_get_unqualified_employment(f);
+	if(basic_scale < factory_closed_threshold) {
+		return true;
+	}
+	return false;
+}
+
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n) { // TODO - should be "good" now
 	auto nation_fat = dcon::fatten(state.world, n);
 	for(auto prov_owner : nation_fat.get_province_ownership()) {
 		auto prov = prov_owner.get_province();
 		for(auto factloc : prov.get_factory_location()) {
-			auto scale = factloc.get_factory().get_primary_employment();
-			if(scale < factory_closed_threshold) {
+			if(factory_is_closed(state, factloc.get_factory())) {
 				return true;
 			}
 		}

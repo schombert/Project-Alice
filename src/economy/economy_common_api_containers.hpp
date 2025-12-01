@@ -5,6 +5,14 @@
 
 namespace economy {
 
+// Represents one type of employment of a building
+struct employment_record {
+	int32_t employment_type;
+	float target_employment;
+	float satisfaction;
+	float actual_employment;
+};
+
 struct construction_status {
 	float progress = 0.0f; // in range [0,1)
 	bool is_under_construction = false;

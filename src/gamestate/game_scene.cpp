@@ -1,3 +1,4 @@
+#include "game_scene.hpp"
 #include "gui_province_window.hpp"
 #include "gui_console.hpp"
 #include "gui_chat_window.hpp"

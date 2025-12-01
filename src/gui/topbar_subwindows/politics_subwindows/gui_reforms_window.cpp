@@ -5,6 +5,7 @@
 #include "gui_element_types.hpp"
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
+#include "politics.hpp"
 
 namespace ui {
 

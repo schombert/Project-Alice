@@ -82,6 +82,7 @@
 #include "gui_message_window.cpp"
 #include "gui_chat_window.cpp"
 #include "gui_combat.cpp"
+#include "gui_tooltips.cpp"
 #include "gui_units.cpp"
 #include "gui_unit_panel_subwindow.cpp"
 #include "gui_diplomacy_request.cpp"

@@ -10,6 +10,7 @@
 #include "prng.hpp"
 #include "math_fns.hpp"
 #include "economy.hpp"
+#include "economy_factory_view.hpp"
 #include "province.hpp"
 #include "money.hpp"
 

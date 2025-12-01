@@ -2,6 +2,7 @@
 #include "system_state.hpp"
 #include "gui_element_types.hpp"
 #include "color_templates.hpp"
+#include "politics.hpp"
 
 namespace ui {
 
