@@ -19,6 +19,9 @@
 #include "economy_government.hpp"
 #include "gui_error_window.hpp"
 #include "diplomatic_messages.hpp"
+#include "game_scene.hpp"
+#include "province.hpp"
+#include "economy.hpp"
 
 namespace command {
 

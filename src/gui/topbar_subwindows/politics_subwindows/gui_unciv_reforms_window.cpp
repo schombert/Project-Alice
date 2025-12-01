@@ -1,11 +1,11 @@
 #include "gui_politics_subwindows.hpp"
+#include <cstdint>
 #include "culture.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
-#include <cstdint>
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 
@@ -233,6 +233,59 @@ void unciv_reforms_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	set_visible(state, false);
 }
+
+
+class nation_research_points_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto points = state.world.nation_get_research_points(nation_id);
+		return text::format_float(points, 1);
+	}
+};
+
+
+
+class nation_military_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(politics::get_military_reform_multiplier(state, nation_id) >= 0.f);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+		auto box = text::open_layout_box(contents, 0);
+
+		auto val = politics::get_military_reform_multiplier(state, nation_id) - 1.0f;
+		text::add_line(state, contents, "alice_unciv_reform_cost", text::variable_type::x, text::fp_percentage_one_place{ val });
+	}
+};
+
+
+class nation_economic_reform_multiplier_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(politics::get_economic_reform_multiplier(state, nation_id) >= 0.f);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto nation_id = retrieve<dcon::nation_id>(state, parent);
+
+		auto box = text::open_layout_box(contents, 0);
+
+		auto val = politics::get_economic_reform_multiplier(state, nation_id) - 1.0f;
+		text::add_line(state, contents, "alice_unciv_reform_cost", text::variable_type::x, text::fp_percentage_one_place{ val });
+	}
+};
+
 
 std::unique_ptr<element_base> unciv_reforms_window::make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept {
 	if(name == "civ_progress") {

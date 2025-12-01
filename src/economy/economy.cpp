@@ -7,7 +7,6 @@
 #include "demographics.hpp"
 #include "demographics_templates.hpp"
 #include "dcon_generated_ids.hpp"
-#include "economy_templates.hpp"
 #include "ai_economy.hpp"
 #include "system_state.hpp"
 #include "prng.hpp"
@@ -17,9 +16,9 @@
 #include "price.hpp"
 #include "economy_pops.hpp"
 #include "commodities.hpp"
-#include "adaptive_ve.hpp"
 #include "province.hpp"
 #include "money.hpp"
+#include "economy_constants.hpp"
 
 
 namespace economy {

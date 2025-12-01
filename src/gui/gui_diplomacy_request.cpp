@@ -1,5 +1,4 @@
 
-#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "diplomatic_messages.hpp"
 #include "gui_diplomacy_request_templates.hpp"
@@ -359,7 +358,7 @@ public:
 	}
 };
 
- 
+
 void diplomacy_request_window::on_create(sys::state& state) noexcept {
 	window_element_base::on_create(state);
 	xy_pair cur_pos{ 0, 0 };

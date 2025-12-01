@@ -11,6 +11,7 @@
 #include "map_modes.hpp"
 #include <glm/glm.hpp>
 #include "alice_ui.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 

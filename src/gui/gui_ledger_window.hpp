@@ -1189,6 +1189,17 @@ public:
 // Provinces
 //
 
+
+class province_militancy_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		auto militancy = state.world.province_get_demographics(province_id, demographics::militancy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		set_text(state, text::format_float(militancy / total_pop));
+	}
+};
+
 class ledger_province_buttons : public window_element_base {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1261,6 +1272,58 @@ public:
 		}
 	}
 };
+
+class province_consciousness_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		auto consciousness = state.world.province_get_demographics(province_id, demographics::consciousness);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		set_text(state, text::format_float(consciousness / total_pop));
+	}
+};
+
+
+class province_literacy_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		auto literacy = state.world.province_get_demographics(province_id, demographics::literacy);
+		auto total_pop = state.world.province_get_demographics(province_id, demographics::total);
+		set_text(state, text::format_percentage(literacy / total_pop, 1));
+	}
+};
+
+
+class province_dominant_culture_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::get_name_as_string(state, state.world.province_get_dominant_culture(province_id)));
+	}
+};
+class province_dominant_religion_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::get_name_as_string(state, state.world.province_get_dominant_religion(province_id)));
+	}
+};
+class province_dominant_issue_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::get_name_as_string(state, state.world.province_get_dominant_issue_option(province_id)));
+	}
+};
+class province_dominant_ideology_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::get_name_as_string(state, state.world.province_get_dominant_ideology(province_id)));
+	}
+};
+
 
 class ledger_province_entry : public listbox_row_element_base<dcon::province_id> {
 public:
@@ -1647,6 +1710,22 @@ public:
 	}
 };
 
+class province_rgo_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::get_name_as_string(state, state.world.province_get_rgo(province_id)));
+	}
+};
+
+class province_rgo_size_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto province_id = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_float(economy::rgo_max_employment(state, province_id), 2));
+	}
+};
+
 class ledger_provinces_production_entry : public listbox_row_element_base<dcon::province_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -1864,6 +1943,56 @@ public:
 			apply_offset(ptr);
 			add_child_to_front(std::move(ptr));
 		}
+	}
+};
+
+class factory_state_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
+		auto flid = state.world.factory_get_factory_location_as_factory(factory_id);
+		auto pid = state.world.factory_location_get_province(flid);
+		auto sdef = state.world.province_get_state_from_abstract_state_membership(pid);
+		dcon::state_instance_id sid{};
+		state.world.for_each_state_instance([&](dcon::state_instance_id id) {
+			if(state.world.state_instance_get_definition(id) == sdef)
+				sid = id;
+		});
+		set_text(state, text::get_dynamic_state_name(state, sid));
+	}
+};
+
+
+class factory_output_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
+		auto cid = state.world.factory_get_building_type(factory_id).get_output();
+		set_text(state, text::get_name_as_string(state, cid));
+	}
+};
+
+class factory_produced_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
+		set_text(state, text::format_float(state.world.factory_get_output(factory_id), 2));
+	}
+};
+class factory_income_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
+		set_text(state, text::format_float(
+			economy::explain_last_factory_profit(state, factory_id).profit
+			, 2));
+	}
+};
+class factory_workers_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto factory_id = retrieve<dcon::factory_id>(state, parent);
+		set_text(state, text::format_float(economy::factory_total_employment(state, factory_id), 2));
 	}
 };
 

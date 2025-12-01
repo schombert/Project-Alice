@@ -9,11 +9,7 @@
 #include "text.hpp"
 #include "texture.hpp"
 #include <cstdint>
-#include <functional>
-#include <unordered_map>
-#include <variant>
 #include <vector>
-#include "color.hpp"
 #include "demographics.hpp"
 
 namespace window {
@@ -404,7 +400,7 @@ public:
 	void set_text(sys::state& state, std::u16string const& new_text);
 
 	virtual void edit_box_update(sys::state& state, std::u16string_view s) noexcept { }
-	
+
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 

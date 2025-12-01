@@ -2,11 +2,7 @@
 #include <cmath>
 #include <stddef.h>
 #include <stdint.h>
-#include <unordered_map>
 #include <variant>
-#include <codecvt>
-#include <locale>
-#include "color.hpp"
 #include "culture.hpp"
 #include "cyto_any.hpp"
 #include "dcon_generated_ids.hpp"
@@ -19,12 +15,11 @@
 #include "opengl_wrapper.hpp"
 #include "text.hpp"
 #include "sound.hpp"
-#include "unit_tooltip.hpp"
 #include "triggers.hpp"
-#include "effects.hpp"
 #include "alice_ui.hpp"
 #include "text_utility.hpp"
 #include "gui_templates.hpp"
+#include "gui_province_window.hpp"
 
 namespace ui {
 
@@ -690,7 +685,7 @@ void edit_box_element_base::set_temporary_selection(sys::state& state, int32_t s
 	temp_selection_end = end;
 
 	/*
-	// TODO: accessibility 
+	// TODO: accessibility
 	if(acc_obj) {
 		win.accessibility_interface.on_composition_change(acc_obj, std::wstring_view(text.data(), size_t(end - start)));
 	}
@@ -817,7 +812,7 @@ sys::text_mouse_test_result edit_box_element_base::detailed_text_mouse_test(sys:
 void edit_box_element_base::edit_move_cursor_to_screen_point(sys::state& state, int32_t x, int32_t y, bool extend_selection) noexcept {
 	internal_move_cursor_to_point(state, x, y, extend_selection);
 
-	if(extend_selection == false) 
+	if(extend_selection == false)
 		mouse_entry_position = cursor_position;
 
 	if(glyph_details.grapheme_placement.empty())
@@ -1122,7 +1117,7 @@ void edit_box_element_base::internal_on_text_changed(sys::state& state) {
 		glyph_details.grapheme_placement.clear();
 		glyph_details.total_lines = 0;
 
-			
+
 		internal_layout.contents.clear();
 		internal_layout.number_of_lines = 0;
 
@@ -1148,7 +1143,7 @@ void edit_box_element_base::internal_on_selection_changed(sys::state& state) {
 	// TODO accessibility integration
 	// if(acc_obj && win.is_visible(l_id))
 	// 	win.accessibility_interface.on_text_selection_changed(acc_obj);
-	
+
 	int32_t hmargin = 0;
 	int32_t vmargin = 0;
 
@@ -1526,7 +1521,7 @@ void edit_box_element_base::on_edit_command(sys::state& state, edit_command comm
 
 			int32_t erase_start = 0;
 			int32_t erase_end = 0;
-			
+
 			if(cursor_position >= int32_t(glyph_details.grapheme_placement.size())) {
 				erase_start = int32_t(cached_text.size());
 				erase_end = erase_start;
@@ -2441,7 +2436,7 @@ void edit_box_element_base::render(sys::state& state, int32_t x, int32_t y) noex
 
 		auto xpos = float(x + hmargin + cursor_x);
 		auto ypos = float(y + vmargin);
-		
+
 
 		auto alpha = window::cursor_blink_ms() > 0 ? (std::cos(float(ms_count % window::cursor_blink_ms()) /  float(window::cursor_blink_ms()) * 2.0f * 3.14159f) + 1.0f) / 2.0f : 1.0f;
 		if(anchor_position != cursor_position)

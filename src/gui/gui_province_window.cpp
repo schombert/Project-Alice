@@ -1,10 +1,8 @@
 #include "gui_province_window.hpp"
 #include "gui_common_elements.hpp"
-#include "alice_ui.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
-#include "gui_population_window.hpp"
 #include "nations.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
@@ -18,6 +16,7 @@
 #include "economy_trade_routes.hpp"
 #include "gui_piechart_templates.hpp"
 #include "gui_templates.hpp"
+#include "alice_ui.hpp"
 
 namespace ui {
 class land_rally_point : public button_element_base {
@@ -677,6 +676,26 @@ public:
 		if(state.world.nation_get_capital(n) == p) {
 			text::add_line(state, contents, "province_victory_points_capital");
 		}
+	}
+};
+
+class state_admin_efficiency_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_control_ratio(content), 1));
+	}
+};
+
+class state_aristocrat_presence_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
+		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
+		auto aristocrat_amount = state.world.state_instance_get_demographics(content, aristocrat_key);
+		auto txt = text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
+		set_text(state, txt);
 	}
 };
 

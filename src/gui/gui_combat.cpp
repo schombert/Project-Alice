@@ -7,7 +7,7 @@
 #include "rebels.hpp"
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
-#include "gui_common_elements.hpp"
+#include "province.hpp"
 
 namespace ui {
 class lc_attacker_leader_img : public image_element_base {

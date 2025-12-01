@@ -86,6 +86,17 @@ public:
 	}
 };
 
+class national_identity_vassal_type_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::nation_id>(state, parent);
+		if(state.world.nation_get_is_substate(content))
+			set_text(state, text::produce_simple_string(state, "substate"));
+		else
+			set_text(state, text::produce_simple_string(state, "satellite"));
+	}
+};
+
 class release_nation_option : public listbox_row_element_base<dcon::national_identity_id> {
 public:
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {

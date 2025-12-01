@@ -38,6 +38,111 @@ public:
 	}
 };
 
+class standard_movement_text : public simple_text_element_base {
+public:
+	virtual std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::movement_id>(state, parent);
+		set_text(state, get_text(state, content));
+	}
+};
+
+class movement_size_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
+		auto size = state.world.movement_get_pop_support(movement_id);
+		return text::prettify(int64_t(size));
+	}
+};
+
+class movement_radicalism_text : public standard_movement_text {
+public:
+	std::string get_text(sys::state& state, dcon::movement_id movement_id) noexcept override {
+		auto radicalism = state.world.movement_get_radicalism(movement_id);
+		return text::format_float(radicalism, 1);
+	}
+};
+
+class movement_issue_name_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto issue = state.world.movement_get_associated_issue_option(mid);
+		if(issue)
+			set_text(state, text::produce_simple_string(state, issue.get_movement_name()));
+		else
+			set_text(state, "");
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto issue = state.world.movement_get_associated_issue_option(mid);
+		text::add_line(state, contents, "reform_movement_desc", text::variable_type::reform, state.world.issue_option_get_name(issue));
+	}
+};
+
+
+class standard_movement_multiline_text : public multiline_text_element_base {
+public:
+	virtual void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept {
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::movement_id>(state, parent);
+		auto color = black_text ? text::text_color::black : text::text_color::white;
+		auto container =
+			text::create_endless_layout(state, internal_layout, text::layout_parameters{ 0, 0, base_data.size.x, base_data.size.y, base_data.data.text.font_handle, 0, text::alignment::left, color, false });
+		populate_layout(state, container, content);
+	}
+};
+
+class movement_nationalist_name_text : public standard_movement_multiline_text {
+public:
+	void populate_layout(sys::state& state, text::endless_layout& contents, dcon::movement_id movement_id) noexcept override {
+		auto fat_id = dcon::fatten(state.world, movement_id);
+		auto independence_target = fat_id.get_associated_independence();
+		if(!independence_target)
+			return;
+
+		auto box = text::open_layout_box(contents);
+		text::substitution_map sub{};
+		if(independence_target.get_cultural_union_of().id) {
+			std::string movement_adj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country_adj, std::string_view(movement_adj));
+			text::localised_format_box(state, contents, box, std::string_view("nationalist_union_movement"), sub);
+		} else {
+			std::string movement_adj = text::get_adjective_as_string(state, independence_target);
+			text::add_to_substitution_map(sub, text::variable_type::country, std::string_view(movement_adj));
+			text::localised_format_box(state, contents, box, std::string_view("nationalist_liberation_movement"), sub);
+		}
+		text::close_layout_box(contents, box);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		auto mid = retrieve<dcon::movement_id>(state, parent);
+		auto independence_target = state.world.movement_get_associated_independence(mid);
+		if(!independence_target)
+			return;
+		if(state.world.national_identity_get_cultural_union_of(independence_target)) {
+			text::add_line(state, contents, "NATIONALIST_UNION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		} else {
+			text::add_line(state, contents, "NATIONALIST_LIBERATION_MOVEMENT_DESC", text::variable_type::reform, state.world.national_identity_get_name(independence_target));
+		}
+	}
+};
+
+
 class movements_option : public listbox_row_element_base<dcon::movement_id> {
 private:
 	flag_button* nationalist_flag = nullptr;
@@ -138,6 +243,19 @@ public:
 			break;
 		}
 		update(state);
+	}
+};
+
+
+class standard_rebel_faction_text : public simple_text_element_base {
+public:
+	virtual std::string get_text(sys::state& state, dcon::rebel_faction_id rebel_faction_id) noexcept {
+		return "";
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::rebel_faction_id>(state, parent);
+		set_text(state, get_text(state, content));
 	}
 };
 

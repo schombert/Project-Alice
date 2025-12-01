@@ -4,7 +4,6 @@
 #include <vector>
 #include <string>
 #include <functional>
-#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 
 namespace table {
@@ -465,7 +464,7 @@ public:
 			auto amount = signal.scroll_amount;
 			auto rows_visible = cells.size() / columns;
 			auto content_off_screen = int32_t(rows - rows_visible);
-			if(content_off_screen > 0) {	
+			if(content_off_screen > 0) {
 				// for the sake of smooth scrolling:
 				scroll_impulse += amount > 0 ? 1 : -1;
 			} else {
