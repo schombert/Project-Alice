@@ -47,12 +47,16 @@ struct layout_control {
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_window {
 	std::unique_ptr<ui::element_base> ptr;
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_glue {
 	glue_type type = glue_type::standard;
@@ -85,7 +89,7 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout, texture_layer
+	control, window, glue, generator, layout, texture_layer, control2, window2
 };
 
 enum class background_type : uint8_t {

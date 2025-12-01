@@ -1543,13 +1543,53 @@ struct layout_iterator {
 			if(i.absolute_position) {
 				return  measure_result{ 0, 0, measure_result::special::none };
 			}
-			return  measure_result{ i.ptr->base_data.size.x, i.ptr->base_data.size.y, measure_result::special::none };
+			measure_result res;
+			res.other = measure_result::special::none;
+			res.x_space = i.ptr->base_data.size.x;
+			res.y_space = i.ptr->base_data.size.y;
+			if(i.fill_x) {
+				if(glue_horizontal) {
+					res.other = measure_result::special::space_consumer;
+					res.x_space = 0;
+				} else {
+					res.x_space = int16_t(max_crosswise);
+				}
+			}
+			if(i.fill_y) {
+				if(!glue_horizontal) {
+					res.other = measure_result::special::space_consumer;
+					res.y_space = 0;
+				} else {
+					res.y_space = int16_t(max_crosswise);
+				}
+			}
+			return res;
 		} else if(std::holds_alternative<layout_window>(m)) {
 			auto& i = std::get<layout_window>(m);
 			if(i.absolute_position) {
 				return  measure_result{ 0, 0, measure_result::special::none };
 			}
-			return  measure_result{ i.ptr->base_data.size.x, i.ptr->base_data.size.y, measure_result::special::none };
+			measure_result res;
+			res.other = measure_result::special::none;
+			res.x_space = i.ptr->base_data.size.x;
+			res.y_space = i.ptr->base_data.size.y;
+			if(i.fill_x) {
+				if(glue_horizontal) {
+					res.other = measure_result::special::space_consumer;
+					res.x_space = 0;
+				} else {
+					res.x_space = int16_t(max_crosswise);
+				}
+			}
+			if(i.fill_y) {
+				if(!glue_horizontal) {
+					res.other = measure_result::special::space_consumer;
+					res.y_space = 0;
+				} else {
+					res.y_space = int16_t(max_crosswise);
+				}
+			}
+			return res;
 		} else if(std::holds_alternative<layout_glue>(m)) {
 			auto& i = std::get<layout_glue>(m);
 			if(glue_horizontal) {
@@ -1613,6 +1653,10 @@ struct layout_iterator {
 				i.ptr->base_data.position.x = int16_t(x);
 				i.ptr->base_data.position.y = int16_t(y);
 			}
+			if(i.fill_x)
+				i.ptr->base_data.size.x = int16_t(width);
+			if(i.fill_y)
+				i.ptr->base_data.size.y = int16_t(height);
 			destination->children.push_back(i.ptr);
 			i.ptr->impl_on_update(state);
 		} else if(std::holds_alternative<layout_window>(m)) {
@@ -1624,6 +1668,10 @@ struct layout_iterator {
 				i.ptr->base_data.position.x = int16_t(x);
 				i.ptr->base_data.position.y = int16_t(y);
 			}
+			if(i.fill_x)
+				i.ptr->base_data.size.x = int16_t(width);
+			if(i.fill_y)
+				i.ptr->base_data.size.y = int16_t(height);
 			destination->children.push_back(i.ptr.get());
 			i.ptr->impl_on_update(state);
 		} else if(std::holds_alternative<layout_glue>(m)) {
@@ -2256,7 +2304,6 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		}
 		place_it.move_position(index_start);
 
-		place_it.move_position(index_start);
 		auto pre_pos = place_it.position;
 		auto box = measure_horizontal_box(state, place_it, effective_x_size, std::numeric_limits<int32_t>::max());
 		place_it.position = pre_pos;

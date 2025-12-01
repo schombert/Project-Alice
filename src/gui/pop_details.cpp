@@ -3238,13 +3238,15 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "window_title") {
 					temp.ptr = window_title.get();
@@ -3423,13 +3425,15 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -5068,13 +5072,15 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -5091,13 +5097,15 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -5634,13 +5642,15 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -5654,13 +5664,15 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -6062,13 +6074,15 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -6082,13 +6096,15 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -6513,13 +6529,15 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -6536,13 +6554,15 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -6922,13 +6942,15 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -6942,13 +6964,15 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -7389,13 +7413,15 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -7409,13 +7435,15 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -7786,13 +7814,15 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -7806,13 +7836,15 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -8259,13 +8291,15 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -8282,13 +8316,15 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -8667,13 +8703,15 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -8687,13 +8725,15 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -9036,13 +9076,15 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
@@ -9056,13 +9098,15 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
