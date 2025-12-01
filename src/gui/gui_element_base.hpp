@@ -1,7 +1,6 @@
 #pragma once
 
 #include "system_state_forward.hpp"
-#include "enums.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
 

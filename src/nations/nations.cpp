@@ -20,6 +20,11 @@
 #include "economy_stats.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "adaptive_ve.hpp"
+#include "money.hpp"
+#include "province.hpp"
+#include "economy.hpp"
+#include "game_scene.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace nations {
 

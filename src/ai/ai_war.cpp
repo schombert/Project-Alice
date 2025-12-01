@@ -4,6 +4,8 @@
 #include "prng.hpp"
 #include "demographics.hpp"
 #include "triggers.hpp"
+#include "province.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace ai {
 

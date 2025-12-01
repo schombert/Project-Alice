@@ -2,6 +2,7 @@
 #include <cmath>
 
 #include "system_state.hpp"
+#include "money.hpp"
 #include "gui_modifier_tooltips.hpp"
 #include "economy_trade_routes.hpp"
 #include "color_templates.hpp"

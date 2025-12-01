@@ -1,5 +1,8 @@
 #pragma once
 
+// BIG SCARY HEADER
+// TODO: MOVE EVERYTHING POSSIBLE INTO CPP FILE
+
 #include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "economy.hpp"
@@ -20,6 +23,8 @@
 #include <unordered_map>
 #include <vector>
 #include "labour_details.hpp"
+#include "province.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 

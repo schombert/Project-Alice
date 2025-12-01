@@ -18,6 +18,9 @@
 #include "economy_pops.hpp"
 #include "commodities.hpp"
 #include "adaptive_ve.hpp"
+#include "province.hpp"
+#include "money.hpp"
+
 
 namespace economy {
 
@@ -3460,40 +3463,18 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	set_profile_point("create trade buffers");
 
-	state.world.execute_parallel_over_trade_route([&](auto routes) {
-		auto data = explain_trade_route(state, routes, export_tariff_buffer, import_tariff_buffer);
-		auto m0 = data.markets[0];
-		auto m1 = data.markets[1];
-
-		for(uint32_t k = 0; k < total_commodities; k++) {
-			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
-			if(state.world.commodity_get_money_rgo(cid)) continue;
-
-			auto route_data = explain_trade_route_commodity(state, routes, data, cid);
-
-			auto origin = route_data.origin;
-			auto target = route_data.target;
-
-			auto origin_recieve = route_data.amount_origin * route_data.payment_received_per_unit;
-			auto target_pay = route_data.amount_origin * route_data.payment_per_unit;
-
-			auto mask_origin_is_0 = origin == m0;
-			auto mask_origin_is_1 = !mask_origin_is_0;
-			auto origin_is_0 = ve::select(mask_origin_is_0, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
-			auto origin_is_1 = 1.f - origin_is_0;
-
-			buffer_payment_0.set(routes, buffer_payment_0.get(routes) + ve::select(mask_origin_is_0, origin_recieve, -target_pay));
-			buffer_payment_1.set(routes, buffer_payment_1.get(routes) + ve::select(mask_origin_is_1, origin_recieve, -target_pay));
-
-			buffer_tariff_0.set(routes, buffer_tariff_0.get(routes) + ve::select(mask_origin_is_0, route_data.tariff_origin, route_data.tariff_target));
-			buffer_tariff_1.set(routes, buffer_tariff_1.get(routes) + ve::select(mask_origin_is_1, route_data.tariff_origin, route_data.tariff_target));
-
-			per_commodity_export_0[k].set(routes, per_commodity_export_0[k].get(routes) + origin_is_0 * route_data.amount_origin);
-			per_commodity_export_1[k].set(routes, per_commodity_export_1[k].get(routes) + origin_is_1 * route_data.amount_origin);
-			per_commodity_import_0[k].set(routes, per_commodity_import_0[k].get(routes) + origin_is_1 * route_data.amount_target);
-			per_commodity_import_1[k].set(routes, per_commodity_import_1[k].get(routes) + origin_is_0 * route_data.amount_target);
-		}
-	});
+	fill_trade_buffers(state,
+		export_tariff_buffer,
+		import_tariff_buffer,
+		buffer_payment_0,
+		buffer_payment_1,
+		buffer_tariff_0,
+		buffer_tariff_1,
+		per_commodity_export_0,
+		per_commodity_export_1,
+		per_commodity_import_0,
+		per_commodity_import_1
+	);
 
 	set_profile_point("set trade buffers");
 

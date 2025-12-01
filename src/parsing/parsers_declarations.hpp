@@ -14,7 +14,7 @@
 #include "date_interface.hpp"
 #include "script_constants.hpp"
 #include "container_types.hpp"
-#include "military.hpp"
+#include "military_state_containers.hpp"
 #include "nations.hpp"
 
 namespace parsers {

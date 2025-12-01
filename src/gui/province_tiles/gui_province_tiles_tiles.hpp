@@ -8,6 +8,7 @@
 #include "ai.hpp"
 #include "labour_details.hpp"
 #include "economy_tooltips.hpp"
+#include "money.hpp"
 
 namespace ui {
 

@@ -9,6 +9,7 @@
 #include "gui_units.hpp"
 #include "gui_leaders.hpp"
 #include "alice_ui.hpp"
+#include "immediate_mode.hpp"
 
 namespace game_scene {
 

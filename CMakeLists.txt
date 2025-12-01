@@ -454,11 +454,8 @@ target_precompile_headers(AliceIncremental
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
 	PRIVATE [["glm/glm.hpp"]]
+	PRIVATE [["script_constants.hpp"]]
 )
-
-#target_precompile_headers(AliceIncremental
-#	PRIVATE [["system_state.hpp"]]
-#)
 
 if(WIN32)
 else()

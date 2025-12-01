@@ -12,6 +12,7 @@
 #include "gui_element_base.hpp"
 
 #include "economy_pops.hpp"
+#include "province.hpp"
 
 #include "projections.hpp"
 

@@ -6,6 +6,7 @@
 #include "text.hpp"
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
+#include "province.hpp"
 
 namespace ui {
 

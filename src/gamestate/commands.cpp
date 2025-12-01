@@ -18,6 +18,7 @@
 #include "network.hpp"
 #include "economy_government.hpp"
 #include "gui_error_window.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace command {
 

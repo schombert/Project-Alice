@@ -10,6 +10,9 @@
 #include "script_constants.hpp"
 #include "politics.hpp"
 #include "economy_stats.hpp"
+#include "economy.hpp"
+#include "money.hpp"
+#include "province.hpp"
 
 namespace trigger {
 
