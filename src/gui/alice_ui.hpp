@@ -126,11 +126,7 @@ enum class animation_type : uint8_t {
 };
 
 struct page_info {
-	int16_t last_index;
-	int16_t last_sub_index;
-	int16_t space_used;
-	int16_t space_consumer_count;
-	int16_t non_glue_count;
+	uint16_t last_index = 0;
 };
 struct layout_level {
 	std::vector<layout_item> contents;

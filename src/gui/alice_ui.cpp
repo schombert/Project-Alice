@@ -1498,22 +1498,44 @@ ui::message_result layout_window_element::on_scroll(sys::state& state, int32_t x
 	return ui::message_result::consumed;
 }
 
+struct layout_item_position {
+	int32_t index = 0;
+	int32_t sub_index = 0;
+
+	bool operator==(layout_item_position const& o) const noexcept {
+		return index == o.index && sub_index == o.sub_index;
+	}
+	bool operator!=(layout_item_position const& o) const noexcept {
+		return !(*this == o);
+	}
+	bool operator<=(layout_item_position const& o) const noexcept {
+		return (index < o.index) || (index == o.index && sub_index <= o.sub_index);
+	}
+	bool operator>=(layout_item_position const& o) const noexcept {
+		return (index > o.index) || (index == o.index && sub_index >= o.sub_index);
+	}
+	bool operator<(layout_item_position const& o) const noexcept {
+		return !(*this >= o);
+	}
+	bool operator>(layout_item_position const& o) const noexcept {
+		return !(*this <= o);
+	}
+};
 
 struct layout_iterator {
 	std::vector<layout_item>& backing;
-	int32_t index = 0;
-	int32_t sub_index = 0;
+	layout_item_position position;
 
 	layout_iterator(std::vector<layout_item>& backing) : backing(backing) {
 	}
 
 	bool current_is_glue() {
-		return has_more() && std::holds_alternative<layout_glue>(backing[index]);
+		return has_more() && std::holds_alternative<layout_glue>(backing[position.index]);
 	}
 	measure_result measure_current(sys::state& state, bool glue_horizontal, int32_t max_crosswise, bool first_in_section) {
 		if(!has_more())
 			return measure_result{ 0, 0, measure_result::special::none };
-		auto& m = backing[index];
+		auto& m = backing[position.index];
 
 		if(std::holds_alternative<layout_control>(m)) {
 			auto& i = std::get<layout_control>(m);
@@ -1549,7 +1571,7 @@ struct layout_iterator {
 		} else if(std::holds_alternative<generator_instance>(m)) {
 			auto& i = std::get<generator_instance>(m);
 			bool alt = false;
-			return i.generator->place_item(state, nullptr, size_t(sub_index), 0, 0, first_in_section, alt);
+			return i.generator->place_item(state, nullptr, size_t(position.sub_index), 0, 0, first_in_section, alt);
 		} else if(std::holds_alternative<sub_layout>(m)) {
 			auto& i = std::get<sub_layout>(m);
 			int32_t x = 0;
@@ -1576,82 +1598,100 @@ struct layout_iterator {
 		}
 		return measure_result{ 0, 0, measure_result::special::none };
 	}
-	void place_current(sys::state& state, layout_window_element* destination, bool first_in_section, bool& alternate, int32_t x, int32_t y, int32_t lsz_x, int32_t lsz_y, bool remake_lists) {
+	void place_current(sys::state& state, layout_window_element* destination, int32_t x, int32_t y, int32_t width, int32_t height, bool first_in_section, bool& alternate, int32_t layout_x, int32_t layout_y, bool remake_pages) {
 		if(!has_more())
 			return;
-		auto& m = backing[index];
+		auto& m = backing[position.index];
 
 		if(std::holds_alternative<layout_control>(m)) {
 			auto& i = std::get<layout_control>(m);
-			i.ptr->base_data.position.x = int16_t(x);
-			i.ptr->base_data.position.y = int16_t(y);
+			if(i.absolute_position) {
+				i.ptr->base_data.position.x = int16_t(layout_x + i.abs_x);
+				i.ptr->base_data.position.y = int16_t(layout_y + i.abs_y);
+			} else {
+				i.ptr->base_data.position.x = int16_t(x);
+				i.ptr->base_data.position.y = int16_t(y);
+			}
 			destination->children.push_back(i.ptr);
 			i.ptr->impl_on_update(state);
 		} else if(std::holds_alternative<layout_window>(m)) {
 			auto& i = std::get<layout_window>(m);
-			i.ptr->base_data.position.x = int16_t(x);
-			i.ptr->base_data.position.y = int16_t(y);
+			if(i.absolute_position) {
+				i.ptr->base_data.position.x = int16_t(layout_x + i.abs_x);
+				i.ptr->base_data.position.y = int16_t(layout_y + i.abs_y);
+			} else {
+				i.ptr->base_data.position.x = int16_t(x);
+				i.ptr->base_data.position.y = int16_t(y);
+			}
 			destination->children.push_back(i.ptr.get());
 			i.ptr->impl_on_update(state);
 		} else if(std::holds_alternative<layout_glue>(m)) {
 
 		} else if(std::holds_alternative<generator_instance>(m)) {
 			auto& i = std::get<generator_instance>(m);
-			i.generator->place_item(state, destination, size_t(sub_index), x, y, first_in_section, alternate);
+			i.generator->place_item(state, destination, size_t(position.sub_index), x, y, first_in_section, alternate);
 		} else if(std::holds_alternative<sub_layout>(m)) {
 			auto& i = std::get<sub_layout>(m);
-			destination->remake_layout_internal(*i.layout, state, x, y, lsz_x, lsz_y, remake_lists);
+			destination->remake_layout_internal(*i.layout, state, x, y, width, height, remake_pages);
 		}
 	}
 	void move_position(int32_t n) {
 		while(n > 0 && has_more()) {
-			if(std::holds_alternative<generator_instance>(backing[index])) {
-				auto& g = std::get<generator_instance>(backing[index]);
-				++sub_index;
-				--n;
-				if(sub_index >= int32_t(g.generator->item_count())) {
-					sub_index = 0;
-					++index;
+			if(std::holds_alternative<generator_instance>(backing[position.index])) {
+				auto& g = std::get<generator_instance>(backing[position.index]);
+				auto sub_count = g.generator->item_count();
+				if(n >= int32_t(sub_count - position.sub_index)) {
+					n -= int32_t(sub_count - position.sub_index);
+					position.sub_index = 0;
+					++position.index;
+				} else {
+					position.sub_index += n;
+					n = 0;
 				}
 			} else {
-				++index;
+				++position.index;
 				--n;
 			}
 		}
-		while(n < 0 && index >= 0) {
-			if(std::holds_alternative<generator_instance>(backing[index])) {
-				auto& g = std::get<generator_instance>(backing[index]);
-				--sub_index;
+		while(n < 0 && position.index >= 0) {
+			if(position.index >= int32_t(backing.size())) {
+				position.index = int32_t(backing.size()) - 1;
+				if(backing.size() > 0 && std::holds_alternative<generator_instance>(backing[position.index])) {
+					auto& g = std::get<generator_instance>(backing[position.index]);
+					position.sub_index = std::max(int32_t(g.generator->item_count()) - 1, 0);
+				}
 				++n;
-				if(sub_index < 0) {
-					sub_index = 0;
-					--index;
+			} else if(std::holds_alternative<generator_instance>(backing[position.index])) {
+				auto& g = std::get<generator_instance>(backing[position.index]);
+				if(-n > position.sub_index) {
+					n += (position.sub_index + 1);
+					--position.index;
 				} else {
-					continue; // to avoid resetting sub index
+					position.sub_index += n;
+					n = 0;
+					break; // don't reset sub index
 				}
 			} else {
-				--index;
-				if(index < 0) {
-					index = 0; return;
-				}
+				--position.index;
 				++n;
 			}
 
-			if(index < 0) {
-				index = 0; return;
+			if(position.index < 0) {
+				position.sub_index = 0;
+				position.index = 0; return;
 			}
-			if(std::holds_alternative<generator_instance>(backing[index])) {
-				auto& g = std::get<generator_instance>(backing[index]);
-				sub_index = std::max(int32_t(g.generator->item_count()) - 1, 0);
+			if(std::holds_alternative<generator_instance>(backing[position.index])) {
+				auto& g = std::get<generator_instance>(backing[position.index]);
+				position.sub_index = std::max(int32_t(g.generator->item_count()) - 1, 0);
 			}
 		}
 	}
 	bool has_more() {
-		return index < int32_t(backing.size());
+		return position.index < int32_t(backing.size());
 	}
 	void reset() {
-		index = 0;
-		sub_index = 0;
+		position.index = 0;
+		position.sub_index = 0;
 	}
 };
 
@@ -1672,27 +1712,30 @@ void layout_window_element::render_layout_internal(layout_level& lvl, sys::state
 	if(lvl.template_id != -1) {
 		auto bg = state.ui_templates.layout_region_t[lvl.template_id].bg;
 		if(bg != -1) {
-			auto top_margin = int32_t(lvl.margin_top);
-			auto bottom_margin = lvl.margin_bottom != -1 ? int32_t(lvl.margin_bottom) : top_margin;
-			auto left_margin = lvl.margin_left != -1 ? int32_t(lvl.margin_left) : bottom_margin;
-			auto right_margin = lvl.margin_right != -1 ? int32_t(lvl.margin_right) : left_margin;
-
-			auto x_pos = lvl.resolved_x_pos - left_margin;
-			auto y_pos = lvl.resolved_y_pos - top_margin;
-			auto width = lvl.resolved_x_size + left_margin + right_margin;
-			auto height = lvl.resolved_y_size + top_margin + bottom_margin;
-
-			if(lvl.paged) {
-				height += lvl.page_controls->base_data.size.y;
-			}
+			auto x_pos = lvl.resolved_x_pos;
+			auto y_pos = lvl.resolved_y_pos;
+			auto width = lvl.resolved_x_size;
+			auto height = lvl.resolved_y_size;
 
 			ogl::render_textured_rect_direct(state, float(x + x_pos), float(y + y_pos), float(width), float(height),
 				state.ui_templates.backgrounds[bg].renders.get_render(state, float(width) / float(grid_size), float(height) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
 		}
 	}
 
-	for(auto& c : lvl.contents) {
+	int32_t index_start = 0;
+	if(lvl.current_page > 0 && lvl.page_starts.size() > 0) {
+		index_start = lvl.page_starts[lvl.current_page - 1].last_index;
+	}
+	int32_t index_end = int32_t(lvl.contents.size());
+	if(lvl.current_page < int32_t(lvl.page_starts.size())) {
+		index_end = lvl.page_starts[lvl.current_page].last_index;
+	}
+
+	layout_iterator it(lvl.contents);
+	it.move_position(index_start);
+	for(int32_t j = index_start; j < index_end; ++j) {
 		//sub_layout, texture_layer
+		auto& c = lvl.contents[it.position.index];
 		if(std::holds_alternative<texture_layer>(c)) {
 			auto& i = std::get<texture_layer>(c);
 			auto cmod = ui::get_color_modification(false, false, false);
@@ -1701,9 +1744,181 @@ void layout_window_element::render_layout_internal(layout_level& lvl, sys::state
 			auto& i = std::get<sub_layout>(c);
 			render_layout_internal(*i.layout, state, x, y);
 		}
+		it.move_position(1);
 	}
 }
-void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists) {
+
+struct layout_box {
+	uint16_t x_dim = 0;
+	uint16_t y_dim = 0;
+	uint16_t item_count = 0;
+	uint16_t space_conumer_count = 0;
+	uint16_t non_glue_count = 0;
+	bool end_page = false;
+};
+
+layout_box measure_horizontal_box(sys::state& state, layout_iterator& source, int32_t max_x, int32_t max_y) {
+	layout_box result{};
+
+	auto initial_pos = source.position;
+
+	while(source.has_more()) {
+		auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
+		bool is_glue = source.current_is_glue();
+		int32_t xdtemp = result.x_dim;
+		bool fits = ((m_result.x_space + result.x_dim) <= max_x) || (source.position == initial_pos) || is_glue;
+
+		if(fits) {
+			result.x_dim = std::min(uint16_t(m_result.x_space + result.x_dim), uint16_t(max_x));
+			int32_t xdtemp2 = result.x_dim;
+			result.y_dim = std::max(result.y_dim, uint16_t(m_result.y_space));
+			if(m_result.other == measure_result::special::space_consumer) {
+				++result.space_conumer_count;
+			}
+			++result.item_count;
+			if(!is_glue)
+				++result.non_glue_count;
+			if(m_result.other == measure_result::special::end_page) {
+				result.end_page = true;
+				source.move_position(1);
+				break;
+			}
+			if(m_result.other == measure_result::special::end_line) {
+				source.move_position(1);
+				break;
+			}
+		} else {
+			break;
+		}
+
+		source.move_position(1);
+	}
+
+	int32_t rollback_count = 0;
+	auto rollback_end_pos = source.position;
+
+	// rollback loop -- drop any items that were glued to the preivous item
+	while(source.position > initial_pos) {
+		source.move_position(-1);
+		auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
+		if(m_result.other != measure_result::special::no_break) {
+			source.move_position(1);
+			break;
+		}
+		if(source.current_is_glue()) // don't break just before no break glue
+			source.move_position(-1);
+	}
+	
+	if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
+		result = layout_box{};
+		auto new_end = source.position;
+		source.position = initial_pos;
+
+		// final measurement loop if rollback was non zero
+		while(source.position < new_end) {
+			auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
+			bool is_glue = source.current_is_glue();
+
+			result.x_dim = std::min(uint16_t(m_result.x_space + result.x_dim), uint16_t(max_x));
+			result.y_dim = std::max(result.y_dim, uint16_t(m_result.y_space));
+			if(m_result.other == measure_result::special::space_consumer) {
+				++result.space_conumer_count;
+			}
+			if(!is_glue)
+				++result.non_glue_count;
+			++result.item_count;
+
+			if(m_result.other == measure_result::special::end_page) {
+				result.end_page = true;
+			}
+
+			source.move_position(1);
+		}
+	}
+
+	return result;
+}
+layout_box measure_vertical_box(sys::state& state, layout_iterator& source, int32_t max_x, int32_t max_y) {
+	layout_box result{};
+
+	auto initial_pos = source.position;
+
+	while(source.has_more()) {
+		auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
+		bool is_glue = source.current_is_glue();
+		bool fits = ((m_result.y_space + result.y_dim) <= max_y) || (source.position == initial_pos) || is_glue;
+
+		if(fits) {
+			result.y_dim = std::min(uint16_t(m_result.y_space + result.y_dim), uint16_t(max_y));
+			result.x_dim = std::max(result.x_dim, uint16_t(m_result.x_space));
+			if(m_result.other == measure_result::special::space_consumer) {
+				++result.space_conumer_count;
+			}
+			++result.item_count;
+			if(!is_glue)
+				++result.non_glue_count;
+			if(m_result.other == measure_result::special::end_page) {
+				result.end_page = true;
+				source.move_position(1);
+				break;
+			}
+			if(m_result.other == measure_result::special::end_line) {
+				source.move_position(1);
+				break;
+			}
+		} else {
+			break;
+		}
+
+		source.move_position(1);
+	}
+
+	int32_t rollback_count = 0;
+	auto rollback_end_pos = source.position;
+
+	// rollback loop -- drop any items that were glued to the preivous item
+	while(source.position > initial_pos) {
+		source.move_position(-1);
+		auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
+		if(m_result.other != measure_result::special::no_break) {
+			source.move_position(1);
+			break;
+		}
+		if(source.current_is_glue()) // don't break just before no break glue
+			source.move_position(-1);
+	}
+
+	if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
+		result = layout_box{};
+		auto new_end = source.position;
+		source.position = initial_pos;
+
+		// final measurement loop if rollback was non zero
+		while(source.position < new_end) {
+			auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
+			bool is_glue = source.current_is_glue();
+
+			result.y_dim = std::min(uint16_t(m_result.y_space + result.y_dim), uint16_t(max_y));
+			result.x_dim = std::max(result.x_dim, uint16_t(m_result.x_space));
+			if(m_result.other == measure_result::special::space_consumer) {
+				++result.space_conumer_count;
+			}
+			if(!is_glue)
+				++result.non_glue_count;
+			++result.item_count;
+
+			if(m_result.other == measure_result::special::end_page) {
+				result.end_page = true;
+			}
+
+			source.move_position(1);
+		}
+	}
+
+	return result;
+}
+
+void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_pages) {
 	auto base_x_size = lvl.size_x != -1 ? int32_t(lvl.size_x) : w;
 	auto base_y_size = lvl.size_y != -1 ? int32_t(lvl.size_y) : h;
 	auto top_margin = int32_t(lvl.margin_top);
@@ -1719,417 +1934,118 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		children.push_back(lvl.page_controls.get());
 	}
 
-	lvl.resolved_x_pos = int16_t(x + left_margin);
-	lvl.resolved_y_pos = int16_t(y + top_margin);
-	lvl.resolved_x_size = int16_t(effective_x_size);
-	lvl.resolved_y_size = int16_t(effective_y_size);
+	lvl.resolved_x_pos = int16_t(x);
+	lvl.resolved_y_pos = int16_t(y );
+	lvl.resolved_x_size = int16_t(base_x_size);
+	lvl.resolved_y_size = int16_t(base_y_size);
 
 	if(lvl.page_starts.empty())
-		remake_lists = true;
+		remake_pages = true;
 
-	if(remake_lists) {
+	if(remake_pages) {
 		switch(lvl.type) {
 		case layout_type::single_horizontal:
 		{
 			layout_iterator it(lvl.contents);
-
 			// measure loop
-
+			int32_t running_count = 0;
 			while(it.has_more()) {
-				bool page_first = true;
-				int32_t space_used = 0;
-				int32_t fill_consumer_count = 0;
-
-				while(it.has_more()) {
-					auto mr = it.measure_current(state, true, effective_y_size, page_first);
-					if(!page_first && lvl.paged && (space_used + mr.x_space > effective_x_size)) {
-						//check if previous was glue, and erase
-						if(it.index != 0) {
-							it.move_position(-1);
-							if(it.current_is_glue()) {
-								space_used -= it.measure_current(state, true, effective_y_size, page_first).x_space;
-							}
-							it.move_position(1);
-						}
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-						page_first = true;
-
-						break; // only layout one page
-					}
-					page_first = false;
-					if(mr.other == measure_result::special::space_consumer)
-						++fill_consumer_count;
-
-					if(lvl.paged && mr.other == measure_result::special::end_page) {
-						it.move_position(1);
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-						page_first = true;
-						break; // only layout one page
-					}
-
-					space_used += mr.x_space;
-					it.move_position(1);
-				}
-
-				if(page_first == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-				}
+				auto box = measure_horizontal_box(state, it, effective_x_size, effective_y_size);
+				lvl.page_starts.push_back(page_info{ uint16_t(running_count + box.item_count) });
+				running_count += box.item_count;
+				assert(box.item_count > 0);
 			}
 			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
+				lvl.page_starts.push_back(page_info{ uint16_t(0) });
 			}
 		} break;
 		case layout_type::single_vertical:
 		{
 			layout_iterator it(lvl.contents);
-
 			// measure loop
-
+			int32_t running_count = 0;
 			while(it.has_more()) {
-				bool page_first = true;
-				int32_t space_used = 0;
-				int32_t fill_consumer_count = 0;
-
-				while(it.has_more()) {
-					auto mr = it.measure_current(state, false, effective_x_size, page_first);
-					if(!page_first && lvl.paged && (space_used + mr.y_space > effective_y_size)) {
-						//check if previous was glue, and erase
-						if(it.index != 0) {
-							it.move_position(-1);
-							if(it.current_is_glue()) {
-								space_used -= it.measure_current(state, false, effective_x_size, page_first).y_space;
-							}
-							it.move_position(1);
-						}
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-						page_first = true;
-
-						break; // only layout one page
-					}
-					page_first = false;
-					if(mr.other == measure_result::special::space_consumer)
-						++fill_consumer_count;
-					if(lvl.paged && mr.other == measure_result::special::end_page) {
-						it.move_position(1);
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-						page_first = true;
-						break; // only layout one page
-					}
-
-					space_used += mr.y_space;
-					it.move_position(1);
-				}
-
-				if(page_first == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(0) });
-				}
+				auto box = measure_vertical_box(state, it, effective_x_size, effective_y_size);
+				lvl.page_starts.push_back(page_info{ uint16_t(running_count + box.item_count) });
+				running_count += box.item_count;
+				assert(box.item_count > 0);
 			}
 			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
+				lvl.page_starts.push_back(page_info{ uint16_t(0) });
 			}
 		} break;
 		case layout_type::overlapped_horizontal:
 		{
 			layout_iterator it(lvl.contents);
-
-			// measure loop
-
-			while(it.has_more()) {
-				bool page_first = true;
-				int32_t space_used = 0;
-				int32_t fill_consumer_count = 0;
-				int32_t non_glue_count = 0;
-
-				while(it.has_more()) {
-					auto mr = it.measure_current(state, true, effective_y_size, page_first);
-					if(!page_first && lvl.paged && (space_used + mr.x_space > effective_x_size)) {
-						//check if previous was glue, and erase
-						if(it.index != 0) {
-							it.move_position(-1);
-							if(it.current_is_glue()) {
-								space_used -= it.measure_current(state, true, effective_y_size, page_first).x_space;
-							}
-							it.move_position(1);
-						}
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-						page_first = true;
-
-						break; // only layout one page
-					}
-					page_first = false;
-					if(mr.other == measure_result::special::space_consumer)
-						++fill_consumer_count;
-
-					if(lvl.paged && mr.other == measure_result::special::end_page) {
-						it.move_position(1);
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-						page_first = true;
-						break; // only layout one page
-					}
-					if(it.current_is_glue() || (std::holds_alternative<layout_control>(it.backing[it.index]) && std::get<layout_control>(it.backing[it.index]).absolute_position)
-						|| (std::holds_alternative<layout_window>(it.backing[it.index]) && std::get<layout_window>(it.backing[it.index]).absolute_position)) {
-
-					} else {
-						++non_glue_count;
-					}
-
-					space_used += mr.x_space;
-					it.move_position(1);
-				}
-
-				if(page_first == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-				}
-			}
-			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
-			}
+			auto box = measure_horizontal_box(state, it, std::numeric_limits<int32_t>::max(), effective_y_size);
+			lvl.page_starts.push_back(page_info{ uint16_t(box.item_count) });
 		} break;
 		case layout_type::overlapped_vertical:
 		{
 			layout_iterator it(lvl.contents);
-
-			// measure loop
-
-			while(it.has_more()) {
-				bool page_first = true;
-				int32_t space_used = 0;
-				int32_t fill_consumer_count = 0;
-				int32_t non_glue_count = 0;
-
-				while(it.has_more()) {
-					auto mr = it.measure_current(state, false, effective_x_size, page_first);
-					if(!page_first && lvl.paged && (space_used + mr.y_space > effective_y_size)) {
-						//check if previous was glue, and erase
-						if(it.index != 0) {
-							it.move_position(-1);
-							if(it.current_is_glue()) {
-								space_used -= it.measure_current(state, false, effective_x_size, page_first).y_space;
-							}
-							it.move_position(1);
-						}
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-						page_first = true;
-
-						break; // only layout one page
-					}
-					page_first = false;
-					if(mr.other == measure_result::special::space_consumer)
-						++fill_consumer_count;
-
-					if(lvl.paged && mr.other == measure_result::special::end_page) {
-						it.move_position(1);
-						while(it.has_more() && it.current_is_glue()) {
-							it.move_position(1);
-						}
-						lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-						page_first = true;
-						break; // only layout one page
-					}
-					if(it.current_is_glue() || (std::holds_alternative<layout_control>(it.backing[it.index]) && std::get<layout_control>(it.backing[it.index]).absolute_position)
-						|| (std::holds_alternative<layout_window>(it.backing[it.index]) && std::get<layout_window>(it.backing[it.index]).absolute_position)) {
-
-					} else {
-						++non_glue_count;
-					}
-
-					space_used += mr.y_space;
-					it.move_position(1);
-				}
-
-				if(page_first == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(space_used), int16_t(fill_consumer_count), int16_t(non_glue_count) });
-				}
-			}
-			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
-			}
+			auto box = measure_vertical_box(state, it, effective_x_size, std::numeric_limits<int32_t>::max());
+			lvl.page_starts.push_back(page_info{ uint16_t(box.item_count) });
 		} break;
 		case layout_type::mulitline_horizontal:
 		{
 			layout_iterator it(lvl.contents);
+			int32_t running_count = 0;
 
-			// measure loop
+			while(it.has_more()) {
+				int32_t y_remaining = effective_y_size;
+				bool first = true;
+				while(it.has_more()) {
+					auto pre_pos = it.position;
 
-			while(it.has_more()) { // pages
-				int32_t total_crosswise = 0;
-				bool page_first = true;
-				bool page_done = false;
-
-				while(it.has_more() && !page_done) { // lines
-					bool col_first = true;
-					int32_t max_crosswise = 0;
-					int32_t space_used = 0;
-
-					while(it.has_more()) { // line content
-						auto mr = it.measure_current(state, true, effective_y_size - total_crosswise, col_first);
-						if(!page_first && lvl.paged && total_crosswise + mr.y_space > effective_y_size) {
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
-
-							page_done = true;
-							break; // end page
-						} else if(!col_first && lvl.paged && (space_used + mr.x_space > effective_x_size)) {
-							//check if previous was glue, and erase
-							if(it.index != 0) {
-								it.move_position(-1);
-								if(it.current_is_glue()) {
-									space_used -= it.measure_current(state, true, effective_y_size - total_crosswise, col_first).x_space;
-								}
-								it.move_position(1);
-							}
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							break; // end line
-						}
-
-						col_first = false;
-						page_first = false;
-
-						if(mr.other == measure_result::special::end_line) {
-							it.move_position(1);
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							space_used += mr.x_space;
-							max_crosswise = std::max(max_crosswise, mr.y_space);
-							break; // end line
-						} else if(lvl.paged && mr.other == measure_result::special::end_page) {
-							it.move_position(1);
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
-							page_done = true;
-							break; // end page
-						}
-
-						space_used += mr.x_space;
-						max_crosswise = std::max(max_crosswise, mr.y_space);
-						it.move_position(1);
-					} // end single line loop
-
-					if(!page_done)
-						total_crosswise += (max_crosswise + lvl.interline_spacing);
-					else
-						total_crosswise = 0;
-				} // end lines loop
-
-				if(page_done == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
+					auto box = measure_horizontal_box(state, it, effective_x_size, y_remaining);
+					assert(box.item_count > 0);
+					if(box.y_dim > y_remaining && !first) { // end
+						it.position = pre_pos;
+						break;
+					}
+					running_count += box.item_count;
+					y_remaining -= int32_t(box.y_dim + lvl.interline_spacing);
+					if(y_remaining <= 0)
+						break;
+					if(box.end_page)
+						break;
+					first = false;
 				}
+				lvl.page_starts.push_back(page_info{ uint16_t(running_count)  });
 			}
 			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
+				lvl.page_starts.push_back(page_info{ uint16_t(0) });
 			}
 		} break;
 		case layout_type::multiline_vertical:
 		{
 			layout_iterator it(lvl.contents);
+			int32_t running_count = 0;
 
-			// measure loop
+			while(it.has_more()) {
+				int32_t x_remaining = effective_x_size;
+				bool first = true;
+				while(it.has_more()) {
+					auto pre_pos = it.position;
 
-			while(it.has_more()) { // pages
-				int32_t total_crosswise = 0;
-				bool page_first = true;
-				bool page_done = false;
-
-				while(it.has_more() && !page_done) { // lines
-					bool col_first = true;
-					int32_t max_crosswise = 0;
-					int32_t space_used = 0;
-
-					while(it.has_more()) { // line content
-						auto mr = it.measure_current(state, false, effective_x_size - total_crosswise, col_first);
-						if(!page_first && lvl.paged && total_crosswise + mr.x_space > effective_x_size) {
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
-
-							page_done = true;
-							break; // end page
-						} else if(!col_first && lvl.paged && (space_used + mr.y_space > effective_y_size)) {
-							//check if previous was glue, and erase
-							if(it.index != 0) {
-								it.move_position(-1);
-								if(it.current_is_glue()) {
-									space_used -= it.measure_current(state, false, effective_x_size - total_crosswise, col_first).y_space;
-								}
-								it.move_position(1);
-							}
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							break; // end line
-						}
-
-						col_first = false;
-						page_first = false;
-
-						if(mr.other == measure_result::special::end_line) {
-							it.move_position(1);
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							space_used += mr.y_space;
-							max_crosswise = std::max(max_crosswise, mr.x_space);
-							break; // end line
-						} else if(lvl.paged && mr.other == measure_result::special::end_page) {
-							it.move_position(1);
-							while(it.has_more() && it.current_is_glue()) {
-								it.move_position(1);
-							}
-							lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
-							page_done = true;
-							break; // end page
-						}
-
-						space_used += mr.y_space;
-						max_crosswise = std::max(max_crosswise, mr.x_space);
-						it.move_position(1);
-					} // end single line loop
-
-					if(!page_done)
-						total_crosswise += (max_crosswise + lvl.interline_spacing);
-					else
-						total_crosswise = 0;
-				} // end lines loop
-
-				if(page_done == false || !it.has_more()) {
-					lvl.page_starts.push_back(page_info{ int16_t(it.index), int16_t(it.sub_index), int16_t(0), int16_t(0), int16_t(0) });
+					auto box = measure_vertical_box(state, it, effective_x_size, x_remaining);
+					assert(box.item_count > 0);
+					if(box.x_dim > x_remaining && !first) { // end
+						it.position = pre_pos;
+						break;
+					}
+					running_count += box.item_count;
+					x_remaining -= int32_t(box.x_dim + lvl.interline_spacing);
+					if(x_remaining <= 0)
+						break;
+					if(box.end_page)
+						break;
+					first = false;
 				}
+				lvl.page_starts.push_back(page_info{ uint16_t(running_count) });
 			}
 			if(lvl.page_starts.empty()) {
-				lvl.page_starts.push_back(page_info{ int16_t(0), int16_t(0), int16_t(0), int16_t(0), int16_t(0) });
+				lvl.page_starts.push_back(page_info{ uint16_t(0) });
 			}
 		} break;
 		}
@@ -2147,8 +2063,8 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 	if(window_template == -1) { // temporary until all ui windows are handled by templates
 		layout_iterator place_it(lvl.contents);
 		while(place_it.has_more()) {
-			if(std::holds_alternative<texture_layer>(lvl.contents[place_it.index])) {
-				auto& i = std::get<texture_layer>(lvl.contents[place_it.index]);
+			if(std::holds_alternative<texture_layer>(lvl.contents[place_it.position.index])) {
+				auto& i = std::get<texture_layer>(lvl.contents[place_it.position.index]);
 				positioned_texture temp{
 					(int16_t)lvl.resolved_x_pos, (int16_t)lvl.resolved_y_pos, (int16_t)effective_x_size, (int16_t)effective_y_size,
 					i.texture,
@@ -2166,13 +2082,20 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 	{
 		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 
-		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
-		int32_t space_used = lvl.page_starts[lvl.current_page].space_used;
-		int32_t fill_consumer_count = lvl.page_starts[lvl.current_page].space_consumer_count;
+
+		layout_iterator it(lvl.contents);
+		it.move_position(index_start);
+
+		auto start_pos = it.position;
+		auto box = measure_horizontal_box(state, it, effective_x_size, effective_y_size);
+		it.position = start_pos;
+
+		int32_t space_used = box.x_dim;
+		int32_t fill_consumer_count = box.space_conumer_count;
 		// place / render
 
 		int32_t extra_runlength = int32_t(effective_x_size - space_used);
@@ -2183,11 +2106,11 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		case layout_line_alignment::trailing: extra_lead = extra_runlength - fill_consumer_count * per_fill_consumer; break;
 		case layout_line_alignment::centered: extra_lead = (extra_runlength - fill_consumer_count * per_fill_consumer) / 2;  break;
 		}
+
 		space_used = x + extra_lead + left_margin;
-		bool page_first = true;
 		bool alternate = true;
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) {
-			auto mr = place_it.measure_current(state, true, effective_y_size, page_first);
+		for(uint16_t i = 0; i < box.item_count; ++i) {
+			auto mr =  it.measure_current(state, true, effective_y_size, i == 0);
 			int32_t yoff = 0;
 			int32_t xoff = space_used;
 			switch(lvl.line_internal_alignment) {
@@ -2195,43 +2118,34 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 			case layout_line_alignment::trailing: yoff = y + top_margin + effective_y_size - mr.y_space; break;
 			case layout_line_alignment::centered: yoff = y + top_margin + (effective_y_size - mr.y_space) / 2;  break;
 			}
-			if(std::holds_alternative< layout_control>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_control>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-				}
-			} else if(std::holds_alternative<layout_window>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_window>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-				}
-			}
-			place_it.place_current(state, this, page_first, alternate, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, remake_lists);
 
-			if(!place_it.current_is_glue()) {
-				page_first = false;
-			}
+			it.place_current(state, this, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, i == 0, alternate, x, y, remake_pages);
+			it.move_position(1);
 
 			space_used += mr.x_space;
 			if(mr.other == measure_result::special::space_consumer) {
 				space_used += per_fill_consumer;
 			}
-			place_it.move_position(1);
 		}
 	} break;
 	case layout_type::single_vertical:
 	{
 		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 
-		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
-		int32_t space_used = lvl.page_starts[lvl.current_page].space_used;
-		int32_t fill_consumer_count = lvl.page_starts[lvl.current_page].space_consumer_count;
+
+		layout_iterator it(lvl.contents);
+		it.move_position(index_start);
+
+		auto start_pos = it.position;
+		auto box = measure_vertical_box(state, it, effective_x_size, effective_y_size);
+		it.position = start_pos;
+
+		int32_t space_used = box.y_dim;
+		int32_t fill_consumer_count = box.space_conumer_count;
 		// place / render
 
 		int32_t extra_runlength = int32_t(effective_y_size - space_used);
@@ -2242,11 +2156,12 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		case layout_line_alignment::trailing: extra_lead = extra_runlength - fill_consumer_count * per_fill_consumer; break;
 		case layout_line_alignment::centered: extra_lead = (extra_runlength - fill_consumer_count * per_fill_consumer) / 2;  break;
 		}
+
 		space_used = y + extra_lead + top_margin;
-		bool page_first = true;
 		bool alternate = true;
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) {
-			auto mr = place_it.measure_current(state, false, effective_x_size, page_first);
+		for(uint16_t i = 0; i < box.item_count; ++i) {
+			auto mr = it.measure_current(state, false, effective_x_size, i == 0);
+
 			int32_t xoff = 0;
 			int32_t yoff = space_used;
 			switch(lvl.line_internal_alignment) {
@@ -2254,30 +2169,14 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 			case layout_line_alignment::trailing: xoff = x + left_margin + effective_x_size - mr.x_space; break;
 			case layout_line_alignment::centered: xoff = x + left_margin + (effective_x_size - mr.x_space) / 2;  break;
 			}
-			if(std::holds_alternative< layout_control>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_control>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-				}
-			} else if(std::holds_alternative<layout_window>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_window>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-				}
-			}
-			place_it.place_current(state, this, page_first, alternate, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), remake_lists);
 
-			if(!place_it.current_is_glue()) {
-				page_first = false;
-			}
+			it.place_current(state, this, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), i == 0, alternate, x, y, remake_pages);
+			it.move_position(1);
 
 			space_used += mr.y_space;
 			if(mr.other == measure_result::special::space_consumer) {
 				space_used += per_fill_consumer;
 			}
-			place_it.move_position(1);
 		}
 	} break;
 	case layout_type::overlapped_horizontal:
@@ -2285,13 +2184,19 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 
 		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
-		int32_t space_used = lvl.page_starts[lvl.current_page].space_used;
-		int32_t fill_consumer_count = lvl.page_starts[lvl.current_page ].space_consumer_count;
-		int32_t non_glue_count = lvl.page_starts[lvl.current_page ].non_glue_count;
+		place_it.move_position(index_start);
+
+		auto pre_pos = place_it.position;
+		auto box = measure_horizontal_box(state, place_it, std::numeric_limits<int32_t>::max(), effective_y_size);
+		place_it.position = pre_pos;
+
+		int32_t space_used = box.x_dim;
+		int32_t fill_consumer_count = box.space_conumer_count;
+		int32_t non_glue_count = box.non_glue_count;
 
 		int32_t extra_runlength = std::max(0, int32_t(effective_x_size - space_used));
 		int32_t per_fill_consumer = fill_consumer_count != 0 ? (extra_runlength / fill_consumer_count) : 0;
@@ -2306,7 +2211,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 
 		bool page_first = true;
 		bool alternate = true;
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) {
+		while(place_it.has_more()) {
 			auto mr = place_it.measure_current(state, true, effective_y_size, page_first);
 			int32_t yoff = 0;
 			int32_t xoff = space_used;
@@ -2316,22 +2221,14 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 			case layout_line_alignment::centered: yoff = y + top_margin + (effective_y_size - mr.y_space) / 2;  break;
 			}
 			bool was_abs = false;
-			if(std::holds_alternative< layout_control>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_control>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-					was_abs = true;
-				}
-			} else if(std::holds_alternative< layout_window>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_window>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-					was_abs = true;
-				}
+			if(std::holds_alternative< layout_control>(lvl.contents[place_it.position.index])) {
+				auto& i = std::get<layout_control>(lvl.contents[place_it.position.index]);
+				was_abs = i.absolute_position;
+			} else if(std::holds_alternative< layout_window>(lvl.contents[place_it.position.index])) {
+				auto& i = std::get<layout_window>(lvl.contents[place_it.position.index]);
+				was_abs = i.absolute_position;
 			}
-			place_it.place_current(state, this, page_first, alternate, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, remake_lists);
+			place_it.place_current(state, this, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, page_first, alternate, x, y, remake_pages);
 
 			if(!place_it.current_is_glue()) {
 				page_first = false;
@@ -2352,13 +2249,20 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 
 		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
-		int32_t space_used = lvl.page_starts[lvl.current_page].space_used;
-		int32_t fill_consumer_count = lvl.page_starts[lvl.current_page].space_consumer_count;
-		int32_t non_glue_count = lvl.page_starts[lvl.current_page].non_glue_count;
+		place_it.move_position(index_start);
+
+		place_it.move_position(index_start);
+		auto pre_pos = place_it.position;
+		auto box = measure_horizontal_box(state, place_it, effective_x_size, std::numeric_limits<int32_t>::max());
+		place_it.position = pre_pos;
+
+		int32_t space_used = box.y_dim;
+		int32_t fill_consumer_count = box.space_conumer_count;
+		int32_t non_glue_count = box.non_glue_count;
 
 		int32_t extra_runlength = std::max(0, int32_t(effective_y_size - space_used));
 		int32_t per_fill_consumer = fill_consumer_count != 0 ? (extra_runlength / fill_consumer_count) : 0;
@@ -2373,7 +2277,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 
 		bool page_first = true;
 		bool alternate = true;
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) {
+		while(place_it.has_more()) {
 			auto mr = place_it.measure_current(state, false, effective_x_size, page_first);
 			int32_t xoff = 0;
 			int32_t yoff = space_used;
@@ -2383,22 +2287,15 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 			case layout_line_alignment::centered: xoff = x + left_margin + (effective_x_size - mr.x_space) / 2;  break;
 			}
 			bool was_abs = false;
-			if(std::holds_alternative< layout_control>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_control>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-					was_abs = true;
-				}
-			} else if(std::holds_alternative< layout_window>(lvl.contents[place_it.index])) {
-				auto& i = std::get<layout_window>(lvl.contents[place_it.index]);
-				if(i.absolute_position) {
-					xoff = x + i.abs_x;
-					yoff = y + i.abs_y;
-					was_abs = true;
-				}
+			if(std::holds_alternative< layout_control>(lvl.contents[place_it.position.index])) {
+				auto& i = std::get<layout_control>(lvl.contents[place_it.position.index]);
+				was_abs = i.absolute_position;
+			} else if(std::holds_alternative< layout_window>(lvl.contents[place_it.position.index])) {
+				auto& i = std::get<layout_window>(lvl.contents[place_it.position.index]);
+				was_abs = i.absolute_position;
 			}
-			place_it.place_current(state, this, page_first, alternate, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), remake_lists);
+
+			place_it.place_current(state, this, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), page_first, alternate, x, y, remake_pages);
 
 			if(!place_it.current_is_glue()) {
 				page_first = false;
@@ -2416,242 +2313,130 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 	} break;
 	case layout_type::mulitline_horizontal:
 	{
-		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
-
 		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
+		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
+		place_it.move_position(index_start);
 
-		int32_t total_crosswise = 0;
-		bool page_first = true;
+		int32_t y_remaining = effective_y_size;
+		bool first = true;
+		while(place_it.has_more()) {
+			auto pre_pos = place_it.position;
 
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) { // lines
+			auto box = measure_horizontal_box(state, place_it, effective_x_size, y_remaining);
+			assert(box.item_count > 0);
+			if(box.y_dim > y_remaining && !first) { // end
+				break;
+			}
 
-			bool col_first = true;
-			int32_t max_crosswise = 0;
-			int32_t space_used = 0;
-			int32_t fill_consumer_count = 0;
-			layout_iterator line_start_it = place_it;
+			place_it.position = pre_pos;
+			bool alternate = true;
 
-			while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) { // line content
-
-				auto mr = place_it.measure_current(state, true, effective_y_size - total_crosswise, col_first);
-				if(!page_first && lvl.paged && total_crosswise + mr.y_space > effective_y_size) {
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					break; // end page
-				} else if(!col_first && lvl.paged && (space_used + mr.x_space > effective_x_size)) {
-					//check if previous was glue, and erase
-					if(place_it.index != 0) {
-						place_it.move_position(-1);
-						if(place_it.current_is_glue()) {
-							space_used -= place_it.measure_current(state, true, effective_y_size - total_crosswise, col_first).x_space;
-						}
-						place_it.move_position(1);
-					}
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					break; // end line
-				}
-
-				col_first = false;
-				page_first = false;
-				if(mr.other == measure_result::special::space_consumer)
-					++fill_consumer_count;
-
-				if(mr.other == measure_result::special::end_line) {
-					place_it.move_position(1);
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					space_used += mr.x_space;
-					max_crosswise = std::max(max_crosswise, mr.y_space);
-					break; // end line
-				} else if(lvl.paged && mr.other == measure_result::special::end_page) {
-					place_it.move_position(1);
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					space_used += mr.x_space;
-					max_crosswise = std::max(max_crosswise, mr.y_space);
-					break; // end page
-				}
-
-				space_used += mr.x_space;
-				max_crosswise = std::max(max_crosswise, mr.y_space);
-				place_it.move_position(1);
-			} // end single line loop
-
-			// arrange line here
-			int32_t extra_runlength = int32_t(effective_x_size - space_used);
-			int32_t per_fill_consumer = fill_consumer_count != 0 ? (extra_runlength / fill_consumer_count) : 0;
+			int32_t extra_runlength = int32_t(effective_x_size - box.x_dim);
+			int32_t per_fill_consumer = box.space_conumer_count != 0 ? (extra_runlength / box.space_conumer_count) : 0;
 			int32_t extra_lead = 0;
 			switch(lvl.line_alignment) {
 			case layout_line_alignment::leading: break;
-			case layout_line_alignment::trailing: extra_lead = extra_runlength - fill_consumer_count * per_fill_consumer; break;
-			case layout_line_alignment::centered: extra_lead = (extra_runlength - fill_consumer_count * per_fill_consumer) / 2;  break;
+			case layout_line_alignment::trailing: extra_lead = extra_runlength - box.space_conumer_count * per_fill_consumer; break;
+			case layout_line_alignment::centered: extra_lead = (extra_runlength - box.space_conumer_count * per_fill_consumer) / 2;  break;
 			}
-			space_used = x + extra_lead + left_margin;
+			auto space_used = x + extra_lead + left_margin;
 
-			col_first = true;
-			bool alternate = true;
-			while(line_start_it.has_more() && (!lvl.paged || line_start_it.index < place_it.index || (line_start_it.index == place_it.index && line_start_it.sub_index < place_it.sub_index))) {
-				auto mr = line_start_it.measure_current(state, true, max_crosswise, col_first);
+			for(uint16_t i = 0; i < box.item_count; ++i) {
+				auto mr = place_it.measure_current(state, false, effective_x_size, i == 0);
+
 				int32_t yoff = 0;
 				int32_t xoff = space_used;
 				switch(lvl.line_internal_alignment) {
-				case layout_line_alignment::leading: yoff = y + top_margin + total_crosswise; break;
-				case layout_line_alignment::trailing: yoff = y + top_margin + total_crosswise + max_crosswise - mr.y_space; break;
-				case layout_line_alignment::centered: yoff = y + top_margin  + total_crosswise + (max_crosswise - mr.y_space) / 2;  break;
+				case layout_line_alignment::leading: yoff = y + top_margin + (effective_y_size - y_remaining); break;
+				case layout_line_alignment::trailing: yoff = y + top_margin + (effective_y_size - y_remaining) + box.y_dim - mr.y_space; break;
+				case layout_line_alignment::centered: yoff = y + top_margin + (effective_y_size - y_remaining) + (box.y_dim - mr.y_space) / 2;  break;
 				}
-				if(std::holds_alternative< layout_control>(lvl.contents[line_start_it.index])) {
-					auto& i = std::get<layout_control>(lvl.contents[line_start_it.index]);
-					if(i.absolute_position) {
-						xoff = x + i.abs_x;
-						yoff = y + i.abs_y;
-					}
-				} else if(std::holds_alternative<layout_window>(lvl.contents[line_start_it.index])) {
-					auto& i = std::get<layout_window>(lvl.contents[line_start_it.index]);
-					if(i.absolute_position) {
-						xoff = x + i.abs_x;
-						yoff = y + i.abs_y;
-					}
-				}
-				line_start_it.place_current(state, this, col_first, alternate, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, remake_lists);
-
-				col_first = false;
+				place_it.place_current(state, this, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), i == 0, alternate, x, y, remake_pages);
+				place_it.move_position(1);
 
 				space_used += mr.x_space;
 				if(mr.other == measure_result::special::space_consumer) {
 					space_used += per_fill_consumer;
 				}
-				line_start_it.move_position(1);
 			}
-			total_crosswise += (max_crosswise + lvl.interline_spacing);
-		} // end lines loop
+
+			y_remaining -= int32_t(box.y_dim + lvl.interline_spacing);
+			if(y_remaining <= 0) {
+				break;
+			}
+			if(box.end_page) {
+				break;
+			}
+			first = false;
+		}
+		
 	} break;
 	case layout_type::multiline_vertical:
 	{
-		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
-
 		layout_iterator place_it(lvl.contents);
+		int32_t index_start = 0;
+		lvl.current_page = std::clamp(lvl.current_page, int16_t(0), int16_t(lvl.page_starts.size() - 1));
 		if(lvl.current_page > 0) {
-			place_it.index = lvl.page_starts[lvl.current_page - 1].last_index;
-			place_it.sub_index = lvl.page_starts[lvl.current_page - 1].last_sub_index;
+			index_start = lvl.page_starts[lvl.current_page - 1].last_index;
 		}
+		place_it.move_position(index_start);
 
-		int32_t total_crosswise = 0;
-		bool page_first = true;
 
-		while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) { // lines
+		int32_t x_remaining = effective_x_size;
+		bool first = true;
+		while(place_it.has_more()) {
+			auto pre_pos = place_it.position;
 
-			bool col_first = true;
-			int32_t max_crosswise = 0;
-			int32_t space_used = 0;
-			int32_t fill_consumer_count = 0;
-			layout_iterator line_start_it = place_it;
+			auto box = measure_vertical_box(state, place_it, x_remaining, effective_y_size);
+			assert(box.item_count > 0);
+			if(box.x_dim > x_remaining && !first) { // end
+				break;
+			}
 
-			while(place_it.has_more() && (!lvl.paged || place_it.index < lvl.page_starts[lvl.current_page].last_index || (place_it.index == lvl.page_starts[lvl.current_page].last_index && place_it.sub_index < lvl.page_starts[lvl.current_page].last_sub_index))) { // line content
+			place_it.position = pre_pos;
+			bool alternate = true;
 
-				auto mr = place_it.measure_current(state, false , effective_x_size - total_crosswise, col_first);
-				if(!page_first && lvl.paged && total_crosswise + mr.x_space > effective_x_size) {
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					break; // end page
-				} else if(!col_first && lvl.paged && (space_used + mr.y_space > effective_y_size)) {
-					//check if previous was glue, and erase
-					if(place_it.index != 0) {
-						place_it.move_position(-1);
-						if(place_it.current_is_glue()) {
-							space_used -= place_it.measure_current(state, false, effective_x_size - total_crosswise, col_first).y_space;
-						}
-						place_it.move_position(1);
-					}
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					break; // end line
-				}
-
-				col_first = false;
-				page_first = false;
-				if(mr.other == measure_result::special::space_consumer)
-					++fill_consumer_count;
-
-				if(mr.other == measure_result::special::end_line) {
-					place_it.move_position(1);
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					space_used += mr.y_space;
-					max_crosswise = std::max(max_crosswise, mr.x_space);
-					break; // end line
-				} else if(lvl.paged && mr.other == measure_result::special::end_page) {
-					place_it.move_position(1);
-					while(place_it.has_more() && place_it.current_is_glue()) {
-						place_it.move_position(1);
-					}
-					space_used += mr.y_space;
-					max_crosswise = std::max(max_crosswise, mr.x_space);
-					break; // end page
-				}
-
-				space_used += mr.y_space;
-				max_crosswise = std::max(max_crosswise, mr.x_space);
-				place_it.move_position(1);
-			} // end single line loop
-
-			// arrange line here
-			int32_t extra_runlength = int32_t(effective_y_size - space_used);
-			int32_t per_fill_consumer = fill_consumer_count != 0 ? (extra_runlength / fill_consumer_count) : 0;
+			int32_t extra_runlength = int32_t(effective_y_size - box.y_dim);
+			int32_t per_fill_consumer = box.space_conumer_count != 0 ? (extra_runlength / box.space_conumer_count) : 0;
 			int32_t extra_lead = 0;
 			switch(lvl.line_alignment) {
 			case layout_line_alignment::leading: break;
-			case layout_line_alignment::trailing: extra_lead = extra_runlength - fill_consumer_count * per_fill_consumer; break;
-			case layout_line_alignment::centered: extra_lead = (extra_runlength - fill_consumer_count * per_fill_consumer) / 2;  break;
+			case layout_line_alignment::trailing: extra_lead = extra_runlength - box.space_conumer_count * per_fill_consumer; break;
+			case layout_line_alignment::centered: extra_lead = (extra_runlength - box.space_conumer_count * per_fill_consumer) / 2;  break;
 			}
-			space_used = y + extra_lead + top_margin;
-			col_first = true;
-			bool alternate = true;
-			while(line_start_it.has_more() && (!lvl.paged || line_start_it.index < place_it.index || (line_start_it.index == place_it.index && line_start_it.sub_index < place_it.sub_index))) {
-				auto mr = line_start_it.measure_current(state, false, max_crosswise, col_first);
+			auto space_used = y + extra_lead + top_margin;
+
+			for(uint16_t i = 0; i < box.item_count; ++i) {
+				auto mr = place_it.measure_current(state, false, effective_x_size, i == 0);
+
 				int32_t xoff = 0;
 				int32_t yoff = space_used;
 				switch(lvl.line_internal_alignment) {
-				case layout_line_alignment::leading: xoff = x + left_margin + total_crosswise; break;
-				case layout_line_alignment::trailing: xoff = x + left_margin + total_crosswise + max_crosswise - mr.x_space; break;
-				case layout_line_alignment::centered: xoff = x + left_margin + total_crosswise + (max_crosswise - mr.x_space) / 2;  break;
+				case layout_line_alignment::leading: xoff = x + left_margin + (effective_x_size - x_remaining); break;
+				case layout_line_alignment::trailing: xoff = x + left_margin + (effective_x_size - x_remaining) + box.x_dim - mr.x_space; break;
+				case layout_line_alignment::centered: xoff = x + left_margin + (effective_x_size - x_remaining) + (box.x_dim - mr.x_space) / 2;  break;
 				}
-				if(std::holds_alternative< layout_control>(lvl.contents[line_start_it.index])) {
-					auto& i = std::get<layout_control>(lvl.contents[line_start_it.index]);
-					if(i.absolute_position) {
-						xoff = x + i.abs_x;
-						yoff = y + i.abs_y;
-					}
-				} else if(std::holds_alternative<layout_window>(lvl.contents[line_start_it.index])) {
-					auto& i = std::get<layout_window>(lvl.contents[line_start_it.index]);
-					if(i.absolute_position) {
-						xoff = x + i.abs_x;
-						yoff = y + i.abs_y;
-					}
-				}
-				line_start_it.place_current(state, this, col_first, alternate, xoff, yoff, mr.x_space, mr.y_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), remake_lists);
-
-				col_first = false;
+				place_it.place_current(state, this, xoff, yoff, mr.x_space + (mr.other == measure_result::special::space_consumer ? per_fill_consumer : 0), mr.y_space, i == 0, alternate, x, y, remake_pages);
+				place_it.move_position(1);
 
 				space_used += mr.y_space;
 				if(mr.other == measure_result::special::space_consumer) {
 					space_used += per_fill_consumer;
 				}
-				line_start_it.move_position(1);
 			}
-			total_crosswise += (max_crosswise + lvl.interline_spacing);
-		} // end lines loop
+
+			x_remaining -= int32_t(box.x_dim + lvl.interline_spacing);
+			if(x_remaining <= 0)
+				break;
+			if(box.end_page)
+				break;
+			first = false;
+		}
+
 	} break;
 	}
 }
