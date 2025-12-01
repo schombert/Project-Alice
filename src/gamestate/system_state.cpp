@@ -33,6 +33,7 @@
 #include "economy_production.hpp"
 #include "money.hpp"
 #include "diplomatic_messages.hpp"
+#include "economy_constants.hpp"
 
 namespace sys {
 

@@ -17,6 +17,8 @@
 #include "gui_piechart_templates.hpp"
 #include "gui_templates.hpp"
 #include "alice_ui.hpp"
+#include "economy.hpp"
+#include "economy_production.hpp"
 
 namespace ui {
 class land_rally_point : public button_element_base {
@@ -1285,6 +1287,21 @@ public:
 		return message_result::unseen;
 	}
 };
+
+
+
+class nation_sphere_list_label : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		if(bool(fat_id.get_in_sphere_of().id)) {
+			return text::produce_simple_string(state, "rel_sphere_of_influence") + ":";
+		} else {
+			return text::produce_simple_string(state, "diplomacy_sphere_label");
+		}
+	}
+};
+
 
 class province_view_foreign_details : public window_element_base {
 private:

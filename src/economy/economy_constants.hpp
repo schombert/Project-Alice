@@ -2,6 +2,11 @@
 
 namespace economy {
 
+inline constexpr float production_scale_delta = 0.1f;
+inline constexpr float factory_closed_threshold = 0.0001f;
+inline constexpr uint32_t price_history_length = 256;
+inline constexpr uint32_t gdp_history_length = 128;
+
 // descides the divisor for the army demand from reinforcements. It is set to 28 to spread out the reinforcement demand over 28 days, as reinforce ticks only happen once a month
 constexpr inline float unit_reinforcement_demand_divisor = 28.0f;
 

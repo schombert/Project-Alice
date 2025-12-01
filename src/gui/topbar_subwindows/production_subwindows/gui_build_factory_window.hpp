@@ -5,6 +5,10 @@
 #include "ai_economy.hpp"
 #include "triggers.hpp"
 #include "construction.hpp"
+#include "economy_government.hpp"
+#include "economy_production.hpp"
+#include "economy_factory_view.hpp"
+#include "economy.hpp"
 
 namespace ui {
 

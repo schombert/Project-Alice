@@ -6,6 +6,7 @@
 #include "province_templates.hpp"
 #include "triggers.hpp"
 #include "economy.hpp"
+#include "economy_factory_view.hpp"
 
 namespace politics {
 

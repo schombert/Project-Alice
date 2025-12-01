@@ -7,6 +7,7 @@
 #include "gui_templates.hpp"
 #include "gui_listbox_templates.hpp"
 #include "gui_common_elements.hpp"
+#include "economy.hpp"
 
 namespace ui {
 

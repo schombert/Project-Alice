@@ -17,6 +17,7 @@
 #include "set"
 #include "economy_government.hpp"
 #include "economy_production.hpp"
+#include "economy_factory_view.hpp"
 #include "economy_stats.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "adaptive_ve.hpp"

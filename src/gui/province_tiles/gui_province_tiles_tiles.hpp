@@ -11,6 +11,7 @@
 #include "gui_tooltips.hpp"
 #include "money.hpp"
 #include "game_scene.hpp"
+#include "economy_government.hpp"
 
 namespace ui {
 

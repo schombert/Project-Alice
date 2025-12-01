@@ -7,6 +7,7 @@
 #include "gui_modifier_tooltips.hpp"
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
+#include "construction.hpp"
 
 namespace ui {
 

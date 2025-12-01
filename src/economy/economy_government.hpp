@@ -1,5 +1,6 @@
 #pragma once
 #include "dcon_generated_ids.hpp"
+#include "economy_common_api_containers.hpp"
 
 namespace sys {
 struct state;
@@ -48,9 +49,6 @@ tax_information explain_tax_income_local(sys::state& state, dcon::nation_id n, d
 bool war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b);
 bool non_war_embargo_status(sys::state& state, dcon::nation_id n_a, dcon::nation_id n_b, dcon::nation_id market_leader_a, dcon::nation_id market_leader_b);
 bool has_active_embargo(sys::state& state, dcon::nation_id from, dcon::nation_id to);
-
-// forward
-struct employment_record;
 
 std::vector<employment_record> explain_local_administration_employment(sys::state& state, dcon::province_id p);
 std::vector<employment_record> explain_capital_administration_employment(sys::state& state, dcon::nation_id n);

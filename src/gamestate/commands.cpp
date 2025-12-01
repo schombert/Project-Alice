@@ -22,6 +22,7 @@
 #include "game_scene.hpp"
 #include "province.hpp"
 #include "economy.hpp"
+#include "economy_factory_view.hpp"
 
 namespace command {
 

@@ -7,6 +7,9 @@
 #include "province_templates.hpp"
 #include "system_state.hpp"
 #include "gui_listbox_templates.hpp"
+#include "economy_production.hpp"
+#include "economy_constants.hpp"
+#include "economy.hpp"
 
 namespace ui {
 

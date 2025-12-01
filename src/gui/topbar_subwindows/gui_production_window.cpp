@@ -15,6 +15,8 @@
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
 #include "gui_tooltips.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
 
 namespace ui {
 class factory_employment_image : public image_element_base {
