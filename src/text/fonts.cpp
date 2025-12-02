@@ -563,10 +563,10 @@ bool font::can_display(char32_t ch_in) const {
 }
 
 glyph_sub_offset& font_at_size:: get_glyph(uint16_t glyph_in, int32_t subpixel) {
-	return glyph_positions[(uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1)];
+	return glyph_positions[(uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)];
 }
 void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
-	if(glyph_positions.find((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1)) != glyph_positions.end())
+	if(glyph_positions.find((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3)) != glyph_positions.end())
 		return;
 
 	// load all glyph metrics
@@ -574,15 +574,20 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 		FT_Load_Glyph(font_face, glyph_in, FT_LOAD_TARGET_LIGHT);
 		glyph_sub_offset gso;
 
-		if(subpixel) {
+		if(subpixel == 1) {
+			FT_Outline_Translate(&(font_face->glyph->outline), 16, 0);
+		} else if(subpixel == 2) {
 			FT_Outline_Translate(&(font_face->glyph->outline), 32, 0);
+		} else if(subpixel == 3) {
+			FT_Outline_Translate(&(font_face->glyph->outline), 48, 0);
 		}
+
 		FT_Render_Glyph(font_face->glyph, FT_RENDER_MODE_NORMAL);
 
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
+			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
 			return;
 		}
 		
@@ -591,7 +596,7 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 		assert(bitmap.rows <= 1024 && bitmap.width <= 1024);
 		if(bitmap.rows > 1024 || bitmap.width > 1024) { // too large to render
 			FT_Done_Glyph(g_result);
-			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
+			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
 			return;
 		}
 		if(bitmap.width + internal_tx_line_xpos >= 1024) { // new line
@@ -644,7 +649,7 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 			delete[] temp;
 		}
 		FT_Done_Glyph(g_result);
-		glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
+		glyph_positions.insert_or_assign((uint32_t(glyph_in) << 2) | uint32_t(subpixel & 3), gso);
 	}
 }
 
