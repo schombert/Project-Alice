@@ -89,7 +89,7 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout, texture_layer, control2, window2
+	control, window, glue, generator, layout, texture_layer, control2, window2, generator2
 };
 
 enum class background_type : uint8_t {
@@ -834,6 +834,24 @@ public:
 
 		change_page(state, std::clamp(list_page + ((amount < 0) ? 1 : -1), 0, (total_items + items_per_page - 1) / items_per_page - 1));
 		return ui::message_result::consumed;
+	}
+};
+
+class legacy_commodity_icon : public ui::element_base {
+public:
+	dcon::commodity_id content;
+	bool show_tooltip = true;
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return (show_tooltip && bool(content)) ? ui::tooltip_behavior::variable_tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
 	}
 };
 
