@@ -1205,11 +1205,16 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 		auto frac_pixel_off = pixel_x_off - trunc_pixel_x_off;
 
 		int32_t subpixel = 0;
-		if(frac_pixel_off < 0.25f) {
-			pixel_x_off = (trunc_pixel_x_off);
-		} else if(frac_pixel_off < 0.75f) {
-			pixel_x_off = (trunc_pixel_x_off);
+		pixel_x_off = (trunc_pixel_x_off);
+
+		if(frac_pixel_off < 0.125f) {
+			
+		} else if(frac_pixel_off < 0.375f) {
 			subpixel = 1;
+		} else if(frac_pixel_off < 0.625f) {
+			subpixel = 2;
+		} else if(frac_pixel_off < 0.875f) {
+			subpixel = 3;
 		} else {
 			pixel_x_off = trunc_pixel_x_off + 1.0f;
 		}
