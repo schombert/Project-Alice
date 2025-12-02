@@ -3,6 +3,7 @@
 
 #include "hb.h"
 #include "hb-ft.h"
+#include "freetype/ftoutln.h"
 
 #include "fonts.hpp"
 #include "parsers.hpp"
@@ -561,8 +562,11 @@ bool font::can_display(char32_t ch_in) const {
 	return FT_Get_Char_Index(sized_fonts.begin()->second.font_face, ch_in) != 0;
 }
 
-void font_at_size::make_glyph(uint16_t glyph_in) {
-	if(glyph_positions.find(glyph_in) != glyph_positions.end())
+glyph_sub_offset& font_at_size:: get_glyph(uint16_t glyph_in, int32_t subpixel) {
+	return glyph_positions[(uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1)];
+}
+void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
+	if(glyph_positions.find((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1)) != glyph_positions.end())
 		return;
 
 	// load all glyph metrics
@@ -570,19 +574,24 @@ void font_at_size::make_glyph(uint16_t glyph_in) {
 		FT_Load_Glyph(font_face, glyph_in, FT_LOAD_TARGET_LIGHT | FT_LOAD_RENDER);
 		glyph_sub_offset gso;
 
+		if(subpixel) {
+			FT_Outline_Translate(&(font_face->glyph->outline), 32, 0);
+		}
+		FT_Render_Glyph(font_face->glyph, FT_RENDER_MODE_NORMAL);
+
 		FT_Glyph g_result;
 		auto err = FT_Get_Glyph(font_face->glyph, &g_result);
 		if(err != 0) {
-			glyph_positions.insert_or_assign(glyph_in, gso);
+			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
 			return;
 		}
-
+		
 		FT_Bitmap const& bitmap = ((FT_BitmapGlyphRec*)g_result)->bitmap;
 
 		assert(bitmap.rows <= 1024 && bitmap.width <= 1024);
 		if(bitmap.rows > 1024 || bitmap.width > 1024) { // too large to render
 			FT_Done_Glyph(g_result);
-			glyph_positions.insert_or_assign(glyph_in, gso);
+			glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
 			return;
 		}
 		if(bitmap.width + internal_tx_line_xpos >= 1024) { // new line
@@ -635,7 +644,7 @@ void font_at_size::make_glyph(uint16_t glyph_in) {
 			delete[] temp;
 		}
 		FT_Done_Glyph(g_result);
-		glyph_positions.insert_or_assign(glyph_in, gso);
+		glyph_positions.insert_or_assign((uint32_t(glyph_in) << 1) | uint32_t(subpixel & 1), gso);
 	}
 }
 
@@ -934,7 +943,7 @@ void font_at_size::remake_cache(sys::state& state, font_selection type, stored_g
 
 				for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
 					total_x_advance += glyph_pos[j].x_advance / (text::fixed_to_fp * state.user_settings.ui_scale);
-					make_glyph(uint16_t(glyph_info[j].codepoint));
+					//make_glyph(uint16_t(glyph_info[j].codepoint));
 					txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 				}
 			}
@@ -994,7 +1003,7 @@ void font_at_size::remake_bidiless_cache(sys::state& state, font_selection type,
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &gcount);
 
 	for(unsigned int j = 0; j < gcount; j++) { // Preload glyphs
-		make_glyph(uint16_t(glyph_info[j].codepoint));
+		//make_glyph(uint16_t(glyph_info[j].codepoint));
 		txt.glyph_info.emplace_back(glyph_info[j], glyph_pos[j]);
 	}
 

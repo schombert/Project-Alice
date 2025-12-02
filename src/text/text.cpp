@@ -1484,15 +1484,15 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				font_inst.make_glyph(uint16_t(glyphid));
-				auto& gso = font_inst.glyph_positions[uint16_t(glyphid)];
+				font_inst.make_glyph(uint16_t(glyphid), 0);
+				auto& gso = font_inst.get_glyph(uint16_t(glyphid), 0);
 				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
 					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
-					font_inst.make_glyph(uint16_t(dot_g));
-					auto& gso2 = font_inst.glyph_positions[uint16_t(dot_g)];
+					font_inst.make_glyph(uint16_t(dot_g), 0);
+					auto& gso2 = font_inst.get_glyph(uint16_t(dot_g), 0);
 					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {
@@ -1612,15 +1612,15 @@ void add_to_layout_box(sys::state& state, layout_base& dest, layout_box& box, st
 				auto glyphid = FT_Get_Char_Index(font_inst.font_face, 0x2026);
 
 				bool ellipsis_valid = true;
-				font_inst.make_glyph(uint16_t(glyphid));
-				auto& gso = font_inst.glyph_positions[uint16_t(glyphid)];
+				font_inst.make_glyph(uint16_t(glyphid), 0);
+				auto& gso = font_inst.get_glyph(uint16_t(glyphid), 0);
 				auto width_of_ellipsis = float(gso.bitmap_left + gso.width) / state.user_settings.ui_scale;
 
 				if(width_of_ellipsis <= 0 || glyphid == 0) {
 					ellipsis_valid = false;
 					auto dot_g = FT_Get_Char_Index(font_inst.font_face, '.');
-					font_inst.make_glyph(uint16_t(dot_g));
-					auto& gso2 = font_inst.glyph_positions[uint16_t(dot_g)];
+					font_inst.make_glyph(uint16_t(dot_g), 0);
+					auto& gso2 = font_inst.get_glyph(uint16_t(dot_g), 0);
 					width_of_ellipsis = float(gso2.bitmap_left + gso2.width) * 3.0f / state.user_settings.ui_scale;
 				}
 				if(state.user_settings.use_classic_fonts) {

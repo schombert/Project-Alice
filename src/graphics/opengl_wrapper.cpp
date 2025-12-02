@@ -1193,25 +1193,39 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 	auto& font_instance = f.retrieve_instance(state, int32_t(size));
 	auto ui_scale = state.user_settings.ui_scale;
 
-	x = int32_t(x * ui_scale) / ui_scale;
-	baseline_y = int32_t(baseline_y * ui_scale) / ui_scale;
+	x = std::floor(x * ui_scale);
+	baseline_y = std::floor(baseline_y * ui_scale);
 
 	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
 	for(unsigned int i = 0; i < glyph_count; i++) {
 		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		auto& gso = font_instance.glyph_positions[uint16_t(glyphid)];
+
+		auto pixel_x_off = x + float(txt.glyph_info[i].x_offset) / text::fixed_to_fp;
+		auto trunc_pixel_x_off = std::floor(pixel_x_off);
+		auto frac_pixel_off = pixel_x_off - trunc_pixel_x_off;
+
+		int32_t subpixel = 0;
+		if(frac_pixel_off < 0.25f) {
+			pixel_x_off = (trunc_pixel_x_off);
+		} else if(frac_pixel_off < 0.75f) {
+			pixel_x_off = (trunc_pixel_x_off);
+			subpixel = 1;
+		} else {
+			pixel_x_off = trunc_pixel_x_off + 1.0f;
+		}
+		
+		font_instance.make_glyph(uint16_t(glyphid), subpixel);
+		auto& gso = font_instance.get_glyph(uint16_t(glyphid), subpixel);
 		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
 
 		if(gso.width != 0) {
-			float x_offset = float(txt.glyph_info[i].x_offset) / text::fixed_to_fp + float(gso.bitmap_left);
+			float x_offset = pixel_x_off + float(gso.bitmap_left);
 			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / text::fixed_to_fp;
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
 
-			auto rounded_x = int32_t(std::round(x * ui_scale + x_offset)) / ui_scale;
-
-			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, rounded_x, baseline_y + y_offset / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
+			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x_offset / ui_scale, (baseline_y + y_offset) / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
 			glUniform4f(state.open_gl.ui_shader_subrect_uniform, float(gso.x) / float(1024) /* x offset */,
 					float(gso.width) / float(1024) /* x width */, float(gso.y) / float(1024) /* y offset */,
 					float(gso.height) / float(1024) /* y height */
@@ -1220,8 +1234,8 @@ void internal_text_render(sys::state& state, text::stored_glyphs const& txt, flo
 			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 		}
 
-		x += x_advance / ui_scale;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp) / ui_scale;
+		x += x_advance;
+		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp);
 	}
 }
 

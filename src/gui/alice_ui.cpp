@@ -97,6 +97,23 @@ bool pop_passes_filter(sys::state& state, dcon::pop_id p) {
 	return true;
 }
 
+void legacy_commodity_icon::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	text::add_line(state, contents, state.world.commodity_get_name(content));
+}
+void legacy_commodity_icon::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	static dcon::gfx_object_id gfx_handle = [&]() {
+		if(auto it = state.ui_state.gfx_by_name.find(state.lookup_key("GFX_resources_small")); it != state.ui_state.gfx_by_name.end()) {
+			return it->second;
+		}
+		return dcon::gfx_object_id{};
+	}();
+	if(content && gfx_handle) {
+		auto& gfx_def = state.ui_defs.gfx[gfx_handle];
+		if(gfx_def.primary_texture_handle) {
+			ogl::render_subsprite(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), int32_t(state.world.commodity_get_icon(content)), gfx_def.number_of_frames, float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()), base_data.get_rotation(), gfx_def.is_vertically_flipped(), state_is_rtl(state));
+		}
+	}
+}
 
 void template_icon_graphic::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	text::add_line(state, contents, default_tooltip);
