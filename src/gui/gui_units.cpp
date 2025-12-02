@@ -18,6 +18,7 @@
 #include "gui_leader_tooltip.hpp"
 #include "gui_unit_panel_subwindow.hpp"
 #include "gui_modifier_tooltips.hpp"
+#include "game_scene.hpp"
 
 namespace ui {
 
@@ -4194,6 +4195,20 @@ std::unique_ptr<element_base> battleplanner_selection_control::make_child(sys::s
 		return nullptr;
 	}
 }
+
+class go_to_battleplanner_selection_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_military_selector);
+	}
+
+	void on_update(sys::state& state) noexcept override {
+		if(state.selected_army_group) {
+			disabled = false;
+		} else {
+			disabled = true;
+		}
+	}
+};
 
 class army_group_control_window : public window_element_base {
 public:

@@ -7,13 +7,6 @@
 
 namespace economy {
 
-enum commodity_production_type {
-	primary,
-	derivative,
-	both
-};
-
-
 enum class worker_effect : uint8_t { none = 0, input, output, throughput };
 
 template<typename T>
@@ -22,26 +15,14 @@ auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_un
 	return 0.0f;
 }
 
-
-
-inline constexpr float production_scale_delta = 0.1f;
-inline constexpr float factory_closed_threshold = 0.0001f;
-inline constexpr uint32_t price_history_length = 256;
-inline constexpr uint32_t gdp_history_length = 128;
-
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
 float subsistence_max_pseudoemployment(sys::state& state, dcon::province_id p);
-float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
 
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-// misc
-int32_t factory_priority(sys::state const& state, dcon::factory_id f);
-void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
-bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
@@ -118,16 +99,6 @@ float estimate_daily_income(sys::state& state, dcon::nation_id n);
 
 construction_status province_building_construction(sys::state& state, dcon::province_id, province_building_type t);
 construction_status factory_upgrade(sys::state& state, dcon::factory_id f);
-
-
-
-// Represents one type of employment of a building
-struct employment_record {
-	int32_t employment_type;
-	float target_employment;
-	float satisfaction;
-	float actual_employment;
-};
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);

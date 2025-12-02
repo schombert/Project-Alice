@@ -1,10 +1,8 @@
 #include "gui_province_window.hpp"
 #include "gui_common_elements.hpp"
-#include "alice_ui.hpp"
 #include "demographics.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
-#include "gui_population_window.hpp"
 #include "nations.hpp"
 #include "province.hpp"
 #include "system_state.hpp"
@@ -18,6 +16,9 @@
 #include "economy_trade_routes.hpp"
 #include "gui_piechart_templates.hpp"
 #include "gui_templates.hpp"
+#include "alice_ui.hpp"
+#include "economy.hpp"
+#include "economy_production.hpp"
 
 namespace ui {
 class land_rally_point : public button_element_base {
@@ -680,6 +681,26 @@ public:
 	}
 };
 
+class state_admin_efficiency_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::province_id>(state, parent);
+		set_text(state, text::format_percentage(state.world.province_get_control_ratio(content), 1));
+	}
+};
+
+class state_aristocrat_presence_text : public simple_text_element_base {
+public:
+	void on_update(sys::state& state) noexcept override {
+		auto content = retrieve<dcon::state_instance_id>(state, parent);
+		auto total_pop = state.world.state_instance_get_demographics(content, demographics::total);
+		auto aristocrat_key = demographics::to_key(state, state.culture_definitions.aristocrat);
+		auto aristocrat_amount = state.world.state_instance_get_demographics(content, aristocrat_key);
+		auto txt = text::format_percentage(total_pop > 0 ? aristocrat_amount / total_pop : 0.0f, 1);
+		set_text(state, txt);
+	}
+};
+
 class province_window_header : public window_element_base {
 private:
 	fixed_pop_type_icon* slave_icon = nullptr;
@@ -1266,6 +1287,21 @@ public:
 		return message_result::unseen;
 	}
 };
+
+
+
+class nation_sphere_list_label : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto fat_id = dcon::fatten(state.world, nation_id);
+		if(bool(fat_id.get_in_sphere_of().id)) {
+			return text::produce_simple_string(state, "rel_sphere_of_influence") + ":";
+		} else {
+			return text::produce_simple_string(state, "diplomacy_sphere_label");
+		}
+	}
+};
+
 
 class province_view_foreign_details : public window_element_base {
 private:

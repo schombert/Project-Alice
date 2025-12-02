@@ -114,6 +114,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_message_window.cpp"
 	"src/gui/gui_chat_window.cpp"
 	"src/gui/gui_combat.cpp"
+	"src/gui/gui_tooltips.cpp"
 	"src/gui/gui_units.cpp"
 	"src/gui/gui_unit_panel_subwindow.cpp"
 	"src/gui/gui_diplomacy_request.cpp"

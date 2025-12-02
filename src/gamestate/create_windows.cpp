@@ -86,6 +86,18 @@ public:
 };
 
 
+class go_to_base_game_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
+	}
+};
+
+class go_to_battleplanner_button : public button_element_base {
+	void button_action(sys::state& state) noexcept final {
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_military);
+	}
+};
+
 void create_in_game_windows(sys::state& state) {
 	state.ui_state.lazy_load_in_game = true;
 

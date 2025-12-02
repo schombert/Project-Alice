@@ -1,7 +1,5 @@
 #pragma once
 
-#include "constants_dcon.hpp"
-#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_listbox_templates.hpp"
 
