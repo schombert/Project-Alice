@@ -1175,11 +1175,15 @@ void map_font::load_font(FT_Library& ft_library, char const* file_data_in, uint3
 		glDeleteBuffers(1, &curve_buffer);
 }
 map_font::~map_font() {
-	glDeleteTextures(1, &glyph_texture);
-	glDeleteTextures(1, &curve_texture);
+	if(glyph_texture)
+		glDeleteTextures(1, &glyph_texture);
+	if(curve_texture)
+		glDeleteTextures(1, &curve_texture);
 
-	glDeleteBuffers(1, &glyph_buffer);
-	glDeleteBuffers(1, &curve_buffer);
+	if(glyph_buffer)
+		glDeleteBuffers(1, &glyph_buffer);
+	if(curve_buffer)
+		glDeleteBuffers(1, &curve_buffer);
 
 	if(hb_font_face)
 		hb_font_destroy(hb_font_face);
