@@ -571,7 +571,7 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 
 	// load all glyph metrics
 	if(glyph_in) {
-		FT_Load_Glyph(font_face, glyph_in, FT_LOAD_TARGET_LIGHT | FT_LOAD_RENDER);
+		FT_Load_Glyph(font_face, glyph_in, FT_LOAD_TARGET_LIGHT);
 		glyph_sub_offset gso;
 
 		if(subpixel) {
