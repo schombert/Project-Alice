@@ -1588,7 +1588,7 @@ void update_rgo_production(sys::state& state) {
 			auto profit_derivative =
 				state.world.commodity_get_rgo_amount(c)
 				* state.world.market_get_price(m, c);
-			auto efficiency_growth = 0.1f * (profit_derivative - cost_derivative * state.defines.alice_rgo_per_size_employment);
+			auto efficiency_growth = 0.01f * (profit_derivative - cost_derivative * state.defines.alice_rgo_per_size_employment);
 			efficiency_growth = ve::select(
 				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
 				efficiency_growth * e_inputs_data.min_available,

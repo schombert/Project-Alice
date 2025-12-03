@@ -582,6 +582,15 @@ void initialize(sys::state& state) {
 
 			most_common_value = int(i);
 			most_common_count = rgo_efficiency_inputs_count[i];
+		} else if(rgo_efficiency_inputs_count[i] >= second_most_common_count) {
+			third_most_common_value = second_most_common_value;
+			third_most_common_count = second_most_common_count;
+
+			second_most_common_value = int(i);
+			second_most_common_count = rgo_efficiency_inputs_count[i];
+		} else if(rgo_efficiency_inputs_count[i] >= third_most_common_count) {
+			third_most_common_value = int(i);
+			third_most_common_count = rgo_efficiency_inputs_count[i];
 		}
 	}
 
@@ -3593,12 +3602,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto states = state.world.province_get_state_membership(ids);
 			auto markets = state.world.state_instance_get_market_from_local_market(states);
 			auto target_wage =
-				(
-					state.world.market_get_life_needs_costs(markets, state.culture_definitions.primary_factory_worker) * labor_greed_life
-					+ state.world.market_get_everyday_needs_costs(markets, state.culture_definitions.primary_factory_worker) * labor_greed_everyday
-				)
+				state.world.market_get_life_needs_costs(markets, state.culture_definitions.primary_factory_worker)
 				/ state.defines.alice_needs_scaling_factor
-				+ 0.0001f;
+				* labor_greed_life
+				+ economy::price_properties::labor::min * 0.5f;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
