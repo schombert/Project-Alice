@@ -1,5 +1,7 @@
 #pragma once
 
+#include "text.hpp"
+
 namespace iui{
 
 enum class iui_tab : uint8_t {

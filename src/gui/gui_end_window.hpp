@@ -3,6 +3,7 @@
 #include "gui_common_elements.hpp"
 #include "gui_nation_picker.hpp"
 #include "gui_ledger_window.hpp"
+#include "money.hpp"
 
 namespace ui {
 

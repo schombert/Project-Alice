@@ -7,6 +7,7 @@
 #include "constants.hpp"
 #include "container_types.hpp"
 #include "commands_containers.hpp"
+#include "military_constants.hpp"
 
 namespace command {
 

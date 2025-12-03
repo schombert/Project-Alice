@@ -1,5 +1,6 @@
 #pragma once
 #include "dcon_generated_ids.hpp"
+#include "gui_element_types.hpp"
 #include "prng.hpp"
 #include "text.hpp"
 

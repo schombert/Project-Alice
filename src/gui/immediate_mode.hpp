@@ -11,6 +11,7 @@
 #include "fonts.hpp"
 
 #include "immediate_mode_state.hpp"
+#include "stateless_render_constants.hpp"
 
 
 namespace text {

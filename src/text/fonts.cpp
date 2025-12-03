@@ -502,7 +502,6 @@ font& font_manager::get_font(sys::state& state, font_selection s) {
 	case font_selection::header_font:
 		return font_array[state.world.locale_get_resolved_header_font(current_locale)];
 	}
-
 }
 
 font_at_size& font::retrieve_instance(sys::state& state, int32_t base_size) {
@@ -1137,6 +1136,26 @@ float font_at_size::text_extent(sys::state& state, stored_glyphs const& txt, uin
 		x_total += x_advance;
 	}
 	return x_total / state.user_settings.ui_scale;
+}
+
+float font_at_size::stateless_text_extent(float ui_scale, char const* codepoints, uint32_t count) {
+	hb_buffer_clear_contents(hb_buf);
+	hb_buffer_add_utf8(hb_buf, codepoints, int(count), 0, int(count));
+	hb_buffer_guess_segment_properties(hb_buf);
+	hb_shape(hb_font_face, hb_buf, NULL, 0);
+	unsigned int glyph_count = 0;
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(hb_buf, &glyph_count);
+	float x = 0.0f;
+	for(unsigned int i = 0; i < glyph_count; i++) {
+		make_glyph((uint16_t)glyph_info[i].codepoint, 0);
+		hb_codepoint_t glyphid = glyph_info[i].codepoint;
+		auto& gso = glyph_positions[glyphid << 2];
+		float x_advance = float(glyph_pos[i].x_advance) / text::fixed_to_fp;
+		x += x_advance;
+	}
+
+	return x / ui_scale;
 }
 
 uint16_t make_font_id(sys::state& state, bool as_header, float target_line_size) {

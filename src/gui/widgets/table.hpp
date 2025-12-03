@@ -5,6 +5,7 @@
 #include <string>
 #include <functional>
 #include "gui_element_types.hpp"
+#include "system_state.hpp"
 
 namespace table {
 
