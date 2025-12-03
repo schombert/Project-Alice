@@ -2,7 +2,6 @@
 
 namespace economy {
 
-inline constexpr float production_scale_delta = 0.1f;
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
@@ -46,14 +45,13 @@ inline constexpr float subsistence_score_total = subsistence_score_life;
 inline constexpr float payouts_spending_multiplier = 10.f;
 
 // for the sake of machine tools
-inline constexpr float production_throughput_multiplier = 1.15f;
+inline constexpr float production_throughput_multiplier = 1.05f;
 
 // greed drives incomes of corresponding pops up
 // while making life worse on average
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.2f;
 inline constexpr float artisans_greed = 0.3f;
-inline constexpr float labor_greed_life = 0.05f;
-inline constexpr float labor_greed_everyday = 0.f;
+inline constexpr float labor_greed_life = 0.01f;
 inline constexpr float capitalists_greed = 0.3f;
 }
