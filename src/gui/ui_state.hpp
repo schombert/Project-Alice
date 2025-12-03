@@ -38,11 +38,36 @@ struct state {
 	std::unique_ptr<element_base> end_screen;
 	std::unique_ptr<element_base> select_states_legend;
 	std::unique_ptr<element_base> select_national_identity_root;
-
 	std::unique_ptr<element_base> army_group_selector_root;
 	std::unique_ptr<element_base> army_group_deselector_root;
-
 	std::unique_ptr<element_base> economy_viewer_root;
+	std::unique_ptr<element_base> root_production_view;
+
+	template<typename F>
+	void for_each_root(F&& func) {
+		if(rgos_root)
+			func(*rgos_root);
+		if(province_details_root)
+			func(*province_details_root);
+		if(root)
+			func(*root);
+		if(military_root)
+			func(*military_root);
+		if(nation_picker)
+			func(*nation_picker);
+		if(select_national_identity_root)
+			func(*select_national_identity_root);
+		if(army_group_selector_root)
+			func(*army_group_selector_root);
+		if(army_group_deselector_root)
+			func(*army_group_deselector_root);
+		if(economy_viewer_root)
+			func(*economy_viewer_root);
+		if(select_states_legend)
+			func(*select_states_legend);
+		if(root_production_view)
+			func(*root_production_view);
+	}
 
 	std::unique_ptr<tool_tip> tooltip;
 	std::unique_ptr<grid_box> unit_details_box;

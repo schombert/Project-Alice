@@ -180,9 +180,13 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_framebuffer_for_province_indices(*this);
 	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
 
+	
+
 	if(win_state != window::window_state::minimized) {
-		ui_state.root->base_data.size.x = int16_t(x / user_settings.ui_scale);
-		ui_state.root->base_data.size.y = int16_t(y / user_settings.ui_scale);
+		ui_state.for_each_root([&](ui::element_base& elm) {
+			elm.base_data.size.x = int16_t(x / user_settings.ui_scale);
+			elm.base_data.size.y = int16_t(y / user_settings.ui_scale);
+		});
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
@@ -1619,8 +1623,11 @@ void state::save_gamerule_settings() const {
 
 void state::update_ui_scale(float new_scale) {
 	user_settings.ui_scale = new_scale;
-	ui_state.root->base_data.size.x = int16_t(x_size / user_settings.ui_scale);
-	ui_state.root->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.base_data.size.x = int16_t(x_size / user_settings.ui_scale);
+		elm.base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+	});
+
 	if(ui_state.outliner_window)
 		ui_state.outliner_window->impl_on_update(*this);
 	for(auto& s : ui_templates.backgrounds) {
@@ -1631,18 +1638,9 @@ void state::update_ui_scale(float new_scale) {
 	}
 	//font_collection.reset_fonts();
 
-	if(ui_state.units_root)
-		ui_state.units_root->impl_on_reset_text(*this);
-	if(ui_state.rgos_root)
-		ui_state.rgos_root->impl_on_reset_text(*this);
-	if(ui_state.root)
-		ui_state.root->impl_on_reset_text(*this);
-	if(ui_state.nation_picker)
-		ui_state.nation_picker->impl_on_reset_text(*this);
-	if(ui_state.select_states_legend)
-		ui_state.select_states_legend->impl_on_reset_text(*this);
-	if(ui_state.end_screen)
-		ui_state.end_screen->impl_on_reset_text(*this);
+	ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(*this);
+	});
 
 	province_ownership_changed.store(true, std::memory_order::release); //update map
 	game_state_updated.store(true, std::memory_order::release); //update ui

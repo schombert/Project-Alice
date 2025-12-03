@@ -1844,3 +1844,8 @@ zoom_fastest;Fastest
 amsg_embargod;The nation has been embargoed
 save_name_label;File name (blank = auto)
 save_warning_tooltip;A file with this name already exists
+production_window_title;Production
+production_combine_types_toggle;Combine Types
+production_table_name_header;Name
+production_table_size_header;Size
+production_table_amount_header;Quantity

@@ -14,21 +14,10 @@
 
 namespace game_scene {
 
-void switch_scene(sys::state& state, scene_id ui_scene) {
-	/*
-	if (state.ui_state.end_screen)
-		state.ui_state.end_screen->set_visible(state, false);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->set_visible(state, false);
-	if(state.ui_state.root)
-		state.ui_state.root->set_visible(state, false);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->set_visible(state, false);
-	if(state.ui_state.military_root)
-		state.ui_state.military_root->set_visible(state, false);
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 
-	state.get_root_element()->set_visible(state, true);
-	*/
+void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
@@ -38,7 +27,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 	case scene_id::in_game_national_identity_selector:
 		state.current_scene = national_identity_selector();
 
@@ -47,7 +36,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::nation_identity_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 
 	case scene_id::in_game_basic:
 		// Bring back remembered map mode we had before the selector
@@ -57,35 +46,58 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		state.current_scene = basic_game();
 
-		return;
+		break;
 
 	case scene_id::in_game_economy_viewer:
 		state.current_scene = economy_viewer_scene();
 
-		return;
+		break;
 
 	case scene_id::in_game_military:
 		state.current_scene = battleplan_editor();
 
-		return;
+		break;
 
 	case scene_id::end_screen:
 		state.current_scene = end_screen();
 
-		return;
+		break;
 
 	case scene_id::pick_nation:
 		state.current_scene = nation_picker();
 
-		return;
+		break;
 
 	case scene_id::in_game_military_selector:
 		state.current_scene = battleplan_editor_add_army();
 
-		return;
+		break;
+	case scene_id::in_game_production_view:
+		state.current_scene = scene_properties{
+			.id = scene_id::in_game_production_view,
+
+			.get_root = [](sys::state& state) { return state.ui_state.root_production_view.get(); },
+
+			.rbutton_selected_units = do_nothing_province_target,
+			.rbutton_province = do_nothing_province_target,
+			.allow_drag_selection = false,
+			.on_drag_start = do_nothing_screen,
+			.drag_selection = do_nothing_screen,
+			.lbutton_up = do_nothing,
+			.on_province_selected = do_nothing,                                                 // TODO
+			.keycode_mapping = replace_keycodes_map_movement,
+			.handle_hotkeys = production_screen_hotkeys,
+			.console_log = console_log_other,                                                    
+			.render_ui = render_ui_ingame,                                                         // TODO?
+			.on_game_state_update = generic_map_scene_update,
+			.on_game_state_update_update_ui = do_nothing, 
+			.update_highlight_texture = highlight_given_state
+		};
+
+		break;
 	case scene_id::count: // this should never happen
 		assert(false);
-		return;
+		break;
 	}
 	
 	state.game_state_updated.store(true, std::memory_order_release);
@@ -659,6 +671,16 @@ void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	}
 }
 
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
+		state.map_state.on_key_down(keycode, mod);
+		if(keycode == sys::virtual_key::ESCAPE) {
+			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
+		}
+	}
+}
+
 void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.console_window->is_visible()) {
 		ui::console_window::show_toggle(state);
@@ -1191,6 +1213,16 @@ void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dco
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
 	if(selected_province) {
 		data[province::to_map_id(selected_province)] = 0x2B2B2B2B;
+	}
+}
+
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
+	if(selected_province) {
+		if(auto si = state.world.province_get_state_membership(selected_province); si) {
+			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+				data[province::to_map_id(p)] = 0x2B2B2B2B;
+			});
+		}
 	}
 }
 

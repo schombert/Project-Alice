@@ -616,8 +616,8 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 			glTexStorage2D(GL_TEXTURE_2D, 1, GL_R8, 1024, 1024);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 			textures.push_back(texid);
 			uint32_t clearvalue = 0;
 			glClearTexImage(texid, 0, GL_RED, GL_UNSIGNED_BYTE, &clearvalue);
@@ -625,8 +625,8 @@ void font_at_size::make_glyph(uint16_t glyph_in, int32_t subpixel) {
 			texid = textures.back();
 			glBindTexture(GL_TEXTURE_2D, texid);
 		}
-		gso.x = uint16_t(internal_tx_line_xpos + 1);
-		gso.y = uint16_t(internal_tx_line_ypos + 1);
+		gso.x = uint16_t(internal_tx_line_xpos);
+		gso.y = uint16_t(internal_tx_line_ypos );
 		gso.width = uint16_t(bitmap.width);
 		gso.height = uint16_t(bitmap.rows);
 		gso.tx_sheet = uint16_t(textures.size() - 1);

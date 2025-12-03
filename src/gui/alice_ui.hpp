@@ -897,8 +897,10 @@ public:
 	friend struct layout_iterator;
 };
 
+enum class display_closure_command { default_function, return_pointer };
+
 template<std::unique_ptr<ui::element_base>(*GEN_FN)(sys::state&) >
-void display_at_front(sys::state& state) {
+ui::element_base* display_at_front(sys::state& state, display_closure_command fn = display_closure_command::default_function) {
 	static ui::element_base* saved_ptr = [&]() {
 		auto current_root = state.current_scene.get_root(state);
 		auto new_item = GEN_FN(state);
@@ -908,14 +910,21 @@ void display_at_front(sys::state& state) {
 		return ptr;
 	}();
 
-	auto current_root = state.current_scene.get_root(state);
-	if(saved_ptr->parent != current_root) {
-		auto take_child = saved_ptr->parent->remove_child(saved_ptr);
-		current_root->add_child_to_front(std::move(take_child));
-	} else {
-		current_root->move_child_to_front(saved_ptr);
+	if(fn == display_closure_command::default_function) {
+		auto current_root = state.current_scene.get_root(state);
+		if(saved_ptr->parent != current_root) {
+			auto take_child = saved_ptr->parent->remove_child(saved_ptr);
+			current_root->add_child_to_front(std::move(take_child));
+		} else {
+			current_root->move_child_to_front(saved_ptr);
+		}
+		saved_ptr->set_visible(state, true);
+		return nullptr;
 	}
-	saved_ptr->set_visible(state, true);
+	if(fn == display_closure_command::return_pointer) {
+		return saved_ptr;
+	}
+	return nullptr;
 }
 
 namespace budget_categories {
