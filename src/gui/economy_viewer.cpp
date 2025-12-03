@@ -1,5 +1,6 @@
 #include <numbers>
 
+#include "system_state.hpp"
 #include "economy_viewer.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
@@ -7,6 +8,9 @@
 #include "color.hpp"
 #include "labour_details.hpp"
 #include "advanced_province_buildings.hpp"
+#include "economy.hpp"
+#include "province.hpp"
+#include "immediate_mode.hpp"
 
 
 namespace economy_viewer {

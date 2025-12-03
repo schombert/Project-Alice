@@ -607,6 +607,17 @@ protected:
 	}
 };
 
+class overlapping_full_wg_icon : public listbox_row_element_base<sys::full_wg> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<full_wg_icon>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+};
+
 class crisis_attacker_wargoals : public overlapping_listbox_element_base<overlapping_full_wg_icon, sys::full_wg> {
 protected:
 	std::string_view get_row_element_name() override {

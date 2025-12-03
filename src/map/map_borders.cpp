@@ -300,7 +300,7 @@ bool is_river(uint8_t river_data) {
 	return river_data < 250;
 }
 int32_t river_width(uint8_t river_data) {
-	auto result = 255 - (int32_t)(river_data) + 40;
+	auto result = (255 - (int32_t)(river_data) + 5) / 2;
 	assert(result >= 0);
 	return result;
 }
@@ -1639,7 +1639,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 				// we found a confluence!
 				// backtrack and mark a few nodes for removal
 				auto backrunner = current_path[current_path.size() - 1];
-				for(int steps = 0; steps < 2; steps++) {
+				for(int steps = 0; steps < 0; steps++) {
 					if(current_path.size() - 1 - steps <= 0) {
 						break;
 					}
@@ -1857,6 +1857,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 
 			//init distance from the source
 			float distance = 0.0f;
+			float rotation_distance = 0.0f;
 			// it will store distance local to current source
 			// which will lead to incontinuities in distances in river basins
 			// these problems should be probably solved in a separate pass ?
@@ -1911,7 +1912,7 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					auto next_point = glm::vec2(next_node->x, next_node->y);
 
 					auto current_tangent = glm::normalize(next_point - current_point);
-					next_point = next_point + current_tangent * 5.f;
+					next_point = next_point + current_tangent * 1.f;
 					auto current_normal = glm::vec2{ -current_tangent.y, current_tangent.x };
 					auto next_tangent = glm::normalize(current_tangent);
 
@@ -1971,47 +1972,53 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 				auto current_tangent = next_point - current_point;
 				auto next_tangent = next_next_point - next_point;
 
-				for(uint8_t step = 0; step <= steps; step++) {
-					auto t = (float(step) / float(steps));
-					vertex =
-						t * next_point
-						+ (1.f - t) * current_point;
-					auto width = t * next_node->width + (1.f - t) * runner->width;
+				vertex = next_point;
 
-					auto current_weight = weight * width;
+				//vertex = t * next_point + (1.f - t) * current_point;
+				auto width = runner->width;
 
-					auto acceleration = (vertex - vertex_stabilized) / current_weight;
-					vertex_stabilized_speed += acceleration;
-					vertex_stabilized_speed *= (1.f - friction);
+				auto current_weight = weight * width;
+
+				auto base_direction = vertex - vertex_stabilized;
+				auto direction_norm = glm::length(base_direction);
+				auto max_steps = 20;
+				float meander_length = 0.1f;
+				//float speed = 40.f;
+				auto step = 0.2f;
+				auto speed = 1.f;
+				float steps_per_second = speed / step;
+				auto t = 0.65f;
+
+				while(direction_norm > step * 8.f && max_steps > 0) {
+					base_direction = vertex - vertex_stabilized;
+					direction_norm = glm::length(base_direction);
+
+					// rotate:
+					auto rotation = sin(rotation_distance / 2.f / width * 150.f / width * 150.f) * 2.f;
+					glm::mat2x2 rotation_matrix = glm::mat2x2{ cos(rotation), sin(rotation), -sin(rotation), cos(rotation) };
+
+					auto acceleration = (rotation_matrix * base_direction * t + base_direction * (1.f - t)) / direction_norm; // / current_weight;
+
+					vertex_stabilized_speed =
+						vertex_stabilized_speed * 0.5f
+						+ acceleration * step;
+
+					rotation_distance += glm::length(vertex_stabilized_speed * steps_per_second * step) * (1.f + 2.f * abs(sin(vertex_stabilized.x / 10.f)));
+
+					//fprintf(pf, "%.6f,%.6f,%.6f,%.6f,%.6f,%.6f\n", vertex_stabilized.x, vertex_stabilized.y, vertex_stabilized_speed.x, vertex_stabilized_speed.y, vertex.x, vertex.y);
 
 					auto vertex_old_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
-					vertex_stabilized = vertex_stabilized + vertex_stabilized_speed;
+					vertex_stabilized = vertex_stabilized + vertex_stabilized_speed * steps_per_second * step;
+
 					auto vertex_opengl_coords = vertex_stabilized / glm::vec2(size_x, size_y);
 					auto speed_opengl_coords = vertex_opengl_coords - vertex_old_opengl_coords;
 					auto normal_opengl_coords = glm::normalize(glm::vec2{ -speed_opengl_coords.y, speed_opengl_coords.x });
 					distance += glm::length(speed_opengl_coords);
-
 					river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, +normal_opengl_coords, 0.0f, distance, width });//C
 					river_vertices.emplace_back(textured_line_with_width_vertex{ vertex_opengl_coords, -normal_opengl_coords, 1.0f, distance, width });//D
+					max_steps--;
 				}
 
-				/*
-				add_tl_bezier_to_buffer(
-					river_vertices,
-					current_point,
-					next_point,
-					current_tangent,
-					next_tangent,
-					0.0f,
-					false,
-					float(size_x),
-					float(size_y),
-					8,
-					distance,
-					runner->width,
-					next_node->width
-				);
-				*/
 
 				if(stop) {
 					count_back -= 1;

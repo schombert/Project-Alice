@@ -478,7 +478,7 @@ void pop_budget_details_main_tax_s_value_t::on_update(sys::state& state) noexcep
 void pop_budget_details_main_education_s_value_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::education_s_value::update
-	auto budget = economy::pops::prepare_pop_budget<dcon::pop_id>(state, main.for_pop);
+	auto budget = economy::pops::prepare_pop_budget(state, main.for_pop);
 	set_text(state, text::format_money(budget.education.spent));
 // END
 }
@@ -491,7 +491,7 @@ void pop_budget_details_main_trade_s_value_t::on_update(sys::state& state) noexc
 void pop_budget_details_main_investment_s_value_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::investment_s_value::update
-	auto budget = economy::pops::prepare_pop_budget<dcon::pop_id>(state, main.for_pop);
+	auto budget = economy::pops::prepare_pop_budget(state, main.for_pop);
 	set_text(state, text::format_money(budget.investments.spent + budget.bank_savings.spent));
 // END
 }

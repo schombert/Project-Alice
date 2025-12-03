@@ -1,5 +1,7 @@
 #pragma once
-#include "constants.hpp"
+#include "constants_dcon.hpp"
+#include "system_state_forward.hpp"
+#include "dcon_generated_ids.hpp"
 
 // Advanced province buildings are a future replacement for province buildings
 // They can hire people, expand and produce services (or, in future, local modifiers)

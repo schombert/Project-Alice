@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <cstring>
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 
 namespace effect {
 // flags

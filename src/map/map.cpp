@@ -15,6 +15,7 @@
 #include "system_state.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
+#include "projections.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -253,20 +254,23 @@ void create_text_line_vbo(GLuint vbo) {
 	// Set up vertex attribute format for the direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 3, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
 	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glVertexAttribIFormat(5, 1, GL_INT, offsetof(text_line_vertex, buffer_index_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
+	//glEnableVertexAttribArray(6);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
 	glVertexAttribBinding(4, 0);
 	glVertexAttribBinding(5, 0);
+	//glVertexAttribBinding(6, 0);
 }
 
 void create_drag_box_vbo(GLuint vbo) {
@@ -379,6 +383,17 @@ void display_data::create_meshes() {
 		glVertexAttribBinding(0, 0);
 		glVertexAttribBinding(1, 0);
 	}
+	{
+		// Create and populate the border VBO
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		// Bind the VBO to 0 of the VAO
+		glBindVertexBuffer(0, vbo_array[vo_arbitrary_map_triangles], 0, sizeof(square::point));
+		// Set up vertex attribute format for the position
+		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(square::point, data));
+		glEnableVertexAttribArray(0);
+		glVertexAttribBinding(0, 0);
+	}
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_trade_flow]);
@@ -397,8 +412,8 @@ void display_data::create_meshes() {
 	create_unit_arrow_vbo(vbo_array[vo_other_objective_unit_arrow], other_objective_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
-	glBindVertexArray(vao_array[vo_province_text_line]);
-	create_text_line_vbo(vbo_array[vo_province_text_line]);
+	//glBindVertexArray(vao_array[vo_province_text_line]);
+	//create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(vao_array[vo_square]);
@@ -455,6 +470,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto triangles_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_v.glsl"));
 	auto triangles_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_f.glsl"));
 
+	// even more generic on-map shader
+	auto map_triangle_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_v.glsl"));
+	auto map_triangle_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_f.glsl"));
+
 	// On-map sprite shader
 	auto sprite_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_v.glsl"));
 	auto sprite_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_f.glsl"));
@@ -463,8 +482,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
 
-	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
-	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	//auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
+	//auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_f.glsl"));
 
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
 	auto tline_width_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_variable_width_v.glsl"));
@@ -497,6 +518,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 	shaders[shader_map_sprite] = create_program(*sprite_vshader, *sprite_fshader);
 	shaders[shader_textured_triangle] = create_program(*triangles_vshader, *triangles_fshader);
+	shaders[shader_map_triangle] = create_program(*map_triangle_vshader, *map_triangle_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
@@ -547,6 +569,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_sprite_texture_size] = glGetUniformLocation(shaders[i], "texture_size");
 		shader_uniforms[i][uniform_is_national_border] = glGetUniformLocation(shaders[i], "is_national_border");
 		shader_uniforms[i][uniform_graphics_mode] = glGetUniformLocation(shaders[i], "graphics_mode");
+		shader_uniforms[i][uniform_color] = glGetUniformLocation(shaders[i], "color");
+		shader_uniforms[i][uniform_glyphs] = glGetUniformLocation(shaders[i], "glyphs");
+		shader_uniforms[i][uniform_curves] = glGetUniformLocation(shaders[i], "curves");
 	}
 }
 
@@ -562,24 +587,36 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(shaders[program]);
-		glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
-		glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
-		glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
-		glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
-		glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
-		glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
-		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
-		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-		glUniform3f(shader_uniforms[program][uniform_light_direction],
-			state.map_state.light_direction.x,
-			state.map_state.light_direction.y,
-			state.map_state.light_direction.z
-		);
-		if(state.map_state.light_on) {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
-		} else {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		if(shader_uniforms[program][uniform_offset] != -1)
+			glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
+		if(shader_uniforms[program][uniform_aspect_ratio] != -1)
+			glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
+		if(shader_uniforms[program][uniform_screen_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
+		if(shader_uniforms[program][uniform_zoom] != -1)
+			glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
+		if(shader_uniforms[program][uniform_map_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
+		if(shader_uniforms[program][uniform_rotation] != -1)
+			glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		if(shader_uniforms[program][uniform_gamma] != -1)
+			glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
+		if(shader_uniforms[program][uniform_subroutines_index] != -1)
+			glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
+		if(shader_uniforms[program][uniform_time] != -1)
+			glUniform1f(shader_uniforms[program][uniform_time], time_counter);
+		if(shader_uniforms[program][uniform_light_direction] != -1)
+			glUniform3f(shader_uniforms[program][uniform_light_direction],
+				state.map_state.light_direction.x,
+				state.map_state.light_direction.y,
+				state.map_state.light_direction.z
+			);
+		if(shader_uniforms[program][uniform_ignore_light] != -1) {
+			if(state.map_state.light_on) {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
+			} else {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+			}
 		}
 	};
 
@@ -1054,6 +1091,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 
+	// arbitrary things
+
+	{
+		glDisable(GL_CULL_FACE);
+		load_shader(shader_map_triangle);
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		glMultiDrawArrays(GL_TRIANGLES, arbitrary_map_triangles_starts.data(), arbitrary_map_triangles_counts.data(), GLsizei(arbitrary_map_triangles_starts.size()));
+		glEnable(GL_CULL_FACE);
+	}
+
 	// trade flow
 	if(state.selected_trade_good && !trade_flow_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE0);
@@ -1077,102 +1125,102 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				state.ui_defs.gui[
 					state.ui_state.defs_by_name.find(
 						state.lookup_key("gfx_storage_commodity")
-					)->second.definition
+							)->second.definition
 				].data.image.gfx_object;
-			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto frame = state.world.commodity_get_icon(state.selected_trade_good);
-			auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+				auto& gfx_def = state.ui_defs.gfx[gfx_id];
+				auto frame = state.world.commodity_get_icon(state.selected_trade_good);
+				auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-			glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
 
-			glBindVertexArray(vao_array[vo_square]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-			const float speed = 0.5f;
+				const float speed = 0.5f;
 
-			bool spawned_something = false;
+				bool spawned_something = false;
 
-			for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-				auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
 
-				// update movement
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
-					auto direction = p.target_ - p.position_;
-					auto length = float(glm::length(direction));
-					if(length < speed * 2) {
-						p.trade_graph_node_prev = p.trade_graph_node_current;
-						p.trade_graph_node_current = p.trade_graph_node_next;
-						p.trade_graph_node_next = -1;
-					} else {
-						p.position_ += direction / length * speed;
-					}
-				}
-
-				// choose target
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
-					// choose next target according to probability
-					// use time as random engine for simplicity
-					auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
-
-					int target = -1;
-
-					auto accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
-						accumulated += probability;
-						// prevent trivial loops
-						if(random < accumulated && candidate != p.trade_graph_node_prev) {
-							target = candidate;
-							break;
+					// update movement
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
+						auto direction = p.target_ - p.position_;
+						auto length = float(glm::length(direction));
+						if(length < speed * 2) {
+							p.trade_graph_node_prev = p.trade_graph_node_current;
+							p.trade_graph_node_current = p.trade_graph_node_next;
+							p.trade_graph_node_next = -1;
+						} else {
+							p.position_ += direction / length * speed;
 						}
 					}
 
-					// moving to itself or having no paths to go out implies deletion
-					if(target == -1 || target == p.trade_graph_node_current) {
-						p.trade_graph_node_current = -1;
-					} else {
-						p.trade_graph_node_next = target;
-						p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
-					}
-				}
+					// choose target
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
+						// choose next target according to probability
+						// use time as random engine for simplicity
+						auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
 
+						int target = -1;
 
-				if(p.trade_graph_node_current != -1) {
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
-					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-				}
+						auto accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
+							accumulated += probability;
+							// prevent trivial loops
+							if(random < accumulated && candidate != p.trade_graph_node_prev) {
+								target = candidate;
+								break;
+							}
+						}
 
-				// spawn "new" particles
-				// don't spawn them too often
-				if(!spawned_something && p.trade_graph_node_current == -1) {
-					spawned_something = true;
-
-					auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
-
-					int target = -1;
-					float accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_creation_probability) {
-						accumulated += probability;
-						if(random < accumulated) {
-							target = candidate;
-							break;
+						// moving to itself or having no paths to go out implies deletion
+						if(target == -1 || target == p.trade_graph_node_current) {
+							p.trade_graph_node_current = -1;
+						} else {
+							p.trade_graph_node_next = target;
+							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
 						}
 					}
 
-					if(target != -1) {
-						p.trade_graph_node_current = target;
-						p.position_ = trade_node_position[target];
-						p.target_ = trade_node_position[target];
-						p.trade_graph_node_next = -1;
-						p.trade_graph_node_prev = -1;
+
+					if(p.trade_graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+
+					// spawn "new" particles
+					// don't spawn them too often
+					if(!spawned_something && p.trade_graph_node_current == -1) {
+						spawned_something = true;
+
+						auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
+
+						int target = -1;
+						float accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_creation_probability) {
+							accumulated += probability;
+							if(random < accumulated) {
+								target = candidate;
+								break;
+							}
+						}
+
+						if(target != -1) {
+							p.trade_graph_node_current = target;
+							p.position_ = trade_node_position[target];
+							p.target_ = trade_node_position[target];
+							p.trade_graph_node_next = -1;
+							p.trade_graph_node_prev = -1;
+						}
 					}
 				}
-			}
 		}
 	}
 
@@ -1236,20 +1284,40 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
-		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
 		load_shader(shader_text_line);
-		glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
-		glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
+		state.font_collection.mfont.ready_textures();
+
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+		auto location = shader_uniforms[shader_text_line][uniform_color];
+		if(state.user_settings.black_map_font)
+			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
+		else
+			glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		location = shader_uniforms[shader_text_line][uniform_glyphs];
+		glUniform1i(location, 0);
+		
+		location = shader_uniforms[shader_text_line][uniform_curves];
+		glUniform1i(location, 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
+
+		glActiveTexture(GL_TEXTURE0);
+
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform1f(shader_uniforms[shader_text_line][uniform_opaque], 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, text_line_texture_per_quad[i]);
-				glDrawArrays(GL_TRIANGLES, i * 6, 6);
-			}
+			glDrawArrays(GL_TRIANGLES, 0, int32_t(text_line_vertices.size()));
 		}
+
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	}
 
 	/*
@@ -1584,6 +1652,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
 
+	
 	if(ogl::msaa_enabled(state)) {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.msaa_interbuffer);
@@ -1601,6 +1670,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		//glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.msaa_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+	
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
@@ -2808,10 +2878,8 @@ void display_data::update_sprawl(sys::state& state) {
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
 	text_line_vertices.clear();
-	text_line_texture_per_quad.clear();
 
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
 
 	for(const auto& e : data) {
 		// omit invalid, nan or infinite coefficients
@@ -2827,12 +2895,12 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
 		auto poly_fn = [&](float x) {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
-			};
+		};
 		auto dpoly_fn = [&](float x) {
 			// y = a + 1bx^1 + 1cx^2 + 1dx^3
 			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
-			};
+		};
 
 
 		//cutting box if graph goes outside
@@ -2874,7 +2942,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
 
-		float text_length = f.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size()), 1);
+		float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
 		assert(std::isfinite(text_length) && text_length != 0.f);
 		float x_step = (result_interval / float(e.text.glyph_info.size() * 32.f));
 		float curve_length = 0.f; //width of whole string polynomial
@@ -2898,95 +2966,120 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
+		auto real_text_size = size / (size_x * 4.f);
+
 		// fixed step
+		
 
-		/*
-		float size_step = 30.f;
-
-		if(size > size_step * 6.f) {
-			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
+		float letter_spacing_map = 0.f;
+		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
+			letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
 		}
 
-		if(size > ratio.x / 2.f) {
-			size = ratio.x / 2.f;
-		}
-		if(size > ratio.y / 2.f) {
-			size = ratio.y / 2.f;
-		}
+		// curve = 2 * margin + text_length * size + (glyphs - 1) * spacing
 
-		size = std::round(size / size_step) * size_step;
-
-		if(size < size_step) {
-			continue;
-		}
-		*/
-
-		auto real_text_size = size / (size_x * 2.0f);
-
-		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
-		if(state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale())) {
-			letter_spacing_map = 0.f;
-		}
-
-		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
+		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
 		float x = left;
 		for(float accumulated_length = 0.f; ; x += x_step) {
 			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 			if(accumulated_length + added_distance >= margin) {
 				x += x_step * (margin - accumulated_length) / added_distance;
+				assert(x - left < margin / curve_length + 0.02f);
 				break;
 			}
 			accumulated_length += added_distance;
 		}
 
+		auto left_margin_ratio = x - left;
+
+		assert(margin / curve_length > left_margin_ratio - 0.02f);
+
+		auto letter_scale = 1.f / (1.0f * text::dr_size);
 
 		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
+		float max_glyph_height = 0.f;
 		for(unsigned int i = 0; i < glyph_count; i++) {
 			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
-			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(e.text.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-			float x_offset = float(e.text.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-				// Add up baseline and kerning offsets
-				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
+			state.font_collection.mfont.make_glyph(e.text.glyph_info[i].codepoint);
+			auto& map_font_gi = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint];
+			float glyph_height = map_font_gi.ft_height * letter_scale;
+			if(glyph_height > max_glyph_height) {
+				max_glyph_height = glyph_height;
+			}
+		}
 
-				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-				curr_dir.x *= 0.5f;
-				curr_normal_dir.x *= 0.5f;
+		for(unsigned int i = 0; i < glyph_count; i++) {	
+			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+			state.font_collection.mfont.make_glyph(e.text.glyph_info[i].codepoint);
+			auto& map_font_gi = state.font_collection.mfont.glyphs[e.text.glyph_info[i].codepoint];
 
-				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
-				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
-				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
+			float base_size = size;
+			float glyph_width = map_font_gi.ft_width * letter_scale;
+			float glyph_height = map_font_gi.ft_height * letter_scale;
 
-				float type = float((gso.texture_slot >> 6) % text::max_texture_layers);
-				float step = 1.f / 8.f;
-				float tx = float(gso.texture_slot & 7) * step;
-				float ty = float((gso.texture_slot & 63) >> 3) * step;
+			float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
+			float x_offset = float(e.text.glyph_info[i].x_offset) * letter_scale;
+			float y_offset = float(e.text.glyph_info[i].y_offset) * letter_scale;
+			float x_bearing = float(map_font_gi.ft_x_bearing) * letter_scale;
+			float y_bearing = float(map_font_gi.ft_y_bearing) * letter_scale;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
+			if(map_font_gi.curveCount > 0) {
+				glm::vec2 forward_direction_raw = glm::vec2(ratio.x / (float)size_x, ratio.y / (float)size_y * dpoly_fn(x));
+				auto norm = sqrt(equirectangular::dot({ forward_direction_raw }, { forward_direction_raw }, (float)size_x, (float)size_y));
+				auto forward_direction = forward_direction_raw / norm * (float)size_x;
+				glm::vec2 up_direction = equirectangular::rotate_left({ forward_direction }, (float)size_x, (float)size_y).data;
 
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_texture_per_quad.emplace_back(f.textures[gso.texture_slot >> 6]);
+				auto actual_dot_product = equirectangular::dot({ forward_direction }, { up_direction }, (float)size_x, (float)size_y);
+
+				assert(actual_dot_product < 0.001f);
+
+				//forward_direction.x *= state.map_state.map_data.size_y / state.map_state.map_data.size_x;
+				//up_direction.x *= state.map_state.map_data.size_y / state.map_state.map_data.size_x;
+
+				//glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+
+				auto raw_central_point = glm::vec2(x, poly_fn(x)) * ratio + basis;
+				auto central_point = raw_central_point / glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
+
+				// shift text down so "pen" stands at baseline
+				auto actual_center = central_point
+					+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up_direction * real_text_size / 64.f
+					+ (+glyph_width + x_offset) * forward_direction * real_text_size / 64.f;
+
+				float u0 = float(map_font_gi.ft_x_bearing) / (64.0f * text::dr_size);
+				float v0 = float(map_font_gi.ft_y_bearing - map_font_gi.ft_height) / (64.0f * text::dr_size);
+				float u1 = float(map_font_gi.ft_x_bearing + map_font_gi.ft_width) / (64.0f * text::dr_size);
+				float v1 = float(map_font_gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+				float height_scale = float(map_font_gi.ft_height) / (64.0f * text::dr_size);
+				float width_scale = float(map_font_gi.ft_width) / (64.0f * text::dr_size);
+
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), forward_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, -height_scale), forward_direction, glm::vec2(u0, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), forward_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
+
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), forward_direction, glm::vec2(u1, v0), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, height_scale), forward_direction, glm::vec2(u1, v1), real_text_size, map_font_gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), forward_direction, glm::vec2(u0, v1), real_text_size, map_font_gi.bufferIndex);
+
+			}
+			auto current_spacing = letter_spacing_map;
+			if(i == glyph_count - 1) {
+				current_spacing = 0.f;
 			}
 			float glyph_advance = x_advance * size / 64.f;
 			for(float glyph_length = 0.f; ; x += x_step) {
 				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
-				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
-					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
+				if(glyph_length + added_distance >= glyph_advance + current_spacing) {
+					x += x_step * (glyph_advance + current_spacing - glyph_length) / added_distance;
 					break;
 				}
 				glyph_length += added_distance;
 			}
 		}
+		if (is_linear)
+			assert(abs(right - (x + left_margin_ratio)) < 0.03f);
 	}
 	if(text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
@@ -2996,6 +3089,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 }
 
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	/*
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
 	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
@@ -3091,6 +3185,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * province_text_line_vertices.size(), &province_text_line_vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+	*/
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {

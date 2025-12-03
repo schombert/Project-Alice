@@ -1,31 +1,11 @@
 #include "gui_main_menu.hpp"
 #include "sound.hpp"
+#include "gui_templates.hpp"
 
 #include <cstdio>
 
 namespace ui {
 
-void show_main_menu_nation_picker(sys::state& state) {
-	if(!state.ui_state.r_main_menu) {
-		auto new_mm = make_element_by_type<restricted_main_menu_window>(state, "alice_main_menu");
-		state.ui_state.r_main_menu = new_mm.get();
-		state.ui_state.nation_picker->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.r_main_menu->set_visible(state, true);
-		state.ui_state.nation_picker->move_child_to_front(state.ui_state.r_main_menu);
-	}
-}
-
-void show_main_menu_nation_basic(sys::state& state) {
-	if(!state.ui_state.main_menu) {
-		auto new_mm = make_element_by_type<main_menu_window>(state, "alice_main_menu");
-		state.ui_state.main_menu = new_mm.get();
-		state.ui_state.root->add_child_to_front(std::move(new_mm));
-	} else {
-		state.ui_state.main_menu->set_visible(state, true);
-		state.ui_state.root->move_child_to_front(state.ui_state.main_menu);
-	}
-}
 
 uint32_t get_ui_scale_index(float current_scale) {
 	for(uint32_t i = 0; i < sys::ui_scales_count; ++i) {
@@ -34,28 +14,63 @@ uint32_t get_ui_scale_index(float current_scale) {
 	}
 	return uint32_t(sys::ui_scales_count - 1);
 }
-
 void ui_scale_left::button_action(sys::state& state) noexcept {
-	auto scale_index = get_ui_scale_index(state.user_settings.ui_scale);
-	if(scale_index > 0) {
-		state.update_ui_scale(sys::ui_scales[scale_index - 1]);
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+
+	if(current_index > 0) {
+		// Calculate new index, preventing underflow
+		uint32_t new_index = (current_index >= 5) ? (current_index - 5) : 0;
+
+		state.update_ui_scale(sys::ui_scales[new_index]);
 		send(state, parent, notify_setting_update{});
 	}
 }
+
+void ui_scale_left::button_shift_action(sys::state& state) noexcept {
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+
+	if(current_index > 0) {
+		state.update_ui_scale(sys::ui_scales[current_index - 1]);
+		send(state, parent, notify_setting_update{});
+	}
+}
+
 void ui_scale_left::on_update(sys::state& state) noexcept {
-	auto scale_index = get_ui_scale_index(state.user_settings.ui_scale);
-	disabled = (scale_index == 0);
+	// Disable if we are at the absolute minimum
+	disabled = (state.user_settings.ui_scale <= sys::ui_scales[0] + 0.001f);
 }
 void ui_scale_right::button_action(sys::state& state) noexcept {
-	auto scale_index = get_ui_scale_index(state.user_settings.ui_scale);
-	if(scale_index < uint32_t(sys::ui_scales_count - 1)) {
-		state.update_ui_scale(sys::ui_scales[scale_index + 1]);
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+	auto max_index = uint32_t(sys::ui_scales_count - 1);
+
+	if(current_index < max_index) {
+		// Calculate new index, clamping to max
+		uint32_t new_index = current_index + 5;
+		if(new_index > max_index) new_index = max_index;
+
+		state.update_ui_scale(sys::ui_scales[new_index]);
 		send(state, parent, notify_setting_update{});
 	}
 }
+
+void ui_scale_right::button_shift_action(sys::state& state) noexcept {
+	auto current_scale = state.user_settings.ui_scale;
+	auto current_index = get_ui_scale_index(current_scale);
+	auto max_index = uint32_t(sys::ui_scales_count - 1);
+
+	if(current_index < max_index) {
+		state.update_ui_scale(sys::ui_scales[current_index + 1]);
+		send(state, parent, notify_setting_update{});
+	}
+}
+
 void ui_scale_right::on_update(sys::state& state) noexcept {
-	auto scale_index = get_ui_scale_index(state.user_settings.ui_scale);
-	disabled = (scale_index >= uint32_t(sys::ui_scales_count - 1));
+	// Disable if we are at the absolute maximum
+	float max_scale = sys::ui_scales[sys::ui_scales_count - 1];
+	disabled = (state.user_settings.ui_scale >= max_scale - 0.001f);
 }
 void ui_scale_display::on_update(sys::state& state) noexcept {
 	set_text(state, text::format_float(state.user_settings.ui_scale, 2));
@@ -123,7 +138,6 @@ void language_left::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 	//
 
@@ -132,22 +146,11 @@ void language_left::button_action(sys::state& state) noexcept {
 	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
-	//
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release); //update map
-	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	send(state, parent, notify_setting_update{});
 	window::change_cursor(state, window::cursor_type::normal);
 }
@@ -174,7 +177,6 @@ void language_right::button_action(sys::state& state) noexcept {
 	if(state.user_settings.use_classic_fonts
 	&& state.world.locale_get_hb_script(new_locale) != HB_SCRIPT_LATIN) {
 		state.user_settings.use_classic_fonts = false;
-		state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	}
 
 	auto length = std::min(state.world.locale_get_locale_name(new_locale).size(), uint32_t(15));
@@ -182,22 +184,10 @@ void language_right::button_action(sys::state& state) noexcept {
 	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
-	//
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release); //update map
-	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	send(state, parent, notify_setting_update{});
 	window::change_cursor(state, window::cursor_type::normal);
 }
@@ -648,21 +638,11 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 
 void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
-	state.font_collection.set_classic_fonts(state.user_settings.use_classic_fonts);
 	//
 	window::change_cursor(state, window::cursor_type::busy);
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	state.ui_state.tooltip->set_visible(state, false);
@@ -702,7 +682,8 @@ void master_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 		else
 			sound::stop_music(state);
 	}
-	send(state, parent, notify_setting_update{});
+	state.user_setting_changed = true;
+	parent->impl_on_update(state);
 }
 void music_volume::on_value_change(sys::state& state, int32_t v) noexcept {
 	auto float_v = float(v) / 128.0f;

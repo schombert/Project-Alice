@@ -2,8 +2,9 @@
 #include "price.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "province_templates.hpp"
+#include "money.hpp"
 
 namespace services {
 
@@ -21,10 +22,13 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 void update_price(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
 		state.world.execute_serial_over_province([&](auto pids) {
-			auto supply = state.world.province_get_service_supply_private(pids, i)
-				+ state.world.province_get_service_supply_public(pids, i);
-			auto demand = state.world.province_get_service_demand_allowed_public_supply(pids, i)
-				+ state.world.province_get_service_demand_forbidden_public_supply(pids, i);
+			// public demand doesn't matter: it doesn't have any money behind it
+			// we are interested only in balance on the "market"
+			// which could be indirectly influenced by public supply,
+			// but at this point we are only interested in probability to sell our services in current conditions
+
+			auto supply = state.world.province_get_service_supply_private(pids, i);
+			auto demand = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 			auto price = state.world.province_get_service_price(pids, i);
 			auto change = economy::price_properties::change(price, supply, demand);
 			auto new_price = ve::min(ve::max(price + change, economy::price_properties::service::min), economy::price_properties::service::max);
@@ -60,25 +64,24 @@ void match_supply_and_demand(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
 		//state.world.execute_serial_over_province([&](auto pids) {
 		state.world.for_each_province([&](auto pids) {
-			auto demand_can_be_free = state.world.province_get_service_demand_allowed_public_supply(pids, i);
-			auto demand_only_paid = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
+			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
+			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 
-			auto supply_free = state.world.province_get_service_supply_public(pids, i);
-			auto supply_paid = state.world.province_get_service_supply_private(pids, i);
+			auto supply_public = state.world.province_get_service_supply_public(pids, i);
+			auto supply_private = state.world.province_get_service_supply_private(pids, i);
 
-			auto matched_free_demand = ve::min(demand_can_be_free, supply_free);
-			auto demand_paid = demand_can_be_free - matched_free_demand + demand_only_paid;
-			auto matched_paid_demand = ve::min(demand_paid, supply_paid);
+			auto matched_free_demand = ve::min(demand_public, supply_public);
+			auto matched_paid_demand = ve::min(demand_private, supply_private);
 
-			// free demand is always satisfied by 100% because remaining demand is always moved to paid demand
-			// but we are interested in ratio of satisfied free demand to total demand which is eligible to be free
+			// for public service it doesn't matter how much of produced services were actually consumed
+			// the only interesting things is how much of demand on public service was satisfied
 
-			auto free_ratio = ve::select(demand_can_be_free == 0.f, 0.f, matched_free_demand / demand_can_be_free);
+			auto free_ratio = ve::select(demand_public == 0.f, 1.f, matched_free_demand / demand_public);
 
 			// for paid demand, business as usual
 
-			auto satisfaction_paid = ve::select(demand_paid == 0.f, 0.f, ve::min(1.f, supply_paid / demand_paid));
-			auto supply_sold_paid = ve::select(supply_paid == 0.f, 0.f, ve::min(1.f, demand_paid / supply_paid));
+			auto satisfaction_paid = ve::select(demand_private == 0.f, 0.f, ve::min(1.f, supply_private / demand_private));
+			auto supply_sold_paid = ve::select(supply_private == 0.f, 0.f, ve::min(1.f, demand_private / supply_private));
 
 			state.world.province_set_service_satisfaction_for_free(pids, i, free_ratio);
 			state.world.province_set_service_satisfaction(pids, i, satisfaction_paid);
@@ -156,6 +159,19 @@ void update_consumption(sys::state& state) {
 			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			if(expected_profit_per_size > 0.f && size > 0.8f * max_size) {
+				// calculate costs:
+				auto cost = 0.f;
+				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+					auto cid = costs.commodity_type[i];
+					if(!cid) {
+						break;
+					}
+					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
+					cost += amount * economy::price(state, mid, cid);
+				}
+				assert(cost != 0.f);
+				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / cost);
+
 				// if ports are profitable and size is close to max size, register demand on commodities
 				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
 					auto cid = costs.commodity_type[i];
@@ -163,7 +179,7 @@ void update_consumption(sys::state& state) {
 						break;
 					}
 					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
-					economy::register_demand(state, mid, cid, amount);
+					economy::register_demand(state, mid, cid, amount * scale);
 				}
 			}
 		});
@@ -220,6 +236,19 @@ void update_profit_and_refund(sys::state& state) {
 			auto expected_profit_per_size = output_cost * def.output_amount * efficiency - input_cost;
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			if(expected_profit_per_size > 0.f && size > 0.8f * max_size) {
+				// calculate costs:
+				auto total_cost = 0.f;
+				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+					auto cid = costs.commodity_type[i];
+					if(!cid) {
+						break;
+					}
+					auto amount = max_port_expansion_speed * costs.commodity_amounts[i] / build_time;
+					total_cost += amount * economy::price(state, mid, cid);
+				}
+				assert(total_cost != 0.f);
+				auto scale = std::min(1.f, expected_profit_per_size * 0.1f / total_cost);
+
 				auto expansion_scale = 1.f;
 				auto cost = 0.f;
 				// if ports are profitable and size is close to max size, register demand on commodities
@@ -231,7 +260,7 @@ void update_profit_and_refund(sys::state& state) {
 					auto probability = state.world.market_get_actual_probability_to_buy(mid, cid);
 					// we promised to buy - we spend money and throw away excess items
 					// otherwise we generated demand and then haven't fulfilled our promise
-					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * economy::price(state, mid, cid) * probability;
+					cost += max_port_expansion_speed * costs.commodity_amounts[i] / build_time * scale * economy::price(state, mid, cid) * probability;
 					if(probability < expansion_scale) {
 						expansion_scale = probability;
 					}
@@ -242,12 +271,16 @@ void update_profit_and_refund(sys::state& state) {
 
 				auto current_max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
 				state.world.province_set_advanced_province_building_max_private_size(
-					pid, id, current_max_size * ports_decay_speed + expansion_scale * max_port_expansion_speed
+					pid, id, std::max(500.f, current_max_size * ports_decay_speed + expansion_scale * max_port_expansion_speed)
+				);
+			} else {
+				auto current_max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
+				state.world.province_set_advanced_province_building_max_private_size(
+					pid, id, std::max(500.f, current_max_size * ports_decay_speed)
 				);
 			}
 		}
 	});
-
 }
 
 void update_private_size(sys::state& state) {
@@ -338,11 +371,11 @@ void update_production(sys::state& state) {
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, current_private_size * output);
 
 			auto current_public_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
 			auto current_public_supply = state.world.province_get_service_supply_public(pids, def.output);
 			state.world.province_set_service_supply_public(pids, def.output, current_public_supply + current_public_size * output);
-			state.world.province_set_advanced_province_building_private_output(pids, bid, current_public_size * output);
 		});
 
 		// TODO:
@@ -356,10 +389,12 @@ void update_production(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-			auto output = input_satisfaction * def.output_amount;
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
+			//assume that low trade volume doesn't require any additional infrastructure or workers
+			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
-			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
+			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, output);
 		});
 	}
 }

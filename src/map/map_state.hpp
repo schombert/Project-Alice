@@ -1,9 +1,11 @@
 #pragma once
 
+#include "system_state_forward.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include "map.hpp"
+#include "constants.hpp"
 
 namespace sys {
 struct state;
@@ -104,5 +106,6 @@ public:
 };
 
 void update_text_lines(sys::state& state, display_data& map_data);
+void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size);
 
 } // namespace map

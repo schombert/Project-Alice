@@ -1,8 +1,13 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "common_types.hpp"
 #include "events.hpp"
-#include "diplomatic_messages.hpp"
+#include "diplomatic_messages_containers.hpp"
+#include "constants_dcon.hpp"
+#include "constants.hpp"
+#include "container_types.hpp"
+#include "commands_containers.hpp"
+#include "military_constants.hpp"
 
 namespace command {
 
@@ -326,43 +331,6 @@ struct call_to_arms_data {
 	dcon::nation_id target;
 	dcon::war_id war;
 	bool automatic_call = false;
-};
-
-struct pending_human_n_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	int32_t primary_slot;
-	int32_t from_slot;
-	sys::date date;
-	dcon::national_event_id e;
-	uint8_t opt_choice;
-	event::slot_type pt;
-	event::slot_type ft;
-};
-struct pending_human_f_n_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	sys::date date;
-	dcon::free_national_event_id e;
-	uint8_t opt_choice;
-};
-struct pending_human_p_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	int32_t from_slot;
-	sys::date date;
-	dcon::provincial_event_id e;
-	dcon::province_id p;
-	uint8_t opt_choice;
-	event::slot_type ft;
-};
-struct pending_human_f_p_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	sys::date date;
-	dcon::free_provincial_event_id e;
-	dcon::province_id p;
-	uint8_t opt_choice;
 };
 
 struct cb_fabrication_data {
@@ -705,16 +673,6 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 };
 
 
-// padding due to alignment
-struct cmd_header {
-	command_type type;
-	uint8_t padding = 0;
-	dcon::mp_player_id player_id;
-	uint32_t payload_size = 0;
-
-};
-static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
-
 //struct command_data_vec {
 //	cmd_header header;
 //	std::vector<uint8_t> payload;
@@ -766,87 +724,6 @@ static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) +
 
 
 
-
-struct command_data {
-	cmd_header header{};
-	std::vector<uint8_t> payload;
-	command_data() { };
-	command_data(command_type _type) {
-		header.type = _type;
-	};
-	command_data(command_type _type, dcon::mp_player_id _player_id) {
-		header.type = _type;
-		header.player_id = _player_id;
-	};
-	// add data to the payload
-	template<typename data_type>
-	friend command_data& operator << (command_data& msg, data_type& data) {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		size_t curr_size = msg.payload.size();
-		msg.payload.resize(msg.payload.size() + sizeof(data_type));
-		
-		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
-
-		msg.header.payload_size = msg.payload.size();
-
-		return msg;
-	}
-	// adds data from pointer to the payload
-	template<typename data_type>
-	void push_ptr(data_type* ptr, size_t size) {
-		size_t curr_size = payload.size();
-		payload.resize(payload.size() + sizeof(data_type) * size);
-
-		std::memcpy(payload.data() + curr_size, ptr, sizeof(data_type) * size);
-
-		header.payload_size = payload.size();
-	}
-
-
-	// grab data from the payload
-	template<typename data_type>
-	friend command_data& operator >> (command_data& msg, data_type& data) {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-
-		size_t i = msg.payload.size() - sizeof(data_type);
-		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
-		msg.payload.resize(i);
-
-		msg.header.payload_size = msg.payload.size();
-
-		return msg;
-
-
-
-	}
-	// Makes a copy of the data and returns it
-	/*template<typename data_type>
-	data_type copy_payload() const {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
-
-		data_type output{ };
-		std::memcpy(&output, payload.data() + (payload.size() - sizeof(data_type)), sizeof(data_type));
-		return output;
-	}*/
-	// returns a reference to the payload of the desired type, starting from the start of the vector
-	template<typename data_type>
-	data_type& get_payload() {
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		uint8_t* ptr = payload.data();
-		return reinterpret_cast<data_type&>(*ptr);
-	}
-	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes). Returns true if that is the case, false otherwise
-	template<typename data_type>
-	bool check_variable_size_payload(uint32_t expected_size) {
-		return expected_size == (payload.size() - sizeof(data_type));
-	}
-
-};
-static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(command_data::payload));
 
 // decides whether the host should broadcast the command or execute it only for themself
 bool should_broadcast_command(sys::state& state, const command_data& command);

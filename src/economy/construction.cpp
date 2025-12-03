@@ -2,6 +2,8 @@
 #include "economy_stats.hpp"
 #include "province_templates.hpp"
 #include "text.hpp"
+#include "money.hpp"
+#include "province.hpp"
 
 namespace economy {
 

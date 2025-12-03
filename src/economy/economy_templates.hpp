@@ -1,5 +1,10 @@
 #pragma once
 #include "system_state.hpp"
+#include "economy_constants.hpp"
+#include "adaptive_ve.hpp"
+#include "advanced_province_buildings.hpp"
+#include "demographics_templates.hpp"
+#include "economy_common_api_containers.hpp"
 
 namespace economy {
 
@@ -49,5 +54,4 @@ void for_each_upgraded_factory(sys::state& state, dcon::province_id s, F&& func)
 		}
 	}
 }
-
 } // namespace economy

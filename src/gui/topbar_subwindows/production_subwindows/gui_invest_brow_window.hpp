@@ -2,6 +2,7 @@
 
 #include "gui_element_types.hpp"
 #include "gui_foreign_investment_window.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
 
@@ -30,6 +31,29 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto for_nation = retrieve<dcon::nation_id>(state, parent);
 		open_foreign_investment(state, for_nation);
+	}
+};
+
+
+class nation_gp_investment_text : public standard_nation_text {
+public:
+	uint16_t rank = 0;
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto const great_power_id = nations::get_nth_great_power(state, rank);
+		if(!bool(great_power_id))
+			return text::format_money(0.f);
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::format_money(fat_id.get_foreign_investment());
+	}
+};
+
+class nation_player_investment_text : public standard_nation_text {
+public:
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto uni_rel = state.world.get_unilateral_relationship_by_unilateral_pair(nation_id, state.local_player_nation);
+		auto fat_id = dcon::fatten(state.world, uni_rel);
+		return text::format_money(fat_id.get_foreign_investment());
 	}
 };
 

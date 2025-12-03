@@ -9,6 +9,7 @@
 #include "rebels.hpp"
 #include "gui_population_window.hpp"
 #include "national_budget.hpp"
+#include "container_types_ui.hpp"
 
 namespace alice_ui {
 
@@ -46,12 +47,16 @@ struct layout_control {
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_window {
 	std::unique_ptr<ui::element_base> ptr;
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_glue {
 	glue_type type = glue_type::standard;
@@ -84,7 +89,7 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout, texture_layer
+	control, window, glue, generator, layout, texture_layer, control2, window2, generator2
 };
 
 enum class background_type : uint8_t {
@@ -125,11 +130,7 @@ enum class animation_type : uint8_t {
 };
 
 struct page_info {
-	int16_t last_index;
-	int16_t last_sub_index;
-	int16_t space_used;
-	int16_t space_consumer_count;
-	int16_t non_glue_count;
+	uint16_t last_index = 0;
 };
 struct layout_level {
 	std::vector<layout_item> contents;
@@ -688,7 +689,173 @@ public:
 	}
 };
 
-class layout_window_element : public ui::non_owning_container_base {
+
+class grid_size_window : public ui::non_owning_container_base {
+public:
+	int32_t grid_size = 8;
+};
+
+class pop_up_menu_container : public grid_size_window {
+public:
+	ui::element_base* scroll_redirect = nullptr;
+	int32_t bg_template = -1;
+	
+
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		if(scroll_redirect)
+			scroll_redirect->impl_on_scroll(state, x, y, amount, mods);
+		return ui::message_result::consumed;
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override {
+		if(key == sys::virtual_key::ESCAPE) {
+			set_visible(state, false);
+			return ui::message_result::consumed;
+		}
+		return ui::message_result::unseen;
+	}
+	void on_hide(sys::state& state) noexcept override {
+		scroll_redirect = nullptr;
+	}
+	friend struct layout_iterator;
+};
+
+class template_drop_down_control;
+
+class drop_down_list_button : public template_mixed_button {
+public:
+	template_drop_down_control* owner_control = nullptr;
+	int32_t list_id = 0;
+
+	void on_update(sys::state& state) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
+};
+
+class drop_down_list_page_buttons : public ui::element_base {
+public:
+	text::layout text_layout;
+	template_drop_down_control* owner_control = nullptr;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return ui::tooltip_behavior::no_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_update(sys::state& state) noexcept override;
+};
+
+class template_drop_down_control : public ui::element_base {
+public:
+	std::unique_ptr<drop_down_list_page_buttons> page_controls;
+	std::vector<std::unique_ptr<drop_down_list_button>> list_buttons_pool;
+	ui::element_base* label_window = nullptr;
+
+	int32_t template_id = -1;
+	int32_t list_page = 0;
+	int32_t items_per_page = 1;
+	int32_t total_items = 0;
+	int32_t selected_item = 0;
+
+	int32_t target_page_height = -1;
+	int32_t element_x_size = 1;
+	int32_t element_y_size = 1;
+	bool page_text_out_of_date = false;
+	bool two_columns = false;
+
+	std::chrono::steady_clock::time_point last_activated;
+	bool disabled = false;
+
+	template_drop_down_control() { }
+
+	ui::mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept final {
+		if(label_window->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *label_window);
+			auto res = label_window->impl_probe_mouse(state, x - relative_location.x, y - relative_location.y, type);
+			if(res.under_mouse)
+				return res;
+		}
+		return element_base::impl_probe_mouse(state, x, y, type);
+	}
+	ui::message_result impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
+		return label_window->impl_on_key_down(state, key, mods);
+	}
+	void impl_on_update(sys::state& state) noexcept final {
+		on_update(state);
+		label_window->impl_on_update(state);
+	}
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept final {
+		render(state, x, y);
+		if(label_window->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *label_window);
+			label_window->impl_render(state, x + relative_location.x, y + relative_location.y);
+		}
+	}
+	void impl_on_reset_text(sys::state& state) noexcept final {
+		label_window->impl_on_reset_text(state);
+	}
+
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::scroll)
+			return ui::message_result::unseen;
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void on_hover(sys::state& state) noexcept final;
+	void on_hover_end(sys::state& state) noexcept final;
+
+	void open_list(sys::state& state);
+	void hide_list(sys::state& state);
+	void change_page(sys::state& state, int32_t to_page);
+
+	virtual ui::element_base* get_nth_item(sys::state& state, int32_t id, int32_t pool_id) = 0;
+	virtual void on_selection(sys::state& state, int32_t id) = 0; // must change the value stored in the display item and update selected_item
+
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(!disabled) {
+			open_list(state);
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+		}
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override {
+		if(total_items <= items_per_page)
+			return ui::message_result::consumed;
+
+		change_page(state, std::clamp(list_page + ((amount < 0) ? 1 : -1), 0, (total_items + items_per_page - 1) / items_per_page - 1));
+		return ui::message_result::consumed;
+	}
+};
+
+class legacy_commodity_icon : public ui::element_base {
+public:
+	dcon::commodity_id content;
+	bool show_tooltip = true;
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return (show_tooltip && bool(content)) ? ui::tooltip_behavior::variable_tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+
+class layout_window_element : public grid_size_window {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
 	void render_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y);
@@ -703,8 +870,7 @@ public:
 	dcon::texture_id page_right_texture_id;
 	text::text_color page_text_color = text::text_color::black;
 	int32_t window_template = -1;
-	int32_t grid_size = 8;
-
+	
 	std::vector<positioned_texture> textures_to_render{};
 
 	void remake_layout(sys::state& state, bool remake_lists) {
@@ -730,6 +896,36 @@ public:
 
 	friend struct layout_iterator;
 };
+
+enum class display_closure_command { default_function, return_pointer };
+
+template<std::unique_ptr<ui::element_base>(*GEN_FN)(sys::state&) >
+ui::element_base* display_at_front(sys::state& state, display_closure_command fn = display_closure_command::default_function) {
+	static ui::element_base* saved_ptr = [&]() {
+		auto current_root = state.current_scene.get_root(state);
+		auto new_item = GEN_FN(state);
+		auto ptr = new_item.get();
+		current_root->add_child_to_back(std::move(new_item));
+		ptr->impl_on_update(state);
+		return ptr;
+	}();
+
+	if(fn == display_closure_command::default_function) {
+		auto current_root = state.current_scene.get_root(state);
+		if(saved_ptr->parent != current_root) {
+			auto take_child = saved_ptr->parent->remove_child(saved_ptr);
+			current_root->add_child_to_front(std::move(take_child));
+		} else {
+			current_root->move_child_to_front(saved_ptr);
+		}
+		saved_ptr->set_visible(state, true);
+		return nullptr;
+	}
+	if(fn == display_closure_command::return_pointer) {
+		return saved_ptr;
+	}
+	return nullptr;
+}
 
 namespace budget_categories {
 inline constexpr int32_t diplomatic_income = 0;
@@ -783,6 +979,7 @@ std::unique_ptr<ui::element_base> make_market_trade_report_body(sys::state& stat
 std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_main_menu_base(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 
@@ -795,6 +992,7 @@ int8_t cmp3(T const& a, T const& b) {
 	return (a < b) ? int8_t(-1) : int8_t(1);
 }
 
+std::string_view get_setting_text_key(int32_t type);
 void describe_conversion(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);
 void describe_colonial_migration(sys::state& state, text::columnar_layout& contents, dcon::pop_id ids);

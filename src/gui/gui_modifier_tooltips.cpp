@@ -1,11 +1,12 @@
 #include "gui_modifier_tooltips.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "script_constants.hpp"
 #include "text.hpp"
 #include "triggers.hpp"
 #include "ve_scalar_extensions.hpp"
+#include "province.hpp"
 
 namespace ui {
 

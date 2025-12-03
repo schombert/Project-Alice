@@ -5,35 +5,19 @@
 #include <vector>
 #include <string>
 #include <string_view>
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "nations.hpp"
 #include "unordered_dense.h"
 #include "fonts.hpp"
+#include "gui_graphics.hpp"
+#include "constants_ui.hpp"
 
 namespace sys {
 struct state;
 }
 
 namespace text {
-enum class text_color : uint8_t {
-	black,
-	white,
-	red,
-	green,
-	yellow,
-	unspecified,
-	light_blue,
-	dark_blue,
-	orange,
-	lilac,
-	light_grey,
-	dark_red,
-	dark_green,
-	gold,
-	reset,
-	brown
-};
-enum class alignment : uint8_t { left, right, center };
+
 enum class variable_type : uint16_t {
 	error_no_matching_value,
 	action,
@@ -781,9 +765,6 @@ struct int_percentage {
 struct int_wholenum {
 	int32_t value = 0;
 };
-enum class embedded_icon : uint8_t {
-	check, xmark, check_desaturated, xmark_desaturated, army, navy
-};
 struct embedded_unit_icon {
 	dcon::unit_type_id unit_type;
 };
@@ -959,14 +940,6 @@ std::string format_wholenum(int32_t num);
 std::string format_percentage(float num, size_t digits = 2);
 std::string format_float(float num, size_t digits = 2);
 std::string format_ratio(int32_t left, int32_t right);
-template<class T>
-std::string get_name_as_string(sys::state& state, T t) {
-	return text::produce_simple_string(state, t.get_name());
-}
-template<class T>
-std::string get_adjective_as_string(sys::state& state, T t) {
-	return text::produce_simple_string(state, t.get_adjective());
-}
 std::string get_short_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_dynamic_state_name(sys::state& state, dcon::state_instance_id state_id);
 std::string get_province_state_name(sys::state& state, dcon::province_id prov_id);
@@ -974,19 +947,26 @@ std::string get_focus_category_name(sys::state const& state, nations::focus_type
 std::string get_influence_level_name(sys::state const& state, uint8_t v);
 dcon::text_key get_name(sys::state& state, dcon::nation_id n);
 dcon::text_key get_adjective(sys::state& state, dcon::nation_id n);
+dcon::text_key get_adjective(sys::state& state, dcon::national_identity_id n);
 dcon::text_key get_ruler_title(sys::state& state, dcon::nation_id n);
-inline std::string get_name_as_string(sys::state& state, dcon::nation_id n) {
-	return text::produce_simple_string(state, get_name(state, n));
-}
-inline std::string get_adjective_as_string(sys::state& state, dcon::nation_id n) {
-	return text::produce_simple_string(state, get_adjective(state, n));
-}
-inline std::string get_name_as_string(sys::state& state, dcon::nation_fat_id n) {
-	return text::produce_simple_string(state, get_name(state, n));
-}
-inline std::string get_adjective_as_string(sys::state& state, dcon::nation_fat_id n) {
-	return text::produce_simple_string(state, get_adjective(state, n));
-}
+
+std::string get_name_as_string(sys::state& state, dcon::nation_id n);
+std::string get_name_as_string(sys::state& state, dcon::ideology_id n);
+std::string get_name_as_string(sys::state& state, dcon::political_party_id n);
+std::string get_name_as_string(sys::state& state, dcon::religion_id n);
+std::string get_name_as_string(sys::state& state, dcon::technology_id n);
+std::string get_name_as_string(sys::state& state, dcon::culture_id n);
+std::string get_name_as_string(sys::state& state, dcon::commodity_id n);
+std::string get_name_as_string(sys::state& state, dcon::issue_id n);
+std::string get_name_as_string(sys::state& state, dcon::issue_option_id n);
+std::string get_name_as_string(sys::state& state, dcon::modifier_id n);
+std::string get_name_as_string(sys::state& state, dcon::province_id n);
+std::string get_name_as_string(sys::state& state, dcon::national_identity_id n);
+std::string get_name_as_string(sys::state& state, dcon::reform_option_id n);
+std::string get_name_as_string(sys::state& state, dcon::state_definition_id n);
+
+std::string get_adjective_as_string(sys::state& state, dcon::nation_id n);
+std::string get_adjective_as_string(sys::state& state, dcon::national_identity_id n);
 
 std::string get_commodity_name_with_icon(sys::state& state, dcon::commodity_id cid);
 std::string get_commodity_text_icon(sys::state& state, dcon::commodity_id cid);

@@ -5,7 +5,12 @@
 #include "common_types.cpp"
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
+#include "dcon_oos_reporter_generated.cpp"
+#include "stateless_render.cpp"
 #ifndef INCREMENTAL
+#include "ui_state.cpp"
+#include "create_windows.cpp"
+#include "user_interactions.cpp"
 #include "parsers.cpp"
 #include "text.cpp"
 #include "float_from_chars.cpp"
@@ -16,6 +21,7 @@
 #include "nations.cpp"
 #include "culture.cpp"
 #include "military.cpp"
+#include "debug_string_convertions.cpp"
 #include "modifiers.cpp"
 #include "province.cpp"
 #include "triggers.cpp"
@@ -42,7 +48,7 @@
 #include "gui_effect_tooltips.cpp"
 #include "gui_modifier_tooltips.cpp"
 #include "gui_leader_tooltip.cpp"
-#include "gui_leader_select.cpp"
+#include "gui_leaders.cpp"
 #include "gui_production_window.cpp"
 #include "gui_province_window.cpp"
 #include "gui_population_window.cpp"
@@ -62,7 +68,27 @@
 #include "map_tooltip.cpp"
 #include "unit_tooltip.cpp"
 #include "ai.cpp"
+#include "gui_element_base.cpp"
+#include "gui_other.cpp"
 #include "ai_campaign.cpp"
+#include "gui_leaders_window.cpp"
+#include "gui_stats_window.cpp"
+#include "gui_units_window.cpp"
+#include "gui_build_unit_large_window.cpp"
+#include "gui_decision_window.cpp"
+#include "gui_movements_window.cpp"
+#include "gui_reforms_window.cpp"
+#include "gui_release_nation_window.cpp"
+#include "gui_unciv_reforms_window.cpp"
+#include "gui_message_window.cpp"
+#include "gui_chat_window.cpp"
+#include "gui_combat.cpp"
+#include "gui_tooltips.cpp"
+#include "gui_units.cpp"
+#include "gui_unit_panel_subwindow.cpp"
+#include "gui_diplomacy_request.cpp"
+#include "gui_lookup.cpp"
+#include "gui_trade_window.cpp"
 #include "ai_campaign_values.cpp"
 #include "ai_focuses.cpp"
 #include "ai_alliances.cpp"
@@ -97,6 +123,7 @@
 #include "serialization.hpp"
 #include "network.hpp"
 #include "simple_fs.hpp"
+#include "stateless_render.hpp"
 
 namespace launcher {
 
@@ -1204,49 +1231,58 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
 
-void internal_text_render(std::string_view str, float baseline_x, float baseline_y, float size, ::text::font& f) {
-	hb_buffer_clear_contents(f.hb_buf);
-	hb_buffer_add_utf8(f.hb_buf, str.data(), int(str.size()), 0, int(str.size()));
-	hb_buffer_guess_segment_properties(f.hb_buf);
-	hb_shape(f.hb_font_face, f.hb_buf, NULL, 0);
+static ::text::font_manager font_collection; //keep static because it uninits FT lib on destructor
+static ::text::font fonts[2];
+
+void internal_text_render(std::string_view str, color_modification enabled, float baseline_x, float baseline_y, float size, ::text::font& f) {
+	auto& font_instance = f.retrieve_stateless_instance(font_collection.ft_library, int32_t(size));
+	hb_buffer_clear_contents(font_instance.hb_buf);
+	hb_buffer_add_utf8(font_instance.hb_buf, str.data(), int(str.size()), 0, int(str.size()));
+	hb_buffer_guess_segment_properties(font_instance.hb_buf);
+	hb_shape(font_instance.hb_font_face, font_instance.hb_buf, NULL, 0);
 	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
+	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(font_instance.hb_buf, &glyph_count);
+	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(font_instance.hb_buf, &glyph_count);
 	float x = baseline_x;
+
+	std::vector<text::stored_glyph> glyphs;
+
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		f.make_glyph(glyph_info[i].codepoint);
+		font_instance.make_glyph(glyph_info[i].codepoint, 0);
+		glyphs.emplace_back(glyph_info[i], glyph_pos[i]);
 	}
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-			glBindVertexBuffer(0, sub_square_buffers[f.glyph_positions[glyphid].texture_slot & 63], 0, sizeof(GLfloat) * 4);
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, f.textures[f.glyph_positions[glyphid].texture_slot >> 6]);
-			glUniform4f(glGetUniformLocation(ui_shader_program, "d_rect"), x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-		x += x_advance * size / 64.f;
-	}
+
+	stateless_ogl::text_render(
+		font_collection.ft_library,
+		global_square_buffer,
+		1.f,
+		glGetUniformLocation(ui_shader_program, "subroutines_index"),
+		map_color_modification_to_index(enabled),
+		parameters::filter,
+		glGetUniformLocation(ui_shader_program, "d_rect"),
+		glGetUniformLocation(ui_shader_program, "subrect"),
+		glyphs,
+		glyph_count,
+		x,
+		baseline_y,
+		size,
+		f
+	);
 }
 
 void render_new_text(std::string_view sv, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
 	glUniform3f(glGetUniformLocation(ui_shader_program, "inner_color"), c.r, c.g, c.b);
 	glUniform1f(glGetUniformLocation(ui_shader_program, "border_size"), 0.08f * 16.0f / size);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
-	glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
+	//glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
 	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-	internal_text_render(sv, x, y + size, size, f);
+	internal_text_render(sv, enabled, x, y + size, size, f);
 }
 
 } // launcher::ogl
 
-static ::text::font_manager font_collection; //keep static because it uninits FT lib on destructor
-static ::text::font fonts[2];
+
 
 static ::ogl::texture bg_tex;
 static ::ogl::texture left_tex;
@@ -1263,26 +1299,8 @@ static ::ogl::texture big_r_button_tex;
 static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
-	hb_buffer_clear_contents(f.hb_buf);
-	hb_buffer_add_utf8(f.hb_buf, codepoints, int(count), 0, int(count));
-	hb_buffer_guess_segment_properties(f.hb_buf);
-	hb_shape(f.hb_font_face, f.hb_buf, NULL, 0);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(f.hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(f.hb_buf, &glyph_count);
-	float x = 0.0f;
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		f.make_glyph(glyph_info[i].codepoint);
-	}
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-		float x_offset = float(glyph_pos[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-		float y_offset = float(gso.y) - float(glyph_pos[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		x += x_advance * size / 64.f;
-	}
-	return x;
+	auto& font_instance = f.retrieve_stateless_instance(launcher::ogl::font_collection.ft_library, int32_t(size));
+	return font_instance.stateless_text_extent(1.f, codepoints, count);
 }
 
 static int32_t active_textbox = -1;

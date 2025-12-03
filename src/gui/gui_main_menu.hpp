@@ -1,19 +1,28 @@
 #pragma once
 
+
 #include "gui_element_types.hpp"
 #include "gui_message_settings_window.hpp"
 #include "serialization.hpp"
+#include "gui_containers.hpp"
+#include "gui_common_elements.hpp"
+
+namespace window {
+void close_window(sys::state& game_state);
+}
 
 namespace ui {
 
 class ui_scale_left : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
+	void button_shift_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class ui_scale_right : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override;
+	void button_shift_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 class ui_scale_display : public simple_text_element_base {

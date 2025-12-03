@@ -1,6 +1,7 @@
 #include "province_tiles.hpp"
 #include "container_types.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state.hpp"
 #include "commands.hpp"
 #include "economy_production.hpp"
 

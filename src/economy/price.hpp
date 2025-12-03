@@ -15,7 +15,7 @@ inline constexpr float min = 0.0001f;
 inline constexpr float max = 1'000'000'000'000.f;
 }
 namespace labor {
-inline constexpr float min = 0.00001f;
+inline constexpr float min = 0.0000001f;
 inline constexpr float max = 1'000'000'000'000.f;
 }
 namespace service {

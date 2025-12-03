@@ -1,4 +1,5 @@
-#include "gui_common_elements.hpp"
+#include "labour_details.hpp"
+#include "economy_stats.hpp"
 
 namespace ui {
 

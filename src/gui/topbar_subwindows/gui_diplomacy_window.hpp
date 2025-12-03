@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
@@ -761,6 +761,21 @@ public:
 	}
 };
 
+
+class nation_gp_opinion_text : public standard_nation_text {
+public:
+	uint16_t rank = 0;
+	std::string get_text(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		auto const great_power_id = nations::get_nth_great_power(state, rank);
+		if(!bool(great_power_id))
+			return "0";
+		auto great_power_rel = state.world.get_gp_relationship_by_gp_influence_pair(nation_id, great_power_id);
+		auto fat_id = dcon::fatten(state.world, great_power_rel);
+		auto influence = fat_id.get_influence();
+		return std::to_string(int32_t(influence));
+	}
+};
+
 class diplomacy_country_info : public listbox_row_element_base<dcon::nation_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -935,6 +950,17 @@ public:
 		}
 		update(state);
 		
+	}
+};
+
+class overlapping_wg_icon : public listbox_row_element_base<military::wg_summary> {
+public:
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "wargoal_icon") {
+			return make_element_by_type<wg_icon>(state, id);
+		} else {
+			return nullptr;
+		}
 	}
 };
 

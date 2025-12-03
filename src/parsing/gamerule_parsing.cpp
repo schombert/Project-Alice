@@ -1,3 +1,4 @@
+#include "parsers_declarations.hpp"
 #include "system_state.hpp"
 #include "gamerule_parsing.hpp"
 

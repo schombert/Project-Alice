@@ -1,6 +1,6 @@
 #include "nations.hpp"
 #include "nations_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "modifiers.hpp"
 #include "politics.hpp"
@@ -17,9 +17,15 @@
 #include "set"
 #include "economy_government.hpp"
 #include "economy_production.hpp"
+#include "economy_factory_view.hpp"
 #include "economy_stats.hpp"
 #include "gui_effect_tooltips.hpp"
 #include "adaptive_ve.hpp"
+#include "money.hpp"
+#include "province.hpp"
+#include "economy.hpp"
+#include "game_scene.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace nations {
 

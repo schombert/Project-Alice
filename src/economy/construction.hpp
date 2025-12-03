@@ -1,5 +1,6 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "container_types_dcon.hpp"
 
 namespace sys {
 struct state;
@@ -8,22 +9,8 @@ struct state;
 namespace economy {
 
 float factory_construction_progress(sys::state& state, dcon::factory_construction_id construction);
-void factory_construction_tooltip(
-	sys::state& state,
-	text::columnar_layout& contents,
-	dcon::factory_construction_id fcid
-);
-void build_land_unit_construction_tooltip(
-	sys::state& state,
-	text::columnar_layout& contents,
-	dcon::province_land_construction_id conid
-);
 
-void build_naval_unit_construction_tooltip(
-	sys::state& state,
-	text::columnar_layout& contents,
-	dcon::province_naval_construction_id conid
-);
+
 
 economy::commodity_set calculate_factory_upgrade_goods_cost(
 	sys::state& state,
