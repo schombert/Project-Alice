@@ -5,6 +5,8 @@
 #include "commands.hpp"
 #include "economy_production.hpp"
 
+#include "advanced_province_buildings.hpp"
+
 namespace ui {
 
 // Safely assign tile within vector length limits

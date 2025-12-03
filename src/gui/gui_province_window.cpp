@@ -2696,3 +2696,4 @@ void province_view_window::on_update(sys::state& state) noexcept {
 	}
 
 }
+}
