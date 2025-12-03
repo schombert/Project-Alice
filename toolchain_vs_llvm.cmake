@@ -50,6 +50,14 @@ set(CLANG_SILENCED
     -Wno-unused-parameter                       #a bit noisy
     -Wno-extra-semi-stmt                        # too noisy
     -Wno-sign-conversion                        # too noisy
+    -Wno-padded                       # too noisy
+    -Wno-nrvo                       # too noisy
+    -Wno-unique-object-duplication
+    -Wno-sign-compare
+    -Wno-mismatched-new-delete
+    -Wno-implicit-fallthrough
+    -Wno-missing-variable-declarations
+    -Wno-clang-cl-pch
 )
 
 string(APPEND CMAKE_C_FLAGS " -ftime-trace")
