@@ -5,6 +5,8 @@
 #include "bmfont.hpp"
 #include "gui_element_base.hpp"
 
+#include "stateless_render.hpp"
+
 #undef STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -545,20 +547,6 @@ void load_global_squares(sys::state& state) {
 				cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f, 1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y};
 
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_sub_square_data, GL_STATIC_DRAW);
-	}
-}
-
-inline auto map_color_modification_to_index(color_modification e) {
-	switch(e) {
-	case color_modification::disabled:
-		return parameters::disabled;
-	case color_modification::interactable:
-		return parameters::interactable;
-	case color_modification::interactable_disabled:
-		return parameters::interactable_disabled;
-	default:
-	case color_modification::none:
-		return parameters::enabled;
 	}
 }
 
@@ -1185,65 +1173,6 @@ void render_text_commodity_icon(
 	);
 }
 
-void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::subsprite_b };
-	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
-
-	auto& font_instance = f.retrieve_instance(state, int32_t(size));
-	auto ui_scale = state.user_settings.ui_scale;
-
-	x = std::floor(x * ui_scale);
-	baseline_y = std::floor(baseline_y * ui_scale);
-
-	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-
-		auto pixel_x_off = x + float(txt.glyph_info[i].x_offset) / text::fixed_to_fp;
-		auto trunc_pixel_x_off = std::floor(pixel_x_off);
-		auto frac_pixel_off = pixel_x_off - trunc_pixel_x_off;
-
-		int32_t subpixel = 0;
-		pixel_x_off = (trunc_pixel_x_off);
-
-		if(frac_pixel_off < 0.125f) {
-			
-		} else if(frac_pixel_off < 0.375f) {
-			subpixel = 1;
-		} else if(frac_pixel_off < 0.625f) {
-			subpixel = 2;
-		} else if(frac_pixel_off < 0.875f) {
-			subpixel = 3;
-		} else {
-			pixel_x_off = trunc_pixel_x_off + 1.0f;
-		}
-		
-		font_instance.make_glyph(uint16_t(glyphid), subpixel);
-		auto& gso = font_instance.get_glyph(uint16_t(glyphid), subpixel);
-		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
-
-		if(gso.width != 0) {
-			float x_offset = pixel_x_off + float(gso.bitmap_left);
-			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / text::fixed_to_fp;
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
-
-			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x_offset / ui_scale, (baseline_y + y_offset) / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
-			glUniform4f(state.open_gl.ui_shader_subrect_uniform, float(gso.x) / float(1024) /* x offset */,
-					float(gso.width) / float(1024) /* x width */, float(gso.y) / float(1024) /* y offset */,
-					float(gso.height) / float(1024) /* y height */
-			);
-
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-
-		x += x_advance;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp);
-	}
-}
-
 void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
 	std::string codepoints = "";
 	for(uint32_t i = 0; i < uint32_t(txt.glyph_info.size()); i++) {
@@ -1297,7 +1226,22 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, c.r, c.g, c.b);
 	glUniform1f(state.open_gl.ui_shader_border_size_uniform, 0.08f * 16.0f / size);
-	internal_text_render(state, txt, x, y + size, size, f);
+	stateless_ogl::text_render(
+		state.font_collection.ft_library,
+		state.open_gl.global_square_buffer,
+		state.user_settings.ui_scale,
+		state.open_gl.ui_shader_subroutines_index_uniform,
+		map_color_modification_to_index(enabled),
+		ogl::parameters::subsprite_b,
+		state.open_gl.ui_shader_d_rect_uniform,
+		state.open_gl.ui_shader_subrect_uniform,
+		txt.glyph_info,
+		static_cast<unsigned int>(txt.glyph_info.size()),
+		x,
+		y + size,
+		size,
+		f
+	);
 }
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id) {

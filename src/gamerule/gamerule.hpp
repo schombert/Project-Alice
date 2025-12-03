@@ -3,7 +3,11 @@
 #include "effects.hpp"
 
 namespace sys {
-	struct state;
+struct state;
+}
+
+namespace parsers {
+struct scenario_building_context;
 }
 
 namespace gamerule {

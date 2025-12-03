@@ -3,12 +3,10 @@
 #include "system_state_forward.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
+#include "container_types_ui.hpp"
 
 
 namespace ui {
-
-enum class mouse_probe_type { click, tooltip, scroll };
-enum class insertion_source { user, ui_automation, text_services, other };
 
 template<typename T, typename ...Params>
 std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name, Params&&... params);

@@ -19,11 +19,6 @@ inline std::string int_to_tag(uint32_t v) {
 	return std::string(values, values + 3);
 }
 
-struct triggered_modifier {
-	dcon::modifier_id linked_modifier;
-	dcon::trigger_key trigger_condition;
-};
-
 enum class focus_type : uint8_t {
 	unknown = 0,
 	rail_focus = 1,

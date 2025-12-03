@@ -4,6 +4,7 @@
 #include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "modifiers.hpp"
+#include "military_constants.hpp"
 
 namespace military {
 namespace cb_flag {
@@ -57,11 +58,6 @@ constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
 constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
 constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
 constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
-
-enum class unit_type : uint8_t {
-	support, big_ship, cavalry, transport, light_ship, special, infantry
-};
-
 
 
 struct wg_summary {
@@ -424,23 +420,6 @@ void update_movement_arrival_days(sys::state& state, dcon::province_id to, dcon:
 template<typename T>
 void update_movement_arrival_days_on_unit(sys::state& state, dcon::province_id to, dcon::province_id from, T army);
 
-enum class crossing_type {
-	none, river, sea
-};
-
-enum class apply_attrition_on_arrival {
-	no, yes
-
-};
-
-enum class battle_is_ending {
-	no, yes
-};
-
-enum class retreat_type : bool {
-	automatic = 0,
-	manual = 1,
-};
 
 struct naval_battle_last_retreat {
 	dcon::nation_id last_retreat_attacker;
@@ -569,12 +548,6 @@ bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 
-enum special_army_order {
-	none,
-	move_to_siege,
-	strategic_redeployment,
-	pursue_to_engage
-};
 
 bool can_attack(sys::state& state, dcon::nation_id n);
 bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);

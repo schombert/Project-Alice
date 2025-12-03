@@ -219,6 +219,7 @@ public:
 	float descender(sys::state& state) const;
 	float top_adjustment(sys::state& state) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
+	float stateless_text_extent(float ui_scale, char const* codepoints, uint32_t count);
 
 	font_at_size() = default;
 	font_at_size(font_at_size&& o) noexcept : glyph_positions(std::move(o.glyph_positions)), textures(o.textures) {

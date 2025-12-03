@@ -7,8 +7,4 @@ enum class gui_modes : uint8_t {
 enum class projection_mode : uint8_t {
 	globe_ortho = 0, flat = 1, globe_perpect = 2, num_of_modes = 3
 };
-struct text_mouse_test_result {
-	uint32_t position;
-	uint32_t quadrent;
-};
 }

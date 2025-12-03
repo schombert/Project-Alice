@@ -1,11 +1,5 @@
 #pragma once
 
-namespace ogl {
-enum class color_modification {
-	none, disabled, interactable, interactable_disabled
-};
-}
-
 namespace text {
 enum class text_color : uint8_t {
 	black,
@@ -32,6 +26,12 @@ enum class alignment : uint8_t {
 
 namespace ui{
 
+enum class mouse_probe_type {
+	click, tooltip, scroll
+};
+enum class insertion_source {
+	user, ui_automation, text_services, other
+};
 enum class message_result {
 	unseen, seen, consumed
 };

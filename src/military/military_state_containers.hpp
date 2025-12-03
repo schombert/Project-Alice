@@ -3,6 +3,7 @@
 #include "dcon_generated_ids.hpp"
 #include "container_types_dcon.hpp"
 #include "container_types.hpp"
+#include "military_constants.hpp"
 
 namespace military {
 
