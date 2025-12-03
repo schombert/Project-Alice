@@ -2422,6 +2422,14 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "economy_data_toggle_tooltip");
+	}
 };
 
 class province_tiles_toggle : public button_element_base {
@@ -2433,6 +2441,14 @@ public:
 	void on_create(sys::state& state) noexcept override {
 		frame = 1;
 	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "province_tiles_toggle_tooltip");
+	}
 };
 
 class province_market_toggle : public button_element_base {
@@ -2443,6 +2459,14 @@ public:
 
 	void on_create(sys::state& state) noexcept override {
 		frame = 2;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "province_market_toggle_tooltip");
 	}
 };
 
