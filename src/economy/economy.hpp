@@ -4,6 +4,7 @@
 #include "dcon_generated_ids.hpp"
 #include "system_state_forward.hpp"
 #include "constants_dcon.hpp"
+#include "economy_common_api_containers.hpp"
 
 namespace economy {
 

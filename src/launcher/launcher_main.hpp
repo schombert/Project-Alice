@@ -6,6 +6,7 @@
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #include "dcon_oos_reporter_generated.cpp"
+#include "stateless_render.cpp"
 #ifndef INCREMENTAL
 #include "ui_state.cpp"
 #include "create_windows.cpp"
@@ -122,6 +123,7 @@
 #include "serialization.hpp"
 #include "network.hpp"
 #include "simple_fs.hpp"
+#include "stateless_render.hpp"
 
 namespace launcher {
 
@@ -1232,7 +1234,7 @@ void render_textured_rect(color_modification enabled, int32_t ix, int32_t iy, in
 static ::text::font_manager font_collection; //keep static because it uninits FT lib on destructor
 static ::text::font fonts[2];
 
-void internal_text_render(std::string_view str, float baseline_x, float baseline_y, float size, ::text::font& f) {
+void internal_text_render(std::string_view str, color_modification enabled, float baseline_x, float baseline_y, float size, ::text::font& f) {
 	auto& font_instance = f.retrieve_stateless_instance(font_collection.ft_library, int32_t(size));
 	hb_buffer_clear_contents(font_instance.hb_buf);
 	hb_buffer_add_utf8(font_instance.hb_buf, str.data(), int(str.size()), 0, int(str.size()));
@@ -1242,46 +1244,40 @@ void internal_text_render(std::string_view str, float baseline_x, float baseline
 	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(font_instance.hb_buf, &glyph_count);
 	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(font_instance.hb_buf, &glyph_count);
 	float x = baseline_x;
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		font_instance.make_glyph(glyph_info[i].codepoint);
-	}
+
+	std::vector<text::stored_glyph> glyphs;
 
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto& gso = font_instance.glyph_positions[uint16_t(glyphid)];
-		float x_advance = float(glyph_pos[i].x_advance) / text::fixed_to_fp;
-
-		if(gso.width != 0) {
-			float x_offset = float(glyph_pos[i].x_offset) / text::fixed_to_fp + float(gso.bitmap_left);
-			float y_offset = float(-gso.bitmap_top) - float(glyph_pos[i].y_offset) / text::fixed_to_fp;
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
-
-			auto rounded_x = int32_t(x + x_offset);
-
-			glUniform4f(glGetUniformLocation(ui_shader_program, "d_rect"), rounded_x, baseline_y + y_offset, float(gso.width), float(gso.height));
-			glUniform4f(glGetUniformLocation(ui_shader_program, "subrect"), float(gso.x) / float(1024) /* x offset */,
-					float(gso.width) / float(1024) /* x width */, float(gso.y) / float(1024) /* y offset */,
-					float(gso.height) / float(1024) /* y height */
-			);
-
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-
-		x += x_advance;
-		baseline_y -= (float(glyph_pos[i].y_advance) / text::fixed_to_fp);
+		font_instance.make_glyph(glyph_info[i].codepoint, 0);
+		glyphs.emplace_back(glyph_info[i], glyph_pos[i]);
 	}
+
+	stateless_ogl::text_render(
+		font_collection.ft_library,
+		global_square_buffer,
+		1.f,
+		glGetUniformLocation(ui_shader_program, "subroutines_index"),
+		map_color_modification_to_index(enabled),
+		parameters::filter,
+		glGetUniformLocation(ui_shader_program, "d_rect"),
+		glGetUniformLocation(ui_shader_program, "subrect"),
+		glyphs,
+		glyph_count,
+		x,
+		baseline_y,
+		size,
+		f
+	);
 }
 
 void render_new_text(std::string_view sv, color_modification enabled, float x, float y, float size, color3f const& c, ::text::font& f) {
 	glUniform3f(glGetUniformLocation(ui_shader_program, "inner_color"), c.r, c.g, c.b);
 	glUniform1f(glGetUniformLocation(ui_shader_program, "border_size"), 0.08f * 16.0f / size);
 
-	GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
-	glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
+	//GLuint subroutines[2] = { map_color_modification_to_index(enabled), parameters::filter };
+	//glUniform2ui(glGetUniformLocation(ui_shader_program, "subroutines_index"), subroutines[0], subroutines[1]);
 	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-	internal_text_render(sv, x, y + size, size, f);
+	internal_text_render(sv, enabled, x, y + size, size, f);
 }
 
 } // launcher::ogl
@@ -1304,25 +1300,7 @@ static ::ogl::texture warning_tex;
 
 float base_text_extent(char const* codepoints, uint32_t count, int32_t size, text::font& f) {
 	auto& font_instance = f.retrieve_stateless_instance(launcher::ogl::font_collection.ft_library, int32_t(size));
-
-	hb_buffer_clear_contents(font_instance.hb_buf);
-	hb_buffer_add_utf8(font_instance.hb_buf, codepoints, int(count), 0, int(count));
-	hb_buffer_guess_segment_properties(font_instance.hb_buf);
-	hb_shape(font_instance.hb_font_face, font_instance.hb_buf, NULL, 0);
-	unsigned int glyph_count = 0;
-	hb_glyph_info_t* glyph_info = hb_buffer_get_glyph_infos(font_instance.hb_buf, &glyph_count);
-	hb_glyph_position_t* glyph_pos = hb_buffer_get_glyph_positions(font_instance.hb_buf, &glyph_count);
-	float x = 0.0f;
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		font_instance.make_glyph(glyph_info[i].codepoint);
-	}
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = glyph_info[i].codepoint;
-		auto& gso = font_instance.glyph_positions[glyphid];
-		float x_advance = float(glyph_pos[i].x_advance) / text::fixed_to_fp;
-		x += x_advance;
-	}
-	return x;
+	return font_instance.stateless_text_extent(1.f, codepoints, count);
 }
 
 static int32_t active_textbox = -1;

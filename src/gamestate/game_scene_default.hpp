@@ -1,7 +1,9 @@
 #pragma once
 
 #include "game_scene_constants.hpp"
-
+#include "constants_ui.hpp"
+#include "constants.hpp"
+#include "container_types_ui.hpp"
 
 namespace game_scene {
 

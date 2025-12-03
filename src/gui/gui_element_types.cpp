@@ -209,22 +209,6 @@ element_base* non_owning_container_base::get_child_by_index(sys::state const& st
 	return nullptr;
 }
 
-ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disabled, bool is_interactable) {
-	if(!is_under_mouse || !is_interactable) {
-		if(is_disabled) {
-			return ogl::color_modification::disabled;
-		} else {
-			return ogl::color_modification::none;
-		}
-	} else {
-		if(is_disabled) {
-			return ogl::color_modification::interactable_disabled;
-		} else {
-			return ogl::color_modification::interactable;
-		}
-	}
-}
-
 void image_element_base::on_create(sys::state& state) noexcept {
 	element_base::on_create(state);
 	if(base_data.get_element_type() == element_type::image) {

@@ -41,15 +41,6 @@ enum class object_type : uint8_t {
 	linegraph = 0x09
 };
 
-struct xy_pair {
-	int16_t x = 0;
-	int16_t y = 0;
-};
-static_assert(sizeof(xy_pair) == 4);
-struct urect {
-	xy_pair top_left;
-	xy_pair size;
-};
 
 struct gfx_object {
 	constexpr static uint8_t always_transparent = 0x10;
@@ -333,12 +324,6 @@ struct hash_text_key {
 	auto operator()(dcon::text_key sv) const noexcept -> uint64_t {
 		return ankerl::unordered_dense::detail::wyhash::hash(&sv, sizeof(sv));
 	}
-};
-
-
-struct mouse_probe {
-	element_base* under_mouse;
-	xy_pair relative_location;
 };
 
 template<typename T>

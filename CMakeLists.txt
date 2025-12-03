@@ -24,7 +24,8 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
+	"src/graphics/xac.cpp"	
+	"src/graphics/stateless_render.cpp"
 	"src/lunasvg/graphics.cpp"
 	"src/lunasvg/lunasvg.cpp"
 	"src/lunasvg/svgelement.cpp"
@@ -448,14 +449,14 @@ target_precompile_headers(AliceIncremental
 	PRIVATE [["dcon_generated_ids.hpp"]]
 	PRIVATE [["container_types_dcon.hpp"]]
 	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
+#	PRIVATE [["parsers_declarations.hpp"]]
 	PRIVATE [["cyto_any.hpp"]]
-	PRIVATE [["gui_lookup.hpp"]]
-	PRIVATE [["gui_templates.hpp"]]
+#	PRIVATE [["gui_lookup.hpp"]]
+#	PRIVATE [["gui_templates.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
 	PRIVATE [["glm/glm.hpp"]]
-	PRIVATE [["script_constants.hpp"]]
+#	PRIVATE [["script_constants.hpp"]]
 )
 
 if(WIN32)

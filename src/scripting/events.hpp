@@ -4,7 +4,8 @@
 #include "script_constants.hpp"
 #include "container_types.hpp"
 #include "date_interface.hpp"
-#include "nations.hpp"
+#include "nations_state_containers.hpp"
+#include "events_containers.hpp"
 #include "commands_containers.hpp"
 
 namespace event {

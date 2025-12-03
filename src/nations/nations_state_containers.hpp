@@ -4,6 +4,11 @@
 
 namespace nations {
 
+struct triggered_modifier {
+	dcon::modifier_id linked_modifier;
+	dcon::trigger_key trigger_condition;
+};
+
 struct fixed_event {
 	int16_t chance; //0,2
 	dcon::national_event_id id; //2,2
