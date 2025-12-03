@@ -4000,72 +4000,6 @@ namespace dcon {
 	DCON_RELEASE_INLINE bool is_valid_index(player_nation_id id) { return bool(id); }
 	
 	//
-	// definition of strongly typed index for scripted_interaction_id
-	//
-	class scripted_interaction_id {
-		public:
-		using value_base_t = uint16_t;
-		using zero_is_null_t = std::true_type;
-		
-		uint16_t value = 0;
-		
-		constexpr scripted_interaction_id() noexcept = default;
-		explicit constexpr scripted_interaction_id(uint16_t v) noexcept : value(v + 1) {}
-		constexpr scripted_interaction_id(scripted_interaction_id const& v) noexcept = default;
-		constexpr scripted_interaction_id(scripted_interaction_id&& v) noexcept = default;
-		
-		scripted_interaction_id& operator=(scripted_interaction_id const& v) noexcept = default;
-		scripted_interaction_id& operator=(scripted_interaction_id&& v) noexcept = default;
-		constexpr bool operator==(scripted_interaction_id v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(scripted_interaction_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
-		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
-			return int32_t(value) - 1;
-		}
-	};
-	
-	class scripted_interaction_id_pair {
-		public:
-		scripted_interaction_id left;
-		scripted_interaction_id right;
-	};
-	
-	DCON_RELEASE_INLINE bool is_valid_index(scripted_interaction_id id) { return bool(id); }
-	
-	//
-	// definition of strongly typed index for ui_variable_id
-	//
-	class ui_variable_id {
-		public:
-		using value_base_t = uint16_t;
-		using zero_is_null_t = std::true_type;
-		
-		uint16_t value = 0;
-		
-		constexpr ui_variable_id() noexcept = default;
-		explicit constexpr ui_variable_id(uint16_t v) noexcept : value(v + 1) {}
-		constexpr ui_variable_id(ui_variable_id const& v) noexcept = default;
-		constexpr ui_variable_id(ui_variable_id&& v) noexcept = default;
-		
-		ui_variable_id& operator=(ui_variable_id const& v) noexcept = default;
-		ui_variable_id& operator=(ui_variable_id&& v) noexcept = default;
-		constexpr bool operator==(ui_variable_id v) const noexcept { return value == v.value; }
-		constexpr bool operator!=(ui_variable_id v) const noexcept { return value != v.value; }
-		explicit constexpr operator bool() const noexcept { return value != uint16_t(0); }
-		constexpr DCON_RELEASE_INLINE int32_t index() const noexcept {
-			return int32_t(value) - 1;
-		}
-	};
-	
-	class ui_variable_id_pair {
-		public:
-		ui_variable_id left;
-		ui_variable_id right;
-	};
-	
-	DCON_RELEASE_INLINE bool is_valid_index(ui_variable_id id) { return bool(id); }
-	
-	//
 	// definition of strongly typed index for text_key
 	//
 	class text_key {
@@ -5228,16 +5162,6 @@ namespace ve {
 	template<>
 	struct value_to_vector_type_s<dcon::player_nation_id> {
 		using type = ::ve::tagged_vector<dcon::player_nation_id>;
-	};
-	
-	template<>
-	struct value_to_vector_type_s<dcon::scripted_interaction_id> {
-		using type = ::ve::tagged_vector<dcon::scripted_interaction_id>;
-	};
-	
-	template<>
-	struct value_to_vector_type_s<dcon::ui_variable_id> {
-		using type = ::ve::tagged_vector<dcon::ui_variable_id>;
 	};
 	
 	template<>

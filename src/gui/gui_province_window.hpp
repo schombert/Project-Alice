@@ -31,7 +31,6 @@ private:
 	element_base* tiles_window = nullptr;
 	element_base* market_window = nullptr;
 
-
 public:
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
