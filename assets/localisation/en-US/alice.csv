@@ -1847,3 +1847,6 @@ pop_budget_wages_header;Wages
 pop_budget_income;Income
 pop_budget_spending;Spending
 pop_budget_needs;Needs
+economy_data_toggle_tooltip;Economy Overview dispays aggregated economy data of the province
+province_tiles_toggle_tooltip;Province Tiles displays all the buildings of the province, including administrations, ports, factories, RGOs, forts, railroads, barracks, etc.
+province_market_toggle_tooltip;Local Market tab displays data of the province market, including prices, supply and demand, production and consumption, stockpiles, imports and exports, etc.
