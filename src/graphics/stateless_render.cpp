@@ -57,7 +57,7 @@ void text_render(
 	glBindVertexBuffer(0, square_buffer, 0, sizeof(GLfloat) * 4);
 	glUniform2ui(ui_shader_subroutines_index_uniform, subroutine_1, subroutine_2);
 
-	auto& font_instance = f.retrieve_stateless_instance(lib, int32_t(size));
+	auto& font_instance = f.retrieve_stateless_instance(lib, int32_t(size * ui_scale));
 
 	x = std::floor(x * ui_scale);
 	baseline_y = std::floor(baseline_y * ui_scale);
