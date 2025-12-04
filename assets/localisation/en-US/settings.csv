@@ -52,6 +52,7 @@ map_label_0;None
 map_label_1;Linear
 map_label_2;Quadratic
 map_label_3;Cubic
+map_label_4;Spherical
 antialiasing_label;Antialiasing
 spoilers_label;Extra detailed tooltips
 graphics_details_label;Graphics

@@ -94,29 +94,89 @@ default: break;
 	return vec4(0.f);
 }
 
-vec2 rotate(vec2 v) {
+
+vec3 from_square(vec2 sq_point) {
+	float psi = sq_point.x * 2.f * PI;
+	float phi = (sq_point.y - 0.5f) * PI;
+	return vec3(sin(phi), cos(phi) * cos(psi), cos(phi) * sin(psi));
+};
+vec2 to_square(vec3 sph_point) {
+	float psi = atan(sph_point.z, sph_point.y);
+	float phi = asin(sph_point.x);
+	if(psi < 0.f) {
+		psi += 2.f * PI;
+	}
+	return vec2(psi / PI / 2.f,	phi / PI + 0.5f);
+}
+vec3 tangent_from_square(vec2 square_point, vec2 square_tangent) {
+	float psi = square_point.x * 2.f * PI;
+	float phi = (square_point.y - 0.5f) * PI;
+
+	mat2x3 differential;
+	differential[0] = vec3(0.f, -cos(phi) * sin(psi), cos(phi) * cos(psi));
+	differential[1] = vec3(cos(phi), -sin(phi) * cos(psi), -sin(phi) * sin(psi));
+
+	return differential * (vec2(2.f * PI, PI) * square_tangent);
+}
+vec2 tangent_to_square(vec3 sphere_point, vec3 sph_tangent) {
+	float psi = atan(sphere_point.z, sphere_point.y);
+	float phi = asin(sphere_point.x);
+
+	vec2 base = to_square(sphere_point);
+
+	vec3 up = vec3(cos(phi), -sin(phi) * cos(psi), -sin(phi) * sin(psi));
+	up /= length(up);
+	vec3 right = vec3(0.f, -cos(phi) * sin(psi), cos(phi) * cos(psi));
+	right /= length(right);
+
+	float coordinate_up = dot(sph_tangent, up);
+	float coordinate_right =  dot(sph_tangent, right);
+
+	return vec2(coordinate_right / PI / 2.f / cos(phi), coordinate_up / PI);
+}
+
+vec2 rotate_left_sphere(vec2 point, vec2 tangent) {
+	vec3 sphere_tangent = tangent_from_square(point, tangent);
+	vec3 sphere_point = from_square(point);
+	vec3 away = sphere_point;
+	away /= length(away);
+	vec3 rotated = cross(away, sphere_tangent);
+	return tangent_to_square(sphere_point, rotated);
+}
+
+vec2 rotate_left_rect(vec2 v) {
 	vec2 scaled = v * map_size;
 	vec2 rotated = vec2(-scaled.y, scaled.x);
 	return rotated / map_size;
 }
 
-void main() {
-	//vec2 unadj_direction = vec2(direction.x / 2.f, direction.y);
-	//vec2 unadj_normal = vec2(-direction.y / 2.f, direction.x);
+vec2 rotate_left(vec2 point, vec2 tangent) {
+	switch(int(subroutines_index)) {
 
-	vec2 normal_dir = rotate(direction);
+	case 0: return rotate_left_sphere(point, tangent);
+	case 1: return rotate_left_sphere(point, tangent);
+	case 2: return rotate_left_rect(tangent);
+	default: break;
+
+	}
+	return vec2(0.f);
+}
+
+void main() {
+	vec2 normal_dir = rotate_left(vertex_position, direction);
 
 	vec4 center_point = calc_gl_position(vertex_position);
-	vec4 right_point = thickness * 10000 * (calc_gl_position(vertex_position + direction * 0.0001) - center_point);
+	float scale = 100000.f;
+	vec4 right_point = thickness * scale * (calc_gl_position(vertex_position + direction / scale) - center_point);
 
-	vec4 top_point = thickness * 10000 * (calc_gl_position(vertex_position + normal_dir * 0.0001) - center_point);
+	vec4 top_point = thickness * scale * (calc_gl_position(vertex_position + normal_dir / scale) - center_point);
 
 	vec4 temp_result = center_point + (corner_direction.x * right_point + corner_direction.y * top_point);
     
     float opacity = 1.f;    
     opacity = exp(-(zoom * 50.f - 1.f/thickness) * (zoom * 50.f - 1.f/thickness) * 0.000001f);
         
-	temp_result.z = 0.01f / (opacity * thickness * zoom) / 100000.f;
+	temp_result.z = 0.01f / (1.f * thickness * zoom) / 100000.f;
    
 	gl_Position = temp_result;
 	uv = vertexUV;
