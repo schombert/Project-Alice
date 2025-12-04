@@ -7,6 +7,7 @@
 #include "military.hpp"
 #include "ai.hpp"
 #include "labour_details.hpp"
+#include "advanced_province_buildings.hpp"
 #include "economy_tooltips.hpp"
 #include "gui_tooltips.hpp"
 #include "money.hpp"
@@ -106,7 +107,7 @@ public:
 class rgo_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
-		return state.world.commodity_get_name(target.rgo_commodity);
+		return state.world.commodity_get_name(target.commodity);
 	}
 
 	bool is_available(sys::state& state, province_tile target) noexcept override {
@@ -114,11 +115,18 @@ public:
 	}
 
 	int get_frame(sys::state& state, province_tile target) noexcept override  {
-		return (state.world.commodity_get_is_mine(target.rgo_commodity) ? 3 : 2);
+
+		if(state.to_string_view(state.world.commodity_get_name(target.commodity)) == "fish") {
+			return 11;
+		}
+		if(state.to_string_view(state.world.commodity_get_name(target.commodity)) == "timber") {
+			return 4;
+		}
+		return (state.world.commodity_get_is_mine(target.commodity) ? 3 : 2);
 	}
 
 	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override  {
-		return target.rgo_commodity;
+		return target.commodity;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
@@ -127,11 +135,11 @@ public:
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto commodity_name = state.world.commodity_get_name(target.rgo_commodity);
+		auto commodity_name = state.world.commodity_get_name(target.commodity);
 		text::add_line(state, contents, "rgo_tile_header", text::variable_type::good, commodity_name);
 		text::add_line_break_to_layout(state, contents);
 
-		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.rgo_commodity);
+		province_owner_rgo_commodity_tooltip(state, contents, target.province, target.commodity);
 	}
 };
 
@@ -232,6 +240,31 @@ public:
 	}
 };
 
+class province_port_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.lookup_key("civilian_port");
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		return 22;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		// Switch to economy scene on click
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		text::add_line(state, contents, "civilian_port");
+		text::add_line(state, contents, "civilian_port_size", text::variable_type::val, text::fp_one_place { state.world.province_get_advanced_province_building_max_private_size(target.province, advanced_province_buildings::list::civilian_ports) });
+	}
+};
+
 
 class province_resource_potential_tile : public tile_type_logic {
 public:
@@ -243,20 +276,20 @@ public:
 		return true;
 	}
 
-	int get_frame(sys::state& state, province_tile target) noexcept override  {
+	int get_frame(sys::state& state, province_tile target) noexcept override {
 		return 13;
 	}
 
 	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override  {
-		return target.potential_commodity;
+		return target.commodity;
 	}
 
 	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
 	}
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
-		auto limit = state.world.province_get_factory_max_size(target.province, target.potential_commodity) / 10000.f;
-		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.potential_commodity),
+		auto limit = state.world.province_get_factory_max_size(target.province, target.commodity) / 10000.f;
+		text::add_line(state, contents, "available_potential", text::variable_type::what, state.world.commodity_get_name(target.commodity),
 			text::variable_type::val, (int)limit);
 	}
 };
@@ -511,5 +544,81 @@ public:
 		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 	}
 };
+
+class commodity_tile : public tile_type_logic {
+public:
+	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
+		return state.world.commodity_get_name(target.commodity);
+	}
+
+	bool is_available(sys::state& state, province_tile target) noexcept override {
+		return true;
+	}
+
+	int get_frame(sys::state& state, province_tile target) noexcept override {
+		auto market = target.market;
+
+		if(state.world.market_get_supply(market, target.commodity) < 0.01f) {
+			return 0;
+		}
+		else if(state.world.market_get_supply(market, target.commodity) > state.world.market_get_demand(market, target.commodity) * 1.25f) {
+			return 1;
+		}
+		else if(state.world.market_get_supply(market, target.commodity) < state.world.market_get_demand(market, target.commodity) * 0.75f) {
+			return 3;
+		}
+		return 2;
+	}
+
+	dcon::commodity_id get_commodity_frame(sys::state& state, province_tile target) noexcept override {
+		return target.commodity;
+	}
+
+	void button_action(sys::state& state, province_tile target, ui::element_base* parent) noexcept override {
+		// Switch to economy scene on click
+		game_scene::switch_scene(state, game_scene::scene_id::in_game_economy_viewer);
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
+		auto commodity_name = state.world.commodity_get_name(target.commodity);
+
+		auto sid = state.world.province_get_state_membership(target.province);
+		auto market = target.market;
+
+		text::add_line(state, contents, "province_market_market", text::variable_type::name, sid.get_definition().get_name());
+		text::add_line(state, contents, "province_market_header", text::variable_type::good, commodity_name);
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "province_market_price", text::variable_type::val, text::fp_currency{ state.world.market_get_price(market, target.commodity) });
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "province_market_supply", text::variable_type::val, text::fp_two_places{ state.world.market_get_supply(market, target.commodity) });
+		text::add_line(state, contents, "province_market_demand", text::variable_type::val, text::fp_two_places{ state.world.market_get_demand(market, target.commodity) });
+		text::add_line(state, contents, "province_market_production", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_supply(market, target.commodity) - economy::trade_supply(state, market, target.commodity)) });
+		text::add_line(state, contents, "province_market_consumption", text::variable_type::val, text::fp_two_places{ std::max(0.f, state.world.market_get_demand(market, target.commodity) - economy::trade_demand(state, market, target.commodity)) });
+		text::add_line(state, contents, "province_market_stockpiles", text::variable_type::val, text::fp_two_places{ state.world.market_get_stockpile(market, target.commodity) });
+		{
+			auto supply = state.world.market_get_supply(market, target.commodity);
+			auto demand = state.world.market_get_demand(market, target.commodity);
+			auto shift = 0.001f;
+			auto balance = (supply + shift) / (demand + shift) - (demand + shift) / (supply + shift);
+
+			text::add_line(state, contents, "province_market_balance", text::variable_type::val, text::fp_two_places{ balance });
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		text::add_line(state, contents, "province_market_trade_in", text::variable_type::val, text::fp_two_places{ economy::trade_influx(state, market, target.commodity) });
+		text::add_line(state, contents, "province_market_trade_out", text::variable_type::val, text::fp_two_places{ economy::trade_outflux(state, market, target.commodity) });
+		{
+			auto supply = economy::trade_influx(state, market, target.commodity);
+			auto demand = economy::trade_outflux(state, market, target.commodity);
+			auto shift = 0.001f;
+			auto balance = supply - demand;
+			text::add_line(state, contents, "province_market_trade_balance", text::variable_type::val, text::fp_two_places{ balance });
+		}
+	}
+};
+
 
 } // namespace ui
