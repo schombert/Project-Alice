@@ -29,6 +29,7 @@ private:
 	element_base* economy_window = nullptr;
 	element_base* nf_win = nullptr;
 	element_base* tiles_window = nullptr;
+	element_base* market_window = nullptr;
 
 public:
 	void on_create(sys::state& state) noexcept override;

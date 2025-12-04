@@ -13,6 +13,7 @@ inline static factory_tile factory_tile_logic;
 inline static rgo_tile rgo_tile_logic;
 inline static regiment_tile regiment_tile_logic;
 inline static province_building_tile province_building_tile_logic;
+inline static province_port_tile province_port_tile_logic;
 inline static province_resource_potential_tile province_resource_potential_tile_logic;
 inline static province_build_new_tile province_build_new_tile_logic;
 inline static factory_construction_tile factory_construction_tile_logic;
@@ -46,10 +47,10 @@ public:
 		else if(tile.market) {
 			tile_logic = &market_tile_logic;
 		}
-		else if(tile.rgo_commodity) {
+		else if(tile.is_rgo) {
 			tile_logic = &rgo_tile_logic;
 		}
-		else if(tile.potential_commodity) {
+		else if(tile.is_resource_potential) {
 			tile_logic = &province_resource_potential_tile_logic;
 		}
 		else if(tile.factory) {
@@ -60,6 +61,9 @@ public:
 		}
 		else if(tile.has_province_building) {
 			tile_logic = &province_building_tile_logic;
+		}
+		else if(tile.is_civilian_port) {
+			tile_logic = &province_port_tile_logic;
 		}
 		else if(tile.factory_construction) {
 			tile_logic = &factory_construction_tile_logic;
@@ -111,8 +115,10 @@ public:
 		for(int i = 0; i < 8; i++) {
 			for(int j = 0; j < 8; j++) {
 				auto ptr = make_element_by_type<province_tile_button>(state, "province_tiles_tile");
-				ptr->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				auto ystep = ptr->base_data.size.y + 2;
+				auto xstep = ptr->base_data.size.x + 2;
+				ptr->base_data.position.y += int16_t(ystep * i);
+				ptr->base_data.position.x += int16_t(xstep * j);
 
 				tiles[i * 8 + j] = ptr.get();
 				tiles[i * 8 + j]->ind = i * 8 + j;
@@ -120,13 +126,13 @@ public:
 
 				auto ptr2 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_commodity");
 				ptr->subicon_commodity = ptr2.get();
-				ptr2->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr2->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				ptr2->base_data.position.y += int16_t(ystep * i);
+				ptr2->base_data.position.x += int16_t(xstep * j);
 
 				auto ptr3 = make_element_by_type<image_element_base>(state, "province_tiles_tile_subicon_unit");
 				ptr->subicon_unit = ptr3.get();
-				ptr3->base_data.position.y += int16_t(ptr->base_data.size.y * i);
-				ptr3->base_data.position.x += int16_t(ptr->base_data.size.x * j);
+				ptr3->base_data.position.y += int16_t(ystep * i);
+				ptr3->base_data.position.x += int16_t(xstep * j);
 				ptr->subicon_unit->set_visible(state, false);
 
 				add_child_to_front(std::move(ptr));

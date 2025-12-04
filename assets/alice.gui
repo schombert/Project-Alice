@@ -5418,7 +5418,16 @@ guiTypes = {
 
 	guiButtonType = {
         name = "toggle-tiles-province"
-        position = { x=405 y=100}
+        position = { x=405 y=90}
+        quadTextureSprite ="button-economy-province"
+        buttonText = ""
+        buttonFont = "vic_18_black"
+		extends = "province_view"
+    }
+
+	guiButtonType = {
+        name = "toggle-market-province"
+        position = { x=405 y=130}
         quadTextureSprite ="button-economy-province"
         buttonText = ""
         buttonFont = "vic_18_black"
@@ -5427,17 +5436,35 @@ guiTypes = {
 
 	windowType = {
         name = "province_tiles_window"
-        position = { 445 0 }
+        position = { 452 0 }
         size = { 288 288 }
+		iconType = {
+			position = { x=-6 y=-6 }	
+			name = "background"
+			spriteType = "provincetilesbg"
+			size = { 314 314 }
+		}
+    }
+
+	windowType = {
+        name = "province_market_window"
+        position = { 447 0 }
+        size = { 288 350 }
     }
 
 	iconType = {
-			position = { x=0 y=0 }	
-			size = { x=36 y=36 }
-			name = "province_tiles_tile"
-			spriteType = "provincetiles"
+		position = { x=0 y=0 }	
+		size = { x=36 y=36 }
+		name = "province_tiles_tile"
+		spriteType = "provincetiles"
 	}
-
+	iconType = {
+		position = { x=0 y=0 }	
+		size = { x=36 y=36 }
+		name = "province_market_tile"
+		spriteType = "province_markettiles"
+	}
+	
 	iconType = {
 			position = { x=16 y=16 }	
 			size = { x=20 y=20 }
@@ -5446,10 +5473,17 @@ guiTypes = {
 	}
 
 	iconType = {
-			position = { x=14 y=14 }	
+			position = { x=15 y=15 }	
 			size = { x=22 y=22 }
 			name = "province_tiles_tile_subicon_unit"
 			spriteType = "GFX_unit_strip"
+	}
+
+	iconType = {
+			position = { x=1 y=1 }	
+			size = { x=30 y=30 }
+			name = "province_market_tile_subicon_commodity"
+			spriteType = "GFX_resources"
 	}
 
 	windowType = {
