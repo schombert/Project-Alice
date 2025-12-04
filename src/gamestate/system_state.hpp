@@ -376,7 +376,7 @@ struct user_settings_s {
 		message_response::ignore,//is_embargod = 104,
 	};
 	bool show_all_saves = true; 
-	map_label_mode map_label = map_label_mode::quadratic;
+	map_label_mode map_label = map_label_mode::linear;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;

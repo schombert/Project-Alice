@@ -189,14 +189,14 @@ square::tangent rotate_left(square::tangent x) {
 	auto sphere_tangent = from_square(x);
 	auto away = sphere_tangent.base.data;
 	away /= glm::length(away);
-	tangent rotated = tangent{ sphere_tangent.base, { -glm::cross(away, sphere_tangent.data) } };
+	tangent rotated = tangent{ sphere_tangent.base, { glm::cross(away, sphere_tangent.data) } };
 	return to_square(rotated);
 }
 square::tangent rotate_right(square::tangent x) {
 	auto sphere_tangent = from_square(x);
 	auto away = sphere_tangent.base.data;
 	away /= glm::length(away);
-	tangent rotated = tangent{ sphere_tangent.base, { glm::cross(away, sphere_tangent.data) } };
+	tangent rotated = tangent{ sphere_tangent.base, { -glm::cross(away, sphere_tangent.data) } };
 	return to_square(rotated);
 }
 std::string shader_functions() {

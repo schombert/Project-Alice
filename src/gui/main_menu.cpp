@@ -3923,6 +3923,7 @@ void main_menu_graphics_map_label_dropdown_t::on_update(sys::state& state) noexc
 	add_item(int32_t(sys::map_label_mode::linear), text::produce_simple_string(state, "map_label_1"));
 	add_item(int32_t(sys::map_label_mode::quadratic), text::produce_simple_string(state, "map_label_2"));
 	add_item(int32_t(sys::map_label_mode::cubic), text::produce_simple_string(state, "map_label_3"));
+	add_item(int32_t(sys::map_label_mode::spherical), text::produce_simple_string(state, "map_label_4"));
 	quiet_on_selection(state, int32_t(state.user_settings.map_label));
 // END
 }
