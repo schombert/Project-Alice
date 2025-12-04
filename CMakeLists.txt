@@ -291,15 +291,15 @@ else() # GCC or CLANG
 	endif()
 
 	if(VECTOR_MODE STREQUAL "AVX512")
-			target_compile_options(AliceCommon INTERFACE
-			-mavx512f -mfma )
-		elseif(VECTOR_MODE STREQUAL "AVX2")
-			target_compile_options(AliceCommon INTERFACE
-			-mavx2 -mfma )
-		else()
-			target_compile_options(AliceCommon INTERFACE
-			-march=nehalem -fno-fast-math -ffp-model=precise -mfpmath=sse )
-		endif()
+		target_compile_options(AliceCommon INTERFACE
+		-mavx512f -mfma )
+	elseif(VECTOR_MODE STREQUAL "AVX2")
+		target_compile_options(AliceCommon INTERFACE
+		-mavx2 -mfma )
+	else()
+		target_compile_options(AliceCommon INTERFACE
+		-march=nehalem -fno-fast-math -ffp-model=precise -mfpmath=sse )
+	endif()
 
 
 	target_link_libraries(AliceCommon INTERFACE dl)
