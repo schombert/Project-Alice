@@ -8,6 +8,7 @@ struct point {
 	glm::vec2 data;
 };
 struct tangent {
+	point base;
 	glm::vec2 data;
 };
 }
@@ -17,6 +18,7 @@ struct point {
 	glm::vec2 data;
 };
 struct tangent {
+	point base;
 	glm::vec2 data;
 };
 }
@@ -26,6 +28,7 @@ struct point {
 	glm::vec2 data; // from 0 to 1
 };
 struct tangent {
+	point base;
 	glm::vec2 data;
 };
 }
@@ -35,6 +38,7 @@ struct point {
 	glm::vec3 data;
 };
 struct tangent {
+	point base;
 	glm::vec3 data;
 };
 }
@@ -51,11 +55,32 @@ float dot(square::tangent x, square::tangent y);
 namespace equirectangular {
 struct point;
 struct tangent;
-point from_square(square::point x, float size_x, float size_y);
-square::point to_square(point x, float size_x, float size_y);
-tangent from_square(square::tangent x, float size_x, float size_y);
-square::tangent to_square(tangent x, float size_x, float size_y);
-float dot(square::tangent x, square::tangent y, float size_x, float size_y);
-square::tangent rotate_left(square::tangent x, float size_x, float size_y);
-square::tangent rotate_right(square::tangent x, float size_x, float size_y);
+point from_square(square::point, float size_x, float size_y);
+square::point to_square(point, float size_x, float size_y);
+tangent from_square(square::tangent, float size_x, float size_y);
+square::tangent to_square(tangent, float size_x, float size_y);
+float dot(square::tangent, square::tangent, float size_x, float size_y);
+square::tangent rotate_left(square::tangent, float size_x, float size_y);
+square::tangent rotate_right(square::tangent, float size_x, float size_y);
+std::string shader_functions();
+}
+
+
+namespace sphere_R3 {
+struct point {
+	glm::vec3 data;
+};
+struct tangent {
+	point base;
+	glm::vec3 data;
+};
+point from_square(square::point);
+square::point to_square(point sph_point);
+tangent from_square(square::tangent);
+float dot(tangent x, tangent y);
+square::tangent to_square(tangent sph_tangent);
+float dot(square::tangent x, square::tangent y);
+square::tangent rotate_left(square::tangent x);
+square::tangent rotate_right(square::tangent x);
+std::string shader_functions();
 }
