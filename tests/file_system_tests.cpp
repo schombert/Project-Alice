@@ -144,4 +144,5 @@ TEST_CASE("writing special files", "[file_system]") {
 	REQUIRE(content.data[2] == ' ');
 	REQUIRE(content.data[3] == 'n');
 	REQUIRE(content.data[4] == 'o');
+
 }
