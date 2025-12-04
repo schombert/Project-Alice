@@ -281,24 +281,24 @@ else() # GCC or CLANG
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
 			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -Wno-declaration-after-statement  #-Werror
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(AliceCommon INTERFACE
 										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
 
 	if(VECTOR_MODE STREQUAL "AVX512")
 			target_compile_options(AliceCommon INTERFACE
-			-AVX512F, -AVX512BW, -AVX512CD, -AVX512DQ, -AVX512VL )
+			-mavx512f -mfma )
 		elseif(VECTOR_MODE STREQUAL "AVX2")
 			target_compile_options(AliceCommon INTERFACE
-			-mavx2 )
+			-mavx2 -mfma )
 		else()
 			target_compile_options(AliceCommon INTERFACE
-			-march=nehalem -fno-fast-math -ffp-model=precise )
+			-march=nehalem -fno-fast-math -ffp-model=precise -mfpmath=sse )
 		endif()
 
 
