@@ -1554,7 +1554,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float step_y = 25.f;
 
 		std::vector<glm::vec3> points;
-		std::vector<glm::vec2> bad_points;
+		std::vector<sphere_R3::point> points_R3;
 
 		rough_box_bottom = std::max(0.f, rough_box_bottom - step_y);
 		rough_box_top = std::min(float(map_data.size_y), rough_box_top + step_y);
@@ -1718,9 +1718,13 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				if(grid[j * width_steps + i].z > 0.5f) {
 					points.push_back(grid[j * width_steps + i]);
 
-					auto x = grid[j * width_steps + i].x;
-					auto y = grid[j * width_steps + i].y;
-					auto weight = grid[j * width_steps + i].z;
+					square::point point_square{ { grid[j * width_steps + i].x / (float)map_data.size_x, grid[j * width_steps + i].y / (float)map_data.size_y } };
+
+					points_R3.push_back(sphere_R3::from_square(point_square));
+
+					//auto x = grid[j * width_steps + i].x;
+					//auto y = grid[j * width_steps + i].y;
+					//auto weight = grid[j * width_steps + i].z;
 					//draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00004f * weight);
 				}
 			}
@@ -1828,16 +1832,21 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		std::vector<glm::vec2> centroids;
+		std::vector<sphere_R3::point> centroids_R3;
 
 		for(size_t i = 0; i < num_of_clusters; i++) {
 			centroids.push_back(points[i]);
+			centroids_R3.push_back(points_R3[i]);
 		}
 
 		for(int step = 0; step < 50; step++) {
 			std::vector<glm::vec2> new_centroids;
+			std::vector<sphere_R3::point> new_centroids_R3;
 			std::vector<float> counters;
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids.push_back(glm::vec2(0, 0));
+				sphere_R3::point r3_cent{ {0.f, 0.f, 0.f } };
+				new_centroids_R3.push_back(r3_cent);
 				counters.push_back(0);
 			}
 
@@ -1847,17 +1856,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				float best_dist = std::numeric_limits<float>::max();
 
 				auto point = glm::vec2{ points[i].x, points[i].y };
+				auto point_sphere = points_R3[i];
 				auto weight = points[i].z;
 
 				//finding the closest centroid
 				for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
-
 					float dist = glm::distance(centroids[cluster], point);
-
 					if(state.user_settings.map_label == sys::map_label_mode::spherical) {
-						auto centroid_sphere = sphere_R3::from_square(square::point{ centroids[cluster] });
-						auto point_sphere = sphere_R3::from_square(square::point{ point });
-						dist = glm::distance(centroids[cluster], point);
+						auto centroid_sphere = centroids_R3[cluster];
+						dist = glm::distance(centroid_sphere.data, point_sphere.data);
 					}
 
 					if(best_dist > dist) {
@@ -1867,14 +1874,18 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				}
 
 				new_centroids[closest] += point * weight;
+				new_centroids_R3[closest].data += point_sphere.data * weight;
 				counters[closest] += weight;
 			}
 
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids[i] /= counters[i];
+				new_centroids_R3[i].data /= counters[i];
+				new_centroids_R3[i].data /= glm::length(new_centroids_R3[i].data);
 			}
 
 			centroids = new_centroids;
+			centroids_R3 = new_centroids_R3;
 		}
 
 		glm::vec2 sum_points = { 0.f, 0.f };
