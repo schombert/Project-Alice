@@ -3043,7 +3043,6 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 			};
 
-		float sphere_step_unit = 0.001f;
 
 		auto sphere_step = [&](glm::vec3 position, glm::vec3 direction, float step) {
 			auto away = position / glm::length(position);
@@ -3111,6 +3110,9 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		auto runner_prev = start.data;
 		auto runner = start.data;
 		auto direct_distance = glm::distance(start.data, end.data);
+
+
+		float sphere_step_unit = direct_distance / float(e.text.glyph_info.size() * 32.f);
 
 		if(is_spherical) {
 			while(glm::distance(runner, end.data) > direct_distance * 0.05f && curve_length < direct_distance * 2.f) {
