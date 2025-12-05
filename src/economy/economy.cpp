@@ -640,9 +640,6 @@ void initialize(sys::state& state) {
 	province::for_each_land_province(state, [&](dcon::province_id p) {
 		auto fp = fatten(state.world, p);
 		dcon::commodity_id main_trade_good = state.world.province_get_rgo(p);
-		if(state.world.commodity_get_money_rgo(main_trade_good)) {
-			return;
-		}
 		dcon::modifier_id climate = fp.get_climate();
 		dcon::modifier_id terrain = fp.get_terrain();
 		dcon::modifier_id continent = fp.get_continent();
@@ -777,6 +774,11 @@ void initialize(sys::state& state) {
 					state.world.province_set_rgo_target_employment(p, c, 0.f);
 				}
 			});
+
+			// add a trickle of money rgo everywhere to produce a source of inflation
+			state.world.province_set_rgo_size(p, economy::money,
+				state.world.province_get_rgo_size(p, economy::money) + 750.f
+			);
 		});
 	}
 
@@ -3605,13 +3607,20 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				state.world.market_get_life_needs_costs(markets, state.culture_definitions.primary_factory_worker)
 				/ state.defines.alice_needs_scaling_factor
 				* labor_greed_life
-				+ economy::price_properties::labor::min * 0.5f;
+				+ economy::price_properties::labor::min;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
-			auto guild_education = state.world.province_get_labor_price(ids, labor::guild_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
+
+			// make distribution sharper with squares:
+
+			target_wage = target_wage * target_wage;
+			no_education = no_education * no_education;
+			basic_education = basic_education * basic_education;
+			high_education = high_education * high_education;
+			high_education_and_accepted = high_education_and_accepted * high_education_and_accepted;
 
 			state.world.province_set_pop_labor_distribution(
 				ids,
@@ -3804,10 +3813,27 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// # PAYMENTS TO POPS #
 	// ####################
 
+	static ve::vectorizable_buffer<float, dcon::pop_id> income_buffer(uint32_t(1));
+	{
+		static uint32_t old_count = 1;
+		auto new_count = state.world.pop_size();
+		if(new_count > old_count) {
+			income_buffer = state.world.pop_make_vectorizable_float_buffer();
+			old_count = new_count;
+		}
+	}
+	state.world.execute_serial_over_pop([&](auto p) {
+		income_buffer.set(p, -state.world.pop_get_savings(p));
+	});
+
 	pops::update_income_national_subsidy(state);
 	pops::update_income_trade(state);
 	pops::update_income_artisans(state);
 	pops::update_income_wages(state);
+
+	state.world.execute_serial_over_pop([&](auto p) {
+		income_buffer.set(p, ve::max(state.world.pop_get_savings(p) + income_buffer.get(p), 0.f));
+	});
 
 	set_profile_point("pops payment");
 
@@ -3823,9 +3849,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	}
 
-	for(auto n : state.world.in_nation) {
-		collect_taxes(state, n);
-	}
+	collect_taxes(state, income_buffer);
 
 	set_profile_point("taxes");
 

@@ -1584,11 +1584,12 @@ void update_rgo_production(sys::state& state) {
 			auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
 
 			// update efficiency depending on expected profit change
-			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f);
+			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f) * state.defines.alice_rgo_per_size_employment;
 			auto profit_derivative =
 				state.world.commodity_get_rgo_amount(c)
 				* state.world.market_get_price(m, c);
-			auto efficiency_growth = 0.01f * (profit_derivative - cost_derivative * state.defines.alice_rgo_per_size_employment);
+			auto margin = ve::select(cost_derivative == 0.f, { 1.f }, (profit_derivative - cost_derivative) / cost_derivative);
+			auto efficiency_growth = ve::max(-current_efficiency * 0.05f, ve::min(current_efficiency * 0.05f, margin));
 			efficiency_growth = ve::select(
 				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
 				efficiency_growth * e_inputs_data.min_available,

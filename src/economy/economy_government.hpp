@@ -28,7 +28,7 @@ void update_production_administration(sys::state& state, dcon::nation_id n);
 void refund_demand_administration(sys::state& state, dcon::nation_id n);
 
 // perform a tax collection update
-void collect_taxes(sys::state& state, dcon::nation_id n);
+void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_id>& pop_income);
 
 struct tax_information {
 	float poor = 0.f;

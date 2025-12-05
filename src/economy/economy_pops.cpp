@@ -1156,7 +1156,7 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 	return std::clamp(modified, 0.f, 0.1f);
 }
 
-constexpr inline float market_tax = 0.01f;
+constexpr inline float market_tax = 0.05f;
 
 void update_income_wages(sys::state& state){
 	// TODO: rewrite in vectorized way
@@ -1319,6 +1319,27 @@ void update_income_wages(sys::state& state){
 	}
 }
 
+float estimate_next_day_raw_income(
+	sys::state const& state,
+	dcon::pop_id pop
+) {
+	auto estimated =
+		estimate_artisan_income(state, pop)
+		+ estimate_rgo_income(state, pop)
+		+ estimate_trade_income(state, pop)
+		+ estimate_total_wage(state, pop);
+
+	auto from_nation = estimate_income_from_nation(state, pop);
+
+	estimated +=
+		from_nation.investment
+		+ from_nation.military
+		+ from_nation.pension
+		+ from_nation.unemployment;
+
+	return estimated;
+}
+
 float estimate_next_day_budget_before_taxes(
 	sys::state const& state,
 	dcon::pop_id pop
@@ -1356,7 +1377,7 @@ float estimate_tax_spending(
 	dcon::pop_id pop,
 	float tax_rate
 ) {
-	auto next_day = estimate_next_day_budget_before_taxes(state, pop);
+	auto next_day = estimate_next_day_raw_income(state, pop);
 	return next_day * (1.f - market_tax) * tax_rate;
 }
 
