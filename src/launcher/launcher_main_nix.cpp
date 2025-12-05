@@ -178,7 +178,7 @@ void mouse_click() {
 			std::string alicePath;
 			__builtin_cpu_init();
 			// check if cpu supports avx. If it supports neither then fallbackt to SSE
-			if(__builtin_cpu_supports("avx512f")) {
+			if(__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512cd") && __builtin_cpu_supports("avx512bw") && __builtin_cpu_supports("avx512dq") && __builtin_cpu_supports("avx512vl")) {
 				alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice512" : "./Alice512";
 			}
 			else if(__builtin_cpu_supports("avx2")) {

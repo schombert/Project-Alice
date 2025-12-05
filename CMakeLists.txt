@@ -292,7 +292,7 @@ else() # GCC or CLANG
 
 	if(VECTOR_MODE STREQUAL "AVX512")
 		target_compile_options(AliceCommon INTERFACE
-		-mavx512f -mfma )
+		-mavx512f -mavx512cd -mavx512bw -mavx512dq mavx512vl -mfma )
 	elseif(VECTOR_MODE STREQUAL "AVX2")
 		target_compile_options(AliceCommon INTERFACE
 		-mavx2 -mfma )
