@@ -394,7 +394,7 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 	}
 	auto caseless_file = find_file_caseless(dir, file_name);
 	if(caseless_file) {
-		auto opened_file = open_file(caseless_file);
+		auto opened_file = open_file(*caseless_file);
 		if(opened_file) {
 			return opened_file;
 		}
@@ -429,7 +429,7 @@ std::optional<file> open_file(directory const& dir, std::vector<native_string_vi
 	for(auto file_name : file_names) {
 		auto caseless_file = find_file_caseless(dir, file_name);
 		if(caseless_file) {
-			auto opened_file = open_file(caseless_file);
+			auto opened_file = open_file(*caseless_file);
 			if(opened_file) {
 				return opened_file;
 			}
