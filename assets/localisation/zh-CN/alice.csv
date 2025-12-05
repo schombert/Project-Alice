@@ -601,8 +601,8 @@ pop_growth_6;当地生活条件 $x$ 减去 最低生活条件 $y$，总乘数为
 pop_growth_7;和 基础人群增长值 $x$
 pop_growth_8;人口的生活必需系数 $x$（生活必需满足度 $y$ 减去 最低饱腹 $val$）
 pop_growth_9;由于饥饿，人口增长受到?Y$x$?W的惩罚。饥饿是由人口的生活需求满足度（当前为?Y$y$?W）低于?Y$val$?W的饥饿限制引起的。
-pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为?Y$x$?W。
-pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子?W（?Y$y$?W）。
+pop_growth_10;饥饿惩罚的计算方法是首先取最大饥饿惩罚值（?Y$x$?W）并将其与所有增长修正值（?Y$val$?W）相加，得到?Y惩罚规模?W（?Y$y$?W），其最小可能结果为 ?Y$x$?W。
+pop_growth_11;然后，从人口的生活需求满足度中减去饥饿限制（?Y$x$?W），并将其除以饥饿限制（?Y$x$?W），最大可能结果为0。这给出了?Y饥饿因子 ?W（?Y$y$?W）。
 pop_growth_12;最后，将 ?Y饥饿因子?W（?Y$x$?W）和 ?Y惩罚规模?W（?Y$y$?W）相乘，得到人口增长的惩罚净值（?Y$val$?W），然后将其与其余的修正值相加。
 pop_assim_1;每月人群同化：$x$
 pop_assim_2;奴隶不被同化
@@ -1837,3 +1837,25 @@ zoom_fastest;最快
 amsg_embargod;该国已被禁运
 save_name_label;文件名称（空白=自动）
 save_warning_tooltip;名称重复
+province_market_header;商品：?Y$good$?!
+province_market_market;市场：?Y$name$?!
+province_market_price;价格：?Y$val$?!
+province_market_supply;供应：?G$val$?!
+province_market_demand;需求：?R$val$?!
+province_market_production;生产：?G$val$?!
+province_market_consumption;消费：?R$val$?!
+province_market_stockpiles;库存：?Y$val$?!
+province_market_balance;结余：?Y$val$?!
+province_market_trade_in;进口：?G$val$?!
+province_market_trade_out;出口：?R$val$?!
+province_market_trade_balance;贸易结余：?Y$val$?!
+civilian_port;民用港
+civilian_port_size;规模：?Y$val$?!
+production_window_title;生产
+production_combine_types_toggle;汇总显示
+production_table_name_header;名称
+production_table_size_header;规模
+production_table_amount_header;数量
+economy_data_toggle_tooltip;经济概览显示了该省的经济数据汇总。
+province_tiles_toggle_tooltip;省份图块显示该省的所有建筑，包括行政机构、港口、工厂、RGOs、要塞、铁路、军营等。
+province_market_toggle_tooltip;本地市场标签显示省级市场的数据，包括价格、供需、生产和消费、库存、进出口等。
