@@ -237,20 +237,20 @@ if(WIN32)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				 /wd4723  /d2archSSE42 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				${CommonMSVCFlags} /wd4723  /d2archSSE42 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				 /wd4723 /d2archSSE42 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				 ${CommonMSVCFlags} /wd4723 /d2archSSE42 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
 		else()
 			message(STATUS "Normal, not PGO, build")
 			target_compile_options(AliceCommon INTERFACE
-				  /d2archSSE42 /Z7 /fp:strict
+				  ${CommonMSVCFlags} /Z7
 				  $<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
-				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
@@ -292,7 +292,7 @@ else() # GCC or CLANG
 
 	if(VECTOR_MODE STREQUAL "AVX512")
 		target_compile_options(AliceCommon INTERFACE
-		-mavx512f -mavx512cd -mavx512bw -mavx512dq mavx512vl -mfma )
+		-mavx512f -mavx512cd -mavx512bw -mavx512dq -mavx512vl -mfma )
 	elseif(VECTOR_MODE STREQUAL "AVX2")
 		target_compile_options(AliceCommon INTERFACE
 		-mavx2 -mfma )

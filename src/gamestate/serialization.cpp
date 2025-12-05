@@ -907,6 +907,8 @@ void write_scenario_file(sys::state& state, native_string_view name, uint32_t co
 	header.timestamp = uint64_t(std::time(nullptr));
 	std::string save_dir_utf8 = simple_fs::native_to_utf8(state.mod_save_dir);
 	memcpy(header.mod_save_dir, save_dir_utf8.data(), std::min(save_dir_utf8.length(), sizeof(header.mod_save_dir)));
+	// Set last character to null incase the mod dir was 128 characters or more, to create the null-terminated string
+	header.mod_save_dir[127] = 0;
 
 	auto scenario_space = sizeof_scenario_section(state);
 	size_t save_space = sizeof_save_section(state);
