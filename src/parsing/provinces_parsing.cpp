@@ -192,6 +192,9 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 	if(auto it = context.gfx_context.map_of_names.find(gfx_name); it != context.gfx_context.map_of_names.end()) {
 		context.state.province_definitions.terrain_to_gfx_map.insert_or_assign(new_modifier, it->second);
 	}
+	else {
+		err.accumulated_warnings += "Couldn't load terrain GFX for terrain type " + std::string(name) + "\n";
+	}
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);

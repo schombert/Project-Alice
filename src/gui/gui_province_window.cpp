@@ -187,21 +187,21 @@ public:
 	}
 };
 
-void province_terrain_image::on_update(sys::state& state) noexcept  {
+void province_terrain_image::on_update(sys::state& state) noexcept {
 	dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 	auto fat_id = dcon::fatten(state.world, province_id);
 	auto terrain_id = fat_id.get_terrain().id;
 	auto terrain_image = state.province_definitions.terrain_to_gfx_map[terrain_id];
-	if(base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image && terrain_image) {
 		base_data.data.image.gfx_object = terrain_image;
 	}
 }
 
-tooltip_behavior province_terrain_image::has_tooltip(sys::state& state) noexcept  {
+tooltip_behavior province_terrain_image::has_tooltip(sys::state& state) noexcept {
 	return tooltip_behavior::variable_tooltip;
 }
 
-void province_terrain_image::update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept  {
+void province_terrain_image::update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept {
 	dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 	auto fat_id = dcon::fatten(state.world, province_id);
 	//terrain

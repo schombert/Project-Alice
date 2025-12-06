@@ -34,7 +34,7 @@ private:
 public:
 	void on_create(sys::state& state) noexcept override;
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override;
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;	
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
 	void set_active_province(sys::state& state, dcon::province_id map_province);
 	void on_update(sys::state& state) noexcept override;
 	friend class province_national_focus_button;
