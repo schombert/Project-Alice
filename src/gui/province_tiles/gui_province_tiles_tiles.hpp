@@ -390,17 +390,19 @@ public:
 
 		text::add_line(state, contents, "local_admin_efficiency", text::variable_type::value, text::fp_percentage{ economy::local_administration_efficiency });
 
+		text::add_line(state, contents, "admin_production", text::variable_type::value, text::fp_one_place{ economy::local_administration_control_production(state, n, target.province) });
+
 		text::add_line_break_to_layout(state, contents);
 
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
 		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
 		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential });
-		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_percentage{ info.mid_potential });
-		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_percentage{ info.rich_potential });
-		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_percentage{ info.poor });
-		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_percentage{ info.mid });
-		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_percentage{ info.rich });
+		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential });
+		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential });
+		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
+		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
+		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
 	}
 };
 
@@ -446,6 +448,8 @@ public:
 			auto wage = state.world.province_get_labor_price(target.province, record.employment_type);
 			text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 		}
+
+		text::add_line(state, contents, "admin_production", text::variable_type::value, text::fp_one_place{ economy::capital_administration_control_production(state, n, target.province) });
 
 		text::add_line_break_to_layout(state, contents);
 
