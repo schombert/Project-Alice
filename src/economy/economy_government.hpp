@@ -24,6 +24,9 @@ float estimate_spendings_administration(sys::state& state, dcon::nation_id n, fl
 float full_spendings_administration(sys::state& state, dcon::nation_id n, float budget);
 // register demand on labor or produce control
 void update_consumption_administration(sys::state& state, dcon::nation_id n, float total_budget);
+
+float capital_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id capital);
+float local_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id p);
 void update_production_administration(sys::state& state, dcon::nation_id n);
 void refund_demand_administration(sys::state& state, dcon::nation_id n);
 

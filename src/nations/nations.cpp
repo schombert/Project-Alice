@@ -763,6 +763,7 @@ dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag) 
 // updates ONLY national admin
 void update_national_administrative_efficiency(sys::state& state) {
 	/*
+	SneakBug8: APPEARS TO BE NO LONGER RELEVANT
 	- national administrative efficiency: = (the-nation's-national-administrative-efficiency-modifier +
 	efficiency-modifier-from-technologies + 1) x number-of-non-colonial-bureaucrat-population / (total-non-colonial-population x
 	(sum-of-the-administrative_multiplier-for-social-issues-marked-as-being-administrative x
@@ -1986,11 +1987,13 @@ float tariff_efficiency(sys::state& state, dcon::nation_id n, dcon::market_id m)
 	return std::clamp((state.defines.base_tariff_efficiency + eff_mod) * adm_eff, 0.f, 1.f);
 }
 
+// Calculates all modifiers to tax efficiency from modifiers + base taxe efficiency
 float tax_efficiency(sys::state const& state, dcon::nation_id n) {
 	auto eff_mod = state.world.nation_get_modifier_values(n, sys::national_mod_offsets::tax_efficiency);
 	return std::max(state.defines.base_country_tax_efficiency + eff_mod, 0.01f);
 }
 
+// Affects reparations paid by the nation N so that tax efficiency below 1 doesn't reduce reparations
 float tribute_efficiency(sys::state const& state, dcon::nation_id n) {
 	return std::min(tax_efficiency(state, n), 1.f);
 }
