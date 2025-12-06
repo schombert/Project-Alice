@@ -692,6 +692,8 @@ void update_income_artisans(sys::state& state) {
 	});
 }
 
+inline constexpr float trade_dividents_rate = 0.05f;
+
 float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::pop_type_id ptid, float size) {
 	auto const artisan_def = state.culture_definitions.artisans;
 	auto artisan_key = demographics::to_key(state, artisan_def);
@@ -715,7 +717,7 @@ float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::
 	}
 
 	auto balance = state.world.market_get_stockpile(mid, economy::money);
-	auto trade_dividents = balance > 0.f ? balance * 0.001f : 0.f;
+	auto trade_dividents = balance > 0.f ? balance * trade_dividents_rate : 0.f;
 
 	auto artisans_share = artisans_weight / total_weight * trade_dividents;
 	auto clerks_share = clerks_weight / total_weight * trade_dividents;
@@ -782,7 +784,7 @@ void update_income_trade(sys::state& state) {
 		auto total_weight = artisans_weight + clerks_weight + capis_weight + base_weight;
 
 		auto balance = state.world.market_get_stockpile(markets, economy::money);
-		auto trade_dividents = ve::select(balance > 0.f, balance * 0.001f, ve::fp_vector{ 0.f });
+		auto trade_dividents = ve::select(balance > 0.f, balance * trade_dividents_rate, ve::fp_vector{ 0.f });
 		state.world.market_set_stockpile(markets, economy::money, balance - trade_dividents);
 
 		auto artisans_share = artisans_weight / total_weight * trade_dividents;
@@ -923,6 +925,8 @@ money_from_nation estimate_income_from_nation(sys::state const& state, dcon::pop
 	};
 }
 
+inline constexpr float investment_divident_rate = 0.001f;
+
 void update_income_national_subsidy(sys::state& state){
 	auto capitalists_key = demographics::to_key(state, state.culture_definitions.capitalists);
 	auto aristocracy_key = demographics::to_key(state, state.culture_definitions.aristocrat);
@@ -935,6 +939,9 @@ void update_income_national_subsidy(sys::state& state){
 		auto capitalists = state.world.nation_get_demographics(owners, capitalists_key);
 		auto aristocrats = state.world.nation_get_demographics(owners, aristocracy_key);
 		auto investors = capitalists + aristocrats;
+
+		auto investment_dividents = (state.world.nation_get_private_investment(owners) + state.world.nation_get_national_bank(owners)) * investment_divident_rate;
+		investment_dividents = ve::select(investors > 0.f, investment_dividents / investors, 0.f);
 
 		auto states = state.world.province_get_state_membership(provs);
 		auto markets = state.world.state_instance_get_market_from_local_market(states);
@@ -1036,11 +1043,19 @@ void update_income_national_subsidy(sys::state& state){
 
 		ve::fp_vector base_income = pop_of_type * price_properties::labor::min * 0.05f;
 
-		state.world.pop_set_savings(ids, state.world.pop_get_savings(ids) + state.inflation * (base_income + (acc_u + acc_m)));
+		state.world.pop_set_savings(ids, state.world.pop_get_savings(ids) + investment_dividents + state.inflation * (base_income + (acc_u + acc_m)));
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_m);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_u);
 #endif
+	});
+
+	// remove investment dividents:
+	state.world.execute_serial_over_nation([&](auto ids) {
+		auto investment = state.world.nation_get_private_investment(ids);
+		state.world.nation_set_private_investment(ids, investment * (1.f - investment_divident_rate));
+		auto bank = state.world.nation_get_national_bank(ids);
+		state.world.nation_set_national_bank(ids, bank * (1.f - investment_divident_rate));
 	});
 }
 
@@ -1156,7 +1171,7 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 	return std::clamp(modified, 0.f, 0.1f);
 }
 
-constexpr inline float market_tax = 0.01f;
+constexpr inline float market_tax = 0.05f;
 
 void update_income_wages(sys::state& state){
 	// TODO: rewrite in vectorized way
@@ -1319,6 +1334,27 @@ void update_income_wages(sys::state& state){
 	}
 }
 
+float estimate_next_day_raw_income(
+	sys::state const& state,
+	dcon::pop_id pop
+) {
+	auto estimated =
+		estimate_artisan_income(state, pop)
+		+ estimate_rgo_income(state, pop)
+		+ estimate_trade_income(state, pop)
+		+ estimate_total_wage(state, pop);
+
+	auto from_nation = estimate_income_from_nation(state, pop);
+
+	estimated +=
+		from_nation.investment
+		+ from_nation.military
+		+ from_nation.pension
+		+ from_nation.unemployment;
+
+	return estimated;
+}
+
 float estimate_next_day_budget_before_taxes(
 	sys::state const& state,
 	dcon::pop_id pop
@@ -1356,7 +1392,7 @@ float estimate_tax_spending(
 	dcon::pop_id pop,
 	float tax_rate
 ) {
-	auto next_day = estimate_next_day_budget_before_taxes(state, pop);
+	auto next_day = estimate_next_day_raw_income(state, pop);
 	return next_day * (1.f - market_tax) * tax_rate;
 }
 

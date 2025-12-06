@@ -650,11 +650,7 @@ float trade_supply(sys::state& state,
 	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
-	auto price_rating = (price(state, m, c)) / local_wage_rating;
-	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
-	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
 	return result;
 }
 
@@ -680,10 +676,7 @@ float trade_demand(sys::state& state,
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
-	auto price_rating = (price(state, m, c)) / local_wage_rating;
-	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
-	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
+	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
 
 	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, c);

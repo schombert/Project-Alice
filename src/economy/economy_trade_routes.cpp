@@ -586,8 +586,8 @@ void update_trade_routes_volume(
 		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
 
-		auto transport_availability_A = ve::select(is_land_route, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
-		auto transport_availability_B = ve::select(is_land_route, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
+		auto transport_availability_A = ve::select(is_land_route, ve::fp_vector{ state.world.province_get_labor_demand_satisfaction(capital_A, labor::no_education) }, ve::fp_vector{ 0.f });
+		auto transport_availability_B = ve::select(is_land_route, ve::fp_vector{ state.world.province_get_labor_demand_satisfaction(capital_B, labor::no_education) }, ve::fp_vector{ 0.f });
 
 		transport_availability_A = ve::select(is_sea_route, available_port_capacity.get(A), transport_availability_A);
 		transport_availability_B = ve::select(is_sea_route, available_port_capacity.get(B), transport_availability_B);
@@ -654,8 +654,9 @@ void update_trade_routes_volume(
 			// US3AC21 effect of scale
 			// volume reduces transport costs
 
-			auto current_profit_A_to_B = ve::max(0.f, price_B_import - price_A_export * merchant_cut - transport_cost * effect_of_scale);
-			auto current_profit_B_to_A = ve::max(0.f, price_A_import - price_B_export * merchant_cut - transport_cost * effect_of_scale);
+			auto sold_boundary = stockpile_to_supply / (stockpile_spoilage + stockpile_to_supply);
+			auto current_profit_A_to_B = ve::max(0.f, price_B_import * sold_boundary - (price_A_export * merchant_cut + transport_cost * effect_of_scale));
+			auto current_profit_B_to_A = ve::max(0.f, price_A_import * sold_boundary - (price_B_export * merchant_cut + transport_cost * effect_of_scale));
 
 			auto change = current_profit_A_to_B / price_A_export - current_profit_B_to_A / price_B_export;
 
