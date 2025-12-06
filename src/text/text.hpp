@@ -836,7 +836,7 @@ struct layout_base {
 			}
 		}
 	}
-
+	virtual ~layout_base() = default;
 	virtual void internal_close_box(layout_box& box) = 0;
 };
 
@@ -847,9 +847,9 @@ struct columnar_layout : public layout_base {
 	int32_t current_column_x = 0;
 	int32_t column_width = 0;
 
-	columnar_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
-			: layout_base(base_layout, fixed_parameters, native_rtl), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
-				current_column_x(fixed_parameters.left), column_width(column_width) {
+	columnar_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl, int32_t used_height = 0, int32_t used_width = 0, int32_t y_cursor = 0, int32_t column_width = 0)
+			: layout_base(layout, parameters, rtl), used_height(used_height), used_width(used_width), y_cursor(y_cursor),
+				current_column_x(parameters.left), column_width(column_width) {
 		layout_base::fixed_parameters.left = 0;
 	}
 
@@ -859,8 +859,8 @@ struct columnar_layout : public layout_base {
 struct endless_layout : public layout_base {
 	int32_t y_cursor = 0;
 
-	endless_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl, int32_t y_cursor = 0)
-			: layout_base(base_layout, fixed_parameters, native_rtl), y_cursor(y_cursor) { }
+	endless_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl, int32_t y_cursor = 0)
+			: layout_base(layout, parameters, rtl), y_cursor(y_cursor) { }
 
 	void internal_close_box(layout_box& box) final;
 };
@@ -870,8 +870,8 @@ layout_box open_layout_box(layout_base& dest, int32_t indent = 0);
 struct single_line_layout : public layout_base {
 	layout_box box;
 
-	single_line_layout(layout& base_layout, layout_parameters const& fixed_parameters, layout_base::rtl_status native_rtl)
-		: layout_base(base_layout, fixed_parameters, native_rtl), box(open_layout_box(*this, 0)) {
+	single_line_layout(layout& layout, layout_parameters const& parameters, layout_base::rtl_status rtl)
+		: layout_base(layout, parameters, rtl), box(open_layout_box(*this, 0)) {
 
 		base_layout.number_of_lines = 0;
 		base_layout.contents.clear();
@@ -879,7 +879,7 @@ struct single_line_layout : public layout_base {
 
 	void internal_close_box(layout_box& box) final;
 
-	~single_line_layout() {
+	~single_line_layout() override {
 		internal_close_box(box);
 	}
 

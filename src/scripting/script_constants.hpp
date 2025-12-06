@@ -1519,6 +1519,8 @@ union payload {
 	// events::event_tag event;
 	// trigger_tag trigger;
 
+
+
 	payload(payload const& i) noexcept : value(i.value) { }
 	payload(uint16_t i) : value(i) { }
 	payload(int16_t i) : signed_value(i) { }

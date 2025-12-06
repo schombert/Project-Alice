@@ -777,7 +777,7 @@ void initialize(sys::state& state) {
 
 			// add a trickle of money rgo everywhere to produce a source of inflation
 			state.world.province_set_rgo_size(p, economy::money,
-				state.world.province_get_rgo_size(p, economy::money) + 750.f
+				state.world.province_get_rgo_size(p, economy::money) + 2500.f
 			);
 		});
 	}
@@ -2952,16 +2952,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
 			auto stockpile_target_merchants = ve_stockpile_target_speculation(state, ids, c);
 
-			// when good is expensive, we want to emulate competition between merhants to sell or buy it:
-			// wage rating: earnings of population unit during the day
-			// price_rating: amount of wages a population unit can receive with price of this good
-
-			auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.province_get_labor_price(market_capitals, labor::no_education) + 0.00001f;
-			auto price_rating = (ve_price(state, ids, c)) / local_wage_rating;
-			auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
-
-			auto merchants_demand = ve::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
-			auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+			auto merchants_demand = ve::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
+			auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
 
 			auto production = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
@@ -3582,10 +3574,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
 				auto stockpile_target_merchants = ve_stockpile_target_speculation(state, markets, c);
-				auto local_wage_rating = state.defines.alice_needs_scaling_factor * state.world.province_get_labor_price(capitals, labor::no_education) + 0.00001f;
-				auto price_rating = price / local_wage_rating;
-				auto actual_stockpile_to_supply = ve::min(1.f, stockpile_to_supply + price_rating);
-				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
 			}
 		});

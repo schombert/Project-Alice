@@ -3259,10 +3259,11 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 					auto forward_direction = forward_direction_raw / norm * (float)size_x;
 					glm::vec2 up_direction = equirectangular::rotate_left(
 						{
+							{ glm::vec2(0.f, 0.f) },
 							forward_direction
 						},
 						(float)size_x, (float)size_y).data;
-					auto actual_dot_product = equirectangular::dot({ forward_direction }, { up_direction }, (float)size_x, (float)size_y);
+					auto actual_dot_product = equirectangular::dot({ {{0.f, 0.f}}, forward_direction }, { {{0.f, 0.f}}, up_direction }, (float)size_x, (float)size_y);
 					assert(actual_dot_product < 0.001f);
 					auto raw_central_point = glm::vec2(x, poly_fn(x)) * ratio + basis;
 					auto central_point = raw_central_point / glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1

@@ -170,7 +170,7 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 		));
 
 	if(state.world.commodity_get_money_rgo(c)) {
-		return free_efficiency + result * 0.05f;
+		return free_efficiency + result * 0.2f;
 	}
 
 	return free_efficiency + result;
@@ -1589,7 +1589,7 @@ void update_rgo_production(sys::state& state) {
 				state.world.commodity_get_rgo_amount(c)
 				* state.world.market_get_price(m, c);
 			auto margin = ve::select(cost_derivative == 0.f, { 1.f }, (profit_derivative - cost_derivative) / cost_derivative);
-			auto efficiency_growth = ve::max(-current_efficiency * 0.05f, ve::min(current_efficiency * 0.05f, margin));
+			auto efficiency_growth = ve::max(-current_efficiency * 0.005f, ve::min(current_efficiency * 0.05f, margin));
 			efficiency_growth = ve::select(
 				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
 				efficiency_growth * e_inputs_data.min_available,
@@ -1901,8 +1901,12 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 				1.f
 			);
 
-			auto new_employment = ve::max((current_employment_target + 10.f * presim_employment_mult * gradient / wage_per_worker * mult), 0.0f);
+			// if profit gradient is zero, we don't hire or fire
+			// if profit gradient is N times expected spending, we hire N times C workers
+			// if profit gradient is -N times expected sales, we fire N times C workers
 
+			auto new_employment = ve::max((current_employment_target + 100.f * presim_employment_mult * gradient * (1.f / wage_per_worker + 1.f / (output_per_worker * predicted_price)) * mult), 0.0f);
+			
 			// we don't want wages to rise way too high relatively to profits
 			// as we do not have actual budgets, we  consider that our workers budget is as follows
 			new_employment = ve::min(rgo_profit_to_wage_bound * output_per_worker * predicted_price * current_size / wage_per_worker, new_employment);

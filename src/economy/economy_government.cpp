@@ -310,8 +310,8 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 			auto tax_multiplier = tax_collection_rate(state, nid, province);
 
 			auto potential_tax_poor = state.world.province_get_tax_base_poor(province);
-			auto potential_tax_middle = state.world.province_get_tax_base_poor(province);
-			auto potential_tax_rich = state.world.province_get_tax_base_poor(province);
+			auto potential_tax_middle = state.world.province_get_tax_base_middle(province);
+			auto potential_tax_rich = state.world.province_get_tax_base_rich(province);
 
 			total_poor_tax_base += potential_tax_poor;
 			total_mid_tax_base += potential_tax_middle;
@@ -332,7 +332,7 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 		assert(collected_tax >= 0);
 		auto cur_money = state.world.nation_get_stockpiles(nid, money);
 		state.world.nation_set_stockpiles(nid, money, cur_money + collected_tax);
-		assert(std::isfinite(state.world.nation_set_stockpiles(nid)));
+		assert(std::isfinite(state.world.nation_get_stockpiles(nid, money)));
 	});
 }
 
