@@ -179,7 +179,7 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 
 // todo: make priority different per commodity
 float need_weight_change(sys::state& state, dcon::market_id n, dcon::commodity_id c, float base_wage, float priority, float base_amount) {
-	auto budget = 0.0001f + base_wage;
+	auto budget = economy::price_properties::labor::min + base_wage;
 	auto cost_per_person = base_amount * price(state, n, c) / state.defines.alice_needs_scaling_factor;
 	auto score_availability = state.world.market_get_expected_probability_to_buy(n, c) - state.world.market_get_expected_probability_to_sell(n, c);
 	auto score_price = (1.f - cost_per_person / priority / budget);
@@ -4046,7 +4046,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	}
 
 	// essentially upper bound on wealth in the system
-	state.inflation = 0.999f;
+	state.inflation = 0.99999f;
 
 	sanity_check(state);
 
