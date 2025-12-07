@@ -3910,6 +3910,7 @@ void main_menu_graphics_map_label_dropdown_t::on_selection(sys::state& state, in
 // BEGIN graphics::map_label_dropdown::on_selection
 	state.user_settings.map_label = sys::map_label_mode(list_contents[id].index);
 	state.user_setting_changed = true;
+	state.province_ownership_changed.store(true, std::memory_order::release);
 // END
 }
 void main_menu_graphics_map_label_dropdown_t::clear_list() {	list_contents.clear();

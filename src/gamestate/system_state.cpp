@@ -34,6 +34,7 @@
 #include "money.hpp"
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
+#include "alice_ui.hpp"
 
 namespace sys {
 
@@ -190,6 +191,8 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
+		if(current_scene.game_in_progress)
+			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 	}
 }
 
@@ -1630,6 +1633,9 @@ void state::update_ui_scale(float new_scale) {
 
 	if(ui_state.outliner_window)
 		ui_state.outliner_window->impl_on_update(*this);
+	if(current_scene.game_in_progress)
+		alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y_size / user_settings.ui_scale);
+
 	for(auto& s : ui_templates.backgrounds) {
 		s.renders.release_renders();
 	}

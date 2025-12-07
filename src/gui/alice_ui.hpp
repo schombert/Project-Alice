@@ -919,7 +919,7 @@ ui::element_base* display_at_front(sys::state& state, display_closure_command fn
 			current_root->move_child_to_front(saved_ptr);
 		}
 		saved_ptr->set_visible(state, true);
-		return nullptr;
+		return saved_ptr;
 	}
 	if(fn == display_closure_command::return_pointer) {
 		return saved_ptr;
@@ -980,6 +980,7 @@ std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_main_menu_base(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_main(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 

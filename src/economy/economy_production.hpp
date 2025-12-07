@@ -103,6 +103,9 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c);
 
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of);
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of);
+
 float estimate_factory_profit_margin(
 	sys::state& state,
 	dcon::province_id pid,
@@ -261,6 +264,9 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
+
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of);
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of);
 
 float estimate_intermediate_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float estimate_production(sys::state& state, dcon::commodity_id c, dcon::province_id p);

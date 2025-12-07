@@ -2098,7 +2098,7 @@ void layout_window_element::remake_layout_internal(layout_level& lvl, sys::state
 				while(it.has_more()) {
 					auto pre_pos = it.position;
 
-					auto box = measure_vertical_box(state, it, effective_x_size, x_remaining);
+					auto box = measure_vertical_box(state, it, x_remaining, effective_y_size);
 					assert(box.item_count > 0);
 					if(box.x_dim > x_remaining && !first) { // end
 						it.position = pre_pos;

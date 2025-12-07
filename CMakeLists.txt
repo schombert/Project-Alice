@@ -47,6 +47,7 @@ list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/lunasvg/plutovg-path.c"
 	"src/lunasvg/plutovg-rasterize.c"
 	"src/lunasvg/plutovg-surface.c"
+	"src/gui/production.cpp"
 )
 set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)

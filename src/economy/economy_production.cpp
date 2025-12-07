@@ -2375,6 +2375,27 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c) {
 	return result;
 }
 
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of) {
+	auto result = 0.f;
+	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+		for(auto fac : state.world.province_get_factory_location(p)) {
+			if(fac.get_factory().get_building_type().get_output() == production_of)
+				result += estimate_factory_consumption(state, c, fac.get_factory());
+		}
+	});
+	return result;
+}
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of) {
+	auto result = 0.f;
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		for(auto fac : p.get_province().get_factory_location()) {
+			if(fac.get_factory().get_building_type().get_output() == production_of)
+				result += estimate_factory_consumption(state, c, fac.get_factory());
+		}
+	}
+	return result;
+}
+
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output) {
 	auto mob_impact = military::mobilization_impact(state, state.world.province_get_nation_from_province_ownership(p));
 	auto data = imitate_artisan_consumption(state, p, output, mob_impact);
@@ -2385,7 +2406,8 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 			if(direct_inputs.commodity_type[i] == c) {
 				result +=
 					data.consumption.direct_inputs_scale
-					* direct_inputs.commodity_amounts[i];
+					* direct_inputs.commodity_amounts[i]
+					* data.base.direct_inputs_data.min_available;
 				break;
 			}
 		} else {
@@ -2439,7 +2461,24 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c) {
 	});
 	return result;
 }
-
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of) {
+	auto result = 0.0f;
+	auto mob_impact = military::mobilization_impact(state, state.world.state_instance_get_nation_from_state_ownership(s));
+	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+		auto data = imitate_artisan_consumption(state, p, production_of, mob_impact);
+		result += estimate_artisan_consumption(state, c, p, production_of);
+	});
+	return result;
+}
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of) {
+	auto result = 0.0f;
+	auto mob_impact = military::mobilization_impact(state, n);
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		auto data = imitate_artisan_consumption(state, p.get_province(), production_of, mob_impact);
+		result += estimate_artisan_consumption(state, c, p.get_province(), production_of);
+	}
+	return result;
+}
 
 float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c) {
 	bool is_mine = state.world.commodity_get_is_mine(c);

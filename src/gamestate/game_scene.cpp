@@ -16,6 +16,7 @@ namespace game_scene {
 
 void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void select_production_state(sys::state& state);
 
 void switch_scene(sys::state& state, scene_id ui_scene) {
 
@@ -73,28 +74,31 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		break;
 	case scene_id::in_game_production_view:
+	{
 		state.current_scene = scene_properties{
 			.id = scene_id::in_game_production_view,
 
 			.get_root = [](sys::state& state) { return state.ui_state.root_production_view.get(); },
-
+			.borders = borders_granularity::state,
 			.rbutton_selected_units = do_nothing_province_target,
 			.rbutton_province = do_nothing_province_target,
 			.allow_drag_selection = false,
 			.on_drag_start = do_nothing_screen,
 			.drag_selection = do_nothing_screen,
 			.lbutton_up = do_nothing,
-			.on_province_selected = do_nothing,                                                 // TODO
+			.on_province_selected = select_production_state,
 			.keycode_mapping = replace_keycodes_map_movement,
 			.handle_hotkeys = production_screen_hotkeys,
-			.console_log = console_log_other,                                                    
+			.console_log = console_log_other,
 			.render_ui = render_ui_ingame,                                                         // TODO?
 			.on_game_state_update = generic_map_scene_update,
-			.on_game_state_update_update_ui = do_nothing, 
+			.on_game_state_update_update_ui = do_nothing,
 			.update_highlight_texture = highlight_given_state
 		};
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state);
+		ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
 
-		break;
+	} break;
 	case scene_id::count: // this should never happen
 		assert(false);
 		break;
@@ -206,6 +210,21 @@ void open_diplomacy(
 		sys::open_diplomacy_window(state, owner);
 	} else {
 		sys::open_diplomacy_window(state, nation);
+	}
+}
+
+void select_production_state(sys::state& state) {
+	auto si = state.world.province_get_state_membership(state.map_state.selected_province);
+	if(si.get_nation_from_state_ownership() == state.local_player_nation) {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = si.id;
+		ptr->impl_on_update(state);
+	} else {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = dcon::state_instance_id{};
+		ptr->impl_on_update(state);
 	}
 }
 
@@ -717,6 +736,8 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
 			// Economy scene hotkey
 			switch_scene(state, scene_id::in_game_economy_viewer);
+		}else if(keycode == sys::virtual_key::M && state.ui_state.ctrl_held_down) {
+			switch_scene(state, scene_id::in_game_production_view);
 		} else if(keycode == sys::virtual_key::NUMPAD1 || keycode == sys::virtual_key::NUM_1) {
 			ctrl_group = 1;
 		} else if(keycode == sys::virtual_key::NUMPAD2 || keycode == sys::virtual_key::NUM_2) {
