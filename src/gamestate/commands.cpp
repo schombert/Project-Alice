@@ -5641,9 +5641,32 @@ void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id sourc
 	network::switch_one_player(state, target, source, player);
 }
 
+
+bool can_notify_player_oos(sys::state& state, command_data& command) {
+	auto player = command.header.player_id;
+	// can't notify oos if there already are oos
+	if(state.world.mp_player_get_is_oos(player)) {
+		return false;
+	}
+	auto& payload = command.get_payload<notify_player_oos_data>();
+
+	// check that the data length is correct before reading from it
+	if(!command.check_variable_size_payload<notify_player_oos_data>(payload.size)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+	return true;
+}
+
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
+	uint32_t size = 0;
+	auto mp_state_data = network::write_network_entire_mp_state(state, size);
 
 	command_data p{ command_type::notify_player_oos, state.local_player_id };
+	auto data = notify_player_oos_data{ };
+	data.size = size;
+	p << data;
+	p.push_ptr(mp_state_data.get(), size);
 	add_to_command_queue(state, p);
 
 #ifndef NDEBUG
@@ -5660,9 +5683,17 @@ void notify_player_oos(sys::state& state, dcon::nation_id source) {
 
 	network::log_player_nations(state);
 }
-void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::mp_player_id oos_player) {
+void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::mp_player_id oos_player, const uint8_t* oos_gamestate_data, uint32_t data_size) {
 	state.actual_game_speed = 0; //pause host immediately
 	state.debug_save_oos_dump();
+
+	if(state.network_mode == sys::network_mode_type::host) {
+		std::unique_ptr<sys::state> oos_gamestate = std::make_unique<sys::state>();
+		network::decompress_load_entire_mp_state(*oos_gamestate, oos_gamestate_data, data_size);
+	
+		network::dump_oos_report(state, *oos_gamestate);
+	}
+
 
 	network::log_player_nations(state);
 
@@ -6682,7 +6713,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::notify_player_oos:
 	{
-		return true; //return can_notify_player_oos(state, c.source);
+		return can_notify_player_oos(state, c);
 	}
 	case command_type::advance_tick:
 	{
@@ -7470,7 +7501,8 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::notify_player_oos:
 	{
-		execute_notify_player_oos(state, source_nation, c.header.player_id);
+		auto& data = c.get_payload<notify_player_oos_data>();
+		execute_notify_player_oos(state, source_nation, c.header.player_id, data.variable_data(), data.size);
 		break;
 	}
 	case command_type::advance_tick:

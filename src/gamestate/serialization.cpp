@@ -142,6 +142,27 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
+uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+	dcon::load_record loaded;
+	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	return section_end;
+}
+uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state) {
+	dcon::load_record result = state.world.make_serialize_record_store_mp_checksum_excluded();
+	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	state.world.serialize(start, result);
+
+	return reinterpret_cast<uint8_t*>(start);
+}
+size_t sizeof_entire_mp_state(sys::state& state) {
+	size_t sz = 0;
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_checksum_excluded();
+	sz += state.world.serialize_size(loaded);
+
+	return sz;
+}
+
 uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
 	// hand-written contribution
 	{  // lua script

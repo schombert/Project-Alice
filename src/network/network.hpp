@@ -267,6 +267,7 @@ void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
+std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
 void broadcast_save_to_clients(sys::state& state);
 void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer);
 void broadcast_to_clients(sys::state& state, command::command_data& c);
@@ -275,6 +276,9 @@ void full_reset_after_oos(sys::state& state);
 
 
 void load_network_save(sys::state& state, const uint8_t* save_buffer);
+void decompress_load_entire_mp_state(sys::state& state, const uint8_t* mp_state_data, uint32_t length);
+
+void dump_oos_report(sys::state& state_1, sys::state& state_2);
 
 // gets the host player in the current lobby. Also returns the static player ID of the player in single player.
 dcon::mp_player_id get_host_player(sys::state& state);

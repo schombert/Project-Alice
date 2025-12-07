@@ -1048,6 +1048,12 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
+void decompress_load_entire_mp_state(sys::state& state, const uint8_t* mp_state_data, uint32_t length) {
+	with_network_decompressed_section(mp_state_data, [&state](uint8_t const* ptr_in, uint32_t length) {
+		read_entire_mp_state(ptr_in, ptr_in + length, state);
+	});
+}
+
 std::string add_line_to_oos_report(const std::string& member_name, const std::string& value_1, const std::string& value_2) {
 	return "\tObject " + member_name + ": " + value_1 + ", " + value_2 + "\n";
 
@@ -1174,6 +1180,16 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 		add_compare_to_oos_report(state_1.military_definitions.great_wars_enabled, state_2.military_definitions.great_wars_enabled, "great_wars_enabled") +
 		add_compare_to_oos_report(state_1.military_definitions.world_wars_enabled, state_2.military_definitions.world_wars_enabled, "world_wars_enabled");
 	return report;
+}
+
+void dump_oos_report(sys::state& state_1, sys::state& state_2) {
+	auto sdir = simple_fs::get_or_create_oos_directory();
+	auto saveprefix = simple_fs::utf8_to_native(state_1.network_state.nickname.to_string() + state_2.network_state.nickname.to_string());
+	auto dt = state_1.current_date.to_ymd(state_1.start_date);
+	auto savepostfix = NATIVE("OOS.log");
+	auto filename = saveprefix + simple_fs::utf8_to_native(std::to_string(dt.year) + std::to_string(dt.month) + std::to_string(dt.day)) + savepostfix;
+	std::string result = generate_full_oos_report(state_1, state_2);
+	simple_fs::write_file(sdir, filename, result.data(), result.length());
 }
 
 
@@ -1531,6 +1547,24 @@ void write_network_save(sys::state& state) {
 
 }
 
+
+std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out) {
+	size_t length = sizeof_entire_mp_state(state);
+	auto mp_state_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	/* Clear the player nation since it is part of the savegame */
+	write_entire_mp_state(mp_state_buffer.get(), state); //writeoff data
+	// this is an upper bound, since compacting the data may require less space
+	std::unique_ptr<FT_Byte[]> compressed_data =  std::unique_ptr<FT_Byte[]>(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
+	auto buffer_position = write_network_compressed_section(compressed_data.get(), mp_state_buffer.get(), uint32_t(length));
+	size_out = uint32_t(buffer_position - compressed_data.get());
+	return std::move(compressed_data);
+
+}
+
+
+
+
+
 void broadcast_save_to_clients(sys::state& state) {
 	send_savegame(state, [](const client_data& d) {return true; });
 }
@@ -1557,6 +1591,10 @@ void broadcast_to_clients(sys::state& state, command::command_data& c) {
 	if(c.header.type == command::command_type::notify_player_joins) {
 		auto& payload = c.get_payload<command::notify_joins_data>();
 		payload.player_password = sys::player_password_raw{}; // Never send password to clients
+	}
+	else if(c.header.type == command::command_type::notify_player_oos) {
+		// clear all data before we broadcast this command to the clients. Otherwise the mp state which the oos'd client sent us will also be sent and cost us alotta bandwidth
+		c.payload.clear();
 	}
 	/* Propagate to all the clients */
 	for(auto& client : state.network_state.clients) {

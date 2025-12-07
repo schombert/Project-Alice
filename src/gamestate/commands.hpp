@@ -535,9 +535,14 @@ struct notify_player_ban_data {
 struct notify_player_kick_data {
 	bool make_ai;
 };
-//struct notify_player_oos_data {
-//	sys::player_name player_name;
-//};
+struct notify_player_oos_data {
+	uint32_t size;
+	uint8_t* variable_data() {
+		return reinterpret_cast<uint8_t*>(&size + 1);
+	}
+
+
+};
 struct change_ai_nation_state_data {
 	bool no_ai;
 };
@@ -566,6 +571,7 @@ struct notify_mp_data_data_recv {
 	uint8_t mp_data[1];
 };
 
+constexpr uint32_t MAX_MP_STATE_SIZE = 300000000; // max 300 MB for the entire MP state
 
 static ankerl::unordered_dense::map<command::command_type, command::command_type_data> command_type_handlers = {
 	{command_type::change_nat_focus, command_type_data{ sizeof(command::national_focus_data), sizeof(command::national_focus_data) } },
@@ -687,7 +693,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::notify_player_picks_nation, command_type_data{ sizeof(command::nation_pick_data), sizeof(command::nation_pick_data) } },
 	{ command_type::notify_player_joins, command_type_data{ sizeof(command::notify_joins_data), sizeof(command::notify_joins_data) } },
 	{ command_type::notify_player_leaves, command_type_data{ sizeof(command::notify_leaves_data), sizeof(command::notify_leaves_data) } },
-	{ command_type::notify_player_oos, command_type_data{ 0, 0 } },
+	{ command_type::notify_player_oos, command_type_data{ sizeof(command::notify_player_oos_data), sizeof(command::notify_player_oos_data) + MAX_MP_STATE_SIZE } },
 	{ command_type::notify_save_loaded, command_type_data{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) } },
 	{ command_type::notify_start_game, command_type_data{ 0, 0 } },
 	{ command_type::notify_stop_game, command_type_data{ 0, 0 } },
