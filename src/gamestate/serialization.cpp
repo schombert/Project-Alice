@@ -163,7 +163,7 @@ size_t sizeof_entire_mp_state(sys::state& state) {
 	return sz;
 }
 
-uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
 	{  // lua script
 		ptr_in = deserialize(ptr_in, state.lua_combined_script);
@@ -337,13 +337,18 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
-	{ // ui definitions
+	if(!for_mp_checksum){ // ui definitions
 		ptr_in = deserialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = deserialize(ptr_in, state.ui_defs.textures);
 		ptr_in = deserialize(ptr_in, state.ui_defs.gui);
 		ptr_in = deserialize(ptr_in, state.font_collection.font_names);
 		ptr_in = deserialize(ptr_in, state.ui_defs.extensions);
 	}
+	return ptr_in;
+}
+
+uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum) {
+	ptr_in = read_handwritten_scenario_section(ptr_in, section_end, state, for_mp_checksum);
 
 	// data container
 
@@ -353,7 +358,9 @@ uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* secti
 
 	return section_end;
 }
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
+
+
+uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
 	{  // lua script
 		ptr_in = serialize(ptr_in, state.lua_combined_script);
@@ -526,13 +533,20 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
 	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 
-	{ // ui definitions
+	if(!for_mp_checksum){ // ui definitions
 		ptr_in = serialize(ptr_in, state.ui_defs.gfx);
 		ptr_in = serialize(ptr_in, state.ui_defs.textures);
 		ptr_in = serialize(ptr_in, state.ui_defs.gui);
 		ptr_in = serialize(ptr_in, state.font_collection.font_names);
 		ptr_in = serialize(ptr_in, state.ui_defs.extensions);
 	}
+	return ptr_in;
+}
+
+
+
+uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum) {
+	ptr_in = write_handwritten_scenario_section(ptr_in, state, for_mp_checksum);
 
 	dcon::load_record result = state.world.make_serialize_record_store_scenario();
 	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
@@ -540,7 +554,8 @@ uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state) {
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-scenario_size sizeof_scenario_section(sys::state& state) {
+
+size_t sizeof_handwritten_scenario_section(sys::state& state, bool for_mp_checksum = false) {
 	size_t sz = 0;
 
 	// hand-written contribution
@@ -567,8 +582,12 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 		sz += serialize_size(state.map_state.map_data.province_area_km2);
 		sz += serialize_size(state.map_state.map_data.diagonal_borders);
 	}
-	{ sz += sizeof(parsing::defines); }
-	{ sz += sizeof(economy::global_economy_state); }
+	{
+		sz += sizeof(parsing::defines);
+	}
+	{
+		sz += sizeof(economy::global_economy_state);
+	}
 	{ // culture definitions
 		sz += serialize_size(state.culture_definitions.party_issues);
 		sz += serialize_size(state.culture_definitions.political_issues);
@@ -709,13 +728,22 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	sz += serialize_size(state.untrans_key_to_text_sequence);
 	sz += sizeof(state.hardcoded_gamerules);
 
-	{ // ui definitions
+	if(!for_mp_checksum){ // ui definitions
 		sz += serialize_size(state.ui_defs.gfx);
 		sz += serialize_size(state.ui_defs.textures);
 		sz += serialize_size(state.ui_defs.gui);
 		sz += serialize_size(state.font_collection.font_names);
 		sz += serialize_size(state.ui_defs.extensions);
 	}
+	return sz;
+
+}
+
+scenario_size sizeof_scenario_section(sys::state& state, bool for_mp_checksum) {
+	size_t sz = 0;
+
+	// hand-written contribution
+	sz += sizeof_handwritten_scenario_section(state, for_mp_checksum);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_scenario();
@@ -725,11 +753,13 @@ scenario_size sizeof_scenario_section(sys::state& state) {
 	return scenario_size{ sz + szb, sz };
 }
 
-uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
+uint8_t const* read_handwritten_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
 	ptr_in = deserialize(ptr_in, state.unit_names);
 	ptr_in = deserialize(ptr_in, state.unit_names_indices);
-	ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
+	if(!for_mp_checksum) {
+		ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
+	}
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
 	ptr_in = memcpy_deserialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_deserialize(ptr_in, state.current_crisis_state);
@@ -752,7 +782,9 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	ptr_in = deserialize(ptr_in, state.pending_p_event);
 	ptr_in = deserialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_deserialize(ptr_in, state.pending_messages);
-	ptr_in = deserialize(ptr_in, state.player_data_cache);
+	if(!for_mp_checksum) {
+		ptr_in = deserialize(ptr_in, state.player_data_cache);
+	}
 	ptr_in = deserialize(ptr_in, state.future_n_event);
 	ptr_in = deserialize(ptr_in, state.future_p_event);
 
@@ -764,6 +796,11 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
+	return ptr_in;
+}
+
+uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum) {
+	ptr_in = read_handwritten_save_section(ptr_in, section_end, state, for_mp_checksum);
 
 	// data container contribution
 
@@ -780,11 +817,13 @@ uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_e
 	return section_end;
 }
 
-uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
+uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
 	ptr_in = serialize(ptr_in, state.unit_names);
 	ptr_in = serialize(ptr_in, state.unit_names_indices);
-	ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
+	if(!for_mp_checksum) {
+		ptr_in = memcpy_serialize(ptr_in, state.local_player_nation);
+	}
 	ptr_in = memcpy_serialize(ptr_in, state.current_date);
 	ptr_in = memcpy_serialize(ptr_in, state.game_seed);
 	ptr_in = memcpy_serialize(ptr_in, state.current_crisis_state);
@@ -800,14 +839,16 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 	ptr_in = memcpy_serialize(ptr_in, state.last_crisis_end_date);
 	ptr_in = serialize(ptr_in, state.crisis_defender_wargoals);
 	ptr_in = serialize(ptr_in, state.crisis_attacker_wargoals);
- 	ptr_in = memcpy_serialize(ptr_in, state.inflation);
+	ptr_in = memcpy_serialize(ptr_in, state.inflation);
 	ptr_in = serialize(ptr_in, state.great_nations);
 	ptr_in = serialize(ptr_in, state.pending_n_event);
 	ptr_in = serialize(ptr_in, state.pending_f_n_event);
 	ptr_in = serialize(ptr_in, state.pending_p_event);
 	ptr_in = serialize(ptr_in, state.pending_f_p_event);
 	ptr_in = memcpy_serialize(ptr_in, state.pending_messages);
-	ptr_in = serialize(ptr_in, state.player_data_cache);
+	if(!for_mp_checksum) {
+		ptr_in = serialize(ptr_in, state.player_data_cache);
+	}
 	ptr_in = serialize(ptr_in, state.future_n_event);
 	ptr_in = serialize(ptr_in, state.future_p_event);
 
@@ -818,6 +859,10 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
+}
+
+uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum) {
+	ptr_in = write_handwritten_save_section(ptr_in, state, for_mp_checksum);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
@@ -826,14 +871,17 @@ uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state) {
 
 	return reinterpret_cast<uint8_t*>(start);
 }
-size_t sizeof_save_section(sys::state& state) {
+
+size_t sizeof_handwritten_save_section(sys::state& state, bool for_mp_checksum = false) {
 	size_t sz = 0;
 
 	// hand-written contribution
 
 	sz += serialize_size(state.unit_names);
 	sz += serialize_size(state.unit_names_indices);
-	sz += sizeof(state.local_player_nation);
+	if(!for_mp_checksum) {
+		sz += sizeof(state.local_player_nation);
+	}
 	sz += sizeof(state.current_date);
 	sz += sizeof(state.game_seed);
 	sz += sizeof(state.current_crisis_state);
@@ -856,7 +904,9 @@ size_t sizeof_save_section(sys::state& state) {
 	sz += serialize_size(state.pending_p_event);
 	sz += serialize_size(state.pending_f_p_event);
 	sz += sizeof(state.pending_messages);
-	sz += serialize_size(state.player_data_cache);
+	if(!for_mp_checksum) {
+		sz += serialize_size(state.player_data_cache);
+	}
 	sz += serialize_size(state.future_n_event);
 	sz += serialize_size(state.future_p_event);
 
@@ -867,6 +917,13 @@ size_t sizeof_save_section(sys::state& state) {
 		sz += sizeof(state.military_definitions.great_wars_enabled);
 		sz += sizeof(state.military_definitions.world_wars_enabled);
 	}
+	return sz;
+}
+
+size_t sizeof_save_section(sys::state& state, bool for_mp_checksum) {
+	size_t sz = 0;
+
+	sz += sizeof_handwritten_save_section(state, for_mp_checksum);
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();

@@ -1148,7 +1148,7 @@ std::string add_collection_compare_to_oos_report(const std::span<const T> collec
 std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
 	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
 	std::string report = generate_oos_report(state_1.world, state_2.world, record);
-	report += "HANDWRITTEN CONTRIBUTION\n";
+	report += "SAVE HANDWRITTEN CONTRIBUTION\n";
 	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
 		add_collection_compare_to_oos_report<int32_t>(state_1.unit_names_indices, state_2.unit_names_indices, "unit_names_indices") +
 		add_compare_to_oos_report(state_1.local_player_nation, state_2.local_player_nation, "local_player_nation") +
@@ -1179,6 +1179,12 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 		add_collection_compare_to_oos_report<dcon::bitfield_type>(state_1.national_definitions.global_flag_variables, state_2.national_definitions.global_flag_variables, "global_flag_variables") +
 		add_compare_to_oos_report(state_1.military_definitions.great_wars_enabled, state_2.military_definitions.great_wars_enabled, "great_wars_enabled") +
 		add_compare_to_oos_report(state_1.military_definitions.world_wars_enabled, state_2.military_definitions.world_wars_enabled, "world_wars_enabled");
+
+	report += "SCENARIO HANDWRITTEN CONTRIBUTION\n";
+	report += add_compare_to_oos_report(state_1.lua_combined_script, state_2.lua_combined_script, "lua_combined_script") +
+		add_compare_to_oos_report(state_1.lua_game_loop_script, state_2.lua_game_loop_script, "lua_game_loop_script") +
+		add_compare_to_oos_report(state_1.lua_ui_script, state_2.lua_ui_script, "lua_ui_script") +
+		add_compare_to_oos_report(state_1.map_state.map_data.size_x, state_2.map_state.map_data.size_x, "map_data.size_x");
 	return report;
 }
 

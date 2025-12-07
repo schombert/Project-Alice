@@ -235,16 +235,16 @@ mod_identifier extract_mod_information(uint8_t const* ptr_in, uint64_t file_size
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size);
 
 // Note: these functions are for read / writing the *uncompressed* data
-uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
-uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
-uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
+uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false);
+uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false);
+uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum = false);
+uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum = false);
 struct scenario_size {
 	size_t total_size;
 	size_t checksum_offset;
 };
-scenario_size sizeof_scenario_section(sys::state& state);
-size_t sizeof_save_section(sys::state& state);
+scenario_size sizeof_scenario_section(sys::state& state, bool for_mp_checksum = false);
+size_t sizeof_save_section(sys::state& state, bool for_mp_checksum = false);
 
 size_t sizeof_mp_data(sys::state& state);
 uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
