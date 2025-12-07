@@ -1866,3 +1866,20 @@ production_table_amount_header;Quantity
 economy_data_toggle_tooltip;Economy Overview dispays aggregated economy data of the province
 province_tiles_toggle_tooltip;Province Tiles displays all the buildings of the province, including administrations, ports, factories, RGOs, forts, railroads, barracks, etc.
 province_market_toggle_tooltip;Local Market tab displays data of the province market, including prices, supply and demand, production and consumption, stockpiles, imports and exports, etc.
+production_category_production;Production
+production_category_consumption;Consumption
+production_category_employment;Employment
+production_category_details;Details
+production_location_national;All states
+production_filter_all;All commodities
+production_about_combined;Combined
+production_about_factory;Factories
+production_about_artisan;Artisans
+production_about_rgo;RGOs
+production_about_factory_one;Factory
+production_about_artisan_one;Artisan
+production_about_rgo_one;RGO
+production_sub_item_inputs;Inputs
+production_sub_item_uses;Uses
+production_sub_item_labor;Workers
+production_sub_item_consumption;Inputs
