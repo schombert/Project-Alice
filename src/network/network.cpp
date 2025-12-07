@@ -304,7 +304,7 @@ std::string get_last_error_msg() {
 	err_msg += simple_fs::native_to_utf8(err_text);
 	return err_msg;
 #else
-	return std::string("Dummy");
+	return strerror(errno);
 #endif
 }
 
