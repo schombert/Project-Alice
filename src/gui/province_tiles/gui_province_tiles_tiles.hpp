@@ -391,18 +391,6 @@ public:
 		text::add_line(state, contents, "local_admin_efficiency", text::variable_type::value, text::fp_percentage{ economy::local_administration_efficiency });
 
 		text::add_line(state, contents, "admin_production", text::variable_type::value, text::fp_one_place{ economy::local_administration_control_production(state, n, target.province) });
-
-		text::add_line_break_to_layout(state, contents);
-
-		auto info = economy::explain_tax_income_local(state, n, target.province);
-
-		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
-		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential });
-		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential });
-		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential });
-		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
-		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
-		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
 	}
 };
 
@@ -450,24 +438,10 @@ public:
 		}
 
 		text::add_line(state, contents, "admin_production", text::variable_type::value, text::fp_one_place{ economy::capital_administration_control_production(state, n, target.province) });
-
-		text::add_line_break_to_layout(state, contents);
-
-		auto info = economy::explain_tax_income_local(state, n, target.province);
-
-		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
-		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);
-		text::add_line(state, contents, "mid_taxes", text::variable_type::value, text::fp_currency{ info.mid });
-		text::add_line(state, contents, "mid_potential", text::variable_type::value, text::fp_currency{ info.mid_potential }, 15);
-		text::add_line(state, contents, "rich_taxes", text::variable_type::value, text::fp_currency{ info.rich });
-		text::add_line(state, contents, "rich_potential", text::variable_type::value, text::fp_currency{ info.rich_potential }, 15);
 	}
 };
 
-class no_administration_tile : public tile_type_logic {
+class tax_collector_tile : public tile_type_logic {
 public:
 	dcon::text_key get_name(sys::state& state, province_tile target) noexcept override {
 		return state.lookup_key("administration_tile");
@@ -486,11 +460,43 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents, province_tile target) noexcept override {
 		auto n = state.world.province_get_nation_from_province_ownership(target.province);
 
+		// TODO: Explain incoming control_scale
+		
+		// Explain control_scale consumption
+		auto admin_cost_of_province = nations::admin_cost_of_province(state, target.province);
+		text::add_line(state, contents, "admin_cost_of_province", text::variable_type::value, text::fp_one_place{ admin_cost_of_province });
+		text::add_line(state, contents, "admin_cost_of_province_area", text::variable_type::value, text::fp_one_place{ state.map_state.map_data.province_area_km2[province::to_map_id(target.province)] }, 15);
+		text::add_line(state, contents, "admin_cost_of_province_population", text::variable_type::value, text::fp_one_place{ state.world.province_get_demographics(target.province, demographics::total) }, 15);
+		auto is_coastal = state.world.province_get_is_coast(target.province);
+		auto has_major_river = state.world.province_get_has_major_river(target.province);
+		if(is_coastal) {
+			text::add_line(state, contents, "admin_cost_of_province_coastal", text::variable_type::value, text::fp_percentage{ 0.5f }, 30);
+		}
+		if(has_major_river) {
+			text::add_line(state, contents, "admin_cost_of_province_river", text::variable_type::value, text::fp_percentage{ 0.5f }, 30);
+		}
+
+		text::add_line_break_to_layout(state, contents);
+
+		// Explain tax collection coming from control_ratio
 		auto info = economy::explain_tax_income_local(state, n, target.province);
 
 		text::add_line(state, contents, "tax_collection_rate", text::variable_type::value, text::fp_percentage{ info.local_multiplier });
-		text::add_line_break_to_layout(state, contents);
+		auto from_control = state.world.province_get_control_ratio(target.province);
+		auto efficiency = nations::tax_efficiency(state, n);
+		// we can always collect at least some taxes in the capital:
+		auto capital = state.world.nation_get_capital(n);
 
+		if(target.province == capital && from_control < 0.1f) {
+			text::add_line(state, contents, "tax_collection_rate_capital_base", text::variable_type::value, text::fp_percentage{ 0.1f }, 15);
+		}
+		else {
+			text::add_line(state, contents, "tax_collection_rate_control", text::variable_type::value, text::fp_percentage{ from_control }, 15);
+		}
+
+		text::add_line(state, contents, "tax_collection_rate_efficiency", text::variable_type::value, text::fp_percentage{ 1.f + efficiency }, 15);
+
+		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "poor_taxes", text::variable_type::value, text::fp_currency{ info.poor });
 		text::add_line(state, contents, "poor_potential", text::variable_type::value, text::fp_currency{ info.poor_potential }, 15);

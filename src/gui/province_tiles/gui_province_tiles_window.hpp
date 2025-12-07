@@ -19,7 +19,7 @@ inline static province_build_new_tile province_build_new_tile_logic;
 inline static factory_construction_tile factory_construction_tile_logic;
 inline static local_administration_tile local_administration_tile_logic;
 inline static capital_administration_tile capital_administration_tile_logic;
-inline static no_administration_tile no_administration_tile_logic;
+inline static tax_collector_tile tax_collector_tile_logic;
 inline static market_tile market_tile_logic;
 
 class province_tile_button : public button_element_base {
@@ -41,8 +41,8 @@ public:
 		}
 		else if(tile.local_administration) {
 			tile_logic = &local_administration_tile_logic;
-		} else if(tile.no_administration_tile) {
-			tile_logic = &no_administration_tile_logic;
+		} else if(tile.tax_collector_tile) {
+			tile_logic = &tax_collector_tile_logic;
 		}
 		else if(tile.market) {
 			tile_logic = &market_tile_logic;

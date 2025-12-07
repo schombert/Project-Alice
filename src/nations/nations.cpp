@@ -1060,39 +1060,40 @@ void update_administrative_efficiency(sys::state& state) {
 		auto current_control = state.world.province_get_control_ratio(pids);
 		auto mass = ve_admin_cost_of_province(state, pids);
 		auto prize = state.world.province_get_demographics(pids, demographics::total);
+		// Higher population relative to admin cost = more desirable to control provinces
 		auto desire = ve::max(0.f, (prize / mass - 0.1f));
 
-		auto control_scale = ve::max(0.f, state.world.province_get_control_scale(pids));
+		auto control_scale = ve::max(0.f, state.world.province_get_control_scale(pids)); // Bureaucratic capacity assigned to the province
 		// as we expand control over local land, it requires much higher levels of administrative work to increase it
-		auto available_control = ve::min(control_scale * desire * 5.f, mass);
+		auto available_control = ve::min(control_scale * desire * 5.f, mass); // How much control can be established this tick capped at mass (can't exceed admin capacity needed)
 
-		auto speed = (available_control / mass - current_control);
+		auto speed = (available_control / mass - current_control); // Difference between potential and current control. Control grows slowly at 1% per tick to avoid sudden drops in taxes
 
-		// slow down to avoid sudden drops in taxes
 		state.world.province_set_control_ratio(
 			pids,
 			ve::min(1.f, ve::max(0.f, current_control + 0.01f * speed))
-		);
+		); // Control is clamped at 1.f for 100% control
+
+		// Control Scale Decay
+
 		auto supply = ve::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::supply_limit) + 1.f
-		);
-		// assume that coastal terrain is non-issue
-
+		); // Low supply increases decay (harder to maintain control)
 		auto normal_multiplier = ve::fp_vector{ 1.f };
 		auto reduced_multiplier = ve::fp_vector{ 0.2f };
-		auto coast_multiplier = ve::select(is_coastal, reduced_multiplier, normal_multiplier);
-		auto river_multiplier = ve::select(has_major_river, reduced_multiplier, normal_multiplier);
+		auto coast_multiplier = ve::select(is_coastal, reduced_multiplier, normal_multiplier); // Coastal reduces decay by 20%
+		auto river_multiplier = ve::select(has_major_river, reduced_multiplier, normal_multiplier); // Rivers reduce decay by 20%
 		auto movement = ve::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::movement_cost) + 1.f
-		);
+		); // High movement cost increases decay
 		auto attrition = ve::max(
 			0.f,
 			state.world.province_get_modifier_values(pids, sys::provincial_mod_offsets::max_attrition) + 1.f
-		);
+		); // High attrition increases decay
 		auto decay = 0.001f / (1.f + supply) * (1.f + movement) * (1.f + attrition) * coast_multiplier * river_multiplier;
-		state.world.province_set_control_scale(pids, ve::max(control_scale * (1.f - decay) - available_control, 0.f));
+		state.world.province_set_control_scale(pids, ve::max(control_scale * (1.f - decay) - available_control, 0.f)); // Substract control used this tick (available_control) and decay from collected control
 	});
 }
 
