@@ -118,7 +118,7 @@ struct border {
 enum class map_view;
 class display_data {
 public:
-	display_data(){};
+	display_data();
 	~display_data();
 
 	// Called to load the terrain and province map data

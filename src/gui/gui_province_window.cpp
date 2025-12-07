@@ -12,6 +12,7 @@
 #include "province_templates.hpp"
 #include "nations_templates.hpp"
 #include "gui_province_tiles_window.hpp"
+#include "gui_province_market_window.hpp"
 #include "construction.hpp"
 #include "economy_trade_routes.hpp"
 #include "gui_piechart_templates.hpp"
@@ -186,21 +187,21 @@ public:
 	}
 };
 
-void province_terrain_image::on_update(sys::state& state) noexcept  {
+void province_terrain_image::on_update(sys::state& state) noexcept {
 	dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 	auto fat_id = dcon::fatten(state.world, province_id);
 	auto terrain_id = fat_id.get_terrain().id;
 	auto terrain_image = state.province_definitions.terrain_to_gfx_map[terrain_id];
-	if(base_data.get_element_type() == element_type::image) {
+	if(base_data.get_element_type() == element_type::image && terrain_image) {
 		base_data.data.image.gfx_object = terrain_image;
 	}
 }
 
-tooltip_behavior province_terrain_image::has_tooltip(sys::state& state) noexcept  {
+tooltip_behavior province_terrain_image::has_tooltip(sys::state& state) noexcept {
 	return tooltip_behavior::variable_tooltip;
 }
 
-void province_terrain_image::update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept  {
+void province_terrain_image::update_tooltip(sys::state& state, int32_t x, int32_t t, text::columnar_layout& contents) noexcept {
 	dcon::province_id province_id = retrieve<dcon::province_id>(state, parent);
 	auto fat_id = dcon::fatten(state.world, province_id);
 	//terrain
@@ -2445,13 +2446,22 @@ public:
 
 enum province_subtab_toggle_signal {
 	economy = 1,
-	tiles = 2
+	tiles = 2,
+	market = 3
 };
 
 class economy_data_toggle : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::economy);
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "economy_data_toggle_tooltip");
 	}
 };
 
@@ -2463,6 +2473,33 @@ public:
 
 	void on_create(sys::state& state) noexcept override {
 		frame = 1;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "province_tiles_toggle_tooltip");
+	}
+};
+
+class province_market_toggle : public button_element_base {
+public:
+	void button_action(sys::state& state) noexcept override {
+		send<province_subtab_toggle_signal>(state, parent, province_subtab_toggle_signal::market);
+	}
+
+	void on_create(sys::state& state) noexcept override {
+		frame = 2;
+	}
+
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::tooltip;
+	}
+
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		text::add_line(state, contents, "province_market_toggle_tooltip");
 	}
 };
 
@@ -2547,6 +2584,8 @@ std::unique_ptr<element_base> province_view_window::make_child(sys::state& state
 		return make_element_by_type<economy_data_toggle>(state, id);
 	} else if(name == "toggle-tiles-province") {
 		return make_element_by_type<province_tiles_toggle>(state, id);
+	} else if(name == "toggle-market-province") {
+		return make_element_by_type<province_market_toggle>(state, id);
 	} else {
 		return nullptr;
 	}
@@ -2566,6 +2605,11 @@ void province_view_window::on_create(sys::state& state) noexcept {
 	tiles_window = ptr2.get();
 	tiles_window->set_visible(state, false);
 	add_child_to_front(std::move(ptr2));
+
+	auto ptr3 = make_element_by_type<province_market_window>(state, "province_market_window");
+	market_window = ptr3.get();
+	market_window->set_visible(state, false);
+	add_child_to_front(std::move(ptr3));
 }
 
 message_result province_view_window::get(sys::state& state, Cyto::Any& payload) noexcept {
@@ -2590,11 +2634,31 @@ message_result province_view_window::get(sys::state& state, Cyto::Any& payload) 
 	} else if(payload.holds_type<province_subtab_toggle_signal>()) {
 		auto enum_val = any_cast<province_subtab_toggle_signal>(payload);
 
+		// Show one out of 3 possible window-tabs. On second click - hide opened tab.
 		if(enum_val == province_subtab_toggle_signal::tiles) {
-			tiles_window->set_visible(state, !tiles_window->is_visible());
+			if(!tiles_window->is_visible()) {
+				tiles_window->set_visible(state, true);
+				economy_window->set_visible(state, false);
+				market_window->set_visible(state, false);
+			} else {
+				tiles_window->set_visible(state, false);
+			}
 		} else if(enum_val == province_subtab_toggle_signal::economy) {
-
-			economy_window->set_visible(state, !economy_window->is_visible());
+			if(!economy_window->is_visible()) {
+				tiles_window->set_visible(state, false);
+				economy_window->set_visible(state, true);
+				market_window->set_visible(state, false);
+			} else {
+				economy_window->set_visible(state, false);
+			}
+		} else if(enum_val == province_subtab_toggle_signal::market) {
+			if(!market_window->is_visible()) {
+				tiles_window->set_visible(state, false);
+				economy_window->set_visible(state, false);
+				market_window->set_visible(state, true);
+			} else {
+				market_window->set_visible(state, false);
+			}
 		}
 
 		return message_result::consumed;
@@ -2630,6 +2694,6 @@ void province_view_window::on_update(sys::state& state) noexcept {
 	if(state.ui_state.build_province_unit_window && state.ui_state.build_province_unit_window->is_visible() && n != state.local_player_nation) {
 		state.ui_state.build_province_unit_window->set_visible(state, false);
 	}
-}
 
+}
 }

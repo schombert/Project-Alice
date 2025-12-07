@@ -15,7 +15,7 @@ inline constexpr float local_market_cut_baseline = 0.01f;
 inline constexpr float merchant_cut_foreign = 0.05f;
 inline constexpr float merchant_cut_domestic = 0.001f;
 inline constexpr float effect_of_transportation_scale = 0.0005f;
-inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 1.f;
+inline constexpr float trade_distance_covered_by_pair_of_workers_per_unit_of_good = 10.f;
 inline constexpr float invalid_trade_route_distance = 999999.f;
 inline constexpr float trade_loss_per_distance_unit = 0.0001f;
 inline constexpr float trade_effect_of_scale_lower_bound = 0.1f;
@@ -31,7 +31,7 @@ constexpr inline uint32_t can_invest = expand_factory | build_factory;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.02f;
+inline constexpr float stockpile_spoilage = 0.01f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
 inline constexpr float market_savings_target = 1'000'000.f;
 inline constexpr float trade_transaction_soft_limit = 1'000.f;
@@ -52,6 +52,6 @@ inline constexpr float production_throughput_multiplier = 1.05f;
 // profit cuts change distribution of incomes
 inline constexpr float aristocrats_greed = 0.2f;
 inline constexpr float artisans_greed = 0.3f;
-inline constexpr float labor_greed_life = 0.01f;
+inline constexpr float labor_greed_life = 0.1f;
 inline constexpr float capitalists_greed = 0.3f;
 }

@@ -195,7 +195,8 @@ enum class map_label_mode : uint8_t {
 	none = 0,
 	linear = 1,
 	quadratic = 2,
-	cubic = 3
+	cubic = 3,
+	spherical = 4
 };
 
 enum class map_zoom_mode : uint8_t {

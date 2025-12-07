@@ -1695,6 +1695,18 @@ alice_toggle_administration;Establish or abolish local administration. Administr
 administration_tile;Local administration
 market_tile;Local market
 rgo_tile_header;Natural source of ?Y$good$?W
+province_market_header;Commodity: ?Y$good$?!
+province_market_market;Market: ?Y$name$?!
+province_market_price;Price: ?Y$val$?!
+province_market_supply;Supply: ?G$val$?!
+province_market_demand;Demand: ?R$val$?!
+province_market_production;Production: ?G$val$?!
+province_market_consumption;Consumption: ?R$val$?!
+province_market_stockpiles;Stockpiles: ?Y$val$?!
+province_market_balance;Balance: ?Y$val$?!
+province_market_trade_in;Trade in: ?G$val$?!
+province_market_trade_out;Trade out: ?R$val$?!
+province_market_trade_balance;Trade balance: ?Y$val$?!
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
@@ -1812,6 +1824,8 @@ alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
 ports_size;Size of ports
+civilian_port;Сivilian port
+civilian_port_size;Size: ?Y$val$?!
 alice_infrastructure_tab;Infrastructure
 economy_overview_header;Economy overview
 alice_extra_armies_tooltip;+ ?Y$x$?W more armies
@@ -1849,20 +1863,6 @@ production_combine_types_toggle;Combine Types
 production_table_name_header;Name
 production_table_size_header;Size
 production_table_amount_header;Quantity
-production_category_production;Production
-production_category_consumption;Consumption
-production_category_employment;Employment
-production_category_details;Details
-production_location_national;All states
-production_filter_all;All commodities
-production_about_combined;Combined
-production_about_factory;Factories
-production_about_artisan;Artisans
-production_about_rgo;RGOs
-production_about_factory_one;Factory
-production_about_artisan_one;Artisan
-production_about_rgo_one;RGO
-production_sub_item_inputs;Inputs
-production_sub_item_uses;Uses
-production_sub_item_labor;Workers
-production_sub_item_consumption;Inputs
+economy_data_toggle_tooltip;Economy Overview dispays aggregated economy data of the province
+province_tiles_toggle_tooltip;Province Tiles displays all the buildings of the province, including administrations, ports, factories, RGOs, forts, railroads, barracks, etc.
+province_market_toggle_tooltip;Local Market tab displays data of the province market, including prices, supply and demand, production and consumption, stockpiles, imports and exports, etc.

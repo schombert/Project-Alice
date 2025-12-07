@@ -1554,7 +1554,7 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float step_y = 25.f;
 
 		std::vector<glm::vec3> points;
-		std::vector<glm::vec2> bad_points;
+		std::vector<sphere_R3::point> points_R3;
 
 		rough_box_bottom = std::max(0.f, rough_box_bottom - step_y);
 		rough_box_top = std::min(float(map_data.size_y), rough_box_top + step_y);
@@ -1603,7 +1603,35 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			return 0.f;
 		};
 
+		auto weight_decay = [&](float x, float y) {
+			if(x < 0.f) return 0.f;
+			if(y < 0.f) return 0.f;
+			if((uint32_t)x >= map_data.size_x) return 0.f;
+			if((uint32_t)y >= map_data.size_y) return 0.f;
+			glm::vec2 candidate = { x, y };
+			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
+			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
+			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			if(!pid) {
+				return 0.7f;
+			}
+			auto owner = state.world.province_get_nation_from_province_ownership(pid);
+			if(!owner) {
+				if(sea_owner[pid.index()] == n) {
+					return 0.8f;
+				}
+				return 0.7f;
+			}
+			for(auto visited_region : group_of_regions) {
+				if(state.world.province_get_connected_region_id(pid) == visited_region) {
+					return 0.99f;
+				}
+			}
+			return 0.f;
+		};
+
 		std::vector<float> original_weights{ };
+		std::vector<float> decay_multiplier{ };
 		std::vector<float> weights_buffer{ };
 		std::vector<glm::vec3> grid{ };
 
@@ -1617,8 +1645,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				float x = rough_box_left + float(i) * local_step.x;
 				//glm::vec2 candidate = { x, y };
 				float weight = check_point(x, y);
+				float local_density = 1.f;
+				if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+					float lat = (y / (float)map_data.size_y - 0.5f) * std::numbers::pi_v<float>;
+					local_density = cos(lat);
+				}
+				weight *= local_density;
 				grid.push_back(glm::vec3{ x, y, weight });
 				original_weights.push_back(weight);
+				decay_multiplier.push_back(weight_decay(x, y));
 				weights_buffer.push_back(0.f);
 			}
 		}
@@ -1648,7 +1683,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 							+ edge * get(i, j - 1) + center * get(i, j) + edge * get(i, j + 1)
 							+ edge * get(i + 1, j - 1) + center * get(i + 1, j) + edge * get(i + 1, j + 1);
 
-						weights_buffer[j * width_steps + i] = std::min(3.f, smooth * (0.05f + original_weights[j * width_steps + i]));
+						weights_buffer[j * width_steps + i] = std::min(3.f,
+							smooth
+							* (1.f + original_weights[j * width_steps + i] * 0.1f)
+							* decay_multiplier[j * width_steps + i]
+						);
 					}
 				}
 			}
@@ -1678,6 +1717,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			for(int i = 0; i < width_steps; i++) {
 				if(grid[j * width_steps + i].z > 0.5f) {
 					points.push_back(grid[j * width_steps + i]);
+
+					square::point point_square{ { grid[j * width_steps + i].x / (float)map_data.size_x, grid[j * width_steps + i].y / (float)map_data.size_y } };
+
+					points_R3.push_back(sphere_R3::from_square(point_square));
+
+					//auto x = grid[j * width_steps + i].x;
+					//auto y = grid[j * width_steps + i].y;
+					//auto weight = grid[j * width_steps + i].z;
+					//draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00004f * weight);
 				}
 			}
 		}
@@ -1784,16 +1832,21 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 
 		std::vector<glm::vec2> centroids;
+		std::vector<sphere_R3::point> centroids_R3;
 
 		for(size_t i = 0; i < num_of_clusters; i++) {
 			centroids.push_back(points[i]);
+			centroids_R3.push_back(points_R3[i]);
 		}
 
 		for(int step = 0; step < 50; step++) {
 			std::vector<glm::vec2> new_centroids;
+			std::vector<sphere_R3::point> new_centroids_R3;
 			std::vector<float> counters;
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids.push_back(glm::vec2(0, 0));
+				sphere_R3::point r3_cent{ {0.f, 0.f, 0.f } };
+				new_centroids_R3.push_back(r3_cent);
 				counters.push_back(0);
 			}
 
@@ -1803,75 +1856,122 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				float best_dist = std::numeric_limits<float>::max();
 
 				auto point = glm::vec2{ points[i].x, points[i].y };
+				auto point_sphere = points_R3[i];
 				auto weight = points[i].z;
 
 				//finding the closest centroid
 				for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
-					if(best_dist > glm::distance(centroids[cluster], point)) {
+					float dist = glm::distance(centroids[cluster], point);
+					if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+						auto centroid_sphere = centroids_R3[cluster];
+						dist = glm::distance(centroid_sphere.data, point_sphere.data);
+					}
+
+					if(best_dist > dist) {
 						closest = cluster;
-						best_dist = glm::distance(centroids[cluster], point);
+						best_dist = dist;
 					}
 				}
 
 				new_centroids[closest] += point * weight;
+				new_centroids_R3[closest].data += point_sphere.data * weight;
 				counters[closest] += weight;
 			}
 
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids[i] /= counters[i];
+				new_centroids_R3[i].data /= counters[i];
+				new_centroids_R3[i].data /= glm::length(new_centroids_R3[i].data);
 			}
 
 			centroids = new_centroids;
+			centroids_R3 = new_centroids_R3;
 		}
 
 		glm::vec2 sum_points = { 0.f, 0.f };
 
+		auto average_weight = 0.f;
 		for(auto point : points) {
 			auto coord = glm::vec2{ point.x, point.y };
-			auto weight = point.z;
+			average_weight += point.z;
 			sum_points += coord;
 		}
 
+		average_weight /= (float)(points.size());
+
 		//initial center:
-		glm::vec2 center = sum_points / (float)(points.size());
-
-		//calculate deviation
-		float total_sum = 0;
-
-		for(auto point : points) {
-			auto coord = glm::vec2{ point.x, point.y };
-			auto dif_v = coord - center;
-			total_sum += dif_v.x * dif_v.x;
-		}
-
-		//calculate radius
-		float right = 0.f;
-		float left = 0.f;
-		float top = 0.f;
-		float bottom = 0.f;
-		for(auto point: points) {
-			auto coord = glm::vec2{ point.x, point.y };
-			glm::vec2 current = coord - center;
-			if((current.x > right)) {
-				right = current.x;
-			}
-			if(current.y > top) {
-				top = current.y;
-			}
-			if((current.x < left)) {
-				left = current.x;
-			}
-			if(current.y < bottom) {
-				bottom = current.y;
-			}
-		}
+		glm::vec2 center = sum_points / (float)(points.size());		
 
 		std::vector<glm::vec2> key_points;
 
-		key_points.push_back(center + glm::vec2(left, 0));
-		key_points.push_back(center + glm::vec2(0, bottom + local_step.y));
-		key_points.push_back(center + glm::vec2(right, 0));
-		key_points.push_back(center + glm::vec2(0, top - local_step.y));
+		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+			float right = 0.f;
+			float left = 0.f;
+			float top = 0.f;
+			float bottom = 0.f;
+			for(auto point : centroids) {
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			key_points.push_back(center + glm::vec2(left, 0));
+			key_points.push_back(center + glm::vec2(0, bottom));
+			key_points.push_back(center + glm::vec2(right, 0));
+			key_points.push_back(center + glm::vec2(0, top));
+		} else {
+			float right = 0.f;
+			float left = 0.f;
+			float top = 0.f;
+			float bottom = 0.f;
+			for(auto point : points) {
+				if(point.z < average_weight * 0.1f) continue;
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			for(auto point : centroids) {
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			key_points.push_back(center + glm::vec2(left, 0));
+			key_points.push_back(center + glm::vec2(0, bottom - local_step.y));
+			key_points.push_back(center + glm::vec2(right, 0));
+			key_points.push_back(center + glm::vec2(0, top + local_step.y));
+		}
 
 		std::array<glm::vec2, 5> key_provs{
 			center, // center
@@ -1926,8 +2026,14 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<std::array<float, 4>> in_x;
 		std::vector<std::array<float, 4>> in_y;
 
+		//draw_small_square(state, state.map_state.map_data, { { basis.x / (float)map_data.size_x, basis.y / (float)map_data.size_y } }, 0.005f);
+
+		//draw_small_square(state, state.map_state.map_data, { { (basis.x + ratio.x) / (float)map_data.size_x, (basis.y + ratio.y) / (float)map_data.size_y } }, 0.005f);
+
 		for (auto point : centroids) {
 			auto e = point;
+
+			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.002f);
 
 			if(e.x < basis.x) {
 				continue;
@@ -2063,6 +2169,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 			if(!use_linear)
 				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f), basis, ratio);
+		}
+
+
+		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+			if(in_x[0][1] < in_x[1][1]) {
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[0][1], in_y[0][1], in_x[1][1], in_y[1][1]), basis, ratio);
+			} else {
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[1][1], in_y[1][1], in_x[0][1], in_y[0][1]), basis, ratio);
+			}
 		}
 
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {

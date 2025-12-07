@@ -586,7 +586,7 @@ spriteTypes = {
     spriteType = {
         name = "button-economy-province"
         texturefile = "assets\\button-economy-province.png"
-        noOfFrames = 3
+        noOfFrames = 4
     }
     
     spriteType = {
@@ -660,14 +660,20 @@ spriteTypes = {
         noOfFrames = 1
 	}
 
-	spriteType = {
-        name = "provincetilesbg"
-        texturefile = "assets\\provincetilesbg.png"
-        noOfFrames = 1
+	corneredTileSpriteType = {
+		name = "provincetilesbg"
+		size = { 32 32 }
+		texturefile = "assets\\provincetilesbg.png"
+		borderSize = { 3 3 }
 	}
 	spriteType = {
         name = "provincetiles"
         texturefile = "assets\\provincetiles.png"
-        noOfFrames = 22
+        noOfFrames = 23
+	}
+	spriteType = {
+        name = "province_markettiles"
+        texturefile = "assets\\markettiles.png"
+        noOfFrames = 4
 	}
 }
