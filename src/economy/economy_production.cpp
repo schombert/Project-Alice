@@ -2663,6 +2663,11 @@ float artisan_output(sys::state& state, dcon::commodity_id c) {
 	return result;
 }
 
+float artisan_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	auto result = 0.f;
 	state.world.province_for_each_factory_location(id, [&](auto flid) {
@@ -2694,6 +2699,11 @@ float factory_output(sys::state& state, dcon::commodity_id c) {
 		result += factory_output(state, c, pid);
 	});
 	return result;
+}
+
+float factory_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
+	// TODO
+	return 0.0f;
 }
 
 breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::province_id id){

@@ -1864,48 +1864,49 @@ layout_box measure_horizontal_box(sys::state& state, layout_iterator& source, in
 		source.move_position(1);
 	}
 
-	int32_t rollback_count = 0;
-	auto rollback_end_pos = source.position;
+	if(source.has_more()) { // rollback only possible if we didn't run out of items before space
+		int32_t rollback_count = 0;
+		auto rollback_end_pos = source.position;
 
-	// rollback loop -- drop any items that were glued to the preivous item
-	while(source.position > initial_pos) {
-		source.move_position(-1);
-		auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
-		if(m_result.other != measure_result::special::no_break) {
-			source.move_position(1);
-			break;
-		}
-		if(source.current_is_glue()) // don't break just before no break glue
+		// rollback loop -- drop any items that were glued to the preivous item
+		while(source.position > initial_pos) {
 			source.move_position(-1);
-	}
-	
-	if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
-		result = layout_box{};
-		auto new_end = source.position;
-		source.position = initial_pos;
-
-		// final measurement loop if rollback was non zero
-		while(source.position < new_end) {
 			auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
-			bool is_glue = source.current_is_glue();
-
-			result.x_dim = std::min(uint16_t(m_result.x_space + result.x_dim), uint16_t(max_x));
-			result.y_dim = std::max(result.y_dim, uint16_t(m_result.y_space));
-			if(m_result.other == measure_result::special::space_consumer) {
-				++result.space_conumer_count;
+			if(m_result.other != measure_result::special::no_break) {
+				source.move_position(1);
+				break;
 			}
-			if(!is_glue)
-				++result.non_glue_count;
-			++result.item_count;
+			if(source.current_is_glue()) // don't break just before no break glue
+				source.move_position(-1);
+		}
 
-			if(m_result.other == measure_result::special::end_page) {
-				result.end_page = true;
+		if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
+			result = layout_box{};
+			auto new_end = source.position;
+			source.position = initial_pos;
+
+			// final measurement loop if rollback was non zero
+			while(source.position < new_end) {
+				auto m_result = source.measure_current(state, true, max_y, source.position == initial_pos);
+				bool is_glue = source.current_is_glue();
+
+				result.x_dim = std::min(uint16_t(m_result.x_space + result.x_dim), uint16_t(max_x));
+				result.y_dim = std::max(result.y_dim, uint16_t(m_result.y_space));
+				if(m_result.other == measure_result::special::space_consumer) {
+					++result.space_conumer_count;
+				}
+				if(!is_glue)
+					++result.non_glue_count;
+				++result.item_count;
+
+				if(m_result.other == measure_result::special::end_page) {
+					result.end_page = true;
+				}
+
+				source.move_position(1);
 			}
-
-			source.move_position(1);
 		}
 	}
-
 	return result;
 }
 layout_box measure_vertical_box(sys::state& state, layout_iterator& source, int32_t max_x, int32_t max_y) {
@@ -1943,48 +1944,50 @@ layout_box measure_vertical_box(sys::state& state, layout_iterator& source, int3
 		source.move_position(1);
 	}
 
-	int32_t rollback_count = 0;
-	auto rollback_end_pos = source.position;
+	if(source.has_more()) { // rollback only possible if we didn't run out of items before space
+		int32_t rollback_count = 0;
+		auto rollback_end_pos = source.position;
 
-	// rollback loop -- drop any items that were glued to the preivous item
-	while(source.position > initial_pos) {
-		source.move_position(-1);
-		auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
-		if(m_result.other != measure_result::special::no_break) {
-			source.move_position(1);
-			break;
-		}
-		if(source.current_is_glue()) // don't break just before no break glue
+		// rollback loop -- drop any items that were glued to the preivous item
+
+		while(source.position > initial_pos) {
 			source.move_position(-1);
-	}
-
-	if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
-		result = layout_box{};
-		auto new_end = source.position;
-		source.position = initial_pos;
-
-		// final measurement loop if rollback was non zero
-		while(source.position < new_end) {
 			auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
-			bool is_glue = source.current_is_glue();
-
-			result.y_dim = std::min(uint16_t(m_result.y_space + result.y_dim), uint16_t(max_y));
-			result.x_dim = std::max(result.x_dim, uint16_t(m_result.x_space));
-			if(m_result.other == measure_result::special::space_consumer) {
-				++result.space_conumer_count;
+			if(m_result.other != measure_result::special::no_break) {
+				source.move_position(1);
+				break;
 			}
-			if(!is_glue)
-				++result.non_glue_count;
-			++result.item_count;
+			if(source.current_is_glue()) // don't break just before no break glue
+				source.move_position(-1);
+		}
 
-			if(m_result.other == measure_result::special::end_page) {
-				result.end_page = true;
+		if(source.position > initial_pos && rollback_end_pos != (source.position)) { // non trivial rollback
+			result = layout_box{};
+			auto new_end = source.position;
+			source.position = initial_pos;
+
+			// final measurement loop if rollback was non zero
+			while(source.position < new_end) {
+				auto m_result = source.measure_current(state, false, max_x, source.position == initial_pos);
+				bool is_glue = source.current_is_glue();
+
+				result.y_dim = std::min(uint16_t(m_result.y_space + result.y_dim), uint16_t(max_y));
+				result.x_dim = std::max(result.x_dim, uint16_t(m_result.x_space));
+				if(m_result.other == measure_result::special::space_consumer) {
+					++result.space_conumer_count;
+				}
+				if(!is_glue)
+					++result.non_glue_count;
+				++result.item_count;
+
+				if(m_result.other == measure_result::special::end_page) {
+					result.end_page = true;
+				}
+
+				source.move_position(1);
 			}
-
-			source.move_position(1);
 		}
 	}
-
 	return result;
 }
 

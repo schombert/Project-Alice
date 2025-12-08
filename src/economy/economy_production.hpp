@@ -122,6 +122,8 @@ float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instan
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float factory_output(sys::state& state, dcon::commodity_id c);
 
+float factory_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
+
 float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
 float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
 float factory_total_employment(sys::state const& state, dcon::factory_id f);
@@ -277,6 +279,8 @@ float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c);
+
+float artisan_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);

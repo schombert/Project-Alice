@@ -13,6 +13,12 @@ enum class prod_category : uint8_t {
 enum class prod_source : uint8_t {
 	combined, factory, artisan, rgo
 };
+enum class max_option : uint8_t {
+	max_output, max_employment
+};
+enum class warning_option : uint8_t{
+	labor, inputs
+};
 struct pseudo_commodity_set {
 	struct item {
 		dcon::commodity_id c;
@@ -46,10 +52,8 @@ struct production_main_location_dropdown_t;
 struct production_main_filter_dropdown_t;
 struct production_main_combine_toggle_t;
 struct production_main_t;
-struct production_production_table_header_t;
 struct production_primary_row_main_commodity_icon_t;
 struct production_primary_row_name_t;
-struct production_primary_row_size_t;
 struct production_primary_row_amount_t;
 struct production_primary_row_t;
 struct production_sub_item_row_commodity_icon_t;
@@ -67,6 +71,13 @@ struct production_location_option_t;
 struct production_filter_option_commodity_icon_t;
 struct production_filter_option_filter_name_t;
 struct production_filter_option_t;
+struct production_max_item_description_t;
+struct production_max_item_amount_label_t;
+struct production_max_item_t;
+struct production_shortage_item_description_t;
+struct production_shortage_item_amount_label_t;
+struct production_shortage_item_warning_icon_t;
+struct production_shortage_item_t;
 struct production_main_view_dropdown_t : public alice_ui::template_drop_down_control {
 // BEGIN main::view_dropdown::variables
 // END
@@ -137,9 +148,15 @@ struct production_main_main_list_t : public layout_generator {
 	std::vector<std::unique_ptr<ui::element_base>> small_divider_pool;
 	int32_t small_divider_pool_used = 0;
 	void add_small_divider();
-	std::vector<std::unique_ptr<ui::element_base>> production_table_header_pool;
-	int32_t production_table_header_pool_used = 0;
-	std::vector<std::variant<std::monostate, primary_row_option, sub_item_row_option, category_header_option, small_divider_option>> values;
+	struct max_item_option { float amount; max_option kind; };
+	std::vector<std::unique_ptr<ui::element_base>> max_item_pool;
+	int32_t max_item_pool_used = 0;
+	void add_max_item( float amount,  max_option kind);
+	struct shortage_item_option { float amount; warning_option kind; };
+	std::vector<std::unique_ptr<ui::element_base>> shortage_item_pool;
+	int32_t shortage_item_pool_used = 0;
+	void add_shortage_item( float amount,  warning_option kind);
+	std::vector<std::variant<std::monostate, primary_row_option, sub_item_row_option, category_header_option, small_divider_option, max_item_option, shortage_item_option>> values;
 	void on_create(sys::state& state, layout_window_element* container);
 	void update(sys::state& state, layout_window_element* container);
 	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
@@ -153,11 +170,6 @@ struct production_primary_row_main_commodity_icon_t : public alice_ui::legacy_co
 };
 struct production_primary_row_name_t : public alice_ui::template_label {
 // BEGIN primary_row::name::variables
-// END
-	void on_update(sys::state& state) noexcept override;
-};
-struct production_primary_row_size_t : public alice_ui::template_label {
-// BEGIN primary_row::size::variables
 // END
 	void on_update(sys::state& state) noexcept override;
 };
@@ -215,6 +227,31 @@ struct production_filter_option_filter_name_t : public alice_ui::template_label 
 // END
 	void on_update(sys::state& state) noexcept override;
 };
+struct production_max_item_description_t : public alice_ui::template_label {
+// BEGIN max_item::description::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_max_item_amount_label_t : public alice_ui::template_label {
+// BEGIN max_item::amount_label::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_shortage_item_description_t : public alice_ui::template_label {
+// BEGIN shortage_item::description::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_shortage_item_amount_label_t : public alice_ui::template_label {
+// BEGIN shortage_item::amount_label::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_shortage_item_warning_icon_t : public alice_ui::template_icon_graphic {
+// BEGIN shortage_item::warning_icon::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
 struct production_main_t : public layout_window_element {
 // BEGIN main::variables
 	bool combine_types = false;
@@ -228,6 +265,10 @@ struct production_main_t : public layout_window_element {
 	std::unique_ptr<production_main_filter_dropdown_t> filter_dropdown;
 	std::unique_ptr<production_main_combine_toggle_t> combine_toggle;
 	std::unique_ptr<template_label> title;
+	std::unique_ptr<template_icon_graphic> view_tt_icon;
+	std::unique_ptr<template_icon_graphic> location_tt_icon;
+	std::unique_ptr<template_icon_graphic> combine_tt_icon;
+	std::unique_ptr<template_icon_graphic> filter_tt_icon;
 	production_main_main_list_t main_list;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -246,22 +287,6 @@ struct production_main_t : public layout_window_element {
 	}
 };
 std::unique_ptr<ui::element_base> make_production_main(sys::state& state);
-struct production_production_table_header_t : public layout_window_element {
-// BEGIN production_table_header::variables
-// END
-	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
-	std::unique_ptr<template_label> Control2;
-	std::unique_ptr<template_label> Control3;
-	std::unique_ptr<template_label> Control4;
-	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
-	void on_create(sys::state& state) noexcept override;
-	void set_alternate(bool alt) noexcept;
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-std::unique_ptr<ui::element_base> make_production_production_table_header(sys::state& state);
 struct production_primary_row_t : public layout_window_element {
 // BEGIN primary_row::variables
 // END
@@ -271,7 +296,6 @@ struct production_primary_row_t : public layout_window_element {
 	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<production_primary_row_main_commodity_icon_t> main_commodity_icon;
 	std::unique_ptr<production_primary_row_name_t> name;
-	std::unique_ptr<production_primary_row_size_t> size;
 	std::unique_ptr<production_primary_row_amount_t> amount;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
@@ -431,6 +455,59 @@ struct production_filter_option_t : public layout_window_element {
 	}
 };
 std::unique_ptr<ui::element_base> make_production_filter_option(sys::state& state);
+struct production_max_item_t : public layout_window_element {
+// BEGIN max_item::variables
+// END
+	float amount;
+	max_option kind;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<production_max_item_description_t> description;
+	std::unique_ptr<production_max_item_amount_label_t> amount_label;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void set_alternate(bool alt) noexcept;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "amount") {
+			return (void*)(&amount);
+		}
+		if(name_parameter == "kind") {
+			return (void*)(&kind);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_max_item(sys::state& state);
+struct production_shortage_item_t : public layout_window_element {
+// BEGIN shortage_item::variables
+// END
+	float amount;
+	warning_option kind;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<production_shortage_item_description_t> description;
+	std::unique_ptr<production_shortage_item_amount_label_t> amount_label;
+	std::unique_ptr<production_shortage_item_warning_icon_t> warning_icon;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void set_alternate(bool alt) noexcept;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "amount") {
+			return (void*)(&amount);
+		}
+		if(name_parameter == "kind") {
+			return (void*)(&kind);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_shortage_item(sys::state& state);
 void production_main_main_list_t::add_primary_row(dcon::commodity_id commodity_type, prod_category category_type, prod_source about) {
 	values.emplace_back(primary_row_option{commodity_type, category_type, about});
 }
@@ -442,6 +519,12 @@ void production_main_main_list_t::add_category_header(prod_source category) {
 }
 void production_main_main_list_t::add_small_divider() {
 	values.emplace_back(small_divider_option{});
+}
+void production_main_main_list_t::add_max_item(float amount, max_option kind) {
+	values.emplace_back(max_item_option{amount, kind});
+}
+void production_main_main_list_t::add_shortage_item(float amount, warning_option kind) {
+	values.emplace_back(shortage_item_option{amount, kind});
 }
 void  production_main_main_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	production_main_t& main = *((production_main_t*)(parent)); 
@@ -536,6 +619,19 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 						add_sub_item_row(j.c, i.c.index(), prod_category::production, first, prod_source::factory);
 						first = false;
 					}
+
+					float total = 0;
+					if(main.selected_location) {
+						province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+							total += economy::factory_potential_output(state, i.c, p);
+						});
+					} else {
+						for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
+							total += economy::factory_potential_output(state, i.c, op.get_province());
+						}
+					}
+
+					add_max_item(total, max_option::max_output);
 					add_small_divider();
 				}
 			}
@@ -573,6 +669,20 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 						add_sub_item_row(j.c, i.c.index(), prod_category::production, first, prod_source::artisan);
 						first = false;
 					}
+
+
+					float total = 0;
+					if(main.selected_location) {
+						province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+							total += economy::artisan_potential_output(state, i.c, p);
+						});
+					} else {
+						for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
+							total += economy::artisan_potential_output(state, i.c, op.get_province());
+						}
+					}
+					add_max_item(total, max_option::max_output);
+
 					add_small_divider();
 				}
 			}
@@ -596,6 +706,17 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 
 				for(auto& i : seen_commodities.contents) {
 					add_primary_row(i.c, prod_category::production, prod_source::rgo);
+					float total = 0;
+					if(main.selected_location) {
+						province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+							total += economy::rgo_potential_output(state, i.c, p);
+						});
+					} else {
+						for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
+							total += economy::rgo_potential_output(state, i.c, op.get_province());
+						}
+					}
+					add_max_item(total, max_option::max_output);
 					add_small_divider();
 				}
 			}
@@ -647,6 +768,21 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 					first = false;
 				}
 
+				if(main.selected_location) {
+					auto m = state.world.state_instance_get_market_from_local_market(main.selected_location);
+					if(m) {
+						auto sat = economy::demand_satisfaction(state, m, i.c);
+						if(sat < 0.99f) {
+							add_shortage_item(1.0f - sat, warning_option::inputs);
+						}
+					}
+				} else {
+					auto sat = economy::demand_satisfaction(state, i.c);
+					if(sat < 0.99f) {
+						add_shortage_item(1.0f - sat, warning_option::inputs);
+					}
+				}
+
 				add_small_divider();
 			}
 		} else {
@@ -684,6 +820,22 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 						add_sub_item_row(j.c, i.c.index(), prod_category::consumption, first, prod_source::factory);
 						first = false;
 					}
+
+					if(main.selected_location) {
+						auto m = state.world.state_instance_get_market_from_local_market(main.selected_location);
+						if(m) {
+							auto sat = economy::demand_satisfaction(state, m, i.c);
+							if(sat < 0.99f) {
+								add_shortage_item(1.0f - sat, warning_option::inputs);
+							}
+						}
+					} else {
+						auto sat = economy::demand_satisfaction(state, i.c);
+						if(sat < 0.99f) {
+							add_shortage_item(1.0f - sat, warning_option::inputs);
+						}
+					}
+
 					add_small_divider();
 				}
 			}
@@ -721,6 +873,22 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 						add_sub_item_row(j.c, i.c.index(), prod_category::consumption, first, prod_source::artisan);
 						first = false;
 					}
+
+					if(main.selected_location) {
+						auto m = state.world.state_instance_get_market_from_local_market(main.selected_location);
+						if(m) {
+							auto sat = economy::demand_satisfaction(state, m, i.c);
+							if(sat < 0.99f) {
+								add_shortage_item(1.0f - sat, warning_option::inputs);
+							}
+						}
+					} else {
+						auto sat = economy::demand_satisfaction(state, i.c);
+						if(sat < 0.99f) {
+							add_shortage_item(1.0f - sat, warning_option::inputs);
+						}
+					}
+
 					add_small_divider();
 				}
 			}
@@ -791,6 +959,26 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 			{
 				pseudo_commodity_set seen_commodities;
 
+				float avg_worker_sat = 0.0f;
+				float bavg_worker_sat = 0.0f;
+				float cavg_worker_sat = 0.0f;
+				float count = 0;
+				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+					avg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::basic_education);
+					bavg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
+					cavg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::high_education);
+					++count;
+				});
+				if(count > 0) {
+					avg_worker_sat /= count;
+					bavg_worker_sat /= count;
+					cavg_worker_sat /= count;
+				} else {
+					avg_worker_sat = 1.0f;
+					bavg_worker_sat = 1.0f;
+					cavg_worker_sat = 1.0f;
+				}
+
 				for(auto c : state.world.in_commodity) {
 					if(main.filter && main.filter != c)
 						continue;
@@ -826,8 +1014,17 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 				for(auto& i : seen_commodities.contents) {
 					add_primary_row(i.c, prod_category::employment, prod_source::factory);
 					add_sub_item_row(i.c, economy::labor::no_education, prod_category::employment, true, prod_source::factory);
+					if(bavg_worker_sat < 0.99f) {
+						add_shortage_item(1.0f - bavg_worker_sat, warning_option::labor);
+					}
 					add_sub_item_row(i.c, economy::labor::basic_education, prod_category::employment, false, prod_source::factory);
+					if(avg_worker_sat < 0.99f) {
+						add_shortage_item(1.0f - avg_worker_sat, warning_option::labor);
+					}
 					add_sub_item_row(i.c, economy::labor::high_education, prod_category::employment, false, prod_source::factory);
+					if(cavg_worker_sat < 0.99f) {
+						add_shortage_item(1.0f - cavg_worker_sat, warning_option::labor);
+					}
 					add_small_divider();
 				}
 			}
@@ -863,6 +1060,17 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 			{
 				pseudo_commodity_set seen_commodities;
 
+				float avg_worker_sat = 0.0f;
+				float count = 0;
+				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+					avg_worker_sat += state.world.province_get_labor_demand_satisfaction(p, economy::labor::no_education);
+					++count;
+				});
+				if(count > 0)
+					avg_worker_sat /= count;
+				else
+					avg_worker_sat = 1.0f;
+
 				for(auto c : state.world.in_commodity) {
 					if(main.filter && main.filter != c)
 						continue;
@@ -885,6 +1093,9 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 					add_category_header(prod_source::rgo);
 				for(auto& i : seen_commodities.contents) {
 					add_primary_row(i.c, prod_category::employment, prod_source::rgo);
+					if(avg_worker_sat < 0.99f) {
+						add_shortage_item(1.0f - avg_worker_sat, warning_option::labor);
+					}
 					add_small_divider();
 				}
 			}
@@ -954,36 +1165,7 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 measure_result  production_main_main_list_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
 	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
 	if(std::holds_alternative<primary_row_option>(values[index])) {
-		if(production_table_header_pool.empty()) production_table_header_pool.emplace_back(make_production_production_table_header(state));
 		if(primary_row_pool.empty()) primary_row_pool.emplace_back(make_production_primary_row(state));
-		if(index == 0 || first_in_section || (true && !std::holds_alternative<primary_row_option>(values[index - 1]) && !std::holds_alternative<sub_item_row_option>(values[index - 1]) && !std::holds_alternative<category_header_option>(values[index - 1]) && !std::holds_alternative<small_divider_option>(values[index - 1]))) {
-			if(destination) {
-				if(production_table_header_pool.size() <= size_t(production_table_header_pool_used)) production_table_header_pool.emplace_back(make_production_production_table_header(state));
-				if(primary_row_pool.size() <= size_t(primary_row_pool_used)) primary_row_pool.emplace_back(make_production_primary_row(state));
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.x = int16_t(x);
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.y = int16_t(y);
-				if(!production_table_header_pool[production_table_header_pool_used]->parent) {
-					production_table_header_pool[production_table_header_pool_used]->parent = destination;
-					production_table_header_pool[production_table_header_pool_used]->impl_on_update(state);
-					production_table_header_pool[production_table_header_pool_used]->impl_on_reset_text(state);
-				}
-				destination->children.push_back(production_table_header_pool[production_table_header_pool_used].get());
-			((production_production_table_header_t*)(production_table_header_pool[production_table_header_pool_used].get()))->set_alternate(alternate);
-				primary_row_pool[primary_row_pool_used]->base_data.position.x = int16_t(x);
-				primary_row_pool[primary_row_pool_used]->base_data.position.y = int16_t(y +  production_table_header_pool[0]->base_data.size.y + 0);
-				primary_row_pool[primary_row_pool_used]->parent = destination;
-				destination->children.push_back(primary_row_pool[primary_row_pool_used].get());
-				((production_primary_row_t*)(primary_row_pool[primary_row_pool_used].get()))->commodity_type = std::get<primary_row_option>(values[index]).commodity_type;
-				((production_primary_row_t*)(primary_row_pool[primary_row_pool_used].get()))->category_type = std::get<primary_row_option>(values[index]).category_type;
-				((production_primary_row_t*)(primary_row_pool[primary_row_pool_used].get()))->about = std::get<primary_row_option>(values[index]).about;
-			((production_primary_row_t*)(primary_row_pool[primary_row_pool_used].get()))->set_alternate(!alternate);
-				primary_row_pool[primary_row_pool_used]->impl_on_update(state);
-				production_table_header_pool_used++;
-				primary_row_pool_used++;
-			}
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
-			return measure_result{std::max(production_table_header_pool[0]->base_data.size.x, primary_row_pool[0]->base_data.size.x), production_table_header_pool[0]->base_data.size.y + primary_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
-		}
 		if(destination) {
 			if(primary_row_pool.size() <= size_t(primary_row_pool_used)) primary_row_pool.emplace_back(make_production_primary_row(state));
 			primary_row_pool[primary_row_pool_used]->base_data.position.x = int16_t(x);
@@ -998,42 +1180,11 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			primary_row_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
 		return measure_result{ primary_row_pool[0]->base_data.size.x, primary_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<sub_item_row_option>(values[index])) {
-		if(production_table_header_pool.empty()) production_table_header_pool.emplace_back(make_production_production_table_header(state));
 		if(sub_item_row_pool.empty()) sub_item_row_pool.emplace_back(make_production_sub_item_row(state));
-		if(index == 0 || first_in_section || (true && !std::holds_alternative<primary_row_option>(values[index - 1]) && !std::holds_alternative<sub_item_row_option>(values[index - 1]) && !std::holds_alternative<category_header_option>(values[index - 1]) && !std::holds_alternative<small_divider_option>(values[index - 1]))) {
-			if(destination) {
-				if(production_table_header_pool.size() <= size_t(production_table_header_pool_used)) production_table_header_pool.emplace_back(make_production_production_table_header(state));
-				if(sub_item_row_pool.size() <= size_t(sub_item_row_pool_used)) sub_item_row_pool.emplace_back(make_production_sub_item_row(state));
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.x = int16_t(x);
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.y = int16_t(y);
-				if(!production_table_header_pool[production_table_header_pool_used]->parent) {
-					production_table_header_pool[production_table_header_pool_used]->parent = destination;
-					production_table_header_pool[production_table_header_pool_used]->impl_on_update(state);
-					production_table_header_pool[production_table_header_pool_used]->impl_on_reset_text(state);
-				}
-				destination->children.push_back(production_table_header_pool[production_table_header_pool_used].get());
-			((production_production_table_header_t*)(production_table_header_pool[production_table_header_pool_used].get()))->set_alternate(alternate);
-				sub_item_row_pool[sub_item_row_pool_used]->base_data.position.x = int16_t(x);
-				sub_item_row_pool[sub_item_row_pool_used]->base_data.position.y = int16_t(y +  production_table_header_pool[0]->base_data.size.y + 0);
-				sub_item_row_pool[sub_item_row_pool_used]->parent = destination;
-				destination->children.push_back(sub_item_row_pool[sub_item_row_pool_used].get());
-				((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->main_commodity = std::get<sub_item_row_option>(values[index]).main_commodity;
-				((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->secondary_type = std::get<sub_item_row_option>(values[index]).secondary_type;
-				((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->category_type = std::get<sub_item_row_option>(values[index]).category_type;
-				((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->is_first_in_subsection = std::get<sub_item_row_option>(values[index]).is_first_in_subsection;
-				((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->about = std::get<sub_item_row_option>(values[index]).about;
-			((production_sub_item_row_t*)(sub_item_row_pool[sub_item_row_pool_used].get()))->set_alternate(!alternate);
-				sub_item_row_pool[sub_item_row_pool_used]->impl_on_update(state);
-				production_table_header_pool_used++;
-				sub_item_row_pool_used++;
-			}
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
-			return measure_result{std::max(production_table_header_pool[0]->base_data.size.x, sub_item_row_pool[0]->base_data.size.x), production_table_header_pool[0]->base_data.size.y + sub_item_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
-		}
 		if(destination) {
 			if(sub_item_row_pool.size() <= size_t(sub_item_row_pool_used)) sub_item_row_pool.emplace_back(make_production_sub_item_row(state));
 			sub_item_row_pool[sub_item_row_pool_used]->base_data.position.x = int16_t(x);
@@ -1050,37 +1201,11 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			sub_item_row_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
 		return measure_result{ sub_item_row_pool[0]->base_data.size.x, sub_item_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<category_header_option>(values[index])) {
-		if(production_table_header_pool.empty()) production_table_header_pool.emplace_back(make_production_production_table_header(state));
 		if(category_header_pool.empty()) category_header_pool.emplace_back(make_production_category_header(state));
-		if(index == 0 || first_in_section || (true && !std::holds_alternative<primary_row_option>(values[index - 1]) && !std::holds_alternative<sub_item_row_option>(values[index - 1]) && !std::holds_alternative<category_header_option>(values[index - 1]) && !std::holds_alternative<small_divider_option>(values[index - 1]))) {
-			if(destination) {
-				if(production_table_header_pool.size() <= size_t(production_table_header_pool_used)) production_table_header_pool.emplace_back(make_production_production_table_header(state));
-				if(category_header_pool.size() <= size_t(category_header_pool_used)) category_header_pool.emplace_back(make_production_category_header(state));
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.x = int16_t(x);
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.y = int16_t(y);
-				if(!production_table_header_pool[production_table_header_pool_used]->parent) {
-					production_table_header_pool[production_table_header_pool_used]->parent = destination;
-					production_table_header_pool[production_table_header_pool_used]->impl_on_update(state);
-					production_table_header_pool[production_table_header_pool_used]->impl_on_reset_text(state);
-				}
-				destination->children.push_back(production_table_header_pool[production_table_header_pool_used].get());
-			((production_production_table_header_t*)(production_table_header_pool[production_table_header_pool_used].get()))->set_alternate(alternate);
-				category_header_pool[category_header_pool_used]->base_data.position.x = int16_t(x);
-				category_header_pool[category_header_pool_used]->base_data.position.y = int16_t(y +  production_table_header_pool[0]->base_data.size.y + 0);
-				category_header_pool[category_header_pool_used]->parent = destination;
-				destination->children.push_back(category_header_pool[category_header_pool_used].get());
-				((production_category_header_t*)(category_header_pool[category_header_pool_used].get()))->category = std::get<category_header_option>(values[index]).category;
-				category_header_pool[category_header_pool_used]->impl_on_update(state);
-				production_table_header_pool_used++;
-				category_header_pool_used++;
-			}
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1]));
-			return measure_result{std::max(production_table_header_pool[0]->base_data.size.x, category_header_pool[0]->base_data.size.x), production_table_header_pool[0]->base_data.size.y + category_header_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::no_break};
-		}
 		if(destination) {
 			if(category_header_pool.size() <= size_t(category_header_pool_used)) category_header_pool.emplace_back(make_production_category_header(state));
 			category_header_pool[category_header_pool_used]->base_data.position.x = int16_t(x);
@@ -1096,32 +1221,7 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 		return measure_result{ category_header_pool[0]->base_data.size.x, category_header_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::no_break};
 	}
 	if(std::holds_alternative<small_divider_option>(values[index])) {
-		if(production_table_header_pool.empty()) production_table_header_pool.emplace_back(make_production_production_table_header(state));
 		if(small_divider_pool.empty()) small_divider_pool.emplace_back(make_production_small_divider(state));
-		if(index == 0 || first_in_section || (true && !std::holds_alternative<primary_row_option>(values[index - 1]) && !std::holds_alternative<sub_item_row_option>(values[index - 1]) && !std::holds_alternative<category_header_option>(values[index - 1]) && !std::holds_alternative<small_divider_option>(values[index - 1]))) {
-			if(destination) {
-				if(production_table_header_pool.size() <= size_t(production_table_header_pool_used)) production_table_header_pool.emplace_back(make_production_production_table_header(state));
-				if(small_divider_pool.size() <= size_t(small_divider_pool_used)) small_divider_pool.emplace_back(make_production_small_divider(state));
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.x = int16_t(x);
-				production_table_header_pool[production_table_header_pool_used]->base_data.position.y = int16_t(y);
-				if(!production_table_header_pool[production_table_header_pool_used]->parent) {
-					production_table_header_pool[production_table_header_pool_used]->parent = destination;
-					production_table_header_pool[production_table_header_pool_used]->impl_on_update(state);
-					production_table_header_pool[production_table_header_pool_used]->impl_on_reset_text(state);
-				}
-				destination->children.push_back(production_table_header_pool[production_table_header_pool_used].get());
-			((production_production_table_header_t*)(production_table_header_pool[production_table_header_pool_used].get()))->set_alternate(alternate);
-				small_divider_pool[small_divider_pool_used]->base_data.position.x = int16_t(x);
-				small_divider_pool[small_divider_pool_used]->base_data.position.y = int16_t(y +  production_table_header_pool[0]->base_data.size.y + 0);
-				small_divider_pool[small_divider_pool_used]->parent = destination;
-				destination->children.push_back(small_divider_pool[small_divider_pool_used].get());
-				small_divider_pool[small_divider_pool_used]->impl_on_update(state);
-				production_table_header_pool_used++;
-				small_divider_pool_used++;
-			}
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
-			return measure_result{std::max(production_table_header_pool[0]->base_data.size.x, small_divider_pool[0]->base_data.size.x), production_table_header_pool[0]->base_data.size.y + small_divider_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
-		}
 		if(destination) {
 			if(small_divider_pool.size() <= size_t(small_divider_pool_used)) small_divider_pool.emplace_back(make_production_small_divider(state));
 			small_divider_pool[small_divider_pool_used]->base_data.position.x = int16_t(x);
@@ -1132,20 +1232,54 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			small_divider_pool_used++;
 		}
 		alternate = true;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
 		return measure_result{ small_divider_pool[0]->base_data.size.x, small_divider_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
+	}
+	if(std::holds_alternative<max_item_option>(values[index])) {
+		if(max_item_pool.empty()) max_item_pool.emplace_back(make_production_max_item(state));
+		if(destination) {
+			if(max_item_pool.size() <= size_t(max_item_pool_used)) max_item_pool.emplace_back(make_production_max_item(state));
+			max_item_pool[max_item_pool_used]->base_data.position.x = int16_t(x);
+			max_item_pool[max_item_pool_used]->base_data.position.y = int16_t(y);
+			max_item_pool[max_item_pool_used]->parent = destination;
+			destination->children.push_back(max_item_pool[max_item_pool_used].get());
+			((production_max_item_t*)(max_item_pool[max_item_pool_used].get()))->amount = std::get<max_item_option>(values[index]).amount;
+			((production_max_item_t*)(max_item_pool[max_item_pool_used].get()))->kind = std::get<max_item_option>(values[index]).kind;
+			((production_max_item_t*)(max_item_pool[max_item_pool_used].get()))->set_alternate(alternate);
+			max_item_pool[max_item_pool_used]->impl_on_update(state);
+			max_item_pool_used++;
+		}
+		alternate = !alternate;
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+		return measure_result{ max_item_pool[0]->base_data.size.x, max_item_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
+	}
+	if(std::holds_alternative<shortage_item_option>(values[index])) {
+		if(shortage_item_pool.empty()) shortage_item_pool.emplace_back(make_production_shortage_item(state));
+		if(destination) {
+			if(shortage_item_pool.size() <= size_t(shortage_item_pool_used)) shortage_item_pool.emplace_back(make_production_shortage_item(state));
+			shortage_item_pool[shortage_item_pool_used]->base_data.position.x = int16_t(x);
+			shortage_item_pool[shortage_item_pool_used]->base_data.position.y = int16_t(y);
+			shortage_item_pool[shortage_item_pool_used]->parent = destination;
+			destination->children.push_back(shortage_item_pool[shortage_item_pool_used].get());
+			((production_shortage_item_t*)(shortage_item_pool[shortage_item_pool_used].get()))->amount = std::get<shortage_item_option>(values[index]).amount;
+			((production_shortage_item_t*)(shortage_item_pool[shortage_item_pool_used].get()))->kind = std::get<shortage_item_option>(values[index]).kind;
+			((production_shortage_item_t*)(shortage_item_pool[shortage_item_pool_used].get()))->set_alternate(alternate);
+			shortage_item_pool[shortage_item_pool_used]->impl_on_update(state);
+			shortage_item_pool_used++;
+		}
+		alternate = !alternate;
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+		return measure_result{ shortage_item_pool[0]->base_data.size.x, shortage_item_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
 void  production_main_main_list_t::reset_pools() {
-	production_table_header_pool_used = 0;
 	primary_row_pool_used = 0;
-	production_table_header_pool_used = 0;
 	sub_item_row_pool_used = 0;
-	production_table_header_pool_used = 0;
 	category_header_pool_used = 0;
-	production_table_header_pool_used = 0;
 	small_divider_pool_used = 0;
+	max_item_pool_used = 0;
+	shortage_item_pool_used = 0;
 }
 void production_main_view_dropdown_t::add_item( prod_category category) {
 	list_contents.emplace_back(category_option_option{category});
@@ -1222,18 +1356,17 @@ void production_main_location_dropdown_t::on_update(sys::state& state) noexcept 
 // BEGIN main::location_dropdown::update
 	clear_list();
 	add_item(dcon::state_instance_id{});
-	bool made_selection = false;
 	for(auto os : state.world.nation_get_state_ownership(state.local_player_nation)) {
 		add_item(os.get_state());
-		if(os.get_state() == main.selected_location) {
-			quiet_on_selection(state, total_items - 1);
-			made_selection = true;
-		}
 	}
-	if(!made_selection) {
-		quiet_on_selection(state, 0);
-		if(main.selected_location) {
-			main.selected_location = dcon::state_instance_id{};
+	std::sort(list_contents.begin() + 1, list_contents.end(), [&](location_option_option const& a, location_option_option const& b) {
+		return text::get_dynamic_state_name(state, a.location) < text::get_dynamic_state_name(state, b.location);
+	});
+
+	for(auto i = list_contents.size(); i-- > 0;) {
+		if(list_contents[i].location == main.selected_location) {
+			quiet_on_selection(state, int32_t(i));
+			return;
 		}
 	}
 // END
@@ -1285,6 +1418,9 @@ void production_main_filter_dropdown_t::on_create(sys::state& state) noexcept {
 			add_item(c);
 		}
 	}
+	std::sort(list_contents.begin() + 1, list_contents.end(), [&](filter_option_option const& a, filter_option_option const& b) {
+		return text::produce_simple_string(state, state.world.commodity_get_name(a.commodity)) < text::produce_simple_string(state, state.world.commodity_get_name(b.commodity));
+	});
 // END
 }
 void production_main_combine_toggle_t::on_update(sys::state& state) noexcept {
@@ -1375,6 +1511,18 @@ void production_main_t::create_layout_level(sys::state& state, layout_level& lvl
 				if(cname == "title") {
 					temp.ptr = title.get();
 				} else
+				if(cname == "view_tt_icon") {
+					temp.ptr = view_tt_icon.get();
+				} else
+				if(cname == "location_tt_icon") {
+					temp.ptr = location_tt_icon.get();
+				} else
+				if(cname == "combine_tt_icon") {
+					temp.ptr = combine_tt_icon.get();
+				} else
+				if(cname == "filter_tt_icon") {
+					temp.ptr = filter_tt_icon.get();
+				} else
 				{
 					std::string str_cname {cname};
 					auto found = scripted_elements.find(str_cname);
@@ -1396,9 +1544,6 @@ void production_main_t::create_layout_level(sys::state& state, layout_level& lvl
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -1419,6 +1564,12 @@ void production_main_t::create_layout_level(sys::state& state, layout_level& lvl
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -1559,6 +1710,74 @@ void production_main_t::on_create(sys::state& state) noexcept {
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
 		} else 
+		if(child_data.name == "view_tt_icon") {
+			view_tt_icon = std::make_unique<template_icon_graphic>();
+			view_tt_icon->parent = this;
+			auto cptr = view_tt_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "location_tt_icon") {
+			location_tt_icon = std::make_unique<template_icon_graphic>();
+			location_tt_icon->parent = this;
+			auto cptr = location_tt_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "combine_tt_icon") {
+			combine_tt_icon = std::make_unique<template_icon_graphic>();
+			combine_tt_icon->parent = this;
+			auto cptr = combine_tt_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "filter_tt_icon") {
+			filter_tt_icon = std::make_unique<template_icon_graphic>();
+			filter_tt_icon->parent = this;
+			auto cptr = filter_tt_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if (child_data.is_lua) { 
 			std::string str_name {child_data.name};
 			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
@@ -1596,252 +1815,6 @@ std::unique_ptr<ui::element_base> make_production_main(sys::state& state) {
 	ptr->on_create(state);
 	return ptr;
 }
-void  production_production_table_header_t::set_alternate(bool alt) noexcept {
-	window_template = alt ? 3 : 4;
-}
-ui::message_result production_production_table_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-ui::message_result production_production_table_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-void production_production_table_header_t::on_update(sys::state& state) noexcept {
-	production_main_t& main = *((production_main_t*)(parent->parent)); 
-// BEGIN production_table_header::update
-// END
-	remake_layout(state, true);
-}
-void production_production_table_header_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
-	serialization::in_buffer buffer(ldata, sz);
-	buffer.read(lvl.size_x); 
-	buffer.read(lvl.size_y); 
-	buffer.read(lvl.margin_top); 
-	buffer.read(lvl.margin_bottom); 
-	buffer.read(lvl.margin_left); 
-	buffer.read(lvl.margin_right); 
-	buffer.read(lvl.line_alignment); 
-	buffer.read(lvl.line_internal_alignment); 
-	buffer.read(lvl.type); 
-	buffer.read(lvl.page_animation); 
-	buffer.read(lvl.interline_spacing); 
-	buffer.read(lvl.paged); 
-	if(lvl.paged) {
-		lvl.page_controls = std::make_unique<page_buttons>();
-		lvl.page_controls->for_layout = &lvl;
-		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
-		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
-	}
-	auto expansion_section = buffer.read_section();
-	if(expansion_section)
-		expansion_section.read(lvl.template_id);
-	if(lvl.template_id == -1 && window_template != -1)
-		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
-	while(buffer) {
-		layout_item_types t;
-		buffer.read(t);
-		switch(t) {
-			case layout_item_types::texture_layer:
-			{
-				texture_layer temp;
-				buffer.read(temp.texture_type);
-				buffer.read(temp.texture);
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-			case layout_item_types::control2:
-			{
-				layout_control temp;
-				std::string_view cname = buffer.read<std::string_view>();
-				buffer.read(temp.abs_x);
-				buffer.read(temp.abs_y);
-				buffer.read(temp.absolute_position);
-				buffer.read(temp.fill_x);
-				buffer.read(temp.fill_y);
-				temp.ptr = nullptr;
-				if(cname == "Control2") {
-					temp.ptr = Control2.get();
-				} else
-				if(cname == "Control3") {
-					temp.ptr = Control3.get();
-				} else
-				if(cname == "Control4") {
-					temp.ptr = Control4.get();
-				} else
-				{
-					std::string str_cname {cname};
-					auto found = scripted_elements.find(str_cname);
-					if (found != scripted_elements.end()) {
-						temp.ptr = found->second.get();
-					}
-				}
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-			case layout_item_types::window2:
-			{
-				layout_window temp;
-				std::string_view cname = buffer.read<std::string_view>();
-				buffer.read(temp.abs_x);
-				buffer.read(temp.abs_y);
-				buffer.read(temp.absolute_position);
-				buffer.read(temp.fill_x);
-				buffer.read(temp.fill_y);
-				if(cname == "main") {
-					temp.ptr = make_production_main(state);
-				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
-				if(cname == "primary_row") {
-					temp.ptr = make_production_primary_row(state);
-				}
-				if(cname == "sub_item_row") {
-					temp.ptr = make_production_sub_item_row(state);
-				}
-				if(cname == "category_header") {
-					temp.ptr = make_production_category_header(state);
-				}
-				if(cname == "small_divider") {
-					temp.ptr = make_production_small_divider(state);
-				}
-				if(cname == "category_option") {
-					temp.ptr = make_production_category_option(state);
-				}
-				if(cname == "location_option") {
-					temp.ptr = make_production_location_option(state);
-				}
-				if(cname == "filter_option") {
-					temp.ptr = make_production_filter_option(state);
-				}
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-			case layout_item_types::glue:
-			{
-				layout_glue temp;
-				buffer.read(temp.type);
-				buffer.read(temp.amount);
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-			case layout_item_types::generator2:
-			{
-				generator_instance temp;
-				std::string_view cname = buffer.read<std::string_view>();
-				auto gen_details = buffer.read_section(); // ignored
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-			case layout_item_types::layout:
-			{
-				sub_layout temp;
-				temp.layout = std::make_unique<layout_level>();
-				auto layout_section = buffer.read_section();
-				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
-				lvl.contents.emplace_back(std::move(temp));
-			} break;
-		}
-	}
-}
-void production_production_table_header_t::on_create(sys::state& state) noexcept {
-	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::production_table_header"));
-	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
-	std::vector<sys::aui_pending_bytes> pending_children;
-	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
-	base_data.position.x = win_data.x_pos;
-	base_data.position.y = win_data.y_pos;
-	base_data.size.x = win_data.x_size;
-	base_data.size.y = win_data.y_size;
-	base_data.flags = uint8_t(win_data.orientation);
-	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
-	while(!pending_children.empty()) {
-		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		if(child_data.name == "Control2") {
-			Control2 = std::make_unique<template_label>();
-			Control2->parent = this;
-			auto cptr = Control2.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
-		if(child_data.name == "Control3") {
-			Control3 = std::make_unique<template_label>();
-			Control3->parent = this;
-			auto cptr = Control3.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
-		if(child_data.name == "Control4") {
-			Control4 = std::make_unique<template_label>();
-			Control4->parent = this;
-			auto cptr = Control4.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
-		if (child_data.is_lua) { 
-			std::string str_name {child_data.name};
-			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
-			auto cptr = scripted_elements[str_name].get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->on_update_lname = child_data.text_key;
-			if(child_data.tooltip_text_key.length() > 0) {
-				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
-			}
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		pending_children.pop_back();
-	}
-	page_left_texture_key = win_data.page_left_texture;
-	page_right_texture_key = win_data.page_right_texture;
-	page_text_color = win_data.page_text_color;
-	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
-// BEGIN production_table_header::create
-// END
-}
-std::unique_ptr<ui::element_base> make_production_production_table_header(sys::state& state) {
-	auto ptr = std::make_unique<production_production_table_header_t>();
-	ptr->on_create(state);
-	return ptr;
-}
 void production_primary_row_main_commodity_icon_t::on_update(sys::state& state) noexcept {
 	production_primary_row_t& primary_row = *((production_primary_row_t*)(parent)); 
 	production_main_t& main = *((production_main_t*)(parent->parent)); 
@@ -1865,100 +1838,6 @@ void production_primary_row_name_t::on_update(sys::state& state) noexcept {
 		break;
 	case prod_source::rgo:
 		set_text(state, text::produce_simple_string(state, state.world.commodity_get_name(primary_row.commodity_type)));
-		break;
-	default:
-		set_text(state, "");
-		break;
-	}
-// END
-}
-void production_primary_row_size_t::on_update(sys::state& state) noexcept {
-	production_primary_row_t& primary_row = *((production_primary_row_t*)(parent)); 
-	production_main_t& main = *((production_main_t*)(parent->parent)); 
-// BEGIN primary_row::size::update
-	switch(primary_row.about) {
-	case prod_source::combined:
-		set_text(state, "");
-		break;
-	case prod_source::factory:
-		switch(primary_row.category_type) {
-		case prod_category::production:
-			[[fallthrough]];
-		case prod_category::consumption:
-			[[fallthrough]];
-		case prod_category::employment:
-		{
-			float total = 0.0f;
-			if(main.selected_location) {
-				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-					for(auto fac : state.world.province_get_factory_location(p)) {
-						if(fac.get_factory().get_building_type().get_output() == primary_row.commodity_type) {
-							total += economy::get_factory_level(state, fac.get_factory());
-						}
-					}
-				});
-			} else {
-				for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-					for(auto fac : op.get_province().get_factory_location()) {
-						if(fac.get_factory().get_building_type().get_output() == primary_row.commodity_type) {
-							total += economy::get_factory_level(state, fac.get_factory());
-						}
-					}
-				}
-			}
-			set_text(state, text::format_float(total, 1));
-		} break;
-		case prod_category::details:
-			set_text(state, "");
-			break;
-		}
-		break;
-	case prod_source::artisan:
-		switch(primary_row.category_type) {
-		case prod_category::production:
-			[[fallthrough]];
-		case prod_category::consumption:
-			[[fallthrough]];
-		case prod_category::employment:
-		{
-			float total = 0.0f;
-			if(main.selected_location) {
-				auto artisan_count = state.world.state_instance_get_demographics(main.selected_location, demographics::to_key(state, state.culture_definitions.artisans));
-				total = artisan_count / economy::artisans_per_employment_unit;
-			} else {
-				auto artisan_count = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.artisans));
-				total = artisan_count / economy::artisans_per_employment_unit;
-			}
-			set_text(state, text::format_float(total, 1));
-		} break;
-		case prod_category::details:
-			set_text(state, "");
-			break;
-		} break;
-	case prod_source::rgo:
-		switch(primary_row.category_type) {
-		case prod_category::production:
-			[[fallthrough]];
-		case prod_category::consumption:
-			[[fallthrough]];
-		case prod_category::employment:
-		{
-			float total = 0.0f;
-			if(main.selected_location) {
-				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
-					total += state.world.province_get_rgo_size(p, primary_row.commodity_type) / economy::artisans_per_employment_unit;;
-				});
-			} else {
-				for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
-					total += op.get_province().get_rgo_size(primary_row.commodity_type) / economy::artisans_per_employment_unit;
-				}
-			}
-			set_text(state, text::format_float(total, 1));
-		} break;
-		case prod_category::details:
-			set_text(state, "");
-			break;
-		}
 		break;
 	default:
 		set_text(state, "");
@@ -2253,9 +2132,6 @@ void production_primary_row_t::create_layout_level(sys::state& state, layout_lev
 				if(cname == "name") {
 					temp.ptr = name.get();
 				} else
-				if(cname == "size") {
-					temp.ptr = size.get();
-				} else
 				if(cname == "amount") {
 					temp.ptr = amount.get();
 				} else
@@ -2280,9 +2156,6 @@ void production_primary_row_t::create_layout_level(sys::state& state, layout_lev
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -2303,6 +2176,12 @@ void production_primary_row_t::create_layout_level(sys::state& state, layout_lev
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -2361,24 +2240,6 @@ void production_primary_row_t::on_create(sys::state& state) noexcept {
 			name = std::make_unique<production_primary_row_name_t>();
 			name->parent = this;
 			auto cptr = name.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->template_id = child_data.template_id;
-			if(child_data.text_key.length() > 0)
-				cptr->default_text = state.lookup_key(child_data.text_key);
-			if(child_data.tooltip_text_key.length() > 0)
-				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		} else 
-		if(child_data.name == "size") {
-			size = std::make_unique<production_primary_row_size_t>();
-			size->parent = this;
-			auto cptr = size.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
@@ -2923,9 +2784,6 @@ void production_sub_item_row_t::create_layout_level(sys::state& state, layout_le
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -2946,6 +2804,12 @@ void production_sub_item_row_t::create_layout_level(sys::state& state, layout_le
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3200,9 +3064,6 @@ void production_category_header_t::create_layout_level(sys::state& state, layout
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -3223,6 +3084,12 @@ void production_category_header_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3417,9 +3284,6 @@ void production_small_divider_t::create_layout_level(sys::state& state, layout_l
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -3440,6 +3304,12 @@ void production_small_divider_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3637,9 +3507,6 @@ void production_category_option_t::create_layout_level(sys::state& state, layout
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -3660,6 +3527,12 @@ void production_category_option_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3852,9 +3725,6 @@ void production_location_option_t::create_layout_level(sys::state& state, layout
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -3875,6 +3745,12 @@ void production_location_option_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4075,9 +3951,6 @@ void production_filter_option_t::create_layout_level(sys::state& state, layout_l
 				if(cname == "main") {
 					temp.ptr = make_production_main(state);
 				}
-				if(cname == "production_table_header") {
-					temp.ptr = make_production_production_table_header(state);
-				}
 				if(cname == "primary_row") {
 					temp.ptr = make_production_primary_row(state);
 				}
@@ -4098,6 +3971,12 @@ void production_filter_option_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "filter_option") {
 					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4207,5 +4086,629 @@ std::unique_ptr<ui::element_base> make_production_filter_option(sys::state& stat
 	ptr->on_create(state);
 	return ptr;
 }
+void production_max_item_description_t::on_update(sys::state& state) noexcept {
+	production_max_item_t& max_item = *((production_max_item_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN max_item::description::update
+	switch(max_item.kind) {
+	case max_option::max_output:
+		set_text(state, text::produce_simple_string(state, "production_max_output"));
+		break;
+	case max_option::max_employment:
+		set_text(state, text::produce_simple_string(state, "production_max_employment"));
+		break;
+	}
+// END
+}
+void production_max_item_amount_label_t::on_update(sys::state& state) noexcept {
+	production_max_item_t& max_item = *((production_max_item_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN max_item::amount_label::update
+	set_text(state, text::prettify_float(max_item.amount));
+// END
+}
+void  production_max_item_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
+ui::message_result production_max_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_max_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_max_item_t::on_update(sys::state& state) noexcept {
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN max_item::update
+// END
+	remake_layout(state, true);
+}
+void production_max_item_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "description") {
+					temp.ptr = description.get();
+				} else
+				if(cname == "amount_label") {
+					temp.ptr = amount_label.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_max_item_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::max_item"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "description") {
+			description = std::make_unique<production_max_item_description_t>();
+			description->parent = this;
+			auto cptr = description.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "amount_label") {
+			amount_label = std::make_unique<production_max_item_amount_label_t>();
+			amount_label->parent = this;
+			auto cptr = amount_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN max_item::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_max_item(sys::state& state) {
+	auto ptr = std::make_unique<production_max_item_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+void production_shortage_item_description_t::on_update(sys::state& state) noexcept {
+	production_shortage_item_t& shortage_item = *((production_shortage_item_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN shortage_item::description::update
+	switch(shortage_item.kind) {
+	case warning_option::inputs:
+		set_text(state, text::produce_simple_string(state, "production_shortage_warn_inputs"));
+		break;
+	case warning_option::labor:
+		set_text(state, text::produce_simple_string(state, "production_shortage_warn_labor"));
+		break;
+	}
+// END
+}
+void production_shortage_item_amount_label_t::on_update(sys::state& state) noexcept {
+	production_shortage_item_t& shortage_item = *((production_shortage_item_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN shortage_item::amount_label::update
+	set_text(state, text::format_percentage(shortage_item.amount, 0));
+// END
+}
+void production_shortage_item_warning_icon_t::on_update(sys::state& state) noexcept {
+	production_shortage_item_t& shortage_item = *((production_shortage_item_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN shortage_item::warning_icon::update
+	static auto ocolor = template_project::color_by_name(state.ui_templates, "light orange");
+	static auto rcolor = template_project::color_by_name(state.ui_templates, "med red");
+
+	if(shortage_item.amount <= .1f)
+		color = state.ui_templates.colors[ocolor];
+	else
+		color = state.ui_templates.colors[rcolor];
+// END
+}
+void  production_shortage_item_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
+ui::message_result production_shortage_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_shortage_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_shortage_item_t::on_update(sys::state& state) noexcept {
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN shortage_item::update
+// END
+	remake_layout(state, true);
+}
+void production_shortage_item_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "description") {
+					temp.ptr = description.get();
+				} else
+				if(cname == "amount_label") {
+					temp.ptr = amount_label.get();
+				} else
+				if(cname == "warning_icon") {
+					temp.ptr = warning_icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_shortage_item_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::shortage_item"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "description") {
+			description = std::make_unique<production_shortage_item_description_t>();
+			description->parent = this;
+			auto cptr = description.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "amount_label") {
+			amount_label = std::make_unique<production_shortage_item_amount_label_t>();
+			amount_label->parent = this;
+			auto cptr = amount_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "warning_icon") {
+			warning_icon = std::make_unique<production_shortage_item_warning_icon_t>();
+			warning_icon->parent = this;
+			auto cptr = warning_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN shortage_item::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_shortage_item(sys::state& state) {
+	auto ptr = std::make_unique<production_shortage_item_t>();
+	ptr->on_create(state);
+	return ptr;
+}
 // LOST-CODE
+// BEGIN shortage_item::amount::update
+//	set_text(state, text::format_percentage(shortage_item.amount, 0));
+// END
+// BEGIN primary_row::size::update
+//	switch(primary_row.about) {
+//	case prod_source::combined:
+//		set_text(state, "");
+//		break;
+//	case prod_source::factory:
+//		switch(primary_row.category_type) {
+//		case prod_category::production:
+//			[[fallthrough]];
+//		case prod_category::consumption:
+//			[[fallthrough]];
+//		case prod_category::employment:
+//		{
+//			float total = 0.0f;
+//			if(main.selected_location) {
+//				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+//					for(auto fac : state.world.province_get_factory_location(p)) {
+//						if(fac.get_factory().get_building_type().get_output() == primary_row.commodity_type) {
+//							total += economy::get_factory_level(state, fac.get_factory());
+//						}
+//					}
+//				});
+//			} else {
+//				for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
+//					for(auto fac : op.get_province().get_factory_location()) {
+//						if(fac.get_factory().get_building_type().get_output() == primary_row.commodity_type) {
+//							total += economy::get_factory_level(state, fac.get_factory());
+//						}
+//					}
+//				}
+//			}
+//			set_text(state, text::format_float(total, 1));
+//		} break;
+//		case prod_category::details:
+//			set_text(state, "");
+//			break;
+//		}
+//		break;
+//	case prod_source::artisan:
+//		switch(primary_row.category_type) {
+//		case prod_category::production:
+//			[[fallthrough]];
+//		case prod_category::consumption:
+//			[[fallthrough]];
+//		case prod_category::employment:
+//		{
+//			float total = 0.0f;
+//			if(main.selected_location) {
+//				auto artisan_count = state.world.state_instance_get_demographics(main.selected_location, demographics::to_key(state, state.culture_definitions.artisans));
+//				total = artisan_count / economy::artisans_per_employment_unit;
+//			} else {
+//				auto artisan_count = state.world.nation_get_demographics(state.local_player_nation, demographics::to_key(state, state.culture_definitions.artisans));
+//				total = artisan_count / economy::artisans_per_employment_unit;
+//			}
+//			set_text(state, text::format_float(total, 1));
+//		} break;
+//		case prod_category::details:
+//			set_text(state, "");
+//			break;
+//		} break;
+//	case prod_source::rgo:
+//		switch(primary_row.category_type) {
+//		case prod_category::production:
+//			[[fallthrough]];
+//		case prod_category::consumption:
+//			[[fallthrough]];
+//		case prod_category::employment:
+//		{
+//			float total = 0.0f;
+//			if(main.selected_location) {
+//				province::for_each_province_in_state_instance(state, main.selected_location, [&](dcon::province_id p) {
+//					total += state.world.province_get_rgo_size(p, primary_row.commodity_type) / economy::artisans_per_employment_unit;;
+//				});
+//			} else {
+//				for(auto op : state.world.nation_get_province_ownership(state.local_player_nation)) {
+//					total += op.get_province().get_rgo_size(primary_row.commodity_type) / economy::artisans_per_employment_unit;
+//				}
+//			}
+//			set_text(state, text::format_float(total, 1));
+//		} break;
+//		case prod_category::details:
+//			set_text(state, "");
+//			break;
+//		}
+//		break;
+//	default:
+//		set_text(state, "");
+//		break;
+//	}
+// END
 }
