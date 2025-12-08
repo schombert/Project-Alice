@@ -102,6 +102,9 @@ struct global_economy_state {
 	float craftsmen_fraction = 0.8f;
 	dcon::modifier_id selector_modifier{};
 	dcon::modifier_id immigrator_modifier{};
+	bool operator==(const global_economy_state& other) const {
+		return other.selector_modifier == selector_modifier && other.immigrator_modifier == immigrator_modifier && std::memcmp(&building_definitions, &other.building_definitions, sizeof(building_definitions)) == 0;
+	}
 };
 static_assert(sizeof(global_economy_state) ==
 	sizeof(global_economy_state::building_definitions)

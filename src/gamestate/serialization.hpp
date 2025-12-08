@@ -251,9 +251,9 @@ uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
 uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
 
 // for serializing entire MP state, for OOS reporting when someone ooses
-uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
-uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state);
-size_t sizeof_entire_mp_state(sys::state& state);
+uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false);
+uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum = false);
+size_t sizeof_entire_mp_state(sys::state& state, bool for_mp_checksum = false);
 
 // combines load record settings by OR-ing them together
 void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record);

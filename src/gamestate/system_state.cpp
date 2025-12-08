@@ -5578,17 +5578,16 @@ sys::checksum_key state::get_scenario_checksum() {
 
 sys::checksum_key state::get_mp_state_checksum() {
 
+
 	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
-
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
+	auto size = sizeof_entire_mp_state(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
 	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
+	auto buffer_position = write_entire_mp_state(buffer.get(), *this, true);
 
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
 
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), size, nullptr, 0);
 	return key;
 }
 

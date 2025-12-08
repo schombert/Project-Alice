@@ -1060,71 +1060,95 @@ std::string add_line_to_oos_report(const std::string& member_name, const std::st
 }
 template<typename T>
 std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, const std::string& member_name, uint32_t index) {
-	bool equal = false;
-	// have to have this special case as bitfield type does not have a comparison operator and is an external dependency
-	if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
-		equal = (item_1.v == item_2.v);
-	} else {
-		equal = (item_1 == item_2);
-	}
-	if(!equal) {
-		if constexpr(std::is_arithmetic<T>::value) {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
-		}
-		else if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.v) + ", " + std::to_string(item_2.v) + "\n";
-		}
-		else if constexpr(std::is_same<T, char>::value) {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1 + ", " + item_2 + "\n";
-		}
-		else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
-		}
-		else if constexpr(std::is_enum<T>::value) {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
-		}
-		else if constexpr(std::is_same<T, bool>::value) {
+
+
+	if(std::memcmp(&item_1, &item_2, sizeof(T)) != 0) {
+		std::string result = "\tobject " + member_name + ": at index " + std::to_string(index) + ": ";
+		if constexpr(std::is_same<T, bool>::value) {
 			std::string item_1_str = (item_1) ? "true" : "false";
 			std::string item_2_str = (item_2) ? "true" : "false";
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1_str + ", " + item_2_str + "\n";
+			return result + item_1_str + ", " + item_2_str + "\n";
+		} else if constexpr(requires{ sys::to_debug_string(item_1); }) {
+			return result + sys::to_debug_string(item_1) + ", " + sys::to_debug_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1); }) {
+			return result + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1.value); }) {
+			return result + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		} else if constexpr(std::is_same<T, char>::value || std::is_same<T, std::string>::value) {
+			return result + item_1 + ", " + item_2 + "\n";
 		}
 		else {
-			return "\tobject " + member_name + ": at index " + std::to_string(index) + ":\n";
+			return result + "no supported tostring\n";
 		}
-	}
-	else {
+	} else {
 		return "";
 	}
+
+
+
+
+
+
+
+
+
+	//bool equal = false;
+	//// have to have this special case as bitfield type does not have a comparison operator and is an external dependency
+	//if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+	//	equal = (item_1.v == item_2.v);
+	//} else {
+	//	equal = (item_1 == item_2);
+	//}
+	//if(!equal) {
+	//	if constexpr(std::is_arithmetic<T>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.v) + ", " + std::to_string(item_2.v) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, char>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1 + ", " + item_2 + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+	//	}
+	//	else if constexpr(std::is_enum<T>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, bool>::value) {
+	//		std::string item_1_str = (item_1) ? "true" : "false";
+	//		std::string item_2_str = (item_2) ? "true" : "false";
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1_str + ", " + item_2_str + "\n";
+	//	}
+	//	else {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ":\n";
+	//	}
+	//}
+	//else {
+	//	return "";
+	//}
 }
 
 template<typename T>
 std::string add_compare_to_oos_report(const T& item_1, const T& item_2, const std::string& member_name) {
-	bool equal = false;
-	// have to have this special case as bitfield type does not have a comparison operator and is an external dependency
-	if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
-		equal = (item_1.v == item_2.v);
-	}
-	else {
-		equal = (item_1 == item_2);
-	}
-	if(!equal) {
-		if constexpr(std::is_arithmetic<T>::value) {
-			return "\tobject " + member_name + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
-		} else if constexpr(std::is_same<T, char>::value) {
-			return  "\tobject " + member_name + ": " + item_1 + ", " + item_2 + "\n";
-		} else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
-			return "\tobject " + member_name + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
-		}
-		else if constexpr(std::is_enum<T>::value) {
-			return "\tobject " + member_name + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
-		}
-		else if constexpr(std::is_same<T, bool>::value) {
+	if(std::memcmp(&item_1, &item_2, sizeof(T)) != 0) {
+		std::string result = "\tobject " + member_name + ": ";
+		if constexpr(std::is_same<T, bool>::value) {
 			std::string item_1_str = (item_1) ? "true" : "false";
 			std::string item_2_str = (item_2) ? "true" : "false";
-			return "\tobject " + member_name + ": " + item_1_str + ", " + item_2_str + "\n";
+			return result + item_1_str + ", " + item_2_str + "\n";
+		} else if constexpr(requires{ sys::to_debug_string(item_1); }) {
+			return result + sys::to_debug_string(item_1) + ", " + sys::to_debug_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1); }) {
+			return result + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1.value); }) {
+			return result + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		}
+		else if constexpr(std::is_same<T, char>::value || std::is_same<T, std::string>::value) {
+			return result + item_1 + ", " + item_2 + "\n";
 		}
 		else {
-			return "\tobject " + member_name + ":\n";
+			return result + "no supported tostring\n";
 		}
 	}
 	else {
@@ -1182,10 +1206,151 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 
 	report += "SCENARIO HANDWRITTEN CONTRIBUTION\n";
 	report += add_compare_to_oos_report(state_1.lua_combined_script, state_2.lua_combined_script, "lua_combined_script") +
-		add_compare_to_oos_report(state_1.lua_game_loop_script, state_2.lua_game_loop_script, "lua_game_loop_script") +
-		add_compare_to_oos_report(state_1.lua_ui_script, state_2.lua_ui_script, "lua_ui_script") +
-		add_compare_to_oos_report(state_1.map_state.map_data.size_x, state_2.map_state.map_data.size_x, "map_data.size_x");
-	return report;
+	add_compare_to_oos_report(state_1.lua_game_loop_script, state_2.lua_game_loop_script, "lua_game_loop_script") +
+	add_compare_to_oos_report(state_1.lua_ui_script, state_2.lua_ui_script, "lua_ui_script") +
+	add_compare_to_oos_report(state_1.map_state.map_data.size_x, state_2.map_state.map_data.size_x, "map_data.size_x") +
+	add_compare_to_oos_report(state_1.map_state.map_data.size_y, state_2.map_state.map_data.size_y, "map_data.size_y") +
+		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
+		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
+		add_collection_compare_to_oos_report<map::textured_line_vertex_b_enriched_with_province_index>(state_1.map_state.map_data.border_vertices, state_2.map_state.map_data.border_vertices, "border_vertices") +
+		add_collection_compare_to_oos_report<map::border>(state_1.map_state.map_data.borders, state_2.map_state.map_data.borders, "borders") +
+		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.terrain_id_map, state_1.map_state.map_data.terrain_id_map, "terrain_id_map") +
+		add_collection_compare_to_oos_report<uint16_t>(state_1.map_state.map_data.province_id_map, state_1.map_state.map_data.province_id_map, "province_id_map") +
+		add_collection_compare_to_oos_report<uint32_t>(state_1.map_state.map_data.province_area, state_1.map_state.map_data.province_area, "province_area") +
+		add_collection_compare_to_oos_report<float>(state_1.map_state.map_data.province_area_km2, state_1.map_state.map_data.province_area_km2, "province_area_km2") +
+		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.diagonal_borders, state_2.map_state.map_data.diagonal_borders, "diagnoal_borders") +
+		add_compare_to_oos_report(state_1.defines, state_2.defines, "defines") +
+		add_compare_to_oos_report(state_1.economy_definitions, state_2.economy_definitions, "economy_defitions") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.party_issues, state_2.culture_definitions.party_issues, "party_issues") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.political_issues, state_2.culture_definitions.political_issues, "political_issues") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.social_issues, state_2.culture_definitions.social_issues, "social_issues") +
+		add_collection_compare_to_oos_report<dcon::reform_id>(state_1.culture_definitions.military_issues, state_2.culture_definitions.military_issues, "military_issues") +
+		add_collection_compare_to_oos_report<dcon::reform_id>(state_1.culture_definitions.economic_issues, state_2.culture_definitions.economic_issues, "economic_issues") +
+		add_collection_compare_to_oos_report<culture::folder_info>(state_1.culture_definitions.tech_folders, state_2.culture_definitions.tech_folders, "tech_folders") +
+		add_collection_compare_to_oos_report<culture::crime_info>(state_1.culture_definitions.crimes, state_2.culture_definitions.crimes, "crimes") +
+		add_compare_to_oos_report(state_1.culture_definitions.artisans, state_2.culture_definitions.artisans, "artisans") +
+		add_compare_to_oos_report(state_1.culture_definitions.capitalists, state_2.culture_definitions.capitalists, "capitalists") +
+		add_compare_to_oos_report(state_1.culture_definitions.farmers, state_2.culture_definitions.farmers, "farmers") +
+		add_compare_to_oos_report(state_1.culture_definitions.laborers, state_2.culture_definitions.laborers, "labrourers") +
+		add_compare_to_oos_report(state_1.culture_definitions.clergy, state_2.culture_definitions.clergy, "clergy") +
+		add_compare_to_oos_report(state_1.culture_definitions.soldiers, state_2.culture_definitions.soldiers, "soldiers") +
+		add_compare_to_oos_report(state_1.culture_definitions.officers, state_2.culture_definitions.officers, "officers") +
+		add_compare_to_oos_report(state_1.culture_definitions.slaves, state_2.culture_definitions.slaves, "slaves") +
+		add_compare_to_oos_report(state_1.culture_definitions.bureaucrat, state_2.culture_definitions.bureaucrat, "buraucrat") +
+		add_compare_to_oos_report(state_1.culture_definitions.aristocrat, state_2.culture_definitions.aristocrat, "aristocrat") +
+		add_compare_to_oos_report(state_1.culture_definitions.primary_factory_worker, state_2.culture_definitions.primary_factory_worker, "primary_factory_worker") +
+		add_compare_to_oos_report(state_1.culture_definitions.secondary_factory_worker, state_2.culture_definitions.secondary_factory_worker, "secondary_factory_worker") +
+		add_compare_to_oos_report(state_1.culture_definitions.officer_leadership_points, state_2.culture_definitions.officer_leadership_points, "officer_leadership_points") +
+		add_compare_to_oos_report(state_1.culture_definitions.bureaucrat_tax_efficiency, state_2.culture_definitions.bureaucrat_tax_efficiency, "bureaucrat_tax_efficiency") +
+		add_compare_to_oos_report(state_1.culture_definitions.conservative, state_2.culture_definitions.conservative, "conservative") +
+		add_compare_to_oos_report(state_1.culture_definitions.jingoism, state_2.culture_definitions.jingoism, "jingoism") +
+		add_compare_to_oos_report(state_1.culture_definitions.promotion_chance, state_2.culture_definitions.promotion_chance, "promotion_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.demotion_chance, state_2.culture_definitions.demotion_chance, "demotion_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.migration_chance, state_2.culture_definitions.migration_chance, "migration_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.colonialmigration_chance, state_2.culture_definitions.colonialmigration_chance, "colonialmigration_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.emigration_chance, state_2.culture_definitions.emigration_chance, "emigration_chance") +
+			add_compare_to_oos_report(state_1.culture_definitions.assimilation_chance, state_2.culture_definitions.assimilation_chance, "assimilation_chance") +
+			add_compare_to_oos_report(state_1.culture_definitions.conversion_chance, state_2.culture_definitions.conversion_chance, "conversion_chance") +
+			add_compare_to_oos_report(state_1.military_definitions.first_background_trait, state_2.military_definitions.first_background_trait, "first_background_trait") +
+			add_collection_compare_to_oos_report<military::unit_definition>(state_1.military_definitions.unit_base_definitions, state_2.military_definitions.unit_base_definitions, "unit_base_definitions") +
+			add_compare_to_oos_report(state_1.military_definitions.base_army_unit, state_2.military_definitions.base_army_unit, "base_army_unit") +
+			add_compare_to_oos_report(state_1.military_definitions.base_naval_unit, state_2.military_definitions.base_naval_unit, "base_naval_unit") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_civil_war, state_2.military_definitions.standard_civil_war, "standard_civil_war") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_great_war, state_2.military_definitions.standard_great_war, "standard_great_war") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_status_quo, state_2.military_definitions.standard_status_quo, "standard_status_quo") +
+			add_compare_to_oos_report(state_1.military_definitions.liberate, state_2.military_definitions.liberate, "liberate") +
+			add_compare_to_oos_report(state_1.military_definitions.uninstall_communist_gov, state_2.military_definitions.uninstall_communist_gov, "uninstall_communist_gov") +
+			add_compare_to_oos_report(state_1.military_definitions.crisis_colony, state_2.military_definitions.crisis_colony, "crisis_colony") +
+			add_compare_to_oos_report(state_1.military_definitions.crisis_liberate, state_2.military_definitions.crisis_liberate, "crisis_liberate") +
+			add_compare_to_oos_report(state_1.military_definitions.irregular, state_2.military_definitions.irregular, "irregular") +
+			add_collection_compare_to_oos_report<nations::triggered_modifier>(state_1.national_definitions.triggered_modifiers, state_2.national_definitions.triggered_modifiers, "triggered_modifiers") +
+
+
+			add_compare_to_oos_report(state_1.national_definitions.rebel_id, state_2.national_definitions.rebel_id, "rebel_id") +
+			add_compare_to_oos_report(state_1.national_definitions.very_easy_player, state_2.national_definitions.very_easy_player, "very_easy_player") +
+			add_compare_to_oos_report(state_1.national_definitions.easy_player, state_2.national_definitions.easy_player, "easy_player") +
+
+			add_compare_to_oos_report(state_1.national_definitions.hard_player, state_2.national_definitions.hard_player, "hard_player") +
+			add_compare_to_oos_report(state_1.national_definitions.very_hard_player, state_2.national_definitions.very_hard_player, "very_hard_player") +
+			add_compare_to_oos_report(state_1.national_definitions.very_easy_ai, state_2.national_definitions.very_easy_ai, "very_easy_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.easy_ai, state_2.national_definitions.easy_ai, "easy_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.hard_ai, state_2.national_definitions.hard_ai, "hard_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.very_hard_ai, state_2.national_definitions.very_hard_ai, "very_hard_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.overseas, state_2.national_definitions.overseas, "overseas") +
+			add_compare_to_oos_report(state_1.national_definitions.coastal, state_2.national_definitions.coastal, "coastal") +
+			add_compare_to_oos_report(state_1.national_definitions.non_coastal, state_2.national_definitions.non_coastal, "non_coastal") +
+			add_compare_to_oos_report(state_1.national_definitions.coastal_sea, state_2.national_definitions.coastal_sea, "coastal_sea") +
+			add_compare_to_oos_report(state_1.national_definitions.sea_zone, state_2.national_definitions.sea_zone, "sea_zone") +
+			add_compare_to_oos_report(state_1.national_definitions.land_province, state_2.national_definitions.land_province, "land_province") +
+			add_compare_to_oos_report(state_1.national_definitions.blockaded, state_2.national_definitions.blockaded, "blockaded") +
+			add_compare_to_oos_report(state_1.national_definitions.no_adjacent_controlled, state_2.national_definitions.no_adjacent_controlled, "no_adjacent_controlled") +
+			add_compare_to_oos_report(state_1.national_definitions.core, state_2.national_definitions.core, "core") +
+			add_compare_to_oos_report(state_1.national_definitions.has_siege, state_2.national_definitions.has_siege, "has_siege") +
+			add_compare_to_oos_report(state_1.national_definitions.occupied, state_2.national_definitions.occupied, "occupied") +
+			add_compare_to_oos_report(state_1.national_definitions.nationalism, state_2.national_definitions.nationalism, "nationalism") +
+			add_compare_to_oos_report(state_1.national_definitions.infrastructure, state_2.national_definitions.infrastructure, "infrastructure") +
+			add_compare_to_oos_report(state_1.national_definitions.base_values, state_2.national_definitions.base_values, "base_values") +
+			add_compare_to_oos_report(state_1.national_definitions.war, state_2.national_definitions.war, "war") +
+			add_compare_to_oos_report(state_1.national_definitions.peace, state_2.national_definitions.peace, "peace") +
+			add_compare_to_oos_report(state_1.national_definitions.disarming, state_2.national_definitions.disarming, "disarming") +
+			add_compare_to_oos_report(state_1.national_definitions.war_exhaustion, state_2.national_definitions.war_exhaustion, "war_exhaustion") +
+			add_compare_to_oos_report(state_1.national_definitions.badboy, state_2.national_definitions.badboy, "badboy") +
+			add_compare_to_oos_report(state_1.national_definitions.debt_default_to, state_2.national_definitions.debt_default_to, "debt_default_to") +
+			add_compare_to_oos_report(state_1.national_definitions.bad_debter, state_2.national_definitions.bad_debter, "bad_debter") +
+			add_compare_to_oos_report(state_1.national_definitions.great_power, state_2.national_definitions.great_power, "great_power") +
+			add_compare_to_oos_report(state_1.national_definitions.second_power, state_2.national_definitions.second_power, "second_power") +
+			add_compare_to_oos_report(state_1.national_definitions.civ_nation, state_2.national_definitions.civ_nation, "civ_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.unciv_nation, state_2.national_definitions.unciv_nation, "unciv_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.average_literacy, state_2.national_definitions.average_literacy, "average_literacy") +
+			add_compare_to_oos_report(state_1.national_definitions.plurality, state_2.national_definitions.plurality, "plurality") +
+			add_compare_to_oos_report(state_1.national_definitions.generalised_debt_default, state_2.national_definitions.generalised_debt_default, "generalized_debt_default") +
+			add_compare_to_oos_report(state_1.national_definitions.total_occupation, state_2.national_definitions.total_occupation, "total_occupation") +
+			add_compare_to_oos_report(state_1.national_definitions.total_blockaded, state_2.national_definitions.total_blockaded, "total_blockaded") +
+			add_compare_to_oos_report(state_1.national_definitions.in_bankrupcy, state_2.national_definitions.in_bankrupcy, "in_bankrupcy") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_variables, state_2.national_definitions.num_allocated_national_variables, "num_allocated_national_variables") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_flags, state_2.national_definitions.num_allocated_national_flags, "num_allocated_national_flags") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_global_flags, state_2.national_definitions.num_allocated_global_flags, "num_allocated_global_flags") +
+			add_compare_to_oos_report(state_1.national_definitions.flashpoint_focus, state_2.national_definitions.flashpoint_focus, "flashpoint_focus") +
+			add_compare_to_oos_report(state_1.national_definitions.flashpoint_amount, state_2.national_definitions.flashpoint_amount, "flashpoint_amount") +
+			add_compare_to_oos_report(state_1.national_definitions.on_yearly_pulse, state_2.national_definitions.on_yearly_pulse, "on_yearly_pulse") +
+			add_compare_to_oos_report(state_1.national_definitions.on_quarterly_pulse, state_2.national_definitions.on_quarterly_pulse, "on_quarterly_pulse") +
+			add_compare_to_oos_report(state_1.national_definitions.on_battle_won, state_2.national_definitions.on_battle_won, "on_battle_won") +
+			add_compare_to_oos_report(state_1.national_definitions.on_battle_lost, state_2.national_definitions.on_battle_lost, "on_battle_lost") +
+			add_compare_to_oos_report(state_1.national_definitions.on_surrender, state_2.national_definitions.on_surrender, "on_surrender") +
+			add_compare_to_oos_report(state_1.national_definitions.on_new_great_nation, state_2.national_definitions.on_new_great_nation, "on_new_great_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.on_lost_great_nation, state_2.national_definitions.on_lost_great_nation, "on_lost_great_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.on_election_tick, state_2.national_definitions.on_election_tick, "on_election_tick") +
+			add_compare_to_oos_report(state_1.national_definitions.on_colony_to_state, state_2.national_definitions.on_colony_to_state, "on_colony_to_state") +
+			add_compare_to_oos_report(state_1.national_definitions.on_state_conquest, state_2.national_definitions.on_state_conquest, "on_state_conquest") +
+			add_compare_to_oos_report(state_1.national_definitions.on_colony_to_state_free_slaves, state_2.national_definitions.on_colony_to_state_free_slaves, "on_colony_to_state_free_slaves") +
+			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default, state_2.national_definitions.on_debtor_default, "on_debtor_default") +
+			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default_small, state_2.national_definitions.on_debtor_default_small, "on_debtor_default_small") +
+			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default_second, state_2.national_definitions.on_debtor_default_second, "on_debtor_default_second") +
+			add_compare_to_oos_report(state_1.national_definitions.on_civilize, state_2.national_definitions.on_civilize, "on_civilize") +
+			add_compare_to_oos_report(state_1.national_definitions.on_my_factories_nationalized, state_2.national_definitions.on_my_factories_nationalized, "on_my_factories_nationalized") +
+			add_compare_to_oos_report(state_1.national_definitions.on_crisis_declare_interest, state_2.national_definitions.on_crisis_declare_interest, "on_crisis_declare_interest") +
+			add_compare_to_oos_report(state_1.national_definitions.on_election_started, state_2.national_definitions.on_election_started, "on_election_started") +
+			add_compare_to_oos_report(state_1.national_definitions.on_election_finished, state_2.national_definitions.on_election_finished, "on_election_finished") +
+			add_collection_compare_to_oos_report<dcon::province_adjacency_id>(state_1.province_definitions.canals, state_2.province_definitions.canals, "canals") +
+			add_collection_compare_to_oos_report<dcon::province_id>(state_1.province_definitions.canal_provinces, state_2.province_definitions.canal_provinces, "canal_provinces") +
+			add_compare_to_oos_report(state_1.province_definitions.first_sea_province, state_2.province_definitions.first_sea_province, "first_sea_province") +
+			add_compare_to_oos_report(state_1.province_definitions.europe, state_2.province_definitions.europe, "europe") +
+			add_compare_to_oos_report(state_1.province_definitions.asia, state_2.province_definitions.asia, "asia") +
+			add_compare_to_oos_report(state_1.province_definitions.africa, state_2.province_definitions.africa, "africa") +
+			add_compare_to_oos_report(state_1.province_definitions.north_america, state_2.province_definitions.north_america, "north_america") +
+			add_compare_to_oos_report(state_1.province_definitions.south_america, state_2.province_definitions.south_america, "south_america") +
+			add_compare_to_oos_report(state_1.province_definitions.oceania, state_2.province_definitions.oceania, "oceania") +
+			add_compare_to_oos_report(state_1.start_date, state_1.start_date, "start_date") +
+			add_compare_to_oos_report(state_1.end_date, state_1.end_date, "end_date") +
+			add_collection_compare_to_oos_report<uint16_t>(state_1.trigger_data, state_2.trigger_data, "trigger_data") +
+			add_collection_compare_to_oos_report<int32_t>(state_1.trigger_data_indices, state_2.trigger_data_indices, "trigger_data_indices") +
+			add_collection_compare_to_oos_report<uint16_t>(state_1.effect_data, state_2.effect_data, "effect_data") +
+			add_collection_compare_to_oos_report<int32_t>(state_1.effect_data_indices, state_2.effect_data_indices, "effect_data_indices") +
+			add_collection_compare_to_oos_report<sys::value_modifier_segment>(state_1.value_modifier_segments, state_2.value_modifier_segments, "value_modifier_segments") +
+			add_collection_compare_to_oos_report<sys::value_modifier_description>(state_1.value_modifiers, state_2.value_modifiers, "value_modifiers") +
+			add_compare_to_oos_report(state_1.hardcoded_gamerules, state_1.hardcoded_gamerules, "hardcoded_gamerules");
+
+			return report;
 }
 
 void dump_oos_report(sys::state& state_1, sys::state& state_2) {

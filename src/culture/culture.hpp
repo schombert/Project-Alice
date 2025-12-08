@@ -69,6 +69,7 @@ std::vector<culture::tech_category> get_active_tech_categories(sys::state& state
 struct folder_info {
 	dcon::text_key name;
 	tech_category category = tech_category::army;
+	bool operator==(const folder_info& other) const = default;
 };
 
 enum class pop_strata : uint8_t { poor = 0, middle = 1, rich = 2 };

@@ -85,6 +85,7 @@ struct textured_line_vertex_b_enriched_with_province_index {
 	uint16_t province_index;
 	float texture_coordinate = 0.f;
 	float distance = 0.f;
+	bool operator==(const textured_line_vertex_b_enriched_with_province_index& other) const = default;
 };
 
 struct text_line_vertex {
@@ -113,6 +114,7 @@ struct border {
 	int count = 0;
 	dcon::province_adjacency_id adj;
 	uint16_t padding = 0;
+	bool operator==(const border&) const = default;
 };
 
 enum class map_view;

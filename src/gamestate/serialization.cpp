@@ -142,26 +142,6 @@ uint8_t const* with_decompressed_section(uint8_t const* ptr_in, T const& functio
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
 }
 
-uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state) {
-	dcon::load_record loaded;
-	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
-	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
-	return section_end;
-}
-uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state) {
-	dcon::load_record result = state.world.make_serialize_record_store_mp_checksum_excluded();
-	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
-	state.world.serialize(start, result);
-
-	return reinterpret_cast<uint8_t*>(start);
-}
-size_t sizeof_entire_mp_state(sys::state& state) {
-	size_t sz = 0;
-	dcon::load_record loaded = state.world.make_serialize_record_store_mp_checksum_excluded();
-	sz += state.world.serialize_size(loaded);
-
-	return sz;
-}
 
 uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
@@ -174,12 +154,14 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = memcpy_deserialize(ptr_in, state.map_state.map_data.world_circumference);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
-		ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
+		if(!for_mp_checksum) {
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_vertices);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_starts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.river_counts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_vertices);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_starts);
+			ptr_in = deserialize(ptr_in, state.map_state.map_data.coastal_counts);
+		}
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.border_vertices);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = deserialize(ptr_in, state.map_state.map_data.terrain_id_map);
@@ -243,9 +225,11 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 		ptr_in = memcpy_deserialize(ptr_in, state.military_definitions.irregular);
 	}
 	{ // national definitions
-		ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
-		ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
-		ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
+		if(!for_mp_checksum) {
+			ptr_in = deserialize(ptr_in, state.national_definitions.flag_variable_names);
+			ptr_in = deserialize(ptr_in, state.national_definitions.global_flag_variable_names);
+			ptr_in = deserialize(ptr_in, state.national_definitions.variable_names);
+		}
 		ptr_in = deserialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_deserialize(ptr_in, state.national_definitions.very_easy_player);
@@ -315,7 +299,9 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 	{ // provincial definitions
 		ptr_in = deserialize(ptr_in, state.province_definitions.canals);
 		ptr_in = deserialize(ptr_in, state.province_definitions.canal_provinces);
-		ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		if(!for_mp_checksum) {
+			ptr_in = deserialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		}
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_deserialize(ptr_in, state.province_definitions.asia);
@@ -332,9 +318,11 @@ uint8_t const* read_handwritten_scenario_section(uint8_t const* ptr_in, uint8_t 
 	ptr_in = deserialize(ptr_in, state.effect_data_indices);
 	ptr_in = deserialize(ptr_in, state.value_modifier_segments);
 	ptr_in = deserialize(ptr_in, state.value_modifiers);
-	ptr_in = deserialize(ptr_in, state.key_data);
-	simple_fs::fileseperators_from_standard_to_native(state.key_data);
-	ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
+	if(!for_mp_checksum) {
+		ptr_in = deserialize(ptr_in, state.key_data);
+		simple_fs::fileseperators_from_standard_to_native(state.key_data);
+		ptr_in = deserialize(ptr_in, state.untrans_key_to_text_sequence);
+	}
 	ptr_in = memcpy_deserialize(ptr_in, state.hardcoded_gamerules);
 
 	if(!for_mp_checksum){ // ui definitions
@@ -371,12 +359,14 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_x);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.size_y);
 		ptr_in = memcpy_serialize(ptr_in, state.map_state.map_data.world_circumference);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
-		ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
+		if(!for_mp_checksum) {
+			ptr_in = serialize(ptr_in, state.map_state.map_data.river_vertices);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.river_starts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.river_counts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_vertices);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_starts);
+			ptr_in = serialize(ptr_in, state.map_state.map_data.coastal_counts);
+		}
 		ptr_in = serialize(ptr_in, state.map_state.map_data.border_vertices);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.borders);
 		ptr_in = serialize(ptr_in, state.map_state.map_data.terrain_id_map);
@@ -440,9 +430,11 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.irregular);
 	}
 	{ // national definitions
-		ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
-		ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
-		ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
+		if(!for_mp_checksum) {
+			ptr_in = serialize(ptr_in, state.national_definitions.flag_variable_names);
+			ptr_in = serialize(ptr_in, state.national_definitions.global_flag_variable_names);
+			ptr_in = serialize(ptr_in, state.national_definitions.variable_names);
+		}
 		ptr_in = serialize(ptr_in, state.national_definitions.triggered_modifiers);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.rebel_id);
 		ptr_in = memcpy_serialize(ptr_in, state.national_definitions.very_easy_player);
@@ -512,7 +504,9 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 	{ // provincial definitions
 		ptr_in = serialize(ptr_in, state.province_definitions.canals);
 		ptr_in = serialize(ptr_in, state.province_definitions.canal_provinces);
-		ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		if(!for_mp_checksum) {
+			ptr_in = serialize(ptr_in, state.province_definitions.terrain_to_gfx_map);
+		}
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.first_sea_province);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.europe);
 		ptr_in = memcpy_serialize(ptr_in, state.province_definitions.asia);
@@ -529,8 +523,10 @@ uint8_t* write_handwritten_scenario_section(uint8_t* ptr_in, sys::state& state, 
 	ptr_in = serialize(ptr_in, state.effect_data_indices);
 	ptr_in = serialize(ptr_in, state.value_modifier_segments);
 	ptr_in = serialize(ptr_in, state.value_modifiers);
-	ptr_in = serialize(ptr_in, simple_fs::fileseperators_from_native_to_standard_copy(state.key_data));
-	ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
+	if(!for_mp_checksum) {
+		ptr_in = serialize(ptr_in, simple_fs::fileseperators_from_native_to_standard_copy(state.key_data));
+		ptr_in = serialize(ptr_in, state.untrans_key_to_text_sequence);
+	}
 	ptr_in = memcpy_serialize(ptr_in, state.hardcoded_gamerules);
 
 	if(!for_mp_checksum){ // ui definitions
@@ -568,12 +564,14 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool for_mp_checks
 		sz += sizeof(state.map_state.map_data.size_x);
 		sz += sizeof(state.map_state.map_data.size_y);
 		sz += sizeof(state.map_state.map_data.world_circumference);
-		sz += serialize_size(state.map_state.map_data.river_vertices);
-		sz += serialize_size(state.map_state.map_data.river_starts);
-		sz += serialize_size(state.map_state.map_data.river_counts);
-		sz += serialize_size(state.map_state.map_data.coastal_vertices);
-		sz += serialize_size(state.map_state.map_data.coastal_starts);
-		sz += serialize_size(state.map_state.map_data.coastal_counts);
+		if(!for_mp_checksum) {
+			sz += serialize_size(state.map_state.map_data.river_vertices);
+			sz += serialize_size(state.map_state.map_data.river_starts);
+			sz += serialize_size(state.map_state.map_data.river_counts);
+			sz += serialize_size(state.map_state.map_data.coastal_vertices);
+			sz += serialize_size(state.map_state.map_data.coastal_starts);
+			sz += serialize_size(state.map_state.map_data.coastal_counts);
+		}
 		sz += serialize_size(state.map_state.map_data.border_vertices);
 		sz += serialize_size(state.map_state.map_data.borders);
 		sz += serialize_size(state.map_state.map_data.terrain_id_map);
@@ -635,9 +633,11 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool for_mp_checks
 		sz += sizeof(state.military_definitions.irregular);
 	}
 	{ // national definitions
-		sz += serialize_size(state.national_definitions.flag_variable_names);
-		sz += serialize_size(state.national_definitions.global_flag_variable_names);
-		sz += serialize_size(state.national_definitions.variable_names);
+		if(!for_mp_checksum) {
+			sz += serialize_size(state.national_definitions.flag_variable_names);
+			sz += serialize_size(state.national_definitions.global_flag_variable_names);
+			sz += serialize_size(state.national_definitions.variable_names);
+		}
 		sz += serialize_size(state.national_definitions.triggered_modifiers);
 		sz += sizeof(state.national_definitions.rebel_id);
 		sz += sizeof(state.national_definitions.very_easy_player);
@@ -707,7 +707,9 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool for_mp_checks
 	{ // provincial definitions
 		sz += serialize_size(state.province_definitions.canals);
 		sz += serialize_size(state.province_definitions.canal_provinces);
-		sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
+		if(!for_mp_checksum) {
+			sz += serialize_size(state.province_definitions.terrain_to_gfx_map);
+		}
 		sz += sizeof(state.province_definitions.first_sea_province);
 		sz += sizeof(state.province_definitions.europe);
 		sz += sizeof(state.province_definitions.asia);
@@ -724,8 +726,10 @@ size_t sizeof_handwritten_scenario_section(sys::state& state, bool for_mp_checks
 	sz += serialize_size(state.effect_data_indices);
 	sz += serialize_size(state.value_modifier_segments);
 	sz += serialize_size(state.value_modifiers);
-	sz += serialize_size(state.key_data);
-	sz += serialize_size(state.untrans_key_to_text_sequence);
+	if(!for_mp_checksum) {
+		sz += serialize_size(state.key_data);
+		sz += serialize_size(state.untrans_key_to_text_sequence);
+	}
 	sz += sizeof(state.hardcoded_gamerules);
 
 	if(!for_mp_checksum){ // ui definitions
@@ -755,9 +759,9 @@ scenario_size sizeof_scenario_section(sys::state& state, bool for_mp_checksum) {
 
 uint8_t const* read_handwritten_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum = false) {
 	// hand-written contribution
-	ptr_in = deserialize(ptr_in, state.unit_names);
-	ptr_in = deserialize(ptr_in, state.unit_names_indices);
 	if(!for_mp_checksum) {
+		ptr_in = deserialize(ptr_in, state.unit_names);
+		ptr_in = deserialize(ptr_in, state.unit_names_indices);
 		ptr_in = memcpy_deserialize(ptr_in, state.local_player_nation);
 	}
 	ptr_in = memcpy_deserialize(ptr_in, state.current_date);
@@ -859,6 +863,7 @@ uint8_t* write_handwritten_save_section(uint8_t* ptr_in, sys::state& state, bool
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.great_wars_enabled);
 		ptr_in = memcpy_serialize(ptr_in, state.military_definitions.world_wars_enabled);
 	}
+	return ptr_in;
 }
 
 uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum) {
@@ -927,6 +932,36 @@ size_t sizeof_save_section(sys::state& state, bool for_mp_checksum) {
 
 	// data container contribution
 	dcon::load_record loaded = state.world.make_serialize_record_store_save();
+	sz += state.world.serialize_size(loaded);
+
+	return sz;
+}
+
+uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool for_mp_checksum) {
+
+	ptr_in = read_handwritten_scenario_section(ptr_in, section_end, state, for_mp_checksum);
+	ptr_in = read_handwritten_save_section(ptr_in, section_end, state, for_mp_checksum);
+	dcon::load_record loaded;
+	std::byte const* start = reinterpret_cast<std::byte const*>(ptr_in);
+	state.world.deserialize(start, reinterpret_cast<std::byte const*>(section_end), loaded);
+	return section_end;
+}
+uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state, bool for_mp_checksum) {
+	ptr_in = write_handwritten_scenario_section(ptr_in, state, for_mp_checksum);
+	ptr_in = write_handwritten_save_section(ptr_in, state, for_mp_checksum);
+
+
+	dcon::load_record result = state.world.make_serialize_record_store_mp_checksum_excluded();
+	std::byte* start = reinterpret_cast<std::byte*>(ptr_in);
+	state.world.serialize(start, result);
+
+	return reinterpret_cast<uint8_t*>(start);
+}
+size_t sizeof_entire_mp_state(sys::state& state, bool for_mp_checksum) {
+	size_t sz = 0;
+	sz += sizeof_handwritten_scenario_section(state, for_mp_checksum);
+	sz += sizeof_handwritten_save_section(state, for_mp_checksum);
+	dcon::load_record loaded = state.world.make_serialize_record_store_mp_checksum_excluded();
 	sz += state.world.serialize_size(loaded);
 
 	return sz;
