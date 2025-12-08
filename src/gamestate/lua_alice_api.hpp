@@ -9,6 +9,7 @@ struct state;
 namespace lua_alice_api {
 
 void setup_gameloop_environment(sys::state& state);
+void setup_ui_environment(sys::state& state);
 void set_state(sys::state* state);
 
 bool has_named_function(sys::state& state, const char function_name[]);

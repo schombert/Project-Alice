@@ -892,77 +892,13 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
-// example of providing LUA API if someone would ever need it for something
-static int draw_rectangle(lua_State* L) {
-	// get amount of arguments
-	int n = lua_gettop(L);
-
-	// validation
-	if(n != 4) {
-		lua_pushstring(L, "incorrect count of arguments");
-		lua_error(L);
-	}
-	for(int i = 1; i <= n; i++) {
-		if(!lua_isnumber(L, i)) {
-			lua_pushstring(L, "incorrect argument");
-			lua_error(L);
-		}
-	}
-
-
-	auto x = lua_tonumber(L, 1);
-	auto y = lua_tonumber(L, 2);
-	auto width = lua_tonumber(L, 3);
-	auto height = lua_tonumber(L, 4);
-
-	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
-	state* alice_state = (state*)(lua_touserdata(L, -1));
-
-	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
-
-	// return number of results
-	return 0;
-}
-
 void state::on_create() {
 	// lua
 	lua_alice_api::set_state(this);
 	lua_alice_api::setup_gameloop_environment(*this);
 
-	// LOAD LUA UI Environment
-	lua_ui_environment = luaL_newstate();
-	luaL_openlibs(lua_ui_environment); // Load precalculated LUA environment into the LUA state
+	lua_alice_api::setup_ui_environment(*this);
 
-	// pointer to alice state
-	lua_pushlightuserdata(lua_ui_environment, (void*)(this));
-	lua_setfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_state");
-
-	// alice table
-	{
-		lua_newtable(lua_ui_environment);
-		lua_setglobal(lua_ui_environment, "alice");
-		assert(lua_gettop(lua_ui_environment) == 0);
-	}
-
-	// Expose graphics functions to LUA
-
-	// graphics subsystem
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
-	lua_newtable(lua_ui_environment); // [alice, table
-	lua_setfield(lua_ui_environment, -2, "graphics"); // [alice
-	lua_remove(lua_ui_environment, -1); // [
-
-	assert(lua_gettop(lua_ui_environment) == 0);
-
-	// rectangle
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
-	lua_getfield(lua_ui_environment, -1, "graphics"); // [alice, graphics
-	lua_remove(lua_ui_environment, -2); // [graphics
-	lua_pushcfunction(lua_ui_environment, draw_rectangle); // [graphics, draw_rectangle
-	lua_setfield(lua_ui_environment, -2, "rect"); // [graphics,
-	lua_remove(lua_ui_environment, -1); // [
-
-	assert(lua_gettop(lua_ui_environment) == 0);
 
 	// populate the table with scripted functions from lua_combined_script and lua_ui_script (read during scenario generation)
 	{
@@ -3260,6 +3196,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
+
 	lua_alice_api::set_state(this);
 	lua_alice_api::setup_gameloop_environment(*this);
 
@@ -3326,7 +3263,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
-		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\\n";
+		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
 	}
 
 	demographics::regenerate_from_pop_data_full(*this);
