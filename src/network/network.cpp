@@ -1061,8 +1061,14 @@ std::string add_line_to_oos_report(const std::string& member_name, const std::st
 template<typename T>
 std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, const std::string& member_name, uint32_t index) {
 
-
-	if(std::memcmp(&item_1, &item_2, sizeof(T)) != 0) {
+	bool equal = false;
+	if constexpr(std::is_trivially_copyable<T>::value) {
+		equal = std::memcmp(&item_1, &item_2, sizeof(T)) == 0;
+	}
+	else {
+		equal = (item_1 == item_2);
+	}
+	if(!equal) {
 		std::string result = "\tobject " + member_name + ": at index " + std::to_string(index) + ": ";
 		if constexpr(std::is_same<T, bool>::value) {
 			std::string item_1_str = (item_1) ? "true" : "false";
@@ -1131,7 +1137,14 @@ std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, 
 
 template<typename T>
 std::string add_compare_to_oos_report(const T& item_1, const T& item_2, const std::string& member_name) {
-	if(std::memcmp(&item_1, &item_2, sizeof(T)) != 0) {
+	bool equal = false;
+	if constexpr(std::is_trivially_copyable<T>::value) {
+		equal = std::memcmp(&item_1, &item_2, sizeof(T)) == 0;
+	} else {
+		equal = (item_1 == item_2);
+	}
+
+	if(!equal) {
 		std::string result = "\tobject " + member_name + ": ";
 		if constexpr(std::is_same<T, bool>::value) {
 			std::string item_1_str = (item_1) ? "true" : "false";
@@ -1172,10 +1185,10 @@ std::string add_collection_compare_to_oos_report(const std::span<const T> collec
 std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
 	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
 	std::string report = generate_oos_report(state_1.world, state_2.world, record);
-	report += "SAVE HANDWRITTEN CONTRIBUTION\n";
+	report += "SAVE_HANDWRITTEN_CONTRIBUTION\n";
 	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
 		add_collection_compare_to_oos_report<int32_t>(state_1.unit_names_indices, state_2.unit_names_indices, "unit_names_indices") +
-		add_compare_to_oos_report(state_1.local_player_nation, state_2.local_player_nation, "local_player_nation") +
+		//add_compare_to_oos_report(state_1.local_player_nation, state_2.local_player_nation, "local_player_nation") +
 		add_compare_to_oos_report(state_1.current_date, state_2.current_date, "current_date") +
 		add_compare_to_oos_report(state_1.game_seed, state_2.game_seed, "game_seed") +
 		add_compare_to_oos_report(state_1.current_crisis_state, state_2.current_crisis_state, "current_crisis_state") +
@@ -1204,7 +1217,7 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 		add_compare_to_oos_report(state_1.military_definitions.great_wars_enabled, state_2.military_definitions.great_wars_enabled, "great_wars_enabled") +
 		add_compare_to_oos_report(state_1.military_definitions.world_wars_enabled, state_2.military_definitions.world_wars_enabled, "world_wars_enabled");
 
-	report += "SCENARIO HANDWRITTEN CONTRIBUTION\n";
+	report += "SCENARIO_HANDWRITTEN_CONTRIBUTION\n";
 	report += add_compare_to_oos_report(state_1.lua_combined_script, state_2.lua_combined_script, "lua_combined_script") +
 	add_compare_to_oos_report(state_1.lua_game_loop_script, state_2.lua_game_loop_script, "lua_game_loop_script") +
 	add_compare_to_oos_report(state_1.lua_ui_script, state_2.lua_ui_script, "lua_ui_script") +
@@ -1312,25 +1325,25 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 			add_compare_to_oos_report(state_1.national_definitions.num_allocated_global_flags, state_2.national_definitions.num_allocated_global_flags, "num_allocated_global_flags") +
 			add_compare_to_oos_report(state_1.national_definitions.flashpoint_focus, state_2.national_definitions.flashpoint_focus, "flashpoint_focus") +
 			add_compare_to_oos_report(state_1.national_definitions.flashpoint_amount, state_2.national_definitions.flashpoint_amount, "flashpoint_amount") +
-			add_compare_to_oos_report(state_1.national_definitions.on_yearly_pulse, state_2.national_definitions.on_yearly_pulse, "on_yearly_pulse") +
-			add_compare_to_oos_report(state_1.national_definitions.on_quarterly_pulse, state_2.national_definitions.on_quarterly_pulse, "on_quarterly_pulse") +
-			add_compare_to_oos_report(state_1.national_definitions.on_battle_won, state_2.national_definitions.on_battle_won, "on_battle_won") +
-			add_compare_to_oos_report(state_1.national_definitions.on_battle_lost, state_2.national_definitions.on_battle_lost, "on_battle_lost") +
-			add_compare_to_oos_report(state_1.national_definitions.on_surrender, state_2.national_definitions.on_surrender, "on_surrender") +
-			add_compare_to_oos_report(state_1.national_definitions.on_new_great_nation, state_2.national_definitions.on_new_great_nation, "on_new_great_nation") +
-			add_compare_to_oos_report(state_1.national_definitions.on_lost_great_nation, state_2.national_definitions.on_lost_great_nation, "on_lost_great_nation") +
-			add_compare_to_oos_report(state_1.national_definitions.on_election_tick, state_2.national_definitions.on_election_tick, "on_election_tick") +
-			add_compare_to_oos_report(state_1.national_definitions.on_colony_to_state, state_2.national_definitions.on_colony_to_state, "on_colony_to_state") +
-			add_compare_to_oos_report(state_1.national_definitions.on_state_conquest, state_2.national_definitions.on_state_conquest, "on_state_conquest") +
-			add_compare_to_oos_report(state_1.national_definitions.on_colony_to_state_free_slaves, state_2.national_definitions.on_colony_to_state_free_slaves, "on_colony_to_state_free_slaves") +
-			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default, state_2.national_definitions.on_debtor_default, "on_debtor_default") +
-			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default_small, state_2.national_definitions.on_debtor_default_small, "on_debtor_default_small") +
-			add_compare_to_oos_report(state_1.national_definitions.on_debtor_default_second, state_2.national_definitions.on_debtor_default_second, "on_debtor_default_second") +
-			add_compare_to_oos_report(state_1.national_definitions.on_civilize, state_2.national_definitions.on_civilize, "on_civilize") +
-			add_compare_to_oos_report(state_1.national_definitions.on_my_factories_nationalized, state_2.national_definitions.on_my_factories_nationalized, "on_my_factories_nationalized") +
-			add_compare_to_oos_report(state_1.national_definitions.on_crisis_declare_interest, state_2.national_definitions.on_crisis_declare_interest, "on_crisis_declare_interest") +
-			add_compare_to_oos_report(state_1.national_definitions.on_election_started, state_2.national_definitions.on_election_started, "on_election_started") +
-			add_compare_to_oos_report(state_1.national_definitions.on_election_finished, state_2.national_definitions.on_election_finished, "on_election_finished") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_yearly_pulse, state_2.national_definitions.on_yearly_pulse, "on_yearly_pulse") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_quarterly_pulse, state_2.national_definitions.on_quarterly_pulse, "on_quarterly_pulse") +
+			add_collection_compare_to_oos_report<nations::fixed_province_event>(state_1.national_definitions.on_battle_won, state_2.national_definitions.on_battle_won, "on_battle_won") +
+			add_collection_compare_to_oos_report<nations::fixed_province_event>(state_1.national_definitions.on_battle_lost, state_2.national_definitions.on_battle_lost, "on_battle_lost") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_surrender, state_2.national_definitions.on_surrender, "on_surrender") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_new_great_nation, state_2.national_definitions.on_new_great_nation, "on_new_great_nation") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_lost_great_nation, state_2.national_definitions.on_lost_great_nation, "on_lost_great_nation") +
+			add_collection_compare_to_oos_report<nations::fixed_election_event>(state_1.national_definitions.on_election_tick, state_2.national_definitions.on_election_tick, "on_election_tick") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_colony_to_state, state_2.national_definitions.on_colony_to_state, "on_colony_to_state") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_state_conquest, state_2.national_definitions.on_state_conquest, "on_state_conquest") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_colony_to_state_free_slaves, state_2.national_definitions.on_colony_to_state_free_slaves, "on_colony_to_state_free_slaves") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default, state_2.national_definitions.on_debtor_default, "on_debtor_default") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default_small, state_2.national_definitions.on_debtor_default_small, "on_debtor_default_small") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default_second, state_2.national_definitions.on_debtor_default_second, "on_debtor_default_second") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_civilize, state_2.national_definitions.on_civilize, "on_civilize") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_my_factories_nationalized, state_2.national_definitions.on_my_factories_nationalized, "on_my_factories_nationalized") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_crisis_declare_interest, state_2.national_definitions.on_crisis_declare_interest, "on_crisis_declare_interest") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_election_started, state_2.national_definitions.on_election_started, "on_election_started") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_election_finished, state_2.national_definitions.on_election_finished, "on_election_finished") +
 			add_collection_compare_to_oos_report<dcon::province_adjacency_id>(state_1.province_definitions.canals, state_2.province_definitions.canals, "canals") +
 			add_collection_compare_to_oos_report<dcon::province_id>(state_1.province_definitions.canal_provinces, state_2.province_definitions.canal_provinces, "canal_provinces") +
 			add_compare_to_oos_report(state_1.province_definitions.first_sea_province, state_2.province_definitions.first_sea_province, "first_sea_province") +
