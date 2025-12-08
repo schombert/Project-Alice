@@ -4599,6 +4599,7 @@ void state::lua_notification(const std::string message) {
 		.type = sys::message_base_type::scripting_notification,
 		.province_source = dcon::province_id{ },
 	});
+	console_log("LUA_ERROR: " + message);
 }
 
 sys::checksum_key state::get_save_checksum() {

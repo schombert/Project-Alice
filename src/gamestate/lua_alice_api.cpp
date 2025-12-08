@@ -13,6 +13,7 @@ static sys::state* alice_state_ptr;
 // write their definition inside extern "C" somewhere in executable
 // provide their definition
 // add ffi declaration somewhere in lua folder of assets
+// FFI is preferred method of exposing functions to manually passing them into LUA env
 
 extern "C" {
 	DCON_LUADLL_API bool alice_at_war(int32_t nation_a, int32_t nation_b);
@@ -30,6 +31,11 @@ extern "C" {
 
 	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
+	DCON_LUADLL_API void console_log(const char message[]);
+}
+
+void console_log(const char message[]) {
+	alice_state_ptr->console_log(message);
 }
 
 int32_t local_player_nation() {
