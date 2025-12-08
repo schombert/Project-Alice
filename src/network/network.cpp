@@ -1846,19 +1846,20 @@ void send_and_receive_commands(sys::state& state) {
 			auto* c = state.network_state.outgoing_commands.front();
 			while(c) {
 				if(!command::is_console_command(c->header.type)) {
-					// Generate checksum on the spot
-					if(c->header.type == command::command_type::advance_tick) {
-						if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
-							auto& payload = c->get_payload<command::advance_tick_data>();
-							payload.checksum = state.get_mp_state_checksum();
-						}
-					}
 #ifndef NDEBUG
 					const auto now = std::chrono::system_clock::now();
 					state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->header.type))]);
 #endif
 					// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
 					if(command::execute_command(state, *c) && command::should_broadcast_command(state, *c)) {
+						// Generate checksum on the spot.
+						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
+						if(c->header.type == command::command_type::advance_tick) {
+							if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+								auto& payload = c->get_payload<command::advance_tick_data>();
+								payload.checksum = state.get_mp_state_checksum();
+							}
+						}
 						broadcast_to_clients(state, *c);
 					}
 					command_executed = true;

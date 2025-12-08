@@ -5729,6 +5729,11 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
+	
+	state.single_game_tick();
+
+	// We check OOS AFTER the tick. That way the oos notification will be sent after without processing a whole other tick. If it was done before, it would process the tick first, then send the oos notification after.
+	// TODO: Maybe add the OOS notification command here directly, and skip the queue so no actions are performed?
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
 			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
@@ -5752,8 +5757,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		state.actual_game_speed = speed;
 	}
 
-	// state.current_date = new_date;
-	state.single_game_tick();
+
 
 	// Notify server that we're still here
 	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
