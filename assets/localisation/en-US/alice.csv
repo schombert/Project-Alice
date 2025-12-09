@@ -1869,7 +1869,7 @@ province_market_toggle_tooltip;Local Market tab displays data of the province ma
 production_category_production;Production
 production_category_consumption;Consumption
 production_category_employment;Employment
-production_category_details;Details
+production_category_details;Information
 production_location_national;All states
 production_filter_all;All commodities
 production_about_combined;Combined
@@ -1883,7 +1883,7 @@ production_sub_item_inputs;Inputs
 production_sub_item_uses;Uses
 production_sub_item_labor;Workers
 production_sub_item_consumption;Inputs
-production_explain_view;Production - show production quantities as well as the inputs used\n\nConsumption - show consumption quantities, the processes using the commodity, and any input shortages\n\nEmployment - show how many people are working in each area as well as any labor shortages\n\nDetails - show the basic production recipes and factory specialization information.
+production_explain_view;Production - show production quantities as well as the inputs used\n\nConsumption - show consumption quantities, the processes using the commodity, and any input shortages\n\nEmployment - show how many people are working in each area as well as any labor shortages\n\nInformation - show the basic production recipes and factory specialization information.
 production_explain_location;Show information for the whole nation or for a particular state.
 production_explain_combine;Combine values from factory, artisan, and rgo activities for the same commodity or display them separately.
 production_explain_filter;Show information for all commodities or for one particular commodity.
@@ -1891,3 +1891,7 @@ production_shortage_warn_inputs;Input shortage
 production_shortage_warn_labor;Labor shortage
 production_max_output;Max. output
 production_max_employment;Max. workers
+production_spec_label;Specialization
+production_spec_compare;Rankings
+production_spec_priority_label;Priority
+production_spec_rankings_header;Leaders
