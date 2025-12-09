@@ -78,6 +78,17 @@ struct production_shortage_item_description_t;
 struct production_shortage_item_amount_label_t;
 struct production_shortage_item_warning_icon_t;
 struct production_shortage_item_t;
+struct production_current_specialization_row_amount_label_t;
+struct production_current_specialization_row_rankings_button_t;
+struct production_current_specialization_row_t;
+struct production_specialization_priority_row_left_t;
+struct production_specialization_priority_row_right_t;
+struct production_specialization_priority_row_amount_t;
+struct production_specialization_priority_row_t;
+struct production_spec_rankings_popup_t;
+struct production_spec_rankings_item_amount_t;
+struct production_spec_rankings_item_flag_control_t;
+struct production_spec_rankings_item_t;
 struct production_main_view_dropdown_t : public alice_ui::template_drop_down_control {
 // BEGIN main::view_dropdown::variables
 // END
@@ -156,7 +167,15 @@ struct production_main_main_list_t : public layout_generator {
 	std::vector<std::unique_ptr<ui::element_base>> shortage_item_pool;
 	int32_t shortage_item_pool_used = 0;
 	void add_shortage_item( float amount,  warning_option kind);
-	std::vector<std::variant<std::monostate, primary_row_option, sub_item_row_option, category_header_option, small_divider_option, max_item_option, shortage_item_option>> values;
+	struct current_specialization_row_option { dcon::factory_type_id for_type; };
+	std::vector<std::unique_ptr<ui::element_base>> current_specialization_row_pool;
+	int32_t current_specialization_row_pool_used = 0;
+	void add_current_specialization_row( dcon::factory_type_id for_type);
+	struct specialization_priority_row_option { dcon::factory_type_id for_type; };
+	std::vector<std::unique_ptr<ui::element_base>> specialization_priority_row_pool;
+	int32_t specialization_priority_row_pool_used = 0;
+	void add_specialization_priority_row( dcon::factory_type_id for_type);
+	std::vector<std::variant<std::monostate, primary_row_option, sub_item_row_option, category_header_option, small_divider_option, max_item_option, shortage_item_option, current_specialization_row_option, specialization_priority_row_option>> values;
 	void on_create(sys::state& state, layout_window_element* container);
 	void update(sys::state& state, layout_window_element* container);
 	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
@@ -250,6 +269,78 @@ struct production_shortage_item_amount_label_t : public alice_ui::template_label
 struct production_shortage_item_warning_icon_t : public alice_ui::template_icon_graphic {
 // BEGIN shortage_item::warning_icon::variables
 // END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_current_specialization_row_amount_label_t : public alice_ui::template_label {
+// BEGIN current_specialization_row::amount_label::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_current_specialization_row_rankings_button_t : public alice_ui::template_icon_button {
+// BEGIN current_specialization_row::rankings_button::variables
+// END
+	bool button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_specialization_priority_row_left_t : public alice_ui::template_icon_button {
+// BEGIN specialization_priority_row::left::variables
+// END
+	bool button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_specialization_priority_row_right_t : public alice_ui::template_icon_button {
+// BEGIN specialization_priority_row::right::variables
+// END
+	bool button_action(sys::state& state) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_specialization_priority_row_amount_t : public alice_ui::template_label {
+// BEGIN specialization_priority_row::amount::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_spec_rankings_popup_top_rankings_t : public layout_generator {
+// BEGIN spec_rankings_popup::top_rankings::variables
+// END
+	struct spec_rankings_item_option { dcon::nation_id nation_for; };
+	std::vector<std::unique_ptr<ui::element_base>> spec_rankings_item_pool;
+	int32_t spec_rankings_item_pool_used = 0;
+	void add_spec_rankings_item( dcon::nation_id nation_for);
+	std::vector<std::variant<std::monostate, spec_rankings_item_option>> values;
+	void on_create(sys::state& state, layout_window_element* container);
+	void update(sys::state& state, layout_window_element* container);
+	measure_result place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) override;
+	size_t item_count() override { return values.size(); };
+	void reset_pools() override;
+};
+struct production_spec_rankings_item_amount_t : public alice_ui::template_label {
+// BEGIN spec_rankings_item::amount::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct production_spec_rankings_item_flag_control_t : public ui::element_base {
+// BEGIN spec_rankings_item::flag_control::variables
+// END
+	std::variant<std::monostate, dcon::national_identity_id, dcon::rebel_faction_id, dcon::nation_id> flag;
+	void on_create(sys::state& state) noexcept override;
+	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
+		return ui::tooltip_behavior::variable_tooltip;
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(type == ui::mouse_probe_type::click) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::tooltip) {
+			return ui::message_result::consumed;
+		} else if(type == ui::mouse_probe_type::scroll) {
+			return ui::message_result::unseen;
+		} else {
+			return ui::message_result::unseen;
+		}
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct production_main_t : public layout_window_element {
@@ -508,6 +599,96 @@ struct production_shortage_item_t : public layout_window_element {
 	}
 };
 std::unique_ptr<ui::element_base> make_production_shortage_item(sys::state& state);
+struct production_current_specialization_row_t : public layout_window_element {
+// BEGIN current_specialization_row::variables
+// END
+	dcon::factory_type_id for_type;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<template_label> label;
+	std::unique_ptr<production_current_specialization_row_amount_label_t> amount_label;
+	std::unique_ptr<production_current_specialization_row_rankings_button_t> rankings_button;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void set_alternate(bool alt) noexcept;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "for_type") {
+			return (void*)(&for_type);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_current_specialization_row(sys::state& state);
+struct production_specialization_priority_row_t : public layout_window_element {
+// BEGIN specialization_priority_row::variables
+// END
+	dcon::factory_type_id for_type;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<template_label> label;
+	std::unique_ptr<production_specialization_priority_row_left_t> left;
+	std::unique_ptr<production_specialization_priority_row_right_t> right;
+	std::unique_ptr<production_specialization_priority_row_amount_t> amount;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	void set_alternate(bool alt) noexcept;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "for_type") {
+			return (void*)(&for_type);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_specialization_priority_row(sys::state& state);
+struct production_spec_rankings_popup_t : public layout_window_element {
+// BEGIN spec_rankings_popup::variables
+// END
+	dcon::factory_type_id for_type;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<template_label> header_label;
+	std::unique_ptr<template_icon_graphic> globe_icon;
+	production_spec_rankings_popup_top_rankings_t top_rankings;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "for_type") {
+			return (void*)(&for_type);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_spec_rankings_popup(sys::state& state);
+struct production_spec_rankings_item_t : public layout_window_element {
+// BEGIN spec_rankings_item::variables
+// END
+	dcon::nation_id nation_for;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<production_spec_rankings_item_amount_t> amount;
+	std::unique_ptr<production_spec_rankings_item_flag_control_t> flag_control;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
+		if(name_parameter == "nation_for") {
+			return (void*)(&nation_for);
+		}
+		return nullptr;
+	}
+};
+std::unique_ptr<ui::element_base> make_production_spec_rankings_item(sys::state& state);
 void production_main_main_list_t::add_primary_row(dcon::commodity_id commodity_type, prod_category category_type, prod_source about) {
 	values.emplace_back(primary_row_option{commodity_type, category_type, about});
 }
@@ -525,6 +706,12 @@ void production_main_main_list_t::add_max_item(float amount, max_option kind) {
 }
 void production_main_main_list_t::add_shortage_item(float amount, warning_option kind) {
 	values.emplace_back(shortage_item_option{amount, kind});
+}
+void production_main_main_list_t::add_current_specialization_row(dcon::factory_type_id for_type) {
+	values.emplace_back(current_specialization_row_option{for_type});
+}
+void production_main_main_list_t::add_specialization_priority_row(dcon::factory_type_id for_type) {
+	values.emplace_back(specialization_priority_row_option{for_type});
 }
 void  production_main_main_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	production_main_t& main = *((production_main_t*)(parent)); 
@@ -1128,6 +1315,8 @@ void  production_main_main_list_t::update(sys::state& state, layout_window_eleme
 							add_sub_item_row(c, i.c.index(), prod_category::details, first, prod_source::factory);
 							first = false;
 						}
+						add_current_specialization_row(ft);
+						add_specialization_priority_row(ft);
 						add_small_divider();
 						break;
 					}
@@ -1180,7 +1369,7 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			primary_row_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<primary_row_option>(values[index + 1])|| std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<category_header_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
 		return measure_result{ primary_row_pool[0]->base_data.size.x, primary_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<sub_item_row_option>(values[index])) {
@@ -1201,7 +1390,7 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			sub_item_row_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
 		return measure_result{ sub_item_row_pool[0]->base_data.size.x, sub_item_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<category_header_option>(values[index])) {
@@ -1232,7 +1421,7 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			small_divider_pool_used++;
 		}
 		alternate = true;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
 		return measure_result{ small_divider_pool[0]->base_data.size.x, small_divider_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<max_item_option>(values[index])) {
@@ -1250,7 +1439,7 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			max_item_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
 		return measure_result{ max_item_pool[0]->base_data.size.x, max_item_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	if(std::holds_alternative<shortage_item_option>(values[index])) {
@@ -1268,8 +1457,42 @@ measure_result  production_main_main_list_t::place_item(sys::state& state, ui::n
 			shortage_item_pool_used++;
 		}
 		alternate = !alternate;
-	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1]));
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
 		return measure_result{ shortage_item_pool[0]->base_data.size.x, shortage_item_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
+	}
+	if(std::holds_alternative<current_specialization_row_option>(values[index])) {
+		if(current_specialization_row_pool.empty()) current_specialization_row_pool.emplace_back(make_production_current_specialization_row(state));
+		if(destination) {
+			if(current_specialization_row_pool.size() <= size_t(current_specialization_row_pool_used)) current_specialization_row_pool.emplace_back(make_production_current_specialization_row(state));
+			current_specialization_row_pool[current_specialization_row_pool_used]->base_data.position.x = int16_t(x);
+			current_specialization_row_pool[current_specialization_row_pool_used]->base_data.position.y = int16_t(y);
+			current_specialization_row_pool[current_specialization_row_pool_used]->parent = destination;
+			destination->children.push_back(current_specialization_row_pool[current_specialization_row_pool_used].get());
+			((production_current_specialization_row_t*)(current_specialization_row_pool[current_specialization_row_pool_used].get()))->for_type = std::get<current_specialization_row_option>(values[index]).for_type;
+			((production_current_specialization_row_t*)(current_specialization_row_pool[current_specialization_row_pool_used].get()))->set_alternate(alternate);
+			current_specialization_row_pool[current_specialization_row_pool_used]->impl_on_update(state);
+			current_specialization_row_pool_used++;
+		}
+		alternate = !alternate;
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
+		return measure_result{ current_specialization_row_pool[0]->base_data.size.x, current_specialization_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
+	}
+	if(std::holds_alternative<specialization_priority_row_option>(values[index])) {
+		if(specialization_priority_row_pool.empty()) specialization_priority_row_pool.emplace_back(make_production_specialization_priority_row(state));
+		if(destination) {
+			if(specialization_priority_row_pool.size() <= size_t(specialization_priority_row_pool_used)) specialization_priority_row_pool.emplace_back(make_production_specialization_priority_row(state));
+			specialization_priority_row_pool[specialization_priority_row_pool_used]->base_data.position.x = int16_t(x);
+			specialization_priority_row_pool[specialization_priority_row_pool_used]->base_data.position.y = int16_t(y);
+			specialization_priority_row_pool[specialization_priority_row_pool_used]->parent = destination;
+			destination->children.push_back(specialization_priority_row_pool[specialization_priority_row_pool_used].get());
+			((production_specialization_priority_row_t*)(specialization_priority_row_pool[specialization_priority_row_pool_used].get()))->for_type = std::get<specialization_priority_row_option>(values[index]).for_type;
+			((production_specialization_priority_row_t*)(specialization_priority_row_pool[specialization_priority_row_pool_used].get()))->set_alternate(alternate);
+			specialization_priority_row_pool[specialization_priority_row_pool_used]->impl_on_update(state);
+			specialization_priority_row_pool_used++;
+		}
+		alternate = !alternate;
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<sub_item_row_option>(values[index + 1])|| std::holds_alternative<small_divider_option>(values[index + 1])|| std::holds_alternative<max_item_option>(values[index + 1])|| std::holds_alternative<shortage_item_option>(values[index + 1])|| std::holds_alternative<current_specialization_row_option>(values[index + 1])|| std::holds_alternative<specialization_priority_row_option>(values[index + 1]));
+		return measure_result{ specialization_priority_row_pool[0]->base_data.size.x, specialization_priority_row_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
 	}
 	return measure_result{0,0,measure_result::special::none};
 }
@@ -1280,6 +1503,8 @@ void  production_main_main_list_t::reset_pools() {
 	small_divider_pool_used = 0;
 	max_item_pool_used = 0;
 	shortage_item_pool_used = 0;
+	current_specialization_row_pool_used = 0;
+	specialization_priority_row_pool_used = 0;
 }
 void production_main_view_dropdown_t::add_item( prod_category category) {
 	list_contents.emplace_back(category_option_option{category});
@@ -1570,6 +1795,18 @@ void production_main_t::create_layout_level(sys::state& state, layout_level& lvl
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -2182,6 +2419,18 @@ void production_primary_row_t::create_layout_level(sys::state& state, layout_lev
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -2811,6 +3060,18 @@ void production_sub_item_row_t::create_layout_level(sys::state& state, layout_le
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
 				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -3091,6 +3352,18 @@ void production_category_header_t::create_layout_level(sys::state& state, layout
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
 				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -3310,6 +3583,18 @@ void production_small_divider_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3534,6 +3819,18 @@ void production_category_option_t::create_layout_level(sys::state& state, layout
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
 				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -3751,6 +4048,18 @@ void production_location_option_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -3977,6 +4286,18 @@ void production_filter_option_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4222,6 +4543,18 @@ void production_max_item_t::create_layout_level(sys::state& state, layout_level&
 				}
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -4488,6 +4821,18 @@ void production_shortage_item_t::create_layout_level(sys::state& state, layout_l
 				if(cname == "shortage_item") {
 					temp.ptr = make_production_shortage_item(state);
 				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
 			case layout_item_types::glue:
@@ -4614,6 +4959,1239 @@ void production_shortage_item_t::on_create(sys::state& state) noexcept {
 }
 std::unique_ptr<ui::element_base> make_production_shortage_item(sys::state& state) {
 	auto ptr = std::make_unique<production_shortage_item_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+void production_current_specialization_row_amount_label_t::on_update(sys::state& state) noexcept {
+	production_current_specialization_row_t& current_specialization_row = *((production_current_specialization_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN current_specialization_row::amount_label::update
+	set_text(state, text::format_percentage(1.0f - economy::priority_multiplier(state, current_specialization_row.for_type, state.local_player_nation), 1));
+// END
+}
+void production_current_specialization_row_rankings_button_t::on_update(sys::state& state) noexcept {
+	production_current_specialization_row_t& current_specialization_row = *((production_current_specialization_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN current_specialization_row::rankings_button::update
+// END
+}
+bool production_current_specialization_row_rankings_button_t::button_action(sys::state& state) noexcept {
+	production_current_specialization_row_t& current_specialization_row = *((production_current_specialization_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN current_specialization_row::rankings_button::lbutton_action
+	production_spec_rankings_popup_t* ptr = (production_spec_rankings_popup_t*)display_at_front< make_production_spec_rankings_popup>(state, display_closure_command::return_pointer);
+	ptr->for_type = current_specialization_row.for_type;
+	ptr->set_visible(state, false);
+
+	auto self_pos = ui::get_absolute_location(state, *this);
+
+	ptr->base_data.position.x = int16_t(self_pos.x + base_data.size.x);
+	ptr->base_data.position.y = int16_t(self_pos.y + base_data.size.y / 2 - ptr->base_data.size.y / 2);
+	if(ptr->base_data.position.x < 0) {
+		ptr->base_data.position.x = 0;
+	}
+	if(ptr->base_data.position.x + ptr->base_data.size.x > state.ui_state.root->base_data.size.x) {
+		ptr->base_data.position.x = int16_t(state.ui_state.root->base_data.size.x - ptr->base_data.size.x);
+	}
+	if(ptr->base_data.position.y < 0) {
+		ptr->base_data.position.y = 0;
+	}
+	if(ptr->base_data.position.y + ptr->base_data.size.y > state.ui_state.root->base_data.size.y) {
+		ptr->base_data.position.y = int16_t(state.ui_state.root->base_data.size.y - ptr->base_data.size.y);
+	}
+
+	display_at_front< make_production_spec_rankings_popup>(state);
+	state.ui_state.set_mouse_sensitive_target(state, ptr);
+// END
+	return true;
+}
+void  production_current_specialization_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
+ui::message_result production_current_specialization_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_current_specialization_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_current_specialization_row_t::on_update(sys::state& state) noexcept {
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN current_specialization_row::update
+// END
+	remake_layout(state, true);
+}
+void production_current_specialization_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "label") {
+					temp.ptr = label.get();
+				} else
+				if(cname == "amount_label") {
+					temp.ptr = amount_label.get();
+				} else
+				if(cname == "rankings_button") {
+					temp.ptr = rankings_button.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_current_specialization_row_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::current_specialization_row"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "label") {
+			label = std::make_unique<template_label>();
+			label->parent = this;
+			auto cptr = label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "amount_label") {
+			amount_label = std::make_unique<production_current_specialization_row_amount_label_t>();
+			amount_label->parent = this;
+			auto cptr = amount_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "rankings_button") {
+			rankings_button = std::make_unique<production_current_specialization_row_rankings_button_t>();
+			rankings_button->parent = this;
+			auto cptr = rankings_button.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN current_specialization_row::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_current_specialization_row(sys::state& state) {
+	auto ptr = std::make_unique<production_current_specialization_row_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+void production_specialization_priority_row_left_t::on_update(sys::state& state) noexcept {
+	production_specialization_priority_row_t& specialization_priority_row = *((production_specialization_priority_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::left::update
+	disabled = state.world.nation_get_factory_type_experience_priority_national(state.local_player_nation, specialization_priority_row.for_type) < 100.0f;
+// END
+}
+bool production_specialization_priority_row_left_t::button_action(sys::state& state) noexcept {
+	production_specialization_priority_row_t& specialization_priority_row = *((production_specialization_priority_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::left::lbutton_action
+	command::set_factory_type_priority(state, state.local_player_nation, specialization_priority_row.for_type, state.world.nation_get_factory_type_experience_priority_national(state.local_player_nation, specialization_priority_row.for_type) - 100.0f);
+// END
+	return true;
+}
+void production_specialization_priority_row_right_t::on_update(sys::state& state) noexcept {
+	production_specialization_priority_row_t& specialization_priority_row = *((production_specialization_priority_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::right::update
+	disabled = state.world.nation_get_factory_type_experience_priority_national(state.local_player_nation, specialization_priority_row.for_type) > 900.0f;
+// END
+}
+bool production_specialization_priority_row_right_t::button_action(sys::state& state) noexcept {
+	production_specialization_priority_row_t& specialization_priority_row = *((production_specialization_priority_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::right::lbutton_action
+	command::set_factory_type_priority(state, state.local_player_nation, specialization_priority_row.for_type, state.world.nation_get_factory_type_experience_priority_national(state.local_player_nation, specialization_priority_row.for_type) + 100.0f);
+// END
+	return true;
+}
+void production_specialization_priority_row_amount_t::on_update(sys::state& state) noexcept {
+	production_specialization_priority_row_t& specialization_priority_row = *((production_specialization_priority_row_t*)(parent)); 
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::amount::update
+	auto amount = int32_t(std::round(state.world.nation_get_factory_type_experience_priority_national(state.local_player_nation, specialization_priority_row.for_type) / 100.0f));
+	set_text(state, std::to_string(amount));
+// END
+}
+void  production_specialization_priority_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
+ui::message_result production_specialization_priority_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_specialization_priority_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_specialization_priority_row_t::on_update(sys::state& state) noexcept {
+	production_main_t& main = *((production_main_t*)(parent->parent)); 
+// BEGIN specialization_priority_row::update
+// END
+	remake_layout(state, true);
+}
+void production_specialization_priority_row_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "label") {
+					temp.ptr = label.get();
+				} else
+				if(cname == "left") {
+					temp.ptr = left.get();
+				} else
+				if(cname == "right") {
+					temp.ptr = right.get();
+				} else
+				if(cname == "amount") {
+					temp.ptr = amount.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_specialization_priority_row_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::specialization_priority_row"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "label") {
+			label = std::make_unique<template_label>();
+			label->parent = this;
+			auto cptr = label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "left") {
+			left = std::make_unique<production_specialization_priority_row_left_t>();
+			left->parent = this;
+			auto cptr = left.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "right") {
+			right = std::make_unique<production_specialization_priority_row_right_t>();
+			right->parent = this;
+			auto cptr = right.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "amount") {
+			amount = std::make_unique<production_specialization_priority_row_amount_t>();
+			amount->parent = this;
+			auto cptr = amount.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN specialization_priority_row::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_specialization_priority_row(sys::state& state) {
+	auto ptr = std::make_unique<production_specialization_priority_row_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+void production_spec_rankings_popup_top_rankings_t::add_spec_rankings_item(dcon::nation_id nation_for) {
+	values.emplace_back(spec_rankings_item_option{nation_for});
+}
+void  production_spec_rankings_popup_top_rankings_t::on_create(sys::state& state, layout_window_element* parent) {
+	production_spec_rankings_popup_t& spec_rankings_popup = *((production_spec_rankings_popup_t*)(parent)); 
+// BEGIN spec_rankings_popup::top_rankings::on_create
+// END
+}
+void  production_spec_rankings_popup_top_rankings_t::update(sys::state& state, layout_window_element* parent) {
+	production_spec_rankings_popup_t& spec_rankings_popup = *((production_spec_rankings_popup_t*)(parent)); 
+// BEGIN spec_rankings_popup::top_rankings::update
+	struct ranking_item {
+		dcon::nation_id n;
+		float value = 0.0f;
+	};
+	std::vector<ranking_item> items;
+	for(auto n : state.world.in_nation) {
+		auto v = economy::priority_multiplier(state, spec_rankings_popup.for_type, n);
+		if(v <= 0.99f)
+			items.push_back(ranking_item{ n, v });
+	}
+	std::sort(items.begin(), items.end(), [&](ranking_item const& a, ranking_item const& b) {
+		return a.value < b.value;
+	});
+	values.clear();
+	for(size_t i = 0; i < items.size() && i < 9; ++i) {
+		add_spec_rankings_item(items[i].n);
+	}
+// END
+}
+measure_result  production_spec_rankings_popup_top_rankings_t::place_item(sys::state& state, ui::non_owning_container_base* destination, size_t index, int32_t x, int32_t y, bool first_in_section, bool& alternate) {
+	if(index >= values.size()) return measure_result{0,0,measure_result::special::none};
+	if(std::holds_alternative<spec_rankings_item_option>(values[index])) {
+		if(spec_rankings_item_pool.empty()) spec_rankings_item_pool.emplace_back(make_production_spec_rankings_item(state));
+		if(destination) {
+			if(spec_rankings_item_pool.size() <= size_t(spec_rankings_item_pool_used)) spec_rankings_item_pool.emplace_back(make_production_spec_rankings_item(state));
+			spec_rankings_item_pool[spec_rankings_item_pool_used]->base_data.position.x = int16_t(x);
+			spec_rankings_item_pool[spec_rankings_item_pool_used]->base_data.position.y = int16_t(y);
+			spec_rankings_item_pool[spec_rankings_item_pool_used]->parent = destination;
+			destination->children.push_back(spec_rankings_item_pool[spec_rankings_item_pool_used].get());
+			((production_spec_rankings_item_t*)(spec_rankings_item_pool[spec_rankings_item_pool_used].get()))->nation_for = std::get<spec_rankings_item_option>(values[index]).nation_for;
+			spec_rankings_item_pool[spec_rankings_item_pool_used]->impl_on_update(state);
+			spec_rankings_item_pool_used++;
+		}
+		alternate = true;
+	 	 	bool stick_to_next = (index + 1) < values.size() && (false || std::holds_alternative<spec_rankings_item_option>(values[index + 1]));
+		return measure_result{ spec_rankings_item_pool[0]->base_data.size.x, spec_rankings_item_pool[0]->base_data.size.y + 0, stick_to_next ? measure_result::special::no_break : measure_result::special::none};
+	}
+	return measure_result{0,0,measure_result::special::none};
+}
+void  production_spec_rankings_popup_top_rankings_t::reset_pools() {
+	spec_rankings_item_pool_used = 0;
+}
+ui::message_result production_spec_rankings_popup_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_spec_rankings_popup_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_spec_rankings_popup_t::on_update(sys::state& state) noexcept {
+// BEGIN spec_rankings_popup::update
+// END
+	top_rankings.update(state, this);
+	remake_layout(state, true);
+}
+void production_spec_rankings_popup_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "header_label") {
+					temp.ptr = header_label.get();
+				} else
+				if(cname == "globe_icon") {
+					temp.ptr = globe_icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				if(cname == "top_rankings") {
+					temp.generator = &top_rankings;
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_spec_rankings_popup_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::spec_rankings_popup"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "header_label") {
+			header_label = std::make_unique<template_label>();
+			header_label->parent = this;
+			auto cptr = header_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "globe_icon") {
+			globe_icon = std::make_unique<template_icon_graphic>();
+			globe_icon->parent = this;
+			auto cptr = globe_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	top_rankings.on_create(state, this);
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN spec_rankings_popup::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_spec_rankings_popup(sys::state& state) {
+	auto ptr = std::make_unique<production_spec_rankings_popup_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+void production_spec_rankings_item_amount_t::on_update(sys::state& state) noexcept {
+	production_spec_rankings_item_t& spec_rankings_item = *((production_spec_rankings_item_t*)(parent)); 
+	production_spec_rankings_popup_t& spec_rankings_popup = *((production_spec_rankings_popup_t*)(parent->parent)); 
+// BEGIN spec_rankings_item::amount::update
+	set_text(state, text::format_percentage(1.0f - economy::priority_multiplier(state, spec_rankings_popup.for_type, spec_rankings_item.nation_for), 1));
+// END
+}
+ui::message_result production_spec_rankings_item_flag_control_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		if(std::get<dcon::nation_id>(flag) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) > 0) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+			state.open_diplomacy(std::get<dcon::nation_id>(flag));
+		} 
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
+		if(n_temp && state.world.nation_get_owned_province_count(n_temp) > 0) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+			state.open_diplomacy(n_temp);
+		} 
+	} 
+	return ui::message_result::consumed;
+}
+ui::message_result production_spec_rankings_item_flag_control_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::unseen;
+}
+void production_spec_rankings_item_flag_control_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		text::add_line(state, contents, text::get_name(state, std::get<dcon::nation_id>(flag)));
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		text::add_line(state, contents, nations::name_from_tag(state, std::get<dcon::national_identity_id>(flag)));
+	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
+		auto box = text::open_layout_box(contents, 0);
+		text::add_to_layout_box(state, contents, box, rebel::rebel_name(state, std::get<dcon::rebel_faction_id>(flag)));
+		text::close_layout_box(contents, box);
+	} 
+}
+void production_spec_rankings_item_flag_control_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
+	if(std::holds_alternative<dcon::nation_id>(flag)) {
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
+		auto h_temp = state.world.nation_get_identity_from_identity_holder(std::get<dcon::nation_id>(flag));
+		if(bool(std::get<dcon::nation_id>(flag)) && state.world.nation_get_owned_province_count(std::get<dcon::nation_id>(flag)) != 0) {
+			flag_type = culture::get_current_flag_type(state, std::get<dcon::nation_id>(flag));
+		} else {
+			flag_type = culture::get_current_flag_type(state, h_temp);
+		}
+		auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+	} else if(std::holds_alternative<dcon::national_identity_id>(flag)) {
+		dcon::government_flag_id flag_type = dcon::government_flag_id{};
+		auto n_temp = state.world.national_identity_get_nation_from_identity_holder(std::get<dcon::national_identity_id>(flag));
+		if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
+			flag_type = culture::get_current_flag_type(state, n_temp);
+		} else {
+			flag_type = culture::get_current_flag_type(state, std::get<dcon::national_identity_id>(flag));
+		}
+		auto flag_texture_handle = ogl::get_flag_handle(state, std::get<dcon::national_identity_id>(flag), flag_type);
+		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+	} else if(std::holds_alternative<dcon::rebel_faction_id>(flag)) {
+		dcon::rebel_faction_id rf_temp = std::get<dcon::rebel_faction_id>(flag);
+		if(state.world.rebel_faction_get_type(rf_temp).get_independence() != uint8_t(culture::rebel_independence::none) && state.world.rebel_faction_get_defection_target(rf_temp)) {
+			dcon::government_flag_id flag_type = dcon::government_flag_id{};
+			auto h_temp = state.world.rebel_faction_get_defection_target(rf_temp);
+			auto n_temp = state.world.national_identity_get_nation_from_identity_holder(h_temp);
+			if(bool(n_temp) && state.world.nation_get_owned_province_count(n_temp) != 0) {
+				flag_type = culture::get_current_flag_type(state, n_temp);
+			} else {
+				flag_type = culture::get_current_flag_type(state, h_temp);
+			}
+			auto flag_texture_handle = ogl::get_flag_handle(state, h_temp, flag_type);
+			ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), flag_texture_handle, base_data.get_rotation(), false,  false);
+			ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_rebel_flag_overlay(state), base_data.get_rotation(), false,  false);
+		return;
+		}
+		ogl::render_textured_rect(state, ui::get_color_modification(false, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_rebel_flag_handle(state, rf_temp), base_data.get_rotation(), false,  false);
+	} 
+}
+void production_spec_rankings_item_flag_control_t::on_update(sys::state& state) noexcept {
+	production_spec_rankings_item_t& spec_rankings_item = *((production_spec_rankings_item_t*)(parent)); 
+	production_spec_rankings_popup_t& spec_rankings_popup = *((production_spec_rankings_popup_t*)(parent->parent)); 
+// BEGIN spec_rankings_item::flag_control::update
+	flag = spec_rankings_item.nation_for;
+// END
+}
+void production_spec_rankings_item_flag_control_t::on_create(sys::state& state) noexcept {
+// BEGIN spec_rankings_item::flag_control::create
+// END
+}
+ui::message_result production_spec_rankings_item_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result production_spec_rankings_item_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void production_spec_rankings_item_t::on_update(sys::state& state) noexcept {
+	production_spec_rankings_popup_t& spec_rankings_popup = *((production_spec_rankings_popup_t*)(parent->parent)); 
+// BEGIN spec_rankings_item::update
+// END
+	remake_layout(state, true);
+}
+void production_spec_rankings_item_t::create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz) {
+	serialization::in_buffer buffer(ldata, sz);
+	buffer.read(lvl.size_x); 
+	buffer.read(lvl.size_y); 
+	buffer.read(lvl.margin_top); 
+	buffer.read(lvl.margin_bottom); 
+	buffer.read(lvl.margin_left); 
+	buffer.read(lvl.margin_right); 
+	buffer.read(lvl.line_alignment); 
+	buffer.read(lvl.line_internal_alignment); 
+	buffer.read(lvl.type); 
+	buffer.read(lvl.page_animation); 
+	buffer.read(lvl.interline_spacing); 
+	buffer.read(lvl.paged); 
+	if(lvl.paged) {
+		lvl.page_controls = std::make_unique<page_buttons>();
+		lvl.page_controls->for_layout = &lvl;
+		lvl.page_controls->parent = this;
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
+	}
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
+	while(buffer) {
+		layout_item_types t;
+		buffer.read(t);
+		switch(t) {
+			case layout_item_types::texture_layer:
+			{
+				texture_layer temp;
+				buffer.read(temp.texture_type);
+				buffer.read(temp.texture);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::control2:
+			{
+				layout_control temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				temp.ptr = nullptr;
+				if(cname == "amount") {
+					temp.ptr = amount.get();
+				} else
+				if(cname == "flag_control") {
+					temp.ptr = flag_control.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::window2:
+			{
+				layout_window temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				buffer.read(temp.abs_x);
+				buffer.read(temp.abs_y);
+				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
+				if(cname == "main") {
+					temp.ptr = make_production_main(state);
+				}
+				if(cname == "primary_row") {
+					temp.ptr = make_production_primary_row(state);
+				}
+				if(cname == "sub_item_row") {
+					temp.ptr = make_production_sub_item_row(state);
+				}
+				if(cname == "category_header") {
+					temp.ptr = make_production_category_header(state);
+				}
+				if(cname == "small_divider") {
+					temp.ptr = make_production_small_divider(state);
+				}
+				if(cname == "category_option") {
+					temp.ptr = make_production_category_option(state);
+				}
+				if(cname == "location_option") {
+					temp.ptr = make_production_location_option(state);
+				}
+				if(cname == "filter_option") {
+					temp.ptr = make_production_filter_option(state);
+				}
+				if(cname == "max_item") {
+					temp.ptr = make_production_max_item(state);
+				}
+				if(cname == "shortage_item") {
+					temp.ptr = make_production_shortage_item(state);
+				}
+				if(cname == "current_specialization_row") {
+					temp.ptr = make_production_current_specialization_row(state);
+				}
+				if(cname == "specialization_priority_row") {
+					temp.ptr = make_production_specialization_priority_row(state);
+				}
+				if(cname == "spec_rankings_popup") {
+					temp.ptr = make_production_spec_rankings_popup(state);
+				}
+				if(cname == "spec_rankings_item") {
+					temp.ptr = make_production_spec_rankings_item(state);
+				}
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::glue:
+			{
+				layout_glue temp;
+				buffer.read(temp.type);
+				buffer.read(temp.amount);
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::generator2:
+			{
+				generator_instance temp;
+				std::string_view cname = buffer.read<std::string_view>();
+				auto gen_details = buffer.read_section(); // ignored
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+			case layout_item_types::layout:
+			{
+				sub_layout temp;
+				temp.layout = std::make_unique<layout_level>();
+				auto layout_section = buffer.read_section();
+				create_layout_level(state, *temp.layout, layout_section.view_data() + layout_section.view_read_position(), layout_section.view_size() - layout_section.view_read_position());
+				lvl.contents.emplace_back(std::move(temp));
+			} break;
+		}
+	}
+}
+void production_spec_rankings_item_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("production::spec_rankings_item"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if(child_data.name == "amount") {
+			amount = std::make_unique<production_spec_rankings_item_amount_t>();
+			amount->parent = this;
+			auto cptr = amount.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "flag_control") {
+			flag_control = std::make_unique<production_spec_rankings_item_flag_control_t>();
+			flag_control->parent = this;
+			auto cptr = flag_control.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+	page_left_texture_key = win_data.page_left_texture;
+	page_right_texture_key = win_data.page_right_texture;
+	page_text_color = win_data.page_text_color;
+	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
+// BEGIN spec_rankings_item::create
+// END
+}
+std::unique_ptr<ui::element_base> make_production_spec_rankings_item(sys::state& state) {
+	auto ptr = std::make_unique<production_spec_rankings_item_t>();
 	ptr->on_create(state);
 	return ptr;
 }
