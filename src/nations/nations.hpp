@@ -331,4 +331,7 @@ void make_uncivilized(sys::state& state, dcon::nation_id n);
 
 void run_gc(sys::state& state);
 
+float control_shift_weight_mult(sys::state& state, dcon::province_adjacency_id adj);
+float desire_score_province(sys::state& state, dcon::province_id pid);
+
 } // namespace nations
