@@ -26,6 +26,7 @@
 #include "economy.hpp"
 #include "game_scene.hpp"
 #include "diplomatic_messages.hpp"
+#include "lua_alice_api.hpp"
 
 namespace nations {
 
