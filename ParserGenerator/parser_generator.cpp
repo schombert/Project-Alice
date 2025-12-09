@@ -384,7 +384,7 @@ std::string final_match_condition_internal(std::string_view const key, int32_t s
 #if defined(__GNUC__) || defined(__clang__)
 	if(ending_position - starting_position >= 16) {
 		return
-			" && (*(uint128_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | ((uint128_t(0x2020202020202020)) << 64 | uint128_t(0x2020202020202020))) == ((uint128_t(" + string_to_hex(key, starting_position + 8, 8) + ")) << 64 | uint128_t(" + string_to_hex(key, starting_position, 8) + ")))"
+			" && (*(uint128_t const*)(&cur.content[" + std::to_string(starting_position) + "]) | (uint128_t(0x2020202020202020) << 64 | uint128_t(0x2020202020202020)) == uint128_t(" + string_to_hex(key, starting_position + 8, 8) + ") << 64 | uint128_t(" + string_to_hex(key, starting_position, 8) + "))"
 			+ final_match_condition_internal(key, starting_position + 8, ending_position);
 	}
 #endif
