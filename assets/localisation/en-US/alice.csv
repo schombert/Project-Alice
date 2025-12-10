@@ -405,7 +405,25 @@ target_employment;Target employment: ?Y$value$?W
 employment_satisfaction;Employment satisfaction: ?Y$value$?W
 wage;Wage: ?Y$value$?W
 local_admin_efficiency;Local administrations are ?Y$value$?W less efficient than the capital one.
-tax_collection_rate;Tax collection rate: ?Y$value$?W
+admin_production;This administration produces ?Y$value$?! control that spreads to neighbouring provinces.
+province_control_scale;Control points available: ?Y$value$?!
+province_control_scale_trade_incoming;?G+$value$ control received through trade from $prov$?!
+province_control_scale_trade_outgoing;?R-$value$ control transferred through trade to $prov$?!
+province_control_scale_from_state_capital;?G+$value$ control received from state capital of $prov$?!
+province_control_scale_to_state_capital;?R-$value$ control transferred to state province of $prov$?!
+province_control_scale_adjacency_received;?G+$value$ control received from adjacency with $prov$?!
+province_control_scale_adjacency_sent;?R-$value$ control transferred to adjacent $prov$?!
+province_control_change;Predicted control ratio change: ?Y$value$?!
+province_control_decay;Predicted control points decay: ?Y$value$?!
+admin_cost_of_province;Cost of province administration in control points: ?Y$value$?!
+admin_cost_of_province_area;From area of: ?Y$value$?!
+admin_cost_of_province_population;From population of: ?Y$value$?!
+admin_cost_of_province_coastal;?G-$value$ because of coastline?!
+admin_cost_of_province_river;?G-$value$ because of a major river?!
+tax_collection_rate;Tax collection rate: ?Y$value$?!
+tax_collection_rate_capital_base;Base in the capital: ?Y$value$?!
+tax_collection_rate_control;From control: ?Y$value$?!
+tax_collection_rate_efficiency;Modified by ?Y$value$?! tax efficiency
 poor_potential;Potential poor taxes: ?Y$value$?W
 mid_potential;Potential middle taxes: ?Y$value$?W
 rich_potential;Potential rich taxes: ?Y$value$?W
