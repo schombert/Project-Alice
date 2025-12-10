@@ -1577,7 +1577,7 @@ target_employment;目标雇佣：?Y$value$?W
 employment_satisfaction;就业度：?Y$value$?W
 wage;工资：?Y$value$?W
 local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
-tax_collection_rate;征税率：?Y$value$?W
+tax_collection_rate;征税率：?Y$value$?!
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
 rich_potential;富裕阶级潜在税收：?Y$value$?W
@@ -1886,5 +1886,23 @@ production_max_output;最多产出
 production_max_employment;最多劳动力
 production_spec_label;专业化
 production_spec_compare;等级
-production_spec_priority_label;优先
-production_spec_rankings_header;领袖
+production_spec_priority_label;优先级
+production_spec_rankings_header;领先者
+admin_production;该行政管理产生 ?Y$value$?! 控制力，并扩张到邻近省份。
+province_control_scale;可用控制力：?Y$value$?!
+province_control_scale_trade_incoming;?G+$value$ 控制通过贸易来自 $prov$?!
+province_control_scale_trade_outgoing;?R-$value$ 转移通过贸易来自 $prov$?!
+province_control_scale_from_state_capital;?G+$value$ 控制来自 $prov$?!
+province_control_scale_to_state_capital;?R-$value$ 控制转移到 $prov$?!
+province_control_scale_adjacency_received;?G+$value$ 控制来自邻近 $prov$?!
+province_control_scale_adjacency_sent;?R-$value$ 控制转移到邻近 $prov$?!
+province_control_change;控制率变化预计：?Y$value$?!
+province_control_decay;控制力衰减预计：?Y$value$?!
+admin_cost_of_province;省份行政力成本：?Y$value$?!
+admin_cost_of_province_area;按面积计算：?Y$value$?!
+admin_cost_of_province_population;按人口计算：?Y$value$?!
+admin_cost_of_province_coastal;?G-$value$ 海岸线?!
+admin_cost_of_province_river;?G-$value$ 主要河流?!
+tax_collection_rate_capital_base;首都基础：?Y$value$?!
+tax_collection_rate_control;来自控制：?Y$value$?!
+tax_collection_rate_efficiency;收税效率修正 ?Y$value$?!
