@@ -690,10 +690,10 @@ military_score_explain_2;可招募部队：$x$
 military_score_explain_3;已招募部队：$x$
 military_score_explain_4;是否解除武装（惩罚因子：$x$）
 military_score_explain_5;补给消耗修正：$x$
-military_score_explain_6;平均陆军单位分数：$x$
+military_score_explain_6;陆军平均分：$x$
 military_score_explain_7;将领总数：$x$
-industry_score_explain_2;以下外国投资同样相加（权重系数 $x$）：
-industry_score_explain_3;$y$在$x$
+industry_score_explain_2;外国投资 相加（权重系数 $x$）：
+industry_score_explain_3;$y$ 在 $x$
 war_goal_1;添加者：$x$
 war_goal_2;目标：$x$
 war_goal_3;要求地区：$x$
@@ -924,7 +924,7 @@ alice_load_unload_2;军队运输中
 alice_load_unload_3;运输舰队停靠
 alice_load_unload_4;军队运输中
 alice_load_unload_5;舰队停靠
-alice_unload_fleet;卸载所有此舰队运输的部队
+alice_unload_fleet;卸载此舰队运输的所有部队
 auto_save_lb;自动保存频率
 auto_save_1;每日
 auto_save_2;每月
@@ -979,7 +979,7 @@ alice_regiment_battle_info;$m$ $name$ ?Y$type$?!\n组织度： ?Y$organisation$?
 understaffed_regiment;?RT这个团人手不足并且只有 $value$ 名士兵!?W
 tech_queue_explain;按?YSHIFT?W 加入队列，?Y右键?W 移除
 alice_province_building_build;?YSHIFT?W 建造在整个 ?G地区?W。\n?YSHIFT-右键?W 建造在整个?G国家?W。
-commodity_shortage;?R此商品短缺
+commodity_shortage;?R此商品不足
 commodity_surplus;?G此商品过剩
 alice_trade_flow_produced;?Y国内生产
 alice_trade_flow_consumed;?Y国内消费
@@ -988,7 +988,7 @@ alice_trade_flow_piechart_producers;生产者
 alice_trade_flow_piechart_consumers;消费者
 alice_trade_flow_piechart_workforce;投资者
 alice_diplo_release_subject;释放属国
-alice_diplo_release_subject_desc;释放我们的一个附属国，使他们不再是我们的属国，联盟需要单独解除
+alice_diplo_release_subject_desc;释放我们的一个附属国，使他们不再是我们的属国，联盟需要单独解除。
 alice_diplo_release_subject_0;是我们的属国
 kill_leader;杀死将领
 annex_null;成为无主省份
@@ -1267,7 +1267,7 @@ rgo_desired_profit;最小
 rgo_employment;当前
 rgo_max_employment;最大
 rgo_saturation;%
-rgo_details_header;RGO细节
+rgo_details_header;RGO信息
 rgo_employment_header;雇佣
 rgo_profits_header;利润
 route_origin;路线起点
@@ -1339,8 +1339,8 @@ alice_budget_increase_button;值多10（shift+以精确控制）
 alice_budget_max;最大 $x$
 alice_budget_min;最小 $x$
 alice_budget_overlord;宗主税
-alice_budget_expand_tt;显示细节
-alice_budget_contract_tt;隐藏细节
+alice_budget_expand_tt;显示信息
+alice_budget_contract_tt;隐藏信息
 alice_budget_admin_eff1;行政
 alice_budget_admin_eff2;效率：
 alice_budget_chart_top;100%
@@ -1401,16 +1401,16 @@ alice_job_filter_header;职业
 alice_culture_filter_header;民族
 alice_religion_filter_header;宗教
 alice_location_filter_header;位置
-alice_pop_show_details;细节
+alice_pop_show_details;信息
 alice_demographics_window_header;人口统计
 alice_demographics_size_header;规模
 alice_demographics_job_header;职业
 alice_demographics_religion_header;宗教
 alice_demographics_location_header;位置
-alice_demographics_employment_header;就业
+alice_demographics_employment_header;雇佣
 alice_demographics_needs_header;需求
 alice_demographics_rebel_header;支持运动
-alice_pop_details_title;人群细节
+alice_pop_details_title;人群信息
 alice_pop_details_location;位置
 alice_pop_details_job;职业：
 alice_pop_details_mil;斗争性：
@@ -1418,7 +1418,7 @@ alice_pop_details_con;觉醒度：
 alice_pop_details_lit;识字率：
 alice_pop_details_religion;宗教：
 alice_pop_details_culture;民族：
-alice_pop_details_employment;就业：
+alice_pop_details_employment;雇佣：
 alice_pop_details_income;净收入：
 alice_pop_details_growth;增长：
 alice_pop_details_assim;同化：
@@ -1574,10 +1574,10 @@ local_admin;当地行政
 capital_admin;首都行政
 local_admin_spending;成本预计：?Y$value$?W
 target_employment;目标雇佣：?Y$value$?W
-employment_satisfaction;就业满足度：?Y$value$?W
+employment_satisfaction;就业度：?Y$value$?W
 wage;工资：?Y$value$?W
 local_admin_efficiency;地方行政部是低于首都的 ?Y$value$?W。
-tax_collection_rate;征税率：?Y$value$?W
+tax_collection_rate;征税率：?Y$value$?!
 poor_potential;贫困阶级潜在税收：?Y$value$?W
 mid_potential;中产阶级潜在税收：?Y$value$?W
 rich_potential;富裕阶级潜在税收：?Y$value$?W
@@ -1647,9 +1647,9 @@ factory_input_multiplier_competition;当地资本家之间的竞争，鼓励工�
 factory_input_multiplier_scale; 较小工厂需要精益生产（lean）和避免浪费才能生存。因此，当前工厂乘数：?G$val$?W。
 factory_input_multiplier_specialisation;私人和国家机构的科学、政治和法律优先事项（legal priorities）一致，为此行业提供投入乘数：?G$val$?W。
 factory_input_multiplier_modifiers;各种技术和发明使这家工厂享受额外投入乘数：?G$val$?W。
-factory_output_multiplier_explanation;产出乘数是一个强大的乘数，但受到回报递减。当前工厂输出乘数：?G$val$?W。
+factory_output_multiplier_explanation;产出乘数是一个强大的乘数，但受到回报递减。当前工厂产出乘数：?G$val$?W。
 factory_output_multiplier_lack_of_inputs;由于投入缺乏，这家工厂产出乘以 ?R$val$?W。
-factory_output_multiplier_efficiency_inputs;为实现全功率输出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
+factory_output_multiplier_efficiency_inputs;为实现全功率产出，工厂必须消耗特殊投入效率。当前无法做到这点，受到 ?R$val$?W 惩罚乘数。
 factory_output_multiplier_secondary_workers;雇佣的 ?Y经理和职员?W 为工厂提供 ?G$val$?W 产出乘数。
 factory_output_multiplier_modifiers;各种技术和发明提供了额外 ?G$val$?W 产出乘数。
 giving_modifier;这会提供以下修正：
@@ -1679,7 +1679,7 @@ commodity_production_header;工厂生产链：投入/产出
 national_modifiers;国家修正
 modifier_min_land_upkeep;土地最低维护
 per_commodity;每个商品
-open_details;细节
+open_details;信息
 rgo;RGO
 province_prices;价格（相对）
 gdp_per_sector;GDP
@@ -1798,8 +1798,8 @@ province_has_available_workers;省份可用劳动力
 nation_is_factory_type_active;必要科技已被研发
 payback_time;投资回收期：?Y$x$?!
 construction_cost;建筑成本：?Y$x$?!
-output_value;输出价值：?Y$x$?!
-input_value;输入价值：?Y$x$?!
+output_value;产出价值：?Y$x$?!
+input_value;投入价值：?Y$x$?!
 profitability;投入产出比：?Y$x$?!
 ports_size;港口规模
 alice_infrastructure_tab;基础设施
@@ -1812,8 +1812,8 @@ alice_pop_details_en_short;日
 alice_pop_details_lx_short;奢
 alice_pop_details_need_weight;权重
 alice_pop_details_need_weight_tooltip;所选商品预算优先级
-button_pop_budget;打开预算细节
-pop_budget_details;预算细节
+button_pop_budget;打开预算信息
+pop_budget_details;预算信息
 pop_budget_unemployment;失业补贴
 pop_budget_pension;退休补贴
 pop_budget_factory_ownership;工厂
@@ -1859,3 +1859,50 @@ production_table_amount_header;数量
 economy_data_toggle_tooltip;经济概览显示了该省的经济数据汇总。
 province_tiles_toggle_tooltip;省份图块显示该省的所有建筑，包括行政机构、港口、工厂、RGOs、要塞、铁路、军营等。
 province_market_toggle_tooltip;本地市场标签显示省级市场的数据，包括价格、供需、生产和消费、库存、进出口等。
+production_category_production;生产
+production_category_consumption;消费
+production_category_employment;雇佣
+production_category_details;信息
+production_location_national;所有省份
+production_filter_all;所有商品
+production_about_combined;汇总
+production_about_factory;工厂
+production_about_artisan;工匠
+production_about_rgo;RGOs
+production_about_factory_one;工厂
+production_about_artisan_one;工匠
+production_about_rgo_one;RGO
+production_sub_item_inputs;投入
+production_sub_item_uses;使用
+production_sub_item_labor;劳动力
+production_sub_item_consumption;投入
+production_explain_view;生产——显示生产及其投入使用量。\n\n消费——显示消费数、使用该商品的工艺和任何投入不足的情况。\n\n雇佣——显示各行业劳动力和劳动力不足情况。\n\n信息——显示基本工艺和工厂专业化情况。
+production_explain_location;显示全国或一省信息。
+production_explain_combine;汇总或分别显示工厂、工匠和RGO活动的同一商品数据。
+production_explain_filter;显示所有或特定的商品信息。
+production_shortage_warn_inputs;投入不足
+production_shortage_warn_labor;劳动力不足
+production_max_output;最多产出
+production_max_employment;最多劳动力
+production_spec_label;专业化
+production_spec_compare;等级
+production_spec_priority_label;优先级
+production_spec_rankings_header;领先者
+admin_production;该行政管理产生 ?Y$value$?! 控制力，并扩张到邻近省份。
+province_control_scale;可用控制力：?Y$value$?!
+province_control_scale_trade_incoming;?G+$value$ 控制通过贸易来自 $prov$?!
+province_control_scale_trade_outgoing;?R-$value$ 转移通过贸易来自 $prov$?!
+province_control_scale_from_state_capital;?G+$value$ 控制来自 $prov$?!
+province_control_scale_to_state_capital;?R-$value$ 控制转移到 $prov$?!
+province_control_scale_adjacency_received;?G+$value$ 控制来自邻近 $prov$?!
+province_control_scale_adjacency_sent;?R-$value$ 控制转移到邻近 $prov$?!
+province_control_change;控制率变化预计：?Y$value$?!
+province_control_decay;控制力衰减预计：?Y$value$?!
+admin_cost_of_province;省份行政力成本：?Y$value$?!
+admin_cost_of_province_area;按面积计算：?Y$value$?!
+admin_cost_of_province_population;按人口计算：?Y$value$?!
+admin_cost_of_province_coastal;?G-$value$ 海岸线?!
+admin_cost_of_province_river;?G-$value$ 主要河流?!
+tax_collection_rate_capital_base;首都基础：?Y$value$?!
+tax_collection_rate_control;来自控制：?Y$value$?!
+tax_collection_rate_efficiency;收税效率修正 ?Y$value$?!
