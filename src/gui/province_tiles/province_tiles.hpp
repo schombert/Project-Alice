@@ -12,7 +12,7 @@ struct province_tile {
 	dcon::province_id province{};
 	dcon::administration_id local_administration{};
 	bool capital_administration = false;
-	bool no_administration_tile = false;
+	bool tax_collector_tile = false;
 	dcon::market_id market{};
 	bool is_rgo = false;
 	bool is_resource_potential = false;

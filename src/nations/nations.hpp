@@ -176,6 +176,7 @@ dcon::text_key name_from_tag(sys::state& state, dcon::national_identity_id tag);
 
 void update_administrative_efficiency(sys::state& state);
 void update_national_administrative_efficiency(sys::state& state);
+float admin_cost_of_province(sys::state& state, dcon::province_id pid);
 
 float priority_national(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
 float priority_private(sys::state& state, dcon::nation_id n, dcon::factory_type_id ftid);
@@ -329,5 +330,8 @@ void make_civilized(sys::state& state, dcon::nation_id n);
 void make_uncivilized(sys::state& state, dcon::nation_id n);
 
 void run_gc(sys::state& state);
+
+float control_shift_weight_mult(sys::state& state, dcon::province_adjacency_id adj);
+float desire_score_province(sys::state& state, dcon::province_id pid);
 
 } // namespace nations
