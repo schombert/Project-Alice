@@ -26,6 +26,7 @@
 #include "economy.hpp"
 #include "game_scene.hpp"
 #include "diplomatic_messages.hpp"
+#include "lua_alice_api.hpp"
 
 namespace nations {
 
@@ -882,6 +883,11 @@ float control_shift_weight_mult(sys::state& state, dcon::province_adjacency_id a
 }
 
 void update_administrative_efficiency(sys::state& state) {
+	// TODO: Allow overriding from LUA
+	//if(lua_alice_api::has_named_function(state, "update_administrative_efficiency")) {
+	//	lua_alice_api::call_named_function(state, "update_administrative_efficiency");
+	//	return;
+	//}
 
 	// high control areas are high pressure
 	// low control areas are low pressure

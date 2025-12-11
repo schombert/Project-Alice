@@ -895,89 +895,15 @@ void state::render() { // called to render the frame may (and should) delay retu
 	/*render_semaphore.release();*/
 }
 
-// example of providing LUA API if someone would ever need it for something
-static int draw_rectangle(lua_State* L) {
-	// get amount of arguments
-	int n = lua_gettop(L);
-
-	// validation
-	if(n != 4) {
-		lua_pushstring(L, "incorrect count of arguments");
-		lua_error(L);
-	}
-	for(int i = 1; i <= n; i++) {
-		if(!lua_isnumber(L, i)) {
-			lua_pushstring(L, "incorrect argument");
-			lua_error(L);
-		}
-	}
-
-
-	auto x = lua_tonumber(L, 1);
-	auto y = lua_tonumber(L, 2);
-	auto width = lua_tonumber(L, 3);
-	auto height = lua_tonumber(L, 4);
-
-	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
-	state* alice_state = (state*)(lua_touserdata(L, -1));
-
-	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
-
-	// return number of results
-	return 0;
-}
-
 void state::on_create() {
 	// lua
-
 	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
 
-	auto root = get_root(common_fs);
-	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
-
-	lua_ui_environment = luaL_newstate();
-	luaL_openlibs(lua_ui_environment);
-
-	lua_game_loop_environment = luaL_newstate();
-	luaL_openlibs(lua_game_loop_environment);
-
-	// pointer to alice state
-	lua_pushlightuserdata(lua_ui_environment, (void*)(this));
-	lua_setfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice_state");
-
-	// alice table
-	{
-		lua_newtable(lua_ui_environment);
-		lua_setglobal(lua_ui_environment, "alice");
-		assert(lua_gettop(lua_ui_environment) == 0);
-	}
-
-	{
-		lua_newtable(lua_game_loop_environment);
-		lua_setglobal(lua_game_loop_environment, "alice");
-		assert(lua_gettop(lua_game_loop_environment) == 0);
-	}
+	lua_alice_api::setup_ui_environment(*this);
 
 
-	// graphics subsystem
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
-	lua_newtable(lua_ui_environment); // [alice, table
-	lua_setfield(lua_ui_environment, -2, "graphics"); // [alice
-	lua_remove(lua_ui_environment, -1); // [
-
-	assert(lua_gettop(lua_ui_environment) == 0);
-
-	// rectangle
-	lua_getfield(lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
-	lua_getfield(lua_ui_environment, -1, "graphics"); // [alice, graphics
-	lua_remove(lua_ui_environment, -2); // [graphics
-	lua_pushcfunction(lua_ui_environment, draw_rectangle); // [graphics, draw_rectangle
-	lua_setfield(lua_ui_environment, -2, "rect"); // [graphics,
-	lua_remove(lua_ui_environment, -1); // [
-
-	assert(lua_gettop(lua_ui_environment) == 0);
-
-	// populate the table with scripted functions
+	// populate the table with scripted functions from lua_combined_script and lua_ui_script (read during scenario generation)
 	{
 		int status;
 		status = luaL_dostring(lua_ui_environment, lua_combined_script.c_str());
@@ -988,6 +914,14 @@ void state::on_create() {
 			lua_settop(lua_ui_environment, 0);
 			std::abort();
 		}
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
 
 		status = luaL_dostring(lua_ui_environment, lua_ui_script.c_str());
 		if(status) {
@@ -995,18 +929,6 @@ void state::on_create() {
 			OutputDebugStringA(lua_tostring(lua_ui_environment, -1));
 #endif
 			lua_settop(lua_ui_environment, 0);
-			std::abort();
-		}
-	}
-
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
 			std::abort();
 		}
 		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
@@ -1024,6 +946,8 @@ void state::on_create() {
 	ui_state.default_body_font = text::name_into_font_id(*this, "vic_18");
 
 	// Load late ui defs
+	auto root = get_root(common_fs);
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
 
 	auto uitemplates = simple_fs::open_file(assets, NATIVE("the.tui"));
 	if(uitemplates) {
@@ -3294,6 +3218,10 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
 	// read lua scripts
 	lua_combined_script.clear();
 	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
@@ -3334,6 +3262,30 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			lua_ui_script += content.data;
 			lua_ui_script += "\n";
 		}
+	}
+
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
+		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
 	}
 
 	demographics::regenerate_from_pop_data_full(*this);
@@ -4669,6 +4621,7 @@ void state::lua_notification(const std::string message) {
 		.type = sys::message_base_type::scripting_notification,
 		.province_source = dcon::province_id{ },
 	});
+	console_log("LUA_ERROR: " + message);
 }
 
 sys::checksum_key state::get_save_checksum() {
