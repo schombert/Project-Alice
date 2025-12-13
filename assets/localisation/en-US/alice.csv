@@ -1895,3 +1895,19 @@ production_spec_label;Specialization
 production_spec_compare;Rankings
 production_spec_priority_label;Priority
 production_spec_rankings_header;Leaders
+production_rh_state_population;State population
+production_rh_state_consumption;Top consumption
+production_rh_state_production;Top production
+production_directive_header;Construction Directives
+production_directive_explain;One or more construction directives can be assigned at both the state and national level to determine how government construction funds will be used. Click on the desired directive and then click on one of the highlighted regions to assign it. Click on an assigned directive to remove it.
+production_directive_national_header;National directives
+production_directive_national_tt;Any directives set here will apply to all states. Any conflicting directives given to individual states will override any directive assigned nationally.
+directive_description_fmoney;Prioritize factory profits
+directive_description_fpeople;Prioritize maximum employment
+directive_description_fspecial;Prioritize building and upgrading factories with the greatest specialization advantage
+directive_description_fupgrade;Prioritize upgrading existing factories
+directive_description_fnone;Do not build or upgrade factories
+directive_description_rail;Build and upgrade railroads when possible
+directive_description_naval;Build and upgrade naval bases when possible
+directive_description_forts;Build and upgrade forts on national borders when possible
+directive_description_commodity;Prioritize building and upgrading factories producing ?Y$x$?W

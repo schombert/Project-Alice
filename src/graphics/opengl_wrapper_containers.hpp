@@ -5,6 +5,10 @@
 #endif
 #include "glew.h"
 
+namespace ui {
+class element_base;
+}
+
 namespace ogl {
 
 class animation;
@@ -13,9 +17,10 @@ class render_capture {
 private:
 	GLuint framebuffer = 0;
 	GLuint texture_handle = 0;
+public:
 	int32_t max_x = 0;
 	int32_t max_y = 0;
-public:
+
 	void ready(sys::state& state);
 	void finish(sys::state& state);
 	GLuint get();
@@ -52,4 +57,18 @@ public:
 	void post_update_frame(sys::state& state);
 	void render(sys::state& state);
 };
+
+class captured_element {
+private:
+	render_capture rendered_state;
+	int32_t cap_x_pos = 0;
+	int32_t cap_y_pos = 0;
+public:
+	int32_t cap_width = 0;
+	int32_t cap_height = 0;
+
+	void capture_element(sys::state& state, ui::element_base& elm);
+	void render(sys::state& state, int32_t x, int32_t y);
+};
+
 }

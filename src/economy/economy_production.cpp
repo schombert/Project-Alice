@@ -15,6 +15,16 @@
 #include "money.hpp"
 #include "economy.hpp"
 
+
+namespace production_directives {
+dcon::production_directive_id to_key(sys::state const& state, dcon::commodity_id v) {
+	return dcon::production_directive_id{ dcon::production_directive_id::value_base_t( count_special_keys + v.index() ) };
+}
+uint32_t size(sys::state const& state) {
+	return state.world.commodity_size() + count_special_keys;
+}
+}
+
 namespace economy {
 
 constexpr float base_expansion_scale = 10.f;

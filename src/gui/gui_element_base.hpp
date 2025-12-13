@@ -13,6 +13,29 @@ std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name
 template<typename T, typename ...Params>
 std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
 
+
+
+struct drag_and_drop_query_result {
+	element_base* under_mouse = nullptr;
+	uint8_t directions = 0;
+
+	bool has_top_target() const {
+		return (directions & uint8_t(drag_and_drop_target::top)) != 0;
+	}
+	bool has_left_target() const {
+		return (directions & uint8_t(drag_and_drop_target::left)) != 0;
+	}
+	bool has_right_target() const {
+		return (directions & uint8_t(drag_and_drop_target::right)) != 0;
+	}
+	bool has_bottom_target() const {
+		return (directions & uint8_t(drag_and_drop_target::bottom)) != 0;
+	}
+	bool has_center_target() const {
+		return (directions & uint8_t(drag_and_drop_target::center)) != 0;
+	}
+};
+
 class element_base {
 public:
 	static constexpr uint8_t is_invisible_mask = 0x01;
@@ -43,6 +66,9 @@ public:
 	//       - are responsible for propagating messages and responses
 	//       - should be called in general when something happens
 	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept; // tests which element is under the cursor
+	virtual drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept {
+		return drag_and_drop_query_result{};
+	}
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
@@ -89,6 +115,9 @@ public:
 	virtual ui::urect text_bounds(sys::state& state, int32_t position_start, int32_t position_end) noexcept {
 		return ui::urect{ {0,0},{0,0} };
 	};
+	virtual bool recieve_drag_and_drop(sys::state& state, std::any& data, ui::drag_and_drop_data data_type, drag_and_drop_target sub_target, bool shift_held_down) noexcept {
+		return false;
+	}
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:

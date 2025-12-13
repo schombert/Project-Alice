@@ -11,6 +11,22 @@
 // - production updates of productive forces
 // as all of these things are related to "productive forces", the file is named as "economy_production"
 
+namespace production_directives {
+
+constexpr inline dcon::production_directive_id factory_profit(0);
+constexpr inline dcon::production_directive_id factory_employment(1);
+constexpr inline dcon::production_directive_id factory_specialization(2);
+constexpr inline dcon::production_directive_id factory_upgrades(3);
+constexpr inline dcon::production_directive_id no_factories(4);
+constexpr inline dcon::production_directive_id railroads(5);
+constexpr inline dcon::production_directive_id naval_bases(6);
+constexpr inline dcon::production_directive_id forts(7);
+constexpr inline uint32_t count_special_keys = 8;
+
+dcon::production_directive_id to_key(sys::state const& state, dcon::commodity_id v);
+uint32_t size(sys::state const& state);
+}
+
 namespace economy {
 
 inline constexpr float secondary_employment_output_bonus = 3.f;

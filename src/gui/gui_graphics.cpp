@@ -328,4 +328,10 @@ void populate_definitions_map(sys::state& state) {
 	}
 }
 
+void place_in_drag_and_drop(sys::state& state, element_base& elm, std::any const& data, drag_and_drop_data type) {
+	state.ui_state.drag_and_drop_image.capture_element(state, elm);
+	state.ui_state.current_drag_and_drop_data = data;
+	state.ui_state.current_drag_and_drop_data_type = type;
+}
+
 } // namespace ui

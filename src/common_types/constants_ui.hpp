@@ -41,6 +41,16 @@ enum class focus_result {
 enum class tooltip_behavior {
 	tooltip, variable_tooltip, position_sensitive_tooltip, no_tooltip
 };
+enum class drag_and_drop_data {
+	none, production_directive
+};
+enum class drag_and_drop_target : uint8_t {
+	top = 0x01,
+	bottom = 0x02,
+	left = 0x04,
+	right = 0x08,
+	center = 0x10,
+};
 
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,

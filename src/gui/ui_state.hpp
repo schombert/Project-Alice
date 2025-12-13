@@ -145,6 +145,10 @@ struct state {
 	std::vector<std::unique_ptr<element_base>> endof_landcombat_windows;
 	std::vector<std::unique_ptr<element_base>> endof_navalcombat_windows;
 
+	ogl::captured_element drag_and_drop_image;
+	std::any current_drag_and_drop_data;
+	ui::drag_and_drop_data current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
+
 	int32_t held_game_speed = 1; // used to keep track of speed while paused
 	int32_t current_template = -1; // used as the currently edited template
 	std::vector<sys::macro_builder_template> templates;

@@ -1660,4 +1660,21 @@ scissor_box::~scissor_box() {
 	glDisable(GL_SCISSOR_TEST);
 }
 
+void captured_element::capture_element(sys::state& state, ui::element_base& elm) {
+	rendered_state.ready(state);
+	state.current_scene.get_root(state)->impl_render(state, 0, 0);
+	rendered_state.finish(state);
+
+	auto abs_pos = ui::get_absolute_location(state, elm);
+	cap_x_pos = abs_pos.x;
+	cap_y_pos = abs_pos.y;
+	cap_width = elm.base_data.size.x;
+	cap_height = elm.base_data.size.y;
+}
+void captured_element::render(sys::state& state, int32_t x, int32_t y) {
+	render_subrect(state, float(x), float(y), float(cap_width), float(cap_height),
+				float(cap_x_pos) * state.user_settings.ui_scale / float(rendered_state.max_x), float(rendered_state.max_y - cap_y_pos) * state.user_settings.ui_scale / float(rendered_state.max_y), float(cap_width) * state.user_settings.ui_scale / float(rendered_state.max_x), float(-cap_height) * state.user_settings.ui_scale / float(rendered_state.max_y),
+				rendered_state.get());
+}
+
 } // namespace ogl

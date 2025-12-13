@@ -42,6 +42,7 @@ public:
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void impl_on_reset_text(sys::state& state) noexcept override;
+	drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
 
 	std::unique_ptr<element_base> remove_child(element_base* child) noexcept final;
 	void move_child_to_front(element_base* child) noexcept final;
@@ -62,6 +63,7 @@ public:
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void impl_on_reset_text(sys::state& state) noexcept override;
+	drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
 
 	void move_child_to_front(element_base* child) noexcept final;
 	void move_child_to_back(element_base* child) noexcept final;

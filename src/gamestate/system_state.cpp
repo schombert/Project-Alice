@@ -121,10 +121,28 @@ void state::on_mbutton_down(int32_t x, int32_t y, key_modifiers mod) {
 }
 
 void state::on_lbutton_down(int32_t x, int32_t y, key_modifiers mod) {
+	if(ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		if(!current_scene.get_root)
+			return;
+
+		auto root = current_scene.get_root(*this);
+
+		auto qresult = root->impl_drag_and_drop_query(*this, int32_t(x / user_settings.ui_scale), int32_t(y / user_settings.ui_scale), ui_state.current_drag_and_drop_data_type);
+		if(qresult.under_mouse) {
+			//TODO: implement targets other than center depending on qresult return
+			auto finished = qresult.under_mouse->recieve_drag_and_drop(*this, ui_state.current_drag_and_drop_data, ui_state.current_drag_and_drop_data_type, ui::drag_and_drop_target::center, ui_state.shift_held_down);
+			if(finished) {
+				ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
+				ui_state.current_drag_and_drop_data.reset();
+			}
+			return;
+		}
+	} 
 	if(iui_state.over_ui)
 		iui_state.mouse_pressed = true;
 	else
 		game_scene::on_lbutton_down(*this, x, y, mod);
+	
 }
 
 void state::on_rbutton_up(int32_t x, int32_t y, key_modifiers mod) { }
@@ -191,8 +209,10 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
-		if(current_scene.game_in_progress)
+		if(current_scene.game_in_progress) {
 			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
+			alice_ui::display_at_front<alice_ui::make_production_rh_view>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
+		}
 	}
 }
 
@@ -202,6 +222,10 @@ void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 		ui_state.ctrl_held_down = true;
 	if(keycode == virtual_key::SHIFT || keycode == virtual_key::LSHIFT || keycode == virtual_key::RSHIFT)
 		ui_state.shift_held_down = true;
+	if(keycode == virtual_key::ESCAPE && ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		ui_state.current_drag_and_drop_data_type = ui::drag_and_drop_data::none;
+		return;
+	}
 
 	game_scene::on_key_down(*this, keycode, mod);
 }
@@ -700,6 +724,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 	ui_state.update_scroll(*this);
 	current_scene.clean_up(*this);
 
+	if(!map_state.last_map_movement_handled && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - map_state.last_map_movement).count() > 50) {
+		map_state.last_map_movement_handled = true;
+		current_scene.on_map_movement_stopped(*this);
+	}
+
 	ui::element_base* root_elm = current_scene.get_root(*this);
 
 	root_elm->base_data.size.x = ui_state.root->base_data.size.x;
@@ -772,6 +801,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	if(current_scene.based_on_map && !mouse_probe.under_mouse && !tooltip_probe.under_mouse) {
 		dcon::province_id prov = map_state.get_province_under_mouse(*this, int32_t(mouse_x_position), int32_t(mouse_y_position), x_size, y_size);
+		map_state.under_mouse_province = prov;
 		if(map_state.get_zoom() <= map::zoom_close)
 			prov = dcon::province_id{};
 		if(prov) {
@@ -874,8 +904,8 @@ void state::render() { // called to render the frame may (and should) delay retu
 	lua_getfield(lua_ui_environment, -1, "on_ui_thread_update");
 	lua_remove(lua_ui_environment, -2);
 	lua_pushinteger(lua_ui_environment, ui_state.time_since_last_render.count());
-	lua_pushinteger(lua_ui_environment, x_size);
-	lua_pushinteger(lua_ui_environment, y_size);
+	lua_pushinteger(lua_ui_environment, int32_t(x_size/user_settings.ui_scale));
+	lua_pushinteger(lua_ui_environment, int32_t(y_size/user_settings.ui_scale));
 	//lua_call(lua_ui_environment, 3, 0);
 	auto result = lua_pcall(lua_ui_environment, 3, 0, 0);
 	if(result) {
@@ -885,6 +915,22 @@ void state::render() { // called to render the frame may (and should) delay retu
 
 	assert(lua_gettop(lua_ui_environment) == 0);
 
+
+	if(ui_state.current_drag_and_drop_data_type != ui::drag_and_drop_data::none) {
+		auto win_x_size = 18 + 10 + ui_state.drag_and_drop_image.cap_width;
+		auto win_y_size = std::max(18, ui_state.drag_and_drop_image.cap_height) + 10;
+
+		static auto popup_bg = template_project::background_by_name(ui_templates, "outset_region.asvg");
+		static auto dad_icon = template_project::icon_by_name(ui_templates, "ic_fluent_document_briefcase_32_regular.svg");
+		static auto dad_color = template_project::color_by_name(ui_templates, "med red");
+
+		ogl::render_textured_rect_direct(*this, float((x_size / user_settings.ui_scale) / 2 - win_x_size/2), float((y_size / user_settings.ui_scale) - win_y_size), float(win_x_size), float(win_y_size), ui_templates.backgrounds[popup_bg].renders.get_render(*this, float(win_x_size) / float(9), float(win_y_size) / float(9), int32_t(9), user_settings.ui_scale));
+
+		ogl::render_textured_rect_direct(*this, float((x_size / user_settings.ui_scale) / 2 - win_x_size / 2 + 5), float((y_size / user_settings.ui_scale) - win_y_size + 5), float(18), float(18),
+			ui_templates.icons[dad_icon].renders.get_render(*this, 18, 18, user_settings.ui_scale, ui_templates.colors[dad_color].r, ui_templates.colors[dad_color].g, ui_templates.colors[dad_color].b));
+
+		ui_state.drag_and_drop_image.render(*this, int32_t((x_size / user_settings.ui_scale) / 2) - win_x_size / 2 + 5 + 18, int32_t(y_size / user_settings.ui_scale) - win_y_size + 5);
+	}
 
 	if(ui_state.fps_counter) {
 		if(ui_state.fps_counter->is_visible()) {
@@ -2874,6 +2920,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	world.nation_resize_demographics(demographics::size(*this));
 	world.state_instance_resize_demographics(demographics::size(*this));
 	world.province_resize_demographics(demographics::size(*this));
+
+	world.nation_resize_production_directive(production_directives::size(*this));
+	world.state_instance_resize_production_directive(production_directives::size(*this));
 
 	world.trade_route_resize_volume(world.commodity_size());
 	world.nation_resize_factory_type_experience(world.factory_type_size());

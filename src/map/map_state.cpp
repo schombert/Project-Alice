@@ -2315,6 +2315,10 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
+	if(std::abs(velocity.x) >= 0.00001f || std::abs(velocity.y) >= 0.00001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	pos += velocity;
 
 	pos.x = glm::mod(pos.x, 1.f);
@@ -2328,6 +2332,10 @@ void map_state::update(sys::state& state) {
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
 
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
+	if(std::abs(zoom_diff) >= 0.0001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	zoom += zoom_diff;
 	zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
@@ -2375,6 +2383,10 @@ void map_state::update(sys::state& state) {
 	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
 
 	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
+	if(std::abs(keyboard_zoom_diff) >= 0.0001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	zoom += keyboard_zoom_diff;
 	keyboard_zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
@@ -2477,6 +2489,9 @@ void map_state::set_pos(glm::vec2 new_pos) {
 void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
 	if(!p)
 		return;
+
+	last_map_movement = std::chrono::steady_clock::now();
+	last_map_movement_handled = false;
 
 	auto map_pos = state.world.province_get_mid_point(p);
 	map_pos.x /= float(map_data.size_x);

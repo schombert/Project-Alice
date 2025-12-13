@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="100mm"
+   height="100mm"
+   viewBox="0 0 100 100"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="naval_base_upgrade.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="mm"
+     inkscape:zoom="3.1554012"
+     inkscape:cx="180.8011"
+     inkscape:cy="151.32782"
+     inkscape:window-width="3840"
+     inkscape:window-height="2054"
+     inkscape:window-x="2869"
+     inkscape:window-y="-11"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="layer1" /><defs
+     id="defs1" /><g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"><path
+       id="rect1"
+       fill="#000000"
+     stroke-width="1"
+     stroke-opacity="0"
+     class="primarycolor"
+       d="M 40.318469 7.4212524 C 32.067938 7.4210874 25.379677 13.997233 25.379846 22.109245 C 25.395566 28.869058 30.101928 34.745732 36.781734 36.346102 L 36.781734 42.713672 L 19.362126 42.713672 L 19.362126 48.469393 L 36.781734 48.469393 L 36.781734 72.540792 C 22.493802 71.957058 18.30678 68.991709 14.756205 57.147933 L 9.6428223 56.486991 C 9.5583944 72.572827 19.502838 81.702566 40.989746 81.603805 C 49.631276 81.564085 56.16868 80.020649 60.894474 77.175134 L 60.894474 71.746008 L 51.688318 71.746008 C 49.508911 72.151237 46.994698 72.398837 44.013334 72.528389 L 44.013334 48.469393 L 60.588033 48.469393 L 60.588033 42.713672 L 44.013334 42.713672 L 44.013334 36.311995 C 50.617858 34.65434 55.243777 28.81111 55.257092 22.109245 C 55.25726 13.99741 48.56882 7.4213364 40.318469 7.4212524 z M 40.212533 13.805359 C 44.818588 13.805438 48.552512 17.476651 48.552592 22.005375 C 48.552512 26.534101 44.818589 30.205312 40.212533 30.205391 C 35.606475 30.205312 31.872553 26.534101 31.872473 22.005375 C 31.872553 17.47665 35.606475 13.805438 40.212533 13.805359 z " /><path
+       id="rect3"
+       style="display:inline;fill:#2f9320;fill-opacity:1;stroke-width:3.18701"
+       d="M 75.418652,36.63394 57.20116,67.32974 h 8.612394 V 93.917782 H 85.261462 V 67.32974 h 8.374683 z" /></g></svg>

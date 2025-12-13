@@ -30,34 +30,20 @@ struct scene_properties {
 
 	borders_granularity borders = borders_granularity::province;
 
-	std::function<void(
-		sys::state& state,
-		dcon::nation_id nation,
-		dcon::province_id target,
-		sys::key_modifiers mod)> rbutton_selected_units;
-	std::function<void(
-		sys::state& state,
-		dcon::nation_id nation,
-		dcon::province_id target,
-		sys::key_modifiers mod)> rbutton_province;
+	std::function<void(sys::state& state, dcon::nation_id nation, dcon::province_id target, sys::key_modifiers mod)> rbutton_selected_units;
+	std::function<void(sys::state& state, dcon::nation_id nation, dcon::province_id target, sys::key_modifiers mod)> rbutton_province;
 
 	//drag related
 	bool allow_drag_selection;
-	std::function<void(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod)>
-		on_drag_start;
-	std::function<void(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod)>
-		drag_selection;
+	std::function<void(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod)> on_drag_start;
+	std::function<void(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod)> drag_selection;
 
-	std::function<void(sys::state& state)>
-		lbutton_up;
-	std::function<void(sys::state& state)>
-		on_province_selected;
+	std::function<void(sys::state& state)> lbutton_up;
+	std::function<void(sys::state& state)> on_province_selected;
 
 	//key presses related
-	std::function <sys::virtual_key(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)>
-		keycode_mapping;
-	std::function <void(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)>
-		handle_hotkeys;
+	std::function <sys::virtual_key(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> keycode_mapping;
+	std::function <void(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod)> handle_hotkeys;
 
 	//logger
 	std::function <void(sys::state& state, std::string_view message)> console_log;
@@ -67,10 +53,8 @@ struct scene_properties {
 	std::function <void(sys::state& state)> render_map = render_map_generic;
 
 	//mouse probing
-	std::function <ui::mouse_probe(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe)>
-		recalculate_mouse_probe = recalculate_mouse_probe_identity;
-	std::function <ui::mouse_probe(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe)>
-		recalculate_tooltip_probe = recalculate_mouse_probe_identity;
+	std::function <ui::mouse_probe(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe)> recalculate_mouse_probe = recalculate_mouse_probe_identity;
+	std::function <ui::mouse_probe(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe)> recalculate_tooltip_probe = recalculate_mouse_probe_identity;
 
 	//clean up function which is supposed to keep ui "view" of the game state consistent
 	std::function <void(sys::state& state)> clean_up = do_nothing;
@@ -81,9 +65,9 @@ struct scene_properties {
 	//other functions:
 
 	std::function <void(sys::state& state)> open_chat = open_chat_during_game;
+	std::function <void(sys::state& state)> on_map_movement_stopped = do_nothing;
 
 	// graphics
-	std::function <void(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province)>
-		update_highlight_texture = highlight_given_province;
+	std::function <void(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province)> update_highlight_texture = highlight_given_province;
 };
 }

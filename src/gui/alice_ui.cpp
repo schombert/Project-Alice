@@ -1057,6 +1057,391 @@ void page_buttons::on_update(sys::state& state) noexcept {
 
 }
 
+void rh_map_items::impl_render(sys::state& state, int32_t x, int32_t y) noexcept {
+	grid_size_window::impl_render(state, x, y);
+
+	if(!state.map_state.last_map_movement_handled)
+		return; // don't render lines while moving
+
+	static auto bg_sprite = template_project::icon_by_name(state.ui_templates, "map_location_bottom.svg");
+	static auto top_sprite = template_project::icon_by_name(state.ui_templates, "map_location_top.svg");
+	static auto outline_color = template_project::color_by_name(state.ui_templates, "eggshell");
+	static auto line_color = template_project::color_by_name(state.ui_templates, "ink");
+	static auto active_color = template_project::color_by_name(state.ui_templates, "light orange");
+
+	auto item_size = items_pool[0]->base_data.size.y;
+	auto item_count = std::max(1, (base_data.size.y - grid_size * 4) / item_size);
+	auto line_width = float(grid_size - 3);
+
+	for(int32_t iline = 0; iline < item_count && iline + item_count * page < int32_t(item_provinces.size()); ++iline) {
+		auto ypos = y + grid_size + iline * item_size + item_size / 2;
+		auto xpos = x;
+
+		ogl::render_textured_rect_direct(state, float(xpos - grid_size), float(ypos - grid_size), float(grid_size * 2), float(grid_size * 2),
+			state.ui_templates.icons[bg_sprite].renders.get_render(state, grid_size * 2, grid_size * 2, state.user_settings.ui_scale, state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b));
+
+		ogl::render_textured_rect_direct(state, float(item_provinces[iline + item_count * page].x - grid_size), float(item_provinces[iline + item_count * page].y - grid_size), float(grid_size * 2), float(grid_size * 2),
+			state.ui_templates.icons[bg_sprite].renders.get_render(state, grid_size * 2, grid_size * 2, state.user_settings.ui_scale, state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b));
+
+		bool above = item_provinces[iline + item_count * page].y < ypos;
+
+		// vertical line
+		ogl::render_colored_rect(state,
+			float(item_provinces[iline + item_count * page].x - line_width / 2.0f), above ? (item_provinces[iline + item_count * page].y - line_width / 2.0f)  : (ypos - line_width / 2.0f),
+			float(line_width), float(std::abs(ypos - item_provinces[iline + item_count * page].y) + line_width),
+			state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+			ui::rotation::upright, false, false);
+
+		// horizontal line
+		ogl::render_colored_rect(state,
+			float(item_provinces[iline + item_count * page].x - line_width / 2.0f), (ypos - line_width / 2.0f),
+			float((xpos - item_provinces[iline + item_count * page].x) + line_width), float(line_width),
+			state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+			ui::rotation::upright, false, false);
+	}
+
+	auto inner_line_width = float(grid_size - 5);
+	
+
+	for(int32_t iline = 0; iline < item_count && iline + item_count * page < int32_t(item_provinces.size()); ++iline) {
+		auto ypos = y + grid_size + iline * item_size + item_size / 2;
+		auto xpos = x;
+		auto top_color = province_is_selected(state, item_provinces[iline + item_count * page].p) ? active_color : line_color;
+
+		bool above = item_provinces[iline + item_count * page].y < ypos;
+
+		// vertical line
+		ogl::render_colored_rect(state,
+			float(item_provinces[iline + item_count * page].x - inner_line_width / 2.0f), above ? (item_provinces[iline + item_count * page].y - inner_line_width / 2.0f) : (ypos - inner_line_width / 2.0f),
+			float(inner_line_width), float(std::abs(ypos - item_provinces[iline + item_count * page].y) + inner_line_width),
+			state.ui_templates.colors[top_color].r, state.ui_templates.colors[top_color].g, state.ui_templates.colors[top_color].b,
+			ui::rotation::upright, false, false);
+
+		// horizontal line
+		ogl::render_colored_rect(state,
+			float(item_provinces[iline + item_count * page].x - inner_line_width / 2.0f), (ypos - inner_line_width / 2.0f),
+			float((xpos - item_provinces[iline + item_count * page].x) + inner_line_width), float(inner_line_width),
+			state.ui_templates.colors[top_color].r, state.ui_templates.colors[top_color].g, state.ui_templates.colors[top_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_textured_rect_direct(state, float(xpos - grid_size), float(ypos - grid_size), float(grid_size * 2), float(grid_size * 2),
+			state.ui_templates.icons[top_sprite].renders.get_render(state, grid_size * 2, grid_size * 2, state.user_settings.ui_scale, state.ui_templates.colors[top_color].r, state.ui_templates.colors[top_color].g, state.ui_templates.colors[top_color].b));
+
+		ogl::render_textured_rect_direct(state, float(item_provinces[iline + item_count * page].x - grid_size), float(item_provinces[iline + item_count * page].y - grid_size), float(grid_size * 2), float(grid_size * 2),
+			state.ui_templates.icons[top_sprite].renders.get_render(state, grid_size * 2, grid_size * 2, state.user_settings.ui_scale, state.ui_templates.colors[top_color].r, state.ui_templates.colors[top_color].g, state.ui_templates.colors[top_color].b));
+	}
+}
+
+void rh_map_items::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(items_pool.empty()) {
+		items_pool.emplace_back(make_item(state));
+	}
+	static auto window_bg = template_project::background_by_name(state.ui_templates, "window.asvg");
+
+	ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), state.ui_templates.backgrounds[window_bg].renders.get_render(state, float(base_data.size.x) / float(grid_size), float(base_data.size.y) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
+
+	auto item_size = items_pool[0]->base_data.size.y;
+	auto item_count = std::max(1, (base_data.size.y - grid_size * 4) / item_size);
+
+	if(int32_t(item_provinces.size()) > item_count) {
+		int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+		int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).y;
+
+		if(auto button_template = state.ui_templates.layout_region_t[0].left_button; button_template != -1) { // left button
+			auto icon = state.ui_templates.layout_region_t[0].left_button_icon;
+			auto x_pos = x + base_data.size.x / 2 - grid_size * 4;
+			auto y_pos = y + base_data.size.y - grid_size * 3;
+			template_project::icon_region_template region;
+			if(page == 0) {
+				region = state.ui_templates.iconic_button_t[button_template].disabled;
+			} else if(x_pos <= rel_mouse_x && rel_mouse_x <= x_pos + grid_size * 2 && y_pos <= rel_mouse_y && rel_mouse_y <= y_pos + grid_size * 2) {
+				region = state.ui_templates.iconic_button_t[button_template].active;
+			} else {
+				region = state.ui_templates.iconic_button_t[button_template].primary;
+			}
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x_pos), float(y_pos), float(grid_size * 2), float(grid_size * 2),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(grid_size * 2) / float(grid_size), float(grid_size * 2) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
+			}
+			if(icon != -1) {
+				auto ico_color = region.icon_color;
+				auto l = region.icon_left.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
+				auto t = region.icon_top.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
+				auto r = region.icon_right.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
+				auto b = region.icon_bottom.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		}
+		//item_provinces
+		if(auto button_template = state.ui_templates.layout_region_t[0].right_button; button_template != -1) { // right button
+			auto icon = state.ui_templates.layout_region_t[0].right_button_icon;
+			auto x_pos = x + base_data.size.x / 2 + grid_size * 2;
+			auto y_pos = y + base_data.size.y - grid_size * 3;
+			template_project::icon_region_template region;
+			if(page >= (int32_t(item_provinces.size()) - 1) / item_count) {
+				region = state.ui_templates.iconic_button_t[button_template].disabled;
+			} else if(x_pos <= rel_mouse_x && rel_mouse_x <= x_pos + grid_size * 2 && y_pos <= rel_mouse_y && rel_mouse_y <= y_pos + grid_size * 2) {
+				region = state.ui_templates.iconic_button_t[button_template].active;
+			} else {
+				region = state.ui_templates.iconic_button_t[button_template].primary;
+			}
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x_pos), float(y_pos), float(grid_size * 2), float(grid_size * 2),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(grid_size * 2) / float(grid_size), float(grid_size * 2) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
+			}
+			if(icon != -1) {
+				auto ico_color = region.icon_color;
+				auto l = region.icon_left.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
+				auto t = region.icon_top.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
+				auto r = region.icon_right.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
+				auto b = region.icon_bottom.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
+				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
+					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+			}
+		}
+		{ // text
+			auto region = state.ui_templates.layout_region_t[0].page_number_text;
+			auto x_pos = x + base_data.size.x / 2 - grid_size * 2;
+			auto y_pos = y + base_data.size.y - grid_size * 3;
+
+			auto bg_id = region.bg;
+			if(bg_id != -1) {
+				ogl::render_textured_rect_direct(state, float(x_pos), float(y_pos), float(grid_size * 4), float(grid_size * 2),
+					state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(grid_size * 4) / float(grid_size), float(grid_size * 2) / float(grid_size), int32_t(grid_size), state.user_settings.ui_scale));
+			}
+
+			auto fh = text::make_font_id(state, region.font_choice == 1, region.font_scale * grid_size * 2);
+			auto linesz = state.font_collection.line_height(state, fh);
+			if(linesz == 0.0f) return;
+
+			auto ycentered = (grid_size * 2 - linesz) / 2;
+			auto color = state.ui_templates.colors[region.text_color];
+
+			for(auto& t : text_layout.contents) {
+				ui::render_text_chunk(
+					state,
+					t,
+					float(x_pos) + t.x,
+					float(y_pos + t.y + ycentered),
+					fh,
+					ogl::color3f{ color.r, color.g, color.b },
+					ogl::color_modification::none
+				);
+			}
+		}
+	}
+}
+ui::message_result rh_map_items::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	if(items_pool.empty()) {
+		items_pool.emplace_back(make_item(state));
+	}
+	auto item_size = items_pool[0]->base_data.size.y;
+	auto item_count = std::max(1, (base_data.size.y - grid_size * 4) / item_size);
+
+	auto x_pos = base_data.size.x / 2 - grid_size * 4;
+	auto y_pos = base_data.size.y - grid_size * 3;
+	auto x_posb = base_data.size.x / 2 + grid_size * 2;
+	auto y_posb = base_data.size.y - grid_size * 3;
+
+	if(x_pos <= x && x <= x_pos + grid_size * 2 && y_pos <= y && y <= y_pos + grid_size * 2) { // left button
+		if(page > 0) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			change_page(state, page - 1);
+		}
+	} else if(x_posb <= x && x <= x_posb + grid_size * 2 && y_posb <= y && y <= y_posb + grid_size * 2) { // right button
+		if(page < (int32_t(item_provinces.size()) - 1) / item_count) {
+			sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
+			change_page(state, page + 1);
+		}
+	}
+
+	return ui::message_result::consumed;
+}
+void rh_map_items::change_page(sys::state& state, int32_t amount) {
+	if(items_pool.empty()) {
+		items_pool.emplace_back(make_item(state));
+	}
+	auto item_size = items_pool[0]->base_data.size.y;
+	auto item_count = std::max(1, (base_data.size.y - grid_size * 4) / item_size);
+
+	amount = std::clamp(amount, 0, std::max(0, (int32_t(item_provinces.size()) - 1) / item_count));
+	if(page != amount) {
+		page = amount;
+		children.clear();
+		
+		text_layout.contents.clear();
+		text_layout.number_of_lines = 0;
+		if(int32_t(item_provinces.size()) > item_count) {
+			std::string display = std::to_string(page + 1) + "/" + std::to_string(1 + (int32_t(item_provinces.size()) - 1) / item_count);
+			text::single_line_layout sl{ text_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(grid_size * 4), static_cast<int16_t>(grid_size * 2), text::make_font_id(state, false, float(grid_size * 2)), 0, text::alignment::center, text::text_color::black, true, true }, state.world.locale_get_native_rtl(state.font_collection.get_current_locale()) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+			sl.add_text(state, display);
+		}
+
+		size_t count = 0;
+		while(count < size_t(item_count) && count + page * item_count <  item_provinces.size()) {
+			if(items_pool.size() <= count) {
+				items_pool.emplace_back(make_item(state));
+			}
+			items_pool[count]->parent = this;
+			items_pool[count]->base_data.position.y = int16_t(grid_size + count * items_pool[0]->base_data.size.y);
+			children.push_back(items_pool[count].get());
+			update_item(state, *(items_pool[count]), item_provinces[count + page * item_count].p);
+			++count;
+		}
+	}
+}
+void rh_map_items::on_update(sys::state& state) noexcept {
+	if(!state.map_state.last_map_movement_handled)
+		return; // ignore updates while map is moving
+
+	item_provinces.clear();
+
+	if(state.map_state.zoom < map::zoom_close) {
+		return; // no items at far distance
+	}
+
+	// figure out list of eligible provinces in box
+	for(auto p : state.world.in_province) {
+		if(!province_filter(state, p))
+			continue;
+		
+		auto mid_point = state.world.province_get_mid_point(p);
+		auto map_pos = state.map_state.normalize_map_coord(mid_point);
+		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+		glm::vec2 screen_pos;
+
+		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 0.0f, 0.0f }))
+			continue;
+
+		if(int16_t(screen_pos.x) < viewport.top_left.x || int16_t(screen_pos.y) < viewport.top_left.y || int32_t(screen_pos.x) > (viewport.top_left.x + viewport.size.x) || int32_t(screen_pos.y) > (viewport.top_left.y + viewport.size.y))
+			continue;
+
+		item_provinces.push_back(prov_and_location{p.id, int16_t(screen_pos.x), int16_t(screen_pos.y) });
+	}
+
+	// sort into pages
+	std::sort(item_provinces.begin(), item_provinces.end(), [&](prov_and_location const& a, prov_and_location const& b) {
+		return a.x < b.x;
+	});
+
+	// sort within each page to not overlap lines
+	if(items_pool.empty()) {
+		items_pool.emplace_back(make_item(state));
+	}
+	auto item_size = items_pool[0]->base_data.size.y;
+	auto item_count = std::max(1, (base_data.size.y - grid_size * 4) / item_size);
+
+	for(int32_t i = 0; i < int32_t(item_provinces.size()); i += item_count) {
+		for(int32_t j = 0; j < item_count && i + j + 1 < int32_t(item_provinces.size()); ++j) {
+			auto y_pivot = grid_size + j * item_size + item_size / 2;
+			std::nth_element(item_provinces.begin() + i + j, item_provinces.begin() + i + j, item_provinces.begin() + std::min(i + item_count, int32_t(item_provinces.size())),
+				[&](prov_and_location const& a, prov_and_location const& b) {
+					if(a.y <= y_pivot && b.y > y_pivot)
+						return true;
+					else if(b.y <= y_pivot && a.y > y_pivot)
+						return false;
+					else if(a.y <= y_pivot && b.y <= y_pivot)
+						return a.x > b.x;
+					else
+						return a.x < b.x;
+				});
+		}
+	}
+
+	auto temp_page = page;
+	page = -1;
+	change_page(state, temp_page);
+}
+ui::message_result rh_map_items::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
+	change_page(state, page + ((amount < 0) ? 1 : -1));
+	return ui::message_result::consumed;
+}
+
+
+ui::drag_and_drop_query_result drag_and_drop_target_control::impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept {
+	ui::drag_and_drop_query_result result;
+	if(data_type != supported_data_type)
+		return result;
+	if(x < 0 || y < 0 || x > base_data.size.x || y > base_data.size.y)
+		return result;
+
+	result.directions = supported_directions;
+	result.under_mouse = this;
+	return result;
+}
+void drag_and_drop_target_control::render(sys::state& state, int32_t x, int32_t y) noexcept {
+	if(state.ui_state.current_drag_and_drop_data_type != supported_data_type)
+		return;
+
+	grid_size_window* par = static_cast<grid_size_window*>(parent);
+
+	// TODO: pick distinct graphics, render appropriate direction targets instead of just center only
+	// TODO: highlight correct side if non-center targets are present
+
+	static auto bg_sprite = template_project::icon_by_name(state.ui_templates, "map_location_bottom.svg");
+	static auto outline_color = template_project::color_by_name(state.ui_templates, "med red");
+	static auto active_color = template_project::color_by_name(state.ui_templates, "light orange");
+
+	if(this == state.ui_state.under_mouse) {
+		ogl::render_colored_rect(state,
+			float(x), float(y),
+			float(base_data.size.x), float(1),
+			state.ui_templates.colors[active_color].r, state.ui_templates.colors[active_color].g, state.ui_templates.colors[active_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x), float(y + base_data.size.y - 1),
+			float(base_data.size.x), float(1),
+			state.ui_templates.colors[active_color].r, state.ui_templates.colors[active_color].g, state.ui_templates.colors[active_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x), float(y),
+			float(1), float(base_data.size.y),
+			state.ui_templates.colors[active_color].r, state.ui_templates.colors[active_color].g, state.ui_templates.colors[active_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x + base_data.size.x - 1), float(y),
+			float(1), float(base_data.size.y),
+			state.ui_templates.colors[active_color].r, state.ui_templates.colors[active_color].g, state.ui_templates.colors[active_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_textured_rect_direct(state, float(x + base_data.size.x / 2 - par->grid_size / 2), float(y + base_data.size.y / 2 - par->grid_size / 2), float(par->grid_size), float(par->grid_size ),
+			state.ui_templates.icons[bg_sprite].renders.get_render(state, par->grid_size, par->grid_size, state.user_settings.ui_scale, state.ui_templates.colors[active_color].r, state.ui_templates.colors[active_color].g, state.ui_templates.colors[active_color].b));
+	} else {
+		ogl::render_colored_rect(state,
+		float(x), float(y),
+		float(base_data.size.x), float(1),
+		state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+		ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x), float(y + base_data.size.y - 1),
+			float(base_data.size.x), float(1),
+			state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x), float(y),
+			float(1), float(base_data.size.y),
+			state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_colored_rect(state,
+			float(x + base_data.size.x - 1), float(y),
+			float(1), float(base_data.size.y),
+			state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b,
+			ui::rotation::upright, false, false);
+
+		ogl::render_textured_rect_direct(state, float(x + base_data.size.x / 2 - par->grid_size / 2), float(y + base_data.size.y / 2 - par->grid_size / 2), float(par->grid_size), float(par->grid_size),
+			state.ui_templates.icons[bg_sprite].renders.get_render(state, par->grid_size, par->grid_size, state.user_settings.ui_scale, state.ui_templates.colors[outline_color].r, state.ui_templates.colors[outline_color].g, state.ui_templates.colors[outline_color].b));
+	}
+}
+
 void drop_down_list_page_buttons::render(sys::state& state, int32_t x, int32_t y) noexcept {
 	if(!owner_control)
 		return;
@@ -1905,6 +2290,8 @@ layout_box measure_horizontal_box(sys::state& state, layout_iterator& source, in
 
 				source.move_position(1);
 			}
+		} else { // if everything was rolled back, then ignore the break
+			source.position = rollback_end_pos;
 		}
 	}
 	return result;

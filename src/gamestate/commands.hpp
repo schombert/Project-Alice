@@ -39,113 +39,114 @@ enum class command_type : uint8_t {
 	add_to_sphere = 24,
 	remove_from_sphere = 25,
 	upgrade_colony_to_state = 26,
-		invest_in_colony = 27,
-		abandon_colony = 28,
-		finish_colonization = 29,
-		intervene_in_war = 30,
-		suppress_movement = 31,
-		civilize_nation = 32,
-		appoint_ruling_party = 33,
-		change_issue_option = 34,
-		change_reform_option = 35,
-		become_interested_in_crisis = 36,
-		take_sides_in_crisis = 37,
-		begin_land_unit_construction = 38,
-		cancel_land_unit_construction = 39,
-		change_stockpile_settings = 40,
-		take_decision = 41,
-		make_n_event_choice = 42,
-		make_f_n_event_choice = 43,
-		make_p_event_choice = 44,
-		make_f_p_event_choice = 45,
-		fabricate_cb = 46,
-		cancel_cb_fabrication = 47,
-		ask_for_military_access = 48,
-		ask_for_alliance = 49,
-		call_to_arms = 50,
-		respond_to_diplomatic_message = 51,
-		cancel_military_access = 52,
-		cancel_alliance = 53,
-		cancel_given_military_access = 54,
-		declare_war = 55,
-		add_war_goal = 56,
-		start_peace_offer = 58,
-		add_peace_offer_term = 59,
-		send_peace_offer = 60,
-		move_army = 61,
-		move_navy = 62,
-		embark_army = 63,
-		merge_armies = 64,
-		merge_navies = 65,
-		split_army = 66,
-		split_navy = 67,
-		delete_army = 68,
-		delete_navy = 69,
-		designate_split_regiments = 70,
-		designate_split_ships = 71,
-		naval_retreat = 72,
-		land_retreat = 73,
-		start_crisis_peace_offer = 74,
-		invite_to_crisis = 75,
-		add_wargoal_to_crisis_offer = 76,
-		send_crisis_peace_offer = 77,
-		change_admiral = 78,
-		change_general = 79,
-		toggle_mobilization = 80,
-		give_military_access = 81,
-		set_rally_point = 82,
-		save_game = 83,
-		cancel_factory_building_construction = 84,
-		disband_undermanned = 85,
-		even_split_army = 86,
-		even_split_navy = 87,
-		toggle_hunt_rebels = 88,
-		toggle_select_province = 89,
-		toggle_immigrator_province = 90,
-		state_transfer = 91,
-		release_subject = 92,
-		enable_debt = 93,
-		move_capital = 94,
-		toggle_unit_ai_control = 95,
-		toggle_mobilized_is_ai_controlled = 96,
-		toggle_interested_in_alliance = 97,
-		pbutton_script = 98,
-		nbutton_script = 99,
-		set_factory_type_priority = 100,
-		crisis_add_wargoal = 101,
-		change_unit_type = 102,
-		take_province = 103,
-		grant_province = 104,
-		ask_for_free_trade_agreement = 105,
-		switch_embargo_status = 106,
-		revoke_trade_rights = 107,
-		toggle_local_administration = 108,
-		stop_army_movement = 109,
-		stop_navy_movement = 110,
-		command_units = 111,
-		give_back_units = 112,
-		change_game_rule_setting = 113,
+	invest_in_colony = 27,
+	abandon_colony = 28,
+	finish_colonization = 29,
+	intervene_in_war = 30,
+	suppress_movement = 31,
+	civilize_nation = 32,
+	appoint_ruling_party = 33,
+	change_issue_option = 34,
+	change_reform_option = 35,
+	become_interested_in_crisis = 36,
+	take_sides_in_crisis = 37,
+	begin_land_unit_construction = 38,
+	cancel_land_unit_construction = 39,
+	change_stockpile_settings = 40,
+	take_decision = 41,
+	make_n_event_choice = 42,
+	make_f_n_event_choice = 43,
+	make_p_event_choice = 44,
+	make_f_p_event_choice = 45,
+	fabricate_cb = 46,
+	cancel_cb_fabrication = 47,
+	ask_for_military_access = 48,
+	ask_for_alliance = 49,
+	call_to_arms = 50,
+	respond_to_diplomatic_message = 51,
+	cancel_military_access = 52,
+	cancel_alliance = 53,
+	cancel_given_military_access = 54,
+	declare_war = 55,
+	add_war_goal = 56,
+	start_peace_offer = 58,
+	add_peace_offer_term = 59,
+	send_peace_offer = 60,
+	move_army = 61,
+	move_navy = 62,
+	embark_army = 63,
+	merge_armies = 64,
+	merge_navies = 65,
+	split_army = 66,
+	split_navy = 67,
+	delete_army = 68,
+	delete_navy = 69,
+	designate_split_regiments = 70,
+	designate_split_ships = 71,
+	naval_retreat = 72,
+	land_retreat = 73,
+	start_crisis_peace_offer = 74,
+	invite_to_crisis = 75,
+	add_wargoal_to_crisis_offer = 76,
+	send_crisis_peace_offer = 77,
+	change_admiral = 78,
+	change_general = 79,
+	toggle_mobilization = 80,
+	give_military_access = 81,
+	set_rally_point = 82,
+	save_game = 83,
+	cancel_factory_building_construction = 84,
+	disband_undermanned = 85,
+	even_split_army = 86,
+	even_split_navy = 87,
+	toggle_hunt_rebels = 88,
+	toggle_select_province = 89,
+	toggle_immigrator_province = 90,
+	state_transfer = 91,
+	release_subject = 92,
+	enable_debt = 93,
+	move_capital = 94,
+	toggle_unit_ai_control = 95,
+	toggle_mobilized_is_ai_controlled = 96,
+	toggle_interested_in_alliance = 97,
+	pbutton_script = 98,
+	nbutton_script = 99,
+	set_factory_type_priority = 100,
+	crisis_add_wargoal = 101,
+	change_unit_type = 102,
+	take_province = 103,
+	grant_province = 104,
+	ask_for_free_trade_agreement = 105,
+	switch_embargo_status = 106,
+	revoke_trade_rights = 107,
+	toggle_local_administration = 108,
+	stop_army_movement = 109,
+	stop_navy_movement = 110,
+	command_units = 111,
+	give_back_units = 112,
+	change_game_rule_setting = 113,
+	toggle_production_directive = 114,
 
-		// network
-		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
-		resync_lobby = 236,
-		notify_player_ban = 237,
-		notify_player_kick = 238,
-		notify_player_picks_nation = 239,
-		notify_player_joins = 240,
-		notify_player_leaves = 241,
-		notify_player_oos = 242,
-		notify_save_loaded = 243,
-		notify_start_game = 244, // for synchronized "start game"
-		notify_stop_game = 245, // "go back to lobby"
-		notify_pause_game = 246, // visual aid mostly
-		notify_reload = 247,
-		advance_tick = 248,
-		chat_message = 249,
-		network_inactivity_ping = 250,
-		notify_player_fully_loaded = 251, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
-		notify_player_is_loading = 252, // host sends this to all clients to notify that a specific client has begun loading
-		change_ai_nation_state = 253, // host sends this to new clients to inform them of no-ai nations, which arent players. 
+	// network
+	notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
+	resync_lobby = 236,
+	notify_player_ban = 237,
+	notify_player_kick = 238,
+	notify_player_picks_nation = 239,
+	notify_player_joins = 240,
+	notify_player_leaves = 241,
+	notify_player_oos = 242,
+	notify_save_loaded = 243,
+	notify_start_game = 244, // for synchronized "start game"
+	notify_stop_game = 245, // "go back to lobby"
+	notify_pause_game = 246, // visual aid mostly
+	notify_reload = 247,
+	advance_tick = 248,
+	chat_message = 249,
+	network_inactivity_ping = 250,
+	notify_player_fully_loaded = 251, // client sends this to the host to notify that they are fully loaded in, and host transmits it to all clients
+	notify_player_is_loading = 252, // host sends this to all clients to notify that a specific client has begun loading
+	change_ai_nation_state = 253, // host sends this to new clients to inform them of no-ai nations, which arent players. 
 
 	// console cheats
 	network_populate = 254,
@@ -531,6 +532,10 @@ struct notify_mp_data_data_recv {
 	notify_mp_data_data base;
 	uint8_t mp_data[1];
 };
+struct production_directive_data {
+	dcon::state_instance_id for_state;
+	dcon::production_directive_id id;
+};
 
 
 static ankerl::unordered_dense::map<command::command_type, command::command_type_data> command_type_handlers = {
@@ -646,6 +651,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::command_units, command_type_data{ sizeof(command::command_units_data), sizeof(command::command_units_data) } },
 	{ command_type::give_back_units, command_type_data{ sizeof(command::command_units_data), sizeof(command::command_units_data) } },
 	{ command_type::change_game_rule_setting, command_type_data{ sizeof(command::change_gamerule_setting_data), sizeof(command::change_gamerule_setting_data) } },
+	{ command_type::toggle_production_directive, command_type_data{ sizeof(command::production_directive_data), sizeof(command::production_directive_data) } },
 
 	// network
 	{ command_type::notify_player_ban, command_type_data{ sizeof(command::notify_player_ban_data), sizeof(command::notify_player_ban_data) } },
@@ -669,60 +675,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::console_command, command_type_data{ 0, 0 } },
 	{ command_type::resync_lobby, command_type_data{ 0, 0 } },
 	{ command_type::notify_mp_data, command_type_data{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), } },
-
 };
-
-
-//struct command_data_vec {
-//	cmd_header header;
-//	std::vector<uint8_t> payload;
-//	command_data(command_type _type)  {
-//		header.type = _type;
-//	};
-//	command_data(command_type _type, dcon::nation_id _source) {
-//		header.type = _type;
-//		header.source = _source;
-//	};
-//	size_t size() const {
-//		return sizeof(cmd_header) + payload.size();
-//	}
-//	// push data to the payload
-//	template<typename data_type>
-//	friend command_data& operator << (command_data& msg, data_type& data) {
-//
-//		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to push");
-//		size_t curr_size = msg.payload.size();
-//		msg.payload.resize(payload.size() + sizeof(data_type));
-//
-//		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
-//		return msg;
-//	}
-//
-//	// grab data from the payload
-//	template<typename data_type>
-//	friend command_data& operator >> (command_data& msg, data_type& data) {
-//
-//		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to pull");
-//		size_t i = msg.payload.size() - sizeof(data_type);
-//		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
-//		msg.payload.resize(i);
-//		return msg;
-//
-//	}
-//	template<typename data_type>
-//	data_type get_payload() const {
-//		data_type output{ };
-//		*this >> output;
-//		return output;
-//	}
-//
-//
-//	
-//	std::unique_ptr<uint8_t> serialize();
-//	size_t size();
-//};
-
-
 
 
 // decides whether the host should broadcast the command or execute it only for themself
@@ -1076,6 +1029,9 @@ bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gu
 
 void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
+
+void toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive);
+void execute_toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive);
 
 /*
 PEACE OFFER COMMANDS:

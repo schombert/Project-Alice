@@ -855,6 +855,65 @@ public:
 	}
 };
 
+class rh_map_items : public grid_size_window {
+public:
+	struct prov_and_location {
+		dcon::province_id p;
+		int16_t x = 0;
+		int16_t y = 0;
+	};
+	std::vector<std::unique_ptr<ui::element_base>> items_pool;
+	std::vector<prov_and_location> item_provinces;
+	text::layout text_layout;
+	ui::urect viewport;
+	int32_t page = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void change_page(sys::state& state, int32_t amount);
+
+	virtual std::unique_ptr<ui::element_base> make_item(sys::state& state) = 0;
+	virtual bool province_filter(sys::state& state, dcon::province_id p) = 0;
+	virtual void update_item(sys::state& state, ui::element_base& item, dcon::province_id p) = 0;
+	virtual bool province_is_selected(sys::state& state, dcon::province_id p) = 0;
+};
+
+class drag_and_drop_target_control : public ui::element_base {
+public:
+	ui::drag_and_drop_data supported_data_type = ui::drag_and_drop_data::none;
+	uint8_t supported_directions = uint8_t(ui::drag_and_drop_target::center);
+
+	ui::drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if((type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) && state.ui_state.current_drag_and_drop_data_type == supported_data_type)
+			return ui::message_result::consumed;
+		return ui::message_result::unseen;
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(state.ui_state.current_drag_and_drop_data_type == supported_data_type)
+			return ui::message_result::consumed;
+		return ui::message_result::unseen;
+	}
+
+	// this should be overwritten by the derived class, otherwise data will be just dropped
+	bool recieve_drag_and_drop(sys::state& state, std::any& data, ui::drag_and_drop_data data_type, ui::drag_and_drop_target sub_target, bool shift_held_down) noexcept override {
+		return true;
+	}
+};
+
 class layout_window_element : public grid_size_window {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
@@ -981,6 +1040,9 @@ std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& sta
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_main_menu_base(sys::state& state);
 std::unique_ptr<ui::element_base> make_production_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_rh_state_item(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_rh_view(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_directives_window(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 

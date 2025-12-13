@@ -390,6 +390,7 @@ target_precompile_headers(Alice
 	PRIVATE <limits>
 	PRIVATE <iterator>
 	PRIVATE <utility>
+	PRIVATE <any>
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE <vector>

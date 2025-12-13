@@ -43,6 +43,18 @@ mouse_probe container_base::impl_probe_mouse(sys::state& state, int32_t x, int32
 	return element_base::impl_probe_mouse(state, x, y, type);
 }
 
+drag_and_drop_query_result container_base::impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *c);
+			auto res = c->impl_drag_and_drop_query(state, x - relative_location.x, y - relative_location.y, data_type);
+			if(res.under_mouse)
+				return res;
+		}
+	}
+	return element_base::impl_drag_and_drop_query(state, x, y, data_type);
+}
+
 mouse_probe non_owning_container_base::impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept {
 	for(auto& c : children) {
 		if(c->is_visible()) {
@@ -53,6 +65,18 @@ mouse_probe non_owning_container_base::impl_probe_mouse(sys::state& state, int32
 		}
 	}
 	return element_base::impl_probe_mouse(state, x, y, type);
+}
+
+drag_and_drop_query_result non_owning_container_base::impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept {
+	for(auto& c : children) {
+		if(c->is_visible()) {
+			auto relative_location = child_relative_location(state, *this, *c);
+			auto res = c->impl_drag_and_drop_query(state, x - relative_location.x, y - relative_location.y, data_type);
+			if(res.under_mouse)
+				return res;
+		}
+	}
+	return element_base::impl_drag_and_drop_query(state, x, y, data_type);
 }
 
 message_result container_base::impl_on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {

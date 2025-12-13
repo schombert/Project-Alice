@@ -17,6 +17,10 @@ namespace game_scene {
 void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
 void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
 void select_production_state(sys::state& state);
+void render_unitless_ui_ingame(sys::state& state);
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+void notify_production_map_movement_stopped(sys::state& state);
 
 void switch_scene(sys::state& state, scene_id ui_scene) {
 
@@ -90,13 +94,23 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 			.keycode_mapping = replace_keycodes_map_movement,
 			.handle_hotkeys = production_screen_hotkeys,
 			.console_log = console_log_other,
-			.render_ui = render_ui_ingame,                                                         // TODO?
+			.render_ui = render_unitless_ui_ingame,
+			.recalculate_mouse_probe = recalculate_mouse_probe_unitless,
+			.recalculate_tooltip_probe = recalculate_tooltip_probe_unitless,
 			.on_game_state_update = generic_map_scene_update,
 			.on_game_state_update_update_ui = do_nothing,
+			.on_map_movement_stopped = notify_production_map_movement_stopped,
 			.update_highlight_texture = highlight_given_state
 		};
-		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state);
-		ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_rh_view>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		alice_ui::display_at_front<alice_ui::make_production_directives_window>(state);
 
 	} break;
 	case scene_id::count: // this should never happen
@@ -105,6 +119,10 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 	}
 	
 	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void notify_production_map_movement_stopped(sys::state& state) {
+	alice_ui::display_at_front<alice_ui::make_production_rh_view>(state, alice_ui::display_closure_command::return_pointer)->impl_on_update(state);
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -962,6 +980,30 @@ void render_ui_ingame(sys::state& state) {
 	state.iui_state.frame_end();
 }
 
+void render_unitless_ui_ingame(sys::state& state) {
+	if(state.ui_state.tl_chat_list) {
+		state.ui_state.root->move_child_to_back(state.ui_state.tl_chat_list);
+	}
+	if(state.map_state.get_zoom() > map::zoom_close) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(state.x_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(state.y_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, state.x_size, state.y_size);
+		glDepthRange(-1.0f, 1.0f);
+
+		auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
+
+		if(state.ui_state.ctrl_held_down && (state.map_state.get_zoom() >= ui::big_counter_cutoff && state.ui_state.province_details_root)) {
+			state.ui_state.province_details_root->impl_render(state, 0, 0);
+		}
+	}
+}
+
 ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	return mouse_probe;
 }
@@ -1003,6 +1045,9 @@ ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui:
 	return mouse_probe;
 }
 
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return mouse_probe;
+}
 
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
@@ -1032,6 +1077,11 @@ ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_pr
 		ui::mouse_probe_type::click
 	);
 }
+
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return tooltip_probe;
+}
+
 
 ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
