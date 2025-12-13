@@ -38,7 +38,7 @@ inline constexpr float base_population_per_admin = 8000.f;
 // multiplier to convert the vanilla administrative_multiplier into the normalized admin divisor that we use. 100.0f corrosponds to a 10% increase in required admin per pop per level of administrative_multiplier with default defines.
 inline constexpr float admin_reform_mult = 100.0f;
 
-
+// Social issues increase the number of bureaucrats the nation needs per population
 float get_nation_administrative_multiplier(sys::state& state, dcon::nation_id nation) {
 	float admin_mult_sum = 0.0f;
 	for(auto issue : state.culture_definitions.social_issues) {
@@ -47,6 +47,7 @@ float get_nation_administrative_multiplier(sys::state& state, dcon::nation_id na
 	return admin_mult_sum * state.defines.bureaucracy_percentage_increment;
 }
 
+// How many bureaucrats do we need to get 1 control scale
 float population_per_admin(sys::state& state, dcon::nation_id n) {
 	float admin_mult = get_nation_administrative_multiplier(state, n);
 	float normalized_admin_divisor = admin_mult * admin_reform_mult + 1.0f;
@@ -210,40 +211,47 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 	});
 }
 
+float capital_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id capital) {
+	if(state.world.province_get_nation_from_province_control(capital) == n) {
+		auto capital_state = state.world.province_get_state_membership(capital);
+		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+
+		auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
+		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+		// capitals generate base amount of control to avoid death spirals
+		return demand * sat * population_per_admin(state, n) + 10'000.f;
+	}
+	return 0.f;
+}
+float local_administration_control_production(sys::state& state, dcon::nation_id n, dcon::province_id p) {
+	if(state.world.province_get_nation_from_province_control(p) != n) {
+		return 0.f;
+	}
+	auto capital_state = state.world.province_get_state_membership(p);
+	auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
+	auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
+	auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
+	// additional administrations are less efficient
+	// and require additional people to generate control
+	return std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency);
+}
 void update_production_administration(sys::state& state, dcon::nation_id n) {
 	auto admin_count = count_active_administrations(state, n);
 	if(admin_count == 0.f) {
 		return;
 	}
-
+	// Capital administration control production
 	{
 		auto capital = state.world.nation_get_capital(n);
-		if(state.world.province_get_nation_from_province_control(capital) == n) {
-			auto capital_state = state.world.province_get_state_membership(capital);
-			auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-
-			auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
-			auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
-			auto& cur_control_scale = state.world.province_get_control_scale(capital);
-			// capitals generate base amount of control to avoid death spirals
-			state.world.province_set_control_scale(capital, cur_control_scale + demand * sat * population_per_admin(state, n) + 10'000.f);
-		}
+		auto& cur_control_scale = state.world.province_get_control_scale(capital);
+		state.world.province_set_control_scale(capital, cur_control_scale + capital_administration_control_production(state, n, capital));
 	}
-
+	// Local administrations control production
 	state.world.nation_for_each_nation_administration(n, [&](auto naid) {
 		auto admin = state.world.nation_administration_get_administration(naid);
 		auto capital = state.world.administration_get_capital(admin);
-		if(state.world.province_get_nation_from_province_control(capital) != n) {
-			return;
-		}
-		auto capital_state = state.world.province_get_state_membership(capital);
-		auto capital_of_capital_state = state.world.state_instance_get_capital(capital_state);
-		auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
-		auto sat = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto& cur_control_scale = state.world.province_get_control_scale(capital);
-		// additional administrations are less efficient
-		// and require additional people to generate control
-		state.world.province_set_control_scale(capital, cur_control_scale + std::max(0.f, (demand * sat - base_admin_employment) * population_per_admin(state, n) * local_administration_efficiency));
+		state.world.province_set_control_scale(capital, cur_control_scale + local_administration_control_production(state, n, capital));
 	});
 }
 
