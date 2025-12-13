@@ -1362,6 +1362,10 @@ void display_data::create_curved_river_vertices(parsers::scenario_building_conte
 					province::from_map_id(safe_get_province(glm::ivec2(i, j)))
 				};
 				for(auto& origin : provinces) {
+					// The base paradox map has undefined pxiels which do not belong to a province. To prevent invalid writes these should be filtered out
+					if(!bool(origin)) {
+						continue;
+					}
 					if(runner.position->width > 125) {
 						context.state.world.province_set_has_major_river(origin, true);
 					} else {
