@@ -1185,6 +1185,7 @@ std::string add_collection_compare_to_oos_report(const std::span<const T> collec
 std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
 	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
 	std::string report = generate_oos_report(state_1.world, state_2.world, record);
+	// Only non-local scenario & save fields which CAN contribute to changing the gamestate should be included here (so eg. skip text data and local_player_nation)
 	report += "SAVE_HANDWRITTEN_CONTRIBUTION\n";
 	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
 		add_collection_compare_to_oos_report<int32_t>(state_1.unit_names_indices, state_2.unit_names_indices, "unit_names_indices") +

@@ -69,8 +69,13 @@ std::vector<culture::tech_category> get_active_tech_categories(sys::state& state
 struct folder_info {
 	dcon::text_key name;
 	tech_category category = tech_category::army;
+	uint8_t padding[3] = { 0 };
+	folder_info(dcon::text_key _name, tech_category _category) : name(_name), category(_category) { }
+	folder_info() { }
 	bool operator==(const folder_info& other) const = default;
 };
+// initialize padding to 0 since the scenario checksum will bitwise checksum it
+static_assert(sizeof(folder_info) == sizeof(folder_info::name) + sizeof(folder_info::category) + sizeof(folder_info::padding));
 
 enum class pop_strata : uint8_t { poor = 0, middle = 1, rich = 2 };
 enum class income_type : uint8_t {
