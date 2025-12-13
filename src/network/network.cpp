@@ -1733,16 +1733,13 @@ void write_network_save(sys::state& state) {
 }
 
 
-std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out) {
+std::unique_ptr<uint8_t[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out) {
+	// We do not compress it as it is so large that it usually takes longer to compress it, than to just send the entire uncompressed payload
 	size_t length = sizeof_entire_mp_state(state);
 	auto mp_state_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
-	/* Clear the player nation since it is part of the savegame */
 	write_entire_mp_state(mp_state_buffer.get(), state); //writeoff data
-	// this is an upper bound, since compacting the data may require less space
-	std::unique_ptr<FT_Byte[]> compressed_data =  std::unique_ptr<FT_Byte[]>(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
-	auto buffer_position = write_network_compressed_section(compressed_data.get(), mp_state_buffer.get(), uint32_t(length));
-	size_out = uint32_t(buffer_position - compressed_data.get());
-	return std::move(compressed_data);
+	size_out = length;
+	return mp_state_buffer;
 
 }
 

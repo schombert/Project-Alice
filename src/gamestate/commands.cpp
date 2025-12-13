@@ -5689,7 +5689,7 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 
 	if(state.network_mode == sys::network_mode_type::host) {
 		std::unique_ptr<sys::state> oos_gamestate = std::make_unique<sys::state>();
-		network::decompress_load_entire_mp_state(*oos_gamestate, oos_gamestate_data, data_size);
+		read_entire_mp_state(oos_gamestate_data, oos_gamestate_data + data_size, *oos_gamestate);
 	
 		network::dump_oos_report(state, *oos_gamestate);
 	}

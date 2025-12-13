@@ -80,5 +80,13 @@ std::string to_debug_string(const military::available_cb& obj) {
 	return "(expiration;target;cb_type;target_state) => " + std::to_string(obj.expiration.value) + ";" + std::to_string(obj.target.value) + ";" + std::to_string(obj.cb_type.value) + ";" + std::to_string(obj.target_state.value);
 }
 
+std::string to_debug_string(const std::array<dcon::regiment_id, 30>& obj) {
+	std::string result;
+	for(uint8_t i; i < obj.size(); i++) {
+		result += "Index " + std::to_string(i) + ":" + std::to_string(obj[i].value) + " ";
+	}
+	return result;
+}
+
 }
 
