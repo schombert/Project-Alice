@@ -1298,9 +1298,10 @@ void players_map_tt_box(sys::state& state, text::columnar_layout& contents, dcon
 
 				for(auto player : players) {
 					sub.clear();
-					auto player_name = sys::player_name{ state.world.mp_player_get_nickname(player) }.to_string_view();
-					text::add_to_substitution_map(sub, text::variable_type::x, player_name);
-					if(state.world.mp_player_get_nickname(player) == state.network_state.nickname.data) {
+					const sys::player_name& nickname = state.world.mp_player_get_nickname(player);
+					auto nickname_str = nickname.to_string_view();
+					text::add_to_substitution_map(sub, text::variable_type::x, nickname_str);
+					if(nickname == state.network_state.nickname) {
 						text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34_you"), sub);
 					} else {
 						text::localised_format_box(state, contents, box, std::string_view("mapmode_tooltip_34"), sub);

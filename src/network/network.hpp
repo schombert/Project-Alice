@@ -291,7 +291,7 @@ dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& n
 void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
-dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
+dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name);
 std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation);
 void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);

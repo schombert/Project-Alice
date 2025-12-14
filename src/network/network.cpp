@@ -783,7 +783,7 @@ void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai
 
 dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& name, const sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play) {
 	auto p = state.world.create_mp_player();
-	state.world.mp_player_set_nickname(p, name.data);
+	state.world.mp_player_set_nickname(p, name);
 
 	auto salt = sys::player_password_salt{}.from_string_view(std::to_string(int32_t(rand())));
 	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
@@ -801,7 +801,7 @@ dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& n
 
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt) {
 	auto p = state.world.create_mp_player();
-	state.world.mp_player_set_nickname(p, name.data);
+	state.world.mp_player_set_nickname(p, name);
 	state.world.mp_player_set_password_hash(p, password_hash.data);
 	state.world.mp_player_set_password_salt(p, password_salt.data);
 
@@ -815,11 +815,11 @@ void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, 
 	state.world.mp_player_set_password_salt(player_id, salt.data);
 }
 
-dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name) {
+dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name) {
 	for(const auto p : state.world.in_mp_player) {
-		auto nickname = p.get_nickname();
+		const auto& other_name = p.get_nickname();
 
-		if(std::equal(std::begin(nickname), std::end(nickname), std::begin(name.data))) {
+		if(name == other_name) {
 			return p;
 		}
 	}
@@ -836,7 +836,7 @@ std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::na
 }
 
 // Reassign player to his previous nation if any
-static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name) {
+static dcon::nation_id get_player_nation(sys::state& state, const sys::player_name& name) {
 
 	auto p = find_mp_player(state, name);
 	if(p) {

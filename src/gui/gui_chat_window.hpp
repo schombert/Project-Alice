@@ -133,7 +133,6 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto player = retrieve<dcon::mp_player_id>(state, parent);
-		auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
 		command::notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
 	}
 
@@ -183,8 +182,8 @@ public:
 		} else {
 			auto p = retrieve<dcon::mp_player_id>(state, parent);
 
-			auto nickname = state.world.mp_player_get_nickname(p);
-			set_text(state, sys::player_name{nickname }.to_string());
+			const auto& nickname = state.world.mp_player_get_nickname(p);
+			set_text(state, nickname.to_string());
 		}
 	}
 };

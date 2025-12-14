@@ -5527,7 +5527,8 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{ state.world.mp_player_get_nickname(leaving_player) }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(leaving_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5552,7 +5553,7 @@ bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_p
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	assert(banned_player);
-	auto& nickname = state.world.mp_player_get_nickname(banned_player);
+	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
 	
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5569,7 +5570,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5592,7 +5593,7 @@ bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player) {
 	assert(kicked_player);
-	auto nickname = state.world.mp_player_get_nickname(kicked_player);
+	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
 	
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -5610,7 +5611,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	m.source = host_nation;
 	text::substitution_map sub{};
 
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5706,8 +5707,8 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	auto nickname = state.world.mp_player_get_nickname(oos_player);
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(oos_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
