@@ -1906,3 +1906,19 @@ admin_cost_of_province_river;?G-$value$ 主要河流?!
 tax_collection_rate_capital_base;首都基础：?Y$value$?!
 tax_collection_rate_control;来自控制：?Y$value$?!
 tax_collection_rate_efficiency;收税效率修正 ?Y$value$?!
+production_rh_state_population;地区人群
+production_rh_state_consumption;最多消费
+production_rh_state_production;最多生产
+production_directive_header;建筑指令
+production_directive_explain;若干建筑指令可在地区或全国发布，落实政府建设经费。点击所需指令，然后点击任一高亮地区以分配它。点击已分布的指令以移除。
+production_directive_national_header;国家指令
+production_directive_national_tt;任何指令适用全国。各地指令高于国家指令。
+directive_description_fmoney;工厂利润优先
+directive_description_fpeople;最多雇佣优先
+directive_description_fspecial;建设升级专业化领先工厂优先
+directive_description_fupgrade;升级现有工厂优先
+directive_description_fnone;不建造升级工厂
+directive_description_rail;尽力建设升级铁路
+directive_description_naval;尽力建设升级海军基地
+directive_description_forts;尽力建设升级边界要塞
+directive_description_commodity;建设升级工厂生产优先 ?Y$x$?W
