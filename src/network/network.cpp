@@ -1377,7 +1377,7 @@ void dump_oos_report(sys::state& state_1, sys::state& state_2) {
 	auto savepostfix = NATIVE("OOS.log");
 	auto filename = saveprefix + simple_fs::utf8_to_native(std::to_string(dt.year) + std::to_string(dt.month) + std::to_string(dt.day)) + savepostfix;
 	std::string result = generate_full_oos_report(state_1, state_2);
-	simple_fs::write_file(sdir, filename, result.data(), result.length());
+	simple_fs::write_file(sdir, filename, result.data(), uint32_t(result.length()));
 }
 
 
@@ -1741,7 +1741,7 @@ std::unique_ptr<uint8_t[]> write_network_entire_mp_state(sys::state& state, uint
 	size_t length = sizeof_entire_mp_state(state);
 	auto mp_state_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
 	write_entire_mp_state(mp_state_buffer.get(), state); //writeoff data
-	size_out = length;
+	size_out = uint32_t(length);
 	return mp_state_buffer;
 
 }
