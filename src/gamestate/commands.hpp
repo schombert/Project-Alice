@@ -125,6 +125,7 @@ enum class command_type : uint8_t {
 		command_units = 111,
 		give_back_units = 112,
 		change_game_rule_setting = 113,
+		toggle_production_directive = 114,
 
 
 		// network
