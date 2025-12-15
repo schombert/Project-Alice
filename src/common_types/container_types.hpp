@@ -364,7 +364,7 @@ static_assert(sizeof(small_commodity_set) ==
 namespace sys {
 
 struct checksum_key {
-	static constexpr uint32_t key_size = 64;
+	static constexpr uint32_t key_size = 32;
 	uint8_t key[key_size] = { 0 };
 
 	bool is_equal(const checksum_key& a) noexcept {

@@ -5754,7 +5754,8 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	// TODO: Maybe add the OOS notification command here directly, and skip the queue so no actions are performed?
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
-			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			
+			if(network::should_do_oos_check(state)) {
 #ifndef NDEBUG
 				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
 					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
@@ -7646,7 +7647,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	return true;
 }
 
-bool valid_host_receive_commands(command_type type) {
+bool valid_host_receive_commands(command_type type, const sys::state& state) {
 	switch(type) {
 	case command::command_type::invalid:
 	case command::command_type::notify_player_ban:
@@ -7664,6 +7665,9 @@ bool valid_host_receive_commands(command_type type) {
 	case command::command_type::resync_lobby:
 	case command::command_type::notify_mp_data:
 		return false;
+	case command::command_type::notify_oos_gamestate:
+		// Only allow the client to send oos gamestate if debug mode is on.
+		return state.host_settings.oos_debug_mode;
 	default:
 		return true;
 	}

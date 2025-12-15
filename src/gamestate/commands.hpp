@@ -1272,6 +1272,8 @@ bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 
+void notify_oos_gamestate(sys::state& state, dcon::nation_id source);
+
 void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player);
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player);
@@ -1304,7 +1306,7 @@ bool execute_command(sys::state& state, command_data& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, command_data& c);
 // Returns true if the command type can be recevied by the host FROM a client. False otherwise
-bool valid_host_receive_commands(command_type type);
+bool valid_host_receive_commands(command_type type, const sys::state& state);
 
 
 void notify_console_command(sys::state& state);

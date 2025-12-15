@@ -363,16 +363,17 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<sys::network_mode_type NetworkType, typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload , F&& func) {
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload, const sys::state& state, F&& func) {
 	// check flag to see if the receiving payload flag is off, an thus should read the header
 	if(!(*receiving_payload)) {
 		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
 			// if this is being run as host, early discard commands which the host aren't meant to receive
 			if constexpr(NetworkType == sys::network_mode_type::host) {
-				if(command::valid_host_receive_commands(data->header.type)) {
+				if(command::valid_host_receive_commands(data->header.type, state)) {
 					*receiving_payload = true;
 				}
 				else {
+					// TODO: disconnect client entirely if an invalid command is received
 					*receiving_payload = false;
 				}
 			}
@@ -939,6 +940,7 @@ int client_process_handshake(sys::state& state) {
 		state.game_seed = state.network_state.s_hshake.seed;
 		state.local_player_nation = state.network_state.s_hshake.assigned_nation;
 		state.local_player_id = state.network_state.s_hshake.assigned_player_id;
+		state.host_settings = state.network_state.s_hshake.host_settings;
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 
 #ifndef NDEBUG
@@ -971,6 +973,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.scenario_checksum = state.scenario_checksum;
 	hshake.save_checksum = state.get_save_checksum();
 	hshake.assigned_player_id = client.player_id;
+	hshake.host_settings = state.host_settings;
 	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 
 
@@ -1635,7 +1638,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 }
 
 int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag , [&]() {
+	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag, state, [&]() {
 		switch(client.recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
@@ -1812,6 +1815,31 @@ static void accept_new_clients(sys::state& state) {
 	}
 }
 
+bool should_do_oos_check(const sys::state& state) {
+	if(state.cheat_data.daily_oos_check) {
+		return true;
+	}
+	switch(state.host_settings.oos_interval) {
+	case network::oos_check_interval::daily:
+	{
+		return true;
+	}
+	case network::oos_check_interval::monthly:
+	{
+		return state.current_date.to_ymd(state.start_date).day == 1;
+	}
+	case network::oos_check_interval::yearly:
+	{
+		auto ymd = state.current_date.to_ymd(state.start_date);
+		return ymd.day == 1 && ymd.month == 1;
+	}
+	default:
+	{
+		return false;
+	}
+	}
+}
+
 void send_and_receive_commands(sys::state& state) {
 
 
@@ -1849,7 +1877,7 @@ void send_and_receive_commands(sys::state& state) {
 						// Generate checksum on the spot.
 						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
 						if(c->header.type == command::command_type::advance_tick) {
-							if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+							if(should_do_oos_check(state)) {
 								auto& payload = c->get_payload<command::advance_tick_data>();
 								payload.checksum = state.get_mp_state_checksum();
 							}
@@ -1863,7 +1891,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 
 			// Clear lost sockets
-			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			if(should_do_oos_check(state)) {
 				for(auto& client : state.network_state.clients) {
 					if(!client.is_active())
 						continue;
@@ -1968,7 +1996,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, [&]() {
+			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, state, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
@@ -2015,6 +2043,9 @@ void send_and_receive_commands(sys::state& state) {
 	if(command_executed) {
 		if(state.network_state.out_of_sync && !state.network_state.reported_oos) {
 			command::notify_player_oos(state, state.local_player_nation);
+			if(state.host_settings.oos_debug_mode) {
+				command::notify_oos_gamestate(state, state.local_player_nation);
+			}
 			state.network_state.reported_oos = true;
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
@@ -2145,6 +2176,8 @@ state.host_settings.y = data[x]
 		HS_LOAD("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_LOAD("alice_persistent_server_unpause", alice_persistent_server_unpause);
 		HS_LOAD("alice_host_port", alice_host_port);
+		HS_LOAD("oos_interval", oos_interval);
+		HS_LOAD("oos_debug_mode", oos_debug_mode);
 	}
 }
 
@@ -2166,6 +2199,8 @@ data[x] = state.host_settings.y
 		HS_SAVE("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_SAVE("alice_persistent_server_unpause", alice_persistent_server_unpause);
 		HS_SAVE("alice_host_port", alice_host_port);
+		HS_SAVE("oos_interval", oos_interval);
+		HS_SAVE("oos_debug_mode", oos_debug_mode);
 
 		std::string res = data.dump();
 

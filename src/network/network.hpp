@@ -173,6 +173,27 @@ typedef SOCKET socket_t;
 typedef int socket_t;
 #endif
 
+enum class oos_check_interval : uint8_t {
+	never = 0,
+	daily = 1,
+	monthly = 2,
+	yearly = 3,
+};
+
+
+struct host_settings_s {
+	float alice_persistent_server_mode = 0.0f;
+	float alice_persistent_server_unpause = 12.f;
+	float alice_persistent_server_pause = 20.f;
+	float alice_expose_webui = 0.0f;
+	float alice_place_ai_upon_disconnection = 1.0f;
+	float alice_lagging_behind_days_to_slow_down = 30.f;
+	float alice_lagging_behind_days_to_drop = 90.f;
+	uint16_t alice_host_port = 1984;
+	oos_check_interval oos_interval = oos_check_interval::monthly;
+	bool oos_debug_mode = false; // enables sending of gamestate from client to host when an OOS happens, so the host can generate a OOS report. Is NOT safe to enable unless you trust clients
+};
+
 struct client_handshake_data {
 	sys::player_name nickname;
 	sys::player_password_raw player_password;
@@ -186,6 +207,7 @@ struct server_handshake_data {
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
 	dcon::mp_player_id assigned_player_id;
+	network::host_settings_s host_settings;
 	uint8_t reserved[64] = {0};
 };
 
@@ -258,6 +280,7 @@ struct network_state {
 	~network_state() {}
 };
 
+bool should_do_oos_check(const sys::state& state);
 std::string get_last_error_msg();
 inline void write_player_nations(sys::state& state) noexcept;
 void init(sys::state& state);
