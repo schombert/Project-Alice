@@ -8,6 +8,8 @@
 #include "container_types.hpp"
 #include "economy_stats.hpp"
 #include "economy_pops.hpp"
+#include "demographics_templates.hpp"
+#include "province.hpp"
 
 // #define CHECK_LLVM_RESULTS
 
@@ -4095,6 +4097,35 @@ void modify_militancy(sys::state& state, dcon::nation_id n, float v) {
 			auto adj_mil = base_mil + v;
 			pop_demographics::set_militancy(state, pop.get_pop().id, std::clamp(adj_mil, 0.0f, 10.0f));
 		}
+	}
+}
+
+ideology_buffer::ideology_buffer (sys::state& state) : size(0) {
+	for(uint32_t i = 0; i < state.world.ideology_size(); ++i) {
+		temp_buffers.emplace_back(uint32_t(0));
+	}
+}
+void ideology_buffer::update(sys::state& state, uint32_t s) {
+	if(size < s) {
+		size = s;
+		state.world.for_each_ideology(
+			[&](dcon::ideology_id i) {
+				temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s);
+				/*state.world.pop_make_vectorizable_float_buffer();*/
+			}
+		);
+	}
+}
+issues_buffer::issues_buffer(sys::state& state) : size(0) {
+	for(uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
+		temp_buffers.emplace_back(uint32_t(0));
+	}
+}
+void issues_buffer::update(sys::state& state, uint32_t s) {
+	if(size < s) {
+		size = s;
+		state.world.for_each_issue_option(
+				[&](dcon::issue_option_id i) { temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s); /*state.world.pop_make_vectorizable_float_buffer();*/ });
 	}
 }
 

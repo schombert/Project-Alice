@@ -1,8 +1,15 @@
 #pragma once
 
+
 #include "gui_element_types.hpp"
 #include "gui_message_settings_window.hpp"
 #include "serialization.hpp"
+#include "gui_containers.hpp"
+#include "gui_common_elements.hpp"
+
+namespace window {
+void close_window(sys::state& game_state);
+}
 
 namespace ui {
 

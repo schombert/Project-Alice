@@ -134,7 +134,7 @@ struct border {
 enum class map_view;
 class display_data {
 public:
-	display_data(){};
+	display_data();
 	~display_data();
 
 	// Called to load the terrain and province map data
@@ -366,7 +366,7 @@ public:
 	static constexpr uint32_t uniform_glyphs = 47;
 	static constexpr uint32_t uniform_curves = 48;
 	static constexpr uint32_t uniform_count = 49;
-	GLuint shader_uniforms[shader_count][uniform_count] = { };
+	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
 	static constexpr uint32_t max_static_meshes = 42;

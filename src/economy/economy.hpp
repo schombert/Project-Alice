@@ -1,9 +1,10 @@
 #pragma once
 
-#include "container_types.hpp"
+#include "container_types_dcon.hpp"
 #include "dcon_generated_ids.hpp"
 #include "system_state_forward.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
+#include "economy_common_api_containers.hpp"
 
 namespace economy {
 
@@ -120,49 +121,14 @@ auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_un
 	return 0.0f;
 }
 
-constexpr inline dcon::commodity_id money(0);
-
-// move to defines later
-inline constexpr float payouts_spending_multiplier = 10.f;
-
-inline constexpr float production_scale_delta = 0.1f;
-inline constexpr float factory_closed_threshold = 0.0001f;
-inline constexpr uint32_t price_history_length = 256;
-inline constexpr uint32_t gdp_history_length = 128;
-inline constexpr float production_throughput_multiplier = 1.15f; // for the sake of machine tools
-
-// stockpile related things:
-inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.02f;
-inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
-inline constexpr float market_savings_target = 1'000'000.f;
-inline constexpr float trade_transaction_soft_limit = 1'000.f;
-
-
-
-// greed drives incomes of corresponding pops up
-// while making life worse on average
-// profit cuts change distribution of incomes
-inline constexpr float aristocrats_greed = 0.2f;
-inline constexpr float artisans_greed = 0.3f;
-inline constexpr float labor_greed_life = 0.05f;
-inline constexpr float labor_greed_everyday = 0.f;
-inline constexpr float capitalists_greed = 0.3f;
-
 void presimulate(sys::state& state);
 void sanity_check(sys::state& state);
 
-
 float subsistence_max_pseudoemployment(sys::state& state, dcon::province_id p);
-float factory_total_employment_score(sys::state const& state, dcon::factory_id f);
 
 bool has_building(sys::state const& state, dcon::state_instance_id si, dcon::factory_type_id fac);
 bool is_bankrupt_debtor_to(sys::state& state, dcon::nation_id debt_holder, dcon::nation_id debtor);
 
-// misc
-int32_t factory_priority(sys::state const& state, dcon::factory_id f);
-void set_factory_priority(sys::state& state, dcon::factory_id f, int32_t priority);
-bool factory_is_profitable(sys::state const& state, dcon::factory_id f);
 
 bool nation_is_constructing_factories(sys::state& state, dcon::nation_id n);
 bool nation_has_closed_factories(sys::state& state, dcon::nation_id n);
@@ -237,34 +203,8 @@ float estimate_subject_payments_received(sys::state& state, dcon::nation_id o);
 float estimate_daily_income_ai(sys::state& state, dcon::nation_id n);
 float estimate_daily_income(sys::state& state, dcon::nation_id n);
 
-struct construction_status {
-	float progress = 0.0f; // in range [0,1)
-	bool is_under_construction = false;
-};
-
 construction_status province_building_construction(sys::state& state, dcon::province_id, province_building_type t);
 construction_status factory_upgrade(sys::state& state, dcon::factory_id f);
-
-struct new_factory {
-	float progress = 0.0f;
-	dcon::factory_type_id type;
-};
-
-struct upgraded_factory {
-	float progress = 0.0f;
-	dcon::factory_type_id type;
-	dcon::factory_type_id target_type;
-};
-
-// Represents one type of employment of a building
-struct employment_record {
-	int32_t employment_type;
-	float target_employment;
-	float satisfaction;
-	float actual_employment;
-};
-// descides the divisor for the army demand from reinforcements. It is set to 28 to spread out the reinforcement demand over 28 days, as reinforce ticks only happen once a month
-constexpr inline float unit_reinforcement_demand_divisor = 28.0f;
 
 float unit_construction_progress(sys::state& state, dcon::province_land_construction_id c);
 float unit_construction_progress(sys::state& state, dcon::province_naval_construction_id c);

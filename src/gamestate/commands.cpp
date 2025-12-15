@@ -18,6 +18,11 @@
 #include "network.hpp"
 #include "economy_government.hpp"
 #include "gui_error_window.hpp"
+#include "diplomatic_messages.hpp"
+#include "game_scene.hpp"
+#include "province.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
 
 namespace command {
 
@@ -5244,6 +5249,25 @@ void execute_toggle_local_administration(sys::state& state, dcon::nation_id sour
 	}
 }
 
+void toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive) {
+	command_data p{ command_type::toggle_production_directive, state.local_player_id };
+	auto data = production_directive_data{ for_state, directive };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive) {
+	if(!source || !directive)
+		return;
+
+	if(for_state) {
+		if(source == state.world.state_instance_get_nation_from_state_ownership(for_state)) {
+			state.world.state_instance_set_production_directive(for_state, directive, !(state.world.state_instance_get_production_directive(for_state, directive)));
+		}
+	} else {
+		state.world.nation_set_production_directive(source, directive, !(state.world.nation_get_production_directive(source, directive)));
+	}
+}
+
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 
 
@@ -6680,6 +6704,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		auto& data = c.get_payload<command::diplo_action_data>();
 		return can_toggle_interested_in_alliance(state, source, data.target);
 	}
+	case command_type::toggle_production_directive:
+	{
+		return true;
+	}
 	case command_type::pbutton_script:
 	{
 		auto& data = c.get_payload<command::pbutton_data>();
@@ -7475,6 +7503,12 @@ bool execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<diplo_action_data>();
 		execute_toggle_interested_in_alliance(state, source_nation, data.target);
+		break;
+	}
+	case command_type::toggle_production_directive:
+	{
+		auto& data = c.get_payload<production_directive_data>();
+		execute_toggle_production_directive(state, source_nation, data.for_state, data.id);
 		break;
 	}
 	case command_type::pbutton_script:

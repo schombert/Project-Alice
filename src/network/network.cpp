@@ -1,7 +1,12 @@
+//#pragma message("IS IT WINDOWS???")
 #ifdef _WIN64 // WINDOWS
+
+#ifndef UNICODE
 #define UNICODE
+#endif
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -11,12 +16,14 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
+
 #include <windows.h>
 #include <natupnp.h>
 #include <iphlpapi.h>
 #include <Mstcpip.h>
 #include <ip2string.h>
 #include "pcp.h"
+
 using std::format;
 #else // NIX
 #include <netinet/in.h>
@@ -283,6 +290,7 @@ port_forwarder::~port_forwarder() {
 std::string get_last_error_msg() {
 #ifdef _WIN64
 	auto err = WSAGetLastError();
+	static_assert(sizeof(TCHAR) == 2);
 	LPTSTR err_buf = nullptr;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
 	native_string err_text = err_buf;

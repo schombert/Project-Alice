@@ -5,7 +5,7 @@
 #include <string_view>
 #include <string>
 
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "parsers.hpp"
 #include "unordered_dense.h"
 #include "gui_graphics.hpp"
@@ -14,7 +14,7 @@
 #include "date_interface.hpp"
 #include "script_constants.hpp"
 #include "container_types.hpp"
-#include "military.hpp"
+#include "military_state_containers.hpp"
 #include "nations.hpp"
 
 namespace parsers {
@@ -22,7 +22,6 @@ namespace parsers {
 //
 // structures and functions for parsing .gfx files
 //
-std::string lowercase_str(std::string_view sv);
 
 struct pending_button_script {
 	std::string original_file;

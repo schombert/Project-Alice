@@ -1,15 +1,8 @@
 global{no-conversions}
 
-include{<array>}
-include{"constants.hpp"}
-include{"modifiers.hpp"}
-include{"date_interface.hpp"}
-include{"container_types.hpp"}
-include{"military.hpp"}
-include{<glm/glm.hpp>}
+include{"constants_dcon.hpp"}
+include{"container_types_dcon.hpp"}
 include{"hb.h"}
-
-global{no-conversions}
 
 make_index{text_key}{uint32_t}
 make_index{texture_id}{uint16_t}
@@ -28,6 +21,7 @@ make_index{pop_demographics_key}{uint16_t}
 make_index{demographics_key}{uint16_t}
 make_index{provincial_modifier_value}{uint8_t}
 make_index{national_modifier_value}{uint8_t}
+make_index{production_directive_id}{uint8_t}
 
 object {
 	name{ government_flag }
@@ -3297,43 +3291,36 @@ object {
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
-		
 	}
 	property {
 		name{ demographics_alt }
 		type{ array{demographics_key}{float} }
-		
 	}
 	swappable{demographics}{demographics_alt}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
-		
-		
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
-		
-		
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
-		
-		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
-		
-		
 	}
 	property {
 		name{ naval_base_is_taken }
 		type{ bitfield }
-		
-		
+	}
+	property {
+		name{ production_directive }
+		type{ array{production_directive_id}{bitfield} }
+		tag{ save }
 	}
 }
 relationship{
@@ -3855,8 +3842,6 @@ object {
 	property{
 		name{ combined_issue_rules }
 		type{ uint32_t }
-		
-		
 	}
 	property{
 		name{ upper_house }
@@ -3881,57 +3866,46 @@ object {
 	property{
 		name{ modifier_values }
 		type{ array{national_modifier_value}{float} }
-		
 	}
 	property{
 		name{ rgo_goods_output }
 		type{ array{commodity_id}{float} }
-		
 	}
 	property{
 		name{ factory_goods_output }
 		type{ array{commodity_id}{float} }
-		
 	}
 	property{
 		name{ rgo_size }
 		type{ array{commodity_id}{float} }
-		
 	}
 	property{
 		name{ factory_goods_throughput }
 		type{ array{commodity_id}{float} }
-		
 	}
 	property{
 		name{ rebel_org_modifier }
 		type{ array{rebel_type_id}{float} }
-		
 	}
 	property{
 		name{ unit_stats }
 		type{array{unit_type_id}{sys::unit_variable_stats}}
-		
 	}
 	property{
 		name{ active_unit }
 		type{array{unit_type_id}{bitfield}}
-		
 	}
 	property{
 		name{ active_crime }
 		type{array{crime_id}{bitfield}}
-		
 	}
 	property{
 		name{ active_building }
 		type{array{factory_type_id}{bitfield}}
-		
 	}
 	property{
 		name{ unlocked_commodities }
 		type{array{commodity_id}{bitfield}}
-		
 	}
 	property{
 		name{ factory_type_experience }
@@ -3951,19 +3925,14 @@ object {
 	property{
 		name{ has_gas_attack }
 		type{ bitfield }
-		
-		
 	}
 	property{
 		name{ has_gas_defense }
 		type{ bitfield }
-		
-		
 	}
 	property {
 		name{ max_building_level }
 		type{ array{uint8_t}{uint8_t} }
-		
 	}
 	property {
 		name{ current_modifiers }
@@ -3973,44 +3942,33 @@ object {
 	property {
 		name{ in_sphere_of }
 		type{ nation_id }
-		
-		
 	}
 	property {
 		name{ rank }
 		type{ uint16_t }
-		
-		
 	}
 	property {
 		name{ industrial_rank }
 		type{ uint16_t }
 		tag { mp_checksum_excluded }
-		
-		
 	}
 	property {
 		name{ military_rank }
 		type{ uint16_t }
 		tag { mp_checksum_excluded }
-		
-		
 	}
 	property {
 		name{ prestige_rank }
 		type{ uint16_t }
 		tag { mp_checksum_excluded }
-		
 	}
 	property {
 		name{ demographics }
 		type{ array{demographics_key}{float} }
-		
 	}
 	property {
 		name{ demographics_alt }
 		type{ array{demographics_key}{float} }
-		
 	}
 	swappable{demographics}{demographics_alt}
 	property {
@@ -4021,7 +3979,6 @@ object {
 	property {
 		name{ is_at_war }
 		type{ bitfield }
-		
 	}
 	property {
 		name{ is_mobilized }
@@ -4166,7 +4123,6 @@ object {
 	property {
 		name{ private_investment_effective_fraction }
 		type{ float }
-		
 	}
 	property {
 		name{ total_rich_income }
@@ -4211,82 +4167,66 @@ object {
 	property {
 		name{ last_treasury }
 		type{ float }
-		
 	}
 	property {
 		name{ industrial_score }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ military_score }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ central_blockaded }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ central_rebel_controlled }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ owned_province_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ owned_state_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ central_province_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ rebel_controlled_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ occupied_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ central_ports }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ total_ports }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ central_crime_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ allies_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ vassals_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ substates_count }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ gdp }
@@ -4346,27 +4286,22 @@ object {
 	property{
 		name{ is_colonial_nation }
 		type{ bitfield }
-		
 	}
 	property {
 		name{ dominant_culture }
 		type{ culture_id }
-		
 	}
 	property {
 		name{ dominant_religion }
 		type{ religion_id }
-		
 	}
 	property {
 		name{ dominant_ideology }
 		type{ ideology_id }
-		
 	}
 	property {
 		name{ dominant_issue_option }
 		type{ issue_option_id }
-		
 	}
 	property {
 		name{ constructing_cb_target }
@@ -4401,17 +4336,14 @@ object {
 	property {
 		name{ non_colonial_population }
 		type{ float }
-		
 	}
 	property {
 		name{ non_colonial_bureaucrats }
 		type{ float }
-		
 	}
 	property {
 		name{ administrative_efficiency }
 		type{ float }
-		
 	}
 	property {
 		name{ research_points }
@@ -4426,12 +4358,10 @@ object {
 	property {
 		name{ active_regiments }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ recruitable_regiments }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ overlord_commanding_units }
@@ -4440,12 +4370,10 @@ object {
 	property {
 		name{ averge_land_unit_score }
 		type{ float }
-		
 	}
 	property {
 		name{ capital_ship_score }
 		type{ float }
-		
 	}
 	property {
 		name{ suppression_points }
@@ -4465,33 +4393,27 @@ object {
 	property {
 		name{ naval_supply_points }
 		type{ uint16_t }
-		
 	}
 	property {
 		name{ used_naval_supply_points }
 		type{ uint16_t }
-		
 	}
 	property{
 		name{ has_flash_point_state }
 		type{ bitfield }
-		
 	}
 	property{
 		name{ is_target_of_some_cb }
 		type{ bitfield }
-		
 	}
 	property{
 		name{ is_interesting }
 		type{ bitfield }
 		tag{ save }
 	}
-
 	property{
 		name{ ai_is_threatened }
 		type{ bitfield }
-		
 	}
 	property{
 		name{ ai_rival }
@@ -4501,7 +4423,6 @@ object {
 	property{
 		name{ ai_home_port }
 		type{ province_id }
-		
 	}
 	property{
 		name{ mobilized_is_ai_controlled }
@@ -4516,6 +4437,11 @@ object {
 	property {
 		name{ utility_tag }
 		type{ bitfield }
+		tag{ save }
+	}
+	property {
+		name{ production_directive }
+		type{ array{production_directive_id}{bitfield} }
 		tag{ save }
 	}
 }

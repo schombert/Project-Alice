@@ -2,6 +2,9 @@
 #include "gui_context_window.hpp"
 #include "gui_common_elements.hpp"
 #include "gui_factory_refit_window.hpp"
+#include "gui_templates.hpp"
+#include "economy_factory_view.hpp"
+#include "economy.hpp"
 
 namespace ui {
 
@@ -211,7 +214,7 @@ public:
 class context_menu_delete_factory : public context_menu_entry_logic {
 public:
 	dcon::text_key get_name(sys::state& state, context_menu_context context) noexcept override {
-		if (economy::factory_total_employment_score(state, context.factory) >= economy::factory_closed_threshold)
+		if (!economy::factory_is_closed(state, context.factory))
 			return state.lookup_key("close_and_del");
 		return state.lookup_key("delete_factory");
 	}

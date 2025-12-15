@@ -1,8 +1,9 @@
 #pragma once
 
 #include "dcon_generated_ids.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "unordered_dense.h"
+#include "container_types_dcon.hpp"
 #include "container_types.hpp"
 #include "system_state_forward.hpp"
 
@@ -19,20 +20,6 @@ inline constexpr dcon::province_id from_map_id(uint16_t id) {
 	else
 		return dcon::province_id(id - 1);
 }
-
-struct global_provincial_state {
-	std::vector<dcon::province_adjacency_id> canals;
-	std::vector<dcon::province_id> canal_provinces;
-	ankerl::unordered_dense::map<dcon::modifier_id, dcon::gfx_object_id, sys::modifier_hash> terrain_to_gfx_map;
-	std::vector<bool> connected_region_is_coastal;
-	dcon::province_id first_sea_province;
-	dcon::modifier_id europe;
-	dcon::modifier_id asia;
-	dcon::modifier_id africa;
-	dcon::modifier_id north_america;
-	dcon::modifier_id south_america;
-	dcon::modifier_id oceania;
-};
 
 struct naval_range_data {
 	float distance;
@@ -147,7 +134,7 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 //for sea trade routes
 std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 //for "trade display" routes from province to the market center
-std::vector<dcon::province_id> make_whatever_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+//std::vector<dcon::province_id> make_whatever_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 

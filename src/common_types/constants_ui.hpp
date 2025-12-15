@@ -1,11 +1,5 @@
 #pragma once
 
-namespace ogl {
-enum class color_modification {
-	none, disabled, interactable, interactable_disabled
-};
-}
-
 namespace text {
 enum class text_color : uint8_t {
 	black,
@@ -31,6 +25,32 @@ enum class alignment : uint8_t {
 }
 
 namespace ui{
+
+enum class mouse_probe_type {
+	click, tooltip, scroll
+};
+enum class insertion_source {
+	user, ui_automation, text_services, other
+};
+enum class message_result {
+	unseen, seen, consumed
+};
+enum class focus_result {
+	ignored, accepted
+};
+enum class tooltip_behavior {
+	tooltip, variable_tooltip, position_sensitive_tooltip, no_tooltip
+};
+enum class drag_and_drop_data {
+	none, production_directive
+};
+enum class drag_and_drop_target : uint8_t {
+	top = 0x01,
+	bottom = 0x02,
+	left = 0x04,
+	right = 0x08,
+	center = 0x10,
+};
 
 enum class element_type : uint8_t { // 3 bits
 	button = 0x01,

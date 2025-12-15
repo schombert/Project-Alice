@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "ai_economy.hpp"
 #include "ai_campaign_values.hpp"
 #include "economy_stats.hpp"
@@ -8,6 +9,10 @@
 #include "demographics.hpp"
 #include "prng.hpp"
 #include "math_fns.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
+#include "province.hpp"
+#include "money.hpp"
 
 namespace ai {
 
@@ -689,7 +694,9 @@ void update_budget(sys::state& state, bool presim) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
-		float base_income = economy::estimate_daily_income_ai(state, n) + n.get_stockpiles(economy::money) / 365.f;
+		// current stockpiles roughly correspond to current income
+		// and calculation of actual prediction is insanely expensive
+		float base_income = n.get_stockpiles(economy::money);
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,

@@ -2856,19 +2856,11 @@ void main_menu_misc_language_dropdown_t::on_selection(sys::state& state, int32_t
 	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
-	
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
+
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 
@@ -2882,6 +2874,7 @@ void main_menu_misc_language_dropdown_t::clear_list() {	list_contents.clear();
 void main_menu_misc_language_dropdown_t::on_update(sys::state& state) noexcept {
 	main_menu_misc_t& misc = *((main_menu_misc_t*)(parent)); 
 // BEGIN misc::language_dropdown::update
+	clear_list();
 	int32_t i = 0;
 	for(auto loc : state.world.in_locale) {
 		auto ln = state.world.locale_get_locale_name(loc);
@@ -3917,6 +3910,7 @@ void main_menu_graphics_map_label_dropdown_t::on_selection(sys::state& state, in
 // BEGIN graphics::map_label_dropdown::on_selection
 	state.user_settings.map_label = sys::map_label_mode(list_contents[id].index);
 	state.user_setting_changed = true;
+	state.province_ownership_changed.store(true, std::memory_order::release);
 // END
 }
 void main_menu_graphics_map_label_dropdown_t::clear_list() {	list_contents.clear();
@@ -3930,6 +3924,7 @@ void main_menu_graphics_map_label_dropdown_t::on_update(sys::state& state) noexc
 	add_item(int32_t(sys::map_label_mode::linear), text::produce_simple_string(state, "map_label_1"));
 	add_item(int32_t(sys::map_label_mode::quadratic), text::produce_simple_string(state, "map_label_2"));
 	add_item(int32_t(sys::map_label_mode::cubic), text::produce_simple_string(state, "map_label_3"));
+	add_item(int32_t(sys::map_label_mode::spherical), text::produce_simple_string(state, "map_label_4"));
 	quiet_on_selection(state, int32_t(state.user_settings.map_label));
 // END
 }
@@ -4206,18 +4201,11 @@ bool main_menu_graphics_fonts_label_t::button_action(sys::state& state) noexcept
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
 
 	window::change_cursor(state, window::cursor_type::busy);
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
+
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	state.ui_state.tooltip->set_visible(state, false);

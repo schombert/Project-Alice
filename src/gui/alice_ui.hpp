@@ -47,12 +47,16 @@ struct layout_control {
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_window {
 	std::unique_ptr<ui::element_base> ptr;
 	int16_t abs_x = 0;
 	int16_t abs_y = 0;
 	bool absolute_position = false;
+	bool fill_x = false;
+	bool fill_y = false;
 };
 struct layout_glue {
 	glue_type type = glue_type::standard;
@@ -85,7 +89,7 @@ struct sub_layout {
 };
 
 enum class layout_item_types : uint8_t {
-	control, window, glue, generator, layout, texture_layer
+	control, window, glue, generator, layout, texture_layer, control2, window2, generator2
 };
 
 enum class background_type : uint8_t {
@@ -126,11 +130,7 @@ enum class animation_type : uint8_t {
 };
 
 struct page_info {
-	int16_t last_index;
-	int16_t last_sub_index;
-	int16_t space_used;
-	int16_t space_consumer_count;
-	int16_t non_glue_count;
+	uint16_t last_index = 0;
 };
 struct layout_level {
 	std::vector<layout_item> contents;
@@ -837,6 +837,83 @@ public:
 	}
 };
 
+class legacy_commodity_icon : public ui::element_base {
+public:
+	dcon::commodity_id content;
+	bool show_tooltip = true;
+	void on_create(sys::state& state) noexcept override {
+	}
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	ui::tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return (show_tooltip && bool(content)) ? ui::tooltip_behavior::variable_tooltip : ui::tooltip_behavior::no_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if(has_tooltip(state) == ui::tooltip_behavior::no_tooltip)
+			return ui::message_result::unseen;
+		return type == ui::mouse_probe_type::tooltip ? ui::message_result::consumed : ui::message_result::unseen;
+	}
+};
+
+class rh_map_items : public grid_size_window {
+public:
+	struct prov_and_location {
+		dcon::province_id p;
+		int16_t x = 0;
+		int16_t y = 0;
+	};
+	std::vector<std::unique_ptr<ui::element_base>> items_pool;
+	std::vector<prov_and_location> item_provinces;
+	text::layout text_layout;
+	ui::urect viewport;
+	int32_t page = 0;
+
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+	ui::message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		return ui::message_result::consumed;
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		return ui::message_result::consumed;
+	}
+	void change_page(sys::state& state, int32_t amount);
+
+	virtual std::unique_ptr<ui::element_base> make_item(sys::state& state) = 0;
+	virtual bool province_filter(sys::state& state, dcon::province_id p) = 0;
+	virtual void update_item(sys::state& state, ui::element_base& item, dcon::province_id p) = 0;
+	virtual bool province_is_selected(sys::state& state, dcon::province_id p) = 0;
+};
+
+class drag_and_drop_target_control : public ui::element_base {
+public:
+	ui::drag_and_drop_data supported_data_type = ui::drag_and_drop_data::none;
+	uint8_t supported_directions = uint8_t(ui::drag_and_drop_target::center);
+
+	ui::drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
+	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
+
+	void on_create(sys::state& state) noexcept override {
+	}
+	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
+		if((type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) && state.ui_state.current_drag_and_drop_data_type == supported_data_type)
+			return ui::message_result::consumed;
+		return ui::message_result::unseen;
+	}
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
+		if(state.ui_state.current_drag_and_drop_data_type == supported_data_type)
+			return ui::message_result::consumed;
+		return ui::message_result::unseen;
+	}
+
+	// this should be overwritten by the derived class, otherwise data will be just dropped
+	bool recieve_drag_and_drop(sys::state& state, std::any& data, ui::drag_and_drop_data data_type, ui::drag_and_drop_target sub_target, bool shift_held_down) noexcept override {
+		return true;
+	}
+};
+
 class layout_window_element : public grid_size_window {
 private:
 	void remake_layout_internal(layout_level& lvl, sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, bool remake_lists);
@@ -879,8 +956,10 @@ public:
 	friend struct layout_iterator;
 };
 
+enum class display_closure_command { default_function, return_pointer };
+
 template<std::unique_ptr<ui::element_base>(*GEN_FN)(sys::state&) >
-void display_at_front(sys::state& state) {
+ui::element_base* display_at_front(sys::state& state, display_closure_command fn = display_closure_command::default_function) {
 	static ui::element_base* saved_ptr = [&]() {
 		auto current_root = state.current_scene.get_root(state);
 		auto new_item = GEN_FN(state);
@@ -890,14 +969,21 @@ void display_at_front(sys::state& state) {
 		return ptr;
 	}();
 
-	auto current_root = state.current_scene.get_root(state);
-	if(saved_ptr->parent != current_root) {
-		auto take_child = saved_ptr->parent->remove_child(saved_ptr);
-		current_root->add_child_to_front(std::move(take_child));
-	} else {
-		current_root->move_child_to_front(saved_ptr);
+	if(fn == display_closure_command::default_function) {
+		auto current_root = state.current_scene.get_root(state);
+		if(saved_ptr->parent != current_root) {
+			auto take_child = saved_ptr->parent->remove_child(saved_ptr);
+			current_root->add_child_to_front(std::move(take_child));
+		} else {
+			current_root->move_child_to_front(saved_ptr);
+		}
+		saved_ptr->set_visible(state, true);
+		return saved_ptr;
 	}
-	saved_ptr->set_visible(state, true);
+	if(fn == display_closure_command::return_pointer) {
+		return saved_ptr;
+	}
+	return nullptr;
 }
 
 namespace budget_categories {
@@ -953,6 +1039,10 @@ std::unique_ptr<ui::element_base> make_rgo_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_market_prices_report_body(sys::state& state);
 std::unique_ptr<ui::element_base> make_trade_dashboard_main(sys::state& state);
 std::unique_ptr<ui::element_base> make_main_menu_base(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_main(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_rh_state_item(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_rh_view(sys::state& state);
+std::unique_ptr<ui::element_base> make_production_directives_window(sys::state& state);
 
 void pop_screen_sort_state_rows(sys::state& state, std::vector<dcon::state_instance_id>& state_instances, alice_ui::layout_window_element* parent);
 

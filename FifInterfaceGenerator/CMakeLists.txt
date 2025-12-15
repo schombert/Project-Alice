@@ -18,7 +18,7 @@ if(WIN32)
 
 		target_compile_options(DCONINTERFACEGEN PRIVATE
 										/bigobj /wd4100 /wd4189 /wd4065 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389
-										-Wno-missing-prototypes -Wno-unsafe-buffer-usage -Wno-switch-default
+										-Wno-missing-prototypes -Wno-unsafe-buffer-usage -Wno-switch-default -Wno-padded -Wno-unique-object-duplication
 			$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od /RTC1>
 			$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 		target_link_options(DCONINTERFACEGEN PRIVATE

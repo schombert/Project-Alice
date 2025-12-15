@@ -47,6 +47,7 @@ if (WIN32)
 		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
 		"${PROJECT_SOURCE_DIR}/src/graphics/asvg.cpp"
 		"${PROJECT_SOURCE_DIR}/src/gamestate/uitemplate_serialization.cpp"
+		"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
 		"${PROJECT_SOURCE_DIR}/src/alice.rc"
 		${LAUNCHER_ASSET_FILES})
 else()
@@ -83,6 +84,7 @@ else()
 		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
 		"${PROJECT_SOURCE_DIR}/src/graphics/asvg.cpp"
 		"${PROJECT_SOURCE_DIR}/src/gamestate/uitemplate_serialization.cpp"
+		"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
 		${LAUNCHER_ASSET_FILES})
 endif()
 

@@ -14,6 +14,7 @@
 #include "texture.hpp"
 #include "fonts.hpp"
 #include "constants_ui.hpp"
+#include "stateless_render_constants.hpp"
 
 namespace text {
 struct embedded_flag;
@@ -23,45 +24,6 @@ class font;
 }
 
 namespace ogl {
-namespace parameters {
-
-inline constexpr GLuint screen_width = 0;
-inline constexpr GLuint screen_height = 1;
-inline constexpr GLuint drawing_rectangle = 2;
-
-inline constexpr GLuint border_size = 6;
-inline constexpr GLuint inner_color = 7;
-inline constexpr GLuint subrect = 10;
-
-inline constexpr GLuint enabled = 4;
-inline constexpr GLuint disabled = 3;
-inline constexpr GLuint border_filter = 0;
-inline constexpr GLuint filter = 1;
-inline constexpr GLuint no_filter = 2;
-inline constexpr GLuint sub_sprite = 5;
-inline constexpr GLuint use_mask = 6;
-inline constexpr GLuint progress_bar = 7;
-inline constexpr GLuint frame_stretch = 8;
-inline constexpr GLuint piechart = 9;
-inline constexpr GLuint barchart = 10;
-inline constexpr GLuint linegraph = 11;
-inline constexpr GLuint tint = 12;
-inline constexpr GLuint interactable = 13;
-inline constexpr GLuint interactable_disabled = 14;
-inline constexpr GLuint subsprite_b = 15;
-inline constexpr GLuint alternate_tint = 16;
-inline constexpr GLuint linegraph_color = 17;
-inline constexpr GLuint transparent_color = 18;
-inline constexpr GLuint solid_color = 19;
-inline constexpr GLuint alpha_color = 20;
-inline constexpr GLuint subsprite_c = 21;
-inline constexpr GLuint linegraph_acolor = 22;
-inline constexpr GLuint stripchart = 23;
-inline constexpr GLuint triangle_strip = 24;
-inline constexpr GLuint border_repeat = 25;
-inline constexpr GLuint corner_repeat = 26;
-} // namespace parameters
-
 inline color3f unpack_color(uint32_t v) {
 	return color3f{ sys::red_from_int(v), sys::green_from_int(v), sys::blue_from_int(v) };
 }
@@ -407,53 +369,7 @@ struct scissor_box {
 	~scissor_box();
 };
 
-class animation;
-
-class render_capture {
-private:
-	GLuint framebuffer = 0;
-	GLuint texture_handle = 0;
-	int32_t max_x = 0;
-	int32_t max_y = 0;
-public:
-	void ready(sys::state& state);
-	void finish(sys::state& state);
-	GLuint get();
-	~render_capture();
-
-	friend class animation;
-};
-
 void render_subrect(sys::state const& state, float target_x, float target_y, float target_width, float target_height, float source_x, float source_y, float source_width, float source_height, GLuint texture_handle);
-
-class animation {
-public:
-	enum class type {
-		page_flip_left,
-		page_flip_right,
-		page_flip_up,
-		page_flip_left_rev,
-		page_flip_right_rev,
-		page_flip_up_rev,
-		page_flip_mid,
-		page_flip_mid_rev
-	};
-private:
-	render_capture start_state;
-	render_capture end_state;
-	decltype(std::chrono::steady_clock::now()) start_time;
-	int32_t ms_run_time = 0;
-	int32_t x_pos = 0;
-	int32_t y_pos = 0;
-	int32_t x_size = 0;
-	int32_t y_size = 0;
-	type ani_type;
-	bool running = false;
-public:
-	void start_animation(sys::state& state, int32_t x, int32_t y, int32_t w, int32_t h, type t, int32_t runtime);
-	void post_update_frame(sys::state& state);
-	void render(sys::state& state);
-};
 
 
 } // namespace ogl

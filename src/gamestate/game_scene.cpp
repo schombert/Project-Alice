@@ -1,31 +1,28 @@
-#include "gui_unit_grid_box.hpp"
-#include "gui_unit_panel.hpp"
+#include "game_scene.hpp"
 #include "gui_province_window.hpp"
-#include "gui_land_combat.hpp"
 #include "gui_console.hpp"
 #include "gui_chat_window.hpp"
 #include "gui_event.hpp"
 #include "gui_map_icons.hpp"
 #include "simple_fs.hpp"
+#include "user_interactions.hpp"
+#include "gui_combat.hpp"
+#include "gui_units.hpp"
+#include "gui_leaders.hpp"
 #include "alice_ui.hpp"
+#include "immediate_mode.hpp"
 
 namespace game_scene {
 
-void switch_scene(sys::state& state, scene_id ui_scene) {
-	/*
-	if (state.ui_state.end_screen)
-		state.ui_state.end_screen->set_visible(state, false);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->set_visible(state, false);
-	if(state.ui_state.root)
-		state.ui_state.root->set_visible(state, false);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->set_visible(state, false);
-	if(state.ui_state.military_root)
-		state.ui_state.military_root->set_visible(state, false);
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province);
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod);
+void select_production_state(sys::state& state);
+void render_unitless_ui_ingame(sys::state& state);
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe);
+void notify_production_map_movement_stopped(sys::state& state);
 
-	state.get_root_element()->set_visible(state, true);
-	*/
+void switch_scene(sys::state& state, scene_id ui_scene) {
 
 	switch(ui_scene) {
 	case scene_id::in_game_state_selector:
@@ -35,7 +32,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::state_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 	case scene_id::in_game_national_identity_selector:
 		state.current_scene = national_identity_selector();
 
@@ -44,7 +41,7 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 		map_mode::set_map_mode(state, map_mode::mode::nation_identity_select);
 		state.set_selected_province(dcon::province_id{});
 
-		return;
+		break;
 
 	case scene_id::in_game_basic:
 		// Bring back remembered map mode we had before the selector
@@ -54,38 +51,78 @@ void switch_scene(sys::state& state, scene_id ui_scene) {
 
 		state.current_scene = basic_game();
 
-		return;
+		break;
 
 	case scene_id::in_game_economy_viewer:
 		state.current_scene = economy_viewer_scene();
 
-		return;
+		break;
 
 	case scene_id::in_game_military:
 		state.current_scene = battleplan_editor();
 
-		return;
+		break;
 
 	case scene_id::end_screen:
 		state.current_scene = end_screen();
 
-		return;
+		break;
 
 	case scene_id::pick_nation:
 		state.current_scene = nation_picker();
 
-		return;
+		break;
 
 	case scene_id::in_game_military_selector:
 		state.current_scene = battleplan_editor_add_army();
 
-		return;
+		break;
+	case scene_id::in_game_production_view:
+	{
+		state.current_scene = scene_properties{
+			.id = scene_id::in_game_production_view,
+
+			.get_root = [](sys::state& state) { return state.ui_state.root_production_view.get(); },
+			.borders = borders_granularity::state,
+			.rbutton_selected_units = do_nothing_province_target,
+			.rbutton_province = do_nothing_province_target,
+			.allow_drag_selection = false,
+			.on_drag_start = do_nothing_screen,
+			.drag_selection = do_nothing_screen,
+			.lbutton_up = do_nothing,
+			.on_province_selected = select_production_state,
+			.keycode_mapping = replace_keycodes_map_movement,
+			.handle_hotkeys = production_screen_hotkeys,
+			.console_log = console_log_other,
+			.render_ui = render_unitless_ui_ingame,
+			.recalculate_mouse_probe = recalculate_mouse_probe_unitless,
+			.recalculate_tooltip_probe = recalculate_tooltip_probe_unitless,
+			.on_game_state_update = generic_map_scene_update,
+			.on_game_state_update_update_ui = do_nothing,
+			.on_map_movement_stopped = notify_production_map_movement_stopped,
+			.update_highlight_texture = highlight_given_state
+		};
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		{
+			auto ptr = alice_ui::display_at_front<alice_ui::make_production_rh_view>(state);
+			ptr->base_data.size.y = state.ui_state.root_production_view->base_data.size.y;
+		}
+		alice_ui::display_at_front<alice_ui::make_production_directives_window>(state);
+
+	} break;
 	case scene_id::count: // this should never happen
 		assert(false);
-		return;
+		break;
 	}
 	
 	state.game_state_updated.store(true, std::memory_order_release);
+}
+
+void notify_production_map_movement_stopped(sys::state& state) {
+	alice_ui::display_at_front<alice_ui::make_production_rh_view>(state, alice_ui::display_closure_command::return_pointer)->impl_on_update(state);
 }
 
 void do_nothing_province_target(sys::state& state,
@@ -188,9 +225,24 @@ void open_diplomacy(
 ) {
 	auto owner = state.world.province_get_nation_from_province_ownership(target);
 	if(owner) {
-		state.open_diplomacy(owner);
+		sys::open_diplomacy_window(state, owner);
 	} else {
-		state.open_diplomacy(nation);
+		sys::open_diplomacy_window(state, nation);
+	}
+}
+
+void select_production_state(sys::state& state) {
+	auto si = state.world.province_get_state_membership(state.map_state.selected_province);
+	if(si.get_nation_from_state_ownership() == state.local_player_nation) {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = si.id;
+		ptr->impl_on_update(state);
+	} else {
+		auto ptr = alice_ui::display_at_front<alice_ui::make_production_main>(state, alice_ui::display_closure_command::return_pointer);
+		auto location_ptr = ptr->get_by_name(state, "selected_location");
+		*((dcon::state_instance_id*)location_ptr) = dcon::state_instance_id{};
+		ptr->impl_on_update(state);
 	}
 }
 
@@ -558,7 +610,7 @@ void nation_picker_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key
 		if(keycode == sys::virtual_key::ESCAPE) {
 			alice_ui::display_at_front<alice_ui::make_main_menu_base>(state);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		}
 		state.map_state.on_key_down(keycode, mod);
 	}
@@ -656,6 +708,16 @@ void economy_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::ke
 	}
 }
 
+void production_screen_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
+	if(state.ui_state.select_states_legend->impl_on_key_down(state, keycode, mod) != ui::message_result::consumed) {
+		state.map_state.on_key_down(keycode, mod);
+		if(keycode == sys::virtual_key::ESCAPE) {
+			switch_scene(state, scene_id::in_game_basic);
+			state.ui_state.root->impl_on_update(state);
+		}
+	}
+}
+
 void handle_escape_basic(sys::state& state, sys::virtual_key keycode, sys::key_modifiers mod) {
 	if(state.ui_state.console_window->is_visible()) {
 		ui::console_window::show_toggle(state);
@@ -685,13 +747,15 @@ void in_game_hotkeys(sys::state& state, sys::virtual_key keycode, sys::key_modif
 		} else if(keycode == sys::virtual_key::HOME) {
 			center_on_capital(state, state.local_player_nation);
 		} else if(keycode == sys::virtual_key::TAB) {
-			ui::open_chat_window(state);
+			state.current_scene.open_chat(state);
 		} else if(keycode == sys::virtual_key::Z && state.ui_state.ctrl_held_down) {
 			// Battleplanner scene hotkey
 			switch_scene(state, scene_id::in_game_military);
 		} else if(keycode == sys::virtual_key::N && state.ui_state.ctrl_held_down) {
 			// Economy scene hotkey
 			switch_scene(state, scene_id::in_game_economy_viewer);
+		}else if(keycode == sys::virtual_key::M && state.ui_state.ctrl_held_down) {
+			switch_scene(state, scene_id::in_game_production_view);
 		} else if(keycode == sys::virtual_key::NUMPAD1 || keycode == sys::virtual_key::NUM_1) {
 			ctrl_group = 1;
 		} else if(keycode == sys::virtual_key::NUMPAD2 || keycode == sys::virtual_key::NUM_2) {
@@ -916,6 +980,30 @@ void render_ui_ingame(sys::state& state) {
 	state.iui_state.frame_end();
 }
 
+void render_unitless_ui_ingame(sys::state& state) {
+	if(state.ui_state.tl_chat_list) {
+		state.ui_state.root->move_child_to_back(state.ui_state.tl_chat_list);
+	}
+	if(state.map_state.get_zoom() > map::zoom_close) {
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glUseProgram(state.open_gl.ui_shader_program);
+		glUniform1i(state.open_gl.ui_shader_texture_sampler_uniform, 0);
+		glUniform1i(state.open_gl.ui_shader_secondary_texture_sampler_uniform, 1);
+		glUniform1f(state.open_gl.ui_shader_screen_width_uniform, float(state.x_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_screen_height_uniform, float(state.y_size) / state.user_settings.ui_scale);
+		glUniform1f(state.open_gl.ui_shader_gamma_uniform, state.user_settings.gamma);
+		glViewport(0, 0, state.x_size, state.y_size);
+		glDepthRange(-1.0f, 1.0f);
+
+		auto screen_size = glm::vec2(state.x_size, state.y_size) / state.user_settings.ui_scale;
+
+		if(state.ui_state.ctrl_held_down && (state.map_state.get_zoom() >= ui::big_counter_cutoff && state.ui_state.province_details_root)) {
+			state.ui_state.province_details_root->impl_render(state, 0, 0);
+		}
+	}
+}
+
 ui::mouse_probe recalculate_mouse_probe_identity(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	return mouse_probe;
 }
@@ -957,6 +1045,9 @@ ui::mouse_probe recalculate_mouse_probe_units_and_details(sys::state& state, ui:
 	return mouse_probe;
 }
 
+ui::mouse_probe recalculate_mouse_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return mouse_probe;
+}
 
 ui::mouse_probe recalculate_mouse_probe_basic(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	if(!state.ui_state.units_root || state.ui_state.ctrl_held_down) {
@@ -986,6 +1077,11 @@ ui::mouse_probe recalculate_mouse_probe_military(sys::state& state, ui::mouse_pr
 		ui::mouse_probe_type::click
 	);
 }
+
+ui::mouse_probe recalculate_tooltip_probe_unitless(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
+	return tooltip_probe;
+}
+
 
 ui::mouse_probe recalculate_tooltip_probe_units_and_details(sys::state& state, ui::mouse_probe mouse_probe, ui::mouse_probe tooltip_probe) {
 	float scaled_mouse_x = state.mouse_x_position / state.user_settings.ui_scale;
@@ -1188,6 +1284,16 @@ void highlight_player_nation(sys::state& state, std::vector<uint32_t>& data, dco
 void highlight_given_province(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
 	if(selected_province) {
 		data[province::to_map_id(selected_province)] = 0x2B2B2B2B;
+	}
+}
+
+void highlight_given_state(sys::state& state, std::vector<uint32_t>& data, dcon::province_id selected_province) {
+	if(selected_province) {
+		if(auto si = state.world.province_get_state_membership(selected_province); si) {
+			province::for_each_province_in_state_instance(state, si, [&](dcon::province_id p) {
+				data[province::to_map_id(p)] = 0x2B2B2B2B;
+			});
+		}
 	}
 }
 

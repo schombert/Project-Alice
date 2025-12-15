@@ -11,6 +11,19 @@
 
 #include "province_templates.hpp"
 #include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
+#include "money.hpp"
+#include "economy.hpp"
+
+
+namespace production_directives {
+dcon::production_directive_id to_key(sys::state const& state, dcon::commodity_id v) {
+	return dcon::production_directive_id{ dcon::production_directive_id::value_base_t( count_special_keys + v.index() ) };
+}
+uint32_t size(sys::state const& state) {
+	return state.world.commodity_size() + count_special_keys;
+}
+}
 
 namespace economy {
 
@@ -167,7 +180,7 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 		));
 
 	if(state.world.commodity_get_money_rgo(c)) {
-		return free_efficiency + result * 0.05f;
+		return free_efficiency + result * 0.2f;
 	}
 
 	return free_efficiency + result;
@@ -1581,11 +1594,12 @@ void update_rgo_production(sys::state& state) {
 			auto current_efficiency = state.world.province_get_rgo_efficiency(p, c);
 
 			// update efficiency depending on expected profit change
-			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f);
+			auto cost_derivative = adaptive_ve::select<ve::mask_vector, ve::fp_vector>(current_efficiency > free_efficiency, e_inputs_data.total_cost, 0.f) * state.defines.alice_rgo_per_size_employment;
 			auto profit_derivative =
 				state.world.commodity_get_rgo_amount(c)
 				* state.world.market_get_price(m, c);
-			auto efficiency_growth = 0.1f * (profit_derivative - cost_derivative * state.defines.alice_rgo_per_size_employment);
+			auto margin = ve::select(cost_derivative == 0.f, { 1.f }, (profit_derivative - cost_derivative) / cost_derivative);
+			auto efficiency_growth = ve::max(-current_efficiency * 0.005f, ve::min(current_efficiency * 0.05f, margin));
 			efficiency_growth = ve::select(
 				(efficiency_growth > 0.f) && (current_efficiency > free_efficiency),
 				efficiency_growth * e_inputs_data.min_available,
@@ -1897,8 +1911,12 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 				1.f
 			);
 
-			auto new_employment = ve::max((current_employment_target + 10.f * presim_employment_mult * gradient / wage_per_worker * mult), 0.0f);
+			// if profit gradient is zero, we don't hire or fire
+			// if profit gradient is N times expected spending, we hire N times C workers
+			// if profit gradient is -N times expected sales, we fire N times C workers
 
+			auto new_employment = ve::max((current_employment_target + 100.f * presim_employment_mult * gradient * (1.f / wage_per_worker + 1.f / (output_per_worker * predicted_price)) * mult), 0.0f);
+			
 			// we don't want wages to rise way too high relatively to profits
 			// as we do not have actual budgets, we  consider that our workers budget is as follows
 			new_employment = ve::min(rgo_profit_to_wage_bound * output_per_worker * predicted_price * current_size / wage_per_worker, new_employment);
@@ -2372,6 +2390,27 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c) {
 	return result;
 }
 
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of) {
+	auto result = 0.f;
+	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+		for(auto fac : state.world.province_get_factory_location(p)) {
+			if(fac.get_factory().get_building_type().get_output() == production_of)
+				result += estimate_factory_consumption(state, c, fac.get_factory());
+		}
+	});
+	return result;
+}
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of) {
+	auto result = 0.f;
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		for(auto fac : p.get_province().get_factory_location()) {
+			if(fac.get_factory().get_building_type().get_output() == production_of)
+				result += estimate_factory_consumption(state, c, fac.get_factory());
+		}
+	}
+	return result;
+}
+
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p, dcon::commodity_id output) {
 	auto mob_impact = military::mobilization_impact(state, state.world.province_get_nation_from_province_ownership(p));
 	auto data = imitate_artisan_consumption(state, p, output, mob_impact);
@@ -2382,7 +2421,8 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 			if(direct_inputs.commodity_type[i] == c) {
 				result +=
 					data.consumption.direct_inputs_scale
-					* direct_inputs.commodity_amounts[i];
+					* direct_inputs.commodity_amounts[i]
+					* data.base.direct_inputs_data.min_available;
 				break;
 			}
 		} else {
@@ -2436,7 +2476,24 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c) {
 	});
 	return result;
 }
-
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of) {
+	auto result = 0.0f;
+	auto mob_impact = military::mobilization_impact(state, state.world.state_instance_get_nation_from_state_ownership(s));
+	province::for_each_province_in_state_instance(state, s, [&](dcon::province_id p) {
+		auto data = imitate_artisan_consumption(state, p, production_of, mob_impact);
+		result += estimate_artisan_consumption(state, c, p, production_of);
+	});
+	return result;
+}
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of) {
+	auto result = 0.0f;
+	auto mob_impact = military::mobilization_impact(state, n);
+	for(auto p : state.world.nation_get_province_ownership(n)) {
+		auto data = imitate_artisan_consumption(state, p.get_province(), production_of, mob_impact);
+		result += estimate_artisan_consumption(state, c, p.get_province(), production_of);
+	}
+	return result;
+}
 
 float rgo_potential_size(sys::state const& state, dcon::nation_id n, dcon::province_id p, dcon::commodity_id c) {
 	bool is_mine = state.world.commodity_get_is_mine(c);
@@ -2616,6 +2673,11 @@ float artisan_output(sys::state& state, dcon::commodity_id c) {
 	return result;
 }
 
+float artisan_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
+	// TODO
+	return 0.0f;
+}
+
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
 	auto result = 0.f;
 	state.world.province_for_each_factory_location(id, [&](auto flid) {
@@ -2647,6 +2709,11 @@ float factory_output(sys::state& state, dcon::commodity_id c) {
 		result += factory_output(state, c, pid);
 	});
 	return result;
+}
+
+float factory_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id) {
+	// TODO
+	return 0.0f;
 }
 
 breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c, dcon::province_id id){

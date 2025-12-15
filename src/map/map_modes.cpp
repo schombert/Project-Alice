@@ -1,6 +1,7 @@
 #include "map_modes.hpp"
 
 #include "color.hpp"
+#include "color_templates.hpp"
 #include "demographics.hpp"
 #include "system_state.hpp"
 #include "dcon_generated_ids.hpp"
@@ -8,6 +9,7 @@
 #include "nations.hpp"
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
+#include "economy_viewer.hpp"
 
 #include <unordered_map>
 

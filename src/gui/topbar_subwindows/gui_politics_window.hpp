@@ -7,18 +7,15 @@
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
-#include "gui_movements_window.hpp"
-#include "gui_decision_window.hpp"
-#include "gui_reforms_window.hpp"
-#include "gui_release_nation_window.hpp"
-#include "gui_unciv_reforms_window.hpp"
+#include "gui_politics_subwindows.hpp"
 #include "nations.hpp"
 #include "politics.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
 #include <cstdint>
 #include <string_view>
-#include <vector>
+
+#include "gui_piechart_templates.hpp"
 
 namespace ui {
 
@@ -579,7 +576,7 @@ public:
 					row_contents.push_back(sys::dated_modifier{ sys::date{}, tm.linked_modifier });
 			}
 		}
-		
+
 		update(state);
 	}
 };
@@ -590,6 +587,21 @@ public:
 	politics_issue_sort_order order = politics_issue_sort_order::name;
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, order);
+	}
+};
+
+
+class nation_can_do_social_reform_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(!nations::has_social_reform_available(state, nation_id));
+	}
+};
+
+class nation_can_do_political_reform_icon : public standard_nation_icon {
+public:
+	int32_t get_icon_frame(sys::state& state, dcon::nation_id nation_id) noexcept override {
+		return int32_t(!nations::has_political_reform_available(state, nation_id));
 	}
 };
 
@@ -612,7 +624,7 @@ public:
 			add_child_to_front(std::move(ptr));
 		}
 		{
-			auto ptr = make_element_by_type<politics_release_nation_window>(state, "releaseconfirm");
+			auto ptr = make_release_nation_window(state, "releaseconfirm");
 			release_win = ptr.get();
 			add_child_to_front(std::move(ptr));
 		}

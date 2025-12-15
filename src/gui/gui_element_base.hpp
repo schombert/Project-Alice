@@ -1,18 +1,40 @@
 #pragma once
 
-#include "system_state.hpp"
-#include "enums.hpp"
+#include "system_state_forward.hpp"
 #include "gui_graphics.hpp"
 #include "text.hpp"
+#include "container_types_ui.hpp"
 
-namespace sys {
-struct state;
-}
 
 namespace ui {
 
-enum class mouse_probe_type { click, tooltip, scroll };
-enum class insertion_source { user, ui_automation, text_services, other };
+template<typename T, typename ...Params>
+std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name, Params&&... params);
+template<typename T, typename ...Params>
+std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
+
+
+
+struct drag_and_drop_query_result {
+	element_base* under_mouse = nullptr;
+	uint8_t directions = 0;
+
+	bool has_top_target() const {
+		return (directions & uint8_t(drag_and_drop_target::top)) != 0;
+	}
+	bool has_left_target() const {
+		return (directions & uint8_t(drag_and_drop_target::left)) != 0;
+	}
+	bool has_right_target() const {
+		return (directions & uint8_t(drag_and_drop_target::right)) != 0;
+	}
+	bool has_bottom_target() const {
+		return (directions & uint8_t(drag_and_drop_target::bottom)) != 0;
+	}
+	bool has_center_target() const {
+		return (directions & uint8_t(drag_and_drop_target::center)) != 0;
+	}
+};
 
 class element_base {
 public:
@@ -44,6 +66,9 @@ public:
 	//       - are responsible for propagating messages and responses
 	//       - should be called in general when something happens
 	virtual mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept; // tests which element is under the cursor
+	virtual drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept {
+		return drag_and_drop_query_result{};
+	}
 	virtual message_result impl_on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
 	virtual message_result impl_on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept;
 	virtual message_result impl_on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept;
@@ -62,23 +87,9 @@ public:
 		on_drag_finish(state);
 	}
 
-	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept { // used to test whether a tooltip is possible
-		if(state.cheat_data.ui_debug_mode)
-			return tooltip_behavior::tooltip;
-		return tooltip_behavior::no_tooltip;
-	}
-	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept {
-		ident = 0;
-		subrect.top_left = ui::get_absolute_location(state, *this);
-		subrect.size = base_data.size;
-	}
-	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-		if(state.cheat_data.ui_debug_mode) {
-			text::add_line(state, contents, "ui_element_name", text::variable_type::x, base_data.name);
-			text::add_line(state, contents, "ui_element_position", text::variable_type::x, base_data.position.x, text::variable_type::y, base_data.position.y);
-			text::add_line(state, contents, "ui_element_size", text::variable_type::x, base_data.size.x, text::variable_type::y, base_data.size.y);
-		}
-	}
+	virtual tooltip_behavior has_tooltip(sys::state& state) noexcept;
+	virtual void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, urect& subrect) noexcept;
+	virtual void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept;
 
 	virtual void on_hover(sys::state& state) noexcept { } // when the mouse first moves over the element
 	virtual void on_hover_end(sys::state& state) noexcept { } // when the mouse is no longer over the element
@@ -104,6 +115,9 @@ public:
 	virtual ui::urect text_bounds(sys::state& state, int32_t position_start, int32_t position_end) noexcept {
 		return ui::urect{ {0,0},{0,0} };
 	};
+	virtual bool recieve_drag_and_drop(sys::state& state, std::any& data, ui::drag_and_drop_data data_type, drag_and_drop_target sub_target, bool shift_held_down) noexcept {
+		return false;
+	}
 	// these message handlers can be overridden by basically anyone
 	//        - generally *should not* be called directly
 protected:
@@ -119,11 +133,12 @@ protected:
 	virtual void render(sys::state& state, int32_t x, int32_t y) noexcept { }
 	virtual void on_update(sys::state& state) noexcept;
 	virtual void on_create(sys::state& state) noexcept { } // called automatically after the element has been created by the system
-	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
-	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
 	virtual void on_visible(sys::state& state) noexcept { }
 	virtual void on_hide(sys::state& state) noexcept { }
 	virtual void on_reset_text(sys::state& state) noexcept { }
+public:
+	virtual void on_text(sys::state& state, char32_t ch) noexcept { }
+	virtual void on_drag(sys::state& state, int32_t oldx, int32_t oldy, int32_t x, int32_t y, sys::key_modifiers mods) noexcept; // as drag events are generated
 	virtual void on_drag_finish(sys::state& state) noexcept { } // when the mouse is released, and drag ends
 private:
 	uint8_t get_pixel_opacity(sys::state& state, int32_t x, int32_t y, dcon::texture_id tid);
@@ -152,9 +167,6 @@ public:
 
 	friend std::unique_ptr<element_base> make_element(sys::state& state, std::string_view name);
 	friend std::unique_ptr<element_base> make_element_immediate(sys::state& state, dcon::gui_def_id id);
-	friend void sys::state::on_mouse_drag(int32_t x, int32_t y, sys::key_modifiers mod);
-	friend void sys::state::on_text(char32_t c);
-	friend void sys::state::on_drag_finished(int32_t x, int32_t y, key_modifiers mod);
 	template<typename T, typename ...Params>
 	friend std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params);
 	template<typename T, typename ...Params>

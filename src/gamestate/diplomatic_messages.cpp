@@ -7,6 +7,7 @@
 #include "ai_types.hpp"
 #include "ai_campaign_values.hpp"
 #include "ai_alliances.hpp"
+#include "province.hpp"
 
 namespace diplomatic_message {
 

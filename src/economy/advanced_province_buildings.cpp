@@ -2,8 +2,9 @@
 #include "price.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
-#include "constants.hpp"
+#include "constants_dcon.hpp"
 #include "province_templates.hpp"
+#include "money.hpp"
 
 namespace services {
 
@@ -97,12 +98,13 @@ namespace advanced_province_buildings {
 constexpr float max_port_expansion_speed = 1000.f / 365.f;
 constexpr float ports_decay_speed = 0.99999f;
 
+// it uses speed and other stuff because currently we don't have merchant fleets and transportation is done by port workers instead of sailors
 float ports_efficiency(sys::state& state, dcon::nation_id n, float size) {
 	auto base_id = state.military_definitions.base_naval_unit;
 	auto& base_stats = state.world.nation_get_unit_stats(n, base_id);
 	auto speed = std::max(1.f, 10.f + base_stats.maximum_speed);
 	auto nmod = std::max(0.1f, state.world.nation_get_modifier_values(n, sys::national_mod_offsets::supply_range) + 1.0f);
-	return speed * nmod * (1.f + size / 10000.f);
+	return speed / 10.f * nmod * (1.f + size / 10000.f);
 }
 
 // TODO: move definitions to assets
@@ -392,8 +394,14 @@ void update_production(sys::state& state) {
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
+			auto owner = state.world.province_get_nation_from_province_ownership(pids);
+			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pids, bid);
+			auto efficiency = ve::apply(
+				[&](dcon::nation_id n, float max_size_port) { return ports_efficiency(state, n, max_size_port); },
+				owner, max_size
+			);
 			//assume that low trade volume doesn't require any additional infrastructure or workers
-			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount;
+			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount * efficiency;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
 			state.world.province_set_advanced_province_building_private_output(pids, bid, output);

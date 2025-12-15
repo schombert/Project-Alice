@@ -3,6 +3,7 @@
 #include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "triggers.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
 

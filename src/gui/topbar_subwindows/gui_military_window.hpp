@@ -4,6 +4,8 @@
 #include "gui_leaders_window.hpp"
 #include "gui_stats_window.hpp"
 #include "gui_units_window.hpp"
+#include "gui_build_unit_large_window.hpp"
+#include "gui_templates.hpp"
 
 namespace ui {
 
@@ -184,14 +186,14 @@ public:
 		state.ui_state.military_subwindow = this;
 
 		// Unit information comes first
-		auto win1 = make_element_by_type<military_units_window<dcon::army_id>>(state,
+		auto win1 = make_element_by_type<military_units_window_army>(state,
 			state.ui_state.defs_by_name.find(state.lookup_key("unit_window"))->second.definition);
 		win1->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("army_pos"))->second.definition].position;
 		state.ui_state.unit_window_army = win1.get();
 		add_child_to_front(std::move(win1));
 
 		// Navy information is right next to the army information
-		auto win2 = make_element_by_type<military_units_window<dcon::navy_id>>(state,
+		auto win2 = make_element_by_type<military_units_window_navy>(state,
 			state.ui_state.defs_by_name.find(state.lookup_key("unit_window"))->second.definition);
 		win2->base_data.position = state.ui_defs.gui[state.ui_state.defs_by_name.find(state.lookup_key("navy_pos"))->second.definition].position;
 		state.ui_state.unit_window_navy = win2.get();

@@ -199,15 +199,17 @@ private:
 	uint32_t internal_tx_line_xpos = 1024;
 	uint32_t internal_tx_line_ypos = 1024;
 	int32_t px_size = 0;
+	ankerl::unordered_dense::map<uint32_t, glyph_sub_offset> glyph_positions;
 public:
 	FT_Face font_face = nullptr;
 	hb_font_t* hb_font_face = nullptr;
 	hb_buffer_t* hb_buf = nullptr;
 
-	ankerl::unordered_dense::map<uint16_t, glyph_sub_offset> glyph_positions;
+	
 	std::vector<uint32_t> textures;
 
-	void make_glyph(uint16_t glyph_in);
+	void make_glyph(uint16_t glyph_in, int32_t subpixel);
+	glyph_sub_offset& get_glyph(uint16_t glyph_in, int32_t subpixel);
 	void reset();
 	void create(FT_Library lib, FT_Byte* file_data, size_t file_size, int32_t real_size);
 	void remake_cache(sys::state& state, font_selection type, stored_glyphs& txt, std::span<uint16_t> source, uint32_t details_offset = 0, layout_details* d = nullptr, uint16_t font_handle = 0);
@@ -217,6 +219,7 @@ public:
 	float descender(sys::state& state) const;
 	float top_adjustment(sys::state& state) const;
 	float text_extent(sys::state& state, stored_glyphs const& txt, uint32_t starting_offset, uint32_t count);
+	float stateless_text_extent(float ui_scale, char const* codepoints, uint32_t count);
 
 	font_at_size() = default;
 	font_at_size(font_at_size&& o) noexcept : glyph_positions(std::move(o.glyph_positions)), textures(o.textures) {

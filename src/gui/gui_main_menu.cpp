@@ -1,5 +1,6 @@
 #include "gui_main_menu.hpp"
 #include "sound.hpp"
+#include "gui_templates.hpp"
 
 #include <cstdio>
 
@@ -145,22 +146,11 @@ void language_left::button_action(sys::state& state) noexcept {
 	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
-	//
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release); //update map
-	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	send(state, parent, notify_setting_update{});
 	window::change_cursor(state, window::cursor_type::normal);
 }
@@ -194,22 +184,10 @@ void language_right::button_action(sys::state& state) noexcept {
 	state.user_settings.locale[length] = 0;
 	state.font_collection.change_locale(state, new_locale);
 
-	//
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
-	state.province_ownership_changed.store(true, std::memory_order::release); //update map
-	state.game_state_updated.store(true, std::memory_order::release); //update ui
-	//
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
+
 	send(state, parent, notify_setting_update{});
 	window::change_cursor(state, window::cursor_type::normal);
 }
@@ -662,18 +640,9 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.user_settings.use_classic_fonts = !state.user_settings.use_classic_fonts;
 	//
 	window::change_cursor(state, window::cursor_type::busy);
-	if(state.ui_state.units_root)
-		state.ui_state.units_root->impl_on_reset_text(state);
-	if(state.ui_state.rgos_root)
-		state.ui_state.rgos_root->impl_on_reset_text(state);
-	if(state.ui_state.root)
-		state.ui_state.root->impl_on_reset_text(state);
-	if(state.ui_state.nation_picker)
-		state.ui_state.nation_picker->impl_on_reset_text(state);
-	if(state.ui_state.select_states_legend)
-		state.ui_state.select_states_legend->impl_on_reset_text(state);
-	if(state.ui_state.end_screen)
-		state.ui_state.end_screen->impl_on_reset_text(state);
+	state.ui_state.for_each_root([&](ui::element_base& elm) {
+		elm.impl_on_reset_text(state);
+	});
 	state.province_ownership_changed.store(true, std::memory_order::release); //update map
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	state.ui_state.tooltip->set_visible(state, false);

@@ -5,6 +5,8 @@
 #include "bmfont.hpp"
 #include "gui_element_base.hpp"
 
+#include "stateless_render.hpp"
+
 #undef STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
 
@@ -545,20 +547,6 @@ void load_global_squares(sys::state& state) {
 				cell_x + 1.0f / 8.0f, cell_y + 1.0f / 8.0f, 1.0f, 0.0f, cell_x + 1.0f / 8.0f, cell_y};
 
 		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 16, global_sub_square_data, GL_STATIC_DRAW);
-	}
-}
-
-inline auto map_color_modification_to_index(color_modification e) {
-	switch(e) {
-	case color_modification::disabled:
-		return parameters::disabled;
-	case color_modification::interactable:
-		return parameters::interactable;
-	case color_modification::interactable_disabled:
-		return parameters::interactable_disabled;
-	default:
-	case color_modification::none:
-		return parameters::enabled;
 	}
 }
 
@@ -1185,46 +1173,6 @@ void render_text_commodity_icon(
 	);
 }
 
-void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
-	glBindVertexBuffer(0, state.open_gl.global_square_buffer, 0, sizeof(GLfloat) * 4);
-	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::subsprite_b };
-	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
-
-	auto& font_instance = f.retrieve_instance(state, int32_t(size));
-	auto ui_scale = state.user_settings.ui_scale;
-
-	x = int32_t(x * ui_scale) / ui_scale;
-	baseline_y = int32_t(baseline_y * ui_scale) / ui_scale;
-
-	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		auto& gso = font_instance.glyph_positions[uint16_t(glyphid)];
-		float x_advance = float(txt.glyph_info[i].x_advance) / text::fixed_to_fp;
-
-		if(gso.width != 0) {
-			float x_offset = float(txt.glyph_info[i].x_offset) / text::fixed_to_fp + float(gso.bitmap_left);
-			float y_offset = float(-gso.bitmap_top) - float(txt.glyph_info[i].y_offset) / text::fixed_to_fp;
-
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, font_instance.textures[gso.tx_sheet]);
-
-			auto rounded_x = int32_t(std::round(x * ui_scale + x_offset)) / ui_scale;
-
-			glUniform4f(state.open_gl.ui_shader_d_rect_uniform, rounded_x, baseline_y + y_offset / ui_scale, float(gso.width) / ui_scale, float(gso.height) / ui_scale);
-			glUniform4f(state.open_gl.ui_shader_subrect_uniform, float(gso.x) / float(1024) /* x offset */,
-					float(gso.width) / float(1024) /* x width */, float(gso.y) / float(1024) /* y offset */,
-					float(gso.height) / float(1024) /* y height */
-			);
-
-			glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		}
-
-		x += x_advance / ui_scale;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / text::fixed_to_fp) / ui_scale;
-	}
-}
-
 void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
 	std::string codepoints = "";
 	for(uint32_t i = 0; i < uint32_t(txt.glyph_info.size()); i++) {
@@ -1278,7 +1226,22 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, c.r, c.g, c.b);
 	glUniform1f(state.open_gl.ui_shader_border_size_uniform, 0.08f * 16.0f / size);
-	internal_text_render(state, txt, x, y + size, size, f);
+	stateless_ogl::text_render(
+		state.font_collection.ft_library,
+		state.open_gl.global_square_buffer,
+		state.user_settings.ui_scale,
+		state.open_gl.ui_shader_subroutines_index_uniform,
+		map_color_modification_to_index(enabled),
+		ogl::parameters::subsprite_b,
+		state.open_gl.ui_shader_d_rect_uniform,
+		state.open_gl.ui_shader_subrect_uniform,
+		txt.glyph_info,
+		static_cast<unsigned int>(txt.glyph_info.size()),
+		x,
+		y + size,
+		size,
+		f
+	);
 }
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id) {
@@ -1695,6 +1658,23 @@ scissor_box::scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t 
 }
 scissor_box::~scissor_box() {
 	glDisable(GL_SCISSOR_TEST);
+}
+
+void captured_element::capture_element(sys::state& state, ui::element_base& elm) {
+	rendered_state.ready(state);
+	state.current_scene.get_root(state)->impl_render(state, 0, 0);
+	rendered_state.finish(state);
+
+	auto abs_pos = ui::get_absolute_location(state, elm);
+	cap_x_pos = abs_pos.x;
+	cap_y_pos = abs_pos.y;
+	cap_width = elm.base_data.size.x;
+	cap_height = elm.base_data.size.y;
+}
+void captured_element::render(sys::state& state, int32_t x, int32_t y) {
+	render_subrect(state, float(x), float(y), float(cap_width), float(cap_height),
+				float(cap_x_pos) * state.user_settings.ui_scale / float(rendered_state.max_x), float(rendered_state.max_y - cap_y_pos) * state.user_settings.ui_scale / float(rendered_state.max_y), float(cap_width) * state.user_settings.ui_scale / float(rendered_state.max_x), float(-cap_height) * state.user_settings.ui_scale / float(rendered_state.max_y),
+				rendered_state.get());
 }
 
 } // namespace ogl

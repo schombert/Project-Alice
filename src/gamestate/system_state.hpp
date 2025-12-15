@@ -7,38 +7,29 @@
 #include <condition_variable>
 
 #include "window.hpp"
-#include "constants.hpp"
-#include "dcon_generated.hpp"
-#include "gui_graphics.hpp"
-#include "game_scene.hpp"
-#include "simple_fs.hpp"
-#include "text.hpp"
-#include "opengl_wrapper.hpp"
-#include "fonts.hpp"
 #include "sound.hpp"
-#include "map_state.hpp"
-#include "economy.hpp"
-#include "economy_production.hpp"
-#include "culture.hpp"
-#include "military.hpp"
-#include "nations.hpp"
-#include "date_interface.hpp"
+#include "dcon_generated.hpp"
+#include "containers_state.hpp"
+#include "constants_state.hpp"
+#include "constants_dcon.hpp"
+#include "constants.hpp"
+// whenever we change defines, we have to recreate scenario anyway...
 #include "defines.hpp"
-#include "province.hpp"
-#include "events.hpp"
-#include "SPSCQueue.h"
-#include "commands.hpp"
-#include "diplomatic_messages.hpp"
-#include "events.hpp"
-#include "notifications.hpp"
-#include "network.hpp"
-#include "fif.hpp"
-#include "lua.hpp"
-#include "immediate_mode.hpp"
 #include "gamerule.hpp"
-#include "enums.hpp"
+#include "lua.hpp"
+#include "fif.hpp"
+#include "map_modes.hpp"
 #include "asvg.hpp"
 #include "uitemplate.hpp"
+#include "SPSCQueue.h"
+#include "notifications.hpp"
+#include "map_state.hpp"
+#include "immediate_mode_state.hpp"
+#include "network.hpp"
+
+namespace game_scene {
+scene_properties nation_picker();
+}
 
 namespace ui {
 struct lua_scripted_element;
@@ -385,7 +376,7 @@ struct user_settings_s {
 		message_response::ignore,//is_embargod = 104,
 	};
 	bool show_all_saves = true; 
-	map_label_mode map_label = map_label_mode::quadratic;
+	map_label_mode map_label = map_label_mode::linear;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
 	float gamma = 1.f;
@@ -1005,10 +996,10 @@ struct alignas(64) state {
 	void on_mouse_drag(int32_t x, int32_t y, key_modifiers mod); // called when the left button is held down
 	void on_drag_finished(int32_t x, int32_t y, key_modifiers mod); // called when the left button is released after one or more drag events
 	void on_resize(int32_t x, int32_t y, window::window_state win_state);
-	void on_mouse_wheel(int32_t x, int32_t y, key_modifiers mod, float amount); // an amount of 1.0 is one "click" of the wheel
 	void on_key_down(virtual_key keycode, key_modifiers mod);
 	void on_key_up(virtual_key keycode, key_modifiers mod);
 	void on_text(char32_t c); // c is a win1250 codepage value
+
 	bool filter_tso_mouse_events(int32_t x, int32_t y, uint32_t buttons);
 	void pass_edit_command(ui::edit_command command, sys::key_modifiers mod);
 	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
@@ -1079,8 +1070,7 @@ struct alignas(64) state {
 	void console_log(std::string_view message);
 	void lua_notification(std::string message);
 	void log_player_nations();
-
-	void open_diplomacy(dcon::nation_id target); // Open the diplomacy window with target selected
+	void open_diplomacy(dcon::nation_id target);
 
 	int get_edit_x();
 	int get_edit_y();
