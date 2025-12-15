@@ -5708,6 +5708,7 @@ void notify_oos_gamestate(sys::state& state, dcon::nation_id source) {
 	command_data p{ command_type::notify_oos_gamestate, state.local_player_id };
 	auto data = notify_oos_gamestate_data{ };
 	data.size = size;
+	p << data;
 	p.push_ptr(mp_state_data.get(), size);
 	add_to_command_queue(state, p);
 }
