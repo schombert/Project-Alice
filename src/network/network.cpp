@@ -1774,10 +1774,6 @@ void broadcast_to_clients(sys::state& state, command::command_data& c) {
 		auto& payload = c.get_payload<command::notify_joins_data>();
 		payload.player_password = sys::player_password_raw{}; // Never send password to clients
 	}
-	else if(c.header.type == command::command_type::notify_player_oos) {
-		// clear all data before we broadcast this command to the clients. Otherwise the mp state which the oos'd client sent us will also be sent and cost us alotta bandwidth
-		c.payload.clear();
-	}
 	/* Propagate to all the clients */
 	for(auto& client : state.network_state.clients) {
 		if(client.is_active()) {
