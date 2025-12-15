@@ -5,6 +5,10 @@
 #include "lua_alice_api.hpp"
 #include "economy_production.hpp"
 #include "labour_details.hpp"
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 
 namespace alice_ui {
 enum class prod_category : uint8_t {

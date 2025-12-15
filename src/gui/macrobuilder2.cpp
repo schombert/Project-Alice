@@ -1,3 +1,8 @@
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 namespace alice_ui {
 struct macrobuilder2_main_apply_button_t;
 struct macrobuilder2_main_t;
@@ -1369,5 +1374,8 @@ std::unique_ptr<ui::element_base> make_macrobuilder2_spacer(sys::state& state) {
 	ptr->on_create(state);
 	return ptr;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }

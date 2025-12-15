@@ -1,4 +1,9 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 struct market_prices_report_body_header_t;
 struct market_prices_report_body_t;
 struct market_prices_report_list_header_bg_t;
@@ -1676,5 +1681,9 @@ std::unique_ptr<ui::element_base> make_market_prices_report_list_item(sys::state
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }

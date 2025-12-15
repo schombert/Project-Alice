@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct rgo_report_body_header_t;
 struct rgo_report_body_t;
 struct rgo_report_list_item_content_t;
@@ -1916,5 +1920,9 @@ std::unique_ptr<ui::element_base> make_rgo_report_list_header(sys::state& state)
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }

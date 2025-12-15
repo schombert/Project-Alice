@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct pop_budget_details_main_unemployment_value_t;
 struct pop_budget_details_main_pension_value_t;
 struct pop_budget_details_main_rgo_value_t;
@@ -2157,5 +2161,9 @@ std::unique_ptr<ui::element_base> make_pop_budget_details_consumption(sys::state
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }
