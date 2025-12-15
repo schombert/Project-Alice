@@ -8,43 +8,6 @@
 
 namespace economy {
 
-enum commodity_production_type {
-	primary,
-	derivative,
-	both
-};
-
-static_assert(sizeof(building_information) == 104);
-static_assert(sizeof(building_information::cost) == 40);
-static_assert(sizeof(building_information::colonial_points) == 32);
-static_assert(sizeof(building_information::province_modifier) == 2);
-static_assert(sizeof(building_information::name) == 4);
-static_assert(sizeof(building_information::cost)
-	+ sizeof(building_information::naval_capacity)
-	+ sizeof(building_information::colonial_range)
-	+ sizeof(building_information::colonial_points)
-	+ sizeof(building_information::max_level)
-	+ sizeof(building_information::time)
-	+ sizeof(building_information::infrastructure)
-	== 92);
-static_assert(sizeof(building_information) ==
-	sizeof(building_information::cost)
-	+ sizeof(building_information::naval_capacity)
-	+ sizeof(building_information::colonial_range)
-	+ sizeof(building_information::colonial_points)
-	+ sizeof(building_information::max_level)
-	+ sizeof(building_information::time)
-	+ sizeof(building_information::infrastructure)
-	+ sizeof(building_information::province_modifier)
-	+ sizeof(building_information::name)
-	+ sizeof(building_information::defined)
-	+ sizeof(building_information::padding)
-	+ sizeof(building_information::padding2));
-
-
-
-enum class worker_effect : uint8_t { none = 0, input, output, throughput };
-
 template<typename T>
 auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_unused]] T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc
