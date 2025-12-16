@@ -3785,24 +3785,6 @@ guiTypes = {
 			orientation = "UPPER_LEFT"
 			format = left
 		}
-
-		guiButtonType = {
-			position = { 370 2 }
-			name = "us_button"
-			quadTextureSprite = "GFX_alice_message_type"
-		}
-
-		guiButtonType = {
-			position = { 490 2 }
-			name = "interesting_button"
-			quadTextureSprite = "GFX_alice_message_type"
-		}
-
-		guiButtonType = {
-			position = { 610 2 }
-			name = "other_button"
-			quadTextureSprite = "GFX_alice_message_type"
-		}
 	}
 
 	windowType = {
