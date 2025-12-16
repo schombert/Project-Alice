@@ -43,6 +43,7 @@ using fmt::format;
 #include "serialization.hpp"
 #include "gui_error_window.hpp"
 #include "persistent_server_extensions.hpp"
+#include "debug_string_convertions.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
