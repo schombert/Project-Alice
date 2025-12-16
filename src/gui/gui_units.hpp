@@ -3,6 +3,7 @@
 #include "system_state_forward.hpp"
 #include "dcon_generated_ids.hpp"
 #include "gui_element_types.hpp"
+#include "gui_element_base.hpp"
 
 namespace ui {
 enum class outline_color : uint8_t {
