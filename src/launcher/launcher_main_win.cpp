@@ -320,6 +320,7 @@ void mouse_click() {
 				return;
 			}
 		}
+		break;
 	case ui_obj_host_game:
 		[[fallthrough]];
 	case ui_obj_join_game:

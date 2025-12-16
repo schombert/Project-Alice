@@ -235,7 +235,7 @@ if(WIN32)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
-											${CommonClangWinFlags}
+											${CommonClangWinFlags} -Wno-nontrivial-memcall
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE

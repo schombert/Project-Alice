@@ -9,6 +9,7 @@ add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/projections.cpp"
 	"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
 	"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
+	"${PROJECT_SOURCE_DIR}/src/graphics/stateless_render.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/svgelement.cpp"
@@ -30,6 +31,7 @@ add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
+	"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc")
 
 
