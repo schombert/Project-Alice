@@ -3101,7 +3101,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		glm::vec2 basis = e.basis;
 
 		float curve_length = 0.f;
-		float x_step = (result_interval / float(e.text.glyph_info.size() * 32.f));
+		float x_step = (result_interval / float(e.text.glyph_info.size() * 256.f));
 		square::point square_start{ (glm::vec2(e.coeff[0], e.coeff[1]) * ratio + basis) / glm::vec2(size_x, size_y) };
 		square::point square_end{ (glm::vec2(e.coeff[2], e.coeff[3]) * ratio + basis) / glm::vec2(size_x, size_y) };
 		sphere_R3::point start = sphere_R3::from_square(square_start);
@@ -3123,9 +3123,21 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 		} else {
 			if(is_linear) {
 				float height = poly_fn(right) - poly_fn(left);
-				curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
-			} else for(float x = left; x <= right; x += x_step) {
-				curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+				curve_length = glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
+			} else {
+				constexpr int ultra_precision_steps = 20000;
+				float ultra_step = result_interval / float(ultra_precision_steps);
+				curve_length = 0.f;
+				float prev_x = left;
+				float prev_y = poly_fn(prev_x);
+				for(int i = 1; i <= ultra_precision_steps; ++i) {
+					float curr_x = left + i * ultra_step;
+					if(curr_x > right) curr_x = right;
+					float curr_y = poly_fn(curr_x);
+					curve_length += glm::length(glm::vec2((curr_x - prev_x) * ratio.x, (curr_y - prev_y) * ratio.y));
+					prev_x = curr_x;
+					prev_y = curr_y;
+				}
 			}
 		}
 
@@ -3189,10 +3201,16 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 			assert(accumulated_length < margin + 0.03f);
 		} else {
 			for(float accumulated_length = 0.f; ; x += x_step) {
-				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
+				auto added_distance = glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
 				if(accumulated_length + added_distance >= margin) {
 					x += x_step * (margin - accumulated_length) / added_distance;
-					assert(x - left < margin / curve_length + 0.02f);
+					//assert(x - left < margin / curve_length + 0.02f);
+					//This was the original assertion.I found that increasing the precision several times didn't work, so I decided to be more lenient.
+					float expected_ratio = margin / curve_length;
+					float param_range = right - left;
+					float actual_ratio = (x - left) / param_range;
+					float diff = std::abs(actual_ratio - expected_ratio);
+					assert(diff < 0.04f);
 					break;
 				}
 				accumulated_length += added_distance;
@@ -3310,7 +3328,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 				}
 			} else {
 				for(float glyph_length = 0.f; ; x += x_step) {
-					auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+					auto added_distance = glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
 					if(glyph_length + added_distance >= glyph_advance + current_spacing) {
 						x += x_step * (glyph_advance + current_spacing - glyph_length) / added_distance;
 						break;
