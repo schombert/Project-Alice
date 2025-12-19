@@ -1238,7 +1238,7 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 	add_compare_to_oos_report(state_1.map_state.map_data.size_y, state_2.map_state.map_data.size_y, "map_data.size_y") +
 		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
 		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
-		add_collection_compare_to_oos_report<map::textured_line_vertex_b_enriched_with_province_index>(state_1.map_state.map_data.border_vertices, state_2.map_state.map_data.border_vertices, "border_vertices") +
+		//add_collection_compare_to_oos_report<map::textured_line_vertex_b_enriched_with_province_index>(state_1.map_state.map_data.border_vertices, state_2.map_state.map_data.border_vertices, "border_vertices") + // this is local actually!
 		add_collection_compare_to_oos_report<map::border>(state_1.map_state.map_data.borders, state_2.map_state.map_data.borders, "borders") +
 		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.terrain_id_map, state_1.map_state.map_data.terrain_id_map, "terrain_id_map") +
 		add_collection_compare_to_oos_report<uint16_t>(state_1.map_state.map_data.province_id_map, state_1.map_state.map_data.province_id_map, "province_id_map") +
