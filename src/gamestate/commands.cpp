@@ -149,10 +149,10 @@ void save_game(sys::state& state, dcon::nation_id source, bool and_quit, const s
 }
 
 bool can_save_game(sys::state& state, command_data& command) {
-	auto& payload = command.get_payload<save_game_data_recv>();
+	auto& payload = command.get_payload<save_game_data>();
 
 	// check that the filename length is correct before reading from it
-	if(!command.check_variable_size_payload<save_game_data>(payload.base.filename_len)) {
+	if(!command.check_variable_size_payload<save_game_data>(payload.filename_len)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
@@ -5419,10 +5419,10 @@ void chat_message(sys::state& state, dcon::nation_id source, std::string_view bo
 bool can_chat_message(sys::state& state, command_data& command) {
 	// TODO: bans, kicks, mutes?
 
-	auto& payload = command.get_payload<chat_message_data_recv>();
+	auto& payload = command.get_payload<chat_message_data>();
 
 	// check that the message length is correct before reading from it
-	if(!command.check_variable_size_payload<chat_message_data>(payload.data.msg_len)) {
+	if(!command.check_variable_size_payload<chat_message_data>(payload.msg_len)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
@@ -5567,7 +5567,7 @@ void execute_change_ai_nation_state(sys::state& state, dcon::nation_id source, b
 void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	// only the host can use this command, so we use the banned players ID here in the header
 	command_data p{ command_type::notify_player_ban, banned_player };
-	auto data = notify_player_ban_data{ make_ai};
+	auto data = notify_player_ban_data{ make_ai };
 	p << data;
 	add_to_command_queue(state, p);
 }
@@ -6063,25 +6063,38 @@ void execute_resync_lobby(sys::state& state, dcon::nation_id source) {
 	state.ui_state.recently_pressed_resync = false;
 }
 
-void execute_notify_mp_data(sys::state& state, const notify_mp_data_data_recv& data) {
+void execute_notify_mp_data(sys::state& state, const notify_mp_data_data& data) {
 	// size boundary is checked in can_notify_mp_data so we can safely do this
-	sys::read_mp_data(&data.mp_data[0], &data.mp_data[data.base.data_len], state);
+	sys::read_mp_data(data.mp_data(), data.mp_data() + data.data_len, state);
 	// update UI immediately incase alot of long commands (ie loading save) is queued up
 	state.game_state_updated.store(true, std::memory_order::release);
 }
 
 bool can_notify_mp_data(sys::state& state, command_data& command) {
 
-		auto& payload = command.get_payload<notify_mp_data_data_recv>();
+		auto& payload = command.get_payload<notify_mp_data_data>();
 
 	// check that the data length is correct before reading from it
-	if(!command.check_variable_size_payload<notify_mp_data_data>(payload.base.data_len)) {
+	if(!command.check_variable_size_payload<notify_mp_data_data>(payload.data_len)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
 
 	return true;
 }
+
+
+
+
+
+
+
+
+bool notify_oos_gamestate_is_host_receive_command(const sys::state& state) {
+	return state.host_settings.oos_debug_mode;
+}
+
+
 
 
 
@@ -7405,9 +7418,9 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::save_game:
 	{
-		auto& data = c.get_payload<save_game_data_recv>();
-		std::string str(data.filename, data.base.filename_len);
-		execute_save_game(state, source_nation, data.base.and_quit, str);
+		auto& data = c.get_payload<save_game_data>();
+		std::string str(data.filename(), data.filename_len);
+		execute_save_game(state, source_nation, data.and_quit, str);
 		break;
 	}
 	case command_type::cancel_factory_building_construction:
@@ -7526,9 +7539,9 @@ bool execute_command(sys::state& state, command_data& c) {
 		// common mp commands
 	case command_type::chat_message:
 	{
-		auto& data = c.get_payload<chat_message_data_recv>();
-		std::string_view sv(data.body, data.data.msg_len);
-		execute_chat_message(state, source_nation, sv, data.data.target, c.header.player_id);
+		auto& data = c.get_payload<chat_message_data>();
+		std::string_view sv(data.body(), data.msg_len);
+		execute_chat_message(state, source_nation, sv, data.target, c.header.player_id);
 		break;
 	}
 	case command_type::notify_player_ban:
@@ -7673,7 +7686,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::notify_mp_data:
 	{
-		auto& data = c.get_payload<notify_mp_data_data_recv>();
+		auto& data = c.get_payload<notify_mp_data_data>();
 		execute_notify_mp_data(state, data);
 		break;
 	}
@@ -7682,41 +7695,27 @@ bool execute_command(sys::state& state, command_data& c) {
 	return true;
 }
 
-bool valid_host_receive_commands(command_type type, const sys::state& state) {
-	switch(type) {
-	case command::command_type::invalid:
-	case command::command_type::notify_player_ban:
-	case command::command_type::notify_player_kick:
-	case command::command_type::notify_save_loaded:
-	case command::command_type::notify_reload:
-	case command::command_type::advance_tick:
-	case command::command_type::notify_start_game:
-	case command::command_type::notify_stop_game:
-	case command::command_type::notify_pause_game:
-	case command::command_type::notify_player_joins:
-	case command::command_type::save_game:
-	case command::command_type::change_ai_nation_state:
-	case command::command_type::change_game_rule_setting:
-	case command::command_type::resync_lobby:
-	case command::command_type::notify_mp_data:
+bool is_host_receive_command(command_type type, const sys::state& state) {
+	auto iterator = command_type_handlers.find(type);
+	// have bounds checking to guard against invalid commands
+	if(iterator == command_type_handlers.end()) {
 		return false;
-	case command::command_type::notify_oos_gamestate:
-		// Only allow the client to send oos gamestate if debug mode is on.
-		return state.host_settings.oos_debug_mode;
-	default:
-		return true;
+	} else {
+		return iterator->second.is_host_receive_command(state);
 	}
 }
 
-bool should_broadcast_command(sys::state& state, const command_data& command) {
-	switch(command.header.type) {
-	case command_type::resync_lobby:
-	case command_type::notify_oos_gamestate:
+bool is_host_broadcast_command(const sys::state& state, const command_data& command) {
+	auto iterator = command_type_handlers.find(command.header.type);
+	// have bounds checking to guard against invalid commands
+	if(iterator == command_type_handlers.end()) {
 		return false;
-	default:
-		return true;
+	}
+	else {
+		return iterator->second.is_host_broadcast_command(state);
 	}
 }
+
 
 
 void execute_pending_commands(sys::state& state) {

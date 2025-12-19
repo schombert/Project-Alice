@@ -378,7 +378,7 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
 			// if this is being run as host, early discard commands which the host aren't meant to receive
 			if constexpr(NetworkType == sys::network_mode_type::host) {
-				if(command::valid_host_receive_commands(data->header.type, state)) {
+				if(command::is_host_receive_command(data->header.type, state)) {
 					*receiving_payload = true;
 				}
 				else {
@@ -589,11 +589,19 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.receiving_payload_flag = false;
 }
 
-static void disconnect_client(sys::state& state, client_data& client, bool graceful) {
+static void disconnect_client(sys::state& state, client_data& client, bool graceful, disconnect_reason reason) {
 	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(client.player_id);
-	if(command::can_notify_player_leaves(state, leaving_player_nation, graceful, client.player_id)) {
-		command::notify_player_leaves(state, leaving_player_nation, graceful, client.player_id);
+	switch(reason) {
+	case disconnect_reason::left_game:
+	case disconnect_reason::network_error:
+		if(command::can_notify_player_leaves(state, leaving_player_nation, graceful, client.player_id)) {
+			command::notify_player_leaves(state, leaving_player_nation, graceful, client.player_id);
+		}
+		break;
+	default:
+		break;
 	}
+	
 #ifndef NDEBUG
 	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
 	log_player_nations(state);
@@ -1603,7 +1611,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 #endif
 		// Check lobby password
 		if(std::memcmp(client.hshake_buffer.lobby_password, state.network_state.lobby_password, sizeof(state.network_state.lobby_password)) != 0) {
-			disconnect_client(state, client, false);
+			disconnect_client(state, client, false, disconnect_reason::incorrect_password);
 			return;
 		}
 
@@ -1614,7 +1622,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 			}
 
 			if(c.hshake_buffer.nickname.to_string_view() == client.hshake_buffer.nickname.to_string_view() && c.socket_fd != client.socket_fd) {
-				disconnect_client(state, client, false);
+				disconnect_client(state, client, false, disconnect_reason::name_taken);
 				return;
 			}
 		}
@@ -1630,7 +1638,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 
 			// If no password is set we allow player to set new password with this connection
 			if(nickname_1 == nickname_2 && !hash_1.empty() && hash_1.to_string() != hash_2.to_string()) {
-				disconnect_client(state, client, false);
+				disconnect_client(state, client, false, disconnect_reason::incorrect_password);
 				return;
 			}
 			else if(nickname_1 == nickname_2) {
@@ -1684,7 +1692,7 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 				state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
 #endif
-				network::disconnect_client(state, client, false);
+				network::disconnect_client(state, client, false, disconnect_reason::network_error);
 			}
 
 			return;
@@ -1700,7 +1708,7 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 			state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
 #endif
-			network::disconnect_client(state, client, false);
+			network::disconnect_client(state, client, false, disconnect_reason::network_error);
 		}
 	}
 }
@@ -1813,11 +1821,11 @@ static void accept_new_clients(sys::state& state) {
 		client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
 		client.last_seen = state.current_date;
 		if(client.is_banned(state)) {
-			disconnect_client(state, client, false);
+			disconnect_client(state, client, false, disconnect_reason::on_banlist);
 			break;
 		}
 		if(state.current_scene.final_scene) {
-			disconnect_client(state, client, false);
+			disconnect_client(state, client, false, disconnect_reason::game_has_ended);
 			break;
 		}
 		return;
@@ -1882,7 +1890,7 @@ void send_and_receive_commands(sys::state& state) {
 					state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->header.type))]);
 #endif
 					// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
-					if(command::execute_command(state, *c) && command::should_broadcast_command(state, *c)) {
+					if(command::execute_command(state, *c) && command::is_host_broadcast_command(state, *c)) {
 						// Generate checksum on the spot.
 						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
 						if(c->header.type == command::command_type::advance_tick) {
@@ -1907,7 +1915,7 @@ void send_and_receive_commands(sys::state& state) {
 
 					// Drop lost clients
 					if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-						disconnect_client(state, client, true);
+						disconnect_client(state, client, true, disconnect_reason::timed_out);
 					}
 					// Slow down for the lagging ones
 					else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
@@ -1927,7 +1935,7 @@ void send_and_receive_commands(sys::state& state) {
 						const auto now = std::chrono::system_clock::now();
 						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
-						disconnect_client(state, client, false);
+						disconnect_client(state, client, false, disconnect_reason::network_error);
 						continue;
 					}
 					client.total_sent_bytes += old_size - client.early_send_buffer.size();
@@ -1946,7 +1954,7 @@ void send_and_receive_commands(sys::state& state) {
 						const auto now = std::chrono::system_clock::now();
 						state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
-						disconnect_client(state, client, false);
+						disconnect_client(state, client, false, disconnect_reason::network_error);
 						continue;
 					}
 					client.total_sent_bytes += old_size - client.send_buffer.size();
@@ -2111,17 +2119,11 @@ void finish(sys::state& state, bool notify_host) {
 
 
 void kick_player(sys::state& state, client_data& client) {
-	socket_shutdown(client.socket_fd);
-
-
-	clear_socket(state, client);
+	disconnect_client(state, client, true, disconnect_reason::kicked);
 }
 
 void ban_player(sys::state& state, client_data& client) {
-	socket_shutdown(client.socket_fd);
-
-
-	clear_socket(state, client);
+	disconnect_client(state, client, true, disconnect_reason::banned);
 
 	if(state.network_state.as_v6) {
 		auto sa = (struct sockaddr_in6*)&client.address;

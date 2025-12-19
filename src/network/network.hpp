@@ -180,6 +180,18 @@ enum class oos_check_interval : uint8_t {
 	yearly = 3,
 };
 
+enum class disconnect_reason : uint8_t {
+	left_game = 0,
+	kicked = 1,
+	banned = 2,
+	on_banlist = 3,
+	name_taken = 4,
+	incorrect_password = 5,
+	game_has_ended = 6,
+	timed_out = 7,
+	network_error = 8,
+};
+
 
 struct host_settings_s {
 	float alice_persistent_server_mode = 0.0f;
