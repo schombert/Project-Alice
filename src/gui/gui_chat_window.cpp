@@ -132,8 +132,7 @@ void player_kick_button::on_update(sys::state& state) noexcept {
 
 void player_kick_button::button_action(sys::state& state) noexcept {
 	auto player = retrieve<dcon::mp_player_id>(state, parent);
-	auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-	command::notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
+	network::disconnect_player(state, player, true, network::disconnect_reason::kicked);
 }
 
 tooltip_behavior player_kick_button::has_tooltip(sys::state& state) noexcept {
@@ -158,7 +157,7 @@ void player_ban_button::on_update(sys::state& state) noexcept {
 
 void player_ban_button::button_action(sys::state& state) noexcept {
 	auto player =  retrieve<dcon::mp_player_id>(state, parent);
-	command::notify_player_ban(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
+	network::disconnect_player(state, player, true, network::disconnect_reason::banned);
 }
 
 tooltip_behavior player_ban_button::has_tooltip(sys::state& state) noexcept {

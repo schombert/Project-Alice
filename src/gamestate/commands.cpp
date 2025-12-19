@@ -5532,18 +5532,10 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_a
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
-	return state.world.nation_get_is_player_controlled(source);
+	return bool(leaving_player);
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	assert(leaving_player);
-
-	if(state.network_mode == sys::network_mode_type::host) {
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active() && client.player_id == leaving_player) {
-				network::clear_socket(state, client);
-			}
-		}
-	}
 
 
 	// send message and make it appear as if it is coming from the host
@@ -5572,22 +5564,20 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player) {
-	if(state.local_player_id == banned_player) // can't perform on self
-		return false;
-	return true;
+	return bool(banned_player);
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	assert(banned_player);
-	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
-	
-
-	if(state.network_mode == sys::network_mode_type::host) {
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active() && client.player_id == banned_player) {
-				network::ban_player(state, client);
-			}
-		}
+	// if we are banned, then display it to the user
+	if(banned_player == state.local_player_id) {
+		ui::popup_error_window(state, "Banned", "You were banned from the lobby by the host. Click \"OK\" to quit.");
+		return;
 	}
+	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::add_player_to_ban_list(state, banned_player);
+	}
+
 	// it should look like a message sent by the host
 
 	auto host = network::get_host_player(state);
@@ -5612,21 +5602,18 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai,
 
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player) {
-	if(state.local_player_id == kicked_player) // can't perform on self
-		return false;
-	return true;
+	return bool(kicked_player);
 }
+
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player) {
 	assert(kicked_player);
+	// if we are kicked, then display it to the user
+	if(kicked_player == state.local_player_id) {
+		ui::popup_error_window(state, "Kicked", "You were kicked from the lobby by the host. Click \"OK\" to quit.");
+		return;
+	}
 	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
 	
-	if(state.network_mode == sys::network_mode_type::host) {
-		for(auto& client : state.network_state.clients) {
-			if(client.is_active() && client.player_id == kicked_player) {
-				network::kick_player(state, client);
-			}
-		}
-	}
 
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);

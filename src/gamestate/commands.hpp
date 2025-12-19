@@ -129,7 +129,6 @@ enum class command_type : uint8_t {
 
 
 		// network
-		notify_client_disconnect_reason = 233, // This command is sent ONLY to the disconnected client (before the socket is shut down), notifying them of the reason for the disconnect.
 		notify_oos_gamestate = 234, // sent from Client to Host, with the clients OOS gamestate for the host to compare, and generate report from. NOT SAFE for use to untrusted clients as there is no safety in seralizing the binary blob which the client sends.
 		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
 		resync_lobby = 236,
@@ -156,9 +155,6 @@ enum class command_type : uint8_t {
 	console_command = 255,
 };
 
-struct notify_client_disconnect_reason_data {
-	network::disconnect_reason reason;
-};
 
 struct pbutton_data {
 	dcon::gui_def_id button;
@@ -712,7 +708,6 @@ static const ankerl::unordered_dense::map<command::command_type, command::comman
 	{ command_type::console_command, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::resync_lobby, command_handler{ 0, 0 , &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_client_disconnect_reason, command_handler{ sizeof(notify_client_disconnect_reason_data), sizeof(notify_client_disconnect_reason_data),&command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command  } }
 };
 
 

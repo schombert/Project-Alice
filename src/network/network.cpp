@@ -589,24 +589,67 @@ void clear_socket(sys::state& state, client_data& client) {
 	client.receiving_payload_flag = false;
 }
 
-static void disconnect_client(sys::state& state, client_data& client, bool graceful, disconnect_reason reason) {
+
+static void disconnect_client(sys::state& state, client_data& client, bool make_ai, disconnect_reason reason) {
+	std::vector<char> last_send_buffer;
 	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(client.player_id);
 	switch(reason) {
-	case disconnect_reason::left_game:
-	case disconnect_reason::network_error:
-		if(command::can_notify_player_leaves(state, leaving_player_nation, graceful, client.player_id)) {
-			command::notify_player_leaves(state, leaving_player_nation, graceful, client.player_id);
+	case disconnect_reason::kicked:
+	{
+		if(command::can_notify_player_kick(state, leaving_player_nation, client.player_id)) {
+			command::notify_player_kick(state, leaving_player_nation, make_ai, client.player_id);
 		}
+		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_player_kick_data));
+		command::command_data cmd{ command::command_type::notify_player_kick, client.player_id };
+		command::notify_player_kick_data data{ false };
+		cmd << data;
+		socket_add_command_to_send_queue(last_send_buffer, &cmd);
+
 		break;
+	}
+		
+	case disconnect_reason::banned:
+	{
+		if(command::can_notify_player_ban(state, leaving_player_nation, client.player_id)) {
+			command::notify_player_ban(state, leaving_player_nation, make_ai, client.player_id);
+		}
+		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_player_ban_data));
+		command::command_data cmd{ command::command_type::notify_player_ban, client.player_id };
+		command::notify_player_ban_data data{ false };
+		cmd << data;
+		socket_add_command_to_send_queue(last_send_buffer, &cmd);
+		break;
+	}
 	default:
+	{
+		if(command::can_notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id)) {
+			command::notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id);
+		}
+		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_leaves_data));
+		command::command_data cmd{ command::command_type::notify_player_leaves, client.player_id };
+		command::notify_leaves_data data{ false };
+		cmd << data;
+		socket_add_command_to_send_queue(last_send_buffer, &cmd);
 		break;
+	}
 	}
 	
 #ifndef NDEBUG
 	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
 	log_player_nations(state);
 #endif
+	//We do an in-line socket_send here, because we need to send the data right before we shut down the socket so the client in question gets a notice.
+	socket_send(client.socket_fd, last_send_buffer);
 	clear_socket(state, client);
+}
+
+void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason) {
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active() && client.player_id == player_id) {
+			disconnect_client(state, client, make_ai, reason);
+			break;
+		}
+	}
 }
 
 
@@ -2122,16 +2165,20 @@ void kick_player(sys::state& state, client_data& client) {
 	disconnect_client(state, client, true, disconnect_reason::kicked);
 }
 
-void ban_player(sys::state& state, client_data& client) {
-	disconnect_client(state, client, true, disconnect_reason::banned);
-
-	if(state.network_state.as_v6) {
-		auto sa = (struct sockaddr_in6*)&client.address;
-		state.network_state.v6_banlist.push_back(sa->sin6_addr);
-	} else {
-		auto sa = (struct sockaddr_in*)&client.address;
-		state.network_state.v4_banlist.push_back(sa->sin_addr);
+void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid) {
+	for(auto& client : state.network_state.clients) {
+		if(client.is_active() && client.player_id == playerid) {
+			if(state.network_state.as_v6) {
+				auto sa = (struct sockaddr_in6*)&client.address;
+				state.network_state.v6_banlist.push_back(sa->sin6_addr);
+			} else {
+				auto sa = (struct sockaddr_in*)&client.address;
+				state.network_state.v4_banlist.push_back(sa->sin_addr);
+			}
+			break;
+		}
 	}
+	
 }
 
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player) {

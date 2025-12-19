@@ -297,7 +297,7 @@ std::string get_last_error_msg();
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state, bool notify_host);
-void ban_player(sys::state& state, client_data& client);
+void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid);
 void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
@@ -330,6 +330,7 @@ std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::na
 void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
+void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason);
 
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
