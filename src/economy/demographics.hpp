@@ -238,6 +238,7 @@ struct province_migration_weight_explanation {
 	float base_weight;
 	float modifier;
 	float wage_multiplier;
+	float culture_multiplier;
 	float result;
 };
 province_migration_weight_explanation explain_province_internal_migration_weight(sys::state& state, dcon::pop_id p, dcon::province_id pid);

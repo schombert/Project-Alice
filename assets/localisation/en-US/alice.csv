@@ -648,6 +648,7 @@ pop_mig_2;Slaves do not migrate internally
 pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
 pop_mig_4;?YMigration factor:
 pop_migration_bureaucracy;Bureaucracy has to move around in order to administer the land: $x$
+pop_migration_culture;Population prefers to migrate to the core land of their culture: $x$
 pop_cmig_1;The nation does not have any colonies
 pop_cmig_2;There is no colonial migration from colonial provinces
 pop_cmig_3;Slaves do not migrate colonially

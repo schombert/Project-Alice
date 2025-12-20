@@ -8939,6 +8939,7 @@ void pop_details_mig_row_content_t::update_tooltip(sys::state& state, int32_t x,
 		text::add_line(state, contents, "pop_migration_attraction_bureaucracy", text::variable_type::x, text::fp_percentage{ explanation.base_weight });
 	}
 	text::add_line(state, contents, "pop_migration_attraction_wage_ratio", text::variable_type::x, text::fp_percentage{ explanation.wage_multiplier });
+	text::add_line(state, contents, "pop_migration_culture", text::variable_type::x, text::fp_percentage{ explanation.culture_multiplier });
 // END
 	}
 }

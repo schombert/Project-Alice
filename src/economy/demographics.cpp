@@ -3102,6 +3102,21 @@ float wage_based_multiplier(sys::state& state, dcon::province_id origin, dcon::p
 	}
 }
 
+float culture_based_multiplier(sys::state& state, dcon::pop_id migrating_pop, dcon::province_id target) {
+	auto culture = state.world.pop_get_culture(migrating_pop);
+	// if there is a core, migrate
+	for(auto core : state.world.province_get_core(target)) {
+		if(core.get_identity().get_primary_culture() == culture) {
+			return 1.f;
+		}
+	}
+
+	// if the pop's culture is already present there in sizable amount, migrate there
+	auto local_culture = state.world.province_get_demographics(target, demographics::to_key(state, culture));
+	float total_size = state.world.province_get_demographics(target, demographics::total);
+	return std::max(0.01f, local_culture / (total_size + 1.f) - 0.04f);
+}
+
 int32_t signature_labor_type(sys::state& state, dcon::nation_id n, dcon::pop_type_id pt, dcon::culture_id cuid) {
 	auto labor_type = economy::labor::no_education;
 	auto accepted = state.world.nation_get_accepted_cultures(n, cuid) || state.world.nation_get_primary_culture(n) == cuid;
@@ -3151,6 +3166,7 @@ province_migration_weight_explanation explain_province_internal_migration_weight
 		.base_weight = base_weight,
 		.modifier = 0.f,
 		.wage_multiplier = 0.f,
+		.culture_multiplier = 0.f,
 		.result = 0.f
 	};
 
@@ -3178,7 +3194,8 @@ province_migration_weight_explanation explain_province_internal_migration_weight
 	result.base_multiplier = interp_result;
 	result.modifier = attraction;
 	result.wage_multiplier = wage_mult;
-	result.result = (base_weight + weight) * wage_mult;
+	result.culture_multiplier = culture_based_multiplier(state, p, pid);
+	result.result = (base_weight + weight) * wage_mult * result.culture_multiplier;
 
 	return result;
 }
@@ -3235,7 +3252,9 @@ dcon::province_id get_province_target_in_nation(sys::state& state, dcon::nation_
 					weight = std::max(0.0f, interp_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
 				}
 
-				weight = (base_weight + weight) * wage_based_multiplier(state, origin, loc.get_province(), labor_type);
+				weight = (base_weight + weight)
+					* wage_based_multiplier(state, origin, loc.get_province(), labor_type)
+					* culture_based_multiplier(state, p, loc.get_province());
 
 				if(weight > 0.0f) {
 					weights_buffer.set(loc.get_province(), weight);
@@ -3311,7 +3330,9 @@ dcon::province_id get_colonial_province_target_in_nation(sys::state& state, dcon
 					weight = std::max(0.0f, interp_result * (loc.get_province().get_modifier_values(sys::provincial_mod_offsets::immigrant_attract) + 1.0f));
 				}
 				
-				weight = (base_weight + weight) * wage_based_multiplier(state, origin, loc.get_province(), labor_type);
+				weight = (base_weight + weight)
+					* wage_based_multiplier(state, origin, loc.get_province(), labor_type)
+					* culture_based_multiplier(state, p, loc.get_province());
 
 				if(weight > 0.0f) {
 					if(!limit_to_capitals || loc.get_province().get_state_membership().get_capital().id == loc.get_province().id) {
