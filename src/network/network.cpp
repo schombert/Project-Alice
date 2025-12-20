@@ -599,7 +599,6 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		if(command::can_notify_player_kick(state, leaving_player_nation, client.player_id)) {
 			command::notify_player_kick(state, leaving_player_nation, make_ai, client.player_id);
 		}
-		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_player_kick_data));
 		command::command_data cmd{ command::command_type::notify_player_kick, client.player_id };
 		command::notify_player_kick_data data{ false };
 		cmd << data;
@@ -613,19 +612,62 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		if(command::can_notify_player_ban(state, leaving_player_nation, client.player_id)) {
 			command::notify_player_ban(state, leaving_player_nation, make_ai, client.player_id);
 		}
-		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_player_ban_data));
 		command::command_data cmd{ command::command_type::notify_player_ban, client.player_id };
 		command::notify_player_ban_data data{ false };
 		cmd << data;
 		socket_add_command_to_send_queue(last_send_buffer, &cmd);
 		break;
 	}
+	case disconnect_reason::timed_out:
+	{
+		if(command::can_notify_player_timeout(state, leaving_player_nation, make_ai, client.player_id)) {
+			command::notify_player_timeout(state, leaving_player_nation, make_ai, client.player_id);
+		}
+		command::command_data cmd{ command::command_type::notify_player_timeout, client.player_id };
+		command::notify_player_timeout_data data{ false };
+		cmd << data;
+		socket_add_command_to_send_queue(last_send_buffer, &cmd);
+		break;
+	}
+	case disconnect_reason::incorrect_password:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_wrong_password;
+		socket_add_to_send_queue(last_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+	case disconnect_reason::name_taken:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_name_taken;
+		socket_add_to_send_queue(last_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+
+	case disconnect_reason::on_banlist:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_on_banlist;
+		socket_add_to_send_queue(last_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+	case disconnect_reason::game_has_ended:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_game_ended;
+		socket_add_to_send_queue(last_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+
 	default:
 	{
 		if(command::can_notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id)) {
 			command::notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id);
 		}
-		//last_send_buffer.resize(sizeof(command::cmd_header) + sizeof(command::notify_leaves_data));
 		command::command_data cmd{ command::command_type::notify_player_leaves, client.player_id };
 		command::notify_leaves_data data{ false };
 		cmd << data;
@@ -960,59 +1002,91 @@ void client_send_handshake(sys::state& state) {
 
 int client_process_handshake(sys::state& state) {
 	int r = socket_recv(state.network_state.socket_fd, &state.network_state.s_hshake, sizeof(state.network_state.s_hshake), &state.network_state.recv_count, [&]() {
-		if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
-			bool found_match = false;
-			// Find a scenario with a matching checksum
-			auto dir = simple_fs::get_or_create_scenario_directory();
-			for(const auto& uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
-				auto f = simple_fs::open_file(uf);
-				if(f) {
-					auto contents = simple_fs::view_contents(*f);
-					sys::scenario_header scen_header;
-					if(contents.file_size > sizeof(sys::scenario_header)) {
-						sys::read_scenario_header(reinterpret_cast<const uint8_t*>(contents.data), scen_header);
-						if(!scen_header.checksum.is_equal(state.network_state.s_hshake.scenario_checksum))
-							continue; // Same checksum
-						if(scen_header.version != sys::scenario_file_version)
-							continue; // Same version of scenario
-						if(sys::try_read_scenario_and_save_file(state, simple_fs::get_file_name(uf))) {
-							state.fill_unsaved_data();
-							found_match = true;
-							break;
+		switch(state.network_state.s_hshake.result) {
+		case handshake_result::fail_name_taken:
+		{
+			ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_name_taken"));
+			finish(state, false);
+			break;
+		}
+		case handshake_result::fail_wrong_password:
+		{
+			ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_incorrect_password"));
+			finish(state, false);
+			break;
+		}
+		case handshake_result::fail_on_banlist:
+		{
+			ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_on_banlist"));
+			finish(state, false);
+			break;
+		}
+		case handshake_result::fail_game_ended:
+		{
+			ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_game_ended"));
+			finish(state, false);
+			break;
+		}
+		// sucess
+		default:
+		{
+			if(!state.scenario_checksum.is_equal(state.network_state.s_hshake.scenario_checksum)) {
+				bool found_match = false;
+				// Find a scenario with a matching checksum
+				auto dir = simple_fs::get_or_create_scenario_directory();
+				for(const auto& uf : simple_fs::list_files(dir, NATIVE(".bin"))) {
+					auto f = simple_fs::open_file(uf);
+					if(f) {
+						auto contents = simple_fs::view_contents(*f);
+						sys::scenario_header scen_header;
+						if(contents.file_size > sizeof(sys::scenario_header)) {
+							sys::read_scenario_header(reinterpret_cast<const uint8_t*>(contents.data), scen_header);
+							if(!scen_header.checksum.is_equal(state.network_state.s_hshake.scenario_checksum))
+								continue; // Same checksum
+							if(scen_header.version != sys::scenario_file_version)
+								continue; // Same version of scenario
+							if(sys::try_read_scenario_and_save_file(state, simple_fs::get_file_name(uf))) {
+								state.fill_unsaved_data();
+								found_match = true;
+								break;
+							}
 						}
 					}
 				}
-			}
-			if(!found_match) {
-				std::string msg = "Could not find a scenario with a matching checksum!"
-					"This is most likely a false positive, so just ask the host for their"
-					"scenario file and it should work. Or you haven't clicked on 'Make scenario'!";
-				msg += "\n";
-				msg += "Host should give you the scenario from:\n"
-					"'My Documents\\Project Alice\\scenarios\\<Most recent scenario>'";
-				msg += "And you place it on:\n"
-					"'My Documents\\Project Alice\\scenarios\\'\n";
+				if(!found_match) {
+					std::string msg = "Could not find a scenario with a matching checksum!"
+						"This is most likely a false positive, so just ask the host for their"
+						"scenario file and it should work. Or you haven't clicked on 'Make scenario'!";
+					msg += "\n";
+					msg += "Host should give you the scenario from:\n"
+						"'My Documents\\Project Alice\\scenarios\\<Most recent scenario>'";
+					msg += "And you place it on:\n"
+						"'My Documents\\Project Alice\\scenarios\\'\n";
 
-				window::emit_error_message(msg.c_str(), true);
+					window::emit_error_message(msg.c_str(), true);
+				}
 			}
-		}
-		state.session_host_checksum = state.network_state.s_hshake.save_checksum;
-		state.game_seed = state.network_state.s_hshake.seed;
-		state.local_player_nation = state.network_state.s_hshake.assigned_nation;
-		state.local_player_id = state.network_state.s_hshake.assigned_player_id;
-		state.host_settings = state.network_state.s_hshake.host_settings;
-		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
+			state.session_host_checksum = state.network_state.s_hshake.save_checksum;
+			state.game_seed = state.network_state.s_hshake.seed;
+			state.local_player_nation = state.network_state.s_hshake.assigned_nation;
+			state.local_player_id = state.network_state.s_hshake.assigned_player_id;
+			state.host_settings = state.network_state.s_hshake.host_settings;
+			state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 
 #ifndef NDEBUG
-		const auto now = std::chrono::system_clock::now();
-		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:handshake");
+			const auto now = std::chrono::system_clock::now();
+			state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:handshake");
 #endif
 
-		state.network_state.handshake = false;
+			state.network_state.handshake = false;
 
-		//update map
-		state.set_selected_province(dcon::province_id{});
-			});
+			//update map
+			state.set_selected_province(dcon::province_id{});
+
+			break;
+		}
+		}
+	});
 
 	return r;
 }
@@ -1028,6 +1102,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 
 	/* Send it data so the client is in sync with everyone else! */
 	server_handshake_data hshake;
+	hshake.result = handshake_result::sucess;
 	hshake.seed = state.game_seed;
 	hshake.assigned_nation = plnation;
 	hshake.scenario_checksum = state.scenario_checksum;
@@ -1664,7 +1739,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 				continue;
 			}
 
-			if(c.hshake_buffer.nickname.to_string_view() == client.hshake_buffer.nickname.to_string_view() && c.socket_fd != client.socket_fd) {
+			if(c.hshake_buffer.nickname == client.hshake_buffer.nickname && c.socket_fd != client.socket_fd) {
 				disconnect_client(state, client, false, disconnect_reason::name_taken);
 				return;
 			}
@@ -2160,10 +2235,6 @@ void finish(sys::state& state, bool notify_host) {
 #endif
 }
 
-
-void kick_player(sys::state& state, client_data& client) {
-	disconnect_client(state, client, true, disconnect_reason::kicked);
-}
 
 void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid) {
 	for(auto& client : state.network_state.clients) {

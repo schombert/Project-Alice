@@ -5553,6 +5553,42 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	network::delete_mp_player(state, leaving_player, make_ai);
 }
 
+
+
+void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
+
+	// only the host can use this command, so we use the disconnected players ID here in the header
+	command_data p{ command_type::notify_player_timeout, disconnected_player };
+	auto data = notify_player_timeout_data{ make_ai };
+	p << data;
+	add_to_command_queue(state, p);
+}
+bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
+	return bool(disconnected_player);
+}
+void execute_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
+	assert(disconnected_player);
+
+	if(disconnected_player == state.local_player_id) {
+		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_timed_out"));
+		return;
+	}
+
+	// send message and make it appear as if it is coming from the host
+	auto host = network::get_host_player(state);
+	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
+	ui::chat_message m{};
+	m.source = host_nation;
+	text::substitution_map sub{};
+	const auto& nickname = state.world.mp_player_get_nickname(disconnected_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
+	m.body = text::resolve_string_substitution(state, "chat_timed_out", sub);
+	m.set_sender_name(state.world.mp_player_get_nickname(host));
+	post_chat_message(state, m);
+
+	network::delete_mp_player(state, disconnected_player, make_ai);
+}
+
 void execute_change_ai_nation_state(sys::state& state, dcon::nation_id source, bool no_ai) 	{
 	state.world.nation_set_is_player_controlled(source, no_ai);
 }
@@ -5570,7 +5606,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	assert(banned_player);
 	// if we are banned, then display it to the user
 	if(banned_player == state.local_player_id) {
-		ui::popup_error_window(state, "Banned", "You were banned from the lobby by the host. Click \"OK\" to quit.");
+		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_banned"));
 		return;
 	}
 	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
@@ -5609,7 +5645,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	assert(kicked_player);
 	// if we are kicked, then display it to the user
 	if(kicked_player == state.local_player_id) {
-		ui::popup_error_window(state, "Kicked", "You were kicked from the lobby by the host. Click \"OK\" to quit.");
+		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_kicked"));
 		return;
 	}
 	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
@@ -6861,6 +6897,11 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		return can_notify_mp_data(state, c);
 	}
+	case command_type::notify_player_timeout:
+	{
+		const auto& data = c.get_payload<notify_player_timeout_data>();
+		return can_notify_player_timeout(state, source, data.make_ai, c.header.player_id);
+	}
 	}
 	return false;
 }
@@ -7675,6 +7716,12 @@ bool execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<notify_mp_data_data>();
 		execute_notify_mp_data(state, data);
+		break;
+	}
+	case command_type::notify_player_timeout:
+	{
+		const auto& data = c.get_payload<notify_player_timeout_data>();
+		execute_notify_player_timeout(state, source_nation, data.make_ai, c.header.player_id);
 		break;
 	}
 	}

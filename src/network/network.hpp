@@ -192,6 +192,14 @@ enum class disconnect_reason : uint8_t {
 	network_error = 8,
 };
 
+enum class handshake_result : uint8_t {
+	sucess = 0,
+	fail_name_taken = 1,
+	fail_wrong_password = 2,
+	fail_on_banlist = 3,
+	fail_game_ended = 4,
+};
+
 
 struct host_settings_s {
 	float alice_persistent_server_mode = 0.0f;
@@ -210,7 +218,6 @@ struct client_handshake_data {
 	sys::player_name nickname;
 	sys::player_password_raw player_password;
 	uint8_t lobby_password[16] = {0};
-	uint8_t reserved[24] = {0};
 };
 
 struct server_handshake_data {
@@ -220,7 +227,7 @@ struct server_handshake_data {
 	dcon::nation_id assigned_nation;
 	dcon::mp_player_id assigned_player_id;
 	network::host_settings_s host_settings;
-	uint8_t reserved[64] = {0};
+	handshake_result result;
 };
 
 struct client_data {
@@ -298,7 +305,6 @@ void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state, bool notify_host);
 void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid);
-void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);

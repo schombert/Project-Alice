@@ -129,8 +129,9 @@ enum class command_type : uint8_t {
 
 
 		// network
+		notify_player_timeout = 233,// Sent to every client in the lobby to notify a client has timed out. Is also sent to the timed-out client socket, incase they get can receive it.
 		notify_oos_gamestate = 234, // sent from Client to Host, with the clients OOS gamestate for the host to compare, and generate report from. NOT SAFE for use to untrusted clients as there is no safety in seralizing the binary blob which the client sends.
-		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
+		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded. MP data is data which needs to be sent to the client from host, but dosent make sense to store in the save (eg. player data and which nations are on ai)
 		resync_lobby = 236,
 		notify_player_ban = 237,
 		notify_player_kick = 238,
@@ -491,6 +492,9 @@ struct notify_player_ban_data {
 struct notify_player_kick_data {
 	bool make_ai;
 };
+struct notify_player_timeout_data {
+	bool make_ai;
+};
 struct notify_oos_gamestate_data {
 	uint32_t size;
 	const uint8_t* gamestate_data() const {
@@ -708,6 +712,7 @@ static const ankerl::unordered_dense::map<command::command_type, command::comman
 	{ command_type::console_command, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::resync_lobby, command_handler{ 0, 0 , &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::notify_player_timeout, command_handler{ sizeof(notify_player_timeout_data), sizeof(notify_player_timeout_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 };
 
 
@@ -1147,6 +1152,9 @@ bool can_notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
 void resync_lobby(sys::state& state, dcon::nation_id source);
+
+void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);
+bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);
 
 dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 
