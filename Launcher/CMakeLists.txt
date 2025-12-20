@@ -100,7 +100,7 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c PRO
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
-target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
+#target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
 
 if (WIN32)
 	target_link_libraries(launch_alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)

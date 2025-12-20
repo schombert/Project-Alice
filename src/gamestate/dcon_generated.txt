@@ -5984,7 +5984,7 @@ object{
 
 	property{
 		name{ nickname }
-		type{ std::array<uint8_t,24> }
+		type{ sys::player_name }
 		tag { keep_after_state_reload }
 		tag { mp_data }
 	}

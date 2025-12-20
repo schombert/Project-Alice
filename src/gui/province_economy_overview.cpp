@@ -1,4 +1,9 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 struct province_economy_overview_body_prices_details_t;
 struct province_economy_overview_body_trade_details_t;
 struct province_economy_overview_body_import_value_icon_t;
@@ -3991,6 +3996,10 @@ std::unique_ptr<ui::element_base> make_province_economy_overview_method_payback(
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 // BEGIN price_entry::median_price::update
 //////////////////////////////	set_text(state, text::format_money(state.world.commodity_get_median_price(price_entry.commodity)));

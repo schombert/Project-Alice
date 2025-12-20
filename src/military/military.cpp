@@ -6696,7 +6696,8 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 
 // implementation of what it sorts by can change, for now it sorts by strength and puts the highest str brigades in front of the queue
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
-	std::sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
+	// We must use stable_sort here or the sorting of identical values may not be deterministic
+	std::stable_sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
 }
 // gets the recon efficiency of an army, for display in ui mostly
 float get_army_recon_eff(sys::state& state, dcon::army_id army) {

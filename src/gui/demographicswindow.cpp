@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct demographicswindow_main_show_filters_t;
 struct demographicswindow_main_reset_filters_t;
 struct demographicswindow_main_only_pops_toggle_t;
@@ -12205,6 +12209,9 @@ std::unique_ptr<ui::element_base> make_demographicswindow_pops_header(sys::state
 	ptr->on_create(state);
 	return ptr;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 // BEGIN state_row::location::lbutton_action
 //////////	auto p = state.world.state_instance_get_capital(state_row.content);

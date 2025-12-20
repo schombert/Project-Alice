@@ -156,7 +156,6 @@ void mouse_click() {
 	}
 
 	const char* hereEnv = std::getenv("HERE");
-	std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
 
 	switch(obj_under_mouse) {
 	case ui_obj_close:
@@ -176,6 +175,18 @@ void mouse_click() {
 		return;
 	case ui_obj_play_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
+			std::string alicePath;
+			__builtin_cpu_init();
+			// check if cpu supports avx. If it supports neither then fallbackt to SSE
+			if(__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512cd") && __builtin_cpu_supports("avx512bw") && __builtin_cpu_supports("avx512dq") && __builtin_cpu_supports("avx512vl")) {
+				alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice512" : "./Alice512";
+			}
+			else if(__builtin_cpu_supports("avx2")) {
+				alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
+			}
+			else {
+				alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/AliceSSE" : "./AliceSSE";
+			}
 			std::vector<native_string> args;
 			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
@@ -201,6 +212,8 @@ void mouse_click() {
 	case ui_obj_join_game:
 		if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
 			std::vector<std::string> args;
+			// always run SSE in MP to catch lowest common denominator
+			std::string alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/AliceSSE" : "./AliceSSE";
 			args.push_back(native_string(alicePath));
 			args.push_back(selected_scenario_file);
 

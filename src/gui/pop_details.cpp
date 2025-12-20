@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct pop_details_main_location_value_t;
 struct pop_details_main_job_value_t;
 struct pop_details_main_mil_value_t;
@@ -9377,6 +9381,11 @@ std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state&
 	ptr->on_create(state);
 	return ptr;
 }
+
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 // BEGIN main::close_button::lbutton_action
 //////////////////////////////////////	main.set_visible(state, false);

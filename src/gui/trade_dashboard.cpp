@@ -1,4 +1,9 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 struct trade_dashboard_main_per_commodity_details_t;
 struct trade_dashboard_main_per_nation_details_t;
 struct trade_dashboard_main_nation_import_per_commodity_t;
@@ -6333,5 +6338,9 @@ std::unique_ptr<ui::element_base> make_trade_dashboard_nation_selector(sys::stat
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }

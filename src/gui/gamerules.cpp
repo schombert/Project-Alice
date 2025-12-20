@@ -1,4 +1,10 @@
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
+
 namespace alice_ui {
+
 struct gamerules_main_t;
 struct gamerules_gamerule_item_desc_text_t;
 struct gamerules_gamerule_item_current_setting_t;
@@ -817,4 +823,8 @@ std::unique_ptr<ui::element_base> make_gamerules_gamerule_opt(sys::state& state)
 	return ptr;
 }
 // LOST-CODE
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 }

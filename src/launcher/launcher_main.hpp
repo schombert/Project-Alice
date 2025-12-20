@@ -1304,6 +1304,6 @@ float base_text_extent(char const* codepoints, uint32_t count, int32_t size, tex
 }
 
 static int32_t active_textbox = -1;
-bool is_cursor_visible = true;
+static bool is_cursor_visible = true;
 
 }

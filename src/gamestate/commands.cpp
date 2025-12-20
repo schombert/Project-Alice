@@ -53,6 +53,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::resync_lobby:
+	case command_type::notify_oos_gamestate:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	case command_type::change_game_rule_setting:
@@ -5551,7 +5552,8 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{ state.world.mp_player_get_nickname(leaving_player) }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(leaving_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5576,7 +5578,7 @@ bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_p
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	assert(banned_player);
-	auto& nickname = state.world.mp_player_get_nickname(banned_player);
+	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
 	
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5593,7 +5595,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5616,7 +5618,7 @@ bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player) {
 	assert(kicked_player);
-	auto nickname = state.world.mp_player_get_nickname(kicked_player);
+	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
 	
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -5634,7 +5636,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	m.source = host_nation;
 	text::substitution_map sub{};
 
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5663,6 +5665,16 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player) {
 	network::switch_one_player(state, target, source, player);
+}
+
+
+bool can_notify_player_oos(sys::state& state, command_data& command) {
+	auto player = command.header.player_id;
+	// can't notify oos if there already are oos
+	if(state.world.mp_player_get_is_oos(player)) {
+		return false;
+	}
+	return true;
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -5699,8 +5711,8 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	auto nickname = state.world.mp_player_get_nickname(oos_player);
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(oos_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5710,6 +5722,44 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 #endif
 
 }
+
+
+
+void notify_oos_gamestate(sys::state& state, dcon::nation_id source) {
+	uint32_t size = 0;
+	auto mp_state_data = network::write_network_entire_mp_state(state, size);
+
+	command_data p{ command_type::notify_oos_gamestate, state.local_player_id };
+	auto data = notify_oos_gamestate_data{ };
+	data.size = size;
+	p << data;
+	p.push_ptr(mp_state_data.get(), size);
+	add_to_command_queue(state, p);
+}
+
+bool can_notify_oos_gamestate(sys::state& state, command_data& command) {
+	const auto& payload = command.get_payload<notify_oos_gamestate_data>();
+	// check that the data length is correct before reading from it
+	if(!command.check_variable_size_payload<notify_oos_gamestate_data>(payload.size)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+
+	auto player = command.header.player_id;
+	// can't send oos gamestate if the player sending it isn't oos
+	return state.world.mp_player_get_is_oos(player);
+}
+
+
+void execute_notify_oos_gamestate(sys::state& state, dcon::nation_id source, dcon::mp_player_id oos_player, const uint8_t* oos_gamestate_data, uint32_t data_size) {
+
+	std::unique_ptr<sys::state> oos_gamestate = std::make_unique<sys::state>();
+	read_entire_mp_state(oos_gamestate_data, oos_gamestate_data + data_size, *oos_gamestate);
+	network::dump_oos_report(state, *oos_gamestate);
+	
+}
+
+
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
 
@@ -5722,9 +5772,15 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
+	
+	state.single_game_tick();
+
+	// We check OOS AFTER the tick. That way the oos notification will be sent after without processing a whole other tick. If it was done before, it would process the tick first, then send the oos notification after.
+	// TODO: Maybe add the OOS notification command here directly, and skip the queue so no actions are performed?
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
-			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			
+			if(network::should_do_oos_check(state)) {
 #ifndef NDEBUG
 				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
 					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
@@ -5745,8 +5801,7 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 		state.actual_game_speed = speed;
 	}
 
-	// state.current_date = new_date;
-	state.single_game_tick();
+
 
 	// Notify server that we're still here
 	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
@@ -6710,7 +6765,11 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::notify_player_oos:
 	{
-		return true; //return can_notify_player_oos(state, c.source);
+		return can_notify_player_oos(state, c);
+	}
+	case command_type::notify_oos_gamestate:
+	{
+		return can_notify_oos_gamestate(state, c);
 	}
 	case command_type::advance_tick:
 	{
@@ -7507,6 +7566,12 @@ bool execute_command(sys::state& state, command_data& c) {
 		execute_notify_player_oos(state, source_nation, c.header.player_id);
 		break;
 	}
+	case command_type::notify_oos_gamestate:
+	{
+		const auto& data = c.get_payload<notify_oos_gamestate_data>();
+		execute_notify_oos_gamestate(state, source_nation, c.header.player_id, data.gamestate_data(), data.size);
+		break;
+	}
 	case command_type::advance_tick:
 	{
 		auto& data = c.get_payload<advance_tick_data>();
@@ -7617,7 +7682,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	return true;
 }
 
-bool valid_host_receive_commands(command_type type) {
+bool valid_host_receive_commands(command_type type, const sys::state& state) {
 	switch(type) {
 	case command::command_type::invalid:
 	case command::command_type::notify_player_ban:
@@ -7635,6 +7700,9 @@ bool valid_host_receive_commands(command_type type) {
 	case command::command_type::resync_lobby:
 	case command::command_type::notify_mp_data:
 		return false;
+	case command::command_type::notify_oos_gamestate:
+		// Only allow the client to send oos gamestate if debug mode is on.
+		return state.host_settings.oos_debug_mode;
 	default:
 		return true;
 	}
@@ -7643,6 +7711,7 @@ bool valid_host_receive_commands(command_type type) {
 bool should_broadcast_command(sys::state& state, const command_data& command) {
 	switch(command.header.type) {
 	case command_type::resync_lobby:
+	case command_type::notify_oos_gamestate:
 		return false;
 	default:
 		return true;

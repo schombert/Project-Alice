@@ -4,57 +4,7 @@
 #include "unordered_dense.h"
 #include "dcon_generated_ids.hpp"
 
-namespace ui {
 
-struct chat_message {
-	dcon::nation_id source{};
-	dcon::nation_id target{};
-	std::string body;
-	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
-	std::unique_ptr<uint8_t> sender_name;
-
-	chat_message() {
-		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
-	}
-	chat_message(const chat_message& m) {
-		sender_name = std::unique_ptr<uint8_t>(new uint8_t[24]);
-		source = m.source;
-		target = m.target;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-	}
-	chat_message(chat_message&&) = default;
-	chat_message& operator=(const chat_message& m) {
-		if(this == &m)
-			return *this;
-		source = m.source;
-		target = m.target;
-		body = m.body;
-		memcpy(sender_name.get(), m.sender_name.get(), 24);
-		return *this;
-	}
-	chat_message& operator=(chat_message&&) = default;
-	~chat_message() {
-	}
-
-	bool operator==(chat_message const& o) const {
-		return source == o.source && target == o.target && body == o.body;
-	}
-	bool operator!=(chat_message const& o) const {
-		return !(*this == o);
-	}
-	void set_sender_name(const std::array<uint8_t, 24>& name) {
-		for(uint16_t i = 0; i < 24; i++) {
-			sender_name.get()[i] = name[i];
-		}
-	}
-	std::array<uint8_t, 24> get_sender_name() {
-		std::array<uint8_t, 24> result;
-		memcpy(&result, sender_name.get(), sizeof(result));
-		return result;
-	}
-};
-}
 
 namespace sys {
 struct state; // this is here simply to declare the state struct in a very general location
@@ -322,7 +272,7 @@ public:
 namespace sys {
 
 struct checksum_key {
-	static constexpr uint32_t key_size = 64;
+	static constexpr uint32_t key_size = 32;
 	uint8_t key[key_size] = { 0 };
 
 	bool is_equal(const checksum_key& a) noexcept {
@@ -344,67 +294,6 @@ struct checksum_key {
 };
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
-template<size_t _Size>
-struct player_value {
-	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	std::string_view to_string_view() const noexcept {
-		for(uint32_t i = 0; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
-			}
-		}
-		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
-	}
-
-	player_value<_Size> from_string_view(std::string_view sv) noexcept {
-		size_t length_to_copy = std::min(sv.size(), data.size());
-		sv.copy(reinterpret_cast<char*>(data.data()), length_to_copy);
-		return *this;
-	}
-
-	bool is_equal(player_value<_Size> other) {
-		return other.data == data;
-	}
-
-	std::string to_string() const noexcept {
-		return std::string(to_string_view());
-	}
-
-	bool empty() noexcept {
-		return data[0] == ' ' || data[0] == '\0';
-	}
-
-	void append(char c) noexcept {
-		for(uint32_t i = 0; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				data[i] = c;
-				return;
-			}
-		}
-	}
-
-	char pop() noexcept {
-		for(uint32_t i = 1; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				auto pop = data[i - 1];
-				data[i - 1] = ' ';
-				return pop;
-			}
-		}
-		return ' ';
-	}
-};
-
-using player_name = player_value<24>;
-using player_password_salt = player_value<24>;
-using player_password_hash = player_value<64>;
-using player_password_raw = player_value<24>;
-
-static_assert(sizeof(player_name) == sizeof(player_name::data));
-static_assert(sizeof(player_password_salt) == sizeof(player_password_salt::data));
-static_assert(sizeof(player_password_hash) == sizeof(player_password_hash::data));
-static_assert(sizeof(player_password_raw) == sizeof(player_password_raw::data));
 
 struct macro_builder_template {
 	static constexpr uint32_t max_types = 48;
@@ -500,5 +389,54 @@ struct aui_pending_bytes {
 };
 
 } // namespace sys
+
+
+namespace ui {
+
+struct chat_message {
+	dcon::nation_id source{};
+	dcon::nation_id target{};
+	std::string body;
+	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
+	std::unique_ptr<sys::player_name> sender_name;
+
+	chat_message() {
+		sender_name = std::make_unique<sys::player_name>();
+	}
+	chat_message(const chat_message& m) {
+		sender_name = std::make_unique<sys::player_name>();
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+	}
+	chat_message(chat_message&&) = default;
+	chat_message& operator=(const chat_message& m) {
+		if(this == &m)
+			return *this;
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+		return *this;
+	}
+	chat_message& operator=(chat_message&&) = default;
+	~chat_message() {
+	}
+
+	bool operator==(chat_message const& o) const {
+		return source == o.source && target == o.target && body == o.body;
+	}
+	bool operator!=(chat_message const& o) const {
+		return !(*this == o);
+	}
+	void set_sender_name(const sys::player_name& name) {
+		sender_name.reset(new sys::player_name{ name });
+	}
+	sys::player_name& get_sender_name() const {
+		return *sender_name;
+	}
+};
+}
 
 

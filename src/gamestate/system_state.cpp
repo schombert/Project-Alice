@@ -1038,6 +1038,11 @@ void state::on_create() {
 // string pool functions
 //
 
+
+void remove_carriage_returns(std::string& str) {
+	str.erase(std::remove(str.begin(), str.end(), '\r'), str.end());
+}
+
 std::string_view state::to_string_view(dcon::text_key tag) const {
 	if(!tag)
 		return std::string_view();
@@ -3283,6 +3288,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			if(opened_file) {
 				auto content = view_contents(*opened_file);
 				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
 				lua_combined_script += "\n";
 			}
 		}
@@ -3291,6 +3297,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(hand_written_wrappers) {
 			auto content = view_contents(*hand_written_wrappers);
 			lua_combined_script += content.data;
+			simple_fs::standardize_newlines(lua_combined_script);
 			lua_combined_script += "\n";
 		}
 
@@ -3300,6 +3307,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(game_loop) {
 			auto content = view_contents(*game_loop);
 			lua_game_loop_script += content.data;
+			simple_fs::standardize_newlines(lua_game_loop_script);
 			lua_game_loop_script += "\n";
 		}
 
@@ -3309,6 +3317,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		if(ui_script) {
 			auto content = view_contents(*ui_script);
 			lua_ui_script += content.data;
+			simple_fs::standardize_newlines(lua_ui_script);
 			lua_ui_script += "\n";
 		}
 	}
@@ -4674,16 +4683,13 @@ void state::lua_notification(const std::string message) {
 }
 
 sys::checksum_key state::get_save_checksum() {
-	dcon::load_record loaded = world.make_serialize_record_store_save();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
+	auto size = sizeof_save_section(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
+	write_save_section(buffer.get(), *this, true);
 
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
 
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), size, nullptr, 0);
 	return key;
 }
 
@@ -4691,50 +4697,25 @@ sys::checksum_key state::get_save_checksum() {
 sys::checksum_key state::get_scenario_checksum() {
 
 
-	/*scenario_size sz = sizeof_scenario_section_test(*this);
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[sz.total_size]);
-
-	uint8_t* start = buffer.get();
-
-	start = write_scenario_section_test(start, *this);
+	auto size = sizeof_scenario_section(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size.total_size]);
+	write_scenario_section(buffer.get(), *this, true);
 
 
-
-
-	int32_t total_size_used = static_cast<int32_t>(start - buffer.get());
-
-	sys::checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
-	return key;*/
-
-
-
-	dcon::load_record loaded = world.make_serialize_record_store_scenario();
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
-
-	sys::checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	checksum_key key;
+	blake2b(&key, sizeof(key), buffer.get(), size.total_size, nullptr, 0);
 	return key;
 }
 
 sys::checksum_key state::get_mp_state_checksum() {
 
-	dcon::load_record loaded = world.make_serialize_record_store_mp_checksum_excluded();
+	auto size = sizeof_entire_mp_state(*this, true);
+	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[size]);
+	write_entire_mp_state(buffer.get(), *this, true);
 
-	auto buffer = std::unique_ptr<uint8_t[]>(new uint8_t[world.serialize_size(loaded)]);
-	std::byte* start = reinterpret_cast<std::byte*>(buffer.get());
-	world.serialize(start, loaded);
-
-	auto buffer_position = reinterpret_cast<uint8_t*>(start);
-	int32_t total_size_used = static_cast<int32_t>(buffer_position - buffer.get());
 
 	checksum_key key;
-	blake2b(&key, sizeof(key), buffer.get(), total_size_used, nullptr, 0);
+	blake2b(&key, sizeof(key), buffer.get(), size, nullptr, 0);
 	return key;
 }
 

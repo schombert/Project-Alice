@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct main_menu_base_save_and_exit_t;
 struct main_menu_base_save_t;
 struct main_menu_base_exit_t;
@@ -6292,5 +6296,9 @@ std::unique_ptr<ui::element_base> make_main_menu_message_setting_header(sys::sta
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 }

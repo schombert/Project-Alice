@@ -8,8 +8,6 @@
 
 namespace economy {
 
-enum class worker_effect : uint8_t { none = 0, input, output, throughput };
-
 template<typename T>
 auto desired_needs_spending([[maybe_unused]] sys::state const& state, [[maybe_unused]] T pop_indices) {
 	// TODO: gather pop types, extract cached needs sum, etc etc

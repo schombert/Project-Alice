@@ -2,6 +2,7 @@
 
 #include <chrono>
 #include "gui_units.hpp"
+#include "opengl_wrapper_containers.hpp"
 
 namespace ui {
 

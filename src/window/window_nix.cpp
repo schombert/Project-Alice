@@ -1,6 +1,7 @@
 #include "window.hpp"
 #include "map.hpp"
 #include "user_interactions.hpp"
+#include "system_state.hpp"
 
 #include <GLFW/glfw3.h>
 #include <unordered_map>

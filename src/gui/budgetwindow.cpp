@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct budgetwindow_main_income_amount_t;
 struct budgetwindow_main_expenses_amount_t;
 struct budgetwindow_main_admin_eff_amount_t;
@@ -4470,6 +4474,9 @@ std::unique_ptr<ui::element_base> make_budgetwindow_budget_header(sys::state& st
 	ptr->on_create(state);
 	return ptr;
 }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 // BEGIN main::debt_overlay::update
 //	set_visible(state, economy::interest_payment(state, state.local_player_nation) > 0);

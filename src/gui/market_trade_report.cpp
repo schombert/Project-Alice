@@ -1,4 +1,8 @@
 namespace alice_ui {
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct market_trade_report_body_report_header_t;
 struct market_trade_report_body_pivot_volume_header_t;
 struct market_trade_report_body_pivot_balance_top_header_t;
@@ -3067,6 +3071,10 @@ std::unique_ptr<ui::element_base> make_market_trade_report_trade_header(sys::sta
 	ptr->on_create(state);
 	return ptr;
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
 // BEGIN body::close_button::lbutton_action
 //////////////	body.set_visible(state, false);

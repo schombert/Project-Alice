@@ -82,10 +82,25 @@ struct textured_line_vertex_b_enriched_with_province_index {
 	glm::vec2 position;
 	glm::vec2 previous_point;
 	glm::vec2 next_point;
-	uint16_t province_index;
+	uint16_t province_index = 0;
+	uint16_t padding = 0;
 	float texture_coordinate = 0.f;
 	float distance = 0.f;
+	textured_line_vertex_b_enriched_with_province_index(glm::vec2 _position, glm::vec2 _previous_point, glm::vec2 _next_point, uint16_t _province_index, float _texture_coordinate, float _distance) :
+		position(_position), previous_point(_previous_point), next_point(_next_point), province_index(_province_index), texture_coordinate(_texture_coordinate), distance(_distance) { }
+	textured_line_vertex_b_enriched_with_province_index() { }
+	bool operator==(const textured_line_vertex_b_enriched_with_province_index& other) const = default;
 };
+// explicit padding because this will be memcmp'd and bitwise checksummed
+static_assert(sizeof(textured_line_vertex_b_enriched_with_province_index) ==
+	sizeof(textured_line_vertex_b_enriched_with_province_index::position) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::previous_point) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::next_point) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::province_index) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::padding) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::texture_coordinate) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::distance));
+
 
 struct text_line_vertex {
 	text_line_vertex() { };
@@ -113,6 +128,7 @@ struct border {
 	int count = 0;
 	dcon::province_adjacency_id adj;
 	uint16_t padding = 0;
+	bool operator==(const border&) const = default;
 };
 
 enum class map_view;

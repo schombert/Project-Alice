@@ -27,6 +27,7 @@
 #include "game_scene.hpp"
 #include "diplomatic_messages.hpp"
 #include "lua_alice_api.hpp"
+#include <persistent_server_extensions.hpp>
 
 namespace nations {
 
