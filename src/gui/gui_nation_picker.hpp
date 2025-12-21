@@ -172,19 +172,19 @@ public:
 			if(i->is_new_game) {
 				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 					auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-					ui::popup_error_window(state, "Scenario Error", msg);
+					auto discard = state.error_windows.try_push(ui::error_window{ "Scenario Error", msg });
 				} else {
 					loaded = true;
 				}
 			} else {
 				if(!sys::try_read_save_file(state, i->file_name)) {
 					auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
-					ui::popup_error_window(state, "Save Error", msg);
+					auto discard = state.error_windows.try_push(ui::error_window{ "Save Error", msg });
 					state.save_list_updated.store(true, std::memory_order::release); //update savefile list
 					//try loading save from scenario so we atleast have something to work on
 					if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
 						auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-						ui::popup_error_window(state, "Scenario Error", msg2);
+						auto discard2 = state.error_windows.try_push(ui::error_window{ "Scenario Error", msg2 });
 					} else {
 						loaded = true;
 					}
@@ -202,7 +202,7 @@ public:
 
 					// notfy every client that every client is now loading (loading the save)
 					for(auto& loading_client : state.network_state.clients) {
-						if(loading_client.is_active()) {
+						if(!loading_client.is_inactive_or_scheduled_shutdown()) {
 							network::notify_player_is_loading(state, loading_client.player_id, true);
 						}
 					}
@@ -648,7 +648,7 @@ public:
 		if(state.network_mode == sys::network_mode_type::host) {
 			bool old_disabled = disabled;
 			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
+				if(!client.is_inactive_or_scheduled_shutdown()) {
 					disabled = disabled || !client.send_buffer.empty();
 				}
 			}
@@ -677,7 +677,7 @@ public:
 				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
 			}
 			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
+				if(!client.is_inactive_or_scheduled_shutdown()) {
 					if(!client.send_buffer.empty()) {
 						text::substitution_map sub;
 						text::add_to_substitution_map(sub, text::variable_type::playername, client.hshake_buffer.nickname.to_string_view());

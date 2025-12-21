@@ -26,6 +26,7 @@
 #include "map_state.hpp"
 #include "immediate_mode_state.hpp"
 #include "network.hpp"
+#include "container_types_ui.hpp"
 
 namespace game_scene {
 scene_properties nation_picker();
@@ -931,6 +932,7 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<notification::message> new_messages;
 	rigtorp::SPSCQueue<military::naval_battle_report> naval_battle_reports;
 	rigtorp::SPSCQueue<military::land_battle_report> land_battle_reports;
+	rigtorp::SPSCQueue<ui::error_window> error_windows;
 
 	// internal game timer / update logic
 	std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -1048,7 +1050,7 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256), error_windows(256) {
 
 		key_data.push_back(0);
 	}

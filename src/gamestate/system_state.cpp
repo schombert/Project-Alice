@@ -788,6 +788,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(current_scene.accept_events) {
 			process_dialog_boxes(*this);
 		}
+		process_errorpopup_boxes(*this);
 		root_elm->impl_on_update(*this);
 
 		current_scene.on_game_state_update_update_ui(*this);

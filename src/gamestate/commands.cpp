@@ -5532,7 +5532,7 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_a
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
-	return bool(leaving_player);
+	return state.world.mp_player_is_valid(leaving_player);
 }
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	assert(leaving_player);
@@ -5564,13 +5564,13 @@ void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
-	return bool(disconnected_player);
+	return state.world.mp_player_is_valid(disconnected_player);
 }
 void execute_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
 	assert(disconnected_player);
 
 	if(disconnected_player == state.local_player_id) {
-		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_timed_out"));
+		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_timed_out") });
 		return;
 	}
 
@@ -5600,13 +5600,13 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 	add_to_command_queue(state, p);
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player) {
-	return bool(banned_player);
+	return state.world.mp_player_is_valid(banned_player);
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	assert(banned_player);
 	// if we are banned, then display it to the user
 	if(banned_player == state.local_player_id) {
-		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_banned"));
+		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_banned") });
 		return;
 	}
 	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
@@ -5638,14 +5638,14 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai,
 
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player) {
-	return bool(kicked_player);
+	return state.world.mp_player_is_valid(kicked_player);
 }
 
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player) {
 	assert(kicked_player);
 	// if we are kicked, then display it to the user
 	if(kicked_player == state.local_player_id) {
-		ui::popup_error_window(state, text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_kicked"));
+		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_kicked") });
 		return;
 	}
 	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
@@ -5855,7 +5855,7 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 		state.network_state.save_stream = true;
 		assert(save_size > 0);
 		if(save_size >= 32 * 1000 * 1000) { // 32 MB
-			ui::popup_error_window(state, "Network Error", "Network client save stream too big: " + network::get_last_error_msg());
+			auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client save stream too big: " + network::get_last_error_msg() });
 			network::finish(state, false);
 			return;
 		}

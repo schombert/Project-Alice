@@ -199,6 +199,11 @@ enum class handshake_result : uint8_t {
 	fail_on_banlist = 3,
 	fail_game_ended = 4,
 };
+enum class client_state : uint8_t {
+	normal = 0,
+	flushing = 1,
+	shutting_down = 2
+};
 
 
 struct host_settings_s {
@@ -247,12 +252,26 @@ struct client_data {
 	size_t save_stream_size = 0;
 	bool handshake = true;
 	bool receiving_payload_flag = false;
+	client_state client_state = client_state::normal;
+	time_t shutdown_time;
 
 	sys::date last_seen;
 
 	bool is_banned(sys::state& state) const;
 	inline bool is_active() const {
 		return socket_fd > 0;
+	}
+	inline bool is_inactive_or_scheduled_shutdown() const {
+		return !is_active() || client_state != client_state::normal;
+	}
+	inline bool can_add_data() const {
+		return is_active() && client_state == client_state::normal;
+	}
+	inline bool can_send_data() const {
+		return is_active() && client_state != client_state::shutting_down;
+	}
+	inline bool is_flushing() const {
+		return is_active() && client_state == client_state::flushing;
 	}
 };
 
