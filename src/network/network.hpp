@@ -357,6 +357,9 @@ bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
 void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason);
 
+// Adds a command directly to the specific player's send buffer, skipping the command queue.
+void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, const command::command_data& command);
+
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
 void player_joins(sys::state& state, client_data& joining_client, dcon::nation_id player_nation);

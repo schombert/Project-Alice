@@ -348,10 +348,14 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 			}
 			return err;
 #else
-			return r;
+			int err = errno;
+			if(err == EWOULDBLOCK || err == EAGAIN || err == ENOBUFS) {
+				return 0;
+			}
+			return err;
 #endif
 		} else if(r == 0) {
-			break;
+			return -2; // socket gracefully closed
 		}
 	}
 	// Did we receive the amount of data?
@@ -423,10 +427,14 @@ static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 			}
 			return err;
 #else
-			return r;
+			int err = errno;
+			if(err == EWOULDBLOCK || err == EAGAIN || err == ENOBUFS) {
+				return 0;
+			}
+			return err;
 #endif
 		} else if(r == 0) {
-			break;
+			return -2; // socket gracefully closed
 		}
 	}
 	return 0;
@@ -604,41 +612,6 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 	//std::vector<char> last_send_buffer;
 	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(client.player_id);
 	switch(reason) {
-	case disconnect_reason::kicked:
-	{
-		if(command::can_notify_player_kick(state, leaving_player_nation, client.player_id)) {
-			command::notify_player_kick(state, leaving_player_nation, make_ai, client.player_id);
-		}
-		command::command_data cmd{ command::command_type::notify_player_kick, client.player_id };
-		command::notify_player_kick_data data{ false };
-		cmd << data;
-		socket_add_command_to_send_queue(client.send_buffer, &cmd);
-
-		break;
-	}
-		
-	case disconnect_reason::banned:
-	{
-		if(command::can_notify_player_ban(state, leaving_player_nation, client.player_id)) {
-			command::notify_player_ban(state, leaving_player_nation, make_ai, client.player_id);
-		}
-		command::command_data cmd{ command::command_type::notify_player_ban, client.player_id };
-		command::notify_player_ban_data data{ false };
-		cmd << data;
-		socket_add_command_to_send_queue(client.send_buffer, &cmd);
-		break;
-	}
-	case disconnect_reason::timed_out:
-	{
-		if(command::can_notify_player_timeout(state, leaving_player_nation, make_ai, client.player_id)) {
-			command::notify_player_timeout(state, leaving_player_nation, make_ai, client.player_id);
-		}
-		command::command_data cmd{ command::command_type::notify_player_timeout, client.player_id };
-		command::notify_player_timeout_data data{ false };
-		cmd << data;
-		socket_add_command_to_send_queue(client.send_buffer, &cmd);
-		break;
-	}
 	case disconnect_reason::incorrect_password:
 	{
 		// since this is during handshake, we send a handshake object back with the fail flag set
@@ -675,13 +648,6 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 
 	default:
 	{
-		if(command::can_notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id)) {
-			command::notify_player_leaves(state, leaving_player_nation, make_ai, client.player_id);
-		}
-		command::command_data cmd{ command::command_type::notify_player_leaves, client.player_id };
-		command::notify_leaves_data data{ false };
-		cmd << data;
-		socket_add_command_to_send_queue(client.send_buffer, &cmd);
 		break;
 	}
 	}
@@ -690,10 +656,6 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
 	log_player_nations(state);
 #endif
-	//We do an in-line socket_send here, because we need to send the data right before we shut down the socket so the client in question gets a notice.
-	//socket_send(client.socket_fd, last_send_buffer);
-	// shut down send operations, and set the flags so it can be cleaned up later
-	//shutdown_socket(client.socket_fd);
 	client.client_state = client_state::flushing;
 	client.shutdown_time = time(NULL);
 }
@@ -724,6 +686,10 @@ void send_network_command(sys::state& state, F&& client_selector, const command:
 	}
 
 
+}
+
+void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, const command::command_data& command) {
+	send_network_command(state, [&](const client_data& client) { return client.player_id == player_target; }, command);
 }
 
 template<typename F>
@@ -1614,6 +1580,7 @@ void notify_start_game(sys::state& state, network::client_data& client) {
 #endif
 }
 
+
 bool client_data::is_banned(sys::state& state) const {
 	if(state.network_state.as_v6) {
 		auto sa = (struct sockaddr_in6 const*)&address;
@@ -1810,6 +1777,7 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 
 	return r;
 }
+constexpr double GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT = 5.0;
 
 static void receive_from_clients(sys::state& state) {
 
@@ -1823,7 +1791,12 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 				state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
 #endif
-				network::disconnect_client(state, client, false, disconnect_reason::network_error);
+				disconnect_client(state, client, false, disconnect_reason::network_error);
+				continue;
+			}
+			// if connection was closed gracefully, we do so aswell
+			else if(r == -2) {
+				clear_socket(state, client);
 			}
 
 			return;
@@ -1839,7 +1812,12 @@ static void receive_from_clients(sys::state& state) {
 #if !defined(NDEBUG) && defined(_WIN32)
 			state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
 #endif
-			network::disconnect_client(state, client, false, disconnect_reason::network_error);
+			disconnect_client(state, client, false, disconnect_reason::network_error);
+			continue;
+		}
+		// if connection was closed gracefully, we do so aswell
+		else if(r == -2) {
+			clear_socket(state, client);
 		}
 	}
 }
@@ -1988,7 +1966,6 @@ bool should_do_oos_check(const sys::state& state) {
 	}
 }
 
-constexpr double GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT = 5.0;
 
 void clear_shut_down_sockets(sys::state& state) {
 	static char buffer[20] = { 0 };
@@ -1996,16 +1973,33 @@ void clear_shut_down_sockets(sys::state& state) {
 		if(client.client_state == client_state::shutting_down) {
 			int r = recv(client.socket_fd, buffer, sizeof(buffer), 0);
 			// either graceful shutdown, or sock error.
-			if(r <= 0) {
+			if(r < 0) {
+#ifdef _WIN32
+				int err = WSAGetLastError();
+				if(err != WSAENOBUFS && err != WSAEWOULDBLOCK) {
+					clear_socket(state, client);
+					continue;
+				}
+#else
+				int err = errno;
+				if(err != EWOULDBLOCK && err != EAGAIN && err != ENOBUFS) {
+					clear_socket(state, client);
+					continue;
+				}
+#endif
+				
+				
+			}
+			else if(r == 0) {
+				clear_socket(state, client);
+				continue;
+			}
+			// force shut it down it if it hasen't shut down willingly within 5 seconds
+			double diff = difftime(time(NULL), client.shutdown_time);
+			if(diff > GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT) {
 				clear_socket(state, client);
 			}
-			else {
-				// force shut it down it if it hasen't shut down willingly within 5 seconds
-				double diff = difftime(time(NULL), client.shutdown_time);
-				if(diff > GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT) {
-					clear_socket(state, client);
-				}
-			}
+			
 		}
 	}
 }
@@ -2164,8 +2158,8 @@ void send_and_receive_commands(sys::state& state) {
 						}
 					}
 					broadcast_to_clients(state, *c);
+					command_executed = true;
 				}
-				command_executed = true;
 			}
 			state.network_state.outgoing_commands.pop();
 			c = state.network_state.outgoing_commands.front();
@@ -2179,7 +2173,7 @@ void send_and_receive_commands(sys::state& state) {
 
 				// Drop lost clients
 				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					disconnect_client(state, client, true, disconnect_reason::timed_out);
+					command::notify_player_timeout(state, state.world.mp_player_get_nation_from_player_nation(client.player_id), false, client.player_id);
 				}
 				// Slow down for the lagging ones
 				else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {

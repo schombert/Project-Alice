@@ -5530,6 +5530,8 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_a
 	auto data = notify_leaves_data{ make_ai };
 	p << data;
 	add_to_command_queue(state, p);
+	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
+	network::add_command_to_player_buffer(state, leaving_player, p);
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	return state.world.mp_player_is_valid(leaving_player);
@@ -5537,6 +5539,9 @@ bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool ma
 void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	assert(leaving_player);
 
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::disconnect_player(state, leaving_player, make_ai, network::disconnect_reason::left_game);
+	}
 
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);
@@ -5562,6 +5567,8 @@ void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_
 	auto data = notify_player_timeout_data{ make_ai };
 	p << data;
 	add_to_command_queue(state, p);
+	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
+	network::add_command_to_player_buffer(state, disconnected_player, p);
 }
 bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
 	return state.world.mp_player_is_valid(disconnected_player);
@@ -5572,6 +5579,9 @@ void execute_notify_player_timeout(sys::state& state, dcon::nation_id source, bo
 	if(disconnected_player == state.local_player_id) {
 		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_timed_out") });
 		return;
+	}
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::disconnect_player(state, disconnected_player, make_ai, network::disconnect_reason::left_game);
 	}
 
 	// send message and make it appear as if it is coming from the host
@@ -5598,8 +5608,13 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 	auto data = notify_player_ban_data{ make_ai };
 	p << data;
 	add_to_command_queue(state, p);
+	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
+	network::add_command_to_player_buffer(state, banned_player, p);
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player) {
+	if(network::get_host_player(state) == banned_player) {
+		return false;
+	}
 	return state.world.mp_player_is_valid(banned_player);
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
@@ -5609,10 +5624,11 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_banned") });
 		return;
 	}
-	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
 	if(state.network_mode == sys::network_mode_type::host) {
+		network::disconnect_player(state, banned_player, make_ai, network::disconnect_reason::banned);
 		network::add_player_to_ban_list(state, banned_player);
 	}
+	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
 
 	// it should look like a message sent by the host
 
@@ -5635,9 +5651,14 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai,
 	auto data = notify_player_kick_data{ make_ai };
 	p << data;
 	add_to_command_queue(state, p);
+	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
+	network::add_command_to_player_buffer(state, kicked_player, p);
 
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player) {
+	if(network::get_host_player(state) == kicked_player) {
+		return false;
+	}
 	return state.world.mp_player_is_valid(kicked_player);
 }
 
@@ -5647,6 +5668,9 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	if(kicked_player == state.local_player_id) {
 		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_kicked") });
 		return;
+	}
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::disconnect_player(state, kicked_player, make_ai, network::disconnect_reason::banned);
 	}
 	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
 	
