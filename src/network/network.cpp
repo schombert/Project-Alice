@@ -26,6 +26,7 @@
 
 using std::format;
 #else // NIX
+#include <fcntl.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <netdb.h>
@@ -1712,8 +1713,13 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 			disconnect_client(state, client, false, disconnect_reason::incorrect_password);
 			return;
 		}
-
 		// Don't allow two players with the same nickname
+		// Check conflict with host name (us) first, as it won't appear in the client list
+		if(state.world.mp_player_get_nickname(state.local_player_id) == client.hshake_buffer.nickname) {
+			disconnect_client(state, client, false, disconnect_reason::name_taken);
+			return;
+		}
+
 		for(auto& c : state.network_state.clients) {
 			if(!c.is_active()) {
 				continue;
