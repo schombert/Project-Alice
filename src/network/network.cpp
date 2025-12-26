@@ -395,9 +395,9 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 	// otherwise, start receiving the payload
 	else {
 		auto payload_sz = data->header.payload_size;
-		auto cmd_mapping = command::command_type_handlers.find(data->header.type);
+		const auto* handler = command::command_type_handlers[data->header.type];
 		// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
-		if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.min_payload_size <= payload_sz && cmd_mapping->second.max_payload_size >= payload_sz) {
+		if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
 			data->payload.resize(payload_sz);
 			return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data->payload.data()), payload_sz, recv_count, [&]() { func(); *receiving_payload = false; });
 		}
@@ -449,8 +449,8 @@ static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data
 static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data) {
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
-	auto cmd_mapping = command::command_type_handlers.find(data->header.type);
-	if(cmd_mapping != command::command_type_handlers.end() && cmd_mapping->second.min_payload_size <= payload_sz && cmd_mapping->second.max_payload_size >= payload_sz) {
+	const auto* handler = command::command_type_handlers[data->header.type];
+	if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
 		// Send the header
 		socket_add_to_send_queue(buffer, data, sizeof(command::cmd_header));
 		// Then the payload
@@ -596,7 +596,6 @@ void clear_socket(sys::state& state, client_data& client) {
 	close_socket(client.socket_fd);
 	client.socket_fd = 0;
 	client.send_buffer.clear();
-	client.early_send_buffer.clear();
 	client.total_sent_bytes = 0;
 	client.save_stream_size = 0;
 	client.save_stream_offset = 0;
@@ -618,7 +617,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_wrong_password;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::name_taken:
@@ -626,7 +625,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_name_taken;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -635,7 +634,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_on_banlist;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::game_has_ended:
@@ -643,7 +642,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_game_ended;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -1089,7 +1088,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.save_checksum = state.get_save_checksum();
 	hshake.assigned_player_id = client.player_id;
 	hshake.host_settings = state.host_settings;
-	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+	socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
 
 
 #ifndef NDEBUG
@@ -2018,32 +2017,7 @@ void flush_closing_sockets(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(!client.is_flushing())
 			continue;
-		if(client.early_send_buffer.size() > 0) {
-			size_t old_size = client.early_send_buffer.size();
-			int r = socket_send(client.socket_fd, client.early_send_buffer);
-			if(r > 0) { // error
-#if !defined(NDEBUG) && defined(_WIN32)
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
-#endif
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
-				continue;
-			}
-			client.total_sent_bytes += old_size - client.early_send_buffer.size();
-#ifndef NDEBUG
-			if(old_size != client.early_send_buffer.size()) {
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
-			}
-
-#endif
-
-			if(client.early_send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
-			}
-		} else if(client.send_buffer.size() > 0) {
+		if(client.send_buffer.size() > 0) {
 			size_t old_size = client.send_buffer.size();
 			int r = socket_send(client.socket_fd, client.send_buffer);
 			if(r > 0) { // error
@@ -2080,26 +2054,7 @@ void server_send_to_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_inactive_or_scheduled_shutdown())
 			continue;
-		if(client.early_send_buffer.size() > 0) {
-			size_t old_size = client.early_send_buffer.size();
-			int r = socket_send(client.socket_fd, client.early_send_buffer);
-			if(r > 0) { // error
-#if !defined(NDEBUG) && defined(_WIN32)
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
-#endif
-				disconnect_client(state, client, false, disconnect_reason::network_error);
-				continue;
-			}
-			client.total_sent_bytes += old_size - client.early_send_buffer.size();
-#ifndef NDEBUG
-			if(old_size != client.early_send_buffer.size()) {
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
-			}
-
-#endif
-		} else if(client.send_buffer.size() > 0) {
+		if(client.send_buffer.size() > 0) {
 			size_t old_size = client.send_buffer.size();
 			int r = socket_send(client.socket_fd, client.send_buffer);
 			if(r > 0) { // error
@@ -2116,7 +2071,6 @@ void server_send_to_clients(sys::state& state) {
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 			}
-
 #endif
 		}
 	}
@@ -2276,7 +2230,6 @@ void send_and_receive_commands(sys::state& state) {
 				return;
 			}
 		}
-		assert(state.network_state.early_send_buffer.empty()); //do not use the early send buffer
 	}
 
 	if(command_executed) {

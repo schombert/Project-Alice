@@ -1,6 +1,7 @@
 #pragma once
 
 #include <vector>
+#include <type_traits>
 #include "unordered_dense.h"
 #include "dcon_generated_ids.hpp"
 
@@ -170,6 +171,30 @@ struct nation_hash {
 };
 
 } // namespace sys
+
+
+template<typename enum_type, typename value_type> requires std::is_enum<enum_type>::value
+class enum_array {
+private:
+	typedef std::underlying_type<enum_type>::type underlying_valuetype;
+	static constexpr underlying_valuetype MAX_INDEX = std::numeric_limits<underlying_valuetype>::max();
+	std::array<std::optional<value_type>, static_cast<size_t>(MAX_INDEX) + 1> data;
+public:
+	constexpr enum_array(const std::initializer_list<std::pair<enum_type, value_type>> initializer) {
+		for(auto& item : initializer) {
+			data[static_cast<size_t>(item.first)] = std::optional<value_type>{ item.second };
+		}
+	}
+	constexpr const value_type* operator[](enum_type index) const {
+		const auto* item =  &data[static_cast<size_t>(index)];
+		if(*item) {
+			return &item->value();
+		}
+		else {
+			return nullptr;
+		}
+	}
+};
 
 template<typename value_type, typename tag_type, typename allocator = std::allocator<value_type>>
 class tagged_vector {

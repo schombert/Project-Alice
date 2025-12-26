@@ -7754,23 +7754,24 @@ bool execute_command(sys::state& state, command_data& c) {
 }
 
 bool is_host_receive_command(command_type type, const sys::state& state) {
-	auto iterator = command_type_handlers.find(type);
+	const auto* handler = command_type_handlers[type];
 	// have bounds checking to guard against invalid commands
-	if(iterator == command_type_handlers.end()) {
+	if(handler) {
+		return handler->is_host_receive_command(state);
+	}
+	else {
 		return false;
-	} else {
-		return iterator->second.is_host_receive_command(state);
 	}
 }
 
 bool is_host_broadcast_command(const sys::state& state, const command_data& command) {
-	auto iterator = command_type_handlers.find(command.header.type);
+	const auto* handler = command_type_handlers[command.header.type];
 	// have bounds checking to guard against invalid commands
-	if(iterator == command_type_handlers.end()) {
-		return false;
+	if(handler) {
+		return handler->is_host_broadcast_command(state);
 	}
 	else {
-		return iterator->second.is_host_broadcast_command(state);
+		return false;
 	}
 }
 
