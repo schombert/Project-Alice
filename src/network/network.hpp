@@ -304,7 +304,6 @@ struct network_state {
 	bool yield_command_lock = false;
 	bool as_v6 = false;
 	bool as_server = false;
-	bool save_stream = false; //client
 	bool is_new_game = true; // has save been loaded?
 	bool out_of_sync = false; // network -> game state signal
 	bool reported_oos = false; // has oos been reported to host yet?

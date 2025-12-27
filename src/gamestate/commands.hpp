@@ -471,8 +471,12 @@ struct notify_joins_data {
 };
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
-	uint32_t length;
 	dcon::nation_id target;
+	uint32_t length;
+	const uint8_t* save_data() const {
+		return reinterpret_cast<const uint8_t*>(&length + 1);
+	}
+
 };
 struct notify_reload_data {
 	sys::checksum_key checksum;

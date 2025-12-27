@@ -735,6 +735,8 @@ void send_savegame(sys::state& state, F&& client_selector) {
 
 		c << payload;
 
+		c.push_ptr(state.network_state.current_save_buffer.get(), payload.length);
+
 		assert(state.network_state.current_save_length);
 
 		for(auto& client : state.network_state.clients) {
@@ -746,7 +748,7 @@ void send_savegame(sys::state& state, F&& client_selector) {
 				+ " | target playerid: " + std::to_string(client.player_id.index()));
 				log_player_nations(state);
 #endif
-				network::broadcast_save_to_single_client(state, c, client, state.network_state.current_save_buffer.get());
+				socket_add_command_to_send_queue(client.send_buffer, &c);
 			}
 		}
 
@@ -2198,41 +2200,6 @@ void send_and_receive_commands(sys::state& state) {
 				network::finish(state, false);
 				return;
 			}
-		} else if(state.network_state.save_stream) {
-			int r = socket_recv(state.network_state.socket_fd, state.network_state.save_data.data(), state.network_state.save_data.size(),
-				&state.network_state.recv_count, [&]() {
-#ifndef NDEBUG
-				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
-#endif
-				load_network_save(state, state.network_state.save_data.data());
-				auto mp_state_checksum = state.get_mp_state_checksum();
-
-#ifndef NDEBUG
-				assert(mp_state_checksum.is_equal(state.session_host_checksum));
-				const auto noww = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + sha512.hash(mp_state_checksum.to_char()));
-				log_player_nations(state);
-#endif
-
-				state.railroad_built.store(true, std::memory_order::release);
-				state.game_state_updated.store(true, std::memory_order::release);
-				state.map_state.unhandled_province_selection = true;
-				state.sprawl_update_requested.store(true, std::memory_order::release);
-				state.network_state.save_data.clear();
-				state.network_state.save_stream = false; // go back to normal command loop stuff
-				// check that the client gamestate is equal to the gamestate of the host, otherwise oos
-				if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
-					state.network_state.out_of_sync = true;
-				}
-				command::notify_player_fully_loaded(state, state.local_player_nation); // notify that we are loaded and ready to start
-
-			});
-			if(r > 0) { // error
-				auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client save stream receive error: " + get_last_error_msg() });
-				network::finish(state, false);
-				return;
-			}
 		} else {
 			// receive commands from the server and immediately execute them
 			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, state, [&]() {
@@ -2268,14 +2235,12 @@ void send_and_receive_commands(sys::state& state) {
 				c = state.network_state.outgoing_commands.front();
 			}
 		}
-		/* Do not send commands while we're on save stream mode! */
-		if(!state.network_state.save_stream) {
-			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-				auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client command send error: " + get_last_error_msg() });
-				network::finish(state, false);
-				return;
-			}
+		if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
+			auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client command send error: " + get_last_error_msg() });
+			network::finish(state, false);
+			return;
 		}
+		
 	}
 
 	if(command_executed) {
@@ -2296,40 +2261,39 @@ void finish(sys::state& state, bool notify_host) {
 
 	state.network_state.finished = true;
 	if(notify_host && state.network_mode == sys::network_mode_type::client) {
-		if(!state.network_state.save_stream) {
-			// send the outgoing commands to the server and flush the entire queue
-			{
-				auto* c = state.network_state.outgoing_commands.front();
-				while(c) {
-					if(c->header.type == command::command_type::save_game) {
-						command::execute_command(state, *c);
-					} else {
-						socket_add_command_to_send_queue(state.network_state.send_buffer, c);
-					}
-					state.network_state.outgoing_commands.pop();
-					c = state.network_state.outgoing_commands.front();
+		// send the outgoing commands to the server and flush the entire queue
+		{
+			auto* c = state.network_state.outgoing_commands.front();
+			while(c) {
+				if(c->header.type == command::command_type::save_game) {
+					command::execute_command(state, *c);
+				} else {
+					socket_add_command_to_send_queue(state.network_state.send_buffer, c);
 				}
-			}
-
-			command::command_data c{ command::command_type::notify_player_leaves, state.local_player_id };
-
-			command::notify_leaves_data payload{  };
-			payload.make_ai = (state.host_settings.alice_place_ai_upon_disconnection == 1);
-
-			c << payload;
-
-			socket_add_command_to_send_queue(state.network_state.send_buffer, &c);
-#ifndef NDEBUG
-			state.console_log("client:send:cmd | type:notify_player_leaves");
-#endif
-			while(state.network_state.send_buffer.size() > 0) {
-				if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
-					state.console_log("Network client command send error: " + get_last_error_msg());
-					//ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_last_error_msg());
-					break;
-				}
+				state.network_state.outgoing_commands.pop();
+				c = state.network_state.outgoing_commands.front();
 			}
 		}
+
+		command::command_data c{ command::command_type::notify_player_leaves, state.local_player_id };
+
+		command::notify_leaves_data payload{  };
+		payload.make_ai = (state.host_settings.alice_place_ai_upon_disconnection == 1);
+
+		c << payload;
+
+		socket_add_command_to_send_queue(state.network_state.send_buffer, &c);
+#ifndef NDEBUG
+		state.console_log("client:send:cmd | type:notify_player_leaves");
+#endif
+		while(state.network_state.send_buffer.size() > 0) {
+			if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer) != 0) { // error
+				state.console_log("Network client command send error: " + get_last_error_msg());
+				//ui::popup_error_window(state, "Network Error", "Network client command send error: " + get_last_error_msg());
+				break;
+			}
+		}
+		
 	}
 
 	shutdown_socket(state.network_state.socket_fd);

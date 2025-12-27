@@ -5864,7 +5864,7 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	p << data;
 	add_to_command_queue(state, p);
 }
-void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
+void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k, const uint8_t* save_data) {
 	state.session_host_checksum = k;
 	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
 	   Additionally we will clear the new client sending queue, since the state is no longer
@@ -5876,7 +5876,6 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	if(state.network_mode == sys::network_mode_type::client) {
 		auto& payload = state.network_state.recv_buffer.get_payload<command::notify_save_loaded_data>();
 		uint32_t save_size = payload.length;
-		state.network_state.save_stream = true;
 		assert(save_size > 0);
 		if(save_size >= 32 * 1000 * 1000) { // 32 MB
 			auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client save stream too big: " + network::get_last_error_msg() });
@@ -5885,6 +5884,31 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 		}
 		state.network_state.save_data.resize(static_cast<size_t>(save_size));
 	}
+
+#ifndef NDEBUG
+	const auto now = std::chrono::system_clock::now();
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
+#endif
+	network::load_network_save(state, save_data);
+	auto mp_state_checksum = state.get_mp_state_checksum();
+
+#ifndef NDEBUG
+	assert(mp_state_checksum.is_equal(state.session_host_checksum));
+	const auto noww = std::chrono::system_clock::now();
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + network::sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + network::sha512.hash(mp_state_checksum.to_char()));
+	network::log_player_nations(state);
+#endif
+
+	state.railroad_built.store(true, std::memory_order::release);
+	state.game_state_updated.store(true, std::memory_order::release);
+	state.map_state.unhandled_province_selection = true;
+	state.sprawl_update_requested.store(true, std::memory_order::release);
+	state.network_state.save_data.clear();
+	// check that the client gamestate is equal to the gamestate of the host, otherwise oos
+	if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
+		state.network_state.out_of_sync = true;
+	}
+	command::notify_player_fully_loaded(state, state.local_player_nation); // notify that we are loaded and ready to start
 }
 
 void notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& mp_state_checksum) {
@@ -7646,7 +7670,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::notify_save_loaded:
 	{
 		auto& data = c.get_payload<notify_save_loaded_data>();
-		execute_notify_save_loaded(state, source_nation, data.checksum);
+		execute_notify_save_loaded(state, source_nation, data.checksum, data.save_data());
 		break;
 	}
 	case command_type::notify_reload:

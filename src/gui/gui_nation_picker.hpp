@@ -636,12 +636,6 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		disabled = !command::can_notify_start_game(state, state.local_player_nation);
-
-		if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) { //in the middle of a save stream
-				disabled = true;
-			}
-		}
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
@@ -655,11 +649,6 @@ public:
 			button_element_base::render(state, x, y);
 			disabled = old_disabled;
 		} else if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) {
-				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
-			} else {
-				set_button_text(state, text::produce_simple_string(state, "ready"));
-			}
 			button_element_base::render(state, x, y);
 		} else {
 			button_element_base::render(state, x, y);
@@ -673,9 +662,6 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			}
 			for(auto const& client : state.network_state.clients) {
 				if(!client.is_inactive_or_scheduled_shutdown()) {
 					if(!client.send_buffer.empty()) {
