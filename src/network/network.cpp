@@ -596,6 +596,7 @@ void clear_socket(sys::state& state, client_data& client) {
 	close_socket(client.socket_fd);
 	client.socket_fd = 0;
 	client.send_buffer.clear();
+	client.early_send_buffer.clear();
 	client.total_sent_bytes = 0;
 	client.save_stream_size = 0;
 	client.save_stream_offset = 0;
@@ -617,7 +618,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_wrong_password;
-		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::name_taken:
@@ -625,7 +626,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_name_taken;
-		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -634,7 +635,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_on_banlist;
-		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::game_has_ended:
@@ -642,7 +643,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_game_ended;
-		socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -1088,7 +1089,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.save_checksum = state.get_save_checksum();
 	hshake.assigned_player_id = client.player_id;
 	hshake.host_settings = state.host_settings;
-	socket_add_to_send_queue(client.send_buffer, &hshake, sizeof(hshake));
+	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 
 
 #ifndef NDEBUG
@@ -2017,7 +2018,32 @@ void flush_closing_sockets(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(!client.is_flushing())
 			continue;
-		if(client.send_buffer.size() > 0) {
+		if(client.early_send_buffer.size() > 0) {
+			size_t old_size = client.early_send_buffer.size();
+			int r = socket_send(client.socket_fd, client.early_send_buffer);
+			if(r > 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+				const auto now = std::chrono::system_clock::now();
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+#endif
+				shutdown_socket(client.socket_fd);
+				client.client_state = client_state::shutting_down;
+				continue;
+			}
+			client.total_sent_bytes += old_size - client.early_send_buffer.size();
+#ifndef NDEBUG
+			if(old_size != client.early_send_buffer.size()) {
+				const auto now = std::chrono::system_clock::now();
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+			}
+
+#endif
+
+			if(client.early_send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
+				shutdown_socket(client.socket_fd);
+				client.client_state = client_state::shutting_down;
+			}
+		} else if(client.send_buffer.size() > 0) {
 			size_t old_size = client.send_buffer.size();
 			int r = socket_send(client.socket_fd, client.send_buffer);
 			if(r > 0) { // error
@@ -2054,7 +2080,26 @@ void server_send_to_clients(sys::state& state) {
 	for(auto& client : state.network_state.clients) {
 		if(client.is_inactive_or_scheduled_shutdown())
 			continue;
-		if(client.send_buffer.size() > 0) {
+		if(client.early_send_buffer.size() > 0) {
+			size_t old_size = client.early_send_buffer.size();
+			int r = socket_send(client.socket_fd, client.early_send_buffer);
+			if(r > 0) { // error
+#if !defined(NDEBUG) && defined(_WIN32)
+				const auto now = std::chrono::system_clock::now();
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
+#endif
+				disconnect_client(state, client, false, disconnect_reason::network_error);
+				continue;
+			}
+			client.total_sent_bytes += old_size - client.early_send_buffer.size();
+#ifndef NDEBUG
+			if(old_size != client.early_send_buffer.size()) {
+				const auto now = std::chrono::system_clock::now();
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+			}
+
+#endif
+		} else if(client.send_buffer.size() > 0) {
 			size_t old_size = client.send_buffer.size();
 			int r = socket_send(client.socket_fd, client.send_buffer);
 			if(r > 0) { // error
@@ -2071,6 +2116,7 @@ void server_send_to_clients(sys::state& state) {
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
 			}
+
 #endif
 		}
 	}

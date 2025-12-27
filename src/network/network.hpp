@@ -244,6 +244,7 @@ struct client_data {
 	command::command_data recv_buffer;
 	size_t recv_count = 0;
 	std::vector<char> send_buffer;
+	std::vector<char> early_send_buffer;
 
 	// accounting for save progress
 	size_t total_sent_bytes = 0;
@@ -287,6 +288,7 @@ struct network_state {
 	std::string ip_address = "127.0.0.1";
 	std::string port = "1984";
 	std::vector<char> send_buffer;
+	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
 	bool receiving_payload_flag = false;
 	std::vector<uint8_t> save_data; //client
