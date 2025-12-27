@@ -572,21 +572,10 @@ struct command_handler {
 	bool (*is_host_receive_command)(const sys::state& state) = nullptr;
 	bool (*is_host_broadcast_command)(const sys::state& state) = nullptr;
 
-	/*constexpr command_handler(command_handler&&) = default;
-	constexpr command_handler(const command_handler&) = default;
-	constexpr command_handler& operator=(const command_handler&) = default;
-
-	constexpr command_handler(uint32_t _min_payload_size, uint32_t _max_payload_size, bool (*_is_host_receive_command)(const sys::state& state), bool (*_is_host_broadcast_command)(const sys::state& state)) : min_payload_size(_min_payload_size), max_payload_size(_max_payload_size), is_host_receive_command(_is_host_receive_command), is_host_broadcast_command(_is_host_broadcast_command)
-	{
-
-	}
-	constexpr command_handler() {
-
-	}*/
-
 };
 
 constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire MP state
+constexpr uint32_t MAX_SAVE_SIZE = 32000000; // max 32 MB for entire save
 
 
 constexpr enum_array<command_type, command_handler> command_type_handlers = {
@@ -712,7 +701,7 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::notify_player_joins, command_handler{ sizeof(command::notify_joins_data), sizeof(command::notify_joins_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_leaves, command_handler{ sizeof(command::notify_leaves_data), sizeof(command::notify_leaves_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_oos, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) + MAX_SAVE_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_start_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_stop_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_pause_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },

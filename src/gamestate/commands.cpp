@@ -5864,6 +5864,21 @@ void notify_save_loaded(sys::state& state, dcon::nation_id source) {
 	p << data;
 	add_to_command_queue(state, p);
 }
+
+
+
+bool can_notify_save_loaded(sys::state& state, command_data& command) {
+	const auto& payload = command.get_payload<notify_save_loaded_data>();
+	// check that the data length is correct before reading from it
+	if(!command.check_variable_size_payload<notify_save_loaded_data>(payload.length)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+	return true;
+}
+
+
+
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k, const uint8_t* save_data) {
 	state.session_host_checksum = k;
 	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
@@ -5887,7 +5902,7 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
+	//state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
 #endif
 	network::load_network_save(state, save_data);
 	auto mp_state_checksum = state.get_mp_state_checksum();
@@ -5895,7 +5910,7 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 #ifndef NDEBUG
 	assert(mp_state_checksum.is_equal(state.session_host_checksum));
 	const auto noww = std::chrono::system_clock::now();
-	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + network::sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + network::sha512.hash(mp_state_checksum.to_char()));
+	//state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", noww) + " client:loadsave | checksum:" + network::sha512.hash(state.session_host_checksum.to_char()) + "| localchecksum: " + network::sha512.hash(mp_state_checksum.to_char()));
 	network::log_player_nations(state);
 #endif
 
@@ -6861,7 +6876,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	}
 	case command_type::notify_save_loaded:
 	{
-		return true; //return can_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+		return can_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
 	}
 	case command_type::notify_reload:
 	{
