@@ -6876,7 +6876,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	}
 	case command_type::notify_save_loaded:
 	{
-		return can_notify_save_loaded(state, c.source, c.data.notify_save_loaded.seed, c.data.notify_save_loaded.checksum);
+		return can_notify_save_loaded(state, c);
 	}
 	case command_type::notify_reload:
 	{
