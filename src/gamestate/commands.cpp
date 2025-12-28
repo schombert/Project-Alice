@@ -5622,6 +5622,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	// if we are banned, then display it to the user
 	if(banned_player == state.local_player_id) {
 		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_banned") });
+		network::finish(state, false);
 		return;
 	}
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5667,6 +5668,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	// if we are kicked, then display it to the user
 	if(kicked_player == state.local_player_id) {
 		auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_kicked") });
+		network::finish(state, false);
 		return;
 	}
 	if(state.network_mode == sys::network_mode_type::host) {
