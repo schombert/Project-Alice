@@ -202,8 +202,8 @@ public:
 
 					// notfy every client that every client is now loading (loading the save)
 					for(auto& loading_client : state.network_state.clients) {
-						if(!loading_client.is_inactive_or_scheduled_shutdown()) {
-							network::notify_player_is_loading(state, loading_client.player_id, true);
+						if(loading_client.can_add_data()) {
+							command::notify_player_is_loading(state, loading_client.player_id);
 						}
 					}
 
@@ -223,7 +223,7 @@ public:
 					for(auto& client : state.network_state.clients) {
 						client.last_seen = state.current_date;
 					}
-					network::broadcast_save_to_clients(state);
+					command::notify_save_loaded(state, network::selector_arg{ }, nullptr); // Send save to all clients
 				} else {
 					// in singleplayer, swap player to the local player nation. local_player_nation is loaded with the save, but we need to update other data too. In MP we keep the same existing nations for each player on saveload
 					nations::switch_all_players(state, state.local_player_nation, old_local_player_nation);

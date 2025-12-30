@@ -206,6 +206,8 @@ enum class client_state : uint8_t {
 };
 
 
+
+
 struct host_settings_s {
 	float alice_persistent_server_mode = 0.0f;
 	float alice_persistent_server_unpause = 12.f;
@@ -275,13 +277,23 @@ struct client_data {
 	}
 };
 
+typedef std::variant<dcon::mp_player_id> selector_arg;
+typedef bool (*selector_function)(const client_data&, const sys::state&, const selector_arg);
+
+struct command_data_and_selector {
+	command::command_data cmd_data;
+	selector_arg arg;
+	selector_function selector;
+};
+
 struct network_state {
 	server_handshake_data s_hshake;
 	sys::player_name nickname;
 	sys::player_password_raw player_password;
 	sys::checksum_key current_mp_state_checksum;
 	struct sockaddr_storage address;
-	rigtorp::SPSCQueue<command::command_data> outgoing_commands;
+	rigtorp::SPSCQueue<command_data_and_selector> server_outgoing_commands;
+	rigtorp::SPSCQueue<command::command_data> client_outgoing_commands;
 	std::array<client_data, 128> clients;
 	std::vector<struct in6_addr> v6_banlist;
 	std::vector<struct in_addr> v4_banlist;
@@ -313,7 +325,7 @@ struct network_state {
 	std::atomic<bool> clients_loading_state_changed; // flag to indicate if any client loading state has changed (client has started loading, finished loading, or left the game)
 	std::atomic<bool> any_client_loading_flag; // flag to signal if any clients are currently loading. If "clients_loading_state_changed" is false, it will use this instead, otherwise compute it manually by iterating over the players.
 
-	network_state() : outgoing_commands(4096) {}
+	network_state() : server_outgoing_commands(4096), client_outgoing_commands(4096) {}
 	~network_state() {}
 };
 
@@ -326,9 +338,7 @@ void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
-void broadcast_save_to_clients(sys::state& state);
-void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer);
-void broadcast_to_clients(sys::state& state, command::command_data& c);
+void broadcast_to_clients(sys::state& state, command_data_and_selector& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
@@ -346,7 +356,6 @@ bool check_any_players_loading(sys::state& state); // returns true if any player
 void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai);
 void mp_player_set_fully_loaded(sys::state& state, dcon::mp_player_id player, bool fully_loaded); // wrapper for setting a mp player to being fully loaded or not
 dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& name, const sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play = dcon::nation_id{} );
-void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name);

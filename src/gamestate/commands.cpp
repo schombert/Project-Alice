@@ -29,7 +29,7 @@ namespace command {
 bool is_console_command(command_type t) {
 	return uint8_t(t) == 255;
 }
-
+// This overload will broadcast the command to all clients in MP and SP, if is_host_broadcast_command is true
 void add_to_command_queue(sys::state& state, command_data& p) {
 #ifndef NDEBUG
 	assert(command::can_perform_command(state, p));
@@ -74,15 +74,21 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	switch(state.network_mode) {
 	case sys::network_mode_type::single_player:
 	{
-		bool b = state.incoming_commands.try_push(p);
+		bool b = state.singleplayer_commands.try_push(p);
 		break;
 	}
 	case sys::network_mode_type::client:
+	{
+		if(is_console_command(p.header.type))
+			break;
+		state.network_state.client_outgoing_commands.push(p);
+		break;
+	}
 	case sys::network_mode_type::host:
 	{
 		if(is_console_command(p.header.type))
 			break;
-		state.network_state.outgoing_commands.push(p);
+		state.network_state.server_outgoing_commands.push(network::command_data_and_selector{ p, network::selector_arg{ }, nullptr });
 		break;
 	}
 	default:
@@ -90,33 +96,59 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	}
 }
 
-//size_t command_size(command_type type) {
-//	switch(type) {
-//	case command_type::change_nat_focus:
-//		return sizeof(change_nat_focus);
-//	}
-//}
-//std::unique_ptr<command> create_command(command_type type) {
-//	switch(type) {
-//	case command_type::change_nat_focus:
-//		return std::make_unique<change_nat_focus>(type);
-//	}
-//}
-//
-//std::unique_ptr<uint8_t> command_data::serialize() {
-//	std::unique_ptr<uint8_t> data(new uint8_t[size()])
-//	switch(type) {
-//	case:
-//	}
-//}
-//size_t command_data::size() {
-//	size_t size = sizeof(command_data) - sizeof(cmd_payload);
-//	size += std::visit([](auto&& arg) {
-//		using T = std::decay_t<decltype(arg)>;
-//		return sizeof(T);
-//	}, payload);
-//	return size;
-//}
+
+// This overload will only broadcast the command to clients which pass the selector if is_host_broadcast_command is true. ONLY USABLE FOR HOST.
+void add_to_command_queue(sys::state& state, network::command_data_and_selector& p) {
+#ifndef NDEBUG
+	assert(command::can_perform_command(state, p.cmd_data));
+	assert(state.network_mode == sys::network_mode_type::host);
+#endif
+
+	switch(p.cmd_data.header.type) {
+
+	case command_type::notify_player_joins:
+	case command_type::notify_player_leaves:
+	case command_type::notify_player_picks_nation:
+	case command_type::notify_player_ban:
+	case command_type::notify_player_kick:
+	case command_type::notify_save_loaded:
+	case command_type::notify_reload:
+	case command_type::notify_player_oos:
+	case command_type::notify_pause_game:
+	case command_type::notify_player_fully_loaded:
+	case command_type::notify_player_is_loading:
+	case command_type::chat_message:
+	case command_type::change_ai_nation_state:
+	case command_type::notify_start_game:
+	case command_type::notify_stop_game:
+	case command_type::resync_lobby:
+	case command_type::notify_oos_gamestate:
+	case command_type::notify_mp_data:
+		// Notifications can be sent because it's an-always do thing
+		break;
+	case command_type::change_game_rule_setting:
+		// changing game rule can not happen whilst the game is in progress
+		if(state.current_scene.game_in_progress || network::check_any_players_loading(state))
+			return;
+		state.network_state.is_new_game = false;
+		break;
+
+	default:
+		// Normal commands are discarded iff we are not in the game, or if any other client is loading
+		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
+			return;
+		state.network_state.is_new_game = false;
+		break;
+	}
+
+	if(is_console_command(p.cmd_data.header.type)) {
+		return;
+	}
+	state.network_state.server_outgoing_commands.push(p);
+		
+	
+}
+
 
 
 void set_rally_point(sys::state& state, dcon::nation_id source, dcon::province_id location, bool naval, bool enable) {
@@ -5858,13 +5890,17 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	}
 }
 
-void notify_save_loaded(sys::state& state, dcon::nation_id source) {
+void notify_save_loaded(sys::state& state, network::selector_arg arg, network::selector_function client_selector) {
+	network::command_data_and_selector c{ { command::command_type::notify_save_loaded, state.local_player_id }, arg, client_selector };
+	command::notify_save_loaded_data payload{ };
 
-	command_data p{ command_type::notify_save_loaded, state.local_player_id };
-	auto data = notify_save_loaded_data{ };
-	data.target = dcon::nation_id{};
-	p << data;
-	add_to_command_queue(state, p);
+	payload.checksum = state.network_state.current_mp_state_checksum;
+	payload.length = size_t(state.network_state.current_save_length);
+
+	c.cmd_data << payload;
+
+	c.cmd_data.push_ptr(state.network_state.current_save_buffer.get(), payload.length);
+	add_to_command_queue(state, c);
 }
 
 
@@ -5882,6 +5918,10 @@ bool can_notify_save_loaded(sys::state& state, command_data& command) {
 
 
 void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::checksum_key& k, const uint8_t* save_data) {
+	// Host does not need to execute it
+	if(state.network_mode == sys::network_mode_type::host) {
+		return;
+	}
 	state.session_host_checksum = k;
 	/* Reset OOS state, and for host, advise new clients with a save stream so they can hotjoin!
 	   Additionally we will clear the new client sending queue, since the state is no longer
@@ -5889,19 +5929,6 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	state.network_state.is_new_game = false;
 	state.network_state.out_of_sync = false;
 	state.network_state.reported_oos = false;
-	// if client, enable save stream mode and set up other variables
-	if(state.network_mode == sys::network_mode_type::client) {
-		auto& payload = state.network_state.recv_buffer.get_payload<command::notify_save_loaded_data>();
-		uint32_t save_size = payload.length;
-		assert(save_size > 0);
-		if(save_size >= 32 * 1000 * 1000) { // 32 MB
-			auto discard = state.error_windows.try_push(ui::error_window{ "Network Error", "Network client save stream too big: " + network::get_last_error_msg() });
-			network::finish(state, false);
-			return;
-		}
-		state.network_state.save_data.resize(static_cast<size_t>(save_size));
-	}
-
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
 	//state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:recv:save | len=" + std::to_string(uint32_t(state.network_state.save_data.size())));
@@ -5928,14 +5955,18 @@ void execute_notify_save_loaded(sys::state& state, dcon::nation_id source, sys::
 	command::notify_player_fully_loaded(state, state.local_player_nation); // notify that we are loaded and ready to start
 }
 
-void notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& mp_state_checksum) {
-	command_data p{ command_type::notify_reload, state.local_player_id };
+void notify_reload(sys::state& state, sys::checksum_key& mp_state_checksum, network::selector_arg arg, network::selector_function client_selector) {
+	network::command_data_and_selector p{ { command_type::notify_reload, state.local_player_id }, arg, client_selector };
 	auto data = notify_reload_data{ mp_state_checksum };
-	p << data;
+	p.cmd_data << data;
 	add_to_command_queue(state, p);
 
 }
 void execute_notify_reload(sys::state& state, dcon::nation_id source, sys::checksum_key& k) {
+	//The host needs to reload manually first anyway to grab an up-to-date checksum key. So don't reload as host here
+	if(state.network_mode == sys::network_mode_type::host) {
+		return;
+	}
 	state.session_host_checksum = k;
 	// reload the save *locally* to ensure synch with the rest of the lobby. Primarily to update unsaved data.
 	// this only happens when a new player joins, or when a manual resync is initiated, and only for the clients which are already "in sync". If a new or oos'd client needs a fresh save, it will be provided as a save stream elsewhere.
@@ -6042,7 +6073,7 @@ void notify_start_game(sys::state& state, dcon::nation_id source) {
 	add_to_command_queue(state, p);
 }
 
-void notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player) {
+void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player) {
 
 	command_data p{ command_type::notify_player_is_loading, loading_player };
 	add_to_command_queue(state, p);
@@ -6151,7 +6182,34 @@ void execute_resync_lobby(sys::state& state, dcon::nation_id source) {
 	state.ui_state.recently_pressed_resync = false;
 }
 
+
+
+
+void notify_mp_data(sys::state& state, const network::selector_arg arg, const network::selector_function client_selector) {
+	network::command_data_and_selector p{ {command_type::notify_mp_data, state.local_player_id }, arg, client_selector };
+	// write MP data in buffer
+	auto mp_data_sz = uint32_t(sys::sizeof_mp_data(state));
+	auto mp_data_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[mp_data_sz]);
+	sys::write_mp_data(mp_data_buffer.get(), state);
+	command::notify_mp_data_data mp_data_payload{ };
+
+	mp_data_payload.data_len = mp_data_sz;
+
+	p.cmd_data << mp_data_payload;
+
+	p.cmd_data.push_ptr(mp_data_buffer.get(), mp_data_sz);
+
+	add_to_command_queue(state, p);
+}
+
+
+
+
 void execute_notify_mp_data(sys::state& state, const notify_mp_data_data& data) {
+	// Dont need to do this as host. Our MP data is already fully up to date
+	if(state.network_mode == sys::network_mode_type::host) {
+		return;
+	}
 	// size boundary is checked in can_notify_mp_data so we can safely do this
 	sys::read_mp_data(data.mp_data(), data.mp_data() + data.data_len, state);
 	// update UI immediately incase alot of long commands (ie loading save) is queued up
@@ -6160,7 +6218,7 @@ void execute_notify_mp_data(sys::state& state, const notify_mp_data_data& data) 
 
 bool can_notify_mp_data(sys::state& state, command_data& command) {
 
-		auto& payload = command.get_payload<notify_mp_data_data>();
+	auto& payload = command.get_payload<notify_mp_data_data>();
 
 	// check that the data length is correct before reading from it
 	if(!command.check_variable_size_payload<notify_mp_data_data>(payload.data_len)) {
@@ -6172,17 +6230,9 @@ bool can_notify_mp_data(sys::state& state, command_data& command) {
 }
 
 
-
-
-
-
-
-
 bool notify_oos_gamestate_is_host_receive_command(const sys::state& state) {
 	return state.host_settings.oos_debug_mode;
 }
-
-
 
 
 
@@ -7819,13 +7869,13 @@ bool is_host_broadcast_command(const sys::state& state, const command_data& comm
 
 
 void execute_pending_commands(sys::state& state) {
-	auto* c = state.incoming_commands.front();
+	auto* c = state.singleplayer_commands.front();
 	bool command_executed = false;
 	while(c) {
 		command_executed = true;
 		execute_command(state, *c);
-		state.incoming_commands.pop();
-		c = state.incoming_commands.front();
+		state.singleplayer_commands.pop();
+		c = state.singleplayer_commands.front();
 	}
 
 	if(command_executed) {
