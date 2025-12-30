@@ -54,6 +54,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::notify_stop_game:
 	case command_type::resync_lobby:
 	case command_type::notify_oos_gamestate:
+	case command_type::notify_mp_data:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	case command_type::change_game_rule_setting:
