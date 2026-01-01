@@ -881,6 +881,7 @@ struct alignas(64) state {
 	dcon::commodity_id selected_trade_good;
 	dcon::factory_type_id selected_factory_type;
 	std::mutex ugly_ui_game_interaction_hack;
+	std::mutex commandqueue_producer_lock; // As both UI and update thread are producers to the command queue (adding commands), it must be locked as the queue only supports one concurrent producer
 
 	//control groups
 	std::array<std::vector<dcon::army_id>, 10> ctrl_armies;

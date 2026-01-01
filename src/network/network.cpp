@@ -1805,6 +1805,11 @@ bool should_do_oos_check(const sys::state& state) {
 	}
 }
 
+bool should_do_clients_to_far_behind_check(const sys::state& state) {
+	// check once per month
+	return state.current_date.to_ymd(state.start_date).day == 1;
+}
+
 
 void clear_shut_down_sockets(sys::state& state) {
 	static char buffer[20] = { 0 };
@@ -1987,38 +1992,23 @@ void send_and_receive_commands(sys::state& state) {
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->cmd_data.header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->cmd_data.header.type))]);
 #endif
 				// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
-				if(command::execute_command(state, c->cmd_data) && command::is_host_broadcast_command(state, c->cmd_data)) {
-					// Generate checksum on the spot.
-					// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
-					if(c->cmd_data.header.type == command::command_type::advance_tick) {
-						if(should_do_oos_check(state)) {
-							auto& payload = c->cmd_data.get_payload<command::advance_tick_data>();
-							payload.checksum = state.get_mp_state_checksum();
+				if(command::execute_command(state, c->cmd_data)) {
+					if(command::is_host_broadcast_command(state, c->cmd_data)) {
+						// Generate checksum on the spot.
+						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
+						if(c->cmd_data.header.type == command::command_type::advance_tick) {
+							if(should_do_oos_check(state)) {
+								auto& payload = c->cmd_data.get_payload<command::advance_tick_data>();
+								payload.checksum = state.get_mp_state_checksum();
+							}
 						}
+						broadcast_to_clients(state, *c);
 					}
-					broadcast_to_clients(state, *c);
 					command_executed = true;
 				}
 			}
 			state.network_state.server_outgoing_commands.pop();
 			c = state.network_state.server_outgoing_commands.front();
-		}
-
-		// Clear lost sockets
-		if(should_do_oos_check(state)) {
-			for(auto& client : state.network_state.clients) {
-				if(client.is_inactive_or_scheduled_shutdown())
-					continue;
-
-				// Drop lost clients
-				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					command::notify_player_timeout(state, state.world.mp_player_get_nation_from_player_nation(client.player_id), false, client.player_id);
-				}
-				// Slow down for the lagging ones
-				else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
-					state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
-				}
-			}
 		}
 		flush_closing_sockets(state);
 		server_send_to_clients(state);

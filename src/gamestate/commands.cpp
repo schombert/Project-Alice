@@ -71,7 +71,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 		state.network_state.is_new_game = false;
 		break;
 	}
-
+	std::scoped_lock lock{ state.commandqueue_producer_lock };
 	switch(state.network_mode) {
 	case sys::network_mode_type::single_player:
 	{
@@ -82,14 +82,16 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	{
 		if(is_console_command(p.header.type))
 			break;
-		state.network_state.client_outgoing_commands.push(p);
+		bool pushed = state.network_state.client_outgoing_commands.try_push(p);
+		assert(pushed);
 		break;
 	}
 	case sys::network_mode_type::host:
 	{
 		if(is_console_command(p.header.type))
 			break;
-		state.network_state.server_outgoing_commands.push(network::command_data_and_selector{ p, network::selector_arg{ }, nullptr });
+		bool pushed = state.network_state.server_outgoing_commands.try_push(network::command_data_and_selector{ p, network::selector_arg{ }, nullptr });
+		assert(pushed);
 		break;
 	}
 	default:
@@ -145,9 +147,9 @@ void add_to_command_queue(sys::state& state, network::command_data_and_selector&
 	if(is_console_command(p.cmd_data.header.type)) {
 		return;
 	}
-	state.network_state.server_outgoing_commands.push(p);
-		
-	
+	std::scoped_lock lock{ state.commandqueue_producer_lock };
+	bool pushed = state.network_state.server_outgoing_commands.try_push(p);
+	assert(pushed);
 }
 
 
@@ -5854,6 +5856,7 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
+
 	
 	state.single_game_tick();
 
@@ -5880,14 +5883,29 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 				}
 			}
 		}
+		// Notify server that we're still here
+		if(state.current_date.value % 7 == 0) {
+			network_inactivity_ping(state, state.local_player_nation, state.current_date);
+		}
 		state.actual_game_speed = speed;
 	}
+	else if(state.network_mode == sys::network_mode_type::host) {
+		// Slow down and disconnect players who are too far behind
+		if(network::should_do_clients_to_far_behind_check(state)) {
+			for(auto& client : state.network_state.clients) {
+				if(client.is_inactive_or_scheduled_shutdown())
+					continue;
 
-
-
-	// Notify server that we're still here
-	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
-		network_inactivity_ping(state, state.local_player_nation, state.current_date);
+				// Drop lost clients
+				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
+					command::notify_player_timeout(state, state.world.mp_player_get_nation_from_player_nation(client.player_id), false, client.player_id);
+				}
+				// Slow down for the lagging ones
+				else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
+					state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
+				}
+			}
+		}
 	}
 }
 

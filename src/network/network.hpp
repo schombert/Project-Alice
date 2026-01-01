@@ -330,6 +330,7 @@ struct network_state {
 };
 
 bool should_do_oos_check(const sys::state& state);
+bool should_do_clients_to_far_behind_check(const sys::state& state);
 std::string get_last_error_msg();
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
