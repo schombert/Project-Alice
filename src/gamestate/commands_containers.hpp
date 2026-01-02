@@ -51,7 +51,14 @@ struct command_data {
 
 		header.payload_size = (uint32_t)payload.size();
 	}
-
+	// adds data from a string to the payload
+	void push_string(const std::string& string, size_t size) {
+		push_ptr(string.data(), size);
+	}
+	// adds data from a string_view to the payload
+	void push_string_view(std::string_view string_view, size_t size) {
+		push_ptr(string_view.data(), size);
+	}
 
 	// grab data from the payload
 	template<typename data_type>
@@ -81,16 +88,24 @@ struct command_data {
 		std::memcpy(&output, payload.data() + (payload.size() - sizeof(data_type)), sizeof(data_type));
 		return output;
 	}*/
-	// returns a reference to the payload of the desired type, starting from the start of the vector
+	// returns a mutable reference to the payload of the desired type, starting from the start of the vector
 	template<typename data_type>
 	data_type& get_payload() {
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
 		uint8_t* ptr = payload.data();
 		return reinterpret_cast<data_type&>(*ptr);
 	}
+	// returns a const reference to the payload of the desired type, starting from the start of the vector
+	template<typename data_type>
+	const data_type& get_payload() const {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		const uint8_t* ptr = payload.data();
+		return reinterpret_cast<const data_type&>(*ptr);
+	}
+
 	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes). Returns true if that is the case, false otherwise
 	template<typename data_type>
-	bool check_variable_size_payload(uint32_t expected_size) {
+	bool check_variable_size_payload(uint32_t expected_size) const {
 		return expected_size == (payload.size() - sizeof(data_type));
 	}
 

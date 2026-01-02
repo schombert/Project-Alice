@@ -341,7 +341,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-	change_cursor(game_state, cursor_type::normal);
+	change_cursor(game_state, cursor_type::normal_cancel_busy);
 
 	while(!glfwWindowShouldClose(window)) {
 		{

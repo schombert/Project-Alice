@@ -109,7 +109,8 @@ enum class cursor_type : uint8_t {
 	hostile_move,
 	friendly_move,
 	no_move,
-	text
+	text,
+	normal_cancel_busy
 };
 void change_cursor(sys::state& state, cursor_type type);
 

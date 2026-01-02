@@ -280,10 +280,24 @@ struct client_data {
 typedef std::variant<dcon::mp_player_id> selector_arg;
 typedef bool (*selector_function)(const client_data&, const sys::state&, const selector_arg);
 
-struct command_data_and_selector {
+struct host_command_wrapper {
 	command::command_data cmd_data;
 	selector_arg arg;
 	selector_function selector;
+	bool host_execute = true;
+
+	host_command_wrapper(const command::command_data& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(_cmd_data), arg(_arg), selector(_selector) {}
+	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector) { }
+
+	host_command_wrapper(const command::command_data& _cmd_data, selector_arg _arg, selector_function _selector, bool _host_execute) : cmd_data(_cmd_data), arg(_arg), selector(_selector), host_execute(_host_execute) { }
+	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector, bool _host_execute) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector), host_execute(_host_execute) {
+	}
+	host_command_wrapper(host_command_wrapper&& other) = default;
+	host_command_wrapper(const host_command_wrapper& other) = default;
+
+	host_command_wrapper& operator=(host_command_wrapper&& other) = default;
+	host_command_wrapper& operator=(const host_command_wrapper& other) = default;
+
 };
 
 struct network_state {
@@ -292,7 +306,7 @@ struct network_state {
 	sys::player_password_raw player_password;
 	sys::checksum_key current_mp_state_checksum;
 	struct sockaddr_storage address;
-	rigtorp::SPSCQueue<command_data_and_selector> server_outgoing_commands;
+	rigtorp::SPSCQueue<host_command_wrapper> server_outgoing_commands;
 	rigtorp::SPSCQueue<command::command_data> client_outgoing_commands;
 	std::array<client_data, 128> clients;
 	std::vector<struct in6_addr> v6_banlist;
@@ -328,7 +342,7 @@ struct network_state {
 	network_state() : server_outgoing_commands(4096), client_outgoing_commands(4096) {}
 	~network_state() {}
 };
-
+void reload_save_locally(sys::state& state);
 bool should_do_oos_check(const sys::state& state);
 bool should_do_clients_to_far_behind_check(const sys::state& state);
 std::string get_last_error_msg();
@@ -339,7 +353,7 @@ void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
-void broadcast_to_clients(sys::state& state, command_data_and_selector& c);
+void broadcast_to_clients(sys::state& state, host_command_wrapper& c);
 void clear_socket(sys::state& state, client_data& client);
 void full_reset_after_oos(sys::state& state);
 
@@ -361,7 +375,7 @@ dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
 dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name);
 std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation);
-void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
+void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations);
 bool any_player_oos(sys::state& state);
 void log_player_nations(sys::state& state);
 void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason);

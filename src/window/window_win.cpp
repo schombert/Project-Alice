@@ -537,7 +537,7 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	change_cursor(game_state, cursor_type::busy);
 	game_state.on_create();
-	change_cursor(game_state, cursor_type::normal);
+	change_cursor(game_state, cursor_type::normal_cancel_busy);
 
 	
 
@@ -567,7 +567,16 @@ void change_cursor(sys::state& state, cursor_type type) {
 	auto root = simple_fs::get_root(state.common_fs);
 	auto gfx_dir = simple_fs::open_directory(root, NATIVE("gfx"));
 	auto cursors_dir = simple_fs::open_directory(gfx_dir, NATIVE("cursors"));
-
+	HCURSOR curr_cursor = GetCursor();
+	// Only cancel the "busy" cursor if "normal_cancel_busy" type is passed. Otherwise random mouse clicks may cancel it early
+	if(curr_cursor == state.win_ptr->cursors[uint8_t(cursor_type::busy)]) {
+		if(type == cursor_type::normal_cancel_busy) {
+			type = cursor_type::normal;
+		}
+		else {
+			return;
+		}
+	}
 	if(state.win_ptr->cursors[uint8_t(type)] == HCURSOR(NULL)) {
 		native_string_view fname = NATIVE("normal.cur");
 		switch(type) {

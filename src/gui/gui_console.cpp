@@ -645,7 +645,7 @@ int32_t* f_dump_oos(fif::state_stack& s, int32_t* p, fif::environment* e) {
 		return ptr_in;
 	});
 	log_to_console(state, state.ui_state.console_window, u"Check \"My Documents\\Project Alice\\oos\" for the OOS dump");
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 
 	return p + 2;
 }

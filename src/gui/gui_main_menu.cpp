@@ -152,7 +152,7 @@ void language_left::button_action(sys::state& state) noexcept {
 	});
 
 	send(state, parent, notify_setting_update{});
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 }
 void language_left::on_update(sys::state& state) noexcept {
 
@@ -189,7 +189,7 @@ void language_right::button_action(sys::state& state) noexcept {
 	});
 
 	send(state, parent, notify_setting_update{});
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 }
 void language_right::on_update(sys::state& state) noexcept {
 
@@ -648,7 +648,7 @@ void fonts_mode_checkbox::button_action(sys::state& state) noexcept {
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
 	send(state, parent, notify_setting_update{});
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 }
 bool fonts_mode_checkbox::is_active(sys::state& state) noexcept {
 	return state.user_settings.use_classic_fonts;

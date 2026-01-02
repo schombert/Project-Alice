@@ -132,6 +132,7 @@ enum class command_type : uint8_t {
 		give_back_units = 112,
 		change_game_rule_setting = 113,
 		toggle_production_directive = 114,
+		load_saved_game = 115,
 
 
 		// network
@@ -161,7 +162,13 @@ enum class command_type : uint8_t {
 	network_populate = 254,
 	console_command = 255,
 };
-
+struct load_save_game_data {
+	bool is_new_game;
+	uint8_t filename_length;
+	const char* filename() const {
+		return reinterpret_cast<const char*>(&filename_length + 1);
+	}
+};
 
 struct pbutton_data {
 	dcon::gui_def_id button;
@@ -556,6 +563,10 @@ struct production_directive_data {
 bool notify_oos_gamestate_is_host_receive_command(const sys::state& state);
 
 
+void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state, command_data& command);
+void pre_execution_broadcast_modifications_notify_reload(sys::state& state, command_data& command);
+void pre_execution_broadcast_modifications_notify_mp_data(sys::state& state, command_data& command);
+
 
 struct command_handler {
 	// These are used in the command_type_handlers for cases of simple true/false being required
@@ -575,13 +586,15 @@ struct command_handler {
 	
 	uint32_t min_payload_size = 0;
 	uint32_t max_payload_size = 0;
-	bool (*is_host_receive_command)(const sys::state& state) = nullptr;
-	bool (*is_host_broadcast_command)(const sys::state& state) = nullptr;
+	bool (*is_host_receive_command)(const sys::state& state) = nullptr; // This function is run to determine if the command type is a valid command for the host to receive from clients. Should NOT be nullptr, it is only defaulted to it to satisfy constexpr requirements
+	bool (*is_host_broadcast_command)(const sys::state& state) = nullptr; // This function is run to determine if the command type should be broadcasted by the host to clients after execution. Should NOT be nullptr, it is only defaulted to it to satisfy constexpr requirements
+	void (*pre_execution_broadcast_modifications)(sys::state& state, command_data& command) = nullptr; // If not a nullptr, this function is will be run before the *host* executes the command and broadcasts it. This will always be executed if not a nullptr. Eg used for loading save data into the command before it is broadcast to clients 
 
 };
 
 constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire MP state
 constexpr uint32_t MAX_SAVE_SIZE = 32000000; // max 32 MB for entire save
+constexpr uint32_t MAX_MP_DATA_SIZE = 5000000; // max 5 MB for mp data
 
 // Defines max and min sizes for each command, aswell as handlers for certain functions
 constexpr enum_array<command_type, command_handler> command_type_handlers = {
@@ -698,7 +711,7 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::give_back_units, command_handler{ sizeof(command::command_units_data), sizeof(command::command_units_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::change_game_rule_setting, command_handler{ sizeof(command::change_gamerule_setting_data), sizeof(command::change_gamerule_setting_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::toggle_production_directive, command_handler{ sizeof(command::production_directive_data), sizeof(command::production_directive_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-
+	{ command_type::load_saved_game, command_handler{sizeof(command::load_save_game_data), sizeof(command::load_save_game_data) + FILENAME_MAX, &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	// network
 	{ command_type::notify_oos_gamestate, command_handler{ sizeof(command::notify_oos_gamestate_data), sizeof(command::notify_oos_gamestate_data) + MAX_MP_STATE_SIZE, &notify_oos_gamestate_is_host_receive_command, &command_handler::false_is_host_broadcast_command   } },
 	{ command_type::notify_player_ban, command_handler{ sizeof(command::notify_player_ban_data), sizeof(command::notify_player_ban_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -707,11 +720,11 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::notify_player_joins, command_handler{ sizeof(command::notify_joins_data), sizeof(command::notify_joins_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_leaves, command_handler{ sizeof(command::notify_leaves_data), sizeof(command::notify_leaves_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_oos, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) + MAX_SAVE_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) + MAX_SAVE_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_save_loaded } },
 	{ command_type::notify_start_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_stop_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_pause_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_reload } },
 	{ command_type::advance_tick, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::network_inactivity_ping, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -721,7 +734,7 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::network_populate, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::console_command, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::resync_lobby, command_handler{ 0, 0 , &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
-	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + MAX_MP_DATA_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_mp_data } },
 	{ command_type::notify_player_timeout, command_handler{ sizeof(notify_player_timeout_data), sizeof(notify_player_timeout_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 };
 
@@ -1143,7 +1156,7 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player);
 void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player);
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player);
-void notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
+void notify_player_joins(sys::state& state, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
@@ -1151,10 +1164,10 @@ void notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon:
 bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player);
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player);
 void notify_player_oos(sys::state& state, dcon::nation_id source);
-void notify_save_loaded(sys::state& state, network::selector_arg arg, network::selector_function client_selector);
-void notify_reload(sys::state& state, sys::checksum_key& mp_state_checksum, network::selector_arg arg, network::selector_function client_selector);
+void notify_save_loaded(sys::state& state, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
+void notify_reload(sys::state& state, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
 bool can_notify_start_game(sys::state& state, dcon::nation_id source);
-void notify_start_game(sys::state& state, dcon::nation_id source);
+void notify_start_game(sys::state& state, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
 void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player);
 void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player);
 void notify_player_fully_loaded(sys::state& state, dcon::nation_id source);
@@ -1163,7 +1176,9 @@ void notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_pause_game(sys::state& state, dcon::nation_id source);
 void resync_lobby(sys::state& state, dcon::nation_id source);
 
-void notify_mp_data(sys::state& state, const network::selector_arg arg, const network::selector_function client_selector);
+void notify_mp_data(sys::state& state, const network::selector_arg arg, bool host_execute, const network::selector_function client_selector);
+
+void load_save_game(sys::state& state, const std::string& filename, bool is_new_game);
 
 void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);
 bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);

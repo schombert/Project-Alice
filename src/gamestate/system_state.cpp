@@ -690,9 +690,6 @@ GLuint request_query(std::vector<GLuint>& ids, std::vector<bool>& free_ids) {
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
-	/*if(!render_semaphore.try_acquire()) {
-		return;
-	}*/
 	if(!current_scene.get_root)
 		return;
 
@@ -708,8 +705,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
 		window::change_cursor(*this, window::cursor_type::busy);
 		ui::create_in_game_windows(*this);
-		window::change_cursor(*this, window::cursor_type::normal);
+		window::change_cursor(*this, window::cursor_type::normal_cancel_busy);
 	}
+	// Process queued ui function invocations from command thread
+	auto* queued_func = ui_state.queued_invocations.front();
+	while(queued_func) {
+		(*queued_func)(*this);
+		ui_state.queued_invocations.pop();
+		queued_func = ui_state.queued_invocations.front();
+	}
+
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
 		map_state.map_data.update_borders_mesh();

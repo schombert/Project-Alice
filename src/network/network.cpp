@@ -866,11 +866,10 @@ static dcon::nation_id choose_nation_for_player(sys::state& state) {
 	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
 }
 
-void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation) {
+void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations) {
 	for(auto no_ai_nation : no_ai_nations) {
 		state.world.nation_set_is_player_controlled(no_ai_nation, true);
 	}
-	state.local_player_nation = old_local_player_nation;
 }
 
 bool any_player_oos(sys::state& state) {
@@ -1370,20 +1369,13 @@ void dump_oos_report(sys::state& state_1, sys::state& state_2) {
 
 
 void player_joins(sys::state& state, client_data& joining_client, dcon::nation_id player_nation) {
-	// Tell all clients about this client. Don't include passwords. Execute the command for the host first to create the new player id
+	// Tell all clients about this client. Don't include passwords. Execute the command for the host first to create the new player id, and then add it to the command queue with host_execute false
 
 	joining_client.player_id = command::execute_notify_player_joins(state, state.local_player_nation, joining_client.hshake_buffer.nickname, joining_client.hshake_buffer.player_password, !state.network_state.is_new_game, player_nation);
 
-	command::command_data c{ command::command_type::notify_player_joins, state.local_player_id };
-	command::notify_joins_data payload{ };
-	payload.player_name = joining_client.hshake_buffer.nickname;
-	payload.needs_loading = !state.network_state.is_new_game;
-	payload.player_nation = player_nation;
-
-	c << payload;
-
-	// Do not send it to the client which just joined. That client will receive it via the MP data soon.
-	send_network_command(state, [&](const client_data& other_client) { return joining_client.player_id != other_client.player_id; }, c);
+	command::notify_player_joins(state, joining_client.hshake_buffer.nickname, !state.network_state.is_new_game, player_nation, selector_arg{ joining_client.player_id }, false, [](const network::client_data& other_client, const sys::state& state, const selector_arg arg) {
+		return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+		});
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
 	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins playerid:" + std::to_string(joining_client.player_id.index()));
@@ -1393,31 +1385,30 @@ void player_joins(sys::state& state, client_data& joining_client, dcon::nation_i
 
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
-	window::change_cursor(state, window::cursor_type::busy);
-	{
-		state.yield_ui_lock = true;
-		std::unique_lock lock(state.ui_lock);
+	
+	state.yield_ui_lock = true;
+	std::unique_lock lock(state.ui_lock);
 
-		std::vector<dcon::nation_id> no_ai_nations;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				no_ai_nations.push_back(n);
-		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		state.local_player_nation = dcon::nation_id{ };
-		// Then reload from network
-		state.reset_state();
-		with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
-			read_save_section(ptr_in, ptr_in + length, state);
-		});
-		network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
-		state.fill_unsaved_data();
-		assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
+	std::vector<dcon::nation_id> no_ai_nations;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			no_ai_nations.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	state.local_player_nation = dcon::nation_id{ };
+	// Then reload from network
+	state.reset_state();
+	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
+		read_save_section(ptr_in, ptr_in + length, state);
+	});
+	network::set_no_ai_nations_after_reload(state, no_ai_nations);
+	state.local_player_nation = old_local_player_nation;
+	state.fill_unsaved_data();
+	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 
-		state.yield_ui_lock = false;
-		lock.unlock();
-		state.ui_lock_cv.notify_one();
-	}
-	window::change_cursor(state, window::cursor_type::normal);
+	state.yield_ui_lock = false;
+	lock.unlock();
+	state.ui_lock_cv.notify_one();
+	
 }
 
 
@@ -1453,50 +1444,56 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 	bool paused = false;
 
-	command::notify_mp_data(state, selector_arg{ client.player_id }, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-		return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-	});
 
 
 	if(state.current_scene.starting_scene) {
 		/* Lobby - existing savegame */
 		if(!state.network_state.is_new_game) {
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
-			if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
-				network::write_network_save(state);
-			}
+			//if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
+			//	network::write_network_save(state);
+			//}
 			// load the save which was just written
-			load_network_save(state, state.network_state.current_save_buffer.get());
+			//load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
-			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			command::notify_save_loaded(state, selector_arg{ client.player_id }, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-			});
-			command::notify_reload(state,state.network_state.current_mp_state_checksum, selector_arg{ client.player_id }, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+			//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+			command::notify_reload(state, selector_arg{ client.player_id }, true, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
 				return other_client.player_id != std::get<dcon::mp_player_id>(arg);
 			});
+			command::notify_mp_data(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+	});
+			command::notify_save_loaded(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+			});
+			
 		}
 
 	} else if(state.current_scene.game_in_progress) {
 		if(!state.network_state.is_new_game) {
 			paused = pause_game(state);
 			// compare the last save checksum with the current one, if it dosent match, write new save into the buffer
-			if(!state.network_state.last_save_checksum.is_equal( state.get_save_checksum())) {
-				network::write_network_save(state);
-			}
+			//if(!state.network_state.last_save_checksum.is_equal( state.get_save_checksum())) {
+			//	network::write_network_save(state);
+			//}
 			// load the save which was just written
-			load_network_save(state, state.network_state.current_save_buffer.get());
+			//load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
-			state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			command::notify_save_loaded(state, selector_arg{ client.player_id }, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-			});
-			command::notify_reload(state, state.network_state.current_mp_state_checksum, selector_arg{ client.player_id }, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+			//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+			command::notify_reload(state, selector_arg{ client.player_id }, true, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
 				return other_client.player_id != std::get<dcon::mp_player_id>(arg);
 			});
+			command::notify_mp_data(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+	});
+			command::notify_save_loaded(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
+				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+			});
+			
 		}
-
-		notify_start_game(state, client);
+		command::notify_start_game(state, selector_arg{ client.player_id }, false, [](const network::client_data& other_client, const sys::state& state, const selector_arg arg) {
+			return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+		});
 	}
 
 	/*auto old_size = client.send_buffer.size();
@@ -1510,44 +1507,47 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 
 void full_reset_after_oos(sys::state& state) {
 	pause_game(state);
-	window::change_cursor(state, window::cursor_type::busy);
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+	});
 #ifndef NDEBUG
 	state.console_log("host:full_reset_after_oos");
 	network::log_player_nations(state);
 #endif
 	// notfy every client that every client is now loading (reloading or loading the save)
+	command::notify_player_is_loading(state, state.local_player_id);
 	for(auto& loading_client : state.network_state.clients) {
 		if(loading_client.can_add_data()) {
 			command::notify_player_is_loading(state, loading_client.player_id);
 		}
 	}
 	{
-		// update UI signal so it displays everyone as loading
-		state.game_state_updated.store(true, std::memory_order_release);
 
 		// if the save state has changed, write a new network save
-		if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
-			network::write_network_save(state);
-		}
+		//if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
+		//	network::write_network_save(state);
+		//}
 
-		load_network_save(state, state.network_state.current_save_buffer.get());
+		//load_network_save(state, state.network_state.current_save_buffer.get());
 
 		// generate checksum for the entire mp state
-		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+		//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 
 	}
 	{
-		// send MP data and savegame to oos'd clients. Reload will happen automatically together with saveloading
-		command::notify_mp_data(state, selector_arg{ }, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
-		command::notify_save_loaded(state, selector_arg{ }, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
-		command::notify_reload(state, state.network_state.current_mp_state_checksum, selector_arg{ }, [](const client_data& other_client, const sys::state& state, const selector_arg) {return state.world.mp_player_get_is_oos(other_client.player_id) == false; });
+		// send MP data and savegame to oos'd clients. Reload will happen automatically together with saveloading. Send explicit reload command to non-oos clients
+		command::notify_reload(state, selector_arg{ }, true, [](const client_data& other_client, const sys::state& state, const selector_arg) {return state.world.mp_player_get_is_oos(other_client.player_id) == false; });
+		command::notify_mp_data(state, selector_arg{ },false, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
+		command::notify_save_loaded(state, selector_arg{ }, false, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
 	}
 	{
 
 		// send message to everyone letting them know that the lobby has been resync'd
 		command::chat_message(state, state.local_player_nation, text::produce_simple_string(state, "alice_host_has_resync"), dcon::nation_id{ });
 	}
-	window::change_cursor(state, window::cursor_type::normal);
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question
+	});
 
 }
 
@@ -1613,14 +1613,14 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
 			if(client.recv_buffer.header.player_id == client.player_id) {
-				state.network_state.server_outgoing_commands.push(client.recv_buffer);
+				state.network_state.server_outgoing_commands.push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
 			}
 			break;
 		default:
 			/* Has to be from the client proper and no clients must be currently loading */
 			if(client.recv_buffer.header.player_id == client.player_id
 			&& !network::check_any_players_loading(state)) {
-				state.network_state.server_outgoing_commands.push(client.recv_buffer);
+				state.network_state.server_outgoing_commands.push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
 			}
 			break;
 		}
@@ -1728,7 +1728,7 @@ std::unique_ptr<uint8_t[]> write_network_entire_mp_state(sys::state& state, uint
 }
 
 
-void broadcast_to_clients(sys::state& state, command_data_and_selector& c) {
+void broadcast_to_clients(sys::state& state, host_command_wrapper& c) {
 	if(c.cmd_data.header.type == command::command_type::notify_player_joins) {
 		auto& payload = c.cmd_data.get_payload<command::notify_joins_data>();
 		payload.player_password = sys::player_password_raw{}; // Never send password to clients
@@ -1778,6 +1778,39 @@ static void accept_new_clients(sys::state& state) {
 		}
 		return;
 	}
+}
+void reload_save_locally(sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+	});
+	{
+		state.yield_ui_lock = true;
+		std::unique_lock lock(state.ui_lock);
+
+		std::vector<dcon::nation_id> no_ai_nations;
+		for(const auto n : state.world.in_nation)
+			if(state.world.nation_get_is_player_controlled(n))
+				no_ai_nations.push_back(n);
+		dcon::nation_id old_local_player_nation = state.local_player_nation;
+		/* Save the buffer before we fill the unsaved data */
+		size_t length = sizeof_save_section(state);
+		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+		sys::write_save_section(save_buffer.get(), state);
+		state.local_player_nation = dcon::nation_id{ };
+		/* Then reload as if we loaded the save data */
+		state.reset_state();
+		sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+		network::set_no_ai_nations_after_reload(state, no_ai_nations);
+		state.local_player_nation = old_local_player_nation;
+		state.fill_unsaved_data();
+
+		state.yield_ui_lock = false;
+		lock.unlock();
+		state.ui_lock_cv.notify_one();
+	}
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question
+	});
 }
 
 bool should_do_oos_check(const sys::state& state) {
@@ -1991,8 +2024,13 @@ void send_and_receive_commands(sys::state& state) {
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->cmd_data.header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->cmd_data.header.type))]);
 #endif
+				// Execute the pre-execute, pre-broadcast function, if applicable
+				const auto* pre_exec_handler = command::command_type_handlers[c->cmd_data.header.type];
+				if(pre_exec_handler && pre_exec_handler->pre_execution_broadcast_modifications) {
+					pre_exec_handler->pre_execution_broadcast_modifications(state, c->cmd_data);
+				}
 				// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
-				if(command::execute_command(state, c->cmd_data)) {
+				if((c->host_execute && command::execute_command(state, c->cmd_data)) || command::can_perform_command(state, c->cmd_data)) {
 					if(command::is_host_broadcast_command(state, c->cmd_data)) {
 						// Generate checksum on the spot.
 						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
@@ -2004,7 +2042,7 @@ void send_and_receive_commands(sys::state& state) {
 						}
 						broadcast_to_clients(state, *c);
 					}
-					command_executed = true;
+					
 				}
 			}
 			state.network_state.server_outgoing_commands.pop();
