@@ -1613,14 +1613,18 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
 			if(client.recv_buffer.header.player_id == client.player_id) {
-				state.network_state.server_outgoing_commands.push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				std::scoped_lock lock{ state.commandqueue_producer_lock };
+				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				assert(pushed);
 			}
 			break;
 		default:
 			/* Has to be from the client proper and no clients must be currently loading */
 			if(client.recv_buffer.header.player_id == client.player_id
 			&& !network::check_any_players_loading(state)) {
-				state.network_state.server_outgoing_commands.push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				std::scoped_lock lock{ state.commandqueue_producer_lock };
+				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				assert(pushed);
 			}
 			break;
 		}
