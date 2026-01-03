@@ -6158,6 +6158,7 @@ void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::dat
 	add_to_command_queue(state, p);
 }
 void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date, dcon::mp_player_id player) {
+	assert(state.network_mode == sys::network_mode_type::host);
 	// Update last seen of the client
 	auto client = state.world.mp_player_get_client_from_player_client(player);
 	assert(client);
