@@ -8,7 +8,6 @@
 #define WINSOCK2_IMPORTED
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <condition_variable>
 #endif
 #else // NIX
 #include <netinet/in.h>
@@ -167,12 +166,6 @@ inline constexpr short default_server_port = 1984;
 
 inline static SHA512 sha512;
 
-#ifdef _WIN64
-typedef SOCKET socket_t;
-#else
-typedef int socket_t;
-#endif
-
 enum class oos_check_interval : uint8_t {
 	never = 0,
 	daily = 1,
@@ -199,11 +192,6 @@ enum class handshake_result : uint8_t {
 	fail_on_banlist = 3,
 	fail_game_ended = 4,
 };
-enum class client_state : uint8_t {
-	normal = 0,
-	flushing = 1,
-	shutting_down = 2
-};
 
 
 
@@ -221,11 +209,6 @@ struct host_settings_s {
 	bool oos_debug_mode = false; // enables sending of gamestate from client to host when an OOS happens, so the host can generate a OOS report. Is NOT safe to enable unless you trust clients
 };
 
-struct client_handshake_data {
-	sys::player_name nickname;
-	sys::player_password_raw player_password;
-	uint8_t lobby_password[16] = {0};
-};
 
 struct server_handshake_data {
 	sys::checksum_key scenario_checksum;
@@ -240,7 +223,7 @@ struct server_handshake_data {
 struct client_data {
 	dcon::mp_player_id player_id{ };
 	socket_t socket_fd = 0;
-	struct sockaddr_storage address;
+	sockaddr_storage address;
 
 	client_handshake_data hshake_buffer;
 	command::command_data recv_buffer;
@@ -277,8 +260,15 @@ struct client_data {
 	}
 };
 
-typedef std::variant<dcon::mp_player_id> selector_arg;
-typedef bool (*selector_function)(const client_data&, const sys::state&, const selector_arg);
+
+
+inline bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client);
+inline bool can_add_data(const sys::state& state, dcon::client_id client);
+inline bool can_send_data(const sys::state& state, dcon::client_id client);
+inline bool is_flushing(const sys::state& state, dcon::client_id client);
+
+typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
+typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 
 struct host_command_wrapper {
 	command::command_data cmd_data;
@@ -308,7 +298,6 @@ struct network_state {
 	struct sockaddr_storage address;
 	rigtorp::SPSCQueue<host_command_wrapper> server_outgoing_commands;
 	rigtorp::SPSCQueue<command::command_data> client_outgoing_commands;
-	std::array<client_data, 128> clients;
 	std::vector<struct in6_addr> v6_banlist;
 	std::vector<struct in_addr> v4_banlist;
 	std::string ip_address = "127.0.0.1";
@@ -316,7 +305,7 @@ struct network_state {
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
-	bool receiving_payload_flag = false;
+	uint8_t receiving_payload_flag = false;
 	std::vector<uint8_t> save_data; //client
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
@@ -354,7 +343,7 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 void write_network_save(sys::state& state);
 std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
 void broadcast_to_clients(sys::state& state, host_command_wrapper& c);
-void clear_socket(sys::state& state, client_data& client);
+void clear_socket(sys::state& state, dcon::client_id client);
 void full_reset_after_oos(sys::state& state);
 
 
@@ -385,7 +374,7 @@ void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_t
 
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);
-void player_joins(sys::state& state, client_data& joining_client, dcon::nation_id player_nation);
+void player_joins(sys::state& state, dcon::client_id joining_client, dcon::nation_id player_nation);
 
 void load_host_settings(sys::state& state);
 void save_host_settings(sys::state& state);

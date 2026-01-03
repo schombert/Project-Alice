@@ -143,9 +143,12 @@ public:
 			return;
 		if(state.network_mode == sys::network_mode_type::host) {
 			command::notify_player_is_loading(state, state.local_player_id);
-			for(auto& client : state.network_state.clients) {
-				if(client.can_add_data()) {
-					command::notify_player_is_loading(state, client.player_id);
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && network::can_add_data(state, client)) {
+					auto player_id = client.get_mp_player_from_player_client();
+					if(player_id) {
+						command::notify_player_is_loading(state, player_id);
+					}
 				}
 			}
 			command::load_save_game(state, simple_fs::native_to_utf8(i->file_name), i->is_new_game);
@@ -552,9 +555,9 @@ public:
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.network_mode == sys::network_mode_type::host) {
 			bool old_disabled = disabled;
-			for(auto const& client : state.network_state.clients) {
-				if(!client.is_inactive_or_scheduled_shutdown()) {
-					disabled = disabled || !client.send_buffer.empty();
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
+					disabled = disabled || !client.get_send_buffer().empty();
 				}
 			}
 			button_element_base::render(state, x, y);
@@ -573,11 +576,12 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			for(auto const& client : state.network_state.clients) {
-				if(!client.is_inactive_or_scheduled_shutdown()) {
-					if(!client.send_buffer.empty()) {
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
+					if(!client.get_send_buffer().empty()) {
+						auto& hshake_buffer = client.get_hshake_buffer();
 						text::substitution_map sub;
-						text::add_to_substitution_map(sub, text::variable_type::playername, client.hshake_buffer.nickname.to_string_view());
+						text::add_to_substitution_map(sub, text::variable_type::playername, hshake_buffer.nickname.to_string_view());
 						text::localised_format_box(state, contents, box, std::string_view("alice_play_pending_client"), sub);
 					}
 				}

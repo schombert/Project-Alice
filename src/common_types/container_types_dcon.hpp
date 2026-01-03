@@ -2,8 +2,22 @@
 #include "dcon_generated_ids.hpp"
 #include "date_interface.hpp"
 #include "glm/glm.hpp"
+#include "commands_containers.hpp"
+#ifdef _WIN64 // WINDOWS
+#define _WINSOCK_DEPRECATED_NO_WARNINGS 1
+#ifndef WINSOCK2_IMPORTED
+#define WINSOCK2_IMPORTED
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#endif
+#else // NIX
+#include <netinet/in.h>
+#include <sys/socket.h>
+#endif
+
 
 // THIS FILE IS SUPPOSED TO STORE ONLY CONTAINERS USED IN DCON DIRECTLY
+
 
 namespace sys {
 
@@ -416,5 +430,25 @@ static_assert(sizeof(available_cb) ==
 	+ sizeof(available_cb::expiration)
 	+ sizeof(available_cb::cb_type) +
 	sizeof(available_cb::target_state));
+
+}
+
+namespace network {
+struct client_handshake_data {
+	sys::player_name nickname;
+	sys::player_password_raw player_password;
+	uint8_t lobby_password[16] = { 0 };
+};
+
+enum class client_state : uint8_t {
+	normal = 0,
+	flushing = 1,
+	shutting_down = 2
+};
+#ifdef _WIN64
+typedef SOCKET socket_t;
+#else
+typedef int socket_t;
+#endif
 
 }

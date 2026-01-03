@@ -11,8 +11,8 @@
 
 namespace network {
 	struct client_data;
-	typedef std::variant<dcon::mp_player_id> selector_arg;
-	typedef bool (*selector_function)(const network::client_data&, const sys::state&, const selector_arg);
+	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
+	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 }
 
 namespace command {

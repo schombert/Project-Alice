@@ -373,7 +373,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<sys::network_mode_type NetworkType, typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload, const sys::state& state, F&& func) {
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, uint8_t* receiving_payload, const sys::state& state, F&& func) {
 	// check flag to see if the receiving payload flag is off, an thus should read the header
 	if(!(*receiving_payload)) {
 		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
@@ -592,33 +592,28 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 // non-platform specific
 //
 
-void clear_socket(sys::state& state, client_data& client) {
-	close_socket(client.socket_fd);
-	client.socket_fd = 0;
-	client.send_buffer.clear();
-	client.early_send_buffer.clear();
-	client.total_sent_bytes = 0;
-	client.save_stream_size = 0;
-	client.save_stream_offset = 0;
-	client.recv_count = 0;
-	client.handshake = true;
-	client.last_seen = sys::date{};
-	client.receiving_payload_flag = false;
-	client.shutdown_time = 0;
-	client.client_state = client_state::normal;
+void clear_socket(sys::state& state, dcon::client_id client) {
+	close_socket(state.world.client_get_socket_fd(client));
+	auto player_client = state.world.client_get_player_client(client);
+	if(player_client) {
+		state.world.delete_player_client(player_client);
+	}
+	state.world.delete_client(client);
 }
 
 
-static void disconnect_client(sys::state& state, client_data& client, bool make_ai, disconnect_reason reason) {
+static void disconnect_client(sys::state& state, dcon::client_id client, bool make_ai, disconnect_reason reason) {
 	//std::vector<char> last_send_buffer;
-	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(client.player_id);
+	assert(client);
+	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(state.world.client_get_mp_player_from_player_client(client));
+	auto& early_send_buffer = state.world.client_get_early_send_buffer(client);
 	switch(reason) {
 	case disconnect_reason::incorrect_password:
 	{
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_wrong_password;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::name_taken:
@@ -626,7 +621,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_name_taken;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -635,7 +630,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_on_banlist;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 	case disconnect_reason::game_has_ended:
@@ -643,7 +638,7 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 		// since this is during handshake, we send a handshake object back with the fail flag set
 		server_handshake_data hshake;
 		hshake.result = handshake_result::fail_game_ended;
-		socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
 
@@ -657,16 +652,14 @@ static void disconnect_client(sys::state& state, client_data& client, bool make_
 	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
 	log_player_nations(state);
 #endif
-	client.client_state = client_state::flushing;
-	client.shutdown_time = time(NULL);
+	state.world.client_set_client_state(client, client_state::flushing);
+	state.world.client_set_shutdown_time(client, time(NULL));
 }
 
 void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason) {
-	for(auto& client : state.network_state.clients) {
-		if(!client.is_inactive_or_scheduled_shutdown() && client.player_id == player_id) {
-			disconnect_client(state, client, make_ai, reason);
-			break;
-		}
+	auto client = state.world.mp_player_get_client_from_player_client(player_id);
+	if(client && !is_scheduled_shutdown(state, client)) {
+		disconnect_client(state, client, make_ai, reason);
 	}
 }
 
@@ -677,20 +670,19 @@ void send_network_command(sys::state& state, F&& client_selector, const command:
 
 	/* Send the command to the clients matching the selector */
 
-	for(auto& client : state.network_state.clients) {
-		if(client.can_add_data() && client_selector(client)) {
+	for(auto client : state.world.in_client) {
+		if(client.is_valid() && can_add_data(state, client) && client_selector(state, client)) {
 #ifndef NDEBUG
-			state.console_log("host:sent network command to player  " + client.hshake_buffer.nickname.to_string() + ":cmd = " + readableCommandTypes[uint8_t(command.header.type)]);
+			state.console_log("host:sent network command to player  " + client.get_hshake_buffer().nickname.to_string() + ":cmd = " + readableCommandTypes[uint8_t(command.header.type)]);
 #endif
-			socket_add_command_to_send_queue(client.send_buffer, &command);
+			socket_add_command_to_send_queue(client.get_send_buffer(), &command);
 		}
 	}
-
 
 }
 
 void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, const command::command_data& command) {
-	send_network_command(state, [&](const client_data& client) { return client.player_id == player_target; }, command);
+	send_network_command(state, [&](const sys::state& state, dcon::client_id client) { return state.world.client_get_mp_player_from_player_client(client) == player_target; }, command);
 }
 
 
@@ -851,16 +843,7 @@ static dcon::nation_id choose_nation_for_player(sys::state& state) {
 
 	for(auto n : state.nations_by_rank)
 		if(!state.world.nation_get_is_player_controlled(n) && state.world.nation_get_owned_province_count(n) > 0) {
-			bool is_taken = false;
-			for(auto& client : state.network_state.clients) {
-				if(state.world.mp_player_get_nation_from_player_nation( client.player_id) == n) {
-					is_taken = true;
-					break;
-				}
-			}
-			if(!is_taken) {
-				return n;
-			}
+			return n;
 		}
 	// if no nation available, set to rebels (observer basically)
 	return state.world.national_identity_get_nation_from_identity_holder(state.national_definitions.rebel_id);
@@ -986,13 +969,15 @@ int client_process_handshake(sys::state& state) {
 	return r;
 }
 
-void server_send_handshake(sys::state& state, network::client_data& client) {
+void server_send_handshake(sys::state& state, dcon::client_id client) {
 	/* Tell the client their assigned nation */
-	auto plnation = get_player_nation(state, client.hshake_buffer.nickname);
+	auto& hshake_buffer = state.world.client_get_hshake_buffer(client);
+	auto plnation = get_player_nation(state, hshake_buffer.nickname);
 	if(!plnation) {
 		plnation = choose_nation_for_player(state);
 
 	}
+	//command::notify_player_joins(state, hshake_buffer.nickname, !state.network_state.is_new_game, plnation, selector_arg{ }, true, nullptr);
 	player_joins(state, client, plnation);
 
 	/* Send it data so the client is in sync with everyone else! */
@@ -1002,18 +987,18 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.assigned_nation = plnation;
 	hshake.scenario_checksum = state.scenario_checksum;
 	hshake.save_checksum = state.get_save_checksum();
-	hshake.assigned_player_id = client.player_id;
+	hshake.assigned_player_id = state.world.client_get_mp_player_from_player_client(client);
 	hshake.host_settings = state.host_settings;
-	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
+	socket_add_to_send_queue(state.world.client_get_early_send_buffer(client), &hshake, sizeof(hshake));
 
 
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now)+ " host:send:handshake | assignednation:" + std::to_string(state.world.mp_player_get_nation_from_player_nation(client.player_id).index()));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now)+ " host:send:handshake | assignednation:" + std::to_string(state.world.client_get_mp_player_from_player_client(client).index()));
 #endif
 
 	/* Exit from handshake mode */
-	client.handshake = false;
+	state.world.client_set_handshake(client, false);
 }
 
 void init(sys::state& state) {
@@ -1368,17 +1353,17 @@ void dump_oos_report(sys::state& state_1, sys::state& state_2) {
 
 
 
-void player_joins(sys::state& state, client_data& joining_client, dcon::nation_id player_nation) {
+void player_joins(sys::state& state, dcon::client_id joining_client, dcon::nation_id player_nation) {
 	// Tell all clients about this client. Don't include passwords. Execute the command for the host first to create the new player id, and then add it to the command queue with host_execute false
-
-	joining_client.player_id = command::execute_notify_player_joins(state, state.local_player_nation, joining_client.hshake_buffer.nickname, joining_client.hshake_buffer.player_password, !state.network_state.is_new_game, player_nation);
-
-	command::notify_player_joins(state, joining_client.hshake_buffer.nickname, !state.network_state.is_new_game, player_nation, selector_arg{ joining_client.player_id }, false, [](const network::client_data& other_client, const sys::state& state, const selector_arg arg) {
-		return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-		});
+	auto& hshake_buffer = state.world.client_get_hshake_buffer(joining_client);
+	auto player_id = command::execute_notify_player_joins(state, state.local_player_nation, hshake_buffer.nickname, hshake_buffer.player_password, !state.network_state.is_new_game, player_nation);
+	state.world.force_create_player_client(joining_client, player_id);
+	command::notify_player_joins(state, hshake_buffer.nickname, !state.network_state.is_new_game, player_nation, selector_arg{ joining_client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+		return other_client == std::get<dcon::client_id>(arg);
+	});
 #ifndef NDEBUG
 	const auto now = std::chrono::system_clock::now();
-	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins playerid:" + std::to_string(joining_client.player_id.index()));
+	state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:broadcast:cmd | type:notify_player_joins playerid:" + std::to_string(player_id.index()));
 #endif
 	write_player_nations(state);
 }
@@ -1438,7 +1423,38 @@ bool client_data::is_banned(sys::state& state) const {
 	}
 }
 
-static void send_post_handshake_commands(sys::state& state, network::client_data& client) {
+inline bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client) {
+	return state.world.client_get_client_state(client) != client_state::normal;
+}
+inline bool can_add_data(const sys::state& state, dcon::client_id client) {
+	return state.world.client_get_client_state(client) == client_state::normal;
+}
+inline bool can_send_data(const sys::state& state, dcon::client_id client) {
+	return state.world.client_get_client_state(client) != client_state::shutting_down;
+}
+inline bool is_flushing(const sys::state& state, dcon::client_id client) {
+	return state.world.client_get_client_state(client) == client_state::flushing;
+}
+
+
+
+
+bool is_banned(sys::state& state, dcon::client_id client) {
+	const auto& address = state.world.client_get_address(client);
+	if(state.network_state.as_v6) {
+		auto sa = (struct sockaddr_in6 const*)&address;
+		return std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const& a) {
+			return std::memcmp(&sa->sin6_addr, &a, sizeof(a)) == 0;
+		}) != state.network_state.v6_banlist.end();
+	} else {
+		auto sa = (struct sockaddr_in const*)&address;
+		return std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const& a) {
+			return std::memcmp(&sa->sin_addr, &a, sizeof(a)) == 0;
+		}) != state.network_state.v4_banlist.end();
+	}
+}
+
+static void send_post_handshake_commands(sys::state& state, dcon::client_id client) {
 	/*std::vector<char> tmp = client.send_buffer;
 	client.send_buffer.clear();*/
 
@@ -1457,14 +1473,14 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			//load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
 			//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			command::notify_reload(state, selector_arg{ client.player_id }, true, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id != std::get<dcon::mp_player_id>(arg);
+			command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client != std::get<dcon::client_id>(arg);
 			});
-			command::notify_mp_data(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-	});
-			command::notify_save_loaded(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+			command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client == std::get<dcon::client_id>(arg);
+			});
+			command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client == std::get< dcon::client_id>(arg);
 			});
 			
 		}
@@ -1480,19 +1496,19 @@ static void send_post_handshake_commands(sys::state& state, network::client_data
 			//load_network_save(state, state.network_state.current_save_buffer.get());
 			// generate checksum for the entire mp state
 			//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-			command::notify_reload(state, selector_arg{ client.player_id }, true, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id != std::get<dcon::mp_player_id>(arg);
+			command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client != std::get<dcon::client_id>(arg);
 			});
-			command::notify_mp_data(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
-	});
-			command::notify_save_loaded(state, selector_arg{ client.player_id }, false, [](const client_data& other_client, const sys::state& state, const selector_arg arg) {
-				return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+			command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client == std::get<dcon::client_id>(arg);
+			});
+			command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+				return other_client == std::get< dcon::client_id>(arg);
 			});
 			
 		}
-		command::notify_start_game(state, selector_arg{ client.player_id }, false, [](const network::client_data& other_client, const sys::state& state, const selector_arg arg) {
-			return other_client.player_id == std::get<dcon::mp_player_id>(arg);
+		command::notify_start_game(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+			return other_client == std::get<dcon::client_id>(arg);
 		});
 	}
 
@@ -1516,9 +1532,12 @@ void full_reset_after_oos(sys::state& state) {
 #endif
 	// notfy every client that every client is now loading (reloading or loading the save)
 	command::notify_player_is_loading(state, state.local_player_id);
-	for(auto& loading_client : state.network_state.clients) {
-		if(loading_client.can_add_data()) {
-			command::notify_player_is_loading(state, loading_client.player_id);
+	for(auto loading_client : state.world.in_client) {
+		if(loading_client.is_valid() && can_add_data(state, loading_client)) {
+			auto player_id = loading_client.get_mp_player_from_player_client();
+			if(player_id) {
+				command::notify_player_is_loading(state, player_id);
+			}
 		}
 	}
 	{
@@ -1536,9 +1555,27 @@ void full_reset_after_oos(sys::state& state) {
 	}
 	{
 		// send MP data and savegame to oos'd clients. Reload will happen automatically together with saveloading. Send explicit reload command to non-oos clients
-		command::notify_reload(state, selector_arg{ }, true, [](const client_data& other_client, const sys::state& state, const selector_arg) {return state.world.mp_player_get_is_oos(other_client.player_id) == false; });
-		command::notify_mp_data(state, selector_arg{ },false, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
-		command::notify_save_loaded(state, selector_arg{ }, false, [](const client_data& other_client, const sys::state& state, const selector_arg) { return state.world.mp_player_get_is_oos(other_client.player_id) == true; });
+		command::notify_reload(state, selector_arg{ }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg) {
+			auto mp_player = state.world.client_get_mp_player_from_player_client(other_client);
+			if(mp_player) {
+				return state.world.mp_player_get_is_oos(mp_player) == false;
+			}
+			return false;
+		});
+		command::notify_mp_data(state, selector_arg{ }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg) {
+			auto mp_player = state.world.client_get_mp_player_from_player_client(other_client);
+			if(mp_player) {
+				return state.world.mp_player_get_is_oos(mp_player) == true;
+			}
+			return false;
+		});
+		command::notify_save_loaded(state, selector_arg{ }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg) {
+			auto mp_player = state.world.client_get_mp_player_from_player_client(other_client);
+			if(mp_player) {
+				return state.world.mp_player_get_is_oos(mp_player) == true;
+			}
+			return false;
+		});
 	}
 	{
 
@@ -1551,41 +1588,42 @@ void full_reset_after_oos(sys::state& state) {
 
 }
 
-int server_process_handshake(sys::state& state, network::client_data& client) {
-	auto r = socket_recv(client.socket_fd, &client.hshake_buffer, sizeof(client.hshake_buffer), &client.recv_count, [&]() {
+int server_process_handshake(sys::state& state, dcon::client_id client) {
+	auto socket_fd = state.world.client_get_socket_fd(client);
+	auto& hshake_buffer = state.world.client_get_hshake_buffer(client);
+	auto& recv_count = state.world.client_get_recv_count(client);
+	auto r = socket_recv(socket_fd, &hshake_buffer, sizeof(hshake_buffer), &recv_count, [&]() {
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:handshake | nickname: " + client.hshake_buffer.nickname.to_string());
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:handshake | nickname: " + hshake_buffer.nickname.to_string());
 #endif
 		// Check lobby password
-		if(std::memcmp(client.hshake_buffer.lobby_password, state.network_state.lobby_password, sizeof(state.network_state.lobby_password)) != 0) {
+		if(std::memcmp(hshake_buffer.lobby_password, state.network_state.lobby_password, sizeof(state.network_state.lobby_password)) != 0) {
 			disconnect_client(state, client, false, disconnect_reason::incorrect_password);
 			return;
 		}
 		// Don't allow two players with the same nickname
 		// Check conflict with host name (us) first, as it won't appear in the client list
-		if(state.world.mp_player_get_nickname(state.local_player_id) == client.hshake_buffer.nickname) {
+		if(state.world.mp_player_get_nickname(state.local_player_id) == hshake_buffer.nickname) {
 			disconnect_client(state, client, false, disconnect_reason::name_taken);
 			return;
 		}
-
-		for(auto& c : state.network_state.clients) {
-			if(!c.is_active()) {
-				continue;
-			}
-
-			if(c.hshake_buffer.nickname == client.hshake_buffer.nickname && c.socket_fd != client.socket_fd) {
-				disconnect_client(state, client, false, disconnect_reason::name_taken);
-				return;
+		for(auto c : state.world.in_client) {
+			const auto& other_hshake_buffer = c.get_hshake_buffer();
+			if(c.is_valid()) {
+				if(other_hshake_buffer.nickname == hshake_buffer.nickname && c.id != client) {
+					disconnect_client(state, client, false, disconnect_reason::name_taken);
+					return;
+				}
 			}
 		}
 
 		// Check player password
 		for(auto pl : state.world.in_mp_player) {
 			auto nickname_1 = sys::player_name{ pl.get_nickname() }.to_string();
-			auto nickname_2 = client.hshake_buffer.nickname.to_string();
+			auto nickname_2 = hshake_buffer.nickname.to_string();
 			auto hash_1 = sys::player_password_hash{ pl.get_password_hash() };
-			auto password_2 = client.hshake_buffer.player_password.to_string();
+			auto password_2 = hshake_buffer.player_password.to_string();
 			auto salt = sys::player_password_salt{ pl.get_password_salt() }.to_string();
 			auto hash_2 = sys::player_password_hash{}.from_string_view(sha512.hash(password_2 + salt));
 
@@ -1607,30 +1645,35 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 	return r;
 }
 
-int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag, state, [&]() {
-		switch(client.recv_buffer.header.type) {
+int server_process_client_commands(sys::state& state, dcon::client_id client) {
+	auto socket_fd = state.world.client_get_socket_fd(client);
+	auto& recv_buffer = state.world.client_get_recv_buffer(client);
+	auto& recv_count = state.world.client_get_recv_count(client);
+	auto& receiving_payload_flag = state.world.client_get_receiving_payload_flag(client);
+	auto player_id = state.world.client_get_mp_player_from_player_client(client);
+	int r = socket_recv_command<sys::network_mode_type::host>(socket_fd, &recv_buffer, &recv_count, &receiving_payload_flag, state, [&]() {
+		switch(recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
-			if(client.recv_buffer.header.player_id == client.player_id) {
+			if(recv_buffer.header.player_id == player_id) {
 				std::scoped_lock lock{ state.commandqueue_producer_lock };
-				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
 				assert(pushed);
 			}
 			break;
 		default:
 			/* Has to be from the client proper and no clients must be currently loading */
-			if(client.recv_buffer.header.player_id == client.player_id
+			if(recv_buffer.header.player_id == player_id
 			&& !network::check_any_players_loading(state)) {
 				std::scoped_lock lock{ state.commandqueue_producer_lock };
-				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ client.recv_buffer, selector_arg{ }, nullptr });
+				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
 				assert(pushed);
 			}
 			break;
 		}
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
-		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:client_cmd | from playerid:" + std::to_string(client.player_id.index()) + " type:" + readableCommandTypes[uint32_t(client.recv_buffer.header.type)]);
+		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:client_cmd | from playerid:" + std::to_string(state.world.client_get_mp_player_from_player_client(client).index()) + " type:" + readableCommandTypes[uint32_t(recv_buffer.header.type)]);
 #endif
 			});
 
@@ -1639,16 +1682,15 @@ int server_process_client_commands(sys::state& state, network::client_data& clie
 constexpr double GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT = 5.0;
 
 static void receive_from_clients(sys::state& state) {
-
-	for(auto& client : state.network_state.clients) {
-		if(client.is_inactive_or_scheduled_shutdown())
+	for(auto client : state.world.in_client) {
+		if(!client.is_valid() || is_scheduled_shutdown(state, client))
 			continue;
 		int r = 0;
-		if(client.handshake) {
+		if(client.get_handshake()) {
 			r = server_process_handshake(state, client);
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
-				state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
+				state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(state.world.client_get_mp_player_from_player_client(client).index()));
 #endif
 				disconnect_client(state, client, false, disconnect_reason::network_error);
 				continue;
@@ -1669,7 +1711,7 @@ static void receive_from_clients(sys::state& state) {
 
 		if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
-			state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(client.player_id.index()));
+			state.console_log("host:disconnect | in-receive err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg() + " from playerid:" + std::to_string(state.world.client_get_mp_player_from_player_client(client).index()));
 #endif
 			disconnect_client(state, client, false, disconnect_reason::network_error);
 			continue;
@@ -1679,6 +1721,7 @@ static void receive_from_clients(sys::state& state) {
 			clear_socket(state, client);
 		}
 	}
+
 }
 
 bool pause_game(sys::state& state) {
@@ -1739,16 +1782,16 @@ void broadcast_to_clients(sys::state& state, host_command_wrapper& c) {
 	}
 	/* Propagate to the valid clients which passes the selector. Or all valid clients if selector is nullptr */
 	if(!c.selector) {
-		for(auto& client : state.network_state.clients) {
-			if(client.can_add_data()) {
-				socket_add_command_to_send_queue(client.send_buffer, &c.cmd_data);
+		for(auto client : state.world.in_client) {
+			if(client.is_valid() && can_add_data(state, client)) {
+				socket_add_command_to_send_queue(client.get_send_buffer(), &c.cmd_data);
 			}
 		}
 	}
 	else {
-		for(auto& client : state.network_state.clients) {
-			if(client.can_add_data() && c.selector(client, state, c.arg)) {
-				socket_add_command_to_send_queue(client.send_buffer, &c.cmd_data);
+		for(auto client : state.world.in_client) {
+			if(client.is_valid() && can_add_data(state,client) && c.selector(client, state, c.arg)) {
+				socket_add_command_to_send_queue(client.get_send_buffer(), &c.cmd_data);
 			}
 		}
 	}
@@ -1765,23 +1808,19 @@ static void accept_new_clients(sys::state& state) {
 	if(select(socket_t(int(state.network_state.socket_fd) + 1), &rfds, nullptr, nullptr, &tv) <= 0)
 		return;
 
-	// Find available slot for client
-	for(auto& client : state.network_state.clients) {
-		if(client.is_active())
-			continue;
-		socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
-		client.socket_fd = accept(state.network_state.socket_fd, (struct sockaddr*)&client.address, &addr_len);
-		client.last_seen = state.current_date;
-		if(client.is_banned(state)) {
-			disconnect_client(state, client, false, disconnect_reason::on_banlist);
-			break;
-		}
-		if(state.current_scene.final_scene) {
-			disconnect_client(state, client, false, disconnect_reason::game_has_ended);
-			break;
-		}
+	auto client_id = fatten(state.world, state.world.create_client());
+	socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
+	client_id.set_socket_fd(accept(state.network_state.socket_fd, (struct sockaddr*)&client_id.get_address(), &addr_len));
+	client_id.set_last_seen(state.current_date);
+	if(is_banned(state, client_id)) {
+		disconnect_client(state, client_id, false, disconnect_reason::on_banlist);
 		return;
 	}
+	if(state.current_scene.final_scene) {
+		disconnect_client(state, client_id, false, disconnect_reason::game_has_ended);
+		return;
+	}
+	
 }
 void reload_save_locally(sys::state& state) {
 	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
@@ -1850,9 +1889,9 @@ bool should_do_clients_to_far_behind_check(const sys::state& state) {
 
 void clear_shut_down_sockets(sys::state& state) {
 	static char buffer[20] = { 0 };
-	for(auto& client : state.network_state.clients) {
-		if(client.client_state == client_state::shutting_down) {
-			int r = recv(client.socket_fd, buffer, sizeof(buffer), 0);
+	for(auto client : state.world.in_client) {
+		if(client.is_valid() && client.get_client_state() == client_state::shutting_down) {
+			int r = recv(client.get_socket_fd(), buffer, sizeof(buffer), 0);
 			// either graceful shutdown, or sock error.
 			if(r < 0) {
 #ifdef _WIN32
@@ -1868,19 +1907,17 @@ void clear_shut_down_sockets(sys::state& state) {
 					continue;
 				}
 #endif
-				
-				
-			}
-			else if(r == 0) {
+
+
+			} else if(r == 0) {
 				clear_socket(state, client);
 				continue;
 			}
 			// force shut it down it if it hasen't shut down willingly within 5 seconds
-			double diff = difftime(time(NULL), client.shutdown_time);
+			double diff = difftime(time(NULL), client.get_shutdown_time());
 			if(diff > GRACEFUL_SOCKET_SHUTDOWN_TIMEOUT) {
 				clear_socket(state, client);
 			}
-			
 		}
 	}
 }
@@ -1890,74 +1927,78 @@ void clear_shut_down_sockets(sys::state& state) {
 
 // Flushes sockets which are assigned to be closed
 void flush_closing_sockets(sys::state& state) {
-	for(auto& client : state.network_state.clients) {
-		if(!client.is_flushing())
+	for(auto client : state.world.in_client) {
+		if(!client.is_valid() || is_flushing(state, client))
 			continue;
-		if(client.early_send_buffer.size() > 0) {
-			size_t old_size = client.early_send_buffer.size();
-			int r = socket_send(client.socket_fd, client.early_send_buffer);
+		auto& early_send_buffer = client.get_early_send_buffer();
+		auto& send_buffer = client.get_send_buffer();
+		if(early_send_buffer.size() > 0) {
+			size_t old_size = early_send_buffer.size();
+			int r = socket_send(client.get_socket_fd(), early_send_buffer);
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-EARLY err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
+				shutdown_socket(client.get_socket_fd());
+				client.set_client_state(client_state::shutting_down);
 				continue;
 			}
-			client.total_sent_bytes += old_size - client.early_send_buffer.size();
+			client.set_total_sent_bytes(client.get_total_sent_bytes() + old_size - early_send_buffer.size());
 #ifndef NDEBUG
-			if(old_size != client.early_send_buffer.size()) {
+			if(old_size != early_send_buffer.size()) {
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.get_mp_player_from_player_client().id.index()) + "total:" + std::to_string(uint32_t(client.get_total_sent_bytes())) + " bytes");
 			}
 
 #endif
 
-			if(client.early_send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
+			if(early_send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
+				shutdown_socket(client.get_socket_fd());
+				client.set_client_state(client_state::shutting_down);
 			}
-		} else if(client.send_buffer.size() > 0) {
-			size_t old_size = client.send_buffer.size();
-			int r = socket_send(client.socket_fd, client.send_buffer);
+		} else if(send_buffer.size() > 0) {
+			size_t old_size = send_buffer.size();
+			int r = socket_send(client.get_socket_fd(), send_buffer);
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
 				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:disconnect | in-send-INGAME err=" + std::to_string(int32_t(r)) + "::" + get_last_error_msg());
 #endif
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
+				shutdown_socket(client.get_socket_fd());
+				client.set_client_state(client_state::shutting_down);
 				continue;
 			}
-			client.total_sent_bytes += old_size - client.send_buffer.size();
+			client.set_total_sent_bytes(client.get_total_sent_bytes() + old_size - send_buffer.size());
 #ifndef NDEBUG
-			if(old_size != client.send_buffer.size()) {
+			if(old_size != send_buffer.size()) {
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.get_mp_player_from_player_client().id.index()) + "total:" + std::to_string(uint32_t(client.get_total_sent_bytes())) + " bytes");
 			}
 #endif
-			if(client.send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
-				shutdown_socket(client.socket_fd);
-				client.client_state = client_state::shutting_down;
+			if(send_buffer.size() == 0) { // if size is zero, we have flushed all data sucessfully and can move on to the shutdown
+				shutdown_socket(client.get_socket_fd());
+				client.set_client_state(client_state::shutting_down);
 			}
 		}
 		else {
 			// if size is zero, we have flushed all data sucessfully and can move on to the shutdown
-			shutdown_socket(client.socket_fd);
-			client.client_state = client_state::shutting_down;
+			shutdown_socket(client.get_socket_fd());
+			client.set_client_state(client_state::shutting_down);
 			
 		}
 	}
 }
 // Sends data from server to all clients which are active and in a normal state
 void server_send_to_clients(sys::state& state) {
-	for(auto& client : state.network_state.clients) {
-		if(client.is_inactive_or_scheduled_shutdown())
+	for(auto client : state.world.in_client) {
+		if(!client.is_valid() || is_scheduled_shutdown(state, client))
 			continue;
-		if(client.early_send_buffer.size() > 0) {
-			size_t old_size = client.early_send_buffer.size();
-			int r = socket_send(client.socket_fd, client.early_send_buffer);
+		auto& early_send_buffer = client.get_early_send_buffer();
+		auto& send_buffer = client.get_send_buffer();
+		if(early_send_buffer.size() > 0) {
+			size_t old_size = early_send_buffer.size();
+			int r = socket_send(client.get_socket_fd(), early_send_buffer);
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
@@ -1966,17 +2007,17 @@ void server_send_to_clients(sys::state& state) {
 				disconnect_client(state, client, false, disconnect_reason::network_error);
 				continue;
 			}
-			client.total_sent_bytes += old_size - client.early_send_buffer.size();
+			client.set_total_sent_bytes(client.get_total_sent_bytes() + old_size - early_send_buffer.size());
 #ifndef NDEBUG
-			if(old_size != client.early_send_buffer.size()) {
+			if(old_size != early_send_buffer.size()) {
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [EARLY] to playerid:" + std::to_string(client.get_mp_player_from_player_client().id.index()) + "total:" + std::to_string(uint32_t(client.get_total_sent_bytes())) + " bytes");
 			}
 
 #endif
-		} else if(client.send_buffer.size() > 0) {
-			size_t old_size = client.send_buffer.size();
-			int r = socket_send(client.socket_fd, client.send_buffer);
+		} else if(send_buffer.size() > 0) {
+			size_t old_size = send_buffer.size();
+			int r = socket_send(client.get_socket_fd(), send_buffer);
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
@@ -1985,11 +2026,11 @@ void server_send_to_clients(sys::state& state) {
 				disconnect_client(state, client, false, disconnect_reason::network_error);
 				continue;
 			}
-			client.total_sent_bytes += old_size - client.send_buffer.size();
+			client.set_total_sent_bytes(client.get_total_sent_bytes() + old_size - send_buffer.size());
 #ifndef NDEBUG
-			if(old_size != client.send_buffer.size()) {
+			if(old_size != send_buffer.size()) {
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.player_id.index()) + "total:" + std::to_string(uint32_t(client.total_sent_bytes)) + " bytes");
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:stats | [SEND] to playerid:" + std::to_string(client.get_mp_player_from_player_client().id.index()) + "total:" + std::to_string(uint32_t(client.get_total_sent_bytes())) + " bytes");
 			}
 
 #endif
@@ -2168,17 +2209,15 @@ void finish(sys::state& state, bool notify_host) {
 
 
 void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid) {
-	for(auto& client : state.network_state.clients) {
-		if(client.is_active() && client.player_id == playerid) {
-			if(state.network_state.as_v6) {
-				auto sa = (struct sockaddr_in6*)&client.address;
-				state.network_state.v6_banlist.push_back(sa->sin6_addr);
-			} else {
-				auto sa = (struct sockaddr_in*)&client.address;
-				state.network_state.v4_banlist.push_back(sa->sin_addr);
-			}
-			break;
-		}
+	auto client = state.world.mp_player_get_client_from_player_client(playerid);
+	assert(client);
+	auto& address = state.world.client_get_address(client);
+	if(state.network_state.as_v6) {
+		auto sa = (struct sockaddr_in6*)&address;
+		state.network_state.v6_banlist.push_back(sa->sin6_addr);
+	} else {
+		auto sa = (struct sockaddr_in*)&address;
+		state.network_state.v4_banlist.push_back(sa->sin_addr);
 	}
 	
 }

@@ -5901,17 +5901,20 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 	else if(state.network_mode == sys::network_mode_type::host) {
 		// Slow down and disconnect players who are too far behind
 		if(network::should_do_clients_to_far_behind_check(state)) {
-			for(auto& client : state.network_state.clients) {
-				if(client.is_inactive_or_scheduled_shutdown())
-					continue;
-
-				// Drop lost clients
-				if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
-					command::notify_player_timeout(state, state.world.mp_player_get_nation_from_player_nation(client.player_id), false, client.player_id);
-				}
-				// Slow down for the lagging ones
-				else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - client.last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
-					state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
+					auto player_id = client.get_mp_player_from_player_client();
+					auto last_seen = client.get_last_seen();
+					if(player_id) {
+						// Drop lost clients
+						if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_drop && state.current_date.value - last_seen.value > state.host_settings.alice_lagging_behind_days_to_drop) {
+							command::notify_player_timeout(state, state.world.mp_player_get_nation_from_player_nation(player_id), false, player_id);
+						}
+						// Slow down for the lagging ones
+						else if(state.current_scene.game_in_progress && state.current_date.value > state.host_settings.alice_lagging_behind_days_to_slow_down && state.current_date.value - last_seen.value > state.host_settings.alice_lagging_behind_days_to_slow_down) {
+							state.actual_game_speed = std::clamp(state.actual_game_speed - 1, 1, 4);
+						}
+					}
 				}
 			}
 		}
@@ -6156,14 +6159,9 @@ void network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::dat
 }
 void execute_network_inactivity_ping(sys::state& state, dcon::nation_id source, sys::date date, dcon::mp_player_id player) {
 	// Update last seen of the client
-	if(state.network_mode == sys::network_mode_type::host) {
-		for(auto& client : state.network_state.clients) {
-			if(client.player_id == player) {
-				client.last_seen = date;
-			}
-		}
-	}
-	return;
+	auto client = state.world.mp_player_get_client_from_player_client(player);
+	assert(client);
+	state.world.client_set_last_seen(client, date);
 }
 
 // host only. Sends commands to other clients to handle the resync

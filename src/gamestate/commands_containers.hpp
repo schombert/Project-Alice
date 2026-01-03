@@ -11,6 +11,8 @@ struct cmd_header {
 	uint8_t padding = 0;
 	dcon::mp_player_id player_id;
 	uint32_t payload_size = 0;
+	bool operator==(const cmd_header& other) const = default;
+	bool operator!=(const cmd_header& other) const = default;
 
 };
 static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
@@ -108,6 +110,10 @@ struct command_data {
 	bool check_variable_size_payload(uint32_t expected_size) const {
 		return expected_size == (payload.size() - sizeof(data_type));
 	}
+
+
+	bool operator==(const command_data&) const = default;
+	bool operator!=(const command_data&) const = default;
 
 };
 static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(command_data::payload));
