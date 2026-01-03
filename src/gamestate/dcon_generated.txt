@@ -6045,6 +6045,7 @@ object{
 		name{ socket_fd }
 		type{ network::socket_t }
 		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
 	}
 	property{
 		name{ address }
