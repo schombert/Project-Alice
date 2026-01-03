@@ -542,7 +542,8 @@ public:
 						state.map_state.zoom = map::zoom_very_close;
 					state.map_state.center_map_on_province(state, cap);
 				}
-				command::notify_start_game(state, network::selector_arg{ },true, nullptr);
+				command::notify_start_game(state);
+				
 			}
 			
 		}

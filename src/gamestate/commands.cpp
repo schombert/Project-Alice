@@ -6065,6 +6065,11 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		state.ui_lock_cv.notify_one();
 	}
 }
+void notify_start_game(sys::state& state) {
+
+	command_data p{ command_type::notify_start_game, state.local_player_id };
+	add_to_command_queue(state, p);
+}
 
 void notify_start_game(sys::state& state,network::selector_arg arg, bool host_execute,  network::selector_function client_selector) {
 
