@@ -1809,9 +1809,19 @@ static void accept_new_clients(sys::state& state) {
 		return;
 
 	auto client_id = fatten(state.world, state.world.create_client());
+	client_id.set_client_state(client_state::normal);
+	client_id.set_total_sent_bytes(0);
+	client_id.set_save_stream_size(0);
+	client_id.set_save_stream_offset(0);
+	client_id.set_recv_count(0);
+	client_id.set_handshake(true);
+	client_id.set_receiving_payload_flag(false);
+	client_id.set_shutdown_time(0);
+	client_id.set_last_seen(state.current_date);
+
+
 	socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
 	client_id.set_socket_fd(accept(state.network_state.socket_fd, (struct sockaddr*)&client_id.get_address(), &addr_len));
-	client_id.set_last_seen(state.current_date);
 	if(is_banned(state, client_id)) {
 		disconnect_client(state, client_id, false, disconnect_reason::on_banlist);
 		return;
