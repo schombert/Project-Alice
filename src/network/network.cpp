@@ -1938,7 +1938,7 @@ void clear_shut_down_sockets(sys::state& state) {
 // Flushes sockets which are assigned to be closed
 void flush_closing_sockets(sys::state& state) {
 	for(auto client : state.world.in_client) {
-		if(!client.is_valid() || is_flushing(state, client))
+		if(!client.is_valid() || !is_flushing(state, client))
 			continue;
 		auto& early_send_buffer = client.get_early_send_buffer();
 		auto& send_buffer = client.get_send_buffer();
