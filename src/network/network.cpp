@@ -1686,9 +1686,6 @@ void write_network_save(sys::state& state) {
 	state.network_state.current_save_buffer.reset(new uint8_t[ZSTD_compressBound(length) + sizeof(uint32_t) * 2]);
 	auto buffer_position = write_network_compressed_section(state.network_state.current_save_buffer.get(), save_buffer.get(), uint32_t(length));
 	state.network_state.current_save_length = uint32_t(buffer_position - state.network_state.current_save_buffer.get());
-	state.network_state.last_save_checksum = state.get_save_checksum();
-	//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-
 }
 
 
@@ -1761,37 +1758,31 @@ static void accept_new_clients(sys::state& state) {
 	
 }
 void reload_save_locally(sys::state& state) {
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
-		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
-	});
-	{
-		state.yield_ui_lock = true;
-		std::unique_lock lock(state.ui_lock);
+	
+	state.yield_ui_lock = true;
+	std::unique_lock lock(state.ui_lock);
 
-		std::vector<dcon::nation_id> no_ai_nations;
-		for(const auto n : state.world.in_nation)
-			if(state.world.nation_get_is_player_controlled(n))
-				no_ai_nations.push_back(n);
-		dcon::nation_id old_local_player_nation = state.local_player_nation;
-		/* Save the buffer before we fill the unsaved data */
-		size_t length = sizeof_save_section(state);
-		auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
-		sys::write_save_section(save_buffer.get(), state);
-		state.local_player_nation = dcon::nation_id{ };
-		/* Then reload as if we loaded the save data */
-		state.reset_state();
-		sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
-		network::set_no_ai_nations_after_reload(state, no_ai_nations);
-		state.local_player_nation = old_local_player_nation;
-		state.fill_unsaved_data();
+	std::vector<dcon::nation_id> no_ai_nations;
+	for(const auto n : state.world.in_nation)
+		if(state.world.nation_get_is_player_controlled(n))
+			no_ai_nations.push_back(n);
+	dcon::nation_id old_local_player_nation = state.local_player_nation;
+	/* Save the buffer before we fill the unsaved data */
+	size_t length = sizeof_save_section(state);
+	auto save_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	sys::write_save_section(save_buffer.get(), state);
+	state.local_player_nation = dcon::nation_id{ };
+	/* Then reload as if we loaded the save data */
+	state.reset_state();
+	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
+	network::set_no_ai_nations_after_reload(state, no_ai_nations);
+	state.local_player_nation = old_local_player_nation;
+	state.fill_unsaved_data();
 
-		state.yield_ui_lock = false;
-		lock.unlock();
-		state.ui_lock_cv.notify_one();
-	}
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
-		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
-	});
+	state.yield_ui_lock = false;
+	lock.unlock();
+	state.ui_lock_cv.notify_one();
+	
 }
 
 bool should_do_oos_check(const sys::state& state) {
@@ -1994,9 +1985,10 @@ void send_and_receive_commands(sys::state& state) {
 				const auto* pre_exec_handler = command::command_type_handlers[c->cmd_data.header.type];
 				if(pre_exec_handler && pre_exec_handler->pre_execution_broadcast_modifications) {
 					pre_exec_handler->pre_execution_broadcast_modifications(state, c->cmd_data);
+					command_executed = true;
 				}
 				// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
-				if((c->host_execute && command::execute_command(state, c->cmd_data)) || command::can_perform_command(state, c->cmd_data)) {
+				if((c->host_execute && command::execute_command(state, c->cmd_data)) || (!c->host_execute &&  command::can_perform_command(state, c->cmd_data))) {
 					if(command::is_host_broadcast_command(state, c->cmd_data)) {
 						// Generate checksum on the spot.
 						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
@@ -2008,7 +2000,8 @@ void send_and_receive_commands(sys::state& state) {
 						}
 						broadcast_to_clients(state, *c);
 					}
-					
+					command_executed = true;
+	
 				}
 			}
 			state.network_state.server_outgoing_commands.pop();

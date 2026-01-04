@@ -564,7 +564,6 @@ bool notify_oos_gamestate_is_host_receive_command(const sys::state& state);
 
 
 void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state, command_data& command);
-void pre_execution_broadcast_modifications_notify_reload(sys::state& state, command_data& command);
 void pre_execution_broadcast_modifications_notify_mp_data(sys::state& state, command_data& command);
 
 
@@ -724,7 +723,7 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::notify_start_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_stop_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_pause_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_reload } },
+	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::advance_tick, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::network_inactivity_ping, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::true_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },

@@ -6275,6 +6275,9 @@ void notify_reload(sys::state& state, network::selector_arg arg, bool host_execu
 
 }
 void execute_notify_reload(sys::state& state, command_data& command) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
+	});
 	auto& data = command.get_payload<notify_reload_data>();
 	if(state.network_mode == sys::network_mode_type::client) {
 		state.session_host_checksum = data.checksum;
@@ -6292,6 +6295,14 @@ void execute_notify_reload(sys::state& state, command_data& command) {
 	command::notify_player_fully_loaded(state, state.local_player_nation); // notify we are done reloading
 
 	network::log_player_nations(state);
+	// As the host, before the command is broadcast, update the checksum to be up-to-date
+	if(state.network_mode == sys::network_mode_type::host) {
+		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
+		data.checksum = state.network_state.current_mp_state_checksum;
+	}
+	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
+	});
 }
 
 bool can_notify_start_game(sys::state& state, dcon::nation_id source) {
@@ -6627,8 +6638,10 @@ void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state,
 	});
 	auto& data = command.get_payload<notify_save_loaded_data>();
 	// check if we need to write a new network save, then add said network save to the command before broadcast
-	if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
+	auto save_checksum = state.get_save_checksum();
+	if(!state.network_state.last_save_checksum.is_equal(save_checksum)) {
 		network::write_network_save(state);
+		state.network_state.last_save_checksum = save_checksum;
 	}
 	state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 	data.checksum = state.network_state.current_mp_state_checksum;
@@ -6637,15 +6650,6 @@ void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state,
 	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 	});
-}
-
-
-
-void pre_execution_broadcast_modifications_notify_reload(sys::state& state, command_data& command) {
-	auto& data = command.get_payload<notify_reload_data>();
-	state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-	data.checksum = state.network_state.current_mp_state_checksum;
-	
 }
 
 void pre_execution_broadcast_modifications_notify_mp_data(sys::state& state, command_data& command) {
