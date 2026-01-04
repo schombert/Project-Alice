@@ -421,7 +421,15 @@ inline static int socket_send_command(socket_t socket_fd, std::vector<std::share
 			if(r > 0) {
 				cmd_bytes_sent += r;
 				if(cmd_bytes_sent >= sizeof(cmd_bytes_sent)) {
-					sending_payload = true;
+					cmd_bytes_sent = 0;
+					if(ptr->payload.size() == 0) {
+						// if payload is empty, we are done so we just pop the command and continue
+						buffer.erase(buffer.begin());
+					}
+					else {
+						sending_payload = true;
+					}
+					
 				}
 			} else if(r < 0) {
 #ifdef _WIN32
