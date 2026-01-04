@@ -420,7 +420,7 @@ inline static int socket_send_command(socket_t socket_fd, std::vector<std::share
 			int r = internal_socket_send(socket_fd, ptr + cmd_bytes_sent, sizeof(command::cmd_header) - cmd_bytes_sent);
 			if(r > 0) {
 				cmd_bytes_sent += r;
-				if(cmd_bytes_sent >= sizeof(cmd_bytes_sent)) {
+				if(cmd_bytes_sent == sizeof(cmd_bytes_sent)) {
 					cmd_bytes_sent = 0;
 					if(ptr->payload.size() == 0) {
 						// if payload is empty, we are done so we just pop the command and continue
@@ -450,7 +450,7 @@ inline static int socket_send_command(socket_t socket_fd, std::vector<std::share
 			int r = internal_socket_send(socket_fd, ptr->payload.data() + cmd_bytes_sent, ptr->payload.size() - cmd_bytes_sent);
 			if(r > 0) {
 				cmd_bytes_sent += r;
-				if(cmd_bytes_sent >= sizeof(command::cmd_header) + ptr->payload.size()) {
+				if(cmd_bytes_sent == ptr->payload.size()) {
 					buffer.erase(buffer.begin());
 					sending_payload = false;
 					cmd_bytes_sent = 0;
