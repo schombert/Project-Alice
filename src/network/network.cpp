@@ -593,6 +593,10 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 //
 
 void clear_socket(sys::state& state, dcon::client_id client) {
+	// if the client has not been notified to have left by now (if the client closed the connection without notifying), then notify it now
+	if(command::can_notify_player_leaves(state, dcon::nation_id{ }, false, state.world.client_get_mp_player_from_player_client(client))) {
+		command::notify_player_leaves(state, dcon::nation_id{ }, false, state.world.client_get_mp_player_from_player_client(client));
+	}
 	close_socket(state.world.client_get_socket_fd(client));
 	auto player_client = state.world.client_get_player_client(client);
 	if(player_client) {
