@@ -1374,18 +1374,6 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 }
 
 
-void notify_start_game(sys::state& state, network::client_data& client) {
-	// notify_start_game
-
-	command::command_data c{ command::command_type::notify_start_game, get_host_player(state) };
-
-	socket_add_command_to_send_queue(client.send_buffer, &c);
-#ifndef NDEBUG
-	state.console_log("host:send:cmd | (new->start_game) to playerid:" + std::to_string(client.player_id.index()));
-#endif
-}
-
-
 bool client_data::is_banned(sys::state& state) const {
 	if(state.network_state.as_v6) {
 		auto sa = (struct sockaddr_in6 const*)&address;
@@ -1613,25 +1601,14 @@ int server_process_client_commands(sys::state& state, dcon::client_id client) {
 	auto& receiving_payload_flag = state.world.client_get_receiving_payload_flag(client);
 	auto player_id = state.world.client_get_mp_player_from_player_client(client);
 	int r = socket_recv_command<sys::network_mode_type::host>(socket_fd, &recv_buffer, &recv_count, &receiving_payload_flag, state, [&]() {
-		switch(recv_buffer.header.type) {
-			// client can notify the host that they are loaded without needing to check the num of clients loading
-		case command::command_type::notify_player_fully_loaded:
-			if(recv_buffer.header.player_id == player_id) {
-				std::scoped_lock lock{ state.commandqueue_producer_lock };
-				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
-				assert(pushed);
-			}
-			break;
-		default:
-			/* Has to be from the client proper and no clients must be currently loading */
-			if(recv_buffer.header.player_id == player_id
-			&& !network::check_any_players_loading(state)) {
-				std::scoped_lock lock{ state.commandqueue_producer_lock };
-				bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
-				assert(pushed);
-			}
-			break;
+		// verify that the command's sender is correct
+		if(recv_buffer.header.player_id == player_id) {
+			std::scoped_lock lock{ state.commandqueue_producer_lock };
+			bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
+			assert(pushed);
 		}
+			
+		
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
 		state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:recv:client_cmd | from playerid:" + std::to_string(state.world.client_get_mp_player_from_player_client(client).index()) + " type:" + readableCommandTypes[uint32_t(recv_buffer.header.type)]);
@@ -1823,7 +1800,7 @@ void reload_save_locally(sys::state& state) {
 		state.ui_lock_cv.notify_one();
 	}
 	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
-		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question
+		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 	});
 }
 

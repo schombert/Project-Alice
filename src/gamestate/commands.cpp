@@ -62,20 +62,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::notify_mp_data:
 		// Notifications can be sent because it's an-always do thing
 		break;
-	case command_type::load_saved_game:
-		state.network_state.is_new_game = false;
-		break;
-	case command_type::change_game_rule_setting:
-	    // changing game rule can not happen whilst the game is in progress
-		if(state.current_scene.game_in_progress || network::check_any_players_loading(state))
-			return;
-		state.network_state.is_new_game = false;
-		break;
-
 	default:
-		// Normal commands are discarded iff we are not in the game, or if any other client is loading
-		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
-			return;
 		state.network_state.is_new_game = false;
 		break;
 	}
@@ -137,20 +124,7 @@ void add_to_command_queue(sys::state& state, network::host_command_wrapper& p) {
 	case command_type::notify_mp_data:
 		// Notifications can be sent because it's an-always do thing
 		break;
-	case command_type::load_saved_game:
-		state.network_state.is_new_game = false;
-		break;
-	case command_type::change_game_rule_setting:
-		// changing game rule can not happen whilst the game is in progress
-		if(state.current_scene.game_in_progress || network::check_any_players_loading(state))
-			return;
-		state.network_state.is_new_game = false;
-		break;
-
 	default:
-		// Normal commands are discarded iff we are not in the game, or if any other client is loading
-		if(!state.current_scene.game_in_progress || network::check_any_players_loading(state))
-			return;
 		state.network_state.is_new_game = false;
 		break;
 	}
@@ -226,6 +200,9 @@ void set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_i
 
 bool can_set_national_focus(sys::state& state, dcon::nation_id source, dcon::state_instance_id target_state,
 		dcon::national_focus_id focus) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!focus) {
 		return true;
 	} else {
@@ -293,6 +270,9 @@ bool can_start_research(sys::state& state, dcon::nation_id source, dcon::technol
 	/* Nations can only start researching technologies if, they are not uncivilized, the tech
 		 activation date is past by, and all the previous techs (if any) of the same folder index
 		 are already researched fully. And they are not already researched. */
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!tech)
 		return false;
 	if(state.world.nation_get_active_technologies(source, tech))
@@ -328,6 +308,9 @@ void make_leader(sys::state& state, dcon::nation_id source, bool general) {
 
 }
 bool can_make_leader(sys::state& state, dcon::nation_id source, bool general) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.nation_get_leadership_points(source) >= state.defines.leader_recruit_cost;
 }
 void execute_make_leader(sys::state& state, dcon::nation_id source, bool general) {
@@ -343,6 +326,9 @@ void set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::
 
 };
 bool can_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return (value >= 0.f);
 };
 void execute_set_factory_type_priority(sys::state& state, dcon::nation_id source, dcon::factory_type_id ftid, float value) {
@@ -361,6 +347,9 @@ void give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_give_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the nation isn't already being given war subsidies, and there is
 	 * defines:WARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
@@ -409,6 +398,9 @@ void cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::natio
 bool can_cancel_war_subsidies(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the nation is already being given war subsidies, and there is
 	 * defines:CANCELWARSUBSIDY_DIPLOMATIC_COST diplomatic points available. And the target isn't equal to the sender. */
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
@@ -452,7 +444,9 @@ void increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_increase_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the relation value isn't maxed out at 200, and has
 	 * defines:INCREASERELATION_DIPLOMATIC_COST diplomatic points. And the target can't be the same as the sender. */
-
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false; // Can't negotiate with self
 
@@ -493,6 +487,9 @@ void decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_
 bool can_decrease_relations(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	/* Can only perform if, the nations are not at war, the relation value isn't maxxed out at -200, and has
 	 * defines:DECREASERELATION_DIPLOMATIC_COST diplomatic points. And not done to self. */
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false; // Can't negotiate with self
 	if(military::are_at_war(state, source, target))
@@ -528,6 +525,9 @@ void begin_province_building_construction(sys::state& state, dcon::nation_id sou
 
 }
 bool can_begin_province_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id p, economy::province_building_type type) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	switch(type) {
 	case economy::province_building_type::railroad:
@@ -579,6 +579,9 @@ void cancel_factory_building_construction(sys::state& state, dcon::nation_id sou
 
 }
 bool can_cancel_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	for(auto c : state.world.province_get_factory_construction(location)) {
 		if(c.get_type() == type) {
@@ -615,6 +618,9 @@ void begin_factory_building_construction(sys::state& state, dcon::nation_id sour
 }
 
 bool can_begin_factory_building_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::factory_type_id type, bool is_upgrade, dcon::factory_type_id refit_target) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	auto owner = state.world.province_get_nation_from_province_ownership(location);
 	auto sid = state.world.province_get_state_membership(location);
@@ -831,6 +837,9 @@ bool can_start_naval_unit_construction(sys::state& state, dcon::nation_id source
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(state.world.province_get_nation_from_province_ownership(location) != source)
 		return false;
@@ -889,6 +898,9 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(state.world.province_get_nation_from_province_ownership(location) != source)
 		return false;
@@ -935,6 +947,9 @@ void cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, d
 }
 
 bool can_cancel_naval_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::unit_type_id type) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.province_get_nation_from_province_ownership(location) == source;
 }
 
@@ -961,6 +976,9 @@ void cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dc
 
 }
 bool can_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.province_get_nation_from_province_ownership(location) == source;
 }
 void execute_cancel_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type) {
@@ -986,6 +1004,9 @@ void delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id 
 
 }
 bool can_delete_factory(sys::state& state, dcon::nation_id source, dcon::factory_id f) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto loc = state.world.factory_get_province_from_factory_location(f);
 	if(state.world.province_get_nation_from_province_ownership(loc) != source)
 		return false;
@@ -1007,6 +1028,9 @@ void change_factory_settings(sys::state& state, dcon::nation_id source, dcon::fa
 	add_to_command_queue(state, p);
 }
 bool can_change_factory_settings(sys::state& state, dcon::nation_id source, dcon::factory_id f, uint8_t priority, bool subsidized) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto loc = state.world.factory_get_province_from_factory_location(f);
 	if(state.world.province_get_nation_from_province_ownership(loc) != source)
 		return false;
@@ -1085,6 +1109,9 @@ void release_and_play_as(sys::state& state, dcon::nation_id source, dcon::nation
 
 }
 bool can_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, dcon::mp_player_id player) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return nations::can_release_as_vassal(state, source, t);
 }
 void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon::national_identity_id t, dcon::mp_player_id player) {
@@ -1107,6 +1134,9 @@ void execute_release_and_play_as(sys::state& state, dcon::nation_id source, dcon
 }
 
 inline bool can_change_budget_settings(sys::state& state, dcon::nation_id source, budget_settings_data const& values) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return true;
 }
 
@@ -1169,6 +1199,9 @@ void start_election(sys::state& state, dcon::nation_id source) {
 
 }
 bool can_start_election(sys::state& state, dcon::nation_id source) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto type = state.world.nation_get_government_type(source);
 	return state.world.government_type_get_has_elections(type) && !politics::is_election_ongoing(state, source);
 }
@@ -1186,6 +1219,9 @@ void change_influence_priority(sys::state& state, dcon::nation_id source, dcon::
 
 }
 bool can_change_influence_priority(sys::state& state, dcon::nation_id source, dcon::nation_id influence_target, uint8_t priority) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	// The source must be a great power, while the target must not be a great power.
 	return state.world.nation_get_is_great_power(source) && !state.world.nation_get_is_great_power(influence_target);
 }
@@ -1229,6 +1265,9 @@ bool can_discredit_advisors(sys::state& state, dcon::nation_id source, dcon::nat
 	nation and you must have a an equal or better opinion level with the influenced nation than the nation you are discrediting
 	does.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) ||
 			state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1303,6 +1342,9 @@ bool can_expel_advisors(sys::state& state, dcon::nation_id source, dcon::nation_
 	can be a secondary target for this action. To expel advisors you must have at least neutral opinion with the influenced nation
 	and an equal or better opinion level than that of the nation you are expelling.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) ||
 			state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1374,6 +1416,9 @@ bool can_ban_embassy(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	be a secondary target for this action. To ban a nation you must be at least friendly with the influenced nation and have an
 	equal or better opinion level than that of the nation you are expelling.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) ||
 			state.world.nation_get_is_great_power(influence_target))
@@ -1447,6 +1492,9 @@ bool can_increase_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 	not be currently banned with the direct target or currently on the opposite side of a war involving them. Only a great power
 	can be a secondary target for this action. Your current opinion must be less than friendly
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || state.world.nation_get_is_great_power(influence_target))
 		return false;
 
@@ -1507,6 +1555,9 @@ bool can_decrease_opinion(sys::state& state, dcon::nation_id source, dcon::natio
 	than the nation you are lowering their opinion of does. The secondary target must neither have the influenced nation in sphere
 	nor may it already be at hostile opinion with them.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) ||
 			state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1586,6 +1637,9 @@ bool can_add_to_sphere(sys::state& state, dcon::nation_id source, dcon::nation_i
 	be a secondary target for this action. The nation must have a friendly opinion of you and my not be in the sphere of another
 	nation.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || state.world.nation_get_is_great_power(influence_target))
 		return false;
 
@@ -1644,6 +1698,9 @@ bool can_remove_from_sphere(sys::state& state, dcon::nation_id source, dcon::nat
 	can be a secondary target for this action. To preform this action you must have an opinion level of friendly with the nation
 	you are removing from a sphere.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!state.world.nation_get_is_great_power(source) || !state.world.nation_get_is_great_power(affected_gp) ||
 			state.world.nation_get_is_great_power(influence_target))
 		return false;
@@ -1716,6 +1773,9 @@ void upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::st
 
 }
 bool can_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.state_instance_get_nation_from_state_ownership(si) == source && province::can_integrate_colony(state, si);
 }
 void execute_upgrade_colony_to_state(sys::state& state, dcon::nation_id source, dcon::state_instance_id si) {
@@ -1731,6 +1791,9 @@ void invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_
 
 }
 bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
 	if(!province::is_colonizing(state, source, state_def))
 		return province::can_start_colony(state, source, state_def);
@@ -1777,6 +1840,9 @@ void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id
 }
 
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto state_def = state.world.province_get_state_from_abstract_state_membership(pr);
 	return province::is_colonizing(state, source, state_def);
 }
@@ -1800,6 +1866,9 @@ void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_
 
 }
 bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.state_definition_get_colonization_stage(d) != 3)
 		return false;
 	auto rng = state.world.state_definition_get_colonization(d);
@@ -1838,6 +1907,9 @@ bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_i
 	Must be a great power. Must not be involved in or interested in a crisis. Must be at least define:MIN_MONTHS_TO_INTERVENE
 	since the war started.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!nations::is_great_power(state, source))
 		return false;
 	if(nations::is_involved_in_crisis(state, source))
@@ -1943,6 +2015,9 @@ void suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement
 
 }
 bool can_suppress_movement(sys::state& state, dcon::nation_id source, dcon::movement_id m) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.movement_get_nation_from_movement_within(m) != source)
 		return false;
 	if(state.world.movement_get_pop_movement_membership(m).begin() == state.world.movement_get_pop_movement_membership(m).end())
@@ -1970,6 +2045,9 @@ void civilize_nation(sys::state& state, dcon::nation_id source) {
 
 }
 bool can_civilize_nation(sys::state& state, dcon::nation_id source) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.nation_get_modifier_values(source, sys::national_mod_offsets::civilization_progress_modifier) >= 1.0f && !state.world.nation_get_is_civilized(source);
 }
 void execute_civilize_nation(sys::state& state, dcon::nation_id source) {
@@ -1989,6 +2067,9 @@ bool can_appoint_ruling_party(sys::state& state, dcon::nation_id source, dcon::p
 	current ruling party. The government must allow the player to set the ruling party. The ruling party can manually be changed
 	at most once per year.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.nation_get_ruling_party(source) == p)
 		return false;
 	if(!politics::political_party_is_active(state, source, p))
@@ -2024,6 +2105,9 @@ void enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option
 
 }
 bool can_enact_reform(sys::state& state, dcon::nation_id source, dcon::reform_option_id r) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == state.local_player_nation && state.cheat_data.always_allow_reforms)
 		return true;
 
@@ -2047,6 +2131,9 @@ void enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_i
 	add_to_command_queue(state, p);
 }
 bool can_enact_issue(sys::state& state, dcon::nation_id source, dcon::issue_option_id i) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == state.local_player_nation && state.cheat_data.always_allow_reforms)
 		return true;
 
@@ -2073,6 +2160,9 @@ bool can_become_interested_in_crisis(sys::state& state, dcon::nation_id source) 
 	/*
 	Not already interested in the crisis. Is a great power. Not at war. The crisis must have already gotten its initial backers.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!nations::is_great_power(state, source))
 		return false;
 
@@ -2116,6 +2206,9 @@ bool can_take_sides_in_crisis(sys::state& state, dcon::nation_id source, bool jo
 	Must not be involved in the crisis already. Must be interested in the crisis. Must be a great power. Must not be disarmed. The
 	crisis must have already gotten its initial backers.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(state.current_crisis_state != sys::crisis_state::heating_up)
 		return false;
@@ -2152,6 +2245,9 @@ void execute_take_sides_in_crisis(sys::state& state, dcon::nation_id source, boo
 
 bool can_change_stockpile_settings(sys::state& state, dcon::nation_id source, dcon::commodity_id c, float target_amount,
 		bool draw_on_stockpiles) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return true;
 }
 
@@ -2179,6 +2275,9 @@ void take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id 
 	add_to_command_queue(state, p);
 }
 bool can_take_decision(sys::state& state, dcon::nation_id source, dcon::decision_id d) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!(state.world.nation_get_is_player_controlled(source) && state.cheat_data.always_potential_decisions)) {
 		auto condition = state.world.decision_get_potential(d);
 		if(condition && !trigger::evaluate(state, condition, trigger::to_generic(source), trigger::to_generic(source), 0))
@@ -2199,6 +2298,9 @@ void execute_take_decision(sys::state& state, dcon::nation_id source, dcon::deci
 }
 
 bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_n_event_data const& e) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	for(auto i = state.pending_n_event.size(); i-- > 0;) {
 		if(event::pending_human_n_event{e.r_lo, e.r_hi, e.primary_slot, e.from_slot, e.date, e.e, source, e.pt, e.ft} == state.pending_n_event[i]) {
 			if(e.opt_choice > state.world.national_event_get_options(e.e).size() || !event::is_valid_option(state.world.national_event_get_options(e.e)[e.opt_choice])) {
@@ -2213,6 +2315,9 @@ bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_hu
 }
 
 bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_n_event_data const& e) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	for(auto i = state.pending_f_n_event.size(); i-- > 0;) {
 		if(event::pending_human_f_n_event{e.r_lo, e.r_hi, e.date, e.e, source } == state.pending_f_n_event[i]) {
 			if(e.opt_choice > state.world.free_national_event_get_options(e.e).size() || !event::is_valid_option(state.world.free_national_event_get_options(e.e)[e.opt_choice])) {
@@ -2227,6 +2332,9 @@ bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_hu
 }
 
 bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_p_event_data const& e) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	for(auto i = state.pending_p_event.size(); i-- > 0;) {
 		if(event::pending_human_p_event{e.r_lo, e.r_hi, e.from_slot, e.date, e.e, e.p, e.ft } == state.pending_p_event[i]) {
 			if(e.opt_choice > state.world.provincial_event_get_options(e.e).size() || !event::is_valid_option(state.world.provincial_event_get_options(e.e)[e.opt_choice])) {
@@ -2241,6 +2349,9 @@ bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_hu
 
 
 bool can_make_event_choice(sys::state& state, dcon::nation_id source, pending_human_f_p_event_data const& e) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	for(auto i = state.pending_f_p_event.size(); i-- > 0;) {
 		if(event::pending_human_f_p_event{e.r_lo, e.r_hi, e.date, e.e, e.p } == state.pending_f_p_event[i]) {
 			if(e.opt_choice > state.world.free_provincial_event_get_options(e.e).size() || !event::is_valid_option(state.world.free_provincial_event_get_options(e.e)[e.opt_choice])) {
@@ -2367,6 +2478,9 @@ bool valid_target_state_for_cb(sys::state& state, dcon::nation_id source, dcon::
 	return false;
 }
 bool can_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id type, dcon::state_definition_id target_state) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false;
 
@@ -2426,6 +2540,9 @@ void execute_fabricate_cb(sys::state& state, dcon::nation_id source, dcon::natio
 }
 
 bool can_cancel_cb_fabrication(sys::state& state, dcon::nation_id source) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return true;
 }
 
@@ -2456,6 +2573,9 @@ bool can_ask_for_access(sys::state& state, dcon::nation_id asker, dcon::nation_i
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other. Must not already have
 	military access.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2493,6 +2613,9 @@ void give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation
 
 }
 bool can_give_military_access(sys::state& state, dcon::nation_id asker, dcon::nation_id target, bool ignore_cost) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2534,6 +2657,9 @@ bool can_ask_for_alliance(sys::state& state, dcon::nation_id asker, dcon::nation
 	Great powers may not form an alliance while there is an active crisis. Vassals and substates may only form an alliance with
 	their overlords.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2585,6 +2711,9 @@ void toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dco
 
 }
 bool can_toggle_interested_in_alliance(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 	return true;
@@ -2609,6 +2738,9 @@ bool can_ask_for_free_trade_agreement(sys::state& state, dcon::nation_id asker, 
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2680,6 +2812,9 @@ bool can_switch_embargo_status(sys::state& state, dcon::nation_id asker, dcon::n
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
 	Even if nations have already free trade agreement - they can prolongate it for further years.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2760,6 +2895,9 @@ bool can_revoke_trade_rights(sys::state& state, dcon::nation_id source, dcon::na
 	/*
 	Must have defines:ASKMILACCESS_DIPLOMATIC_COST diplomatic points. Must not be at war against each other.
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false;
 
@@ -2811,6 +2949,9 @@ void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id ta
 bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid) {
 	/* (No state specified) To state transfer: Can't be same asker into target, both must be players. If any are great powers,
 	they can't state transfer when a crisis occurs. They can't be subjects. They can't be in a state of war */
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 	//if(!state.world.nation_get_is_player_controlled(asker) || !state.world.nation_get_is_player_controlled(target))
@@ -2863,6 +3004,9 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 
 bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
 	// disable in SP for now. Maybe could be a game rule later?
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.network_mode == sys::network_mode_type::single_player) {
 		return false;
 	}
@@ -2908,6 +3052,9 @@ void execute_command_units(sys::state& state, dcon::nation_id asker, dcon::natio
 
 
 bool can_give_back_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 
@@ -2947,6 +3094,9 @@ void call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id targ
 	add_to_command_queue(state, p);
 }
 bool can_call_to_arms(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::war_id w, bool ignore_cost, bool automatic_call) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(asker == target)
 		return false;
 	// asker must be in the war that the target is being called into
@@ -3050,6 +3200,9 @@ void cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nat
 	add_to_command_queue(state, p);
 }
 bool can_cancel_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false;
 
@@ -3089,6 +3242,9 @@ void cancel_given_military_access(sys::state& state, dcon::nation_id source, dco
 	add_to_command_queue(state, p);
 }
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto rel = state.world.get_unilateral_relationship_by_unilateral_pair(source, target);
 
 	if(!ignore_cost && state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.cancelgivemilaccess_diplomatic_cost)
@@ -3139,6 +3295,9 @@ void cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id 
 	add_to_command_queue(state, p);
 }
 bool can_cancel_alliance(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false;
 
@@ -3177,6 +3336,9 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(!military::can_attack(state, source, target)) {
 		return false;
@@ -3294,6 +3456,9 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 	nation adding the war goal must have overall jingoism support >= defines:WARGOAL_JINGOISM_REQUIREMENT (x
 	defines:GW_JINGOISM_REQUIREMENT_MOD in a great war).
 	*/
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source == target)
 		return false;
 
@@ -3380,6 +3545,9 @@ void start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_i
 	add_to_command_queue(state, p);
 }
 bool can_start_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::war_id war, bool is_concession) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	assert(source);
 	assert(target);
 	{
@@ -3438,6 +3606,9 @@ void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is
 	add_to_command_queue(state, p);
 }
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
 		return false;
 	if(state.current_crisis_state != sys::crisis_state::heating_up)
@@ -3462,6 +3633,9 @@ void add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal
 
 }
 bool can_add_to_peace_offer(sys::state& state, dcon::nation_id source, dcon::wargoal_id goal) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending)
 		return false;
@@ -3544,6 +3718,9 @@ void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::
 bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
 		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
  	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending)
@@ -3602,6 +3779,9 @@ void send_peace_offer(sys::state& state, dcon::nation_id source) {
 
 }
 bool can_send_peace_offer(sys::state& state, dcon::nation_id source) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending || !state.world.peace_offer_get_war_from_war_settlement(pending))
 		return false;
@@ -3639,6 +3819,9 @@ void send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
 
 }
 bool can_send_crisis_peace_offer(sys::state& state, dcon::nation_id source) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending || state.world.peace_offer_get_war_from_war_settlement(pending))
 		return false;
@@ -3684,6 +3867,9 @@ void stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id
 }
 
 bool can_stop_army_movement(sys::state& state, dcon::nation_id source, dcon::army_id army) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source != military::get_effective_unit_commander(state, army))
 		return false;
 	if(state.world.army_get_is_retreating(army))
@@ -3707,6 +3893,9 @@ void stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id
 }
 
 bool can_stop_navy_movement(sys::state& state, dcon::nation_id source, dcon::navy_id navy) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(source != military::get_effective_unit_commander(state, navy))
 		return false;
 	if(state.world.navy_get_is_retreating(navy))
@@ -3730,6 +3919,9 @@ void move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon:
 
 
 bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto army_loc = state.world.army_get_location_from_army_location(a);
 	if(command::can_move_army(state, source, a, dest, true).empty() && !(army_loc == dest && command::can_stop_army_movement(state, source, a))) {
 		return false;
@@ -3740,6 +3932,9 @@ bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army
 }
 
 bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto navy_loc = state.world.navy_get_location_from_navy_location(n);
 	if(navy_loc == dest && command::can_stop_navy_movement(state, source, n)) {
 		return true;
@@ -3797,6 +3992,9 @@ bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 }
 
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
+	if(!state.current_scene.game_in_progress) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(source != military::get_effective_unit_commander(state, a))
 		return std::vector<dcon::province_id>{};
 	if(state.world.army_get_is_retreating(a))
@@ -4036,6 +4234,9 @@ void move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon:
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
+	if(!state.current_scene.game_in_progress) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(source != military::get_effective_unit_commander(state, n))
 		return std::vector<dcon::province_id>{};
 	if(state.world.navy_get_is_retreating(n))
@@ -4117,6 +4318,9 @@ void embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 }
 
 bool can_embark_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto army_owner = state.world.army_get_controller_from_army_control(a);
 	if(source != military::get_effective_unit_commander(state, a))
 		return false;
@@ -4173,7 +4377,9 @@ void merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dc
 	add_to_command_queue(state, p);
 }
 bool can_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::army_id b) {
-
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.army_get_controller_from_army_control(a) != state.world.army_get_controller_from_army_control(b)) {
 		return false;
 	}
@@ -4236,7 +4442,9 @@ void merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dc
 	add_to_command_queue(state, p);
 }
 bool can_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::navy_id b) {
-
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.navy_get_controller_from_navy_control(a) != state.world.navy_get_controller_from_navy_control(b)) {
 		return false;
 	}
@@ -4282,6 +4490,9 @@ void disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dc
 	add_to_command_queue(state, p);
 }
 bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
@@ -4390,6 +4601,9 @@ void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_
 	add_to_command_queue(state, p);
 }
 bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(regiments[0] && ships[0]) {
 		// One type can't suit both land and sea units
 		return false;
@@ -4483,6 +4697,9 @@ void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::pro
 
 }
 bool can_toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.province_get_nation_from_province_control(prov) != source)
 		return false;
 	if(state.world.province_get_nation_from_province_ownership(prov) != source)
@@ -4501,6 +4718,9 @@ void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon:
 	add_to_command_queue(state, p);
 }
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.province_get_nation_from_province_control(prov) != source)
 		return false;
 	if(state.world.province_get_nation_from_province_ownership(prov) != source)
@@ -4520,6 +4740,9 @@ void release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id 
 
 }
 bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target)) == source;
 }
 void execute_release_subject(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
@@ -4595,6 +4818,9 @@ void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	add_to_command_queue(state, p);
 }
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return can_split_army(state, source, a);
 }
 void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4654,6 +4880,9 @@ void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 
 }
 bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return can_split_navy(state, source, a);
 }
 void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
@@ -4710,6 +4939,9 @@ void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	add_to_command_queue(state, p);
 }
 bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return military::get_effective_unit_commander(state, a) == source && !state.world.army_get_is_retreating(a) && !state.world.army_get_navy_from_army_transport(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a));
 }
@@ -4760,6 +4992,9 @@ void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 
 }
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto embarked = state.world.navy_get_army_transport(a);
 	return military::get_effective_unit_commander(state, a) == source && !state.world.navy_get_is_retreating(a) &&
 		!bool(state.world.navy_get_battle_from_navy_battle_participation(a)) && embarked.begin() == embarked.end();
@@ -4808,6 +5043,9 @@ void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
 }
 bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.army_get_controller_from_army_control(a) == source
 		&& !state.world.army_get_is_retreating(a)
 		&& !bool(state.world.army_get_battle_from_army_battle_participation(a))
@@ -4838,6 +5076,9 @@ void delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 }
 
 bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto embarked = state.world.navy_get_army_transport(a);
 	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
 		embarked.begin() == embarked.end() && !bool(state.world.navy_get_battle_from_navy_battle_participation(a)) &&
@@ -4859,6 +5100,9 @@ void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, 
 	add_to_command_queue(state, p);
 }
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.army_get_controller_from_army_control(a) == source && !state.world.army_get_is_retreating(a) &&
 		!bool(state.world.army_get_battle_from_army_battle_participation(a)) &&
 		province::has_naval_access_to_province(state, source, state.world.army_get_location_from_army_location(a)) &&
@@ -4877,6 +5121,9 @@ void change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, 
 	add_to_command_queue(state, p);
 }
 bool can_change_admiral(sys::state& state, dcon::nation_id source, dcon::navy_id a, dcon::leader_id l) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	return state.world.navy_get_controller_from_navy_control(a) == source && !state.world.navy_get_is_retreating(a) &&
 		!bool(state.world.navy_get_battle_from_navy_battle_participation(a)) &&
 		province::has_naval_access_to_province(state, source, state.world.navy_get_location_from_navy_location(a)) &&
@@ -4933,6 +5180,9 @@ void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest) {
+	if(!state.current_scene.game_in_progress) {
+		return std::vector<dcon::province_id>{};
+	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!bool(battle)) {
 		return std::vector<dcon::province_id>{};
@@ -4986,6 +5236,9 @@ void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::l
 }
 
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(!military::can_retreat_from_battle(state, b))
 		return false;
 	if(source != military::get_land_battle_lead_attacker(state, b) && source != military::get_land_battle_lead_defender(state, b))
@@ -5023,6 +5276,9 @@ void invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id
 bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::nation_id invitation_to, dcon::nation_id target,
 		dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
 		return false;
@@ -5144,7 +5400,9 @@ void execute_crisis_add_wargoal(sys::state& state, dcon::nation_id source, new_w
 }
 
 bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full_wg wg) {
-
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < 1.0f)
 		return false;
 
@@ -5230,6 +5488,9 @@ void move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p
 }
 
 bool can_move_capital(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	if(state.current_crisis_state != sys::crisis_state::inactive)
 		return false;
 	if(state.world.nation_get_is_at_war(source))
@@ -5268,6 +5529,9 @@ void toggle_local_administration(sys::state& state, dcon::nation_id source, dcon
 
 }
 bool can_toggle_local_administration(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	// allow planning future capitals
 	// capitals outside of your actual control are not updated
 	// also allows to not handle deletion of administations
@@ -5325,6 +5589,9 @@ void take_province(sys::state& state, dcon::nation_id source, dcon::province_id 
 }
 
 bool can_take_province(sys::state& state, dcon::nation_id source, dcon::province_id p) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto fid = dcon::fatten(state.world, p);
 	auto owner = fid.get_nation_from_province_ownership();
 	auto rel = state.world.nation_get_overlord_as_subject(owner);
@@ -5388,6 +5655,9 @@ void use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_de
 
 }
 bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::province_id p) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto& def = state.ui_defs.gui[d];
 	if(def.get_element_type() != ui::element_type::button)
 		return false;
@@ -5412,6 +5682,9 @@ void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_
 
 }
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n) {
+	if(!state.current_scene.game_in_progress) {
+		return false;
+	}
 	auto& def = state.ui_defs.gui[d];
 	if(def.get_element_type() != ui::element_type::button)
 		return false;
@@ -5501,6 +5774,9 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sy
 }
 
 bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
+	if(!state.current_scene.is_lobby) {
+		return false;
+	}
 	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings;
 }
 
@@ -6232,6 +6508,9 @@ bool can_load_save_game(sys::state& state, const command_data& command) {
 	// check that the message length is correct before reading from it
 	if(!command.check_variable_size_payload<load_save_game_data>(payload.filename_length)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+	if(!state.current_scene.is_lobby) {
 		return false;
 	}
 
