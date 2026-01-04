@@ -10,7 +10,6 @@
 #include "military_constants.hpp"
 
 namespace network {
-	struct client_data;
 	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
 	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 }

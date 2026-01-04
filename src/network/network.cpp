@@ -1378,30 +1378,16 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 }
 
 
-bool client_data::is_banned(sys::state& state) const {
-	if(state.network_state.as_v6) {
-		auto sa = (struct sockaddr_in6 const*)&address;
-		return std::find_if(state.network_state.v6_banlist.begin(), state.network_state.v6_banlist.end(), [&](auto const& a) {
-			return std::memcmp(&sa->sin6_addr, &a, sizeof(a)) == 0;
-		}) != state.network_state.v6_banlist.end();
-	} else {
-		auto sa = (struct sockaddr_in const*)&address;
-		return std::find_if(state.network_state.v4_banlist.begin(), state.network_state.v4_banlist.end(), [&](auto const& a) {
-			return std::memcmp(&sa->sin_addr, &a, sizeof(a)) == 0;
-		}) != state.network_state.v4_banlist.end();
-	}
-}
-
-inline bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client) {
+bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client) {
 	return state.world.client_get_client_state(client) != client_state::normal;
 }
-inline bool can_add_data(const sys::state& state, dcon::client_id client) {
+bool can_add_data(const sys::state& state, dcon::client_id client) {
 	return state.world.client_get_client_state(client) == client_state::normal;
 }
-inline bool can_send_data(const sys::state& state, dcon::client_id client) {
+bool can_send_data(const sys::state& state, dcon::client_id client) {
 	return state.world.client_get_client_state(client) != client_state::shutting_down;
 }
-inline bool is_flushing(const sys::state& state, dcon::client_id client) {
+bool is_flushing(const sys::state& state, dcon::client_id client) {
 	return state.world.client_get_client_state(client) == client_state::flushing;
 }
 

@@ -220,52 +220,11 @@ struct server_handshake_data {
 	handshake_result result;
 };
 
-struct client_data {
-	dcon::mp_player_id player_id{ };
-	socket_t socket_fd = 0;
-	sockaddr_storage address;
 
-	client_handshake_data hshake_buffer;
-	command::command_data recv_buffer;
-	size_t recv_count = 0;
-	std::vector<char> send_buffer;
-	std::vector<char> early_send_buffer;
-
-	// accounting for save progress
-	size_t total_sent_bytes = 0;
-	size_t save_stream_offset = 0;
-	size_t save_stream_size = 0;
-	bool handshake = true;
-	bool receiving_payload_flag = false;
-	client_state client_state = client_state::normal;
-	time_t shutdown_time;
-
-	sys::date last_seen;
-
-	bool is_banned(sys::state& state) const;
-	inline bool is_active() const {
-		return socket_fd > 0;
-	}
-	inline bool is_inactive_or_scheduled_shutdown() const {
-		return !is_active() || client_state != client_state::normal;
-	}
-	inline bool can_add_data() const {
-		return is_active() && client_state == client_state::normal;
-	}
-	inline bool can_send_data() const {
-		return is_active() && client_state != client_state::shutting_down;
-	}
-	inline bool is_flushing() const {
-		return is_active() && client_state == client_state::flushing;
-	}
-};
-
-
-
-inline bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client);
-inline bool can_add_data(const sys::state& state, dcon::client_id client);
-inline bool can_send_data(const sys::state& state, dcon::client_id client);
-inline bool is_flushing(const sys::state& state, dcon::client_id client);
+bool is_scheduled_shutdown(const sys::state& state, dcon::client_id client);
+bool can_add_data(const sys::state& state, dcon::client_id client);
+bool can_send_data(const sys::state& state, dcon::client_id client);
+bool is_flushing(const sys::state& state, dcon::client_id client);
 
 typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
 typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
