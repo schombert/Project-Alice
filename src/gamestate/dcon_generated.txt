@@ -6073,7 +6073,7 @@ object{
 	}
 	property{
 		name{ send_buffer }
-		type{ std::vector<char> }
+		type{ std::vector<std::shared_ptr<command::command_data>> }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
@@ -6128,6 +6128,18 @@ object{
 	property{
 		name{ last_seen }
 		type{ sys::date }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ sending_payload }
+		type{ uint8_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ command_send_count }
+		type{ uint32_t }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}

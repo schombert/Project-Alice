@@ -14,6 +14,14 @@ struct cmd_header {
 	bool operator==(const cmd_header& other) const = default;
 	bool operator!=(const cmd_header& other) const = default;
 
+	cmd_header() { };
+
+	cmd_header(cmd_header&& other) = default;
+	cmd_header(const cmd_header& other) = default;
+
+	cmd_header& operator=(cmd_header&& other) = default;
+	cmd_header& operator=(const cmd_header& other) = default;
+
 };
 static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
 
@@ -29,6 +37,13 @@ struct command_data {
 		header.type = _type;
 		header.player_id = _player_id;
 	};
+
+	command_data(command_data&& other) = default;
+	command_data(const command_data& other) = default;
+
+	command_data& operator=(command_data&& other) = default;
+	command_data& operator=(const command_data& other) = default;
+
 	// add data to the payload
 	template<typename data_type>
 	friend command_data& operator << (command_data& msg, data_type& data) {
@@ -79,17 +94,6 @@ struct command_data {
 
 
 	}
-	// Makes a copy of the data and returns it
-	/*template<typename data_type>
-	data_type copy_payload() const {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
-
-		data_type output{ };
-		std::memcpy(&output, payload.data() + (payload.size() - sizeof(data_type)), sizeof(data_type));
-		return output;
-	}*/
 	// returns a mutable reference to the payload of the desired type, starting from the start of the vector
 	template<typename data_type>
 	data_type& get_payload() {

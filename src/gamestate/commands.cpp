@@ -5856,7 +5856,7 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_a
 	p << data;
 	add_to_command_queue(state, p);
 	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
-	network::add_command_to_player_buffer(state, leaving_player, p);
+	network::add_command_to_player_buffer(state, leaving_player, std::move(p));
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	return state.world.mp_player_is_valid(leaving_player);
@@ -5893,7 +5893,7 @@ void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_
 	p << data;
 	add_to_command_queue(state, p);
 	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
-	network::add_command_to_player_buffer(state, disconnected_player, p);
+	network::add_command_to_player_buffer(state, disconnected_player, std::move(p));
 }
 bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player) {
 	return state.world.mp_player_is_valid(disconnected_player);
@@ -5934,7 +5934,7 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 	p << data;
 	add_to_command_queue(state, p);
 	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
-	network::add_command_to_player_buffer(state, banned_player, p);
+	network::add_command_to_player_buffer(state, banned_player, std::move(p));
 }
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player) {
 	if(network::get_host_player(state) == banned_player) {
@@ -5978,7 +5978,7 @@ void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai,
 	p << data;
 	add_to_command_queue(state, p);
 	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
-	network::add_command_to_player_buffer(state, kicked_player, p);
+	network::add_command_to_player_buffer(state, kicked_player, std::move(p));
 
 }
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player) {
@@ -6256,7 +6256,6 @@ void execute_notify_save_loaded(sys::state& state, command_data& command) {
 	state.game_state_updated.store(true, std::memory_order::release);
 	state.map_state.unhandled_province_selection = true;
 	state.sprawl_update_requested.store(true, std::memory_order::release);
-	state.network_state.save_data.clear();
 	// check that the client gamestate is equal to the gamestate of the host, otherwise oos
 	if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
 		state.network_state.out_of_sync = true;

@@ -230,10 +230,10 @@ typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
 typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 
 struct host_command_wrapper {
-	command::command_data cmd_data;
-	selector_arg arg;
-	selector_function selector;
-	bool host_execute = true;
+	command::command_data cmd_data; // the command data itself
+	selector_arg arg; // optional argument to pass to the selector function
+	selector_function selector; // Selector function for which clients should get the command broadcasted. nullptr = all clients
+	bool host_execute = true; // Should the host execute this command?
 
 	host_command_wrapper(const command::command_data& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(_cmd_data), arg(_arg), selector(_selector) {}
 	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector) { }
@@ -264,12 +264,12 @@ struct network_state {
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
-	uint8_t receiving_payload_flag = false;
-	std::vector<uint8_t> save_data; //client
+	uint8_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
+	uint8_t sending_payload_flag = false; // flag indicating whether we are currently sending the payload of a command
+	uint32_t command_send_count = 0;
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
-	bool receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
@@ -301,7 +301,7 @@ void add_player_to_ban_list(sys::state& state, dcon::mp_player_id playerid);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
 std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
-void broadcast_to_clients(sys::state& state, host_command_wrapper& c);
+void broadcast_to_clients(sys::state& state, host_command_wrapper&& c);
 void clear_socket(sys::state& state, dcon::client_id client);
 void full_reset_after_oos(sys::state& state);
 
@@ -332,7 +332,7 @@ void server_send_handshake(sys::state& state, dcon::client_id client, dcon::nati
 void send_post_handshake_commands(sys::state& state, dcon::client_id client);
 
 // Adds a command directly to the specific player's send buffer, skipping the command queue.
-void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, const command::command_data& command);
+void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, command::command_data&& command);
 
 bool pause_game(sys::state& state);
 bool unpause_game(sys::state& state);

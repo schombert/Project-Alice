@@ -413,9 +413,67 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 
 
 
+inline static int socket_send_command(socket_t socket_fd, std::vector<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, uint8_t& sending_payload) {
+	while(!buffer.empty()) {
+		auto* ptr = buffer.front().get();
+		if(!sending_payload) {
+			int r = internal_socket_send(socket_fd, ptr + cmd_bytes_sent, sizeof(command::cmd_header) - cmd_bytes_sent);
+			if(r > 0) {
+				cmd_bytes_sent += r;
+				if(cmd_bytes_sent >= sizeof(cmd_bytes_sent)) {
+					sending_payload = true;
+				}
+			} else if(r < 0) {
+#ifdef _WIN32
+				int err = WSAGetLastError();
+				if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+					return 0;
+				}
+				return err;
+#else
+				int err = errno;
+				if(err == EWOULDBLOCK || err == EAGAIN || err == ENOBUFS) {
+					return 0;
+				}
+				return err;
+#endif
+			}
+		} else {
+			int r = internal_socket_send(socket_fd, ptr->payload.data() + cmd_bytes_sent, ptr->payload.size() - cmd_bytes_sent);
+			if(r > 0) {
+				cmd_bytes_sent += r;
+				if(cmd_bytes_sent >= sizeof(command::cmd_header) + ptr->payload.size()) {
+					buffer.erase(buffer.begin());
+					sending_payload = false;
+					cmd_bytes_sent = 0;
+				}
+			} else if(r < 0) {
+#ifdef _WIN32
+				int err = WSAGetLastError();
+				if(err == WSAENOBUFS || err == WSAEWOULDBLOCK) {
+					return 0;
+				}
+				return err;
+#else
+				int err = errno;
+				if(err == EWOULDBLOCK || err == EAGAIN || err == ENOBUFS) {
+					return 0;
+				}
+				return err;
+#endif
+			}
+		}
+
+	}
+	return 0;
+}
 
 
-static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
+
+
+
+
+inline static int socket_send(socket_t socket_fd, std::vector<char>& buffer) {
 	while(!buffer.empty()) {
 		int r = internal_socket_send(socket_fd, buffer.data(), buffer.size());
 		if(r > 0) {
@@ -446,6 +504,19 @@ static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data
 	std::memcpy(buffer.data() + buffer.size() - n, data, n);
 }
 
+// Adds to a client send buffer of shared_ptr's as host
+static void socket_add_command_to_send_queue(std::vector<std::shared_ptr<command::command_data>>& buffer, const std::shared_ptr<command::command_data>& data) {
+	auto payload_sz = data->header.payload_size;
+	assert(payload_sz == data->payload.size());
+	const auto* handler = command::command_type_handlers[data->header.type];
+	if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
+		buffer.push_back(data);
+	}
+
+}
+
+
+// Adds to a client's own send buffer of raw bytes, to be sent to the host
 static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data) {
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
@@ -458,6 +529,10 @@ static void socket_add_command_to_send_queue(std::vector<char>& buffer, const co
 	}
 
 }
+
+
+
+
 
 static void close_socket(socket_t socket_fd) {
 	if(socket_fd > 0) {
@@ -670,23 +745,23 @@ void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool mak
 
 // Host-only. Sends commands directly to client socket while skipping the command queue. Should be used for utility network commands ONLY. For regular commands use their respective functions
 template<typename F>
-void send_network_command(sys::state& state, F&& client_selector, const command::command_data& command) {
+void send_network_command(sys::state& state, F&& client_selector, command::command_data&& command) {
 
 	/* Send the command to the clients matching the selector */
-
+	std::shared_ptr<command::command_data> cmd_ptr = std::make_shared<command::command_data>(std::move(command));
 	for(auto client : state.world.in_client) {
 		if(client.is_valid() && can_add_data(state, client) && client_selector(state, client)) {
 #ifndef NDEBUG
 			state.console_log("host:sent network command to player  " + client.get_hshake_buffer().nickname.to_string() + ":cmd = " + readableCommandTypes[uint8_t(command.header.type)]);
 #endif
-			socket_add_command_to_send_queue(client.get_send_buffer(), &command);
+			socket_add_command_to_send_queue(client.get_send_buffer(), cmd_ptr);
 		}
 	}
 
 }
 
-void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, const command::command_data& command) {
-	send_network_command(state, [&](const sys::state& state, dcon::client_id client) { return state.world.client_get_mp_player_from_player_client(client) == player_target; }, command);
+void add_command_to_player_buffer(sys::state& state, dcon::mp_player_id player_target, command::command_data&& command) {
+	send_network_command(state, [&](const sys::state& state, dcon::client_id client) { return state.world.client_get_mp_player_from_player_client(client) == player_target; }, std::move(command));
 }
 
 
@@ -1700,23 +1775,25 @@ std::unique_ptr<uint8_t[]> write_network_entire_mp_state(sys::state& state, uint
 }
 
 
-void broadcast_to_clients(sys::state& state, host_command_wrapper& c) {
+void broadcast_to_clients(sys::state& state, host_command_wrapper&& c) {
 	if(c.cmd_data.header.type == command::command_type::notify_player_joins) {
 		auto& payload = c.cmd_data.get_payload<command::notify_joins_data>();
 		payload.player_password = sys::player_password_raw{}; // Never send password to clients
 	}
+	// create shared ptr by cannibalizing the existing command data inside the wrapper
+	std::shared_ptr<command::command_data> cmd_ptr = std::make_shared<command::command_data>(std::move(c.cmd_data));
 	/* Propagate to the valid clients which passes the selector. Or all valid clients if selector is nullptr */
 	if(!c.selector) {
 		for(auto client : state.world.in_client) {
 			if(client.is_valid() && can_add_data(state, client)) {
-				socket_add_command_to_send_queue(client.get_send_buffer(), &c.cmd_data);
+				socket_add_command_to_send_queue(client.get_send_buffer(), cmd_ptr);
 			}
 		}
 	}
 	else {
 		for(auto client : state.world.in_client) {
 			if(client.is_valid() && can_add_data(state,client) && c.selector(client, state, c.arg)) {
-				socket_add_command_to_send_queue(client.get_send_buffer(), &c.cmd_data);
+				socket_add_command_to_send_queue(client.get_send_buffer(), cmd_ptr);
 			}
 		}
 	}
@@ -1743,6 +1820,8 @@ static void accept_new_clients(sys::state& state) {
 	client_id.set_receiving_payload_flag(false);
 	client_id.set_shutdown_time(0);
 	client_id.set_last_seen(state.current_date);
+	client_id.set_sending_payload(false);
+	client_id.set_command_send_count(0);
 
 
 	socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
@@ -1883,7 +1962,7 @@ void flush_closing_sockets(sys::state& state) {
 #endif
 		} else if(!handshake && send_buffer.size() > 0) {
 			size_t old_size = send_buffer.size();
-			int r = socket_send(client.get_socket_fd(), send_buffer);
+			int r = socket_send_command(client.get_socket_fd(), send_buffer, client.get_command_send_count(), client.get_sending_payload());
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
@@ -1938,7 +2017,7 @@ void server_send_to_clients(sys::state& state) {
 #endif
 		} else if(!handshake && send_buffer.size() > 0) {
 			size_t old_size = send_buffer.size();
-			int r = socket_send(client.get_socket_fd(), send_buffer);
+			int r = socket_send_command(client.get_socket_fd(), send_buffer, client.get_command_send_count(), client.get_sending_payload());
 			if(r > 0) { // error
 #if !defined(NDEBUG) && defined(_WIN32)
 				const auto now = std::chrono::system_clock::now();
@@ -1998,7 +2077,7 @@ void send_and_receive_commands(sys::state& state) {
 								payload.checksum = state.get_mp_state_checksum();
 							}
 						}
-						broadcast_to_clients(state, *c);
+						broadcast_to_clients(state, std::move(*c));
 					}
 					command_executed = true;
 	
@@ -2020,7 +2099,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, state, [&]() {
+			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload, state, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
