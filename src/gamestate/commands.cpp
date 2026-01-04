@@ -5839,8 +5839,9 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_i
 		ai::remove_ai_data(state, player_nation);
 
 	network::log_player_nations(state);
-	// As host, proceed with ack'ing the handshake and send relavent information to client
-	if(state.network_mode == sys::network_mode_type::host && bool(client)) {
+	// As host, proceed with ack'ing the handshake and send relavent information to client. In addition, create a relationship between the client and newly created MP player
+	if(state.network_mode == sys::network_mode_type::host && state.world.client_is_valid(client)) {
+		state.world.force_create_player_client(client, player_id);
 		network::server_send_handshake(state, client, player_nation, player_id);
 		network::send_post_handshake_commands(state, client);
 	}
