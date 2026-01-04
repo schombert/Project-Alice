@@ -481,6 +481,7 @@ struct notify_joins_data {
 	sys::player_name player_name;
 	dcon::nation_id player_nation;
 	bool needs_loading;
+	dcon::client_id client_id;
 };
 struct notify_save_loaded_data {
 	sys::checksum_key checksum;
@@ -1156,7 +1157,7 @@ void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, 
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player);
 void notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player);
 bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_player_id kicked_player);
-void notify_player_joins(sys::state& state, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
+void notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
 bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player);
@@ -1170,7 +1171,7 @@ bool can_notify_start_game(sys::state& state, dcon::nation_id source);
 void notify_start_game(sys::state& state, network::selector_arg arg, bool host_execute, network::selector_function client_selector);
 void notify_start_game(sys::state& state);
 void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player);
-void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player);
+void execute_notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player);
 void notify_player_fully_loaded(sys::state& state, dcon::nation_id source);
 bool can_notify_stop_game(sys::state& state, dcon::nation_id source);
 void notify_stop_game(sys::state& state, dcon::nation_id source);
@@ -1184,7 +1185,7 @@ void load_save_game(sys::state& state, const std::string& filename, bool is_new_
 void notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);
 bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id disconnected_player);
 
-dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
+dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 
 // returns true if the command was performed, false if not
 bool execute_command(sys::state& state, command_data& c);

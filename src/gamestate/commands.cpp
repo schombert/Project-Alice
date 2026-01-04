@@ -5484,13 +5484,14 @@ void execute_chat_message(sys::state& state, dcon::nation_id source, std::string
 	post_chat_message(state, m);
 }
 
-void notify_player_joins(sys::state& state, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector) {
+void notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector) {
 	assert(state.network_mode == sys::network_mode_type::host);
 	network::host_command_wrapper p{ command_data{ command_type::notify_player_joins, state.local_player_id}, arg, client_selector, host_execute };
 	auto data = notify_joins_data{  };
 	data.needs_loading = needs_loading;
 	data.player_name = name;
 	data.player_nation = player_nation;
+	data.client_id = client;
 	p.cmd_data << data;
 	add_to_command_queue(state, p);
 }
@@ -5535,7 +5536,7 @@ void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::ga
 
 }
 
-dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_id source, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation) {
+dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation) {
 #ifndef NDEBUG
 	state.console_log("receive:cmd | type:notify_player_joins | nation: " + std::to_string(player_nation.index()) + " | name: " + name.to_string());
 #endif
@@ -5544,7 +5545,7 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_i
 
 	if(needs_loading) {
 
-		execute_notify_player_is_loading(state, source, player_id);
+		execute_notify_player_is_loading(state, player_id);
 	}
 	// make the chat message appear as if it is sent by the host
 	auto host = network::get_host_player(state);
@@ -5562,8 +5563,11 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::nation_i
 		ai::remove_ai_data(state, player_nation);
 
 	network::log_player_nations(state);
-	// update UI immediately incase alot of long commands (ie loading save) is queued up
-	state.game_state_updated.store(true, std::memory_order::release);
+	// As host, proceed with ack'ing the handshake and send relavent information to client
+	if(state.network_mode == sys::network_mode_type::host && bool(client)) {
+		network::server_send_handshake(state, client, player_nation, player_id);
+		network::send_post_handshake_commands(state, client);
+	}
 	return player_id;
 }
 
@@ -6083,7 +6087,7 @@ void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_play
 	add_to_command_queue(state, p);
 }
 
-void execute_notify_player_is_loading(sys::state& state, dcon::nation_id source, dcon::mp_player_id loading_player) {
+void execute_notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player) {
 	assert(loading_player);
 	network::mp_player_set_fully_loaded(state, loading_player, false);
 	// update UI immediately incase alot of long commands (ie loading save) is queued up
@@ -7836,7 +7840,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::notify_player_joins:
 	{
 		auto& data = c.get_payload<notify_joins_data>();
-		execute_notify_player_joins(state, source_nation, data.player_name, data.player_password, data.needs_loading, data.player_nation);
+		execute_notify_player_joins(state, data.client_id, data.player_name, data.player_password, data.needs_loading, data.player_nation);
 		break;
 	}
 	case command_type::notify_player_leaves:
@@ -7915,7 +7919,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::notify_player_is_loading:
 	{
-		execute_notify_player_is_loading(state, source_nation, c.header.player_id);
+		execute_notify_player_is_loading(state, c.header.player_id);
 		break;
 	}
 	case command_type::change_ai_nation_state:
