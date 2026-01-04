@@ -6304,7 +6304,7 @@ bool can_notify_start_game(sys::state& state, dcon::nation_id source) {
 		if(network::any_player_on_invalid_nation(state)) {
 			return false;
 		}
-		return !network::check_any_players_loading(state);
+		return true;
 	}
 }
 
