@@ -416,6 +416,7 @@ target_precompile_headers(AliceIncremental
 # Standard C++ library headers
 target_precompile_headers(Alice
 	PRIVATE <vector>
+	PRIVATE <queue>	
 	PRIVATE <array>
 	PRIVATE <optional>
 	PRIVATE <memory>
@@ -438,6 +439,7 @@ target_precompile_headers(Alice
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE <vector>
+	PRIVATE <queue>		
 	PRIVATE <array>
 	PRIVATE <optional>
 	PRIVATE <memory>

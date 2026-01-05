@@ -6278,9 +6278,6 @@ void execute_notify_reload(sys::state& state, command_data& command) {
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
 	});
 	auto& data = command.get_payload<notify_reload_data>();
-	if(state.network_mode == sys::network_mode_type::client) {
-		state.session_host_checksum = data.checksum;
-	}
 	// reload the save *locally* to ensure synch with the rest of the lobby. Primarily to update unsaved data.
 	// this only happens when a new player joins, or when a manual resync is initiated, and only for the clients which are already "in sync". If a new or oos'd client needs a fresh save, it will be provided as a save stream elsewhere.
 	state.network_state.is_new_game = false;
@@ -6290,12 +6287,21 @@ void execute_notify_reload(sys::state& state, command_data& command) {
 	network::reload_save_locally(state);
 
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-	assert(state.session_host_checksum.is_equal(state.get_mp_state_checksum()));
+
 	command::notify_player_fully_loaded(state, state.local_player_nation); // notify we are done reloading
 
 	network::log_player_nations(state);
+
+	if(state.network_mode == sys::network_mode_type::client) {
+		state.session_host_checksum = data.checksum;
+		auto mp_state_checksum = state.get_mp_state_checksum();
+		// check that the client gamestate is equal to the gamestate of the host, otherwise oos
+		if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
+			state.network_state.out_of_sync = true;
+		}
+	}
 	// As the host, before the command is broadcast, update the checksum to be up-to-date
-	if(state.network_mode == sys::network_mode_type::host) {
+	else if(state.network_mode == sys::network_mode_type::host) {
 		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 		data.checksum = state.network_state.current_mp_state_checksum;
 	}

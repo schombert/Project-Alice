@@ -413,9 +413,9 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 
 
 
-inline static int socket_send_command(socket_t socket_fd, std::vector<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, uint8_t& sending_payload) {
+inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, uint8_t& sending_payload) {
 	while(!buffer.empty()) {
-		auto* ptr = buffer.front().get();
+		const auto* ptr = buffer.front().get();
 		if(!sending_payload) {
 			int r = internal_socket_send(socket_fd, ptr + cmd_bytes_sent, sizeof(command::cmd_header) - cmd_bytes_sent);
 			if(r > 0) {
@@ -424,7 +424,7 @@ inline static int socket_send_command(socket_t socket_fd, std::vector<std::share
 					cmd_bytes_sent = 0;
 					if(ptr->payload.size() == 0) {
 						// if payload is empty, we are done so we just pop the command and continue
-						buffer.erase(buffer.begin());
+						buffer.pop();
 					}
 					else {
 						sending_payload = true;
@@ -451,7 +451,7 @@ inline static int socket_send_command(socket_t socket_fd, std::vector<std::share
 			if(r > 0) {
 				cmd_bytes_sent += r;
 				if(cmd_bytes_sent == ptr->payload.size()) {
-					buffer.erase(buffer.begin());
+					buffer.pop();
 					sending_payload = false;
 					cmd_bytes_sent = 0;
 				}
@@ -513,12 +513,12 @@ static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data
 }
 
 // Adds to a client send buffer of shared_ptr's as host
-static void socket_add_command_to_send_queue(std::vector<std::shared_ptr<command::command_data>>& buffer, const std::shared_ptr<command::command_data>& data) {
+static void socket_add_command_to_send_queue(std::queue<std::shared_ptr<command::command_data>>& buffer, const std::shared_ptr<command::command_data>& data) {
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
 	const auto* handler = command::command_type_handlers[data->header.type];
 	if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
-		buffer.push_back(data);
+		buffer.push(data);
 	}
 
 }

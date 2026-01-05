@@ -6073,7 +6073,7 @@ object{
 	}
 	property{
 		name{ send_buffer }
-		type{ std::vector<std::shared_ptr<command::command_data>> }
+		type{ std::queue<std::shared_ptr<command::command_data>> }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
