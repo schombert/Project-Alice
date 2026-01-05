@@ -1,20 +1,20 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_graphics.hpp"
 #include "gui_element_base.hpp"
 #include "opengl_wrapper.hpp"
 #include "sound.hpp"
-#include "system_state.hpp"
+#include "system_state_forward.hpp"
 #include "text.hpp"
 #include "texture.hpp"
 #include <cstdint>
-#include <functional>
-#include <unordered_map>
-#include <variant>
 #include <vector>
-#include "color.hpp"
 #include "demographics.hpp"
+
+namespace window {
+struct text_services_object;
+}
 
 namespace ui {
 
@@ -28,26 +28,6 @@ void render_text_chunk(
 	ogl::color_modification cmod
 );
 
-template<typename T, typename ...Params>
-std::unique_ptr<T> make_element_by_type(sys::state& state, std::string_view name, Params&&... params) { // also bypasses global creation hooks
-	auto it = state.ui_state.defs_by_name.find(state.lookup_key(name));
-	if(it != state.ui_state.defs_by_name.end()) {
-		auto res = std::make_unique<T>(std::forward<Params>(params)...);
-		std::memcpy(&(res->base_data), &(state.ui_defs.gui[it->second.definition]), sizeof(ui::element_data));
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
-	}
-	return std::unique_ptr<T>{};
-}
-template<typename T, typename ...Params>
-std::unique_ptr<T> make_element_by_type(sys::state& state, dcon::gui_def_id id, Params&&... params) { // also bypasses global creation hooks
-	auto res = std::make_unique<T>(std::forward<Params>(params)...);
-	std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
-	make_size_from_graphics(state, res->base_data);
-	res->on_create(state);
-	return res;
-}
 
 ogl::color_modification get_color_modification(bool is_under_mouse, bool is_disabled, bool is_interactable);
 ogl::color3f get_text_color(sys::state& state, text::text_color text_color);
@@ -62,6 +42,7 @@ public:
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void impl_on_reset_text(sys::state& state) noexcept override;
+	drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
 
 	std::unique_ptr<element_base> remove_child(element_base* child) noexcept final;
 	void move_child_to_front(element_base* child) noexcept final;
@@ -82,6 +63,7 @@ public:
 	message_result impl_set(sys::state& state, Cyto::Any& payload) noexcept final;
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void impl_on_reset_text(sys::state& state) noexcept override;
+	drag_and_drop_query_result impl_drag_and_drop_query(sys::state& state, int32_t x, int32_t y, ui::drag_and_drop_data data_type) noexcept override;
 
 	void move_child_to_front(element_base* child) noexcept final;
 	void move_child_to_back(element_base* child) noexcept final;
@@ -95,16 +77,8 @@ public:
 	bool interactable = false;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
 	void on_create(sys::state& state) noexcept override;
-
-	virtual bool get_horizontal_flip(sys::state& state) noexcept {
-		return state.world.locale_get_native_rtl(state.font_collection.get_current_locale());
-	}
-
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(has_tooltip(state) == tooltip_behavior::no_tooltip)
-			return message_result::unseen;
-		return type == mouse_probe_type::tooltip ? message_result::consumed : message_result::unseen;
-	}
+	virtual bool get_horizontal_flip(sys::state& state) noexcept;
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override;
 };
 
 class invisible_element : public element_base {
@@ -141,62 +115,10 @@ public:
 class partially_transparent_image : public opaque_element_base {
 	dcon::texture_id texture_id;
 public:
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::click || type == mouse_probe_type::tooltip) {
-			auto& texhandle = state.open_gl.asset_textures[texture_id];
-			uint8_t* texture = texhandle.data;
-			int32_t size_x = texhandle.size_x;
-			int32_t size_y = texhandle.size_y;
-			int32_t channels = texhandle.channels;
-			size_t size_m = (texhandle.size_x * texhandle.size_y) * 4;
-			if(texture && channels == 4) {
-				// texture memory layout RGBA accessed through uint8_t pointer
-				size_t index = (x + (y * size_x)) * 4 + 3;
-				if(index < size_m && texture[index] == 0x00) {
-					return message_result::unseen;
-				}
-			}
-			return message_result::consumed;
-		}
-		return message_result::unseen;
-	}
-
-	void on_create(sys::state& state) noexcept override {
-		opaque_element_base::on_create(state);
-		dcon::gfx_object_id gid;
-		if(base_data.get_element_type() == element_type::image) {
-			gid = base_data.data.image.gfx_object;
-		} else if(base_data.get_element_type() == element_type::button) {
-			gid = base_data.data.button.button_image;
-		}
-		if(gid) {
-			texture_id = state.ui_defs.gfx[gid].primary_texture_handle;
-		}
-	}
-
+	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	// MAYBE this function has to be changed when make_element_by_type() is changed
-	static std::unique_ptr<partially_transparent_image> make_element_by_type_alias(sys::state& state, dcon::gui_def_id id) {
-		auto res = std::make_unique<partially_transparent_image>();
-		std::memcpy(&(res->base_data), &(state.ui_defs.gui[id]), sizeof(ui::element_data));
-
-		dcon::gfx_object_id gfx_handle;
-
-		if(res->base_data.get_element_type() == ui::element_type::image) {
-			gfx_handle = res->base_data.data.image.gfx_object;
-		} else if(res->base_data.get_element_type() == ui::element_type::button) {
-			gfx_handle = res->base_data.data.button.button_image;
-		}
-		if(gfx_handle) {
-			auto tex_handle = state.ui_defs.gfx[gfx_handle].primary_texture_handle;
-			if(tex_handle) {
-				state.ui_defs.gfx[gfx_handle].flags |= ui::gfx_object::do_transparency_check;
-			}
-		}
-
-		make_size_from_graphics(state, res->base_data);
-		res->on_create(state);
-		return res;
-	}
+	static std::unique_ptr<partially_transparent_image> make_element_by_type_alias(sys::state& state, dcon::gui_def_id id);
 };
 
 
@@ -264,56 +186,10 @@ public:
 		return sound::get_click_sound(state);
 	}
 
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(!state.user_settings.left_mouse_click_hold_and_release && !disabled) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_right_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_right_action(state);
-			else
-				button_right_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override {
-		if(state.user_settings.left_mouse_click_hold_and_release && !disabled && under_mouse) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-		}
-		return message_result::consumed;
-	}
-	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept final {
-		if(!disabled && base_data.get_element_type() == element_type::button && base_data.data.button.shortcut == key) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			if(mods == sys::key_modifiers::modifiers_shift)
-				button_shift_action(state);
-			else if(mods == sys::key_modifiers::modifiers_ctrl)
-				button_ctrl_action(state);
-			else
-				button_action(state);
-			return message_result::consumed;
-		} else {
-			return message_result::unseen;
-		}
-	}
+	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	message_result on_lbutton_up(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods, bool under_mouse) noexcept override;
+	message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
 
 	void on_create(sys::state& state) noexcept override;
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
@@ -329,25 +205,13 @@ public:
 class right_click_button_element_base : public button_element_base {
 public:
 	virtual void button_right_action(sys::state& state) noexcept override { }
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			button_right_action(state);
-		}
-		return message_result::consumed;
-	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 };
 
 class tinted_right_click_button_element_base : public tinted_button_element_base {
 public:
 	virtual void button_right_action(sys::state& state) noexcept override { }
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final {
-		if(!disabled) {
-			sound::play_interface_sound(state, get_click_sound(state), state.user_settings.interface_volume * state.user_settings.master_volume);
-			button_right_action(state);
-		}
-		return message_result::consumed;
-	}
+	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept final;
 };
 
 class line_graph : public element_base {
@@ -440,6 +304,7 @@ public:
 	void on_reset_text(sys::state& state) noexcept override;
 };
 
+
 class edit_box_element_base : public u16_text_element_base {
 protected:
 
@@ -517,7 +382,8 @@ protected:
 	int32_t mouse_entry_position = 0;
 	int32_t temp_selection_start = 0;
 	int32_t temp_selection_end = 0;
-	
+	std::chrono::steady_clock::time_point last_activated;
+
 	bool multiline = false;
 	bool changes_made = false;
 
@@ -530,10 +396,13 @@ protected:
 	int32_t visually_right_on_line(int32_t line);
 	ui::urect get_edit_bounds(sys::state& state) const;
 public:
+	int32_t template_id = -1;
+	bool disabled = false;
+
 	void set_text(sys::state& state, std::u16string const& new_text);
 
 	virtual void edit_box_update(sys::state& state, std::u16string_view s) noexcept { }
-	
+
 	void on_reset_text(sys::state& state) noexcept override;
 	void on_create(sys::state& state) noexcept override;
 
@@ -824,9 +693,7 @@ public:
 		n = i;
 		until = u;
 	}
-	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
-		return state.world.nation_get_identity_from_identity_holder(n);
-	}
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override;
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;
 	}
@@ -878,117 +745,6 @@ public:
 	void on_create(sys::state& state) noexcept final{};
 
 	TabT target = TabT();
-};
-
-template<class T>
-class piechart : public element_base {
-public:
-
-	static constexpr int32_t resolution = 200;
-	static constexpr size_t channels = 3;
-
-	struct entry {
-		float value;
-		T key;
-		uint8_t slices;
-		entry(T key, float value) : value(value), key(key), slices(0) { }
-		entry() : value(0.0f), key(), slices(0) { }
-	};
-
-	ogl::data_texture data_texture{ resolution, channels };
-	std::vector<entry> distribution;
-	float radius = 0.f;
-
-	void update_chart(sys::state& state);
-
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	virtual void populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept;
-
-	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
-		return tooltip_behavior::position_sensitive_tooltip;
-	}
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		if(type == mouse_probe_type::scroll)
-			return message_result::unseen;
-
-		float dx = float(x) - radius;
-		float dy = float(y) - radius;
-		auto dist = sqrt(dx * dx + dy * dy);
-		return dist <= radius ? message_result::consumed : message_result::unseen;
-	}
-	message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-	message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override {
-		return message_result::consumed;
-	}
-};
-
-template<class SrcT, class DemoT>
-class demographic_piechart : public piechart<DemoT> {
-public:
-	void on_update(sys::state& state) noexcept override {
-		this->distribution.clear();
-
-		Cyto::Any obj_id_payload = SrcT{};
-		size_t i = 0;
-		if(this->parent) {
-			this->parent->impl_get(state, obj_id_payload);
-			float total_pops = 0.f;
-
-			for_each_demo(state, [&](DemoT demo_id) {
-				float volume = 0.f;
-				if(obj_id_payload.holds_type<dcon::province_id>()) {
-					auto demo_key = demographics::to_key(state, demo_id);
-					auto prov_id = any_cast<dcon::province_id>(obj_id_payload);
-					volume = state.world.province_get_demographics(prov_id, demo_key);
-				} else if(obj_id_payload.holds_type<dcon::nation_id>()) {
-					auto demo_key = demographics::to_key(state, demo_id);
-					auto nat_id = any_cast<dcon::nation_id>(obj_id_payload);
-					volume = state.world.nation_get_demographics(nat_id, demo_key);
-				}
-
-				if constexpr(std::is_same_v<SrcT, dcon::pop_id>) {
-					if(obj_id_payload.holds_type<dcon::pop_id>()) {
-						auto demo_key = pop_demographics::to_key(state, demo_id);
-						auto pop_id = any_cast<dcon::pop_id>(obj_id_payload);
-						volume = pop_demographics::get_demo(state, pop_id, demo_key);
-					}
-				}
-				if(volume > 0)
-					this->distribution.emplace_back(demo_id, volume);
-			});
-		}
-
-		this->update_chart(state);
-	}
-	virtual void for_each_demo(sys::state& state, std::function<void(DemoT)> fun) { }
-};
-
-template<class SrcT>
-class culture_piechart : public demographic_piechart<SrcT, dcon::culture_id> {
-protected:
-	void for_each_demo(sys::state& state, std::function<void(dcon::culture_id)> fun) override {
-		state.world.for_each_culture(fun);
-	}
-};
-
-template<class SrcT>
-class workforce_piechart : public demographic_piechart<SrcT, dcon::pop_type_id> {
-protected:
-	void for_each_demo(sys::state& state, std::function<void(dcon::pop_type_id)> fun) override {
-		state.world.for_each_pop_type(fun);
-	}
-};
-
-template<class SrcT>
-class ideology_piechart : public demographic_piechart<SrcT, dcon::ideology_id> {
-protected:
-	void for_each_demo(sys::state& state, std::function<void(dcon::ideology_id)> fun) override {
-		state.world.for_each_ideology(fun);
-	}
 };
 
 class scrollbar_left : public button_element_base {
@@ -1181,56 +937,6 @@ public:
 	}
 };
 
-template<class RowWinT, class RowConT>
-class standard_listbox_scrollbar : public autoscaling_scrollbar {
-public:
-	void on_value_change(sys::state& state, int32_t v) noexcept override;
-};
-
-template<class RowConT>
-class listbox_row_element_base : public window_element_base {
-protected:
-	RowConT content{};
-
-public:
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-};
-
-template<class RowConT>
-class listbox_row_button_base : public button_element_base {
-protected:
-	RowConT content{};
-
-public:
-	virtual void update(sys::state& state) noexcept { }
-	message_result get(sys::state& state, Cyto::Any& payload) noexcept override;
-};
-
-template<class RowWinT, class RowConT>
-class listbox_element_base : public container_base {
-protected:
-	std::vector<RowWinT*> row_windows{};
-
-	virtual std::string_view get_row_element_name() {
-		return std::string_view{};
-	}
-	virtual bool is_reversed() {
-		return false;
-	}
-
-public:
-	standard_listbox_scrollbar<RowWinT, RowConT>* list_scrollbar = nullptr;
-	std::vector<RowConT> row_contents{};
-
-	void update(sys::state& state);
-	message_result on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state& state, int32_t x, int32_t y) noexcept override;
-	void scroll_to_bottom(sys::state& state);
-	message_result test_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-		return (type == mouse_probe_type::scroll && row_contents.size() > row_windows.size()) ? message_result::consumed : message_result::unseen;
-	}
-};
 
 class listbox2_scrollbar : public autoscaling_scrollbar {
 public:
@@ -1244,9 +950,11 @@ public:
 
 struct listbox2_scroll_event {
 };
+
 struct listbox2_row_view {
 	listbox2_row_element* row = nullptr;
 };
+
 
 template<typename contents_type>
 class listbox2_base : public container_base {
@@ -1294,262 +1002,5 @@ void render_text_chunk(
 	ogl::color3f text_color,
 	ogl::color_modification cmod
 );
-
-
-template<class T>
-void piechart<T>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	if(distribution.size() > 0)
-		ogl::render_piechart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), data_texture);
-}
-
-template<class T>
-void piechart<T>::on_create(sys::state& state) noexcept {
-	base_data.position.x -= base_data.size.x;
-	radius = float(base_data.size.x);
-	base_data.size.x *= 2;
-	base_data.size.y *= 2;
-}
-
-template<class T>
-void piechart<T>::update_chart(sys::state& state) {
-	std::sort(distribution.begin(), distribution.end(), [](auto const& a, auto const& b) { return a.value > b.value; });
-	float total = 0.0f;
-	for(auto& e : distribution) {
-		total += e.value;
-	}
-	int32_t int_total = 0;
-
-	if(total != 0.0f) {
-		for(auto& e : distribution) {
-			auto ivalue = int32_t(e.value * float(resolution) / total);
-			e.slices = uint8_t(ivalue);
-			e.value /= total;
-			int_total += ivalue;
-		}
-	} else {
-		distribution.clear();
-	}
-
-	if(int_total < resolution && distribution.size() > 0) {
-		auto rem = resolution - int_total;
-		while(rem > 0) {
-			for(auto& e : distribution) {
-				e.slices += uint8_t(1);
-				rem -= 1;
-				if(rem == 0)
-					break;
-			}
-		}
-	} else if(int_total > resolution) {
-		assert(false);
-	}
-
-	size_t i = 0;
-	for(auto& e : distribution) {
-		uint32_t color = ogl::get_ui_color<T>(state, e.key);
-		auto slice_count = size_t(e.slices);
-
-		for(size_t j = 0; j < slice_count; j++) {
-			data_texture.data[(i + j) * channels] = uint8_t(color & 0xFF);
-			data_texture.data[(i + j) * channels + 1] = uint8_t(color >> 8 & 0xFF);
-			data_texture.data[(i + j) * channels + 2] = uint8_t(color >> 16 & 0xFF);
-		}
-
-		i += slice_count;
-	}
-	for(; i < resolution; i++) {
-		data_texture.data[i * channels] = uint8_t(0);
-		data_texture.data[i * channels + 1] = uint8_t(0);
-		data_texture.data[i * channels + 2] = uint8_t(0);
-	}
-
-	data_texture.data_updated = true;
-}
-
-template<class T>
-void piechart<T>::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
-	float const PI = 3.141592653589793238463f;
-	float dx = float(x) - radius;
-	float dy = float(y) - radius;
-	size_t index = 0;
-	if(dx != 0.0f || dy != 0.0f) {
-		float dist = std::sqrt(dx * dx + dy * dy);
-		float angle = std::acos(-dx / dist);
-		if(dy > 0.f) {
-			angle = PI + (PI - angle);
-		}
-		index = size_t(angle / (2.f * PI) * float(resolution));
-	}
-	for(auto const& e : distribution) {
-		if(index < size_t(e.slices)) {
-			populate_tooltip(state, e.key, e.value, contents);
-			return;
-		}
-		index -= size_t(e.slices);
-	}
-}
-
-template<class T>
-void piechart<T>::populate_tooltip(sys::state& state, T t, float percentage, text::columnar_layout& contents) noexcept {
-		auto fat_t = dcon::fatten(state.world, t);
-		auto box = text::open_layout_box(contents, 0);
-		if constexpr(!std::is_same_v<dcon::nation_id, T>)
-			text::add_to_layout_box(state, contents, box, fat_t.get_name(), text::substitution_map{});
-		else
-			text::add_to_layout_box(state, contents, box, text::get_name(state, t), text::substitution_map{});
-		text::add_to_layout_box(state, contents, box, std::string(":"), text::text_color::white);
-		text::add_space_to_layout_box(state, contents, box);
-		text::add_to_layout_box(state, contents, box, text::format_percentage(percentage, 1), text::text_color::white);
-		text::close_layout_box(contents, box);
-}
-
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::update(sys::state& state) {
-	auto content_off_screen = int32_t(row_contents.size() - row_windows.size());
-	int32_t scroll_pos = list_scrollbar->raw_value();
-	if(content_off_screen <= 0) {
-		list_scrollbar->set_visible(state, false);
-		scroll_pos = 0;
-	} else {
-		list_scrollbar->change_settings(state, mutable_scrollbar_settings{ 0, content_off_screen, 0, 0, false });
-		list_scrollbar->set_visible(state, true);
-		scroll_pos = std::min(scroll_pos, content_off_screen);
-	}
-
-	if(is_reversed()) {
-		auto i = int32_t(row_contents.size()) - scroll_pos - 1;
-		for(int32_t rw_i = int32_t(row_windows.size()) - 1; rw_i >= 0; rw_i--) {
-			RowWinT* row_window = row_windows[size_t(rw_i)];
-			if(i >= 0) {
-				row_window->set_visible(state, true);
-				auto prior_content = retrieve<RowConT>(state, row_window);
-				auto new_content = row_contents[i--];
-
-				if(prior_content != new_content) {
-					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					if(!row_window->is_visible()) {
-						row_window->set_visible(state, true);
-					} else {
-						row_window->impl_on_update(state);
-					}
-				} else {
-					row_window->set_visible(state, true);
-				}
-			} else {
-				row_window->set_visible(state, false);
-			}
-		}
-	} else {
-		auto i = size_t(scroll_pos);
-		for(RowWinT* row_window : row_windows) {
-			if(i < row_contents.size()) {
-				auto prior_content = retrieve<RowConT>(state, row_window);
-				auto new_content = row_contents[i++];
-
-				if(prior_content != new_content) {
-					send(state, row_window, wrapped_listbox_row_content<RowConT>{ new_content });
-					if(!row_window->is_visible()) {
-						row_window->set_visible(state, true);
-					} else {
-						row_window->impl_on_update(state);
-					}
-				} else {
-					row_window->set_visible(state, true);
-				}
-			} else {
-				row_window->set_visible(state, false);
-			}
-		}
-	}
-}
-
-template<class RowWinT, class RowConT>
-message_result listbox_element_base<RowWinT, RowConT>::on_scroll(sys::state& state, int32_t x, int32_t y, float amount, sys::key_modifiers mods) noexcept {
-	if(row_contents.size() > row_windows.size()) {
-		amount = is_reversed() ? -amount : amount;
-		list_scrollbar->update_raw_value(state, list_scrollbar->raw_value() + (amount < 0 ? 1 : -1));
-		state.ui_state.last_tooltip = nullptr; //force update of tooltip
-		update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::scroll_to_bottom(sys::state& state) {
-	uint32_t list_size = 0;
-	for(auto rc : row_contents) {
-		list_size++;
-	}
-	list_scrollbar->update_raw_value(state, list_size);
-	state.ui_state.last_tooltip = nullptr; //force update of tooltip
-	update(state);
-}
-
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::on_create(sys::state& state) noexcept {
-	int16_t current_y = 0;
-	int16_t subwindow_y_size = 0;
-	while(current_y + subwindow_y_size <= base_data.size.y) {
-		auto ptr = make_element_by_type<RowWinT>(state, get_row_element_name());
-		row_windows.push_back(static_cast<RowWinT*>(ptr.get()));
-		int16_t offset = ptr->base_data.position.y;
-		ptr->base_data.position.y += current_y;
-		subwindow_y_size = ptr->base_data.size.y;
-		current_y += ptr->base_data.size.y + offset;
-		add_child_to_front(std::move(ptr));
-	}
-	auto ptr = make_element_by_type<standard_listbox_scrollbar<RowWinT, RowConT>>(state, "standardlistbox_slider");
-	list_scrollbar = static_cast<standard_listbox_scrollbar<RowWinT, RowConT>*>(ptr.get());
-	add_child_to_front(std::move(ptr));
-	list_scrollbar->scale_to_parent();
-
-	update(state);
-}
-
-template<class RowWinT, class RowConT>
-void listbox_element_base<RowWinT, RowConT>::render(sys::state& state, int32_t x, int32_t y) noexcept {
-	dcon::gfx_object_id gid = base_data.data.list_box.background_image;
-	if(gid) {
-		auto const& gfx_def = state.ui_defs.gfx[gid];
-		if(gfx_def.primary_texture_handle) {
-			if(gfx_def.get_object_type() == ui::object_type::bordered_rect) {
-				ogl::render_bordered_rect(state, get_color_modification(false, false, true), gfx_def.type_dependent, float(x), float(y),
-					float(base_data.size.x), float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			} else {
-				ogl::render_textured_rect(state, get_color_modification(false, false, true), float(x), float(y), float(base_data.size.x),
-					float(base_data.size.y),
-					ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent()),
-					base_data.get_rotation(), gfx_def.is_vertically_flipped(),
-					state.world.locale_get_native_rtl(state.font_collection.get_current_locale()));
-			}
-		}
-	}
-	container_base::render(state, x, y);
-}
-
-
-template<class RowConT>
-message_result listbox_row_element_base<RowConT>::get(sys::state& state, Cyto::Any& payload) noexcept {
-	if(payload.holds_type<RowConT>()) {
-		payload.emplace<RowConT>(content);
-		return message_result::consumed;
-	} else if(payload.holds_type<wrapped_listbox_row_content<RowConT>>()) {
-		content = any_cast<wrapped_listbox_row_content<RowConT>>(payload).content;
-		impl_on_update(state);
-		return message_result::consumed;
-	}
-	return message_result::unseen;
-}
-
-template<class RowWinT, class RowConT>
-void standard_listbox_scrollbar<RowWinT, RowConT>::on_value_change(sys::state& state, int32_t v) noexcept {
-	static_cast<listbox_element_base<RowWinT, RowConT>*>(parent)->update(state);
-}
 
 } // namespace ui

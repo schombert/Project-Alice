@@ -1,0 +1,82 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="printpattern" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image href="printbrush.png" height="[[P;64;0]]" width="[[P;64;0]]" />
+		</pattern>
+		<mask  id="printmask">
+			<rect  x="0" y="0" fill="url(#printpattern)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+	</defs>
+	<g transform="translate([[W;500;0]] 3000)">
+		<path
+			style = "fill:#fef7f0;fill-opacity:1;stroke:#32291f;stroke-width:0;stroke-dasharray:none;stroke-opacity:0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M -2958.03, 0
+			A 3000, 3000, 0, 0, 1, 2958.03, 0
+			z"
+		/>
+		<rect fill="#fef7f0" x="-2958.03" y="0" width="5916.06" height="100" />
+	</g>
+	<g mask="url(#printmask)">
+	<g transform="translate([[W;500;0]] 3000)">
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:132;stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M -2783.88, 200
+			A 2800, 2800, 0, 0, 1, 2783.88, 200
+			z"
+		/>
+	</g>
+	</g>
+	<g transform="translate([[W;500;0]] 3000)">
+		<path
+			style = "fill:#fef7f0;fill-opacity:1;stroke:#32291f;stroke-width:0;stroke-dasharray:none;stroke-opacity:0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M -2723.96, 266
+			A 2734, 2734, 0, 0, 1, 2723.96, 266
+			z"
+		/>
+		<rect fill="#fef7f0" x="-2723.96" y="250" width="5447.92" height="60" />
+	</g>
+	<g mask="url(#printmask)">
+	<g transform="translate([[W;500;0]] 3000)">
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:34;stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M -2581.66, 417
+			A 2583, 2583, 0, 0, 1, 2581.66, 417
+			z"
+		/>
+	</g>
+	</g>
+	<g transform="translate([[W;500;0]] 3000)">
+		<path
+			style = "fill:#fef7f0;fill-opacity:1;stroke:#32291f;stroke-width:0;stroke-dasharray:none;stroke-opacity:0"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M -2565.15, 434
+			A 2566, 2566, 0, 0, 1, 2565.15, 434
+			z"
+		/>
+		<rect fill="#fef7f0" x="-2565.15" y="420" width="5130.3" height="60" />
+	</g>
+</svg>

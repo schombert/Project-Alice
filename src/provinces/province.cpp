@@ -1,6 +1,6 @@
 #include "province.hpp"
 #include "province_templates.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "demographics.hpp"
 #include "nations.hpp"
 #include "system_state.hpp"
@@ -660,12 +660,17 @@ void restore_cached_values(sys::state& state) {
 		auto owner = state.world.state_instance_get_nation_from_state_ownership(s);
 		state.world.nation_set_owned_state_count(owner, uint16_t(state.world.nation_get_owned_state_count(owner) + uint16_t(1)));
 		dcon::province_id p;
+
+		int16_t min_priority = (int16_t)state.world.abstract_state_membership_size();
+
 		for(auto prv : state.world.state_definition_get_abstract_state_membership(state.world.state_instance_get_definition(s))) {
-			if(state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
+			auto priority = state.world.abstract_state_membership_get_priority(prv);
+			if (priority < min_priority && state.world.province_get_nation_from_province_ownership(prv.get_province()) == owner) {
 				p = prv.get_province().id;
-				break;
+				min_priority = priority;
 			}
 		}
+
 		state.world.state_instance_set_capital(s, p);
 	});
 }
@@ -940,11 +945,13 @@ float crime_fighting_efficiency(sys::state& state, dcon::province_id id) {
 	// we have agreed to replace admin spending with national admin efficiency
 
 	// changed to local control/enforcement ratio
+	// it would be logical if decent control would be enough to fight against crime
+	// so we multiply control by 3: 33% of control would represent an ability to fight against crimes
 
 	auto si = state.world.province_get_state_membership(id);
 	auto owner = state.world.province_get_nation_from_province_ownership(id);
 	if(si && owner)
-		return state.world.province_get_control_ratio(id)
+		return state.world.province_get_control_ratio(id) * 3.f
 			* (1.f + state.world.nation_get_administrative_efficiency(owner))
 			* (
 				state.defines.max_crimefight_percent
@@ -2535,6 +2542,10 @@ std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::provin
 			}
 			distance -= 0.03f * std::min(railroad_target, railroad_origin) * distance;
 
+			if(bits & province::border::river_connection_bit) {
+				distance = distance / 2.f;
+			}
+
 			if((bits & province::border::impassible_bit) == 0 && !origins_vector.get(other_prov)) {
 				if(other_prov == end) {
 					fill_path_result(nearest.province);
@@ -2676,9 +2687,6 @@ std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province
 	assert_path_result(path_result);
 	return path_result;
 }
-
-
-
 
 // for sea trade routes
 std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end) {

@@ -1,7 +1,10 @@
 #pragma once
 
 #include <vector>
-#include "dcon_generated.hpp"
+#include "unordered_dense.h"
+#include "dcon_generated_ids.hpp"
+
+
 
 namespace sys {
 struct state; // this is here simply to declare the state struct in a very general location
@@ -90,48 +93,8 @@ inline uint32_t hsv_to_rgb(hsv v) {
 	);
 }
 
-struct value_modifier_segment {
-	float factor = 0.0f;
-	dcon::trigger_key condition;
-	uint16_t padding = 0;
-};
-static_assert(sizeof(value_modifier_segment) ==
-	sizeof(value_modifier_segment::factor)
-	+ sizeof(value_modifier_segment::condition)
-	+ sizeof(value_modifier_segment::padding));
-
-struct value_modifier_description {
-	float factor = 0.0f;
-	float base = 0.0f;
-	uint16_t first_segment_offset = 0;
-	uint16_t segments_count = 0;
-};
-static_assert(sizeof(value_modifier_description) ==
-	sizeof(value_modifier_description::factor)
-	+ sizeof(value_modifier_description::base)
-	+ sizeof(value_modifier_description::first_segment_offset)
-	+ sizeof(value_modifier_description::segments_count));
-
-struct event_option {
-	dcon::text_key name;
-	dcon::value_modifier_key ai_chance;
-	dcon::effect_key effect;
-};
-static_assert(sizeof(event_option) ==
-	sizeof(event_option::name)
-	+ sizeof(event_option::ai_chance)
-	+ sizeof(event_option::effect));
 
 
-
-
-
-struct gamerule_option {
-	dcon::text_key name;
-	dcon::effect_key on_select;
-	dcon::effect_key on_deselect;
-
-};
 
 
 
@@ -189,6 +152,18 @@ struct gamerule_hash {
 	}
 
 	auto operator()(dcon::gamerule_id p) const noexcept -> uint64_t {
+		int32_t index = p.index();
+		return ankerl::unordered_dense::hash<int32_t>()(index);
+	}
+};
+
+struct nation_hash {
+	using is_avalanching = void;
+
+	nation_hash() {
+	}
+
+	auto operator()(dcon::nation_id p) const noexcept -> uint64_t {
 		int32_t index = p.index();
 		return ankerl::unordered_dense::hash<int32_t>()(index);
 	}
@@ -293,36 +268,11 @@ public:
 	}
 };
 
-namespace economy {
-
-struct commodity_set {
-	static constexpr uint32_t set_size = 8;
-
-	float commodity_amounts[set_size] = {0.0f};
-	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
-};
-static_assert(sizeof(commodity_set) ==
-	sizeof(commodity_set::commodity_amounts)
-	+ sizeof(commodity_set::commodity_type));
-
-struct small_commodity_set {
-	static constexpr uint32_t set_size = 6;
-
-	float commodity_amounts[set_size] = {0.0f};
-	dcon::commodity_id commodity_type[set_size] = {dcon::commodity_id{}};
-	uint16_t padding = 0;
-};
-static_assert(sizeof(small_commodity_set) ==
-	sizeof(small_commodity_set::commodity_amounts)
-	+ sizeof(small_commodity_set::commodity_type)
-	+ sizeof(small_commodity_set::padding));
-
-} // namespace economy
 
 namespace sys {
 
 struct checksum_key {
-	static constexpr uint32_t key_size = 64;
+	static constexpr uint32_t key_size = 32;
 	uint8_t key[key_size] = { 0 };
 
 	bool is_equal(const checksum_key& a) noexcept {
@@ -344,67 +294,6 @@ struct checksum_key {
 };
 static_assert(sizeof(checksum_key) == sizeof(checksum_key::key));
 
-template<size_t _Size>
-struct player_value {
-	std::array<uint8_t, _Size> data = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
-
-	std::string_view to_string_view() const noexcept {
-		for(uint32_t i = 0; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				return std::string_view{ reinterpret_cast<const char*>(&data[0]), uint32_t(i) };
-			}
-		}
-		return std::string_view{ reinterpret_cast<const char*>(&data[0]), sizeof(data) };
-	}
-
-	player_value<_Size> from_string_view(std::string_view sv) noexcept {
-		size_t length_to_copy = std::min(sv.size(), data.size());
-		sv.copy(reinterpret_cast<char*>(data.data()), length_to_copy);
-		return *this;
-	}
-
-	bool is_equal(player_value<_Size> other) {
-		return other.data == data;
-	}
-
-	std::string to_string() const noexcept {
-		return std::string(to_string_view());
-	}
-
-	bool empty() noexcept {
-		return data[0] == ' ' || data[0] == '\0';
-	}
-
-	void append(char c) noexcept {
-		for(uint32_t i = 0; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				data[i] = c;
-				return;
-			}
-		}
-	}
-
-	char pop() noexcept {
-		for(uint32_t i = 1; i < sizeof(data); i++) {
-			if(data[i] == ' ' || data[i] == '\0') {
-				auto pop = data[i - 1];
-				data[i - 1] = ' ';
-				return pop;
-			}
-		}
-		return ' ';
-	}
-};
-
-using player_name = player_value<24>;
-using player_password_salt = player_value<24>;
-using player_password_hash = player_value<64>;
-using player_password_raw = player_value<24>;
-
-static_assert(sizeof(player_name) == sizeof(player_name::data));
-static_assert(sizeof(player_password_salt) == sizeof(player_password_salt::data));
-static_assert(sizeof(player_password_hash) == sizeof(player_password_hash::data));
-static_assert(sizeof(player_password_raw) == sizeof(player_password_raw::data));
 
 struct macro_builder_template {
 	static constexpr uint32_t max_types = 48;
@@ -488,6 +377,10 @@ struct full_wg {
 	dcon::national_identity_id wg_tag;
 	dcon::state_definition_id state;
 	dcon::cb_type_id cb;
+
+	bool operator==(const full_wg& other) const = default;
+	bool operator!=(const full_wg& other) const = default;
+
 };
 
 struct aui_pending_bytes {
@@ -496,3 +389,54 @@ struct aui_pending_bytes {
 };
 
 } // namespace sys
+
+
+namespace ui {
+
+struct chat_message {
+	dcon::nation_id source{};
+	dcon::nation_id target{};
+	std::string body;
+	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
+	std::unique_ptr<sys::player_name> sender_name;
+
+	chat_message() {
+		sender_name = std::make_unique<sys::player_name>();
+	}
+	chat_message(const chat_message& m) {
+		sender_name = std::make_unique<sys::player_name>();
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+	}
+	chat_message(chat_message&&) = default;
+	chat_message& operator=(const chat_message& m) {
+		if(this == &m)
+			return *this;
+		source = m.source;
+		target = m.target;
+		body = m.body;
+		memcpy(sender_name.get(), m.sender_name.get(), 24);
+		return *this;
+	}
+	chat_message& operator=(chat_message&&) = default;
+	~chat_message() {
+	}
+
+	bool operator==(chat_message const& o) const {
+		return source == o.source && target == o.target && body == o.body;
+	}
+	bool operator!=(chat_message const& o) const {
+		return !(*this == o);
+	}
+	void set_sender_name(const sys::player_name& name) {
+		sender_name.reset(new sys::player_name{ name });
+	}
+	sys::player_name& get_sender_name() const {
+		return *sender_name;
+	}
+};
+}
+
+

@@ -5,6 +5,11 @@
 #include "bmfont.hpp"
 #include "gui_element_base.hpp"
 
+#include "stateless_render.hpp"
+
+#undef STB_IMAGE_IMPLEMENTATION
+#include "stb_image.h"
+
 namespace ogl {
 
 std::string_view opengl_get_error_name(GLenum t) {
@@ -47,7 +52,7 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 140\r\n",
+		"#version 330 core\r\n",
 		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
 		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
 		"#extension GL_ARB_shader_subroutine : enable\r\n",
@@ -545,20 +550,6 @@ void load_global_squares(sys::state& state) {
 	}
 }
 
-inline auto map_color_modification_to_index(color_modification e) {
-	switch(e) {
-	case color_modification::disabled:
-		return parameters::disabled;
-	case color_modification::interactable:
-		return parameters::interactable;
-	case color_modification::interactable_disabled:
-		return parameters::interactable_disabled;
-	default:
-	case color_modification::none:
-		return parameters::enabled;
-	}
-}
-
 void bind_vertices_by_rotation(sys::state const& state, ui::rotation r, bool flipped, bool rtl) {
 	switch(r) {
 	case ui::rotation::upright:
@@ -967,6 +958,23 @@ void render_subsprite(sys::state const& state, color_modification enabled, int f
 
 	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 }
+void render_rect_slice(sys::state const& state, float x, float y, float width, float height, GLuint texture_handle, float start_slice, float end_slice) {
+	glBindVertexArray(state.open_gl.global_square_vao);
+
+	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
+
+	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, start_slice, end_slice - start_slice, 0.0f);
+	glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x + width * start_slice, y, width * (end_slice - start_slice), height);
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, texture_handle);
+
+	GLuint subroutines[2] = { map_color_modification_to_index(color_modification::none), parameters::sub_sprite };
+	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
+	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
+
+	glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
+}
 
 
 GLuint get_flag_texture_handle_from_tag(sys::state& state, const char tag[3]) {
@@ -1011,7 +1019,7 @@ bool display_tag_is_valid(sys::state& state, char tag[3]) {
 
 void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
 	float scale = 1.f;
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + (f.retrieve_instance(state, int32_t(font_size)).ascender(state)) - font_size;
 
 	bind_vertices_by_rotation(state, ui::rotation::upright, false, false);
 	glActiveTexture(GL_TEXTURE0);
@@ -1061,7 +1069,7 @@ void render_text_icon(sys::state& state, text::embedded_icon ico, float x, float
 }
 
 void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + (f.retrieve_instance(state, int32_t(font_size)).ascender(state)) - font_size;
 
 	auto fat_id = dcon::fatten(state.world, ico.tag);
 	auto nation = fat_id.get_nation_from_identity_holder();
@@ -1085,8 +1093,9 @@ void render_text_flag(sys::state& state, text::embedded_flag ico, float x, float
 }
 
 void render_text_unit_icon(sys::state& state, text::embedded_unit_icon ico, float x, float baseline_y, float font_size, text::font& f, ogl::color_modification cmod) {
-	auto ascender_size = f.ascender(int32_t(font_size));
-	auto top_adj = f.top_adjustment(int32_t(font_size));
+	auto ascender_size = f.retrieve_instance(state, int32_t(font_size)).ascender(state);
+	auto top_adj = f.retrieve_instance(state, int32_t(font_size)).top_adjustment(state);
+
 	float icon_baseline = baseline_y + top_adj + ascender_size;
 	//float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
 
@@ -1155,37 +1164,13 @@ void render_text_commodity_icon(
 	float x, float baseline_y,
 	float font_size, text::font& f
 ) {
-	float icon_baseline = baseline_y + (f.internal_ascender / 64.f * font_size) - font_size;
+	float icon_baseline = baseline_y + f.retrieve_instance(state, int32_t(font_size)).ascender(state) - font_size;
 
 	render_commodity_icon(
 		state, ico.commodity,
 		x, baseline_y,
 		font_size, font_size
 	);
-}
-
-void internal_text_render(sys::state& state, text::stored_glyphs const& txt, float x, float baseline_y, float size, text::font& f) {
-	GLuint subroutines[2] = { map_color_modification_to_index(ogl::color_modification::none), parameters::filter };
-	glUniform2ui(state.open_gl.ui_shader_subroutines_index_uniform, subroutines[0], subroutines[1]);
-	//glUniformSubroutinesuiv(GL_FRAGMENT_SHADER, 2, subroutines); // must set all subroutines in one call
-
-	unsigned int glyph_count = static_cast<unsigned int>(txt.glyph_info.size());
-	for(unsigned int i = 0; i < glyph_count; i++) {
-		hb_codepoint_t glyphid = txt.glyph_info[i].codepoint;
-		auto gso = f.glyph_positions[glyphid];
-		float x_advance = float(txt.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-		float x_offset = float(txt.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-		float y_offset = float(gso.y) - float(txt.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-		glBindVertexBuffer(0, state.open_gl.sub_square_buffers[gso.texture_slot & 63], 0, sizeof(GLfloat) * 4);
-		assert(uint32_t(gso.texture_slot >> 6) < f.textures.size());
-		assert(f.textures[gso.texture_slot >> 6]);
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, f.textures[gso.texture_slot >> 6]);
-		glUniform4f(state.open_gl.ui_shader_d_rect_uniform, x + x_offset * size / 64.f, baseline_y + y_offset * size / 64.f, size, size);
-		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		x += x_advance * size / 64.f;
-		baseline_y -= (float(txt.glyph_info[i].y_advance) / (float((1 << 6) * text::magnification_factor))) * size / 64.f;
-	}
 }
 
 void render_classic_text(sys::state& state, text::stored_glyphs const& txt, float x, float y, float size, color_modification enabled, color3f const& c, text::bm_font const& font, text::font& base_font) {
@@ -1234,7 +1219,6 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 				float(f.height) / float(font.width) /* y height */
 		);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
-		//float x_advance = float(txt.glyph_pos[i].x_advance) / (float((1 << 6) * text::magnification_factor));
 		x += f.x_advance;
 	}
 }
@@ -1242,7 +1226,22 @@ void render_classic_text(sys::state& state, text::stored_glyphs const& txt, floa
 void render_new_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, float size, color3f const& c, text::font& f) {
 	glUniform3f(state.open_gl.ui_shader_inner_color_uniform, c.r, c.g, c.b);
 	glUniform1f(state.open_gl.ui_shader_border_size_uniform, 0.08f * 16.0f / size);
-	internal_text_render(state, txt, x, y + size, size, f);
+	stateless_ogl::text_render(
+		state.font_collection.ft_library,
+		state.open_gl.global_square_buffer,
+		state.user_settings.ui_scale,
+		state.open_gl.ui_shader_subroutines_index_uniform,
+		map_color_modification_to_index(enabled),
+		ogl::parameters::subsprite_b,
+		state.open_gl.ui_shader_d_rect_uniform,
+		state.open_gl.ui_shader_subrect_uniform,
+		txt.glyph_info,
+		static_cast<unsigned int>(txt.glyph_info.size()),
+		x,
+		y + size,
+		size,
+		f
+	);
 }
 
 void render_text(sys::state& state, text::stored_glyphs const& txt, color_modification enabled, float x, float y, color3f const& c, uint16_t font_id) {
@@ -1659,6 +1658,23 @@ scissor_box::scissor_box(sys::state const& state, int32_t x, int32_t y, int32_t 
 }
 scissor_box::~scissor_box() {
 	glDisable(GL_SCISSOR_TEST);
+}
+
+void captured_element::capture_element(sys::state& state, ui::element_base& elm) {
+	rendered_state.ready(state);
+	state.current_scene.get_root(state)->impl_render(state, 0, 0);
+	rendered_state.finish(state);
+
+	auto abs_pos = ui::get_absolute_location(state, elm);
+	cap_x_pos = abs_pos.x;
+	cap_y_pos = abs_pos.y;
+	cap_width = elm.base_data.size.x;
+	cap_height = elm.base_data.size.y;
+}
+void captured_element::render(sys::state& state, int32_t x, int32_t y) {
+	render_subrect(state, float(x), float(y), float(cap_width), float(cap_height),
+				float(cap_x_pos) * state.user_settings.ui_scale / float(rendered_state.max_x), float(rendered_state.max_y - cap_y_pos) * state.user_settings.ui_scale / float(rendered_state.max_y), float(cap_width) * state.user_settings.ui_scale / float(rendered_state.max_x), float(-cap_height) * state.user_settings.ui_scale / float(rendered_state.max_y),
+				rendered_state.get());
 }
 
 } // namespace ogl

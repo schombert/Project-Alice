@@ -1,5 +1,5 @@
 #include "gui_trigger_tooltips.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state.hpp"
 #include "text.hpp"
 #include "script_constants.hpp"

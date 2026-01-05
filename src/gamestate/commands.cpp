@@ -18,6 +18,11 @@
 #include "network.hpp"
 #include "economy_government.hpp"
 #include "gui_error_window.hpp"
+#include "diplomatic_messages.hpp"
+#include "game_scene.hpp"
+#include "province.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
 
 namespace command {
 
@@ -48,6 +53,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::notify_start_game:
 	case command_type::notify_stop_game:
 	case command_type::resync_lobby:
+	case command_type::notify_oos_gamestate:
 		// Notifications can be sent because it's an-always do thing
 		break;
 	case command_type::change_game_rule_setting:
@@ -1739,36 +1745,33 @@ void execute_abandon_colony(sys::state& state, dcon::nation_id source, dcon::pro
 	}
 }
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id pr) {
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
 
 	command_data p{ command_type::finish_colonization, state.local_player_id };
-	auto data = generic_location_data{ pr };
+	auto data = generic_state_definition_data { d };
 	p << data;
 	add_to_command_queue(state, p);
 
 }
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-	if(state.world.state_definition_get_colonization_stage(state_def) != 3)
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	if(state.world.state_definition_get_colonization_stage(d) != 3)
 		return false;
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 	if(rng.begin() == rng.end())
 		return false;
 	return (*rng.begin()).get_colonizer() == source;
 }
-void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p) {
-	auto state_def = state.world.province_get_state_from_abstract_state_membership(p);
-
-	for(auto pr : state.world.state_definition_get_abstract_state_membership(state_def)) {
+void execute_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d) {
+	for(auto pr : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(!pr.get_province().get_nation_from_province_ownership()) {
 			province::change_province_owner(state, pr.get_province(), source);
 		}
 	}
 
-	state.world.state_definition_set_colonization_temperature(state_def, 0.0f);
-	state.world.state_definition_set_colonization_stage(state_def, uint8_t(0));
+	state.world.state_definition_set_colonization_temperature(d, 0.0f);
+	state.world.state_definition_set_colonization_stage(d, uint8_t(0));
 
-	auto rng = state.world.state_definition_get_colonization(state_def);
+	auto rng = state.world.state_definition_get_colonization(d);
 
 	while(rng.begin() != rng.end()) {
 		state.world.delete_colonization(*rng.begin());
@@ -3697,7 +3700,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 	}
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
 	if(bool(battle)) {
-		return !command::can_retreat_from_naval_battle(state, source, n, false, dest).empty();
+		return !command::can_retreat_from_naval_battle(state, source, n, military::retreat_type::manual, dest).empty();
 	}
 	else {
 		return !command::can_move_navy(state, source, n, dest, true).empty();
@@ -3722,7 +3725,7 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 		command::stop_navy_movement(state, source, n);
 	} else {
 		if(bool(battle)) {
-			command::retreat_from_naval_battle(state, source, n, false , dest);
+			command::retreat_from_naval_battle(state, source, n, dest);
 		}
 		else {
 			command::move_navy(state, source, n, dest, true);
@@ -3742,7 +3745,7 @@ bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
 bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
 	if(!b)
 		return true;
-	if(!military::can_retreat_from_battle(state, b))
+	if(!military::is_battle_retreatable(state, b, military::retreat_type::manual))
 		return false;
 	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
 }
@@ -4877,25 +4880,27 @@ void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon
 	}
 }
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
 	command_data p{ command_type::naval_retreat, state.local_player_id };
-	auto data = retreat_from_naval_battle_data{ navy, dest, auto_retreat };
+	auto data = retreat_from_naval_battle_data{ navy, dest };
 	p << data;
 	add_to_command_queue(state, p);
 }
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest) {
-	if(source != military::get_effective_unit_commander(state, navy)) {
-		return std::vector<dcon::province_id>{};
-	}
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest) {
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
 	if(!bool(battle)) {
 		return std::vector<dcon::province_id>{};
 	}
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, retreat_type))
 		return std::vector<dcon::province_id>{};
+
+
+	if(source != military::get_effective_unit_commander(state, navy)) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(state.world.navy_get_is_retreating(navy))
 		return std::vector<dcon::province_id>{};
-	if(!auto_retreat) {
+	if(retreat_type == military::retreat_type::manual) {
 		if(dest == state.world.navy_get_location_from_navy_location(navy)) {
 			return std::vector<dcon::province_id>{};
 		}
@@ -4903,17 +4908,16 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 
 	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
 }
-void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ }) {
-	// so far, any valid naval retreat is basically always an "auto_retreat" (it will path to the nearest accessible port), so atm those parameters dosent really do anything
+void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ }) {
 	// This can be extended with diffrent retreat rules later, but to start this is compliant with Vic2 naval retreat behaviour
 	auto battle = state.world.navy_get_battle_from_navy_battle_participation(navy);
-	if(!military::can_retreat_from_battle(state, battle))
+	if(!military::is_battle_retreatable(state, battle, military::retreat_type::manual))
 		return;
 	// For navies, a retreat command will start retreating the navy from the battle.
 	// In Vic2, navies do not retreat from the battle instantly unlike land units. Each ship which is part of the navy will start to retreat, and when all ships of the navy are retreated, the navy will finally exit the battle.
 	// The navy retreats to the closest port province, regardless of which province the user clicked on when retreating
 	assert(battle);
-	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy);
+	bool can_retreat = military::retreat<military::battle_is_ending::no>(state, navy, military::retreat_type::manual);
 	// navy must be able to retreat, otherwise it shouldnt have passed the "can_retreat_from_naval_battle" check
 	assert(can_retreat);
 	for(auto shp : state.world.navy_get_navy_membership(navy)) {
@@ -5245,6 +5249,25 @@ void execute_toggle_local_administration(sys::state& state, dcon::nation_id sour
 	}
 }
 
+void toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive) {
+	command_data p{ command_type::toggle_production_directive, state.local_player_id };
+	auto data = production_directive_data{ for_state, directive };
+	p << data;
+	add_to_command_queue(state, p);
+}
+void execute_toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive) {
+	if(!source || !directive)
+		return;
+
+	if(for_state) {
+		if(source == state.world.state_instance_get_nation_from_state_ownership(for_state)) {
+			state.world.state_instance_set_production_directive(for_state, directive, !(state.world.state_instance_get_production_directive(for_state, directive)));
+		}
+	} else {
+		state.world.nation_set_production_directive(source, directive, !(state.world.nation_get_production_directive(source, directive)));
+	}
+}
+
 void take_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 
 
@@ -5431,7 +5454,7 @@ bool can_notify_player_joins(sys::state& state, dcon::nation_id source, const sy
 }
 
 bool can_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
-	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings && !gamerule::check_gamerule(state, gamerule, new_setting);
+	return state.world.gamerule_get_settings_count(gamerule) >= new_setting + 1 && new_setting < sys::max_gamerule_settings;
 }
 
 void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting) {
@@ -5529,7 +5552,8 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{ state.world.mp_player_get_nickname(leaving_player) }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(leaving_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5554,7 +5578,7 @@ bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_p
 }
 void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player) {
 	assert(banned_player);
-	auto& nickname = state.world.mp_player_get_nickname(banned_player);
+	const auto& nickname = state.world.mp_player_get_nickname(banned_player);
 	
 
 	if(state.network_mode == sys::network_mode_type::host) {
@@ -5571,7 +5595,7 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5594,7 +5618,7 @@ bool can_notify_player_kick(sys::state& state, dcon::nation_id source, dcon::mp_
 }
 void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id kicked_player) {
 	assert(kicked_player);
-	auto nickname = state.world.mp_player_get_nickname(kicked_player);
+	const auto& nickname = state.world.mp_player_get_nickname(kicked_player);
 	
 	if(state.network_mode == sys::network_mode_type::host) {
 		for(auto& client : state.network_state.clients) {
@@ -5612,7 +5636,7 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 	m.source = host_nation;
 	text::substitution_map sub{};
 
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5641,6 +5665,16 @@ bool can_notify_player_picks_nation(sys::state& state, dcon::nation_id source, d
 }
 void execute_notify_player_picks_nation(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::mp_player_id player) {
 	network::switch_one_player(state, target, source, player);
+}
+
+
+bool can_notify_player_oos(sys::state& state, command_data& command) {
+	auto player = command.header.player_id;
+	// can't notify oos if there already are oos
+	if(state.world.mp_player_get_is_oos(player)) {
+		return false;
+	}
+	return true;
 }
 
 void notify_player_oos(sys::state& state, dcon::nation_id source) {
@@ -5677,8 +5711,8 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 	ui::chat_message m{};
 	m.source = host_nation;
 	text::substitution_map sub{};
-	auto nickname = state.world.mp_player_get_nickname(oos_player);
-	text::add_to_substitution_map(sub, text::variable_type::playername, sys::player_name{nickname }.to_string_view());
+	const auto& nickname = state.world.mp_player_get_nickname(oos_player);
+	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
 	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
 	m.set_sender_name(state.world.mp_player_get_nickname(host));
 	post_chat_message(state, m);
@@ -5688,6 +5722,44 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 #endif
 
 }
+
+
+
+void notify_oos_gamestate(sys::state& state, dcon::nation_id source) {
+	uint32_t size = 0;
+	auto mp_state_data = network::write_network_entire_mp_state(state, size);
+
+	command_data p{ command_type::notify_oos_gamestate, state.local_player_id };
+	auto data = notify_oos_gamestate_data{ };
+	data.size = size;
+	p << data;
+	p.push_ptr(mp_state_data.get(), size);
+	add_to_command_queue(state, p);
+}
+
+bool can_notify_oos_gamestate(sys::state& state, command_data& command) {
+	const auto& payload = command.get_payload<notify_oos_gamestate_data>();
+	// check that the data length is correct before reading from it
+	if(!command.check_variable_size_payload<notify_oos_gamestate_data>(payload.size)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+
+	auto player = command.header.player_id;
+	// can't send oos gamestate if the player sending it isn't oos
+	return state.world.mp_player_get_is_oos(player);
+}
+
+
+void execute_notify_oos_gamestate(sys::state& state, dcon::nation_id source, dcon::mp_player_id oos_player, const uint8_t* oos_gamestate_data, uint32_t data_size) {
+
+	std::unique_ptr<sys::state> oos_gamestate = std::make_unique<sys::state>();
+	read_entire_mp_state(oos_gamestate_data, oos_gamestate_data + data_size, *oos_gamestate);
+	network::dump_oos_report(state, *oos_gamestate);
+	
+}
+
+
 
 void advance_tick(sys::state& state, dcon::nation_id source) {
 
@@ -5700,9 +5772,15 @@ void advance_tick(sys::state& state, dcon::nation_id source) {
 }
 
 void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checksum_key& k, int32_t speed, sys::date new_date) {
+	
+	state.single_game_tick();
+
+	// We check OOS AFTER the tick. That way the oos notification will be sent after without processing a whole other tick. If it was done before, it would process the tick first, then send the oos notification after.
+	// TODO: Maybe add the OOS notification command here directly, and skip the queue so no actions are performed?
 	if(state.network_mode == sys::network_mode_type::client) {
 		if(!state.network_state.out_of_sync) {
-			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			
+			if(network::should_do_oos_check(state)) {
 #ifndef NDEBUG
 				state.console_log("client:checkingOOS | advance_tick | from:" + std::to_string(source.index()) +
 					"|dt_local:" + state.current_date.to_string(state.start_date) + " | dt_incoming:" + new_date.to_string(state.start_date));
@@ -5716,15 +5794,14 @@ void execute_advance_tick(sys::state& state, dcon::nation_id source, sys::checks
 					state.console_log("client:desyncfound | Local checksum:" + local + " | " + "Incoming: " + incoming);
 #endif
 					state.network_state.out_of_sync = true;
+					state.debug_save_oos_dump();
 				}
-				state.debug_save_oos_dump();
 			}
 		}
 		state.actual_game_speed = speed;
 	}
 
-	// state.current_date = new_date;
-	state.single_game_tick();
+
 
 	// Notify server that we're still here
 	if(state.current_date.value % 7 == 0 && state.network_mode == sys::network_mode_type::client) {
@@ -6208,8 +6285,8 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::finish_colonization:
 	{
-		auto& data = c.get_payload<command::generic_location_data>();
-		return can_finish_colonization(state, source, data.prov);
+		auto& data = c.get_payload<command::generic_state_definition_data>();
+		return can_finish_colonization(state, source, data.state_def);
 	}
 
 	case command_type::intervene_in_war:
@@ -6467,7 +6544,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<command::retreat_from_naval_battle_data>();
-		return can_retreat_from_naval_battle(state, source, data.navy, data.auto_retreat, data.dest).size() != 0;
+		return can_retreat_from_naval_battle(state, source, data.navy, military::retreat_type::manual, data.dest).size() != 0;
 	}
 
 	case command_type::land_retreat:
@@ -6627,6 +6704,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		auto& data = c.get_payload<command::diplo_action_data>();
 		return can_toggle_interested_in_alliance(state, source, data.target);
 	}
+	case command_type::toggle_production_directive:
+	{
+		return true;
+	}
 	case command_type::pbutton_script:
 	{
 		auto& data = c.get_payload<command::pbutton_data>();
@@ -6684,7 +6765,11 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::notify_player_oos:
 	{
-		return true; //return can_notify_player_oos(state, c.source);
+		return can_notify_player_oos(state, c);
+	}
+	case command_type::notify_oos_gamestate:
+	{
+		return can_notify_oos_gamestate(state, c);
 	}
 	case command_type::advance_tick:
 	{
@@ -6986,8 +7071,8 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::finish_colonization:
 	{
-		auto& data = c.get_payload<generic_location_data>();
-		execute_finish_colonization(state, source_nation, data.prov);
+		auto& data = c.get_payload<generic_state_definition_data>();
+		execute_finish_colonization(state, source_nation, data.state_def);
 		break;
 	}
 	case command_type::intervene_in_war:
@@ -7251,7 +7336,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::naval_retreat:
 	{
 		auto& data = c.get_payload<retreat_from_naval_battle_data>();
-		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.auto_retreat, data.dest);
+		execute_retreat_from_naval_battle(state, source_nation, data.navy, data.dest);
 		break;
 	}
 	case command_type::land_retreat:
@@ -7420,6 +7505,12 @@ bool execute_command(sys::state& state, command_data& c) {
 		execute_toggle_interested_in_alliance(state, source_nation, data.target);
 		break;
 	}
+	case command_type::toggle_production_directive:
+	{
+		auto& data = c.get_payload<production_directive_data>();
+		execute_toggle_production_directive(state, source_nation, data.for_state, data.id);
+		break;
+	}
 	case command_type::pbutton_script:
 	{
 		auto& data = c.get_payload<pbutton_data>();
@@ -7473,6 +7564,12 @@ bool execute_command(sys::state& state, command_data& c) {
 	case command_type::notify_player_oos:
 	{
 		execute_notify_player_oos(state, source_nation, c.header.player_id);
+		break;
+	}
+	case command_type::notify_oos_gamestate:
+	{
+		const auto& data = c.get_payload<notify_oos_gamestate_data>();
+		execute_notify_oos_gamestate(state, source_nation, c.header.player_id, data.gamestate_data(), data.size);
 		break;
 	}
 	case command_type::advance_tick:
@@ -7585,7 +7682,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	return true;
 }
 
-bool valid_host_receive_commands(command_type type) {
+bool valid_host_receive_commands(command_type type, const sys::state& state) {
 	switch(type) {
 	case command::command_type::invalid:
 	case command::command_type::notify_player_ban:
@@ -7603,6 +7700,9 @@ bool valid_host_receive_commands(command_type type) {
 	case command::command_type::resync_lobby:
 	case command::command_type::notify_mp_data:
 		return false;
+	case command::command_type::notify_oos_gamestate:
+		// Only allow the client to send oos gamestate if debug mode is on.
+		return state.host_settings.oos_debug_mode;
 	default:
 		return true;
 	}
@@ -7611,6 +7711,7 @@ bool valid_host_receive_commands(command_type type) {
 bool should_broadcast_command(sys::state& state, const command_data& command) {
 	switch(command.header.type) {
 	case command_type::resync_lobby:
+	case command_type::notify_oos_gamestate:
 		return false;
 	default:
 		return true;

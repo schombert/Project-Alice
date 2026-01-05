@@ -405,7 +405,25 @@ target_employment;Target employment: ?Y$value$?W
 employment_satisfaction;Employment satisfaction: ?Y$value$?W
 wage;Wage: ?Y$value$?W
 local_admin_efficiency;Local administrations are ?Y$value$?W less efficient than the capital one.
-tax_collection_rate;Tax collection rate: ?Y$value$?W
+admin_production;This administration produces ?Y$value$?! control that spreads to neighbouring provinces.
+province_control_scale;Control points available: ?Y$value$?!
+province_control_scale_trade_incoming;?G+$value$ control received through trade from $prov$?!
+province_control_scale_trade_outgoing;?R-$value$ control transferred through trade to $prov$?!
+province_control_scale_from_state_capital;?G+$value$ control received from state capital of $prov$?!
+province_control_scale_to_state_capital;?R-$value$ control transferred to state province of $prov$?!
+province_control_scale_adjacency_received;?G+$value$ control received from adjacency with $prov$?!
+province_control_scale_adjacency_sent;?R-$value$ control transferred to adjacent $prov$?!
+province_control_change;Predicted control ratio change: ?Y$value$?!
+province_control_decay;Predicted control points decay: ?Y$value$?!
+admin_cost_of_province;Cost of province administration in control points: ?Y$value$?!
+admin_cost_of_province_area;From area of: ?Y$value$?!
+admin_cost_of_province_population;From population of: ?Y$value$?!
+admin_cost_of_province_coastal;?G-$value$ because of coastline?!
+admin_cost_of_province_river;?G-$value$ because of a major river?!
+tax_collection_rate;Tax collection rate: ?Y$value$?!
+tax_collection_rate_capital_base;Base in the capital: ?Y$value$?!
+tax_collection_rate_control;From control: ?Y$value$?!
+tax_collection_rate_efficiency;Modified by ?Y$value$?! tax efficiency
 poor_potential;Potential poor taxes: ?Y$value$?W
 mid_potential;Potential middle taxes: ?Y$value$?W
 rich_potential;Potential rich taxes: ?Y$value$?W
@@ -630,6 +648,7 @@ pop_mig_2;Slaves do not migrate internally
 pop_mig_3;The number of people that will migrate internally is equal to the size of the pop times the immigration scale ($x$) times the province's immigrant-push modifier ($y$) times the migration factor ($val$)
 pop_mig_4;?YMigration factor:
 pop_migration_bureaucracy;Bureaucracy has to move around in order to administer the land: $x$
+pop_migration_culture;Population prefers to migrate to the core land of their culture: $x$
 pop_cmig_1;The nation does not have any colonies
 pop_cmig_2;There is no colonial migration from colonial provinces
 pop_cmig_3;Slaves do not migrate colonially
@@ -647,10 +666,9 @@ pop_prom_1;?YPromotion factor:
 pop_prom_2;From national focus: ?G$val$
 pop_prom_3;0 (because of national focus)
 pop_prom_4;?YDemotion factor:
-pop_prom_5;The pop is currently promoting because the promotion factor is greater than the demotion factor
-pop_prom_6;The pop is currently demoting because the demotion factor is greater than the promotion factor
-pop_prom_7;As both factors are negative, the pop is currently neither promoting nor demoting
-pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$) times your administrative efficiency ($y$)
+pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
+pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
+pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:
@@ -1015,6 +1033,7 @@ col_invest_4;Without competition, you will be able to turn this state into a col
 col_invest_5;It has been $x$ days since your last investment (next investment possible on $y$)
 col_invest_6;You have at least $x$ free colonial points
 activated_by_with_a_chance_of;Activated by ?Y$x$?!, with a chance of:
+activated_by_tech:Activated by technology ?Y$x$?!
 unit_max_speed;Max Speed ?G$x$?! KPH
 unit_attack;Attack ?G$x$
 unit_hull;Hull ?G$x$
@@ -1289,6 +1308,8 @@ alice_spending_unit_1;Total spent on this unit: ?R$cost$?W
 alice_spending_total;?YTotal spent:?W
 alice_spending_commodity;?R$cost$?W - Needs $need$ of $name$ ($val$)
 alice_spending_commodity_2;?R$cost$?W - Buying $need$ of $name$ (at $val$ x unit). Progress: $x$/$y$
+alice_building_id;Building ID: ?Y$val$?!
+alice_province_id;Province ID: ?Y$val$?!
 alice_recommended_build;?GThis factory is recommended to be built?W
 alice_factory_bonus;We will receive a ?Y$x$?W bonus if:
 alice_factory_inputs;Inputs required:
@@ -1307,9 +1328,10 @@ alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
-province_has_workers;Province has any workforce
-province_has_available_workers;Province has available workforce
-nation_is_factory_type_active;Necessary technology has been researched
+province_has_workers;Province has any workforce.
+province_has_available_workers;Province has unemployed workforce.
+nation_is_factory_type_active;Necessary technology has been researched.
+nation_is_factory_type_colonies;Target factory type can be built in colonies.
 payback_time;Payback time: ?Y$x$?!
 construction_cost;Construction cost: ?Y$x$?!
 output_value;Output value: ?Y$x$?!
@@ -1340,7 +1362,7 @@ alice_factory_worker_1;Employed: ?G$x$?W
 alice_factory_worker_2;Unemployed: ?R$x$?W
 alice_rgo_unemployment_country_alert;The following states have unemployed RGOs:
 pop_promote_info_on_sel_2;$val$ expected change of $who$ in $where$ over the next month.
-alice_readme;?GWelcome to Project Alice!?W\nProject Alice is an emulation (not a simulator!) of your favourite victorian-era video game, in other words, we tweak some mechanics to make it more easier to understand for newer players, while also making the world more dynamic and entertaining, fixing old bugs (such as with crises) and implementing new quality of life features.\n?GNew features!?W\n?YGlobe?W: ?GLoved?W by many, ?Rhated?W by some, turn it off if it bothers you!\n?YTech queue:?W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)\n?YDomestic investment:?W Instead of investing on individual projects, do it in one go\n?YPerformance:?W The ticks per second (not FPS) are atleast, x10 times faster\n?YLinter:?W Get coverage errors and warnings in your mods, catch bugs and typos easily\n?YMacro builder:?W Build units with varying compositions using our macro builder\n?Y11 new mapmodes:?W Religion, fort, employment, etc\n?YBuild in entire country:?W SHIFT Right-click to build in the entire country!\n?GControls:?W\n?YTAB?W: Open chat window\n?YESC?W: Open main menu and settings menu\n?YTilde (`)?W or ?YTilde (~)?W: Open console\n?GEnjoy the game! =^w^=?W
+alice_readme;?GWelcome to Project Alice!?W\nProject Alice is a reimagining of your favorite victorian-era video game. In other words, we tweak some mechanics to make the world more dynamic and entertaining, fix old bugs (such as with crises), and implement new quality of life features.\n?GNew features!?W\n?YGlobe?W: ?GLoved?W by many, ?Rhated?W by some, turn it off if it bothers you!\n?YTech queue:?W SHIFT-Right click to add technologies to the tech queue! (Right click to unqueue)\n?YDomestic investment:?W Instead of investing on individual projects, do it in one go\n?YPerformance:?W The ticks per second (not FPS) are at least, 10 times faster\n?YLinter:?W Get coverage errors and warnings in your mods, catch bugs and typos easily\n?YMacro builder:?W Build units with varying compositions using our macro builder\n?Y11 new mapmodes:?W Religion, fort, employment, etc\n?YBuild in entire country:?W SHIFT Right-click to build in the entire country!\n?GControls:?W\n?YTAB?W: Open chat window\n?YESC?W: Open main menu and settings menu\n?YTilde (`)?W or ?YTilde (~)?W: Open console\n?GEnjoy the game! =^w^=?W
 alice_nf_controls;?YLeft-click?W to select or replace\n?YRight-click?W to remove
 unit_controls_tooltip_1;?YLeft-click?W select (deselecting everything else)\n?YSHIFT-Left-click?W add to selection
 unit_controls_tooltip_2;?YRight-click on a province?W partial retreat (?Gcycling/rotation?W) to province
@@ -1662,6 +1684,9 @@ alice_pop_details_assim;Assimilation:
 alice_pop_details_ln;Life Needs
 alice_pop_details_en;Everyday Needs
 alice_pop_details_lx;Luxury Needs
+alice_pop_details_ln_short;LN
+alice_pop_details_en_short;EN
+alice_pop_details_lx_short;LxN
 alice_pop_details_need_name_h;Name
 alice_pop_details_need_amount_h;Qty
 alice_pop_details_need_cost_h;Price
@@ -1689,6 +1714,18 @@ alice_toggle_administration;Establish or abolish local administration. Administr
 administration_tile;Local administration
 market_tile;Local market
 rgo_tile_header;Natural source of ?Y$good$?W
+province_market_header;Commodity: ?Y$good$?!
+province_market_market;Market: ?Y$name$?!
+province_market_price;Price: ?Y$val$?!
+province_market_supply;Supply: ?G$val$?!
+province_market_demand;Demand: ?R$val$?!
+province_market_production;Production: ?G$val$?!
+province_market_consumption;Consumption: ?R$val$?!
+province_market_stockpiles;Stockpiles: ?Y$val$?!
+province_market_balance;Balance: ?Y$val$?!
+province_market_trade_in;Trade in: ?G$val$?!
+province_market_trade_out;Trade out: ?R$val$?!
+province_market_trade_balance;Trade balance: ?Y$val$?!
 alice_unit_target;===> $x$
 alice_lobby_resync;Resync lobby
 alice_lobby_resync_players_loading;Cannot resync when players are loading
@@ -1728,7 +1765,7 @@ alice_supply_range_deep_waters;?RIn deep waters?W
 alice_ship_supply_range_unreachable;?RNavy unreachable by any port?W
 open_details;Details
 rgo;RGO
-province_prices;Prices (% of worldwide)
+province_prices;Price (Relative)
 gdp_per_sector;GDP
 gdp_share;GDP %
 province_labor;Labor
@@ -1739,8 +1776,8 @@ gdp_artisans;Secondary sector (cottage industry):
 gdp_selected;Gdp of the selected province
 gdp_rest;Gdp of the rest of the nation
 market_report;External trade in the local market of ?Y$province$?W
-market_prices_report;Prices in the local market of ?Y$province$?W
-rgo_report;Resource gathering operations in ?Y$province$?W
+market_prices_report;Prices in ?Y$province$?W
+rgo_report;Resource extraction: ?Y$province$?W
 trade_balance;Balance
 rgo_details_name;Name
 rgo_efficiency_super_header;Efficiency
@@ -1805,3 +1842,91 @@ alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario 
 alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
+ports_size;Size of ports
+civilian_port;Сivilian port
+civilian_port_size;Size: ?Y$val$?!
+alice_infrastructure_tab;Infrastructure
+economy_overview_header;Economy overview
+alice_extra_armies_tooltip;+ ?Y$x$?W more armies
+alice_extra_navies_tooltip;+ ?Y$x$?W more navies
+alice_pop_details_need_weight;W
+alice_pop_details_need_weight_tooltip;Budget priority of the selected commodity
+button_pop_budget;Open budget details
+pop_budget_details;Budget details
+pop_budget_unemployment;Unemployment
+pop_budget_pension;Pension
+pop_budget_factory_ownership;Factories
+pop_budget_rgo_ownership;RGO
+pop_budget_national_pay;National pay
+pop_budget_business;Entrepreneurship
+pop_budget_guild;Guild
+pop_budget_trade;Trade
+pop_budget_tax;Tax
+pop_budget_investment;Investment
+pop_budget_education;Education
+pop_budget_wages_header;Wages
+pop_budget_income;Income
+pop_budget_spending;Spending
+pop_budget_needs;Needs
+alice_gamerules_header;Game Rules
+zoom_slowest;Slowest
+zoom_slow;Slow
+zoom_medium;Medium
+zoom_fast;Fast
+zoom_fastest;Fastest
+amsg_embargod;The nation has been embargoed
+save_name_label;File name (blank = auto)
+save_warning_tooltip;A file with this name already exists
+production_window_title;Production
+production_combine_types_toggle;Combine Types
+production_table_name_header;Name
+production_table_size_header;Size
+production_table_amount_header;Quantity
+economy_data_toggle_tooltip;Economy Overview dispays aggregated economy data of the province
+province_tiles_toggle_tooltip;Province Tiles displays all the buildings of the province, including administrations, ports, factories, RGOs, forts, railroads, barracks, etc.
+province_market_toggle_tooltip;Local Market tab displays data of the province market, including prices, supply and demand, production and consumption, stockpiles, imports and exports, etc.
+production_category_production;Production
+production_category_consumption;Consumption
+production_category_employment;Employment
+production_category_details;Information
+production_location_national;All states
+production_filter_all;All commodities
+production_about_combined;Combined
+production_about_factory;Factories
+production_about_artisan;Artisans
+production_about_rgo;RGOs
+production_about_factory_one;Factory
+production_about_artisan_one;Artisan
+production_about_rgo_one;RGO
+production_sub_item_inputs;Inputs
+production_sub_item_uses;Uses
+production_sub_item_labor;Workers
+production_sub_item_consumption;Inputs
+production_explain_view;Production - show production quantities as well as the inputs used\n\nConsumption - show consumption quantities, the processes using the commodity, and any input shortages\n\nEmployment - show how many people are working in each area as well as any labor shortages\n\nInformation - show the basic production recipes and factory specialization information.
+production_explain_location;Show information for the whole nation or for a particular state.
+production_explain_combine;Combine values from factory, artisan, and rgo activities for the same commodity or display them separately.
+production_explain_filter;Show information for all commodities or for one particular commodity.
+production_shortage_warn_inputs;Input shortage
+production_shortage_warn_labor;Labor shortage
+production_max_output;Max. output
+production_max_employment;Max. workers
+production_spec_label;Specialization
+production_spec_compare;Rankings
+production_spec_priority_label;Priority
+production_spec_rankings_header;Leaders
+production_rh_state_population;State population
+production_rh_state_consumption;Top consumption
+production_rh_state_production;Top production
+production_directive_header;Construction Directives
+production_directive_explain;One or more construction directives can be assigned at both the state and national level to determine how government construction funds will be used. Click on the desired directive and then click on one of the highlighted regions to assign it. Click on an assigned directive to remove it.
+production_directive_national_header;National directives
+production_directive_national_tt;Any directives set here will apply to all states. Any conflicting directives given to individual states will override any directive assigned nationally.
+directive_description_fmoney;Prioritize factory profits
+directive_description_fpeople;Prioritize maximum employment
+directive_description_fspecial;Prioritize building and upgrading factories with the greatest specialization advantage
+directive_description_fupgrade;Prioritize upgrading existing factories
+directive_description_fnone;Do not build or upgrade factories
+directive_description_rail;Build and upgrade railroads when possible
+directive_description_naval;Build and upgrade naval bases when possible
+directive_description_forts;Build and upgrade forts on national borders when possible
+directive_description_commodity;Prioritize building and upgrading factories producing ?Y$x$?W

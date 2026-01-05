@@ -1,13 +1,13 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "province.hpp"
 #include "text.hpp"
 #include "unit_tooltip.hpp"
-#include "gui_land_combat.hpp"
-#include "gui_naval_combat.hpp"
+#include "gui_combat.hpp"
+#include "gui_units.hpp"
 
 namespace ui {
 
@@ -1062,28 +1062,6 @@ class small_top_unit_icon : public window_element_base {
 	}
 };
 
-/*
-class select_army_group_button : public button_element_base {
-	void button_action(sys::state& state) noexcept override {
-		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
-		state.select_army_group(info);
-	}
-
-	void on_update(sys::state& state) noexcept override {
-		auto info = retrieve<dcon::automated_army_group_id>(state, parent);
-
-		if(state.selected_army_group != nullptr) {
-			if(info != nullptr) {
-				if(info->hq == state.selected_army_group->hq) {
-					frame = 1;
-					return;
-				}
-			}
-		}
-		frame = 0;
-	}
-};
-*/
 
 class army_group_icon : public window_element_base {
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
@@ -1093,13 +1071,6 @@ class army_group_icon : public window_element_base {
 			return nullptr;
 		}
 	}
-
-	//mouse_probe impl_probe_mouse(sys::state& state, int32_t x, int32_t y, mouse_probe_type type) noexcept override {
-	//	return window_element_base::impl_probe_mouse(state, x, y, type);
-	//}
-	//void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
-	//	window_element_base::impl_render(state, x, y);
-	//}
 
 	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
 		if(payload.holds_type<dcon::automated_army_group_id>()) {
@@ -1557,7 +1528,7 @@ public:
 						++total_opp_count;
 
 						str += m.get_ship().get_strength();
-						display.top_right_value += m.get_ship().get_strength();
+						display.top_right_value += 1.0f;
 						display.top_right_org_value += m.get_ship().get_org();
 					}
 
@@ -1578,7 +1549,7 @@ public:
 						++total_count;
 
 						str += m.get_ship().get_strength();
-						display.top_left_value += m.get_ship().get_strength();
+						display.top_left_value += 1.0f;
 						display.top_left_org_value += m.get_ship().get_org();
 					}
 
@@ -1825,7 +1796,7 @@ public:
 							++total_count;
 
 							str += m.get_ship().get_strength();
-							display.top_left_value += m.get_ship().get_strength();
+							display.top_left_value += 1.0f;
 							display.top_left_org_value += m.get_ship().get_org();
 						}
 

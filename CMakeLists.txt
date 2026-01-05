@@ -18,16 +18,56 @@ add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
 list(APPEND ALICE_CORE_SOURCES_LIST
 	"src/main.cpp"
+	"src/map/projections.cpp"
 	"src/gui/alice_ui.cpp"
 	"src/map/map_state.cpp"
 	"src/map/map_data_loading.cpp"
 	"src/map/map_borders.cpp"
 	"src/map/map.cpp"
-	"src/graphics/xac.cpp"
+	"src/graphics/xac.cpp"	
+	"src/graphics/stateless_render.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/lunasvg/plutovg-blend.c"
+	"src/lunasvg/plutovg-canvas.c"
+	"src/lunasvg/plutovg-font.c"
+	"src/lunasvg/plutovg-ft-math.c"
+	"src/lunasvg/plutovg-ft-raster.c"
+	"src/lunasvg/plutovg-ft-stroker.c"
+	"src/lunasvg/plutovg-matrix.c"
+	"src/lunasvg/plutovg-paint.c"
+	"src/lunasvg/plutovg-path.c"
+	"src/lunasvg/plutovg-rasterize.c"
+	"src/lunasvg/plutovg-surface.c"
+	"src/gui/production.cpp"
 )
+set_source_files_properties(src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-font.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-math.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-raster.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-ft-stroker.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-matrix.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-paint.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-path.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
+set_source_files_properties(src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
 list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	${ALICE_CORE_SOURCES_LIST}
+	"src/gamestate/user_interactions.cpp"
+	"src/gamestate/create_windows.cpp"
+	"src/gui/ui_state.cpp"
+	"src/gui/gui_element_base.cpp"
+	"src/gui/gui_other.cpp"
 	"src/ai/ai.cpp"
 	"src/ai/ai_campaign.cpp"
 	"src/ai/ai_campaign_values.cpp"
@@ -63,7 +103,25 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/gui_effect_tooltips.cpp"
 	"src/gui/widgets/table.cpp"
 	"src/gui/gui_graphics.cpp"
-	"src/gui/gui_leader_select.cpp"
+	"src/gui/gui_leaders.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_leaders_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_stats_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_units_window.cpp"
+	"src/gui/topbar_subwindows/military_subwindows/gui_build_unit_large_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_decision_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_movements_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_reforms_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_release_nation_window.cpp"
+	"src/gui/topbar_subwindows/politics_subwindows/gui_unciv_reforms_window.cpp"
+	"src/gui/gui_message_window.cpp"
+	"src/gui/gui_chat_window.cpp"
+	"src/gui/gui_combat.cpp"
+	"src/gui/gui_tooltips.cpp"
+	"src/gui/gui_units.cpp"
+	"src/gui/gui_unit_panel_subwindow.cpp"
+	"src/gui/gui_diplomacy_request.cpp"
+	"src/gui/gui_lookup.cpp"
+	"src/gui/topbar_subwindows/gui_trade_window.cpp"
 	"src/gui/gui_leader_tooltip.cpp"
 	"src/gui/gui_modifier_tooltips.cpp"
 	"src/gui/province_tiles/province_tiles.cpp"
@@ -82,6 +140,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/gui/labour_details.cpp"
 	"src/map/map_modes.cpp"
 	"src/military/military.cpp"
+	"src/common_types/debug_string_convertions.cpp"
 	"src/nations/nations.cpp"
 	"src/network/SHA512.cpp"
 	"src/network/network.cpp"
@@ -100,6 +159,18 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"src/network/pcp.cpp"
 	"src/gamestate/game_scene.cpp"
 	"src/gamerule/gamerule.cpp"
+	"src/lunasvg/graphics.cpp"
+	"src/lunasvg/lunasvg.cpp"
+	"src/lunasvg/svgelement.cpp"
+	"src/lunasvg/svggeometryelement.cpp"
+	"src/lunasvg/svglayoutstate.cpp"
+	"src/lunasvg/svgpaintelement.cpp"
+	"src/lunasvg/svgparser.cpp"
+	"src/lunasvg/svgproperty.cpp"
+	"src/lunasvg/svgrenderstate.cpp"
+	"src/lunasvg/svgtextelement.cpp"
+	"src/graphics/asvg.cpp"
+	"src/gamestate/uitemplate_serialization.cpp"
 )
 
 if(WIN32)
@@ -150,51 +221,82 @@ if(WIN32)
 	set(CMAKE_CXX_FLAGS_DEBUG "")
 	set(CMAKE_CXX_FLAGS_RELEASE "")
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+	# All common flags for all Clang Windows builds
+	set(CommonClangWinFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo -Wno-declaration-after-statement -Wno-undefined-func-template -Wno-bad-function-cast -Wno-unused-function -Wno-cast-qual -Wno-format-security -Wno-overriding-option)
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -Wno-nrvo -fprofile-instr-use=code.profdata)
+				${CommonClangWinFlags}  /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -Wno-profile-instr-missing -Wno-profile-instr-out-of-date -fprofile-instr-use=code.profdata)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG -fprofile-instr-use=code.profdata)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /arch:AVX2 /GF /w34388 /w34389 -Wno-unused-macros -Wno-zero-length-array -Wno-switch-default -Wno-reserved-identifier -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
+				${CommonClangWinFlags} /DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline -fprofile-instr-generate)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG -fprofile-instr-generate)
 		else()
 			target_compile_options(AliceCommon INTERFACE
-											/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /WX /GF /w34388 /w34389 -Wno-unused-macros -Wno-unused-parameter -Wno-unused-variable -Wno-unused-private-field /Z7 -Wno-invalid-offsetof -Wno-deprecated-volatile -Wno-missing-prototypes -Wno-reserved-identifier -Wno-implicit-int-float-conversion -Wno-unsafe-buffer-usage -Wno-float-equal -Wno-shadow-field-in-constructor -Wno-gnu-anonymous-struct -Wno-nested-anon-types -Wno-double-promotion -Wno-shadow-uncaptured-local -Wno-nonportable-system-include-path -Wno-format-nonliteral -Wno-shorten-64-to-32 -Wno-ctad-maybe-unsupported -Wno-implicit-int-conversion -Wno-disabled-macro-expansion -Wno-comma -Wno-cast-function-type-strict -Wno-cast-function-type -Wno-invalid-offsetof -Wno-switch-default -Wno-zero-length-array -Wno-microsoft-cast -Wno-reserved-identifier -Wno-unused-but-set-variable -Wno-padded -Wno-unique-object-duplication -Wno-nrvo /arch:AVX2
+											${CommonClangWinFlags} -Wno-nontrivial-memcall
 				$<$<CONFIG:Debug>:			/RTC1 /EHsc /MTd /Od>
 				$<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/OPT:REF /OPT:ICF /LTCG>)
 		endif()
+		if(VECTOR_MODE STREQUAL "AVX512")
+			target_compile_options(AliceCommon INTERFACE
+			/arch:AVX512 )
+		elseif(VECTOR_MODE STREQUAL "AVX2")
+			target_compile_options(AliceCommon INTERFACE
+			/arch:AVX2 )
+		else()
+			target_compile_options(AliceCommon INTERFACE
+			-march=nehalem /clang:-fno-fast-math /clang:-ffp-model=precise /clang:-ffp-contract=off )
+		endif()
+
 	else()
 		set_target_properties(AliceCommon PROPERTIES RUNTIME_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_BINARY_DIR})
-
+		# common MSVC flags for all builds
+		set(CommonMSVCFlags /bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /GF /w34388 /w34389 /WX)
 		# /arch:AVX512
 		# /d2archSSE42
 		if(OPTIMIZE_MODE STREQUAL "On")
 			message(STATUS "Optimizing with PGO data")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				${CommonMSVCFlags} /wd4723  /d2archSSE42 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /OPT:REF /OPT:ICF /LTCG /USEPROFILE)
 		elseif(PROFILE_MODE STREQUAL "On")
 			message(STATUS "Compiling for PGO instrumentation")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /wd4723 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline)
+				 ${CommonMSVCFlags} /wd4723 /d2archSSE42 /Z7 /DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline)
 			target_link_options(AliceCommon INTERFACE /DEBUG:FULL /OPT:REF /OPT:ICF /LTCG /GENPROFILE)
 		else()
 			message(STATUS "Normal, not PGO, build")
 			target_compile_options(AliceCommon INTERFACE
-				/bigobj /wd4100 /wd4189 /wd4065 /wd4201 /wd4324 /GR- /W4 /permissive- /Zc:preprocessor /WX /d2archSSE42 /GF /w34388 /w34389 /Z7
+				  ${CommonMSVCFlags} /Z7
 				  $<$<CONFIG:Debug>: /EHsc /MTd /RTC1 /Od>
 # for faster debug builds, replace /RTC1 /Od with /O1 -- should be able to use /Ox, but for some reason that crashes ZSTD
-				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:preprocessor /Zc:inline>)
+				  $<$<NOT:$<CONFIG:Debug>>: 	/DNDEBUG /wd4530 /MT /O2 /Oi /GL /sdl- /GS- /Gy /Gw /Zc:inline>)
 			target_link_options(AliceCommon INTERFACE
 				$<$<CONFIG:Debug>: 			/DEBUG:FULL >
 				$<$<NOT:$<CONFIG:Debug>>: 	/DEBUG:FULL /OPT:REF /OPT:ICF /LTCG>)
 		endif()
+
+		if(VECTOR_MODE STREQUAL "AVX512")
+			target_compile_options(AliceCommon INTERFACE
+			/arch:AVX512 )
+		elseif(VECTOR_MODE STREQUAL "AVX2")
+			target_compile_options(AliceCommon INTERFACE
+			/arch:AVX2 )
+		else()
+			# No /fp:precise here since from my testing, seperate executables generated with Clang and MSVC will not be deterministic between eachother anyway no matter the flags. Both builds must be compiled with clang to get some level of float determinism
+			target_compile_options(AliceCommon INTERFACE
+			/d2archSSE42 )
+		endif()
+
+
+
+
+
 	endif()
 else() # GCC or CLANG
 	target_link_options(Alice INTERFACE -rdynamic -Wl,-E)
@@ -203,19 +305,33 @@ else() # GCC or CLANG
 	# See for FMA support: https://stackoverflow.com/questions/21001388/fma3-in-gcc-how-to-enable
 	if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 		target_compile_options(AliceCommon INTERFACE
-			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -std=c++20 #-Werror
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			-Wall -Wextra -Wpedantic -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wdangling-else -Wno-unused-private-field -Wno-invalid-offsetof -Wno-unused-but-set-variable -Wno-microsoft-cast -Wno-declaration-after-statement  #-Werror
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	else()
 		target_compile_options(AliceCommon INTERFACE
 										# -Wall -Wextra -Wpedantic -Werror -Wno-unused-parameter -Wno-unused-variable -Wno-switch -Wno-unused-private-field -Wno-unused-but-set-variable -Wno-parentheses
-			$<$<CONFIG:Debug>:			-mfpmath=sse -mavx2 -mfma -g -pipe>
-			$<$<NOT:$<CONFIG:Debug>>: 	-mfpmath=sse -mavx2 -mfma -O3 -pipe -fno-rtti -DNDEBUG>)
+			$<$<CONFIG:Debug>:			-g -pipe>
+			$<$<NOT:$<CONFIG:Debug>>: 	-O3 -pipe -fno-rtti -DNDEBUG>)
 	endif()
+
+	if(VECTOR_MODE STREQUAL "AVX512")
+		target_compile_options(AliceCommon INTERFACE
+		-mavx512f -mavx512cd -mavx512bw -mavx512dq -mavx512vl -mfma )
+	elseif(VECTOR_MODE STREQUAL "AVX2")
+		target_compile_options(AliceCommon INTERFACE
+		-mavx2 -mfma )
+	else()
+		target_compile_options(AliceCommon INTERFACE
+		-march=nehalem -fno-fast-math -ffp-model=precise -ffp-contract=off )
+	endif()
+
+
 	target_link_libraries(AliceCommon INTERFACE dl)
 endif()
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainer)
 target_link_libraries(AliceCommon INTERFACE dependency_DataContainerLua)
+target_link_libraries(AliceCommon INTERFACE dependency_DataContainerOOSReporter)
 target_link_libraries(AliceCommon INTERFACE libglew_static)
 target_link_libraries(AliceCommon INTERFACE stb_image)
 target_link_libraries(AliceCommon INTERFACE freetype)
@@ -261,6 +377,7 @@ target_include_directories(AliceCommon INTERFACE
 	${PROJECT_SOURCE_DIR}/src/scripting
 	${PROJECT_SOURCE_DIR}/src/scripting/luajit
 	${PROJECT_SOURCE_DIR}/src/zstd
+	${PROJECT_SOURCE_DIR}/src/lunasvg
 	"${glew_SOURCE_DIR}/include/GL"
 	"ankerl")
 
@@ -316,6 +433,8 @@ target_precompile_headers(Alice
 	PRIVATE <new>
 	PRIVATE <limits>
 	PRIVATE <iterator>
+	PRIVATE <utility>
+	PRIVATE <any>
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE <vector>
@@ -336,7 +455,9 @@ target_precompile_headers(AliceIncremental
 	PRIVATE <new>
 	PRIVATE <limits>
 	PRIVATE <iterator>
+	PRIVATE <utility>
 )
+
 # Aliases for C library
 target_precompile_headers(Alice
 	PRIVATE <cstdlib>
@@ -368,19 +489,21 @@ target_precompile_headers(Alice
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE [["simple_fs.hpp"]]
-	PRIVATE [["constants.hpp"]]
+	PRIVATE [["constants_dcon.hpp"]]
 	PRIVATE [["unordered_dense.h"]]
 	PRIVATE [["dcon_generated.hpp"]]
+	PRIVATE [["dcon_generated_ids.hpp"]]
+	PRIVATE [["container_types_dcon.hpp"]]
 	PRIVATE [["container_types.hpp"]]
-	PRIVATE [["parsers_declarations.hpp"]]
+#	PRIVATE [["parsers_declarations.hpp"]]
 	PRIVATE [["cyto_any.hpp"]]
+#	PRIVATE [["gui_lookup.hpp"]]
+#	PRIVATE [["gui_templates.hpp"]]
 	PRIVATE [["date_interface.hpp"]]
 	PRIVATE [["stb_image.h"]]
+	PRIVATE [["glm/glm.hpp"]]
+#	PRIVATE [["script_constants.hpp"]]
 )
-
-target_precompile_headers(AliceIncremental
-	PRIVATE [["system_state.hpp"]]
-	)
 
 if(WIN32)
 else()
@@ -395,7 +518,7 @@ set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)
 
 # The command to build the generated file
 add_custom_command(
-	OUTPUT ${CONTAINER_PATH}.hpp
+	OUTPUT ${CONTAINER_PATH}.hpp ${CONTAINER_PATH}_ids.hpp
 	COMMAND DCONGENERATOR ${CONTAINER_PATH}.txt
 	DEPENDS ${CONTAINER_PATH}.txt
 	VERBATIM)
@@ -414,6 +537,14 @@ add_custom_command(
 	VERBATIM
 )
 
+add_custom_command(
+	OUTPUT ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp
+	COMMAND DataContainer_OOS_Reporter alice ${CONTAINER_PATH}.txt dcon_oos_reporter_generated.cpp dcon_oos_reporter_generated.hpp ${PROJECT_SOURCE_DIR}/src/gamestate/
+	DEPENDS ${CONTAINER_PATH}.txt
+	DEPENDS DataContainer_OOS_Reporter
+	VERBATIM
+)
+
 # Sets a dependency on the generated file
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
@@ -426,6 +557,11 @@ add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINER_LUA)
 add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
+
+
+add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
+add_dependencies(Alice GENERATE_CONTAINER_OOS)
+add_dependencies(AliceIncremental GENERATE_CONTAINER_OOS)
 
 # The command to build the generated parsers file
 add_custom_command(
@@ -516,4 +652,3 @@ if(NOT WIN32)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.desktop DESTINATION /usr/share/applications)
     install(FILES ${PROJECT_SOURCE_DIR}/src/alice.png DESTINATION /usr/share/icons/hicolor/128x128/apps)
 endif()
-

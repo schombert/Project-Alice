@@ -173,6 +173,27 @@ typedef SOCKET socket_t;
 typedef int socket_t;
 #endif
 
+enum class oos_check_interval : uint8_t {
+	never = 0,
+	daily = 1,
+	monthly = 2,
+	yearly = 3,
+};
+
+
+struct host_settings_s {
+	float alice_persistent_server_mode = 0.0f;
+	float alice_persistent_server_unpause = 12.f;
+	float alice_persistent_server_pause = 20.f;
+	float alice_expose_webui = 0.0f;
+	float alice_place_ai_upon_disconnection = 1.0f;
+	float alice_lagging_behind_days_to_slow_down = 30.f;
+	float alice_lagging_behind_days_to_drop = 90.f;
+	uint16_t alice_host_port = 1984;
+	oos_check_interval oos_interval = oos_check_interval::monthly;
+	bool oos_debug_mode = false; // enables sending of gamestate from client to host when an OOS happens, so the host can generate a OOS report. Is NOT safe to enable unless you trust clients
+};
+
 struct client_handshake_data {
 	sys::player_name nickname;
 	sys::player_password_raw player_password;
@@ -186,6 +207,7 @@ struct server_handshake_data {
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
 	dcon::mp_player_id assigned_player_id;
+	network::host_settings_s host_settings;
 	uint8_t reserved[64] = {0};
 };
 
@@ -258,8 +280,8 @@ struct network_state {
 	~network_state() {}
 };
 
+bool should_do_oos_check(const sys::state& state);
 std::string get_last_error_msg();
-inline void write_player_nations(sys::state& state) noexcept;
 void init(sys::state& state);
 void send_and_receive_commands(sys::state& state);
 void finish(sys::state& state, bool notify_host);
@@ -267,6 +289,7 @@ void ban_player(sys::state& state, client_data& client);
 void kick_player(sys::state& state, client_data& client);
 void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id old_n, dcon::mp_player_id player); // switches only one player from one country, to another. Can only be called in MP.
 void write_network_save(sys::state& state);
+std::unique_ptr<FT_Byte[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out);
 void broadcast_save_to_clients(sys::state& state);
 void broadcast_save_to_single_client(sys::state& state, command::command_data& c, client_data& client, uint8_t const* buffer);
 void broadcast_to_clients(sys::state& state, command::command_data& c);
@@ -275,6 +298,9 @@ void full_reset_after_oos(sys::state& state);
 
 
 void load_network_save(sys::state& state, const uint8_t* save_buffer);
+void decompress_load_entire_mp_state(sys::state& state, const uint8_t* mp_state_data, uint32_t length);
+
+void dump_oos_report(sys::state& state_1, sys::state& state_2);
 
 // gets the host player in the current lobby. Also returns the static player ID of the player in single player.
 dcon::mp_player_id get_host_player(sys::state& state);
@@ -287,7 +313,7 @@ dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& n
 void notify_player_is_loading(sys::state& state, dcon::mp_player_id loading_player, bool execute_self); // wrapper for notiying clients are loading
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt);
 void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, sys::player_name& password);
-dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name);
+dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name);
 std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::nation_id nation);
 void set_no_ai_nations_after_reload(sys::state& state, std::vector<dcon::nation_id>& no_ai_nations, dcon::nation_id old_local_player_nation); // places the players back on their nations, or new ones if the old ones are no longer valid
 bool any_player_oos(sys::state& state);

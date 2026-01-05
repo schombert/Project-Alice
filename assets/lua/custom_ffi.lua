@@ -13,6 +13,7 @@
 ---@field discipline_or_evasion number
 ---@field maneuver number
 
+-- These functions exposed through FFI interface should be called as ffi.C.XXX unless wrapped in a function like ones below
 ffi.cdef[[
 	bool alice_at_war(int32_t nation_a, int32_t nation_b);
 
@@ -48,6 +49,8 @@ ffi.cdef[[
 
     void set_text(const char text[]);
     int32_t local_player_nation();
+
+    void console_log(const char text[]);
 ]]
 
 
@@ -106,4 +109,8 @@ end
 ---@param name string
 function ON_ACTION.remove_battle_end_call(name)
     ffi.C.remove_battle_end(name)
+end
+---@param name string
+function console_log(message)
+    ffi.C.console_log(message)
 end

@@ -1,5 +1,6 @@
 #pragma once
 
+/*
 #include "gui_element_types.hpp"
 #include "gui_graphics.hpp"
 #include "gui_common_elements.hpp"
@@ -9,6 +10,7 @@
 #include "gui_province_window.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
+*/
 
 namespace ui {
 
@@ -1166,7 +1168,7 @@ public:
 		}
 	}
 	void on_update(sys::state& state) noexcept override {
-		
+
 	}
 };
 
@@ -2205,7 +2207,7 @@ public:
 		text::add_to_substitution_map(sub2, text::variable_type::val, text::pretty_integer{ int32_t(pop_growth) });
 		text::add_to_substitution_map(sub2, text::variable_type::who, pop_fat_id.get_name());
 		text::add_to_substitution_map(sub2, text::variable_type::where, state.local_player_nation);
-		
+
 		text::localised_format_box(state, contents, box, std::string_view("pop_size_info_on_sel"), sub);
 		text::add_divider_to_layout_box(state, contents, box);
 		// TODO replace $VAL from earlier with a new one showing how many people have signed up recently -breizh

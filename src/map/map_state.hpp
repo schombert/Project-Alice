@@ -1,9 +1,11 @@
 #pragma once
 
+#include "system_state_forward.hpp"
 #include "map_modes.hpp"
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 #include "map.hpp"
+#include "constants.hpp"
 
 namespace sys {
 struct state;
@@ -55,6 +57,7 @@ public:
 
 	map_mode::mode active_map_mode = map_mode::mode::terrain;
 	dcon::province_id selected_province = dcon::province_id{};
+	dcon::province_id under_mouse_province = dcon::province_id{};
 
 	display_data map_data;
 	bool is_dragging = false;
@@ -74,6 +77,8 @@ public:
 	glm::vec2 last_camera_drag_pos = glm::vec2(0.5f, 0.5f);
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
+	std::chrono::steady_clock::time_point last_map_movement = std::chrono::steady_clock::now();
+	bool last_map_movement_handled = true;
 
 	// lighting
 	glm::vec3 light_direction {1.f, 0.f, -0.3f};
@@ -104,5 +109,6 @@ public:
 };
 
 void update_text_lines(sys::state& state, display_data& map_data);
+void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size);
 
 } // namespace map

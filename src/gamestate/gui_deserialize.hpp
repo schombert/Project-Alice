@@ -7,6 +7,13 @@
 #include "text/text.hpp"
 #include "unordered_dense.h"
 #include "simple_fs.hpp"
+#include "container_types_ui.hpp"
+
+namespace template_project {
+enum class template_type : uint8_t {
+	none, background, color, icon, label, button, progress_bar, window, iconic_button, layout_region, mixed_button, toggle_button, table, table_header, table_row
+};
+}
 
 enum class aui_background_type : uint8_t {
 	none, texture, bordered_texture, existing_gfx
@@ -69,7 +76,9 @@ enum class aui_property : uint8_t {
 	page_button_textures = 44,
 	layout_information = 45,
 	table_connection = 46,
-	is_lua = 47
+	is_lua = 47,
+	template_type = 48,
+	icon = 49
 };
 
 inline void bytes_to_windows(char const* bytes, size_t size, std::string const& project_name, ankerl::unordered_dense::map<std::string, sys::aui_pending_bytes>& map) {
@@ -96,14 +105,17 @@ struct aui_window_data {
 	std::string_view page_left_texture;
 	std::string_view page_right_texture;
 	char const* layout_data;
+	int32_t template_id = -1;
 	uint16_t layout_data_size;
 	int16_t x_pos;
 	int16_t y_pos;
 	int16_t x_size;
 	int16_t y_size;
 	int16_t border_size;
+	int16_t grid_size = 8;
 	ui::orientation orientation;
 	text::text_color page_text_color = text::text_color::black;
+	bool auto_close_button = false;
 };
 
 namespace ogl {
@@ -156,9 +168,12 @@ struct aui_element_data {
 	int16_t x_size = 0;
 	int16_t y_size = 0;
 	int16_t border_size = 0;
+	int16_t template_id = -1;
+	int16_t icon_id = -1;
 	text::text_color text_color = text::text_color::black;
 	aui_text_type text_type = aui_text_type::body;
 	text::alignment text_alignment = text::alignment::left;
+	template_project::template_type ttype = template_project::template_type::none;
 	bool is_lua;
 };
 
@@ -191,6 +206,10 @@ inline aui_window_data read_window_bytes(char const* bytes, size_t size, std::ve
 			auto lsection = essential_window_section.read_section();
 			result.layout_data = lsection.view_data() + lsection.view_read_position();
 			result.layout_data_size = uint16_t(lsection.view_size() - lsection.view_read_position());
+		} else if(ptype == aui_property::template_type) {
+			result.template_id = essential_window_section.read<int32_t>();
+			result.grid_size = essential_window_section.read<int16_t>();
+			result.auto_close_button = essential_window_section.read<bool>();
 		} else {
 			abort();
 		}
@@ -262,6 +281,11 @@ inline aui_element_data read_child_bytes(char const* bytes, size_t size) {
 			essential_child_section.read(result.row_height);
 		} else if(ptype == aui_property::table_divider_color) {
 			essential_child_section.read(result.table_divider_color);
+		} else if(ptype == aui_property::icon) {
+			essential_child_section.read(result.icon_id);
+		} else if(ptype == aui_property::template_type) {
+			essential_child_section.read(result.template_id);
+			essential_child_section.read(result.ttype);
 		} else if(ptype == aui_property::table_display_column_data) {
 			table_display_column tc;
 			tc.header_key = essential_child_section.read<std::string_view>();

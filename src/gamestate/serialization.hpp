@@ -12,9 +12,9 @@ inline size_t serialize_size(std::vector<T> const& vec) {
 	return sizeof(uint32_t) + sizeof(T) * vec.size();
 }
 
-inline size_t serialize_size(std::wstring const& s) {
-	return sizeof(uint32_t) + sizeof(wchar_t) * s.size();
-}
+//inline size_t serialize_size(std::wstring const& s) {
+//	return sizeof(uint32_t) + sizeof(wchar_t) * s.size();
+//}
 
 inline size_t serialize_size(std::string const& s) {
 	return sizeof(uint32_t) + sizeof(char) * s.size();
@@ -37,20 +37,20 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, std::vector<T>& vec) {
 	return ptr_in + sizeof(uint32_t) + sizeof(T) * length;
 }
 
-inline uint8_t* serialize(uint8_t* ptr_in, std::wstring const& s) {
-	uint32_t length = uint32_t(s.size());
-	memcpy(ptr_in, &length, sizeof(uint32_t));
-	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(wchar_t) * s.size());
-	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * s.size();
-}
+//inline uint8_t* serialize(uint8_t* ptr_in, std::wstring const& s) {
+//	uint32_t length = uint32_t(s.size());
+//	memcpy(ptr_in, &length, sizeof(uint32_t));
+//	memcpy(ptr_in + sizeof(uint32_t), s.data(), sizeof(wchar_t) * s.size());
+//	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * s.size();
+//}
 
-inline uint8_t const* deserialize(uint8_t const* ptr_in, std::wstring& s) {
-	uint32_t length = 0;
-	memcpy(&length, ptr_in, sizeof(uint32_t));
-	s.resize(length);
-	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(wchar_t) * length);
-	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * length;
-}
+//inline uint8_t const* deserialize(uint8_t const* ptr_in, std::wstring& s) {
+//	uint32_t length = 0;
+//	memcpy(&length, ptr_in, sizeof(uint32_t));
+//	s.resize(length);
+//	memcpy(s.data(), ptr_in + sizeof(uint32_t), sizeof(wchar_t) * length);
+//	return ptr_in + sizeof(uint32_t) + sizeof(wchar_t) * length;
+//}
 
 inline uint8_t* serialize(uint8_t* ptr_in, std::string const& s) {
 	uint32_t length = uint32_t(s.size());
@@ -190,7 +190,7 @@ inline uint8_t const* deserialize(uint8_t const* ptr_in, ankerl::unordered_dense
 	return ptr_in + sizeof(uint32_t) + sizeof(vec.values()[0]) * length;
 }
 
-constexpr inline uint32_t save_file_version = 44;
+constexpr inline uint32_t save_file_version = 45;
 constexpr inline uint32_t scenario_file_version = 139 + save_file_version;
 
 struct scenario_header {
@@ -198,7 +198,7 @@ struct scenario_header {
 	uint32_t count = 0;
 	uint64_t timestamp = 0;
 	checksum_key checksum;
-	native_char mod_save_dir[128] = { 0 };
+	char mod_save_dir[128] = { 0 };
 };
 
 struct save_header {
@@ -235,20 +235,25 @@ mod_identifier extract_mod_information(uint8_t const* ptr_in, uint64_t file_size
 uint8_t* write_compressed_section(uint8_t* ptr_out, uint8_t const* ptr_in, uint32_t uncompressed_size);
 
 // Note: these functions are for read / writing the *uncompressed* data
-uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
-uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
-uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state);
-uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state);
+uint8_t const* read_scenario_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields = false);
+uint8_t const* read_save_section(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields = false);
+uint8_t* write_scenario_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false);
+uint8_t* write_save_section(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false);
 struct scenario_size {
 	size_t total_size;
 	size_t checksum_offset;
 };
-scenario_size sizeof_scenario_section(sys::state& state);
-size_t sizeof_save_section(sys::state& state);
+scenario_size sizeof_scenario_section(sys::state& state, bool exclude_local_handwritten_fields = false);
+size_t sizeof_save_section(sys::state& state, bool exclude_local_handwritten_fields = false);
 
 size_t sizeof_mp_data(sys::state& state);
 uint8_t* write_mp_data(uint8_t* ptr_in, sys::state& state);
 uint8_t const* read_mp_data(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state);
+
+// for serializing entire MP state, for OOS reporting when someone ooses
+uint8_t const* read_entire_mp_state(uint8_t const* ptr_in, uint8_t const* section_end, sys::state& state, bool exclude_local_handwritten_fields = false);
+uint8_t* write_entire_mp_state(uint8_t* ptr_in, sys::state& state, bool exclude_local_handwritten_fields = false);
+size_t sizeof_entire_mp_state(sys::state& state, bool exclude_local_handwritten_fields = false);
 
 // combines load record settings by OR-ing them together
 void combine_load_records(dcon::load_record& affected_record, const dcon::load_record& other_record);

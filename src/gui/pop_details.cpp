@@ -1,64 +1,32 @@
 namespace alice_ui {
-struct pop_details_main_close_button_t;
-struct pop_details_main_window_title_t;
-struct pop_details_main_location_header_t;
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wswitch"
+#endif
 struct pop_details_main_location_value_t;
-struct pop_details_main_job_header_t;
 struct pop_details_main_job_value_t;
-struct pop_details_main_mil_header_t;
 struct pop_details_main_mil_value_t;
-struct pop_details_main_con_header_t;
 struct pop_details_main_con_value_t;
-struct pop_details_main_lit_header_t;
 struct pop_details_main_lit_value_t;
-struct pop_details_main_religion_header_t;
 struct pop_details_main_religion_value_t;
-struct pop_details_main_culture_header_t;
 struct pop_details_main_culture_value_t;
-struct pop_details_main_employment_header_t;
 struct pop_details_main_employment_value_t;
-struct pop_details_main_income_header_t;
 struct pop_details_main_income_value_t;
-struct pop_details_main_growth_header_t;
 struct pop_details_main_growth_value_t;
-struct pop_details_main_assim_header_t;
 struct pop_details_main_assim_value_t;
-struct pop_details_main_ln_header_t;
 struct pop_details_main_ln_total_t;
-struct pop_details_main_en_header_t;
 struct pop_details_main_en_total_t;
-struct pop_details_main_lx_header_t;
 struct pop_details_main_lx_total_t;
-struct pop_details_main_bg_a_t;
-struct pop_details_main_bg_b_t;
-struct pop_details_main_bg_c_t;
-struct pop_details_main_bg_d_t;
-struct pop_details_main_bg_e_t;
-struct pop_details_main_prom_header_t;
-struct pop_details_main_prom_amount_label_t;
 struct pop_details_main_prom_value_t;
 struct pop_details_main_prom_bar_chart_t;
-struct pop_details_main_prom_bar_overlay_t;
-struct pop_details_main_dem_header_t;
-struct pop_details_main_dem_amount_label_t;
 struct pop_details_main_dem_value_t;
 struct pop_details_main_dem_bar_chart_t;
-struct pop_details_main_dem_bar_overlay_t;
-struct pop_details_main_ideo_header_t;
 struct pop_details_main_ideo_bar_chart_t;
-struct pop_details_main_ideo_bar_overlay_t;
-struct pop_details_main_iss_header_t;
 struct pop_details_main_iss_bar_chart_t;
-struct pop_details_main_iss_bar_overlay_t;
-struct pop_details_main_emm_header_t;
-struct pop_details_main_emm_amount_label_t;
 struct pop_details_main_emm_value_t;
-struct pop_details_main_mig_header_t;
-struct pop_details_main_i_mig_amount_label_t;
 struct pop_details_main_i_mig_value_t;
-struct pop_details_main_c_mig_amount_label_t;
 struct pop_details_main_c_mig_value_t;
-struct pop_details_main_bg_f_t;
+struct pop_details_main_to_pop_budget_t;
 struct pop_details_main_t;
 struct pop_details_needs_row_content_t;
 struct pop_details_needs_row_need_icon_t;
@@ -83,1104 +51,103 @@ struct pop_details_mig_header_content_t;
 struct pop_details_mig_header_t;
 struct pop_details_mig_row_content_t;
 struct pop_details_mig_row_t;
-struct pop_details_main_close_button_t : public ui::element_base {
-// BEGIN main::close_button::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_window_title_t : public ui::element_base {
-// BEGIN main::window_title::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 2.000000f; 
-	bool text_is_header = true; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_location_header_t : public ui::element_base {
-// BEGIN main::location_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_location_value_t : public ui::element_base {
+struct pop_details_fancy_separator_1_t;
+struct pop_details_fancy_separator_2_t;
+struct pop_details_main_location_value_t : public alice_ui::template_label {
 // BEGIN main::location_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_job_header_t : public ui::element_base {
-// BEGIN main::job_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_job_value_t : public ui::element_base {
+struct pop_details_main_job_value_t : public alice_ui::template_label {
 // BEGIN main::job_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_mil_header_t : public ui::element_base {
-// BEGIN main::mil_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_mil_value_t : public ui::element_base {
+struct pop_details_main_mil_value_t : public alice_ui::template_label {
 // BEGIN main::mil_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_con_header_t : public ui::element_base {
-// BEGIN main::con_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_con_value_t : public ui::element_base {
+struct pop_details_main_con_value_t : public alice_ui::template_label {
 // BEGIN main::con_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_lit_header_t : public ui::element_base {
-// BEGIN main::lit_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_lit_value_t : public ui::element_base {
+struct pop_details_main_lit_value_t : public alice_ui::template_label {
 // BEGIN main::lit_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_religion_header_t : public ui::element_base {
-// BEGIN main::religion_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_religion_value_t : public ui::element_base {
+struct pop_details_main_religion_value_t : public alice_ui::template_label {
 // BEGIN main::religion_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_culture_header_t : public ui::element_base {
-// BEGIN main::culture_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_culture_value_t : public ui::element_base {
+struct pop_details_main_culture_value_t : public alice_ui::template_label {
 // BEGIN main::culture_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_employment_header_t : public ui::element_base {
-// BEGIN main::employment_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_employment_value_t : public ui::element_base {
+struct pop_details_main_employment_value_t : public alice_ui::template_label {
 // BEGIN main::employment_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_income_header_t : public ui::element_base {
-// BEGIN main::income_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_income_value_t : public ui::element_base {
+struct pop_details_main_income_value_t : public alice_ui::template_label {
 // BEGIN main::income_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_growth_header_t : public ui::element_base {
-// BEGIN main::growth_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_growth_value_t : public ui::element_base {
+struct pop_details_main_growth_value_t : public alice_ui::template_label {
 // BEGIN main::growth_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_assim_header_t : public ui::element_base {
-// BEGIN main::assim_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_assim_value_t : public ui::element_base {
+struct pop_details_main_assim_value_t : public alice_ui::template_label {
 // BEGIN main::assim_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_ln_header_t : public ui::element_base {
-// BEGIN main::ln_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_ln_total_t : public ui::element_base {
+struct pop_details_main_ln_total_t : public alice_ui::template_label {
 // BEGIN main::ln_total::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_en_header_t : public ui::element_base {
-// BEGIN main::en_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_en_total_t : public ui::element_base {
+struct pop_details_main_en_total_t : public alice_ui::template_label {
 // BEGIN main::en_total::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_lx_header_t : public ui::element_base {
-// BEGIN main::lx_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_lx_total_t : public ui::element_base {
+struct pop_details_main_lx_total_t : public alice_ui::template_label {
 // BEGIN main::lx_total::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_bg_a_t : public ui::element_base {
-// BEGIN main::bg_a::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_bg_b_t : public ui::element_base {
-// BEGIN main::bg_b::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_bg_c_t : public ui::element_base {
-// BEGIN main::bg_c::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_bg_d_t : public ui::element_base {
-// BEGIN main::bg_d::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_bg_e_t : public ui::element_base {
-// BEGIN main::bg_e::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_prom_header_t : public ui::element_base {
-// BEGIN main::prom_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_prom_amount_label_t : public ui::element_base {
-// BEGIN main::prom_amount_label::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_prom_value_t : public ui::element_base {
+struct pop_details_main_prom_value_t : public alice_ui::template_label {
 // BEGIN main::prom_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
@@ -1188,6 +155,7 @@ struct pop_details_main_prom_value_t : public ui::element_base {
 struct pop_details_main_prom_bar_chart_t : public ui::element_base {
 // BEGIN main::prom_bar_chart::variables
 // END
+	int32_t template_id = -1;
 	ogl::data_texture data_texture{ 264, 3 };
 	struct graph_entry {dcon::pop_type_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1202,128 +170,18 @@ struct pop_details_main_prom_bar_chart_t : public ui::element_base {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
 		} else {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_prom_bar_overlay_t : public ui::element_base {
-// BEGIN main::prom_bar_overlay::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_dem_header_t : public ui::element_base {
-// BEGIN main::dem_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_dem_amount_label_t : public ui::element_base {
-// BEGIN main::dem_amount_label::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_dem_value_t : public ui::element_base {
+struct pop_details_main_dem_value_t : public alice_ui::template_label {
 // BEGIN main::dem_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
@@ -1331,6 +189,7 @@ struct pop_details_main_dem_value_t : public ui::element_base {
 struct pop_details_main_dem_bar_chart_t : public ui::element_base {
 // BEGIN main::dem_bar_chart::variables
 // END
+	int32_t template_id = -1;
 	ogl::data_texture data_texture{ 264, 3 };
 	struct graph_entry {dcon::pop_type_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1345,75 +204,17 @@ struct pop_details_main_dem_bar_chart_t : public ui::element_base {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
 		} else {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_dem_bar_overlay_t : public ui::element_base {
-// BEGIN main::dem_bar_overlay::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_ideo_header_t : public ui::element_base {
-// BEGIN main::ideo_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 struct pop_details_main_ideo_bar_chart_t : public ui::element_base {
 // BEGIN main::ideo_bar_chart::variables
 // END
+	int32_t template_id = -1;
 	ogl::data_texture data_texture{ 264, 3 };
 	struct graph_entry {dcon::ideology_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1428,75 +229,17 @@ struct pop_details_main_ideo_bar_chart_t : public ui::element_base {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
 		} else {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_ideo_bar_overlay_t : public ui::element_base {
-// BEGIN main::ideo_bar_overlay::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_iss_header_t : public ui::element_base {
-// BEGIN main::iss_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 struct pop_details_main_iss_bar_chart_t : public ui::element_base {
 // BEGIN main::iss_bar_chart::variables
 // END
+	int32_t template_id = -1;
 	ogl::data_texture data_texture{ 264, 3 };
 	struct graph_entry {dcon::issue_option_id key; ogl::color3f color; float amount; };
 	std::vector<graph_entry> graph_content;
@@ -1511,314 +254,53 @@ struct pop_details_main_iss_bar_chart_t : public ui::element_base {
 			return ui::message_result::unseen;
 		} else if(type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
 		} else {
 			return ui::message_result::unseen;
 		}
 	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_iss_bar_overlay_t : public ui::element_base {
-// BEGIN main::iss_bar_overlay::variables
-// END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_emm_header_t : public ui::element_base {
-// BEGIN main::emm_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_emm_amount_label_t : public ui::element_base {
-// BEGIN main::emm_amount_label::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_emm_value_t : public ui::element_base {
+struct pop_details_main_emm_value_t : public alice_ui::template_label {
 // BEGIN main::emm_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_mig_header_t : public ui::element_base {
-// BEGIN main::mig_header::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.500000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::center;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_i_mig_amount_label_t : public ui::element_base {
-// BEGIN main::i_mig_amount_label::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_i_mig_value_t : public ui::element_base {
+struct pop_details_main_i_mig_value_t : public alice_ui::template_label {
 // BEGIN main::i_mig_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_c_mig_amount_label_t : public ui::element_base {
-// BEGIN main::c_mig_amount_label::variables
-// END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::left;
-	std::string cached_text;
-	dcon::text_key text_key;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	void on_update(sys::state& state) noexcept override;
-};
-struct pop_details_main_c_mig_value_t : public ui::element_base {
+struct pop_details_main_c_mig_value_t : public alice_ui::template_label {
 // BEGIN main::c_mig_value::variables
 // END
-	text::layout internal_layout;
-	text::text_color text_color = text::text_color::gold;
-	float text_scale = 1.000000f; 
-	bool text_is_header = false; 
-	text::alignment text_alignment = text::alignment::right;
-	std::string cached_text;
-	void set_text(sys::state & state, std::string const& new_text);
-	void on_reset_text(sys::state & state) noexcept override;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::variable_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
-struct pop_details_main_bg_f_t : public ui::element_base {
-// BEGIN main::bg_f::variables
+struct pop_details_main_to_pop_budget_t : public alice_ui::template_text_button {
+// BEGIN main::to_pop_budget::variables
 // END
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
-	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
-	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
-		return ui::tooltip_behavior::no_tooltip;
-	}
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::unseen;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
-			return ui::message_result::unseen;
-		}
-	}
-	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	bool button_action(sys::state& state) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
 struct pop_details_main_ln_list_t : public layout_generator {
 // BEGIN main::ln_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -1831,10 +313,10 @@ struct pop_details_main_ln_list_t : public layout_generator {
 struct pop_details_main_en_list_t : public layout_generator {
 // BEGIN main::en_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -1847,10 +329,10 @@ struct pop_details_main_en_list_t : public layout_generator {
 struct pop_details_main_lx_list_t : public layout_generator {
 // BEGIN main::lx_list::variables
 // END
-	struct needs_row_option { dcon::commodity_id commodity; float amount; };
+	struct needs_row_option { dcon::commodity_id commodity; float amount; float weight; };
 	std::vector<std::unique_ptr<ui::element_base>> needs_row_pool;
 	int32_t needs_row_pool_used = 0;
-	void add_needs_row( dcon::commodity_id commodity,  float amount);
+	void add_needs_row( dcon::commodity_id commodity,  float amount,  float weight);
 	std::vector<std::unique_ptr<ui::element_base>> needs_header_pool;
 	int32_t needs_header_pool_used = 0;
 	std::vector<std::variant<std::monostate, needs_row_option>> values;
@@ -1959,39 +441,40 @@ struct pop_details_main_mig_list_t : public layout_generator {
 struct pop_details_needs_row_content_t : public ui::element_base {
 // BEGIN needs_row::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout icon_internal_layout;
-	text::text_color  icon_text_color = text::text_color::black;
+	int32_t  icon_text_color = 0;
 	std::string icon_cached_text;
 	void set_icon_text(sys::state & state, std::string const& new_text);
 	text::layout name_internal_layout;
-	text::text_color  name_text_color = text::text_color::black;
+	int32_t  name_text_color = 0;
 	std::string name_cached_text;
 	void set_name_text(sys::state & state, std::string const& new_text);
 	text::layout amount_internal_layout;
-	text::text_color  amount_text_color = text::text_color::black;
+	int32_t  amount_text_color = 0;
 	std::string amount_cached_text;
 	void set_amount_text(sys::state & state, std::string const& new_text);
 	text::layout cost_internal_layout;
-	text::text_color  cost_text_color = text::text_color::black;
+	int32_t  cost_text_color = 0;
 	std::string cost_cached_text;
 	void set_cost_text(sys::state & state, std::string const& new_text);
-	void on_create(sys::state& state) noexcept override;
+	text::layout weight_internal_layout;
+	int32_t  weight_text_color = 0;
+	std::string weight_cached_text;
+	void set_weight_text(sys::state & state, std::string const& new_text);
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
@@ -2026,29 +509,28 @@ struct pop_details_needs_row_need_icon_t : public ui::element_base {
 struct pop_details_needs_header_content_t : public ui::element_base {
 // BEGIN needs_header::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout name_internal_layout;
 	std::string name_cached_text;
 	text::layout amount_internal_layout;
 	std::string amount_cached_text;
 	text::layout cost_internal_layout;
 	std::string cost_cached_text;
-	void on_create(sys::state& state) noexcept override;
+	text::layout weight_internal_layout;
+	std::string weight_cached_text;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void on_reset_text(sys::state & state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -2058,27 +540,24 @@ struct pop_details_needs_header_content_t : public ui::element_base {
 struct pop_details_prom_header_content_t : public ui::element_base {
 // BEGIN prom_header::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout name_internal_layout;
 	std::string name_cached_text;
 	text::layout weight_internal_layout;
 	std::string weight_cached_text;
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void on_reset_text(sys::state & state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -2088,35 +567,32 @@ struct pop_details_prom_header_content_t : public ui::element_base {
 struct pop_details_prom_row_content_t : public ui::element_base {
 // BEGIN prom_row::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout icon_internal_layout;
-	text::text_color  icon_text_color = text::text_color::black;
+	int32_t  icon_text_color = 0;
 	std::string icon_cached_text;
 	void set_icon_text(sys::state & state, std::string const& new_text);
 	text::layout name_internal_layout;
-	text::text_color  name_text_color = text::text_color::black;
+	int32_t  name_text_color = 0;
 	std::string name_cached_text;
 	void set_name_text(sys::state & state, std::string const& new_text);
 	text::layout weight_internal_layout;
-	text::text_color  weight_text_color = text::text_color::black;
+	int32_t  weight_text_color = 0;
 	std::string weight_cached_text;
 	void set_weight_text(sys::state & state, std::string const& new_text);
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
@@ -2151,27 +627,24 @@ struct pop_details_prom_row_job_icon_t : public ui::element_base {
 struct pop_details_weights_header_content_t : public ui::element_base {
 // BEGIN weights_header::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout item_internal_layout;
 	std::string item_cached_text;
 	text::layout weight_internal_layout;
 	std::string weight_cached_text;
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void on_reset_text(sys::state & state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -2181,31 +654,28 @@ struct pop_details_weights_header_content_t : public ui::element_base {
 struct pop_details_weights_row_content_t : public ui::element_base {
 // BEGIN weights_row::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout item_internal_layout;
-	text::text_color  item_text_color = text::text_color::black;
+	int32_t  item_text_color = 0;
 	std::string item_cached_text;
 	void set_item_text(sys::state & state, std::string const& new_text);
 	text::layout weight_internal_layout;
-	text::text_color  weight_text_color = text::text_color::black;
+	int32_t  weight_text_color = 0;
 	std::string weight_cached_text;
 	void set_weight_text(sys::state & state, std::string const& new_text);
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
@@ -2214,27 +684,24 @@ struct pop_details_weights_row_content_t : public ui::element_base {
 struct pop_details_emm_header_content_t : public ui::element_base {
 // BEGIN emm_header::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout destination_internal_layout;
 	std::string destination_cached_text;
 	text::layout weight_internal_layout;
 	std::string weight_cached_text;
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void on_reset_text(sys::state & state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -2244,31 +711,28 @@ struct pop_details_emm_header_content_t : public ui::element_base {
 struct pop_details_emm_row_content_t : public ui::element_base {
 // BEGIN emm_row::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout destination_internal_layout;
-	text::text_color  destination_text_color = text::text_color::black;
+	int32_t  destination_text_color = 0;
 	std::string destination_cached_text;
 	void set_destination_text(sys::state & state, std::string const& new_text);
 	text::layout weight_internal_layout;
-	text::text_color  weight_text_color = text::text_color::black;
+	int32_t  weight_text_color = 0;
 	std::string weight_cached_text;
 	void set_weight_text(sys::state & state, std::string const& new_text);
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
@@ -2302,27 +766,24 @@ struct pop_details_emm_row_dest_flag_t : public ui::element_base {
 struct pop_details_mig_header_content_t : public ui::element_base {
 // BEGIN mig_header::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout destination_internal_layout;
 	std::string destination_cached_text;
 	text::layout weight_internal_layout;
 	std::string weight_cached_text;
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	void on_reset_text(sys::state & state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
@@ -2332,31 +793,28 @@ struct pop_details_mig_header_content_t : public ui::element_base {
 struct pop_details_mig_row_content_t : public ui::element_base {
 // BEGIN mig_row::content::variables
 // END
+	int32_t template_id = -1;
 	text::layout destination_internal_layout;
-	text::text_color  destination_text_color = text::text_color::black;
+	int32_t  destination_text_color = 0;
 	std::string destination_cached_text;
 	void set_destination_text(sys::state & state, std::string const& new_text);
 	text::layout weight_internal_layout;
-	text::text_color  weight_text_color = text::text_color::black;
+	int32_t  weight_text_color = 0;
 	std::string weight_cached_text;
 	void set_weight_text(sys::state & state, std::string const& new_text);
-	void on_create(sys::state& state) noexcept override;
 	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::tooltip_behavior has_tooltip(sys::state & state) noexcept override {
 		return ui::tooltip_behavior::tooltip;
 	}
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		if(type == ui::mouse_probe_type::click) {
+		if(type == ui::mouse_probe_type::click || type == ui::mouse_probe_type::tooltip) {
 			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::tooltip) {
-			return ui::message_result::consumed;
-		} else if(type == ui::mouse_probe_type::scroll) {
-			return ui::message_result::unseen;
-		} else {
+		} else  {
 			return ui::message_result::unseen;
 		}
 	}
 	void tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept override;
+	void on_create(sys::state& state) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
@@ -2364,68 +822,66 @@ struct pop_details_mig_row_content_t : public ui::element_base {
 };
 struct pop_details_main_t : public layout_window_element {
 // BEGIN main::variables
+	ui::element_base* budget_w;
 // END
 	dcon::pop_id for_pop;
-	std::unique_ptr<pop_details_main_close_button_t> close_button;
-	std::unique_ptr<pop_details_main_window_title_t> window_title;
-	std::unique_ptr<pop_details_main_location_header_t> location_header;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::unique_ptr<template_label> window_title;
+	std::unique_ptr<template_label> location_header;
 	std::unique_ptr<pop_details_main_location_value_t> location_value;
-	std::unique_ptr<pop_details_main_job_header_t> job_header;
+	std::unique_ptr<template_label> job_header;
 	std::unique_ptr<pop_details_main_job_value_t> job_value;
-	std::unique_ptr<pop_details_main_mil_header_t> mil_header;
+	std::unique_ptr<template_label> mil_header;
 	std::unique_ptr<pop_details_main_mil_value_t> mil_value;
-	std::unique_ptr<pop_details_main_con_header_t> con_header;
+	std::unique_ptr<template_label> con_header;
 	std::unique_ptr<pop_details_main_con_value_t> con_value;
-	std::unique_ptr<pop_details_main_lit_header_t> lit_header;
+	std::unique_ptr<template_label> lit_header;
 	std::unique_ptr<pop_details_main_lit_value_t> lit_value;
-	std::unique_ptr<pop_details_main_religion_header_t> religion_header;
+	std::unique_ptr<template_label> religion_header;
 	std::unique_ptr<pop_details_main_religion_value_t> religion_value;
-	std::unique_ptr<pop_details_main_culture_header_t> culture_header;
+	std::unique_ptr<template_label> culture_header;
 	std::unique_ptr<pop_details_main_culture_value_t> culture_value;
-	std::unique_ptr<pop_details_main_employment_header_t> employment_header;
+	std::unique_ptr<template_label> employment_header;
 	std::unique_ptr<pop_details_main_employment_value_t> employment_value;
-	std::unique_ptr<pop_details_main_income_header_t> income_header;
+	std::unique_ptr<template_label> income_header;
 	std::unique_ptr<pop_details_main_income_value_t> income_value;
-	std::unique_ptr<pop_details_main_growth_header_t> growth_header;
+	std::unique_ptr<template_label> growth_header;
 	std::unique_ptr<pop_details_main_growth_value_t> growth_value;
-	std::unique_ptr<pop_details_main_assim_header_t> assim_header;
+	std::unique_ptr<template_label> assim_header;
 	std::unique_ptr<pop_details_main_assim_value_t> assim_value;
-	std::unique_ptr<pop_details_main_ln_header_t> ln_header;
 	std::unique_ptr<pop_details_main_ln_total_t> ln_total;
-	std::unique_ptr<pop_details_main_en_header_t> en_header;
 	std::unique_ptr<pop_details_main_en_total_t> en_total;
-	std::unique_ptr<pop_details_main_lx_header_t> lx_header;
 	std::unique_ptr<pop_details_main_lx_total_t> lx_total;
-	std::unique_ptr<pop_details_main_bg_a_t> bg_a;
-	std::unique_ptr<pop_details_main_bg_b_t> bg_b;
-	std::unique_ptr<pop_details_main_bg_c_t> bg_c;
-	std::unique_ptr<pop_details_main_bg_d_t> bg_d;
-	std::unique_ptr<pop_details_main_bg_e_t> bg_e;
-	std::unique_ptr<pop_details_main_prom_header_t> prom_header;
-	std::unique_ptr<pop_details_main_prom_amount_label_t> prom_amount_label;
+	std::unique_ptr<template_label> prom_header;
+	std::unique_ptr<template_label> prom_amount_label;
 	std::unique_ptr<pop_details_main_prom_value_t> prom_value;
 	std::unique_ptr<pop_details_main_prom_bar_chart_t> prom_bar_chart;
-	std::unique_ptr<pop_details_main_prom_bar_overlay_t> prom_bar_overlay;
-	std::unique_ptr<pop_details_main_dem_header_t> dem_header;
-	std::unique_ptr<pop_details_main_dem_amount_label_t> dem_amount_label;
+	std::unique_ptr<template_label> dem_header;
+	std::unique_ptr<template_label> dem_amount_label;
 	std::unique_ptr<pop_details_main_dem_value_t> dem_value;
 	std::unique_ptr<pop_details_main_dem_bar_chart_t> dem_bar_chart;
-	std::unique_ptr<pop_details_main_dem_bar_overlay_t> dem_bar_overlay;
-	std::unique_ptr<pop_details_main_ideo_header_t> ideo_header;
+	std::unique_ptr<template_label> ideo_header;
 	std::unique_ptr<pop_details_main_ideo_bar_chart_t> ideo_bar_chart;
-	std::unique_ptr<pop_details_main_ideo_bar_overlay_t> ideo_bar_overlay;
-	std::unique_ptr<pop_details_main_iss_header_t> iss_header;
+	std::unique_ptr<template_label> iss_header;
 	std::unique_ptr<pop_details_main_iss_bar_chart_t> iss_bar_chart;
-	std::unique_ptr<pop_details_main_iss_bar_overlay_t> iss_bar_overlay;
-	std::unique_ptr<pop_details_main_emm_header_t> emm_header;
-	std::unique_ptr<pop_details_main_emm_amount_label_t> emm_amount_label;
+	std::unique_ptr<template_label> emm_header;
+	std::unique_ptr<template_label> emm_amount_label;
 	std::unique_ptr<pop_details_main_emm_value_t> emm_value;
-	std::unique_ptr<pop_details_main_mig_header_t> mig_header;
-	std::unique_ptr<pop_details_main_i_mig_amount_label_t> i_mig_amount_label;
+	std::unique_ptr<template_label> mig_header;
+	std::unique_ptr<template_label> i_mig_amount_label;
 	std::unique_ptr<pop_details_main_i_mig_value_t> i_mig_value;
-	std::unique_ptr<pop_details_main_c_mig_amount_label_t> c_mig_amount_label;
+	std::unique_ptr<template_label> c_mig_amount_label;
 	std::unique_ptr<pop_details_main_c_mig_value_t> c_mig_value;
-	std::unique_ptr<pop_details_main_bg_f_t> bg_f;
+	std::unique_ptr<template_bg_graphic> fancy_bar_1;
+	std::unique_ptr<template_bg_graphic> fancy_bar_2;
+	std::unique_ptr<pop_details_main_to_pop_budget_t> to_pop_budget;
+	std::unique_ptr<template_bg_graphic> fancy_bar_3;
+	std::unique_ptr<template_label> ln_header;
+	std::unique_ptr<template_label> en_header;
+	std::unique_ptr<template_label> lx_header;
+	std::unique_ptr<template_icon_graphic> ln_icon;
+	std::unique_ptr<template_icon_graphic> en_icon;
+	std::unique_ptr<template_icon_graphic> lx_icon;
 	pop_details_main_ln_list_t ln_list;
 	pop_details_main_en_list_t en_list;
 	pop_details_main_lx_list_t lx_list;
@@ -2436,52 +892,59 @@ struct pop_details_main_t : public layout_window_element {
 	pop_details_main_emm_list_t emm_list;
 	pop_details_main_mig_list_t mig_list;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	text::text_color needs_table_icon_header_text_color = text::text_color::black;
-	text::text_color needs_table_icon_column_text_color = text::text_color::black;
+	uint8_t needs_table_icon_header_text_color = 0;
+	uint8_t needs_table_icon_column_text_color = 0;
 	text::alignment needs_table_icon_text_alignment = text::alignment::center;
 	int16_t needs_table_icon_column_start = 0;
 	int16_t needs_table_icon_column_width = 0;
 	std::string_view needs_table_name_header_text_key;
-	text::text_color needs_table_name_header_text_color = text::text_color::black;
-	text::text_color needs_table_name_column_text_color = text::text_color::black;
+	uint8_t needs_table_name_header_text_color = 0;
+	uint8_t needs_table_name_column_text_color = 0;
 	text::alignment needs_table_name_text_alignment = text::alignment::left;
 	int8_t needs_table_name_sort_direction = 0;
 	int16_t needs_table_name_column_start = 0;
 	int16_t needs_table_name_column_width = 0;
 	std::string_view needs_table_amount_header_text_key;
-	text::text_color needs_table_amount_header_text_color = text::text_color::black;
-	text::text_color needs_table_amount_column_text_color = text::text_color::black;
+	uint8_t needs_table_amount_header_text_color = 0;
+	uint8_t needs_table_amount_column_text_color = 0;
 	text::alignment needs_table_amount_text_alignment = text::alignment::left;
 	int8_t needs_table_amount_sort_direction = 0;
 	int16_t needs_table_amount_column_start = 0;
 	int16_t needs_table_amount_column_width = 0;
 	std::string_view needs_table_cost_header_text_key;
-	text::text_color needs_table_cost_header_text_color = text::text_color::black;
-	text::text_color needs_table_cost_column_text_color = text::text_color::black;
+	uint8_t needs_table_cost_header_text_color = 0;
+	uint8_t needs_table_cost_column_text_color = 0;
 	text::alignment needs_table_cost_text_alignment = text::alignment::left;
 	int8_t needs_table_cost_sort_direction = 0;
 	int16_t needs_table_cost_column_start = 0;
 	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
 	std::string_view needs_table_ascending_icon_key;
 	dcon::texture_id needs_table_ascending_icon;
 	std::string_view needs_table_descending_icon_key;
 	dcon::texture_id needs_table_descending_icon;
-	ogl::color3f needs_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
-	text::text_color prom_table_icon_header_text_color = text::text_color::black;
-	text::text_color prom_table_icon_column_text_color = text::text_color::black;
+	uint8_t prom_table_icon_header_text_color = 0;
+	uint8_t prom_table_icon_column_text_color = 0;
 	text::alignment prom_table_icon_text_alignment = text::alignment::center;
 	int16_t prom_table_icon_column_start = 0;
 	int16_t prom_table_icon_column_width = 0;
 	std::string_view prom_table_name_header_text_key;
-	text::text_color prom_table_name_header_text_color = text::text_color::black;
-	text::text_color prom_table_name_column_text_color = text::text_color::black;
+	uint8_t prom_table_name_header_text_color = 0;
+	uint8_t prom_table_name_column_text_color = 0;
 	text::alignment prom_table_name_text_alignment = text::alignment::right;
 	int8_t prom_table_name_sort_direction = 0;
 	int16_t prom_table_name_column_start = 0;
 	int16_t prom_table_name_column_width = 0;
 	std::string_view prom_table_weight_header_text_key;
-	text::text_color prom_table_weight_header_text_color = text::text_color::black;
-	text::text_color prom_table_weight_column_text_color = text::text_color::black;
+	uint8_t prom_table_weight_header_text_color = 0;
+	uint8_t prom_table_weight_column_text_color = 0;
 	text::alignment prom_table_weight_text_alignment = text::alignment::right;
 	int8_t prom_table_weight_sort_direction = 0;
 	int16_t prom_table_weight_column_start = 0;
@@ -2490,17 +953,16 @@ struct pop_details_main_t : public layout_window_element {
 	dcon::texture_id prom_table_ascending_icon;
 	std::string_view prom_table_descending_icon_key;
 	dcon::texture_id prom_table_descending_icon;
-	ogl::color3f prom_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
 	std::string_view weights_table_item_header_text_key;
-	text::text_color weights_table_item_header_text_color = text::text_color::black;
-	text::text_color weights_table_item_column_text_color = text::text_color::black;
+	uint8_t weights_table_item_header_text_color = 0;
+	uint8_t weights_table_item_column_text_color = 0;
 	text::alignment weights_table_item_text_alignment = text::alignment::right;
 	int8_t weights_table_item_sort_direction = 0;
 	int16_t weights_table_item_column_start = 0;
 	int16_t weights_table_item_column_width = 0;
 	std::string_view weights_table_weight_header_text_key;
-	text::text_color weights_table_weight_header_text_color = text::text_color::black;
-	text::text_color weights_table_weight_column_text_color = text::text_color::black;
+	uint8_t weights_table_weight_header_text_color = 0;
+	uint8_t weights_table_weight_column_text_color = 0;
 	text::alignment weights_table_weight_text_alignment = text::alignment::right;
 	int8_t weights_table_weight_sort_direction = 0;
 	int16_t weights_table_weight_column_start = 0;
@@ -2509,19 +971,18 @@ struct pop_details_main_t : public layout_window_element {
 	dcon::texture_id weights_table_ascending_icon;
 	std::string_view weights_table_descending_icon_key;
 	dcon::texture_id weights_table_descending_icon;
-	ogl::color3f weights_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
 	int16_t emm_table_flag_column_start = 0;
 	int16_t emm_table_flag_column_width = 0;
 	std::string_view emm_table_destination_header_text_key;
-	text::text_color emm_table_destination_header_text_color = text::text_color::black;
-	text::text_color emm_table_destination_column_text_color = text::text_color::black;
+	uint8_t emm_table_destination_header_text_color = 0;
+	uint8_t emm_table_destination_column_text_color = 0;
 	text::alignment emm_table_destination_text_alignment = text::alignment::right;
 	int8_t emm_table_destination_sort_direction = 0;
 	int16_t emm_table_destination_column_start = 0;
 	int16_t emm_table_destination_column_width = 0;
 	std::string_view emm_table_weight_header_text_key;
-	text::text_color emm_table_weight_header_text_color = text::text_color::black;
-	text::text_color emm_table_weight_column_text_color = text::text_color::black;
+	uint8_t emm_table_weight_header_text_color = 0;
+	uint8_t emm_table_weight_column_text_color = 0;
 	text::alignment emm_table_weight_text_alignment = text::alignment::right;
 	int8_t emm_table_weight_sort_direction = 0;
 	int16_t emm_table_weight_column_start = 0;
@@ -2530,17 +991,16 @@ struct pop_details_main_t : public layout_window_element {
 	dcon::texture_id emm_table_ascending_icon;
 	std::string_view emm_table_descending_icon_key;
 	dcon::texture_id emm_table_descending_icon;
-	ogl::color3f emm_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
 	std::string_view mig_table_destination_header_text_key;
-	text::text_color mig_table_destination_header_text_color = text::text_color::black;
-	text::text_color mig_table_destination_column_text_color = text::text_color::black;
+	uint8_t mig_table_destination_header_text_color = 0;
+	uint8_t mig_table_destination_column_text_color = 0;
 	text::alignment mig_table_destination_text_alignment = text::alignment::right;
 	int8_t mig_table_destination_sort_direction = 0;
 	int16_t mig_table_destination_column_start = 0;
 	int16_t mig_table_destination_column_width = 0;
 	std::string_view mig_table_weight_header_text_key;
-	text::text_color mig_table_weight_header_text_color = text::text_color::black;
-	text::text_color mig_table_weight_column_text_color = text::text_color::black;
+	uint8_t mig_table_weight_header_text_color = 0;
+	uint8_t mig_table_weight_column_text_color = 0;
 	text::alignment mig_table_weight_text_alignment = text::alignment::right;
 	int8_t mig_table_weight_sort_direction = 0;
 	int16_t mig_table_weight_column_start = 0;
@@ -2549,12 +1009,8 @@ struct pop_details_main_t : public layout_window_element {
 	dcon::texture_id mig_table_ascending_icon;
 	std::string_view mig_table_descending_icon_key;
 	dcon::texture_id mig_table_descending_icon;
-	ogl::color3f mig_table_divider_color{float(0.200000), float(0.192157), float(0.192157)};
-	std::string_view texture_key;
-	dcon::texture_id background_texture;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
@@ -2592,22 +1048,54 @@ struct pop_details_needs_row_t : public layout_window_element {
 // END
 	dcon::commodity_id commodity;
 	float amount;
+	float weight;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_needs_row_content_t> content;
 	std::unique_ptr<pop_details_needs_row_need_icon_t> need_icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	uint8_t needs_table_icon_header_text_color = 0;
+	uint8_t needs_table_icon_column_text_color = 0;
+	text::alignment needs_table_icon_text_alignment = text::alignment::center;
+	int16_t needs_table_icon_column_start = 0;
+	int16_t needs_table_icon_column_width = 0;
+	std::string_view needs_table_name_header_text_key;
+	uint8_t needs_table_name_header_text_color = 0;
+	uint8_t needs_table_name_column_text_color = 0;
+	text::alignment needs_table_name_text_alignment = text::alignment::left;
+	int8_t needs_table_name_sort_direction = 0;
+	int16_t needs_table_name_column_start = 0;
+	int16_t needs_table_name_column_width = 0;
+	std::string_view needs_table_amount_header_text_key;
+	uint8_t needs_table_amount_header_text_color = 0;
+	uint8_t needs_table_amount_column_text_color = 0;
+	text::alignment needs_table_amount_text_alignment = text::alignment::left;
+	int8_t needs_table_amount_sort_direction = 0;
+	int16_t needs_table_amount_column_start = 0;
+	int16_t needs_table_amount_column_width = 0;
+	std::string_view needs_table_cost_header_text_key;
+	uint8_t needs_table_cost_header_text_color = 0;
+	uint8_t needs_table_cost_column_text_color = 0;
+	text::alignment needs_table_cost_text_alignment = text::alignment::left;
+	int8_t needs_table_cost_sort_direction = 0;
+	int16_t needs_table_cost_column_start = 0;
+	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
+	std::string_view needs_table_ascending_icon_key;
+	dcon::texture_id needs_table_ascending_icon;
+	std::string_view needs_table_descending_icon_key;
+	dcon::texture_id needs_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "commodity") {
@@ -2616,6 +1104,9 @@ struct pop_details_needs_row_t : public layout_window_element {
 		if(name_parameter == "amount") {
 			return (void*)(&amount);
 		}
+		if(name_parameter == "weight") {
+			return (void*)(&weight);
+		}
 		return nullptr;
 	}
 };
@@ -2623,42 +1114,89 @@ std::unique_ptr<ui::element_base> make_pop_details_needs_row(sys::state& state);
 struct pop_details_needs_header_t : public layout_window_element {
 // BEGIN needs_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_needs_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	uint8_t needs_table_icon_header_text_color = 0;
+	uint8_t needs_table_icon_column_text_color = 0;
+	text::alignment needs_table_icon_text_alignment = text::alignment::center;
+	int16_t needs_table_icon_column_start = 0;
+	int16_t needs_table_icon_column_width = 0;
+	std::string_view needs_table_name_header_text_key;
+	uint8_t needs_table_name_header_text_color = 0;
+	uint8_t needs_table_name_column_text_color = 0;
+	text::alignment needs_table_name_text_alignment = text::alignment::left;
+	int8_t needs_table_name_sort_direction = 0;
+	int16_t needs_table_name_column_start = 0;
+	int16_t needs_table_name_column_width = 0;
+	std::string_view needs_table_amount_header_text_key;
+	uint8_t needs_table_amount_header_text_color = 0;
+	uint8_t needs_table_amount_column_text_color = 0;
+	text::alignment needs_table_amount_text_alignment = text::alignment::left;
+	int8_t needs_table_amount_sort_direction = 0;
+	int16_t needs_table_amount_column_start = 0;
+	int16_t needs_table_amount_column_width = 0;
+	std::string_view needs_table_cost_header_text_key;
+	uint8_t needs_table_cost_header_text_color = 0;
+	uint8_t needs_table_cost_column_text_color = 0;
+	text::alignment needs_table_cost_text_alignment = text::alignment::left;
+	int8_t needs_table_cost_sort_direction = 0;
+	int16_t needs_table_cost_column_start = 0;
+	int16_t needs_table_cost_column_width = 0;
+	std::string_view needs_table_weight_header_text_key;
+	std::string_view needs_table_weight_header_tooltip_key;
+	uint8_t needs_table_weight_header_text_color = 0;
+	uint8_t needs_table_weight_column_text_color = 0;
+	text::alignment needs_table_weight_text_alignment = text::alignment::center;
+	int8_t needs_table_weight_sort_direction = 0;
+	int16_t needs_table_weight_column_start = 0;
+	int16_t needs_table_weight_column_width = 0;
+	std::string_view needs_table_ascending_icon_key;
+	dcon::texture_id needs_table_ascending_icon;
+	std::string_view needs_table_descending_icon_key;
+	dcon::texture_id needs_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_details_needs_header(sys::state& state);
 struct pop_details_prom_header_t : public layout_window_element {
 // BEGIN prom_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_prom_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	uint8_t prom_table_icon_header_text_color = 0;
+	uint8_t prom_table_icon_column_text_color = 0;
+	text::alignment prom_table_icon_text_alignment = text::alignment::center;
+	int16_t prom_table_icon_column_start = 0;
+	int16_t prom_table_icon_column_width = 0;
+	std::string_view prom_table_name_header_text_key;
+	uint8_t prom_table_name_header_text_color = 0;
+	uint8_t prom_table_name_column_text_color = 0;
+	text::alignment prom_table_name_text_alignment = text::alignment::right;
+	int8_t prom_table_name_sort_direction = 0;
+	int16_t prom_table_name_column_start = 0;
+	int16_t prom_table_name_column_width = 0;
+	std::string_view prom_table_weight_header_text_key;
+	uint8_t prom_table_weight_header_text_color = 0;
+	uint8_t prom_table_weight_column_text_color = 0;
+	text::alignment prom_table_weight_text_alignment = text::alignment::right;
+	int8_t prom_table_weight_sort_direction = 0;
+	int16_t prom_table_weight_column_start = 0;
+	int16_t prom_table_weight_column_width = 0;
+	std::string_view prom_table_ascending_icon_key;
+	dcon::texture_id prom_table_ascending_icon;
+	std::string_view prom_table_descending_icon_key;
+	dcon::texture_id prom_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_details_prom_header(sys::state& state);
@@ -2666,22 +1204,38 @@ struct pop_details_prom_row_t : public layout_window_element {
 // BEGIN prom_row::variables
 // END
 	dcon::pop_type_id value;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_prom_row_content_t> content;
 	std::unique_ptr<pop_details_prom_row_job_icon_t> job_icon;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	uint8_t prom_table_icon_header_text_color = 0;
+	uint8_t prom_table_icon_column_text_color = 0;
+	text::alignment prom_table_icon_text_alignment = text::alignment::center;
+	int16_t prom_table_icon_column_start = 0;
+	int16_t prom_table_icon_column_width = 0;
+	std::string_view prom_table_name_header_text_key;
+	uint8_t prom_table_name_header_text_color = 0;
+	uint8_t prom_table_name_column_text_color = 0;
+	text::alignment prom_table_name_text_alignment = text::alignment::right;
+	int8_t prom_table_name_sort_direction = 0;
+	int16_t prom_table_name_column_start = 0;
+	int16_t prom_table_name_column_width = 0;
+	std::string_view prom_table_weight_header_text_key;
+	uint8_t prom_table_weight_header_text_color = 0;
+	uint8_t prom_table_weight_column_text_color = 0;
+	text::alignment prom_table_weight_text_alignment = text::alignment::right;
+	int8_t prom_table_weight_sort_direction = 0;
+	int16_t prom_table_weight_column_start = 0;
+	int16_t prom_table_weight_column_width = 0;
+	std::string_view prom_table_ascending_icon_key;
+	dcon::texture_id prom_table_ascending_icon;
+	std::string_view prom_table_descending_icon_key;
+	dcon::texture_id prom_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "value") {
@@ -2694,21 +1248,32 @@ std::unique_ptr<ui::element_base> make_pop_details_prom_row(sys::state& state);
 struct pop_details_weights_header_t : public layout_window_element {
 // BEGIN weights_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_weights_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	std::string_view weights_table_item_header_text_key;
+	uint8_t weights_table_item_header_text_color = 0;
+	uint8_t weights_table_item_column_text_color = 0;
+	text::alignment weights_table_item_text_alignment = text::alignment::right;
+	int8_t weights_table_item_sort_direction = 0;
+	int16_t weights_table_item_column_start = 0;
+	int16_t weights_table_item_column_width = 0;
+	std::string_view weights_table_weight_header_text_key;
+	uint8_t weights_table_weight_header_text_color = 0;
+	uint8_t weights_table_weight_column_text_color = 0;
+	text::alignment weights_table_weight_text_alignment = text::alignment::right;
+	int8_t weights_table_weight_sort_direction = 0;
+	int16_t weights_table_weight_column_start = 0;
+	int16_t weights_table_weight_column_width = 0;
+	std::string_view weights_table_ascending_icon_key;
+	dcon::texture_id weights_table_ascending_icon;
+	std::string_view weights_table_descending_icon_key;
+	dcon::texture_id weights_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_details_weights_header(sys::state& state);
@@ -2718,21 +1283,32 @@ struct pop_details_weights_row_t : public layout_window_element {
 	std::string item_name;
 	float weight_value;
 	std::variant<dcon::ideology_id, dcon::issue_option_id> source;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_weights_row_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	std::string_view weights_table_item_header_text_key;
+	uint8_t weights_table_item_header_text_color = 0;
+	uint8_t weights_table_item_column_text_color = 0;
+	text::alignment weights_table_item_text_alignment = text::alignment::right;
+	int8_t weights_table_item_sort_direction = 0;
+	int16_t weights_table_item_column_start = 0;
+	int16_t weights_table_item_column_width = 0;
+	std::string_view weights_table_weight_header_text_key;
+	uint8_t weights_table_weight_header_text_color = 0;
+	uint8_t weights_table_weight_column_text_color = 0;
+	text::alignment weights_table_weight_text_alignment = text::alignment::right;
+	int8_t weights_table_weight_sort_direction = 0;
+	int16_t weights_table_weight_column_start = 0;
+	int16_t weights_table_weight_column_width = 0;
+	std::string_view weights_table_ascending_icon_key;
+	dcon::texture_id weights_table_ascending_icon;
+	std::string_view weights_table_descending_icon_key;
+	dcon::texture_id weights_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "item_name") {
@@ -2751,21 +1327,34 @@ std::unique_ptr<ui::element_base> make_pop_details_weights_row(sys::state& state
 struct pop_details_emm_header_t : public layout_window_element {
 // BEGIN emm_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_emm_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	int16_t emm_table_flag_column_start = 0;
+	int16_t emm_table_flag_column_width = 0;
+	std::string_view emm_table_destination_header_text_key;
+	uint8_t emm_table_destination_header_text_color = 0;
+	uint8_t emm_table_destination_column_text_color = 0;
+	text::alignment emm_table_destination_text_alignment = text::alignment::right;
+	int8_t emm_table_destination_sort_direction = 0;
+	int16_t emm_table_destination_column_start = 0;
+	int16_t emm_table_destination_column_width = 0;
+	std::string_view emm_table_weight_header_text_key;
+	uint8_t emm_table_weight_header_text_color = 0;
+	uint8_t emm_table_weight_column_text_color = 0;
+	text::alignment emm_table_weight_text_alignment = text::alignment::right;
+	int8_t emm_table_weight_sort_direction = 0;
+	int16_t emm_table_weight_column_start = 0;
+	int16_t emm_table_weight_column_width = 0;
+	std::string_view emm_table_ascending_icon_key;
+	dcon::texture_id emm_table_ascending_icon;
+	std::string_view emm_table_descending_icon_key;
+	dcon::texture_id emm_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_details_emm_header(sys::state& state);
@@ -2773,22 +1362,35 @@ struct pop_details_emm_row_t : public layout_window_element {
 // BEGIN emm_row::variables
 // END
 	dcon::nation_id destination;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_emm_row_content_t> content;
 	std::unique_ptr<pop_details_emm_row_dest_flag_t> dest_flag;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	int16_t emm_table_flag_column_start = 0;
+	int16_t emm_table_flag_column_width = 0;
+	std::string_view emm_table_destination_header_text_key;
+	uint8_t emm_table_destination_header_text_color = 0;
+	uint8_t emm_table_destination_column_text_color = 0;
+	text::alignment emm_table_destination_text_alignment = text::alignment::right;
+	int8_t emm_table_destination_sort_direction = 0;
+	int16_t emm_table_destination_column_start = 0;
+	int16_t emm_table_destination_column_width = 0;
+	std::string_view emm_table_weight_header_text_key;
+	uint8_t emm_table_weight_header_text_color = 0;
+	uint8_t emm_table_weight_column_text_color = 0;
+	text::alignment emm_table_weight_text_alignment = text::alignment::right;
+	int8_t emm_table_weight_sort_direction = 0;
+	int16_t emm_table_weight_column_start = 0;
+	int16_t emm_table_weight_column_width = 0;
+	std::string_view emm_table_ascending_icon_key;
+	dcon::texture_id emm_table_ascending_icon;
+	std::string_view emm_table_descending_icon_key;
+	dcon::texture_id emm_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "destination") {
@@ -2801,21 +1403,32 @@ std::unique_ptr<ui::element_base> make_pop_details_emm_row(sys::state& state);
 struct pop_details_mig_header_t : public layout_window_element {
 // BEGIN mig_header::variables
 // END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_mig_header_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	std::string_view mig_table_destination_header_text_key;
+	uint8_t mig_table_destination_header_text_color = 0;
+	uint8_t mig_table_destination_column_text_color = 0;
+	text::alignment mig_table_destination_text_alignment = text::alignment::right;
+	int8_t mig_table_destination_sort_direction = 0;
+	int16_t mig_table_destination_column_start = 0;
+	int16_t mig_table_destination_column_width = 0;
+	std::string_view mig_table_weight_header_text_key;
+	uint8_t mig_table_weight_header_text_color = 0;
+	uint8_t mig_table_weight_column_text_color = 0;
+	text::alignment mig_table_weight_text_alignment = text::alignment::right;
+	int8_t mig_table_weight_sort_direction = 0;
+	int16_t mig_table_weight_column_start = 0;
+	int16_t mig_table_weight_column_width = 0;
+	std::string_view mig_table_ascending_icon_key;
+	dcon::texture_id mig_table_ascending_icon;
+	std::string_view mig_table_descending_icon_key;
+	dcon::texture_id mig_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 };
 std::unique_ptr<ui::element_base> make_pop_details_mig_header(sys::state& state);
@@ -2823,21 +1436,32 @@ struct pop_details_mig_row_t : public layout_window_element {
 // BEGIN mig_row::variables
 // END
 	dcon::province_id destination;
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
 	std::unique_ptr<pop_details_mig_row_content_t> content;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
-	std::string_view texture_key;
-	std::string_view alt_texture_key;
-	dcon::texture_id alt_background_texture;
-	bool is_active = false;
-	dcon::texture_id background_texture;
+	std::string_view mig_table_destination_header_text_key;
+	uint8_t mig_table_destination_header_text_color = 0;
+	uint8_t mig_table_destination_column_text_color = 0;
+	text::alignment mig_table_destination_text_alignment = text::alignment::right;
+	int8_t mig_table_destination_sort_direction = 0;
+	int16_t mig_table_destination_column_start = 0;
+	int16_t mig_table_destination_column_width = 0;
+	std::string_view mig_table_weight_header_text_key;
+	uint8_t mig_table_weight_header_text_color = 0;
+	uint8_t mig_table_weight_column_text_color = 0;
+	text::alignment mig_table_weight_text_alignment = text::alignment::right;
+	int8_t mig_table_weight_sort_direction = 0;
+	int16_t mig_table_weight_column_start = 0;
+	int16_t mig_table_weight_column_width = 0;
+	std::string_view mig_table_ascending_icon_key;
+	dcon::texture_id mig_table_ascending_icon;
+	std::string_view mig_table_descending_icon_key;
+	dcon::texture_id mig_table_descending_icon;
 	void create_layout_level(sys::state& state, layout_level& lvl, char const* ldata, size_t sz);
 	void on_create(sys::state& state) noexcept override;
-	void render(sys::state & state, int32_t x, int32_t y) noexcept override;
+	void set_alternate(bool alt) noexcept;
 	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
 	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
-	ui::message_result test_mouse(sys::state& state, int32_t x, int32_t y, ui::mouse_probe_type type) noexcept override {
-		return (type == ui::mouse_probe_type::scroll ? ui::message_result::unseen : ui::message_result::consumed);
-	}
 	void on_update(sys::state& state) noexcept override;
 	void* get_by_name(sys::state& state, std::string_view name_parameter) noexcept override {
 		if(name_parameter == "destination") {
@@ -2847,8 +1471,30 @@ struct pop_details_mig_row_t : public layout_window_element {
 	}
 };
 std::unique_ptr<ui::element_base> make_pop_details_mig_row(sys::state& state);
-void pop_details_main_ln_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+struct pop_details_fancy_separator_1_t : public layout_window_element {
+// BEGIN fancy_separator_1::variables
+// END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_1(sys::state& state);
+struct pop_details_fancy_separator_2_t : public layout_window_element {
+// BEGIN fancy_separator_2::variables
+// END
+	ankerl::unordered_dense::map<std::string, std::unique_ptr<ui::lua_scripted_element>> scripted_elements;
+	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
+	void on_create(sys::state& state) noexcept override;
+	ui::message_result on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	ui::message_result on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept override;
+	void on_update(sys::state& state) noexcept override;
+};
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state& state);
+void pop_details_main_ln_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_ln_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -2858,18 +1504,18 @@ void  pop_details_main_ln_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::ln_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_life_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_life_needs_weights(m, c));
 		}
 	}
-
-	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-	auto s = state.world.province_get_state_membership(l);
-	auto m = state.world.state_instance_get_market_from_local_market(s);
 // END
 	{
 	bool work_to_do = false;
@@ -2877,6 +1523,7 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -2917,6 +1564,18 @@ void  pop_details_main_ln_list_t::update(sys::state& state, layout_window_elemen
 						return -result == table_source->needs_table_cost_sort_direction;
 					});
 				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::ln_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_life_needs_weights(m, a.commodity), state.world.market_get_life_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
+					});
+				}
 			} else {
 				++i;
 			}
@@ -2941,14 +1600,15 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 					needs_header_pool[needs_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
-			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
 				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = !alternate;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
 				needs_row_pool_used++;
@@ -2963,7 +1623,8 @@ measure_result  pop_details_main_ln_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
 		}
@@ -2976,8 +1637,8 @@ void  pop_details_main_ln_list_t::reset_pools() {
 	needs_header_pool_used = 0;
 	needs_row_pool_used = 0;
 }
-void pop_details_main_en_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+void pop_details_main_en_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_en_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -2987,12 +1648,16 @@ void  pop_details_main_en_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_en_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::en_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_everyday_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_everyday_needs_weights(m, c));
 		}
 	}
 // END
@@ -3002,6 +1667,7 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -3036,13 +1702,22 @@ void  pop_details_main_en_list_t::update(sys::state& state, layout_window_elemen
 						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::en_list::needs_table::sort::cost
-						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-						auto s = state.world.province_get_state_membership(l);
-						auto m = state.world.state_instance_get_market_from_local_market(s);
 						auto type = state.world.pop_get_poptype(main.for_pop);
 						result = cmp3(state.world.market_get_price(m, a.commodity) * state.world.pop_type_get_everyday_needs(type, a.commodity), state.world.market_get_price(m, b.commodity) * state.world.pop_type_get_everyday_needs(type, b.commodity));
 // END
 						return -result == table_source->needs_table_cost_sort_direction;
+					});
+				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::en_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_everyday_needs_weights(m, a.commodity), state.world.market_get_everyday_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
 					});
 				}
 			} else {
@@ -3069,14 +1744,15 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 					needs_header_pool[needs_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
-			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
 				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = !alternate;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
 				needs_row_pool_used++;
@@ -3091,7 +1767,8 @@ measure_result  pop_details_main_en_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
 		}
@@ -3104,8 +1781,8 @@ void  pop_details_main_en_list_t::reset_pools() {
 	needs_header_pool_used = 0;
 	needs_row_pool_used = 0;
 }
-void pop_details_main_lx_list_t::add_needs_row(dcon::commodity_id commodity, float amount) {
-	values.emplace_back(needs_row_option{commodity, amount});
+void pop_details_main_lx_list_t::add_needs_row(dcon::commodity_id commodity, float amount, float weight) {
+	values.emplace_back(needs_row_option{commodity, amount, weight});
 }
 void  pop_details_main_lx_list_t::on_create(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -3115,12 +1792,16 @@ void  pop_details_main_lx_list_t::on_create(sys::state& state, layout_window_ele
 void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_element* parent) {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::lx_list::update
+	auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
+	auto s = state.world.province_get_state_membership(l);
+	auto m = state.world.state_instance_get_market_from_local_market(s);
+
 	values.clear();
 	auto type = state.world.pop_get_poptype(main.for_pop);
 	for(auto c : state.world.in_commodity) {
 		auto v = state.world.pop_type_get_luxury_needs(type, c);
 		if(v > 0) {
-			add_needs_row(c.id, v);
+			add_needs_row(c.id, v, state.world.market_get_luxury_needs_weights(m, c));
 		}
 	}
 // END
@@ -3130,6 +1811,7 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 	if(table_source->needs_table_name_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_amount_sort_direction != 0) work_to_do = true;
 	if(table_source->needs_table_cost_sort_direction != 0) work_to_do = true;
+	if(table_source->needs_table_weight_sort_direction != 0) work_to_do = true;
 	if(work_to_do) {
 		for(size_t i = 0; i < values.size(); ) {
 			if(std::holds_alternative<needs_row_option>(values[i])) {
@@ -3164,13 +1846,22 @@ void  pop_details_main_lx_list_t::update(sys::state& state, layout_window_elemen
 						auto const& b = std::get<needs_row_option>(raw_b);
 						int8_t result = 0;
 // BEGIN main::lx_list::needs_table::sort::cost
-						auto l = state.world.pop_get_province_from_pop_location(main.for_pop);
-						auto s = state.world.province_get_state_membership(l);
-						auto m = state.world.state_instance_get_market_from_local_market(s);
 						auto type = state.world.pop_get_poptype(main.for_pop);
 						result = cmp3(state.world.market_get_price(m, a.commodity) * state.world.pop_type_get_luxury_needs(type, a.commodity), state.world.market_get_price(m, b.commodity) * state.world.pop_type_get_luxury_needs(type, b.commodity));
 // END
 						return -result == table_source->needs_table_cost_sort_direction;
+					});
+				}
+				if(table_source->needs_table_weight_sort_direction != 0) {
+					sys::merge_sort(values.begin() + start_i, values.begin() + i, [&](auto const& raw_a, auto const& raw_b){
+						auto const& a = std::get<needs_row_option>(raw_a);
+						auto const& b = std::get<needs_row_option>(raw_b);
+						int8_t result = 0;
+// BEGIN main::lx_list::needs_table::sort::weight
+						auto type = state.world.pop_get_poptype(main.for_pop);
+						result = cmp3(state.world.market_get_luxury_needs_weights(m, a.commodity), state.world.market_get_luxury_needs_weights(m, b.commodity));
+// END
+						return -result == table_source->needs_table_weight_sort_direction;
 					});
 				}
 			} else {
@@ -3197,14 +1888,15 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 					needs_header_pool[needs_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(needs_header_pool[needs_header_pool_used].get());
-			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_header_t*)(needs_header_pool[needs_header_pool_used].get()))->set_alternate(alternate);
 				needs_row_pool[needs_row_pool_used]->base_data.position.x = int16_t(x);
 				needs_row_pool[needs_row_pool_used]->base_data.position.y = int16_t(y +  needs_row_pool[0]->base_data.size.y + 0);
 				needs_row_pool[needs_row_pool_used]->parent = destination;
 				destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = !alternate;
+				((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(!alternate);
 				needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 				needs_header_pool_used++;
 				needs_row_pool_used++;
@@ -3219,7 +1911,8 @@ measure_result  pop_details_main_lx_list_t::place_item(sys::state& state, ui::no
 			destination->children.push_back(needs_row_pool[needs_row_pool_used].get());
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->commodity = std::get<needs_row_option>(values[index]).commodity;
 			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->amount = std::get<needs_row_option>(values[index]).amount;
-			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->is_active = alternate;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->weight = std::get<needs_row_option>(values[index]).weight;
+			((pop_details_needs_row_t*)(needs_row_pool[needs_row_pool_used].get()))->set_alternate(alternate);
 			needs_row_pool[needs_row_pool_used]->impl_on_update(state);
 			needs_row_pool_used++;
 		}
@@ -3312,13 +2005,13 @@ measure_result  pop_details_main_prom_list_t::place_item(sys::state& state, ui::
 					prom_header_pool[prom_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(prom_header_pool[prom_header_pool_used].get());
-			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->is_active = alternate;
+			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->set_alternate(alternate);
 				prom_row_pool[prom_row_pool_used]->base_data.position.x = int16_t(x);
 				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_row_pool[0]->base_data.size.y + 0);
 				prom_row_pool[prom_row_pool_used]->parent = destination;
 				destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 				((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
-			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->set_alternate(!alternate);
 				prom_row_pool[prom_row_pool_used]->impl_on_update(state);
 				prom_header_pool_used++;
 				prom_row_pool_used++;
@@ -3332,7 +2025,7 @@ measure_result  pop_details_main_prom_list_t::place_item(sys::state& state, ui::
 			prom_row_pool[prom_row_pool_used]->parent = destination;
 			destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
-			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->is_active = alternate;
+			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->set_alternate(alternate);
 			prom_row_pool[prom_row_pool_used]->impl_on_update(state);
 			prom_row_pool_used++;
 		}
@@ -3425,13 +2118,13 @@ measure_result  pop_details_main_dem_list_t::place_item(sys::state& state, ui::n
 					prom_header_pool[prom_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(prom_header_pool[prom_header_pool_used].get());
-			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->is_active = alternate;
+			((pop_details_prom_header_t*)(prom_header_pool[prom_header_pool_used].get()))->set_alternate(alternate);
 				prom_row_pool[prom_row_pool_used]->base_data.position.x = int16_t(x);
 				prom_row_pool[prom_row_pool_used]->base_data.position.y = int16_t(y +  prom_row_pool[0]->base_data.size.y + 0);
 				prom_row_pool[prom_row_pool_used]->parent = destination;
 				destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 				((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
-			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->set_alternate(!alternate);
 				prom_row_pool[prom_row_pool_used]->impl_on_update(state);
 				prom_header_pool_used++;
 				prom_row_pool_used++;
@@ -3445,7 +2138,7 @@ measure_result  pop_details_main_dem_list_t::place_item(sys::state& state, ui::n
 			prom_row_pool[prom_row_pool_used]->parent = destination;
 			destination->children.push_back(prom_row_pool[prom_row_pool_used].get());
 			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->value = std::get<prom_row_option>(values[index]).value;
-			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->is_active = alternate;
+			((pop_details_prom_row_t*)(prom_row_pool[prom_row_pool_used].get()))->set_alternate(alternate);
 			prom_row_pool[prom_row_pool_used]->impl_on_update(state);
 			prom_row_pool_used++;
 		}
@@ -3535,7 +2228,7 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 					weights_header_pool[weights_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(weights_header_pool[weights_header_pool_used].get());
-			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->is_active = alternate;
+			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->set_alternate(alternate);
 				weights_row_pool[weights_row_pool_used]->base_data.position.x = int16_t(x);
 				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_row_pool[0]->base_data.size.y + 0);
 				weights_row_pool[weights_row_pool_used]->parent = destination;
@@ -3543,7 +2236,7 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->weight_value = std::get<weights_row_option>(values[index]).weight_value;
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->source = std::get<weights_row_option>(values[index]).source;
-			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->set_alternate(!alternate);
 				weights_row_pool[weights_row_pool_used]->impl_on_update(state);
 				weights_header_pool_used++;
 				weights_row_pool_used++;
@@ -3559,7 +2252,7 @@ measure_result  pop_details_main_ideo_list_t::place_item(sys::state& state, ui::
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->weight_value = std::get<weights_row_option>(values[index]).weight_value;
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->source = std::get<weights_row_option>(values[index]).source;
-			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->is_active = alternate;
+			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->set_alternate(alternate);
 			weights_row_pool[weights_row_pool_used]->impl_on_update(state);
 			weights_row_pool_used++;
 		}
@@ -3669,7 +2362,7 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 					weights_header_pool[weights_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(weights_header_pool[weights_header_pool_used].get());
-			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->is_active = alternate;
+			((pop_details_weights_header_t*)(weights_header_pool[weights_header_pool_used].get()))->set_alternate(alternate);
 				weights_row_pool[weights_row_pool_used]->base_data.position.x = int16_t(x);
 				weights_row_pool[weights_row_pool_used]->base_data.position.y = int16_t(y +  weights_row_pool[0]->base_data.size.y + 0);
 				weights_row_pool[weights_row_pool_used]->parent = destination;
@@ -3677,7 +2370,7 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->weight_value = std::get<weights_row_option>(values[index]).weight_value;
 				((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->source = std::get<weights_row_option>(values[index]).source;
-			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->set_alternate(!alternate);
 				weights_row_pool[weights_row_pool_used]->impl_on_update(state);
 				weights_header_pool_used++;
 				weights_row_pool_used++;
@@ -3693,7 +2386,7 @@ measure_result  pop_details_main_iss_list_t::place_item(sys::state& state, ui::n
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->item_name = std::get<weights_row_option>(values[index]).item_name;
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->weight_value = std::get<weights_row_option>(values[index]).weight_value;
 			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->source = std::get<weights_row_option>(values[index]).source;
-			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->is_active = alternate;
+			((pop_details_weights_row_t*)(weights_row_pool[weights_row_pool_used].get()))->set_alternate(alternate);
 			weights_row_pool[weights_row_pool_used]->impl_on_update(state);
 			weights_row_pool_used++;
 		}
@@ -3802,13 +2495,13 @@ measure_result  pop_details_main_emm_list_t::place_item(sys::state& state, ui::n
 					emm_header_pool[emm_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(emm_header_pool[emm_header_pool_used].get());
-			((pop_details_emm_header_t*)(emm_header_pool[emm_header_pool_used].get()))->is_active = alternate;
+			((pop_details_emm_header_t*)(emm_header_pool[emm_header_pool_used].get()))->set_alternate(alternate);
 				emm_row_pool[emm_row_pool_used]->base_data.position.x = int16_t(x);
 				emm_row_pool[emm_row_pool_used]->base_data.position.y = int16_t(y +  emm_row_pool[0]->base_data.size.y + 0);
 				emm_row_pool[emm_row_pool_used]->parent = destination;
 				destination->children.push_back(emm_row_pool[emm_row_pool_used].get());
 				((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->destination = std::get<emm_row_option>(values[index]).destination;
-			((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->set_alternate(!alternate);
 				emm_row_pool[emm_row_pool_used]->impl_on_update(state);
 				emm_header_pool_used++;
 				emm_row_pool_used++;
@@ -3822,7 +2515,7 @@ measure_result  pop_details_main_emm_list_t::place_item(sys::state& state, ui::n
 			emm_row_pool[emm_row_pool_used]->parent = destination;
 			destination->children.push_back(emm_row_pool[emm_row_pool_used].get());
 			((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->destination = std::get<emm_row_option>(values[index]).destination;
-			((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->is_active = alternate;
+			((pop_details_emm_row_t*)(emm_row_pool[emm_row_pool_used].get()))->set_alternate(alternate);
 			emm_row_pool[emm_row_pool_used]->impl_on_update(state);
 			emm_row_pool_used++;
 		}
@@ -3932,13 +2625,13 @@ measure_result  pop_details_main_mig_list_t::place_item(sys::state& state, ui::n
 					mig_header_pool[mig_header_pool_used]->impl_on_reset_text(state);
 				}
 				destination->children.push_back(mig_header_pool[mig_header_pool_used].get());
-			((pop_details_mig_header_t*)(mig_header_pool[mig_header_pool_used].get()))->is_active = alternate;
+			((pop_details_mig_header_t*)(mig_header_pool[mig_header_pool_used].get()))->set_alternate(alternate);
 				mig_row_pool[mig_row_pool_used]->base_data.position.x = int16_t(x);
 				mig_row_pool[mig_row_pool_used]->base_data.position.y = int16_t(y +  mig_row_pool[0]->base_data.size.y + 0);
 				mig_row_pool[mig_row_pool_used]->parent = destination;
 				destination->children.push_back(mig_row_pool[mig_row_pool_used].get());
 				((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->destination = std::get<mig_row_option>(values[index]).destination;
-			((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->is_active = !alternate;
+			((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->set_alternate(!alternate);
 				mig_row_pool[mig_row_pool_used]->impl_on_update(state);
 				mig_header_pool_used++;
 				mig_row_pool_used++;
@@ -3952,7 +2645,7 @@ measure_result  pop_details_main_mig_list_t::place_item(sys::state& state, ui::n
 			mig_row_pool[mig_row_pool_used]->parent = destination;
 			destination->children.push_back(mig_row_pool[mig_row_pool_used].get());
 			((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->destination = std::get<mig_row_option>(values[index]).destination;
-			((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->is_active = alternate;
+			((pop_details_mig_row_t*)(mig_row_pool[mig_row_pool_used].get()))->set_alternate(alternate);
 			mig_row_pool[mig_row_pool_used]->impl_on_update(state);
 			mig_row_pool_used++;
 		}
@@ -3965,246 +2658,16 @@ void  pop_details_main_mig_list_t::reset_pools() {
 	mig_header_pool_used = 0;
 	mig_row_pool_used = 0;
 }
-ui::message_result pop_details_main_close_button_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-	sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
-// BEGIN main::close_button::lbutton_action
-	main.set_visible(state, false);
-// END
-	return ui::message_result::consumed;
-}
-ui::message_result pop_details_main_close_button_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::consumed;
-}
-ui::message_result pop_details_main_close_button_t::on_key_down(sys::state& state, sys::virtual_key key, sys::key_modifiers mods) noexcept {
-	if(key == sys::virtual_key::ESCAPE) {
-		on_lbutton_down(state, 0, 0, mods);
-		return ui::message_result::consumed;
-	}
-	return ui::message_result::unseen;
-}
-void pop_details_main_close_button_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, true), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_close_button_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::close_button::update
-// END
-}
-void pop_details_main_close_button_t::on_create(sys::state& state) noexcept {
-// BEGIN main::close_button::create
-// END
-}
-void pop_details_main_window_title_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_window_title_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_window_title_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_window_title_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::window_title::update
-// END
-}
-void pop_details_main_window_title_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::window_title::create
-// END
-}
-void pop_details_main_location_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_location_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_location_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_location_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::location_header::update
-// END
-}
-void pop_details_main_location_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::location_header::create
-// END
-}
-void pop_details_main_location_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_location_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_location_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_location_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::location_value::update
 	set_text(state, text::produce_simple_string(state, state.world.province_get_name(state.world.pop_get_province_from_pop_location(main.for_pop))));
 // END
 }
-void pop_details_main_location_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::location_value::create
-// END
-}
-void pop_details_main_job_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_job_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_job_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_job_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::job_header::update
-// END
-}
-void pop_details_main_job_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::job_header::create
-// END
-}
-void pop_details_main_job_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_job_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_job_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_job_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::job_value::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_poptype(main.for_pop).get_name()));
-// END
-}
-void pop_details_main_job_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::job_value::create
-// END
-}
-void pop_details_main_mil_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_mil_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_mil_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_mil_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::mil_header::update
-// END
-}
-void pop_details_main_mil_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::mil_header::create
 // END
 }
 void pop_details_main_mil_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -4213,73 +2676,10 @@ void pop_details_main_mil_value_t::update_tooltip(sys::state& state, int32_t x, 
 	describe_mil(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_mil_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_mil_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_mil_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_mil_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::mil_value::update
 	set_text(state, text::format_float(pop_demographics::get_militancy(state, main.for_pop), 1));
-// END
-}
-void pop_details_main_mil_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::mil_value::create
-// END
-}
-void pop_details_main_con_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_con_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_con_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_con_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::con_header::update
-// END
-}
-void pop_details_main_con_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::con_header::create
 // END
 }
 void pop_details_main_con_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -4288,73 +2688,10 @@ void pop_details_main_con_value_t::update_tooltip(sys::state& state, int32_t x, 
 	describe_con(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_con_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_con_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_con_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_con_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::con_value::update
 	set_text(state, text::format_float(pop_demographics::get_consciousness(state, main.for_pop), 1));
-// END
-}
-void pop_details_main_con_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::con_value::create
-// END
-}
-void pop_details_main_lit_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_lit_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_lit_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_lit_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::lit_header::update
-// END
-}
-void pop_details_main_lit_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::lit_header::create
 // END
 }
 void pop_details_main_lit_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -4363,96 +2700,11 @@ void pop_details_main_lit_value_t::update_tooltip(sys::state& state, int32_t x, 
 	describe_lit(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_lit_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_lit_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_lit_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_lit_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::lit_value::update
 	set_text(state, text::format_percentage(pop_demographics::get_literacy(state, main.for_pop), 0));
 // END
-}
-void pop_details_main_lit_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::lit_value::create
-// END
-}
-void pop_details_main_religion_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_religion_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_religion_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_religion_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::religion_header::update
-// END
-}
-void pop_details_main_religion_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::religion_header::create
-// END
-}
-void pop_details_main_religion_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_religion_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_religion_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
 }
 void pop_details_main_religion_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -4460,256 +2712,26 @@ void pop_details_main_religion_value_t::on_update(sys::state& state) noexcept {
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_religion(main.for_pop).get_name()));
 // END
 }
-void pop_details_main_religion_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::religion_value::create
-// END
-}
-void pop_details_main_culture_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_culture_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_culture_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_culture_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::culture_header::update
-// END
-}
-void pop_details_main_culture_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::culture_header::create
-// END
-}
-void pop_details_main_culture_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_culture_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_culture_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_culture_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::culture_value::update
 	set_text(state, text::produce_simple_string(state, state.world.pop_get_culture(main.for_pop).get_name()));
 // END
 }
-void pop_details_main_culture_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::culture_value::create
-// END
-}
-void pop_details_main_employment_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_employment_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_employment_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_employment_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::employment_header::update
-// END
-}
-void pop_details_main_employment_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::employment_header::create
-// END
-}
-void pop_details_main_employment_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_employment_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_employment_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_employment_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::employment_value::update
 	if(state.world.pop_get_poptype(main.for_pop).get_has_unemployment()) {
-		set_text(state, text::format_percentage(pop_demographics::get_employment(state, main.for_pop), 0));
+		set_text(state, text::format_percentage(pop_demographics::get_raw_employment(state, main.for_pop), 0));
 	} else {
 		set_text(state, "–");
 	}
 // END
 }
-void pop_details_main_employment_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::employment_value::create
-// END
-}
-void pop_details_main_income_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_income_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_income_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_income_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::income_header::update
-// END
-}
-void pop_details_main_income_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::income_header::create
-// END
-}
-void pop_details_main_income_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_income_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_income_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_income_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::income_value::update
 	set_text(state, text::format_money(state.world.pop_get_savings(main.for_pop)));
-// END
-}
-void pop_details_main_income_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::income_value::create
-// END
-}
-void pop_details_main_growth_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_growth_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_growth_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_growth_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::growth_header::update
-// END
-}
-void pop_details_main_growth_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::growth_header::create
 // END
 }
 void pop_details_main_growth_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -4718,73 +2740,10 @@ void pop_details_main_growth_value_t::update_tooltip(sys::state& state, int32_t 
 	describe_growth(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_growth_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_growth_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_growth_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_growth_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::growth_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_monthly_pop_increase(state, main.for_pop))));
-// END
-}
-void pop_details_main_growth_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::growth_value::create
-// END
-}
-void pop_details_main_assim_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_assim_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_assim_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_assim_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::assim_header::update
-// END
-}
-void pop_details_main_assim_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::assim_header::create
 // END
 }
 void pop_details_main_assim_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -4793,96 +2752,11 @@ void pop_details_main_assim_value_t::update_tooltip(sys::state& state, int32_t x
 	describe_assimilation(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_assim_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_assim_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_assim_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_assim_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::assim_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_assimilation(state, main.for_pop))));
 // END
-}
-void pop_details_main_assim_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::assim_value::create
-// END
-}
-void pop_details_main_ln_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_ln_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_ln_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_ln_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::ln_header::update
-// END
-}
-void pop_details_main_ln_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::ln_header::create
-// END
-}
-void pop_details_main_ln_total_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_ln_total_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_ln_total_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
 }
 void pop_details_main_ln_total_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -4898,69 +2772,6 @@ void pop_details_main_ln_total_t::on_update(sys::state& state) noexcept {
 	set_text(state, text::format_money(total));
 // END
 }
-void pop_details_main_ln_total_t::on_create(sys::state& state) noexcept {
-// BEGIN main::ln_total::create
-// END
-}
-void pop_details_main_en_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_en_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_en_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_en_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::en_header::update
-// END
-}
-void pop_details_main_en_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::en_header::create
-// END
-}
-void pop_details_main_en_total_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_en_total_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_en_total_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_en_total_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::en_total::update
@@ -4974,69 +2785,6 @@ void pop_details_main_en_total_t::on_update(sys::state& state) noexcept {
 	}
 	set_text(state, text::format_money(total));
 // END
-}
-void pop_details_main_en_total_t::on_create(sys::state& state) noexcept {
-// BEGIN main::en_total::create
-// END
-}
-void pop_details_main_lx_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_lx_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_lx_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_lx_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::lx_header::update
-// END
-}
-void pop_details_main_lx_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::lx_header::create
-// END
-}
-void pop_details_main_lx_total_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_lx_total_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_lx_total_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
 }
 void pop_details_main_lx_total_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5052,201 +2800,11 @@ void pop_details_main_lx_total_t::on_update(sys::state& state) noexcept {
 	set_text(state, text::format_money(total));
 // END
 }
-void pop_details_main_lx_total_t::on_create(sys::state& state) noexcept {
-// BEGIN main::lx_total::create
-// END
-}
-ui::message_result pop_details_main_bg_a_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_a_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_a_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_a_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_a::update
-// END
-}
-void pop_details_main_bg_a_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_a::create
-// END
-}
-ui::message_result pop_details_main_bg_b_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_b_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_b_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_b_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_b::update
-// END
-}
-void pop_details_main_bg_b_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_b::create
-// END
-}
-ui::message_result pop_details_main_bg_c_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_c_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_c_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_c_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_c::update
-// END
-}
-void pop_details_main_bg_c_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_c::create
-// END
-}
-ui::message_result pop_details_main_bg_d_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_d_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_d_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_d_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_d::update
-// END
-}
-void pop_details_main_bg_d_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_d::create
-// END
-}
-ui::message_result pop_details_main_bg_e_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_e_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_e_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_e_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_e::update
-// END
-}
-void pop_details_main_bg_e_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_e::create
-// END
-}
-void pop_details_main_prom_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_prom_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_prom_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_prom_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::prom_header::update
-// END
-}
-void pop_details_main_prom_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::prom_header::create
-// END
-}
-void pop_details_main_prom_amount_label_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_prom_amount_label_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_prom_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_prom_amount_label_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::prom_amount_label::update
-// END
-}
-void pop_details_main_prom_amount_label_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::prom_amount_label::create
-// END
-}
 void pop_details_main_prom_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::prom_value::tooltip
 	describe_promotion(state, contents, main.for_pop);
 // END
-}
-void pop_details_main_prom_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_prom_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_prom_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
 }
 void pop_details_main_prom_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5254,15 +2812,9 @@ void pop_details_main_prom_value_t::on_update(sys::state& state) noexcept {
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_promotion(state, main.for_pop))));
 // END
 }
-void pop_details_main_prom_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::prom_value::create
+void pop_details_main_prom_bar_chart_t::on_create(sys::state& state) noexcept {
+// BEGIN main::prom_bar_chart::create
 // END
-}
-ui::message_result pop_details_main_prom_bar_chart_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_prom_bar_chart_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void pop_details_main_prom_bar_chart_t::update_chart(sys::state& state) {
 	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) { return a.amount > b.amount; });
@@ -5280,7 +2832,7 @@ void pop_details_main_prom_bar_chart_t::update_chart(sys::state& state) {
 	int32_t index = 0;
 	float offset = 0.0f;
 	for(int32_t k = 0; k < 264; k++) {
-		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
+		while(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
 			offset += graph_content[index].amount;
 			++index;
 		}
@@ -5292,10 +2844,13 @@ void pop_details_main_prom_bar_chart_t::update_chart(sys::state& state) {
 }
 void pop_details_main_prom_bar_chart_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
-	float temp_offset = temp_total * float(x) / float(base_data.size.x);
+	float temp_offset = temp_total * float(x - par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin ) / float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin));
 	int32_t temp_index = 0;
+	if(temp_offset < 0.0f || temp_offset > temp_total) return;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
 		auto& selected_key = graph_content[temp_index].key;
@@ -5311,122 +2866,28 @@ void pop_details_main_prom_bar_chart_t::update_tooltip(sys::state& state, int32_
 	}
 }
 void pop_details_main_prom_bar_chart_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
+	ogl::render_stripchart(state, ogl::color_modification::none, float(x + par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin), float(y + par->grid_size * state.ui_templates.stacked_bar_t[template_id].t_margin), float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin)), float(base_data.size.y - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].t_margin +state.ui_templates.stacked_bar_t[template_id].b_margin)), data_texture);
+	auto bg_id = state.ui_templates.stacked_bar_t[template_id].overlay_bg;
+	if(bg_id != -1)
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
 }
 void pop_details_main_prom_bar_chart_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::prom_bar_chart::update
 	graph_content.clear();
 
-	auto type = state.world.pop_get_poptype(main.for_pop);
+	auto promotion_weights = demographics::get_pop_promotion_demotion_weights<demographics::promotion_type::promotion>(state, main.for_pop);
+
 	for(auto t : state.world.in_pop_type) {
-		if(t.get_strata() >= type.get_strata()) {
-			auto r = state.world.pop_type_get_promotion(type, t);
-			if(r) {
-				auto a = std::max(0.0f, trigger::evaluate_additive_modifier(state, r, trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-				if(a > 0)
-					graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), a });
-			}
+		auto amount = promotion_weights.pop_weights[t.id];
+		if(amount > 0) {
+			graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), amount });
 		}
 	}
 
 	update_chart(state);
-// END
-}
-void pop_details_main_prom_bar_chart_t::on_create(sys::state& state) noexcept {
-// BEGIN main::prom_bar_chart::create
-// END
-}
-ui::message_result pop_details_main_prom_bar_overlay_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_prom_bar_overlay_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_prom_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_prom_bar_overlay_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::prom_bar_overlay::update
-// END
-}
-void pop_details_main_prom_bar_overlay_t::on_create(sys::state& state) noexcept {
-// BEGIN main::prom_bar_overlay::create
-// END
-}
-void pop_details_main_dem_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_dem_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_dem_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_dem_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::dem_header::update
-// END
-}
-void pop_details_main_dem_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::dem_header::create
-// END
-}
-void pop_details_main_dem_amount_label_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_dem_amount_label_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_dem_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_dem_amount_label_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::dem_amount_label::update
-// END
-}
-void pop_details_main_dem_amount_label_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::dem_amount_label::create
 // END
 }
 void pop_details_main_dem_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -5435,43 +2896,15 @@ void pop_details_main_dem_value_t::update_tooltip(sys::state& state, int32_t x, 
 	describe_demotion(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_dem_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_dem_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_dem_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_dem_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::dem_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_demotion(state, main.for_pop))));
 // END
 }
-void pop_details_main_dem_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::dem_value::create
+void pop_details_main_dem_bar_chart_t::on_create(sys::state& state) noexcept {
+// BEGIN main::dem_bar_chart::create
 // END
-}
-ui::message_result pop_details_main_dem_bar_chart_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_dem_bar_chart_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void pop_details_main_dem_bar_chart_t::update_chart(sys::state& state) {
 	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) { return a.amount > b.amount; });
@@ -5489,7 +2922,7 @@ void pop_details_main_dem_bar_chart_t::update_chart(sys::state& state) {
 	int32_t index = 0;
 	float offset = 0.0f;
 	for(int32_t k = 0; k < 264; k++) {
-		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
+		while(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
 			offset += graph_content[index].amount;
 			++index;
 		}
@@ -5501,10 +2934,13 @@ void pop_details_main_dem_bar_chart_t::update_chart(sys::state& state) {
 }
 void pop_details_main_dem_bar_chart_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
-	float temp_offset = temp_total * float(x) / float(base_data.size.x);
+	float temp_offset = temp_total * float(x - par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin ) / float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin));
 	int32_t temp_index = 0;
+	if(temp_offset < 0.0f || temp_offset > temp_total) return;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
 		auto& selected_key = graph_content[temp_index].key;
@@ -5520,92 +2956,33 @@ void pop_details_main_dem_bar_chart_t::update_tooltip(sys::state& state, int32_t
 	}
 }
 void pop_details_main_dem_bar_chart_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
+	ogl::render_stripchart(state, ogl::color_modification::none, float(x + par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin), float(y + par->grid_size * state.ui_templates.stacked_bar_t[template_id].t_margin), float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin)), float(base_data.size.y - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].t_margin +state.ui_templates.stacked_bar_t[template_id].b_margin)), data_texture);
+	auto bg_id = state.ui_templates.stacked_bar_t[template_id].overlay_bg;
+	if(bg_id != -1)
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
 }
 void pop_details_main_dem_bar_chart_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::dem_bar_chart::update
 	graph_content.clear();
 
-	auto type = state.world.pop_get_poptype(main.for_pop);
+	auto promotion_weights = demographics::get_pop_promotion_demotion_weights<demographics::promotion_type::demotion>(state, main.for_pop);
+
 	for(auto t : state.world.in_pop_type) {
-		if(t.get_strata() <= type.get_strata()) {
-			auto r = state.world.pop_type_get_promotion(type, t);
-			if(r) {
-				auto a = std::max(0.0f, trigger::evaluate_additive_modifier(state, r, trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-				if(a > 0)
-					graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), a });
-			}
+		auto amount = promotion_weights.pop_weights[t.id];
+		if(amount > 0) {
+			graph_content.push_back(graph_entry{ t.id, ogl::unpack_color(t.get_color()), amount });
 		}
 	}
 
 	update_chart(state);
 // END
 }
-void pop_details_main_dem_bar_chart_t::on_create(sys::state& state) noexcept {
-// BEGIN main::dem_bar_chart::create
+void pop_details_main_ideo_bar_chart_t::on_create(sys::state& state) noexcept {
+// BEGIN main::ideo_bar_chart::create
 // END
-}
-ui::message_result pop_details_main_dem_bar_overlay_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_dem_bar_overlay_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_dem_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_dem_bar_overlay_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::dem_bar_overlay::update
-// END
-}
-void pop_details_main_dem_bar_overlay_t::on_create(sys::state& state) noexcept {
-// BEGIN main::dem_bar_overlay::create
-// END
-}
-void pop_details_main_ideo_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_ideo_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_ideo_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_ideo_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::ideo_header::update
-// END
-}
-void pop_details_main_ideo_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::ideo_header::create
-// END
-}
-ui::message_result pop_details_main_ideo_bar_chart_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_ideo_bar_chart_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void pop_details_main_ideo_bar_chart_t::update_chart(sys::state& state) {
 	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) { return a.amount > b.amount; });
@@ -5623,7 +3000,7 @@ void pop_details_main_ideo_bar_chart_t::update_chart(sys::state& state) {
 	int32_t index = 0;
 	float offset = 0.0f;
 	for(int32_t k = 0; k < 264; k++) {
-		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
+		while(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
 			offset += graph_content[index].amount;
 			++index;
 		}
@@ -5635,10 +3012,13 @@ void pop_details_main_ideo_bar_chart_t::update_chart(sys::state& state) {
 }
 void pop_details_main_ideo_bar_chart_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
-	float temp_offset = temp_total * float(x) / float(base_data.size.x);
+	float temp_offset = temp_total * float(x - par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin ) / float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin));
 	int32_t temp_index = 0;
+	if(temp_offset < 0.0f || temp_offset > temp_total) return;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
 		auto& selected_key = graph_content[temp_index].key;
@@ -5652,7 +3032,12 @@ void pop_details_main_ideo_bar_chart_t::update_tooltip(sys::state& state, int32_
 	}
 }
 void pop_details_main_ideo_bar_chart_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
+	ogl::render_stripchart(state, ogl::color_modification::none, float(x + par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin), float(y + par->grid_size * state.ui_templates.stacked_bar_t[template_id].t_margin), float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin)), float(base_data.size.y - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].t_margin +state.ui_templates.stacked_bar_t[template_id].b_margin)), data_texture);
+	auto bg_id = state.ui_templates.stacked_bar_t[template_id].overlay_bg;
+	if(bg_id != -1)
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
 }
 void pop_details_main_ideo_bar_chart_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5666,70 +3051,9 @@ void pop_details_main_ideo_bar_chart_t::on_update(sys::state& state) noexcept {
 	update_chart(state);
 // END
 }
-void pop_details_main_ideo_bar_chart_t::on_create(sys::state& state) noexcept {
-// BEGIN main::ideo_bar_chart::create
+void pop_details_main_iss_bar_chart_t::on_create(sys::state& state) noexcept {
+// BEGIN main::iss_bar_chart::create
 // END
-}
-ui::message_result pop_details_main_ideo_bar_overlay_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_ideo_bar_overlay_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_ideo_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_ideo_bar_overlay_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::ideo_bar_overlay::update
-// END
-}
-void pop_details_main_ideo_bar_overlay_t::on_create(sys::state& state) noexcept {
-// BEGIN main::ideo_bar_overlay::create
-// END
-}
-void pop_details_main_iss_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_iss_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_iss_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_iss_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::iss_header::update
-// END
-}
-void pop_details_main_iss_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::iss_header::create
-// END
-}
-ui::message_result pop_details_main_iss_bar_chart_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_iss_bar_chart_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
 }
 void pop_details_main_iss_bar_chart_t::update_chart(sys::state& state) {
 	std::sort(graph_content.begin(), graph_content.end(), [](auto const& a, auto const& b) { return a.amount > b.amount; });
@@ -5747,7 +3071,7 @@ void pop_details_main_iss_bar_chart_t::update_chart(sys::state& state) {
 	int32_t index = 0;
 	float offset = 0.0f;
 	for(int32_t k = 0; k < 264; k++) {
-		if(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
+		while(graph_content[index].amount + offset < (float(k) + 0.5f) * total /  float(264)) {
 			offset += graph_content[index].amount;
 			++index;
 		}
@@ -5759,10 +3083,13 @@ void pop_details_main_iss_bar_chart_t::update_chart(sys::state& state) {
 }
 void pop_details_main_iss_bar_chart_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
 	float temp_total = 0.0f;
 	for(auto& p : graph_content) { temp_total += p.amount; }
-	float temp_offset = temp_total * float(x) / float(base_data.size.x);
+	float temp_offset = temp_total * float(x - par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin ) / float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin));
 	int32_t temp_index = 0;
+	if(temp_offset < 0.0f || temp_offset > temp_total) return;
 	for(auto& p : graph_content) { if(temp_offset <= p.amount) break; temp_offset -= p.amount; ++temp_index; }
 	if(temp_index < int32_t(graph_content.size())) {
 		auto& selected_key = graph_content[temp_index].key;
@@ -5779,7 +3106,12 @@ void pop_details_main_iss_bar_chart_t::update_tooltip(sys::state& state, int32_t
 	}
 }
 void pop_details_main_iss_bar_chart_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_stripchart(state, ogl::color_modification::none, float(x), float(y), float(base_data.size.x), float(base_data.size.y), data_texture);
+	if(template_id == -1) return;
+	alice_ui::layout_window_element* par = static_cast<alice_ui::layout_window_element*>(parent);
+	ogl::render_stripchart(state, ogl::color_modification::none, float(x + par->grid_size * state.ui_templates.stacked_bar_t[template_id].l_margin), float(y + par->grid_size * state.ui_templates.stacked_bar_t[template_id].t_margin), float(base_data.size.x - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].l_margin +state.ui_templates.stacked_bar_t[template_id].r_margin)), float(base_data.size.y - par->grid_size *(state.ui_templates.stacked_bar_t[template_id].t_margin +state.ui_templates.stacked_bar_t[template_id].b_margin)), data_texture);
+	auto bg_id = state.ui_templates.stacked_bar_t[template_id].overlay_bg;
+	if(bg_id != -1)
+		ogl::render_textured_rect_direct(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), state.ui_templates.backgrounds[bg_id].renders.get_render(state, float(base_data.size.x) / float(par->grid_size), float(base_data.size.y) / float(par->grid_size), int32_t(par->grid_size), state.user_settings.ui_scale));
 }
 void pop_details_main_iss_bar_chart_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
@@ -5793,212 +3125,16 @@ void pop_details_main_iss_bar_chart_t::on_update(sys::state& state) noexcept {
 	update_chart(state);
 // END
 }
-void pop_details_main_iss_bar_chart_t::on_create(sys::state& state) noexcept {
-// BEGIN main::iss_bar_chart::create
-// END
-}
-ui::message_result pop_details_main_iss_bar_overlay_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_iss_bar_overlay_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_iss_bar_overlay_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_iss_bar_overlay_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::iss_bar_overlay::update
-// END
-}
-void pop_details_main_iss_bar_overlay_t::on_create(sys::state& state) noexcept {
-// BEGIN main::iss_bar_overlay::create
-// END
-}
-void pop_details_main_emm_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_emm_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_emm_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_emm_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::emm_header::update
-// END
-}
-void pop_details_main_emm_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::emm_header::create
-// END
-}
-void pop_details_main_emm_amount_label_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_emm_amount_label_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_emm_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_emm_amount_label_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::emm_amount_label::update
-// END
-}
-void pop_details_main_emm_amount_label_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::emm_amount_label::create
-// END
-}
 void pop_details_main_emm_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::emm_value::tooltip
 	describe_emigration(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_emm_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_emm_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_emm_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_emm_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::emm_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_emigration(state, main.for_pop))));
-// END
-}
-void pop_details_main_emm_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::emm_value::create
-// END
-}
-void pop_details_main_mig_header_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_mig_header_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_mig_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_mig_header_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::mig_header::update
-// END
-}
-void pop_details_main_mig_header_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::mig_header::create
-// END
-}
-void pop_details_main_i_mig_amount_label_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_i_mig_amount_label_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_i_mig_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_i_mig_amount_label_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::i_mig_amount_label::update
-// END
-}
-void pop_details_main_i_mig_amount_label_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::i_mig_amount_label::create
 // END
 }
 void pop_details_main_i_mig_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -6007,73 +3143,10 @@ void pop_details_main_i_mig_value_t::update_tooltip(sys::state& state, int32_t x
 	describe_migration(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_i_mig_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_i_mig_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_i_mig_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_i_mig_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::i_mig_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_internal_migration(state, main.for_pop))));
-// END
-}
-void pop_details_main_i_mig_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::i_mig_value::create
-// END
-}
-void pop_details_main_c_mig_amount_label_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_c_mig_amount_label_t::on_reset_text(sys::state& state) noexcept {
-	cached_text = text::produce_simple_string(state, text_key);
-	internal_layout.contents.clear();
-	internal_layout.number_of_lines = 0;
-	text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-	sl.add_text(state, cached_text);
-}
-void pop_details_main_c_mig_amount_label_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
-void pop_details_main_c_mig_amount_label_t::on_update(sys::state& state) noexcept {
-	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::c_mig_amount_label::update
-// END
-}
-void pop_details_main_c_mig_amount_label_t::on_create(sys::state& state) noexcept {
-	on_reset_text(state);
-// BEGIN main::c_mig_amount_label::create
 // END
 }
 void pop_details_main_c_mig_value_t::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
@@ -6082,55 +3155,34 @@ void pop_details_main_c_mig_value_t::update_tooltip(sys::state& state, int32_t x
 	describe_colonial_migration(state, contents, main.for_pop);
 // END
 }
-void pop_details_main_c_mig_value_t::set_text(sys::state& state, std::string const& new_text) {
-	if(new_text != cached_text) {
-		cached_text = new_text;
-		internal_layout.contents.clear();
-		internal_layout.number_of_lines = 0;
-		text::single_line_layout sl{ internal_layout, text::layout_parameters{ 0, 0, static_cast<int16_t>(base_data.size.x), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, text_is_header, text_scale * 16), 0, text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
-		sl.add_text(state, cached_text);
-	}
-}
-void pop_details_main_c_mig_value_t::on_reset_text(sys::state& state) noexcept {
-}
-void pop_details_main_c_mig_value_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(internal_layout.contents.empty()) return;
-	auto fh = text::make_font_id(state, text_is_header, text_scale * 16);
-	auto linesz = state.font_collection.line_height(state, fh); 
-	if(linesz == 0.0f) return;
-	auto ycentered = (base_data.size.y - linesz) / 2;
-	auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse, false, false); 
-	for(auto& t : internal_layout.contents) {
-		ui::render_text_chunk(state, t, float(x) + t.x, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, text_color), cmod);
-	}
-}
 void pop_details_main_c_mig_value_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
 // BEGIN main::c_mig_value::update
 	set_text(state, std::to_string(int64_t(demographics::get_estimated_colonial_migration(state, main.for_pop))));
 // END
 }
-void pop_details_main_c_mig_value_t::on_create(sys::state& state) noexcept {
-// BEGIN main::c_mig_value::create
-// END
-}
-ui::message_result pop_details_main_bg_f_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-ui::message_result pop_details_main_bg_f_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
-}
-void pop_details_main_bg_f_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state));
-}
-void pop_details_main_bg_f_t::on_update(sys::state& state) noexcept {
+void pop_details_main_to_pop_budget_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
-// BEGIN main::bg_f::update
+// BEGIN main::to_pop_budget::update
 // END
 }
-void pop_details_main_bg_f_t::on_create(sys::state& state) noexcept {
-// BEGIN main::bg_f::create
+bool pop_details_main_to_pop_budget_t::button_action(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent)); 
+// BEGIN main::to_pop_budget::lbutton_action
+	main.budget_w->set_visible(state, true);
+
+	assert(main.budget_w);
+	auto pop_ptr = (dcon::pop_id*)main.budget_w->get_by_name(state, "for_pop");
+	*pop_ptr = main.for_pop;
+
+	if(!main.budget_w->is_visible())
+		main.budget_w->set_visible(state, true);
+	else
+		main.budget_w->impl_on_update(state);
+	main.budget_w->parent->move_child_to_front(main.budget_w);
+
 // END
+	return true;
 }
 ui::message_result pop_details_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
@@ -6138,18 +3190,6 @@ ui::message_result pop_details_main_t::on_lbutton_down(sys::state& state, int32_
 }
 ui::message_result pop_details_main_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_main_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
 }
 void pop_details_main_t::on_update(sys::state& state) noexcept {
 // BEGIN main::update
@@ -6183,10 +3223,14 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -6198,203 +3242,202 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
-				if(cname == "close_button") {
-					temp.ptr = close_button.get();
-				}
 				if(cname == "window_title") {
 					temp.ptr = window_title.get();
-				}
+				} else
 				if(cname == "location_header") {
 					temp.ptr = location_header.get();
-				}
+				} else
 				if(cname == "location_value") {
 					temp.ptr = location_value.get();
-				}
+				} else
 				if(cname == "job_header") {
 					temp.ptr = job_header.get();
-				}
+				} else
 				if(cname == "job_value") {
 					temp.ptr = job_value.get();
-				}
+				} else
 				if(cname == "mil_header") {
 					temp.ptr = mil_header.get();
-				}
+				} else
 				if(cname == "mil_value") {
 					temp.ptr = mil_value.get();
-				}
+				} else
 				if(cname == "con_header") {
 					temp.ptr = con_header.get();
-				}
+				} else
 				if(cname == "con_value") {
 					temp.ptr = con_value.get();
-				}
+				} else
 				if(cname == "lit_header") {
 					temp.ptr = lit_header.get();
-				}
+				} else
 				if(cname == "lit_value") {
 					temp.ptr = lit_value.get();
-				}
+				} else
 				if(cname == "religion_header") {
 					temp.ptr = religion_header.get();
-				}
+				} else
 				if(cname == "religion_value") {
 					temp.ptr = religion_value.get();
-				}
+				} else
 				if(cname == "culture_header") {
 					temp.ptr = culture_header.get();
-				}
+				} else
 				if(cname == "culture_value") {
 					temp.ptr = culture_value.get();
-				}
+				} else
 				if(cname == "employment_header") {
 					temp.ptr = employment_header.get();
-				}
+				} else
 				if(cname == "employment_value") {
 					temp.ptr = employment_value.get();
-				}
+				} else
 				if(cname == "income_header") {
 					temp.ptr = income_header.get();
-				}
+				} else
 				if(cname == "income_value") {
 					temp.ptr = income_value.get();
-				}
+				} else
 				if(cname == "growth_header") {
 					temp.ptr = growth_header.get();
-				}
+				} else
 				if(cname == "growth_value") {
 					temp.ptr = growth_value.get();
-				}
+				} else
 				if(cname == "assim_header") {
 					temp.ptr = assim_header.get();
-				}
+				} else
 				if(cname == "assim_value") {
 					temp.ptr = assim_value.get();
-				}
-				if(cname == "ln_header") {
-					temp.ptr = ln_header.get();
-				}
+				} else
 				if(cname == "ln_total") {
 					temp.ptr = ln_total.get();
-				}
-				if(cname == "en_header") {
-					temp.ptr = en_header.get();
-				}
+				} else
 				if(cname == "en_total") {
 					temp.ptr = en_total.get();
-				}
-				if(cname == "lx_header") {
-					temp.ptr = lx_header.get();
-				}
+				} else
 				if(cname == "lx_total") {
 					temp.ptr = lx_total.get();
-				}
-				if(cname == "bg_a") {
-					temp.ptr = bg_a.get();
-				}
-				if(cname == "bg_b") {
-					temp.ptr = bg_b.get();
-				}
-				if(cname == "bg_c") {
-					temp.ptr = bg_c.get();
-				}
-				if(cname == "bg_d") {
-					temp.ptr = bg_d.get();
-				}
-				if(cname == "bg_e") {
-					temp.ptr = bg_e.get();
-				}
+				} else
 				if(cname == "prom_header") {
 					temp.ptr = prom_header.get();
-				}
+				} else
 				if(cname == "prom_amount_label") {
 					temp.ptr = prom_amount_label.get();
-				}
+				} else
 				if(cname == "prom_value") {
 					temp.ptr = prom_value.get();
-				}
+				} else
 				if(cname == "prom_bar_chart") {
 					temp.ptr = prom_bar_chart.get();
-				}
-				if(cname == "prom_bar_overlay") {
-					temp.ptr = prom_bar_overlay.get();
-				}
+				} else
 				if(cname == "dem_header") {
 					temp.ptr = dem_header.get();
-				}
+				} else
 				if(cname == "dem_amount_label") {
 					temp.ptr = dem_amount_label.get();
-				}
+				} else
 				if(cname == "dem_value") {
 					temp.ptr = dem_value.get();
-				}
+				} else
 				if(cname == "dem_bar_chart") {
 					temp.ptr = dem_bar_chart.get();
-				}
-				if(cname == "dem_bar_overlay") {
-					temp.ptr = dem_bar_overlay.get();
-				}
+				} else
 				if(cname == "ideo_header") {
 					temp.ptr = ideo_header.get();
-				}
+				} else
 				if(cname == "ideo_bar_chart") {
 					temp.ptr = ideo_bar_chart.get();
-				}
-				if(cname == "ideo_bar_overlay") {
-					temp.ptr = ideo_bar_overlay.get();
-				}
+				} else
 				if(cname == "iss_header") {
 					temp.ptr = iss_header.get();
-				}
+				} else
 				if(cname == "iss_bar_chart") {
 					temp.ptr = iss_bar_chart.get();
-				}
-				if(cname == "iss_bar_overlay") {
-					temp.ptr = iss_bar_overlay.get();
-				}
+				} else
 				if(cname == "emm_header") {
 					temp.ptr = emm_header.get();
-				}
+				} else
 				if(cname == "emm_amount_label") {
 					temp.ptr = emm_amount_label.get();
-				}
+				} else
 				if(cname == "emm_value") {
 					temp.ptr = emm_value.get();
-				}
+				} else
 				if(cname == "mig_header") {
 					temp.ptr = mig_header.get();
-				}
+				} else
 				if(cname == "i_mig_amount_label") {
 					temp.ptr = i_mig_amount_label.get();
-				}
+				} else
 				if(cname == "i_mig_value") {
 					temp.ptr = i_mig_value.get();
-				}
+				} else
 				if(cname == "c_mig_amount_label") {
 					temp.ptr = c_mig_amount_label.get();
-				}
+				} else
 				if(cname == "c_mig_value") {
 					temp.ptr = c_mig_value.get();
-				}
-				if(cname == "bg_f") {
-					temp.ptr = bg_f.get();
+				} else
+				if(cname == "fancy_bar_1") {
+					temp.ptr = fancy_bar_1.get();
+				} else
+				if(cname == "fancy_bar_2") {
+					temp.ptr = fancy_bar_2.get();
+				} else
+				if(cname == "to_pop_budget") {
+					temp.ptr = to_pop_budget.get();
+				} else
+				if(cname == "fancy_bar_3") {
+					temp.ptr = fancy_bar_3.get();
+				} else
+				if(cname == "ln_header") {
+					temp.ptr = ln_header.get();
+				} else
+				if(cname == "en_header") {
+					temp.ptr = en_header.get();
+				} else
+				if(cname == "lx_header") {
+					temp.ptr = lx_header.get();
+				} else
+				if(cname == "ln_icon") {
+					temp.ptr = ln_icon.get();
+				} else
+				if(cname == "en_icon") {
+					temp.ptr = en_icon.get();
+				} else
+				if(cname == "lx_icon") {
+					temp.ptr = lx_icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -6427,6 +3470,12 @@ void pop_details_main_t::create_layout_level(sys::state& state, layout_level& lv
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -6492,59 +3541,45 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
-		if(child_data.name == "close_button") {
-			close_button = std::make_unique<pop_details_main_close_button_t>();
-			close_button->parent = this;
-			auto cptr = close_button.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
 		if(child_data.name == "window_title") {
-			window_title = std::make_unique<pop_details_main_window_title_t>();
+			window_title = std::make_unique<template_label>();
 			window_title->parent = this;
 			auto cptr = window_title.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "location_header") {
-			location_header = std::make_unique<pop_details_main_location_header_t>();
+			location_header = std::make_unique<template_label>();
 			location_header->parent = this;
 			auto cptr = location_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "location_value") {
 			location_value = std::make_unique<pop_details_main_location_value_t>();
 			location_value->parent = this;
@@ -6553,33 +3588,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "job_header") {
-			job_header = std::make_unique<pop_details_main_job_header_t>();
+			job_header = std::make_unique<template_label>();
 			job_header->parent = this;
 			auto cptr = job_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "job_value") {
 			job_value = std::make_unique<pop_details_main_job_value_t>();
 			job_value->parent = this;
@@ -6588,33 +3624,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "mil_header") {
-			mil_header = std::make_unique<pop_details_main_mil_header_t>();
+			mil_header = std::make_unique<template_label>();
 			mil_header->parent = this;
 			auto cptr = mil_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "mil_value") {
 			mil_value = std::make_unique<pop_details_main_mil_value_t>();
 			mil_value->parent = this;
@@ -6623,33 +3660,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "con_header") {
-			con_header = std::make_unique<pop_details_main_con_header_t>();
+			con_header = std::make_unique<template_label>();
 			con_header->parent = this;
 			auto cptr = con_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "con_value") {
 			con_value = std::make_unique<pop_details_main_con_value_t>();
 			con_value->parent = this;
@@ -6658,33 +3696,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "lit_header") {
-			lit_header = std::make_unique<pop_details_main_lit_header_t>();
+			lit_header = std::make_unique<template_label>();
 			lit_header->parent = this;
 			auto cptr = lit_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "lit_value") {
 			lit_value = std::make_unique<pop_details_main_lit_value_t>();
 			lit_value->parent = this;
@@ -6693,33 +3732,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "religion_header") {
-			religion_header = std::make_unique<pop_details_main_religion_header_t>();
+			religion_header = std::make_unique<template_label>();
 			religion_header->parent = this;
 			auto cptr = religion_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "religion_value") {
 			religion_value = std::make_unique<pop_details_main_religion_value_t>();
 			religion_value->parent = this;
@@ -6728,33 +3768,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "culture_header") {
-			culture_header = std::make_unique<pop_details_main_culture_header_t>();
+			culture_header = std::make_unique<template_label>();
 			culture_header->parent = this;
 			auto cptr = culture_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "culture_value") {
 			culture_value = std::make_unique<pop_details_main_culture_value_t>();
 			culture_value->parent = this;
@@ -6763,33 +3804,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "employment_header") {
-			employment_header = std::make_unique<pop_details_main_employment_header_t>();
+			employment_header = std::make_unique<template_label>();
 			employment_header->parent = this;
 			auto cptr = employment_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "employment_value") {
 			employment_value = std::make_unique<pop_details_main_employment_value_t>();
 			employment_value->parent = this;
@@ -6798,33 +3840,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "income_header") {
-			income_header = std::make_unique<pop_details_main_income_header_t>();
+			income_header = std::make_unique<template_label>();
 			income_header->parent = this;
 			auto cptr = income_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "income_value") {
 			income_value = std::make_unique<pop_details_main_income_value_t>();
 			income_value->parent = this;
@@ -6833,33 +3876,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "growth_header") {
-			growth_header = std::make_unique<pop_details_main_growth_header_t>();
+			growth_header = std::make_unique<template_label>();
 			growth_header->parent = this;
 			auto cptr = growth_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "growth_value") {
 			growth_value = std::make_unique<pop_details_main_growth_value_t>();
 			growth_value->parent = this;
@@ -6868,33 +3912,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "assim_header") {
-			assim_header = std::make_unique<pop_details_main_assim_header_t>();
+			assim_header = std::make_unique<template_label>();
 			assim_header->parent = this;
 			auto cptr = assim_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "assim_value") {
 			assim_value = std::make_unique<pop_details_main_assim_value_t>();
 			assim_value->parent = this;
@@ -6903,33 +3948,16 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "ln_header") {
-			ln_header = std::make_unique<pop_details_main_ln_header_t>();
-			ln_header->parent = this;
-			auto cptr = ln_header.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "ln_total") {
 			ln_total = std::make_unique<pop_details_main_ln_total_t>();
 			ln_total->parent = this;
@@ -6938,33 +3966,16 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "en_header") {
-			en_header = std::make_unique<pop_details_main_en_header_t>();
-			en_header->parent = this;
-			auto cptr = en_header.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "en_total") {
 			en_total = std::make_unique<pop_details_main_en_total_t>();
 			en_total->parent = this;
@@ -6973,33 +3984,16 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "lx_header") {
-			lx_header = std::make_unique<pop_details_main_lx_header_t>();
-			lx_header->parent = this;
-			auto cptr = lx_header.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "lx_total") {
 			lx_total = std::make_unique<pop_details_main_lx_total_t>();
 			lx_total->parent = this;
@@ -7008,121 +4002,52 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_a") {
-			bg_a = std::make_unique<pop_details_main_bg_a_t>();
-			bg_a->parent = this;
-			auto cptr = bg_a.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_b") {
-			bg_b = std::make_unique<pop_details_main_bg_b_t>();
-			bg_b->parent = this;
-			auto cptr = bg_b.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_c") {
-			bg_c = std::make_unique<pop_details_main_bg_c_t>();
-			bg_c->parent = this;
-			auto cptr = bg_c.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_d") {
-			bg_d = std::make_unique<pop_details_main_bg_d_t>();
-			bg_d->parent = this;
-			auto cptr = bg_d.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_e") {
-			bg_e = std::make_unique<pop_details_main_bg_e_t>();
-			bg_e->parent = this;
-			auto cptr = bg_e.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "prom_header") {
-			prom_header = std::make_unique<pop_details_main_prom_header_t>();
+			prom_header = std::make_unique<template_label>();
 			prom_header->parent = this;
 			auto cptr = prom_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "prom_amount_label") {
-			prom_amount_label = std::make_unique<pop_details_main_prom_amount_label_t>();
+			prom_amount_label = std::make_unique<template_label>();
 			prom_amount_label->parent = this;
 			auto cptr = prom_amount_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "prom_value") {
 			prom_value = std::make_unique<pop_details_main_prom_value_t>();
 			prom_value->parent = this;
@@ -7131,15 +4056,16 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "prom_bar_chart") {
 			prom_bar_chart = std::make_unique<pop_details_main_prom_bar_chart_t>();
 			prom_bar_chart->parent = this;
@@ -7148,61 +4074,48 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "prom_bar_overlay") {
-			prom_bar_overlay = std::make_unique<pop_details_main_prom_bar_overlay_t>();
-			prom_bar_overlay->parent = this;
-			auto cptr = prom_bar_overlay.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "dem_header") {
-			dem_header = std::make_unique<pop_details_main_dem_header_t>();
+			dem_header = std::make_unique<template_label>();
 			dem_header->parent = this;
 			auto cptr = dem_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "dem_amount_label") {
-			dem_amount_label = std::make_unique<pop_details_main_dem_amount_label_t>();
+			dem_amount_label = std::make_unique<template_label>();
 			dem_amount_label->parent = this;
 			auto cptr = dem_amount_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "dem_value") {
 			dem_value = std::make_unique<pop_details_main_dem_value_t>();
 			dem_value->parent = this;
@@ -7211,15 +4124,16 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "dem_bar_chart") {
 			dem_bar_chart = std::make_unique<pop_details_main_dem_bar_chart_t>();
 			dem_bar_chart->parent = this;
@@ -7228,43 +4142,30 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "dem_bar_overlay") {
-			dem_bar_overlay = std::make_unique<pop_details_main_dem_bar_overlay_t>();
-			dem_bar_overlay->parent = this;
-			auto cptr = dem_bar_overlay.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "ideo_header") {
-			ideo_header = std::make_unique<pop_details_main_ideo_header_t>();
+			ideo_header = std::make_unique<template_label>();
 			ideo_header->parent = this;
 			auto cptr = ideo_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "ideo_bar_chart") {
 			ideo_bar_chart = std::make_unique<pop_details_main_ideo_bar_chart_t>();
 			ideo_bar_chart->parent = this;
@@ -7273,43 +4174,30 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "ideo_bar_overlay") {
-			ideo_bar_overlay = std::make_unique<pop_details_main_ideo_bar_overlay_t>();
-			ideo_bar_overlay->parent = this;
-			auto cptr = ideo_bar_overlay.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "iss_header") {
-			iss_header = std::make_unique<pop_details_main_iss_header_t>();
+			iss_header = std::make_unique<template_label>();
 			iss_header->parent = this;
 			auto cptr = iss_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "iss_bar_chart") {
 			iss_bar_chart = std::make_unique<pop_details_main_iss_bar_chart_t>();
 			iss_bar_chart->parent = this;
@@ -7318,61 +4206,48 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "iss_bar_overlay") {
-			iss_bar_overlay = std::make_unique<pop_details_main_iss_bar_overlay_t>();
-			iss_bar_overlay->parent = this;
-			auto cptr = iss_bar_overlay.get();
-			cptr->base_data.position.x = child_data.x_pos;
-			cptr->base_data.position.y = child_data.y_pos;
-			cptr->base_data.size.x = child_data.x_size;
-			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
-			cptr->parent = this;
-			cptr->on_create(state);
-			children.push_back(cptr);
-			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "emm_header") {
-			emm_header = std::make_unique<pop_details_main_emm_header_t>();
+			emm_header = std::make_unique<template_label>();
 			emm_header->parent = this;
 			auto cptr = emm_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "emm_amount_label") {
-			emm_amount_label = std::make_unique<pop_details_main_emm_amount_label_t>();
+			emm_amount_label = std::make_unique<template_label>();
 			emm_amount_label->parent = this;
 			auto cptr = emm_amount_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "emm_value") {
 			emm_value = std::make_unique<pop_details_main_emm_value_t>();
 			emm_value->parent = this;
@@ -7381,51 +4256,52 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "mig_header") {
-			mig_header = std::make_unique<pop_details_main_mig_header_t>();
+			mig_header = std::make_unique<template_label>();
 			mig_header->parent = this;
 			auto cptr = mig_header.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "i_mig_amount_label") {
-			i_mig_amount_label = std::make_unique<pop_details_main_i_mig_amount_label_t>();
+			i_mig_amount_label = std::make_unique<template_label>();
 			i_mig_amount_label->parent = this;
 			auto cptr = i_mig_amount_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "i_mig_value") {
 			i_mig_value = std::make_unique<pop_details_main_i_mig_value_t>();
 			i_mig_value->parent = this;
@@ -7434,33 +4310,34 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "c_mig_amount_label") {
-			c_mig_amount_label = std::make_unique<pop_details_main_c_mig_amount_label_t>();
+			c_mig_amount_label = std::make_unique<template_label>();
 			c_mig_amount_label->parent = this;
 			auto cptr = c_mig_amount_label.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_key = state.lookup_key(child_data.text_key);
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "c_mig_value") {
 			c_mig_value = std::make_unique<pop_details_main_c_mig_value_t>();
 			c_mig_value->parent = this;
@@ -7469,29 +4346,187 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->text_scale = child_data.text_scale;
-			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
-			cptr->text_alignment = child_data.text_alignment;
-			cptr->text_color = child_data.text_color;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
-		if(child_data.name == "bg_f") {
-			bg_f = std::make_unique<pop_details_main_bg_f_t>();
-			bg_f->parent = this;
-			auto cptr = bg_f.get();
+		} else 
+		if(child_data.name == "fancy_bar_1") {
+			fancy_bar_1 = std::make_unique<template_bg_graphic>();
+			fancy_bar_1->parent = this;
+			auto cptr = fancy_bar_1.get();
 			cptr->base_data.position.x = child_data.x_pos;
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
-			cptr->texture_key = child_data.texture;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
+		if(child_data.name == "fancy_bar_2") {
+			fancy_bar_2 = std::make_unique<template_bg_graphic>();
+			fancy_bar_2->parent = this;
+			auto cptr = fancy_bar_2.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "to_pop_budget") {
+			to_pop_budget = std::make_unique<pop_details_main_to_pop_budget_t>();
+			to_pop_budget->parent = this;
+			auto cptr = to_pop_budget.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "fancy_bar_3") {
+			fancy_bar_3 = std::make_unique<template_bg_graphic>();
+			fancy_bar_3->parent = this;
+			auto cptr = fancy_bar_3.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "ln_header") {
+			ln_header = std::make_unique<template_label>();
+			ln_header->parent = this;
+			auto cptr = ln_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "en_header") {
+			en_header = std::make_unique<template_label>();
+			en_header->parent = this;
+			auto cptr = en_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "lx_header") {
+			lx_header = std::make_unique<template_label>();
+			lx_header->parent = this;
+			auto cptr = lx_header.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "ln_icon") {
+			ln_icon = std::make_unique<template_icon_graphic>();
+			ln_icon->parent = this;
+			auto cptr = ln_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "en_icon") {
+			en_icon = std::make_unique<template_icon_graphic>();
+			en_icon->parent = this;
+			auto cptr = en_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "lx_icon") {
+			lx_icon = std::make_unique<template_icon_graphic>();
+			lx_icon->parent = this;
+			auto cptr = lx_icon.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
 		if(child_data.name == ".tabneeds_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -7499,7 +4534,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			main_section.read<std::string_view>(); // discard name 
 			needs_table_ascending_icon_key = main_section.read<std::string_view>();
 			needs_table_descending_icon_key = main_section.read<std::string_view>();
-			main_section.read(needs_table_divider_color);
+			main_section.read<ogl::color3f>();
 			auto col_section = tbuffer.read_section();
 			col_section.read<std::string_view>(); // discard
 			col_section.read<std::string_view>(); // discard
@@ -7537,8 +4572,17 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(needs_table_cost_column_text_color);
 			col_section.read(needs_table_cost_header_text_color);
 			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tabprom_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -7546,7 +4590,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			main_section.read<std::string_view>(); // discard name 
 			prom_table_ascending_icon_key = main_section.read<std::string_view>();
 			prom_table_descending_icon_key = main_section.read<std::string_view>();
-			main_section.read(prom_table_divider_color);
+			main_section.read<ogl::color3f>();
 			auto col_section = tbuffer.read_section();
 			col_section.read<std::string_view>(); // discard
 			col_section.read<std::string_view>(); // discard
@@ -7576,7 +4620,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(prom_table_weight_header_text_color);
 			col_section.read(prom_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tabweights_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -7584,7 +4628,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			main_section.read<std::string_view>(); // discard name 
 			weights_table_ascending_icon_key = main_section.read<std::string_view>();
 			weights_table_descending_icon_key = main_section.read<std::string_view>();
-			main_section.read(weights_table_divider_color);
+			main_section.read<ogl::color3f>();
 			auto col_section = tbuffer.read_section();
 			weights_table_item_header_text_key = col_section.read<std::string_view>();
 			col_section.read<std::string_view>(); // discard
@@ -7605,7 +4649,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(weights_table_weight_header_text_color);
 			col_section.read(weights_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tabemm_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -7613,12 +4657,14 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			main_section.read<std::string_view>(); // discard name 
 			emm_table_ascending_icon_key = main_section.read<std::string_view>();
 			emm_table_descending_icon_key = main_section.read<std::string_view>();
-			main_section.read(emm_table_divider_color);
+			main_section.read<ogl::color3f>();
 			auto col_section = tbuffer.read_section();
 			col_section.read<std::string_view>(); // discard
 			col_section.read<std::string_view>(); // discard
 			col_section.read<std::string_view>(); // discard
-			running_w_total += col_section.read<int16_t>();
+			emm_table_flag_column_start = running_w_total;
+			col_section.read(emm_table_flag_column_width);
+			running_w_total += emm_table_flag_column_width;
 			col_section.read<text::text_color>(); // discard
 			col_section.read<text::text_color>(); // discard
 			col_section.read<text::alignment>(); // discard
@@ -7641,7 +4687,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(emm_table_weight_header_text_color);
 			col_section.read(emm_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == ".tabmig_table") {
 			int16_t running_w_total = 0;
 			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
@@ -7649,7 +4695,7 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			main_section.read<std::string_view>(); // discard name 
 			mig_table_ascending_icon_key = main_section.read<std::string_view>();
 			mig_table_descending_icon_key = main_section.read<std::string_view>();
-			main_section.read(mig_table_divider_color);
+			main_section.read<ogl::color3f>();
 			auto col_section = tbuffer.read_section();
 			mig_table_destination_header_text_key = col_section.read<std::string_view>();
 			col_section.read<std::string_view>(); // discard
@@ -7670,6 +4716,28 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 			col_section.read(mig_table_weight_header_text_color);
 			col_section.read(mig_table_weight_text_alignment);
 			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
 		}
 		pending_children.pop_back();
 	}
@@ -7687,6 +4755,12 @@ void pop_details_main_t::on_create(sys::state& state) noexcept {
 	page_text_color = win_data.page_text_color;
 	create_layout_level(state, layout, win_data.layout_data, win_data.layout_data_size);
 // BEGIN main::create
+	{
+		auto ptr = make_pop_budget_details_main(state);
+		budget_w = ptr.get();
+		budget_w->set_visible(state, false);
+		state.ui_state.root->add_child_to_back(std::move(ptr));
+	}
 // END
 }
 std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state) {
@@ -7695,10 +4769,10 @@ std::unique_ptr<ui::element_base> make_pop_details_main(sys::state& state) {
 	return ptr;
 }
 ui::message_result pop_details_needs_row_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 ui::message_result pop_details_needs_row_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 void pop_details_needs_row_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (pop_details_main_t*)(parent->parent);
@@ -7709,6 +4783,8 @@ void pop_details_needs_row_content_t::tooltip_position(sys::state& state, int32_
 	if(x >= table_source->needs_table_amount_column_start && x < table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width) {
 	}
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
+	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -7723,6 +4799,8 @@ void pop_details_needs_row_content_t::update_tooltip(sys::state& state, int32_t 
 	if(x >=  table_source->needs_table_amount_column_start && x <  table_source->needs_table_amount_column_start +  table_source->needs_table_amount_column_width) {
 	}
 	if(x >=  table_source->needs_table_cost_column_start && x <  table_source->needs_table_cost_column_start +  table_source->needs_table_cost_column_width) {
+	}
+	if(x >=  table_source->needs_table_weight_column_start && x <  table_source->needs_table_weight_column_start +  table_source->needs_table_weight_column_width) {
 	}
 }
 void pop_details_needs_row_content_t::set_icon_text(sys::state & state, std::string const& new_text) {
@@ -7777,38 +4855,120 @@ void pop_details_needs_row_content_t::set_cost_text(sys::state & state, std::str
 	} else {
 	}
 }
+void pop_details_needs_row_content_t::set_weight_text(sys::state & state, std::string const& new_text) {
+		auto table_source = (pop_details_main_t*)(parent->parent);
+	if(new_text !=  weight_cached_text) {
+		weight_cached_text = new_text;
+		weight_internal_layout.contents.clear();
+		weight_internal_layout.number_of_lines = 0;
+		{
+		text::single_line_layout sl{ weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_weight_column_width - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr }; 
+		sl.add_text(state, weight_cached_text);
+		}
+	} else {
+	}
+}
 void pop_details_needs_row_content_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	auto fh = text::make_font_id(state, false, 1.0f * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
-	if(!icon_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_icon , false, false); 
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_icon_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(table_source->needs_table_icon_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_icon_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_icon = state.ui_templates.colors[icon_text_color]; 	if(!icon_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : icon_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_icon_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, icon_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_icon_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_icon.r, col_color_icon.g, col_color_icon.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
-	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_name_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(table_source->needs_table_name_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_name_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_name = state.ui_templates.colors[name_text_color]; 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, name_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_name.r, col_color_name.g, col_color_name.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_amount = rel_mouse_x >= table_source->needs_table_amount_column_start && rel_mouse_x < (table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width);
-	if(!amount_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_amount_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(table_source->needs_table_amount_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_amount_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_amount = state.ui_templates.colors[amount_text_color]; 	if(!amount_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : amount_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_amount_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, amount_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_amount_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_amount.r, col_color_amount.g, col_color_amount.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_cost = rel_mouse_x >= table_source->needs_table_cost_column_start && rel_mouse_x < (table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width);
-	if(!cost_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_cost_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(table_source->needs_table_cost_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_cost_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_cost = state.ui_templates.colors[cost_text_color]; 	if(!cost_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : cost_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, cost_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_cost.r, col_color_cost.g, col_color_cost.b }, ogl::color_modification::none);
+		}
+	}
+	bool col_um_weight = rel_mouse_x >= table_source->needs_table_weight_column_start && rel_mouse_x < (table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
+		for(auto& t : weight_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 }
@@ -7823,6 +4983,7 @@ void pop_details_needs_row_content_t::on_update(sys::state& state) noexcept {
 	auto s = state.world.province_get_state_membership(l);
 	auto m = state.world.state_instance_get_market_from_local_market(s);
 	set_cost_text(state, text::format_money(needs_row.amount * state.world.market_get_price(m, needs_row.commodity)));
+	set_weight_text(state, text::format_float(needs_row.weight * 100.f, 0));
 // END
 }
 void pop_details_needs_row_content_t::on_create(sys::state& state) noexcept {
@@ -7863,48 +5024,14 @@ void pop_details_needs_row_need_icon_t::on_create(sys::state& state) noexcept {
 // BEGIN needs_row::need_icon::create
 // END
 }
+void  pop_details_needs_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_needs_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_needs_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_needs_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
-	if(col_um_icon && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(table_source->needs_table_icon_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
-	if(col_um_name && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(table_source->needs_table_name_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_amount = rel_mouse_x >= table_source->needs_table_amount_column_start && rel_mouse_x < (table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width);
-	if(col_um_amount && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(table_source->needs_table_amount_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_cost = rel_mouse_x >= table_source->needs_table_cost_column_start && rel_mouse_x < (table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width);
-	if(col_um_cost && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(table_source->needs_table_cost_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_needs_row_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -7930,10 +5057,14 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -7945,29 +5076,40 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
-				}
+				} else
 				if(cname == "need_icon") {
 					temp.ptr = need_icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -8000,6 +5142,12 @@ void pop_details_needs_row_t::create_layout_level(sys::state& state, layout_leve
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -8038,8 +5186,7 @@ void pop_details_needs_row_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8050,11 +5197,12 @@ void pop_details_needs_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "need_icon") {
 			need_icon = std::make_unique<pop_details_needs_row_need_icon_t>();
 			need_icon->parent = this;
@@ -8064,6 +5212,84 @@ void pop_details_needs_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabneeds_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			needs_table_ascending_icon_key = main_section.read<std::string_view>();
+			needs_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_icon_column_start = running_w_total;
+			col_section.read(needs_table_icon_column_width);
+			running_w_total += needs_table_icon_column_width;
+			col_section.read(needs_table_icon_column_text_color);
+			col_section.read(needs_table_icon_header_text_color);
+			col_section.read(needs_table_icon_text_alignment);
+			needs_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_name_column_start = running_w_total;
+			col_section.read(needs_table_name_column_width);
+			running_w_total += needs_table_name_column_width;
+			col_section.read(needs_table_name_column_text_color);
+			col_section.read(needs_table_name_header_text_color);
+			col_section.read(needs_table_name_text_alignment);
+			needs_table_amount_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_amount_column_start = running_w_total;
+			col_section.read(needs_table_amount_column_width);
+			running_w_total += needs_table_amount_column_width;
+			col_section.read(needs_table_amount_column_text_color);
+			col_section.read(needs_table_amount_header_text_color);
+			col_section.read(needs_table_amount_text_alignment);
+			needs_table_cost_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_cost_column_start = running_w_total;
+			col_section.read(needs_table_cost_column_width);
+			running_w_total += needs_table_cost_column_width;
+			col_section.read(needs_table_cost_column_text_color);
+			col_section.read(needs_table_cost_header_text_color);
+			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -8091,6 +5317,7 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_name_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
@@ -8100,6 +5327,7 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
@@ -8109,7 +5337,18 @@ ui::message_result pop_details_needs_header_content_t::on_lbutton_down(sys::stat
 		table_source->needs_table_name_sort_direction = 0;
 		table_source->needs_table_amount_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
 		table_source->needs_table_cost_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
+		parent->parent->impl_on_update(state);
+	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		sound::play_interface_sound(state, sound::get_click_sound(state), state.user_settings.interface_volume* state.user_settings.master_volume);
+		auto old_direction = table_source->needs_table_weight_sort_direction;
+		table_source->needs_table_name_sort_direction = 0;
+		table_source->needs_table_amount_sort_direction = 0;
+		table_source->needs_table_cost_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = 0;
+		table_source->needs_table_weight_sort_direction = int8_t(old_direction <= 0 ? 1 : -1);
 		parent->parent->impl_on_update(state);
 	}
 	return ui::message_result::consumed;}
@@ -8126,6 +5365,14 @@ void pop_details_needs_header_content_t::tooltip_position(sys::state& state, int
 	}
 	if(x >= table_source->needs_table_cost_column_start && x < table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width) {
 	}
+	if(x >= table_source->needs_table_weight_column_start && x < table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width) {
+		ident = 4;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->needs_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->needs_table_weight_column_width);
+		return;
+	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
 		subrect.size = base_data.size;
@@ -8139,6 +5386,9 @@ void pop_details_needs_header_content_t::update_tooltip(sys::state& state, int32
 	if(x >=  table_source->needs_table_amount_column_start && x <  table_source->needs_table_amount_column_start +  table_source->needs_table_amount_column_width) {
 	}
 	if(x >=  table_source->needs_table_cost_column_start && x <  table_source->needs_table_cost_column_start +  table_source->needs_table_cost_column_width) {
+	}
+	if(x >=  table_source->needs_table_weight_column_start && x <  table_source->needs_table_weight_column_start +  table_source->needs_table_weight_column_width) {
+	text::add_line(state, contents, table_source->needs_table_weight_header_tooltip_key);
 	}
 }
 void pop_details_needs_header_content_t::on_reset_text(sys::state& state) noexcept {
@@ -8164,54 +5414,175 @@ void pop_details_needs_header_content_t::on_reset_text(sys::state& state) noexce
 	text::single_line_layout sl{  cost_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_cost_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_cost_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
 	sl.add_text(state, cost_cached_text);
 	}
+	{
+	weight_cached_text = text::produce_simple_string(state, table_source->needs_table_weight_header_text_key);
+	 weight_internal_layout.contents.clear();
+	 weight_internal_layout.number_of_lines = 0;
+	text::single_line_layout sl{  weight_internal_layout, text::layout_parameters{ 0, 0, int16_t(table_source->needs_table_weight_column_width - 0 - 16), static_cast<int16_t>(base_data.size.y), text::make_font_id(state, false, 1.0f * 16), 0, table_source->needs_table_weight_text_alignment, text::text_color::black, true, true }, state_is_rtl(state) ? text::layout_base::rtl_status::rtl : text::layout_base::rtl_status::ltr };
+	sl.add_text(state, weight_cached_text);
+	}
 }
 void pop_details_needs_header_content_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
 	auto fh = text::make_font_id(state, false, 1.0f * 16);
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
-	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
-	if(table_source->needs_table_name_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_icon_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(table_source->needs_table_icon_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_icon_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_icon = state.ui_templates.colors[table_source->needs_table_icon_header_text_color]; 	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_name_column_start), float(y), float(table_source->needs_table_name_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->needs_table_name_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_name_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start + table_source->needs_table_name_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(table_source->needs_table_name_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_name_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_name = state.ui_templates.colors[table_source->needs_table_name_header_text_color]; 	if(table_source->needs_table_name_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->needs_table_name_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, true); 
 		for(auto& t : name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_name_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->needs_table_name_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_name_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_name.r, col_color_name.g, col_color_name.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_amount = rel_mouse_x >= table_source->needs_table_amount_column_start && rel_mouse_x < (table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width);
-	if(table_source->needs_table_amount_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_amount) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_amount_column_start), float(y), float(table_source->needs_table_amount_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->needs_table_amount_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_amount_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_amount){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(table_source->needs_table_amount_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_amount_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_amount = state.ui_templates.colors[table_source->needs_table_amount_header_text_color]; 	if(table_source->needs_table_amount_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->needs_table_amount_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount, false, true), float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_amount_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!amount_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_amount , false, true); 
 		for(auto& t : amount_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_amount_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->needs_table_amount_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_amount_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_amount.r, col_color_amount.g, col_color_amount.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_cost = rel_mouse_x >= table_source->needs_table_cost_column_start && rel_mouse_x < (table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width);
-	if(table_source->needs_table_cost_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_ascending_icon, table_source->needs_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_cost) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_cost_column_start), float(y), float(table_source->needs_table_cost_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->needs_table_cost_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_cost_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_cost){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(table_source->needs_table_cost_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_cost_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_cost = state.ui_templates.colors[table_source->needs_table_cost_header_text_color]; 	if(table_source->needs_table_cost_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->needs_table_cost_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost, false, true), float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->needs_table_descending_icon, table_source->needs_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_cost_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!cost_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_cost , false, true); 
 		for(auto& t : cost_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->needs_table_cost_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_cost_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_cost.r, col_color_cost.g, col_color_cost.b }, ogl::color_modification::none);
 		}
 	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->needs_table_divider_color.r, table_source->needs_table_divider_color.g, table_source->needs_table_divider_color.b, 1.0f);
+	bool col_um_weight = rel_mouse_x >= table_source->needs_table_weight_column_start && rel_mouse_x < (table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->needs_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->needs_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start + table_source->needs_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y), float(table_source->needs_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->needs_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->needs_table_weight_header_text_color]; 	if(table_source->needs_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
+	}
+	if(table_source->needs_table_weight_sort_direction < 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->needs_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
+	}
+	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
+		for(auto& t : weight_internal_layout.contents) {
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->needs_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
+		}
+	}
+	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 }
 void pop_details_needs_header_content_t::on_update(sys::state& state) noexcept {
 	pop_details_needs_header_t& needs_header = *((pop_details_needs_header_t*)(parent)); 
@@ -8223,48 +5594,14 @@ void pop_details_needs_header_content_t::on_create(sys::state& state) noexcept {
 // BEGIN needs_header::content::create
 // END
 }
+void  pop_details_needs_header_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_needs_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_needs_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_needs_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_icon = rel_mouse_x >= table_source->needs_table_icon_column_start && rel_mouse_x < (table_source->needs_table_icon_column_start + table_source->needs_table_icon_column_width);
-	if(col_um_icon && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_icon_column_start), float(y), float(table_source->needs_table_icon_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_name = rel_mouse_x >= table_source->needs_table_name_column_start && rel_mouse_x < (table_source->needs_table_name_column_start + table_source->needs_table_name_column_width);
-	if(col_um_name && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_name_column_start), float(y), float(table_source->needs_table_name_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_amount = rel_mouse_x >= table_source->needs_table_amount_column_start && rel_mouse_x < (table_source->needs_table_amount_column_start + table_source->needs_table_amount_column_width);
-	if(col_um_amount && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_amount_column_start), float(y), float(table_source->needs_table_amount_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_cost = rel_mouse_x >= table_source->needs_table_cost_column_start && rel_mouse_x < (table_source->needs_table_cost_column_start + table_source->needs_table_cost_column_width);
-	if(col_um_cost && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->needs_table_cost_column_start), float(y), float(table_source->needs_table_cost_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_needs_header_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -8290,10 +5627,14 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -8305,26 +5646,37 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -8357,6 +5709,12 @@ void pop_details_needs_header_t::create_layout_level(sys::state& state, layout_l
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -8395,8 +5753,7 @@ void pop_details_needs_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8407,6 +5764,85 @@ void pop_details_needs_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabneeds_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			needs_table_ascending_icon_key = main_section.read<std::string_view>();
+			needs_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_icon_column_start = running_w_total;
+			col_section.read(needs_table_icon_column_width);
+			running_w_total += needs_table_icon_column_width;
+			col_section.read(needs_table_icon_column_text_color);
+			col_section.read(needs_table_icon_header_text_color);
+			col_section.read(needs_table_icon_text_alignment);
+			needs_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_name_column_start = running_w_total;
+			col_section.read(needs_table_name_column_width);
+			running_w_total += needs_table_name_column_width;
+			col_section.read(needs_table_name_column_text_color);
+			col_section.read(needs_table_name_header_text_color);
+			col_section.read(needs_table_name_text_alignment);
+			needs_table_amount_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_amount_column_start = running_w_total;
+			col_section.read(needs_table_amount_column_width);
+			running_w_total += needs_table_amount_column_width;
+			col_section.read(needs_table_amount_column_text_color);
+			col_section.read(needs_table_amount_header_text_color);
+			col_section.read(needs_table_amount_text_alignment);
+			needs_table_cost_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			needs_table_cost_column_start = running_w_total;
+			col_section.read(needs_table_cost_column_width);
+			running_w_total += needs_table_cost_column_width;
+			col_section.read(needs_table_cost_column_text_color);
+			col_section.read(needs_table_cost_header_text_color);
+			col_section.read(needs_table_cost_text_alignment);
+			needs_table_weight_header_text_key = col_section.read<std::string_view>();
+			needs_table_weight_header_tooltip_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			needs_table_weight_column_start = running_w_total;
+			col_section.read(needs_table_weight_column_width);
+			running_w_total += needs_table_weight_column_width;
+			col_section.read(needs_table_weight_column_text_color);
+			col_section.read(needs_table_weight_header_text_color);
+			col_section.read(needs_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -8491,35 +5927,94 @@ void pop_details_prom_header_content_t::render(sys::state & state, int32_t x, in
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
-	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
-	if(table_source->prom_table_name_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_icon_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(table_source->prom_table_icon_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_icon_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_icon = state.ui_templates.colors[table_source->prom_table_icon_header_text_color]; 	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_name_column_start), float(y), float(table_source->prom_table_name_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->prom_table_name_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_name_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(table_source->prom_table_name_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_name_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_name = state.ui_templates.colors[table_source->prom_table_name_header_text_color]; 	if(table_source->prom_table_name_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->prom_table_name_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name, false, true), float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_name_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, true); 
 		for(auto& t : name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_name_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->prom_table_name_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_name_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_name.r, col_color_name.g, col_color_name.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->prom_table_weight_column_start && rel_mouse_x < (table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width);
-	if(table_source->prom_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_ascending_icon, table_source->prom_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_weight_column_start), float(y), float(table_source->prom_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->prom_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(table_source->prom_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->prom_table_weight_header_text_color]; 	if(table_source->prom_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->prom_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->prom_table_descending_icon, table_source->prom_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->prom_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->prom_table_weight_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->prom_table_divider_color.r, table_source->prom_table_divider_color.g, table_source->prom_table_divider_color.b, 1.0f);
+	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 }
 void pop_details_prom_header_content_t::on_update(sys::state& state) noexcept {
 	pop_details_prom_header_t& prom_header = *((pop_details_prom_header_t*)(parent)); 
@@ -8531,44 +6026,14 @@ void pop_details_prom_header_content_t::on_create(sys::state& state) noexcept {
 // BEGIN prom_header::content::create
 // END
 }
+void  pop_details_prom_header_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_prom_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_prom_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_prom_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
-	if(col_um_icon && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(table_source->prom_table_icon_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
-	if(col_um_name && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(table_source->prom_table_name_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->prom_table_weight_column_start && rel_mouse_x < (table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(table_source->prom_table_weight_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
 }
 void pop_details_prom_header_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -8594,10 +6059,14 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -8609,26 +6078,37 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -8661,6 +6141,12 @@ void pop_details_prom_header_t::create_layout_level(sys::state& state, layout_le
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -8699,8 +6185,7 @@ void pop_details_prom_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -8711,6 +6196,67 @@ void pop_details_prom_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabprom_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			prom_table_ascending_icon_key = main_section.read<std::string_view>();
+			prom_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_icon_column_start = running_w_total;
+			col_section.read(prom_table_icon_column_width);
+			running_w_total += prom_table_icon_column_width;
+			col_section.read(prom_table_icon_column_text_color);
+			col_section.read(prom_table_icon_header_text_color);
+			col_section.read(prom_table_icon_text_alignment);
+			prom_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_name_column_start = running_w_total;
+			col_section.read(prom_table_name_column_width);
+			running_w_total += prom_table_name_column_width;
+			col_section.read(prom_table_name_column_text_color);
+			col_section.read(prom_table_name_header_text_color);
+			col_section.read(prom_table_name_text_alignment);
+			prom_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_weight_column_start = running_w_total;
+			col_section.read(prom_table_weight_column_width);
+			running_w_total += prom_table_weight_column_width;
+			col_section.read(prom_table_weight_column_text_color);
+			col_section.read(prom_table_weight_header_text_color);
+			col_section.read(prom_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -8731,10 +6277,10 @@ std::unique_ptr<ui::element_base> make_pop_details_prom_header(sys::state& state
 	return ptr;
 }
 ui::message_result pop_details_prom_row_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 ui::message_result pop_details_prom_row_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 void pop_details_prom_row_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (pop_details_main_t*)(parent->parent);
@@ -8743,6 +6289,12 @@ void pop_details_prom_row_content_t::tooltip_position(sys::state& state, int32_t
 	if(x >= table_source->prom_table_name_column_start && x < table_source->prom_table_name_column_start + table_source->prom_table_name_column_width) {
 	}
 	if(x >= table_source->prom_table_weight_column_start && x < table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width) {
+		ident = 2;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->prom_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->prom_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -8807,26 +6359,64 @@ void pop_details_prom_row_content_t::render(sys::state & state, int32_t x, int32
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
-	if(!icon_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_icon , false, false); 
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_icon_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_icon){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(table_source->prom_table_icon_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_icon_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_icon = state.ui_templates.colors[icon_text_color]; 	if(!icon_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : icon_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_icon_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, icon_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_icon_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_icon.r, col_color_icon.g, col_color_icon.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
-	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_name , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_name_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start + table_source->prom_table_name_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_name){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(table_source->prom_table_name_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_name_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_name = state.ui_templates.colors[name_text_color]; 	if(!name_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : name_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, name_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_name_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_name.r, col_color_name.g, col_color_name.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->prom_table_weight_column_start && rel_mouse_x < (table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width);
-	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->prom_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(table_source->prom_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->prom_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, weight_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->prom_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 }
@@ -8834,10 +6424,23 @@ void pop_details_prom_row_content_t::on_update(sys::state& state) noexcept {
 	pop_details_prom_row_t& prom_row = *((pop_details_prom_row_t*)(parent)); 
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
 // BEGIN prom_row::content::update
-	set_name_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(prom_row.value)));
 	auto type = state.world.pop_get_poptype(main.for_pop);
-	auto aw = std::max(0.0f, trigger::evaluate_additive_modifier(state, state.world.pop_type_get_promotion(type, prom_row.value), trigger::to_generic(main.for_pop), trigger::to_generic(main.for_pop), 0));
-	set_weight_text(state, text::format_float(aw, 2));
+
+	auto this_pop_strata = state.world.pop_type_get_strata(type);
+	auto row_pop_strata = state.world.pop_type_get_strata(prom_row.value);
+
+	float weight;
+	// display promotions
+	if(row_pop_strata >= this_pop_strata) {
+		weight = demographics::get_single_promotion_demotion_target_weight<demographics::promotion_type::promotion>(state, main.for_pop, prom_row.value);
+	}
+	// display demotions
+	else {
+		weight = demographics::get_single_promotion_demotion_target_weight<demographics::promotion_type::demotion>(state, main.for_pop, prom_row.value);
+	}
+
+	set_name_text(state, text::produce_simple_string(state, state.world.pop_type_get_name(prom_row.value)));
+	set_weight_text(state, text::format_float(weight, 2));
 // END
 }
 void pop_details_prom_row_content_t::on_create(sys::state& state) noexcept {
@@ -8878,44 +6481,14 @@ void pop_details_prom_row_job_icon_t::on_create(sys::state& state) noexcept {
 // BEGIN prom_row::job_icon::create
 // END
 }
+void  pop_details_prom_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_prom_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_prom_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_prom_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_icon = rel_mouse_x >= table_source->prom_table_icon_column_start && rel_mouse_x < (table_source->prom_table_icon_column_start + table_source->prom_table_icon_column_width);
-	if(col_um_icon && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_icon_column_start), float(y), float(table_source->prom_table_icon_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_name = rel_mouse_x >= table_source->prom_table_name_column_start && rel_mouse_x < (table_source->prom_table_name_column_start + table_source->prom_table_name_column_width);
-	if(col_um_name && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_name_column_start), float(y), float(table_source->prom_table_name_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->prom_table_weight_column_start && rel_mouse_x < (table_source->prom_table_weight_column_start + table_source->prom_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->prom_table_weight_column_start), float(y), float(table_source->prom_table_weight_column_width), float(base_data.size.y), 0.937255f, 1.000000f, 0.988235f, 0.156863f);
-	}
 }
 void pop_details_prom_row_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -8941,10 +6514,14 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -8956,29 +6533,40 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
-				}
+				} else
 				if(cname == "job_icon") {
 					temp.ptr = job_icon.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -9011,6 +6599,12 @@ void pop_details_prom_row_t::create_layout_level(sys::state& state, layout_level
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -9049,8 +6643,7 @@ void pop_details_prom_row_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9061,11 +6654,12 @@ void pop_details_prom_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "job_icon") {
 			job_icon = std::make_unique<pop_details_prom_row_job_icon_t>();
 			job_icon->parent = this;
@@ -9075,6 +6669,66 @@ void pop_details_prom_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->gfx_key = child_data.texture;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabprom_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			prom_table_ascending_icon_key = main_section.read<std::string_view>();
+			prom_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_icon_column_start = running_w_total;
+			col_section.read(prom_table_icon_column_width);
+			running_w_total += prom_table_icon_column_width;
+			col_section.read(prom_table_icon_column_text_color);
+			col_section.read(prom_table_icon_header_text_color);
+			col_section.read(prom_table_icon_text_alignment);
+			prom_table_name_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_name_column_start = running_w_total;
+			col_section.read(prom_table_name_column_width);
+			running_w_total += prom_table_name_column_width;
+			col_section.read(prom_table_name_column_text_color);
+			col_section.read(prom_table_name_header_text_color);
+			col_section.read(prom_table_name_text_alignment);
+			prom_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			prom_table_weight_column_start = running_w_total;
+			col_section.read(prom_table_weight_column_width);
+			running_w_total += prom_table_weight_column_width;
+			col_section.read(prom_table_weight_column_text_color);
+			col_section.read(prom_table_weight_header_text_color);
+			col_section.read(prom_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -9155,34 +6809,80 @@ void pop_details_weights_header_content_t::render(sys::state & state, int32_t x,
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
-	if(table_source->weights_table_item_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_item) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_item_column_start), float(y), float(table_source->weights_table_item_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->weights_table_item_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->weights_table_item_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(table_source->weights_table_item_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y + base_data.size.y - 2), float(table_source->weights_table_item_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_item = state.ui_templates.colors[table_source->weights_table_item_header_text_color]; 	if(table_source->weights_table_item_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->weights_table_item_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item, false, true), float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_item_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!item_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item , false, true); 
 		for(auto& t : item_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_item_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->weights_table_item_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_item_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_item.r, col_color_item.g, col_color_item.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->weights_table_weight_column_start && rel_mouse_x < (table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width);
-	if(table_source->weights_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_ascending_icon, table_source->weights_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_weight_column_start), float(y), float(table_source->weights_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->weights_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->weights_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(table_source->weights_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->weights_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->weights_table_weight_header_text_color]; 	if(table_source->weights_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->weights_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->weights_table_descending_icon, table_source->weights_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->weights_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->weights_table_weight_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->weights_table_divider_color.r, table_source->weights_table_divider_color.g, table_source->weights_table_divider_color.b, 1.0f);
+	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 }
 void pop_details_weights_header_content_t::on_update(sys::state& state) noexcept {
 	pop_details_weights_header_t& weights_header = *((pop_details_weights_header_t*)(parent)); 
@@ -9194,40 +6894,14 @@ void pop_details_weights_header_content_t::on_create(sys::state& state) noexcept
 // BEGIN weights_header::content::create
 // END
 }
+void  pop_details_weights_header_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_weights_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_weights_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_weights_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
-	if(col_um_item && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(table_source->weights_table_item_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->weights_table_weight_column_start && rel_mouse_x < (table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(table_source->weights_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_weights_header_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -9253,10 +6927,14 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -9268,26 +6946,37 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -9320,6 +7009,12 @@ void pop_details_weights_header_t::create_layout_level(sys::state& state, layout
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -9358,8 +7053,7 @@ void pop_details_weights_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9370,6 +7064,58 @@ void pop_details_weights_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabweights_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			weights_table_ascending_icon_key = main_section.read<std::string_view>();
+			weights_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			weights_table_item_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_item_column_start = running_w_total;
+			col_section.read(weights_table_item_column_width);
+			running_w_total += weights_table_item_column_width;
+			col_section.read(weights_table_item_column_text_color);
+			col_section.read(weights_table_item_header_text_color);
+			col_section.read(weights_table_item_text_alignment);
+			weights_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_weight_column_start = running_w_total;
+			col_section.read(weights_table_weight_column_width);
+			running_w_total += weights_table_weight_column_width;
+			col_section.read(weights_table_weight_column_text_color);
+			col_section.read(weights_table_weight_header_text_color);
+			col_section.read(weights_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -9390,16 +7136,22 @@ std::unique_ptr<ui::element_base> make_pop_details_weights_header(sys::state& st
 	return ptr;
 }
 ui::message_result pop_details_weights_row_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 ui::message_result pop_details_weights_row_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 void pop_details_weights_row_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (pop_details_main_t*)(parent->parent);
 	if(x >= table_source->weights_table_item_column_start && x < table_source->weights_table_item_column_start + table_source->weights_table_item_column_width) {
 	}
 	if(x >= table_source->weights_table_weight_column_start && x < table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->weights_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->weights_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -9559,19 +7311,45 @@ void pop_details_weights_row_content_t::render(sys::state & state, int32_t x, in
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
-	if(!item_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_item , false, false); 
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->weights_table_item_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start + table_source->weights_table_item_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_item){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(table_source->weights_table_item_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y + base_data.size.y - 2), float(table_source->weights_table_item_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_item = state.ui_templates.colors[item_text_color]; 	if(!item_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : item_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_item_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, item_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_item_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_item.r, col_color_item.g, col_color_item.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->weights_table_weight_column_start && rel_mouse_x < (table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width);
-	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->weights_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(table_source->weights_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->weights_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, weight_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->weights_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 }
@@ -9587,40 +7365,14 @@ void pop_details_weights_row_content_t::on_create(sys::state& state) noexcept {
 // BEGIN weights_row::content::create
 // END
 }
+void  pop_details_weights_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_weights_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_weights_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_weights_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_item = rel_mouse_x >= table_source->weights_table_item_column_start && rel_mouse_x < (table_source->weights_table_item_column_start + table_source->weights_table_item_column_width);
-	if(col_um_item && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_item_column_start), float(y), float(table_source->weights_table_item_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->weights_table_weight_column_start && rel_mouse_x < (table_source->weights_table_weight_column_start + table_source->weights_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->weights_table_weight_column_start), float(y), float(table_source->weights_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_weights_row_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -9646,10 +7398,14 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -9661,26 +7417,37 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -9713,6 +7480,12 @@ void pop_details_weights_row_t::create_layout_level(sys::state& state, layout_le
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -9751,8 +7524,7 @@ void pop_details_weights_row_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -9763,6 +7535,58 @@ void pop_details_weights_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabweights_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			weights_table_ascending_icon_key = main_section.read<std::string_view>();
+			weights_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			weights_table_item_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_item_column_start = running_w_total;
+			col_section.read(weights_table_item_column_width);
+			running_w_total += weights_table_item_column_width;
+			col_section.read(weights_table_item_column_text_color);
+			col_section.read(weights_table_item_header_text_color);
+			col_section.read(weights_table_item_text_alignment);
+			weights_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			weights_table_weight_column_start = running_w_total;
+			col_section.read(weights_table_weight_column_width);
+			running_w_total += weights_table_weight_column_width;
+			col_section.read(weights_table_weight_column_text_color);
+			col_section.read(weights_table_weight_header_text_color);
+			col_section.read(weights_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -9843,34 +7667,94 @@ void pop_details_emm_header_content_t::render(sys::state & state, int32_t x, int
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_flag = rel_mouse_x >= table_source->emm_table_flag_column_start && rel_mouse_x < (table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_flag_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(table_source->emm_table_flag_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_flag_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 	bool col_um_destination = rel_mouse_x >= table_source->emm_table_destination_column_start && rel_mouse_x < (table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width);
-	if(table_source->emm_table_destination_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_destination_column_start), float(y), float(table_source->emm_table_destination_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->emm_table_destination_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_destination_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(table_source->emm_table_destination_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_destination_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_destination = state.ui_templates.colors[table_source->emm_table_destination_header_text_color]; 	if(table_source->emm_table_destination_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->emm_table_destination_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, true); 
 		for(auto& t : destination_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_destination_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->emm_table_destination_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_destination_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_destination.r, col_color_destination.g, col_color_destination.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->emm_table_weight_column_start && rel_mouse_x < (table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width);
-	if(table_source->emm_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_ascending_icon, table_source->emm_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_weight_column_start), float(y), float(table_source->emm_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->emm_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(table_source->emm_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->emm_table_weight_header_text_color]; 	if(table_source->emm_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->emm_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->emm_table_descending_icon, table_source->emm_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->emm_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->emm_table_weight_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->emm_table_divider_color.r, table_source->emm_table_divider_color.g, table_source->emm_table_divider_color.b, 1.0f);
+	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 }
 void pop_details_emm_header_content_t::on_update(sys::state& state) noexcept {
 	pop_details_emm_header_t& emm_header = *((pop_details_emm_header_t*)(parent)); 
@@ -9882,40 +7766,14 @@ void pop_details_emm_header_content_t::on_create(sys::state& state) noexcept {
 // BEGIN emm_header::content::create
 // END
 }
+void  pop_details_emm_header_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_emm_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_emm_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_emm_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_destination = rel_mouse_x >= table_source->emm_table_destination_column_start && rel_mouse_x < (table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width);
-	if(col_um_destination && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(table_source->emm_table_destination_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->emm_table_weight_column_start && rel_mouse_x < (table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(table_source->emm_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_emm_header_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -9941,10 +7799,14 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -9956,26 +7818,37 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -10008,6 +7881,12 @@ void pop_details_emm_header_t::create_layout_level(sys::state& state, layout_lev
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -10046,8 +7925,7 @@ void pop_details_emm_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10058,6 +7936,67 @@ void pop_details_emm_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabemm_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			emm_table_ascending_icon_key = main_section.read<std::string_view>();
+			emm_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_flag_column_start = running_w_total;
+			col_section.read(emm_table_flag_column_width);
+			running_w_total += emm_table_flag_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			emm_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_destination_column_start = running_w_total;
+			col_section.read(emm_table_destination_column_width);
+			running_w_total += emm_table_destination_column_width;
+			col_section.read(emm_table_destination_column_text_color);
+			col_section.read(emm_table_destination_header_text_color);
+			col_section.read(emm_table_destination_text_alignment);
+			emm_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_weight_column_start = running_w_total;
+			col_section.read(emm_table_weight_column_width);
+			running_w_total += emm_table_weight_column_width;
+			col_section.read(emm_table_weight_column_text_color);
+			col_section.read(emm_table_weight_header_text_color);
+			col_section.read(emm_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -10078,16 +8017,22 @@ std::unique_ptr<ui::element_base> make_pop_details_emm_header(sys::state& state)
 	return ptr;
 }
 ui::message_result pop_details_emm_row_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 ui::message_result pop_details_emm_row_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 void pop_details_emm_row_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (pop_details_main_t*)(parent->parent);
 	if(x >= table_source->emm_table_destination_column_start && x < table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width) {
 	}
 	if(x >= table_source->emm_table_weight_column_start && x < table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->emm_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->emm_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -10145,19 +8090,59 @@ void pop_details_emm_row_content_t::render(sys::state & state, int32_t x, int32_
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_flag = rel_mouse_x >= table_source->emm_table_flag_column_start && rel_mouse_x < (table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_flag_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start + table_source->emm_table_flag_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_flag){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y), float(table_source->emm_table_flag_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_flag_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_flag_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 	bool col_um_destination = rel_mouse_x >= table_source->emm_table_destination_column_start && rel_mouse_x < (table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width);
-	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_destination_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(table_source->emm_table_destination_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_destination_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_destination = state.ui_templates.colors[destination_text_color]; 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : destination_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_destination_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, destination_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_destination_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_destination.r, col_color_destination.g, col_color_destination.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->emm_table_weight_column_start && rel_mouse_x < (table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width);
-	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->emm_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(table_source->emm_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->emm_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, weight_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->emm_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 }
@@ -10258,40 +8243,14 @@ void pop_details_emm_row_dest_flag_t::on_create(sys::state& state) noexcept {
 // BEGIN emm_row::dest_flag::create
 // END
 }
+void  pop_details_emm_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_emm_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_emm_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_emm_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_destination = rel_mouse_x >= table_source->emm_table_destination_column_start && rel_mouse_x < (table_source->emm_table_destination_column_start + table_source->emm_table_destination_column_width);
-	if(col_um_destination && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_destination_column_start), float(y), float(table_source->emm_table_destination_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->emm_table_weight_column_start && rel_mouse_x < (table_source->emm_table_weight_column_start + table_source->emm_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->emm_table_weight_column_start), float(y), float(table_source->emm_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_emm_row_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -10317,10 +8276,14 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -10332,29 +8295,40 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
-				}
+				} else
 				if(cname == "dest_flag") {
 					temp.ptr = dest_flag.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -10387,6 +8361,12 @@ void pop_details_emm_row_t::create_layout_level(sys::state& state, layout_level&
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -10425,8 +8405,7 @@ void pop_details_emm_row_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10437,11 +8416,12 @@ void pop_details_emm_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
 			pending_children.pop_back(); continue;
-		}
+		} else 
 		if(child_data.name == "dest_flag") {
 			dest_flag = std::make_unique<pop_details_emm_row_dest_flag_t>();
 			dest_flag->parent = this;
@@ -10450,6 +8430,66 @@ void pop_details_emm_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabemm_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			emm_table_ascending_icon_key = main_section.read<std::string_view>();
+			emm_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_flag_column_start = running_w_total;
+			col_section.read(emm_table_flag_column_width);
+			running_w_total += emm_table_flag_column_width;
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::text_color>(); // discard
+			col_section.read<text::alignment>(); // discard
+			emm_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_destination_column_start = running_w_total;
+			col_section.read(emm_table_destination_column_width);
+			running_w_total += emm_table_destination_column_width;
+			col_section.read(emm_table_destination_column_text_color);
+			col_section.read(emm_table_destination_header_text_color);
+			col_section.read(emm_table_destination_text_alignment);
+			emm_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			emm_table_weight_column_start = running_w_total;
+			col_section.read(emm_table_weight_column_width);
+			running_w_total += emm_table_weight_column_width;
+			col_section.read(emm_table_weight_column_text_color);
+			col_section.read(emm_table_weight_header_text_color);
+			col_section.read(emm_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -10530,34 +8570,80 @@ void pop_details_mig_header_content_t::render(sys::state & state, int32_t x, int
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
-	if(table_source->mig_table_destination_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_destination_column_start), float(y), float(table_source->mig_table_destination_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->mig_table_destination_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->mig_table_destination_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(table_source->mig_table_destination_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y + base_data.size.y - 2), float(table_source->mig_table_destination_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_destination = state.ui_templates.colors[table_source->mig_table_destination_header_text_color]; 	if(table_source->mig_table_destination_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->mig_table_destination_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination, false, true), float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_destination_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, true); 
 		for(auto& t : destination_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_destination_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->mig_table_destination_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_destination_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_destination.r, col_color_destination.g, col_color_destination.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->mig_table_weight_column_start && rel_mouse_x < (table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width);
-	if(table_source->mig_table_weight_sort_direction > 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_ascending_icon, table_source->mig_table_ascending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		{
+		auto bg = template_id != -1 ? ((0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight) ? state.ui_templates.table_t[template_id].active_header_bg : state.ui_templates.table_t[template_id].interactable_header_bg) : -1;
+		if(bg != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_weight_column_start), float(y), float(table_source->mig_table_weight_column_width), float(base_data.size.y), state.ui_templates.backgrounds[bg].renders.get_render(state, float(table_source->mig_table_weight_column_width) / float(table_source->grid_size), float(base_data.size.y) / float(table_source->grid_size), int32_t(table_source->grid_size), state.user_settings.ui_scale)); 
+		}
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->mig_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(table_source->mig_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->mig_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[table_source->mig_table_weight_header_text_color]; 	if(table_source->mig_table_weight_sort_direction > 0) {
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_increasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(table_source->mig_table_weight_sort_direction < 0) {
-		ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight, false, true), float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), ogl::get_late_load_texture_handle(state, table_source->mig_table_descending_icon, table_source->mig_table_descending_icon_key), ui::rotation::upright, false, state_is_rtl(state));
+		auto icon = template_id != -1 ? state.ui_templates.table_t[template_id].arrow_decreasing : -1;
+		if(icon != -1)
+		ogl::render_textured_rect_direct(state, float(x + table_source->mig_table_weight_column_start + 0), float(y + base_data.size.y / 2 - 8), float(8), float(16), state.ui_templates.icons[icon].renders.get_render(state, 8, 16, state.user_settings.ui_scale, ink_color.r, ink_color.g, ink_color.b)); 
 	}
 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, true); 
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, table_source->mig_table_weight_header_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_weight_column_start + 0 + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
-	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), table_source->mig_table_divider_color.r, table_source->mig_table_divider_color.g, table_source->mig_table_divider_color.b, 1.0f);
+	if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y)){
+	ogl::render_alpha_colored_rect(state, float(x), float(y + base_data.size.y - 1), float(base_data.size.x), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
 }
 void pop_details_mig_header_content_t::on_update(sys::state& state) noexcept {
 	pop_details_mig_header_t& mig_header = *((pop_details_mig_header_t*)(parent)); 
@@ -10569,40 +8655,14 @@ void pop_details_mig_header_content_t::on_create(sys::state& state) noexcept {
 // BEGIN mig_header::content::create
 // END
 }
+void  pop_details_mig_header_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_mig_header_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_mig_header_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_mig_header_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
-	if(col_um_destination && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(table_source->mig_table_destination_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->mig_table_weight_column_start && rel_mouse_x < (table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(table_source->mig_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_mig_header_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -10628,10 +8688,14 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -10643,26 +8707,37 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -10695,6 +8770,12 @@ void pop_details_mig_header_t::create_layout_level(sys::state& state, layout_lev
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -10733,8 +8814,7 @@ void pop_details_mig_header_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -10745,6 +8825,58 @@ void pop_details_mig_header_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabmig_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			mig_table_ascending_icon_key = main_section.read<std::string_view>();
+			mig_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			mig_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_destination_column_start = running_w_total;
+			col_section.read(mig_table_destination_column_width);
+			running_w_total += mig_table_destination_column_width;
+			col_section.read(mig_table_destination_column_text_color);
+			col_section.read(mig_table_destination_header_text_color);
+			col_section.read(mig_table_destination_text_alignment);
+			mig_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_weight_column_start = running_w_total;
+			col_section.read(mig_table_weight_column_width);
+			running_w_total += mig_table_weight_column_width;
+			col_section.read(mig_table_weight_column_text_color);
+			col_section.read(mig_table_weight_header_text_color);
+			col_section.read(mig_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -10765,16 +8897,22 @@ std::unique_ptr<ui::element_base> make_pop_details_mig_header(sys::state& state)
 	return ptr;
 }
 ui::message_result pop_details_mig_row_content_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 ui::message_result pop_details_mig_row_content_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
-	return ui::message_result::unseen;
+	return ui::message_result::consumed;
 }
 void pop_details_mig_row_content_t::tooltip_position(sys::state& state, int32_t x, int32_t y, int32_t& ident, ui::urect& subrect) noexcept {
 	auto table_source = (pop_details_main_t*)(parent->parent);
 	if(x >= table_source->mig_table_destination_column_start && x < table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width) {
 	}
 	if(x >= table_source->mig_table_weight_column_start && x < table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width) {
+		ident = 1;
+		subrect.top_left = ui::get_absolute_location(state, *this);
+		subrect.top_left.x += int16_t(table_source->mig_table_weight_column_start);
+		subrect.size = base_data.size;
+		subrect.size.x = int16_t(table_source->mig_table_weight_column_width);
+		return;
 	}
 		ident = -1;
 		subrect.top_left = ui::get_absolute_location(state, *this);
@@ -10801,6 +8939,7 @@ void pop_details_mig_row_content_t::update_tooltip(sys::state& state, int32_t x,
 		text::add_line(state, contents, "pop_migration_attraction_bureaucracy", text::variable_type::x, text::fp_percentage{ explanation.base_weight });
 	}
 	text::add_line(state, contents, "pop_migration_attraction_wage_ratio", text::variable_type::x, text::fp_percentage{ explanation.wage_multiplier });
+	text::add_line(state, contents, "pop_migration_culture", text::variable_type::x, text::fp_percentage{ explanation.culture_multiplier });
 // END
 	}
 }
@@ -10835,19 +8974,45 @@ void pop_details_mig_row_content_t::render(sys::state & state, int32_t x, int32_
 	auto linesz = state.font_collection.line_height(state, fh); 
 	auto ycentered = (base_data.size.y - linesz) / 2;
 	auto table_source = (pop_details_main_t*)(parent->parent);
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
-	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_destination , false, false); 
+	auto abs_location = ui::get_absolute_location(state, *this);
+	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - abs_location.x;
+	int32_t rel_mouse_y = int32_t(state.mouse_y_position / state.user_settings.ui_scale) - abs_location.y;
+	auto ink_color =template_id != -1 ? ogl::color3f(state.ui_templates.colors[state.ui_templates.table_t[template_id].table_color]) : ogl::color3f{}; 	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->mig_table_destination_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_destination){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(table_source->mig_table_destination_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y + base_data.size.y - 2), float(table_source->mig_table_destination_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_destination = state.ui_templates.colors[destination_text_color]; 	if(!destination_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : destination_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_destination_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, destination_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_destination_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_destination.r, col_color_destination.g, col_color_destination.b }, ogl::color_modification::none);
 		}
 	}
 	bool col_um_weight = rel_mouse_x >= table_source->mig_table_weight_column_start && rel_mouse_x < (table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width);
-	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
-		auto cmod = ui::get_color_modification(this == state.ui_state.under_mouse && col_um_weight , false, false); 
+	if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y + base_data.size.y - 2), float(2), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(1), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y), float(2), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y + base_data.size.y - 2), float(1), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width * 0.25f), float(y + base_data.size.y - 1), float(table_source->mig_table_weight_column_width * 0.5f), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(!(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y) && col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(1), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width - 2), float(y), float(2), float(base_data.size.y), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	} else if(0 <= rel_mouse_y && rel_mouse_y < base_data.size.y && !col_um_weight){
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(table_source->mig_table_weight_column_width), float(1), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y + base_data.size.y - 2), float(table_source->mig_table_weight_column_width), float(2), ink_color.r, ink_color.g, ink_color.b, 1.0f);
+	}
+	auto col_color_weight = state.ui_templates.colors[weight_text_color]; 	if(!weight_internal_layout.contents.empty() && linesz > 0.0f) {
 		for(auto& t : weight_internal_layout.contents) {
-			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ui::get_text_color(state, weight_text_color), cmod);
+			ui::render_text_chunk(state, t, float(x) + t.x + table_source->mig_table_weight_column_start + 8, float(y + int32_t(ycentered)),  fh, ogl::color3f{ col_color_weight.r, col_color_weight.g, col_color_weight.b }, ogl::color_modification::none);
 		}
 	}
 }
@@ -10864,40 +9029,14 @@ void pop_details_mig_row_content_t::on_create(sys::state& state) noexcept {
 // BEGIN mig_row::content::create
 // END
 }
+void  pop_details_mig_row_t::set_alternate(bool alt) noexcept {
+	window_template = alt ? 3 : 4;
+}
 ui::message_result pop_details_mig_row_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
 }
 ui::message_result pop_details_mig_row_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	return ui::message_result::consumed;
-}
-void pop_details_mig_row_t::render(sys::state & state, int32_t x, int32_t y) noexcept {
-	if(is_active)
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, alt_background_texture, alt_texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	else
-	ogl::render_textured_rect(state, ui::get_color_modification(this == state.ui_state.under_mouse, false, false), float(x), float(y), float(base_data.size.x), float(base_data.size.y), ogl::get_late_load_texture_handle(state, background_texture, texture_key), base_data.get_rotation(), false, state_is_rtl(state)); 
-	auto cmod = ui::get_color_modification(false, false,  false);
-	for (auto& _item : textures_to_render) {
-		if (_item.texture_type == background_type::texture)
-			ogl::render_textured_rect(state, cmod, float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::border_texture_repeat)
-			ogl::render_rect_with_repeated_border(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-		else if (_item.texture_type == background_type::textured_corners)
-			ogl::render_rect_with_repeated_corner(state, cmod, float(8), float(x + _item.x), float(y + _item.y), float(_item.w), float(_item.h), ogl::get_late_load_texture_handle(state, _item.texture_id, _item.texture), base_data.get_rotation(), false, state_is_rtl(state));
-	}
-	auto table_source = (pop_details_main_t*)(parent);
-	auto under_mouse = [&](){auto p = state.ui_state.under_mouse; while(p){ if(p == this) return true; p = p->parent; } return false;}();
-	int32_t rel_mouse_x = int32_t(state.mouse_x_position / state.user_settings.ui_scale) - ui::get_absolute_location(state, *this).x;
-	if(under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x), float(y), float(base_data.size.x), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_destination = rel_mouse_x >= table_source->mig_table_destination_column_start && rel_mouse_x < (table_source->mig_table_destination_column_start + table_source->mig_table_destination_column_width);
-	if(col_um_destination && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_destination_column_start), float(y), float(table_source->mig_table_destination_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
-	bool col_um_weight = rel_mouse_x >= table_source->mig_table_weight_column_start && rel_mouse_x < (table_source->mig_table_weight_column_start + table_source->mig_table_weight_column_width);
-	if(col_um_weight && !under_mouse) {
-		ogl::render_alpha_colored_rect(state, float(x + table_source->mig_table_weight_column_start), float(y), float(table_source->mig_table_weight_column_width), float(base_data.size.y), 1.000000f, 1.000000f, 1.000000f, 0.156863f);
-	}
 }
 void pop_details_mig_row_t::on_update(sys::state& state) noexcept {
 	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
@@ -10923,10 +9062,14 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 		lvl.page_controls = std::make_unique<page_buttons>();
 		lvl.page_controls->for_layout = &lvl;
 		lvl.page_controls->parent = this;
-		lvl.page_controls->base_data.size.x = int16_t(80);
-		lvl.page_controls->base_data.size.y = int16_t(16);
+		lvl.page_controls->base_data.size.x = int16_t(grid_size * 10);
+		lvl.page_controls->base_data.size.y = int16_t(grid_size * 2);
 	}
-	auto optional_section = buffer.read_section(); // nothing
+	auto expansion_section = buffer.read_section();
+	if(expansion_section)
+		expansion_section.read(lvl.template_id);
+	if(lvl.template_id == -1 && window_template != -1)
+		lvl.template_id = int16_t(state.ui_templates.window_t[window_template].layout_region_definition);
 	while(buffer) {
 		layout_item_types t;
 		buffer.read(t);
@@ -10938,26 +9081,37 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				buffer.read(temp.texture);
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::control:
+			case layout_item_types::control2:
 			{
 				layout_control temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				temp.ptr = nullptr;
 				if(cname == "content") {
 					temp.ptr = content.get();
+				} else
+				{
+					std::string str_cname {cname};
+					auto found = scripted_elements.find(str_cname);
+					if (found != scripted_elements.end()) {
+						temp.ptr = found->second.get();
+					}
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
-			case layout_item_types::window:
+			case layout_item_types::window2:
 			{
 				layout_window temp;
 				std::string_view cname = buffer.read<std::string_view>();
 				buffer.read(temp.abs_x);
 				buffer.read(temp.abs_y);
 				buffer.read(temp.absolute_position);
+				buffer.read(temp.fill_x);
+				buffer.read(temp.fill_y);
 				if(cname == "main") {
 					temp.ptr = make_pop_details_main(state);
 				}
@@ -10990,6 +9144,12 @@ void pop_details_mig_row_t::create_layout_level(sys::state& state, layout_level&
 				}
 				if(cname == "mig_row") {
 					temp.ptr = make_pop_details_mig_row(state);
+				}
+				if(cname == "fancy_separator_1") {
+					temp.ptr = make_pop_details_fancy_separator_1(state);
+				}
+				if(cname == "fancy_separator_2") {
+					temp.ptr = make_pop_details_fancy_separator_2(state);
 				}
 				lvl.contents.emplace_back(std::move(temp));
 			} break;
@@ -11028,8 +9188,7 @@ void pop_details_mig_row_t::on_create(sys::state& state) noexcept {
 	base_data.size.x = win_data.x_size;
 	base_data.size.y = win_data.y_size;
 	base_data.flags = uint8_t(win_data.orientation);
-	texture_key = win_data.texture;
-	alt_texture_key = win_data.alt_texture;
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
 	while(!pending_children.empty()) {
 		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
 		if(child_data.name == "content") {
@@ -11040,6 +9199,58 @@ void pop_details_mig_row_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.position.y = child_data.y_pos;
 			cptr->base_data.size.x = child_data.x_size;
 			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == ".tabmig_table") {
+			int16_t running_w_total = 0;
+			auto tbuffer = serialization::in_buffer(pending_children.back().data, pending_children.back().size);
+			auto main_section = tbuffer.read_section();
+			main_section.read<std::string_view>(); // discard name 
+			mig_table_ascending_icon_key = main_section.read<std::string_view>();
+			mig_table_descending_icon_key = main_section.read<std::string_view>();
+			main_section.read<ogl::color3f>();
+			auto col_section = tbuffer.read_section();
+			mig_table_destination_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_destination_column_start = running_w_total;
+			col_section.read(mig_table_destination_column_width);
+			running_w_total += mig_table_destination_column_width;
+			col_section.read(mig_table_destination_column_text_color);
+			col_section.read(mig_table_destination_header_text_color);
+			col_section.read(mig_table_destination_text_alignment);
+			mig_table_weight_header_text_key = col_section.read<std::string_view>();
+			col_section.read<std::string_view>(); // discard
+			col_section.read<std::string_view>(); // discard
+			mig_table_weight_column_start = running_w_total;
+			col_section.read(mig_table_weight_column_width);
+			running_w_total += mig_table_weight_column_width;
+			col_section.read(mig_table_weight_column_text_color);
+			col_section.read(mig_table_weight_header_text_color);
+			col_section.read(mig_table_weight_text_alignment);
+			pending_children.pop_back(); continue;
+		} else 
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
 			cptr->parent = this;
 			cptr->on_create(state);
 			children.push_back(cptr);
@@ -11059,5 +9270,125 @@ std::unique_ptr<ui::element_base> make_pop_details_mig_row(sys::state& state) {
 	ptr->on_create(state);
 	return ptr;
 }
+ui::message_result pop_details_fancy_separator_1_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result pop_details_fancy_separator_1_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void pop_details_fancy_separator_1_t::on_update(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
+// BEGIN fancy_separator_1::update
+// END
+}
+void pop_details_fancy_separator_1_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("pop_details::fancy_separator_1"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+// BEGIN fancy_separator_1::create
+// END
+}
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_1(sys::state& state) {
+	auto ptr = std::make_unique<pop_details_fancy_separator_1_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+ui::message_result pop_details_fancy_separator_2_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+ui::message_result pop_details_fancy_separator_2_t::on_rbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
+	return ui::message_result::consumed;
+}
+void pop_details_fancy_separator_2_t::on_update(sys::state& state) noexcept {
+	pop_details_main_t& main = *((pop_details_main_t*)(parent->parent)); 
+// BEGIN fancy_separator_2::update
+// END
+}
+void pop_details_fancy_separator_2_t::on_create(sys::state& state) noexcept {
+	auto window_bytes = state.ui_state.new_ui_windows.find(std::string("pop_details::fancy_separator_2"));
+	if(window_bytes == state.ui_state.new_ui_windows.end()) std::abort();
+	std::vector<sys::aui_pending_bytes> pending_children;
+	auto win_data = read_window_bytes(window_bytes->second.data, window_bytes->second.size, pending_children);
+	base_data.position.x = win_data.x_pos;
+	base_data.position.y = win_data.y_pos;
+	base_data.size.x = win_data.x_size;
+	base_data.size.y = win_data.y_size;
+	base_data.flags = uint8_t(win_data.orientation);
+	layout_window_element::initialize_template(state, win_data.template_id, win_data.grid_size, win_data.auto_close_button);
+	while(!pending_children.empty()) {
+		auto child_data = read_child_bytes(pending_children.back().data, pending_children.back().size);
+		if (child_data.is_lua) { 
+			std::string str_name {child_data.name};
+			scripted_elements[str_name] = std::make_unique<ui::lua_scripted_element>();
+			auto cptr = scripted_elements[str_name].get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->texture_key = child_data.texture;
+			cptr->text_scale = child_data.text_scale;
+			cptr->text_is_header = (child_data.text_type == aui_text_type::header);
+			cptr->text_alignment = child_data.text_alignment;
+			cptr->text_color = child_data.text_color;
+			cptr->on_update_lname = child_data.text_key;
+			if(child_data.tooltip_text_key.length() > 0) {
+				cptr->tooltip_key = state.lookup_key(child_data.tooltip_text_key);
+			}
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		}
+		pending_children.pop_back();
+	}
+// BEGIN fancy_separator_2::create
+// END
+}
+std::unique_ptr<ui::element_base> make_pop_details_fancy_separator_2(sys::state& state) {
+	auto ptr = std::make_unique<pop_details_fancy_separator_2_t>();
+	ptr->on_create(state);
+	return ptr;
+}
+
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 // LOST-CODE
+// BEGIN main::close_button::lbutton_action
+//////////////////////////////////////	main.set_visible(state, false);
+// END
 }

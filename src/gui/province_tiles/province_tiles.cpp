@@ -1,8 +1,11 @@
 #include "province_tiles.hpp"
 #include "container_types.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state.hpp"
 #include "commands.hpp"
 #include "economy_production.hpp"
+
+#include "advanced_province_buildings.hpp"
 
 namespace ui {
 
@@ -25,8 +28,6 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	int curind = 0;
 
 	if(owner) {
-		bool administration_found = false;
-
 		// Capital administration is located in the nation capital
 		if(state.world.nation_get_capital(owner) == p) {
 			auto tile = province_tile{};
@@ -34,8 +35,6 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
-
-			administration_found = true;
 		}
 
 		for(auto admin : state.world.nation_get_nation_administration(owner)) {
@@ -46,19 +45,22 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 				tile.empty = false;
 				tile.province = p;
 				push_tile(tiles, tile, curind);
-
-				administration_found = true;
 				break;
 			}
 		}
 
-		// If there is no administration in the province, we display a tile with a small tax office.
-		if(!administration_found) {
+		// Display local tax collection with a tax office tile
+		{
 			auto tile = province_tile{};
-			tile.no_administration_tile = true;
+			tile.tax_collector_tile = true;
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
+		}
+
+		// Skip to the next row
+		while(curind % 8 != 0) {
+			curind++;
 		}
 
 		// Market is located in the capital of the state instabce
@@ -70,16 +72,10 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tile.province = p;
 			push_tile(tiles, tile, curind);
 		}
+	}
 
-		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
-			auto tile = province_tile{};
-			tile.province_building = economy::province_building_type::naval_base;
-			tile.empty = false;
-			tile.has_province_building = true;
-			tile.province = p;
-			push_tile(tiles, tile, curind);
-		}
-
+	// Display factories and factories under construction for provinces with owner (colonized)
+	if(owner) {
 		// Display dirt roads when there are no railroads
 		// if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::railroad) > 0) {
 		{
@@ -90,47 +86,15 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 			tile.province = p;
 			push_tile(tiles, tile, curind);
 		}
-
-		if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
+		if (state.world.province_get_advanced_province_building_max_private_size(p, advanced_province_buildings::list::civilian_ports) > 0) {
+			// Port tile
 			auto tile = province_tile{};
-			tile.province_building = economy::province_building_type::fort;
-			tile.empty = false;
-			tile.has_province_building = true;
-			tile.province = p;
-			push_tile(tiles, tile, curind);
-		}
-	}
-
-	// Skip to the next row
-	while(curind % 8 != 0) {
-		curind++;
-	}
-
-	// Main province RGOs
-	{
-		auto tile = province_tile{};
-		tile.rgo_commodity = state.world.province_get_rgo(p);
-		tile.empty = false;
-		tile.province = p;
-		push_tile(tiles, tile, curind);
-	}
-
-	// Secondary RGOs
-	for(auto c : state.world.in_commodity) {
-		if(c == state.world.province_get_rgo(p)) {
-			continue;
-		}
-		if(economy::rgo_max_employment(state, c, p) > 100.f) {
-			auto tile = province_tile{};
-			tile.rgo_commodity = c;
+			tile.is_civilian_port = true;
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
 		}
-	}
 
-	// Display factories and factories under construction for provinces with owner (colonized)
-	if(owner) {
 		for(auto f : state.world.in_factory) {
 			if(f.get_factory_location().get_province() == p) {
 				auto tile = province_tile{};
@@ -159,6 +123,36 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		push_tile(tiles, tile, curind);
 	}
 
+	// Skip to the next row
+	while(curind % 8 != 0) {
+		curind++;
+	}
+
+	// Main province RGOs
+	{
+		auto tile = province_tile{};
+		tile.commodity = state.world.province_get_rgo(p);
+		tile.is_rgo = true;
+		tile.empty = false;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
+	}
+
+	// Secondary RGOs
+	for(auto c : state.world.in_commodity) {
+		if(c == state.world.province_get_rgo(p)) {
+			continue;
+		}
+		if(economy::rgo_max_employment(state, c, p) > 100.f) {
+			auto tile = province_tile{};
+			tile.commodity = c;
+			tile.is_rgo = true;
+			tile.empty = false;
+			tile.province = p;
+			push_tile(tiles, tile, curind);
+		}
+	}
+
 	// Unexploited resource potentials
 	for(auto c : state.world.in_commodity) {
 		if(state.world.province_get_factory_max_size(p, c) > 0) {
@@ -179,7 +173,8 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 				continue;
 			}
 			auto tile = province_tile{};
-			tile.potential_commodity = c;
+			tile.commodity = c;
+			tile.is_resource_potential = true;
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
@@ -189,6 +184,24 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 	// Skip to the next row
 	while(curind % 8 != 0) {
 		curind++;
+	}
+
+	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::fort)) > 0) {
+		auto tile = province_tile{};
+		tile.province_building = economy::province_building_type::fort;
+		tile.empty = false;
+		tile.has_province_building = true;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
+	}
+
+	if(state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base)) > 0) {
+		auto tile = province_tile{};
+		tile.province_building = economy::province_building_type::naval_base;
+		tile.empty = false;
+		tile.has_province_building = true;
+		tile.province = p;
+		push_tile(tiles, tile, curind);
 	}
 
 	// Display regiments originating from the province

@@ -681,7 +681,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_needs_scaling_factor, 400000.000000) \
 	LUA_DEFINES_LIST_ELEMENT(alice_factory_per_level_employment, 10000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_domestic_investment_multiplier, 50.0) \
-	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 2.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_rgo_boost, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_employment_bonus, 5000.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_base_rgo_efficiency_bonus, 5.00) \
 	LUA_DEFINES_LIST_ELEMENT(alice_inputs_base_factor_artisans, 1.01) \
@@ -785,6 +785,7 @@ struct defines {
 	LUA_DEFINES_LIST
 #undef LUA_DEFINES_LIST_ELEMENT
 
+		bool operator==(const defines& other) const = default;
 		void assign_define(sys::state& state, int32_t line, std::string_view key, float v, parsers::error_handler& err);
 	void parse_line(sys::state& state, int32_t line, std::string_view data, parsers::error_handler& err);
 	void parse_file(sys::state& state, std::string_view data, parsers::error_handler& err);

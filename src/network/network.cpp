@@ -1,4 +1,12 @@
+//#pragma message("IS IT WINDOWS???")
 #ifdef _WIN64 // WINDOWS
+
+#ifndef UNICODE
+#define UNICODE
+#endif
+#define NOMINMAX
+#define WIN32_LEAN_AND_MEAN
+
 #ifndef _MSC_VER
 #include <unistd.h>
 #endif
@@ -8,12 +16,14 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 #endif
+
 #include <windows.h>
 #include <natupnp.h>
 #include <iphlpapi.h>
 #include <Mstcpip.h>
 #include <ip2string.h>
 #include "pcp.h"
+
 using std::format;
 #else // NIX
 #include <netinet/in.h>
@@ -33,6 +43,7 @@ using fmt::format;
 #include "serialization.hpp"
 #include "gui_error_window.hpp"
 #include "persistent_server_extensions.hpp"
+#include "debug_string_convertions.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -44,6 +55,7 @@ using fmt::format;
 #endif
 
 #include <webapi/json.hpp>
+#include "dcon_oos_reporter_generated.hpp"
 using json = nlohmann::json;
 
 namespace network {
@@ -279,6 +291,7 @@ port_forwarder::~port_forwarder() {
 std::string get_last_error_msg() {
 #ifdef _WIN64
 	auto err = WSAGetLastError();
+	static_assert(sizeof(TCHAR) == 2);
 	LPTSTR err_buf = nullptr;
 	FormatMessage(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM, nullptr, err, 0, (LPTSTR)&err_buf, 0, nullptr);
 	native_string err_text = err_buf;
@@ -300,7 +313,7 @@ std::string get_last_error_msg() {
 	err_msg += simple_fs::native_to_utf8(err_text);
 	return err_msg;
 #else
-	return std::string("Dummy");
+	return strerror(errno);
 #endif
 }
 
@@ -359,16 +372,17 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<sys::network_mode_type NetworkType, typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload , F&& func) {
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, bool* receiving_payload, const sys::state& state, F&& func) {
 	// check flag to see if the receiving payload flag is off, an thus should read the header
 	if(!(*receiving_payload)) {
 		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
 			// if this is being run as host, early discard commands which the host aren't meant to receive
 			if constexpr(NetworkType == sys::network_mode_type::host) {
-				if(command::valid_host_receive_commands(data->header.type)) {
+				if(command::valid_host_receive_commands(data->header.type, state)) {
 					*receiving_payload = true;
 				}
 				else {
+					// TODO: disconnect client entirely if an invalid command is received
 					*receiving_payload = false;
 				}
 			}
@@ -779,7 +793,7 @@ void delete_mp_player(sys::state& state, dcon::mp_player_id player, bool make_ai
 
 dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& name, const sys::player_password_raw& password, bool fully_loaded, bool is_oos, dcon::nation_id nation_to_play) {
 	auto p = state.world.create_mp_player();
-	state.world.mp_player_set_nickname(p, name.data);
+	state.world.mp_player_set_nickname(p, name);
 
 	auto salt = sys::player_password_salt{}.from_string_view(std::to_string(int32_t(rand())));
 	auto hash = sys::player_password_hash{}.from_string_view(sha512.hash(password.to_string() + salt.to_string()));
@@ -797,7 +811,7 @@ dcon::mp_player_id create_mp_player(sys::state& state, const sys::player_name& n
 
 dcon::mp_player_id load_mp_player(sys::state& state, sys::player_name& name, sys::player_password_hash& password_hash, sys::player_password_salt& password_salt) {
 	auto p = state.world.create_mp_player();
-	state.world.mp_player_set_nickname(p, name.data);
+	state.world.mp_player_set_nickname(p, name);
 	state.world.mp_player_set_password_hash(p, password_hash.data);
 	state.world.mp_player_set_password_salt(p, password_salt.data);
 
@@ -811,11 +825,11 @@ void update_mp_player_password(sys::state& state, dcon::mp_player_id player_id, 
 	state.world.mp_player_set_password_salt(player_id, salt.data);
 }
 
-dcon::mp_player_id find_mp_player(sys::state& state, sys::player_name name) {
+dcon::mp_player_id find_mp_player(sys::state& state, const sys::player_name& name) {
 	for(const auto p : state.world.in_mp_player) {
-		auto nickname = p.get_nickname();
+		const auto& other_name = p.get_nickname();
 
-		if(std::equal(std::begin(nickname), std::end(nickname), std::begin(name.data))) {
+		if(name == other_name) {
 			return p;
 		}
 	}
@@ -832,7 +846,7 @@ std::vector<dcon::mp_player_id> find_country_players(sys::state& state, dcon::na
 }
 
 // Reassign player to his previous nation if any
-static dcon::nation_id get_player_nation(sys::state& state, sys::player_name name) {
+static dcon::nation_id get_player_nation(sys::state& state, const sys::player_name& name) {
 
 	auto p = find_mp_player(state, name);
 	if(p) {
@@ -935,6 +949,7 @@ int client_process_handshake(sys::state& state) {
 		state.game_seed = state.network_state.s_hshake.seed;
 		state.local_player_nation = state.network_state.s_hshake.assigned_nation;
 		state.local_player_id = state.network_state.s_hshake.assigned_player_id;
+		state.host_settings = state.network_state.s_hshake.host_settings;
 		state.world.nation_set_is_player_controlled(state.local_player_nation, true);
 
 #ifndef NDEBUG
@@ -967,6 +982,7 @@ void server_send_handshake(sys::state& state, network::client_data& client) {
 	hshake.scenario_checksum = state.scenario_checksum;
 	hshake.save_checksum = state.get_save_checksum();
 	hshake.assigned_player_id = client.player_id;
+	hshake.host_settings = state.host_settings;
 	socket_add_to_send_queue(client.early_send_buffer, &hshake, sizeof(hshake));
 
 
@@ -1042,6 +1058,335 @@ static uint8_t const* with_network_decompressed_section(uint8_t const* ptr_in, T
 	ZSTD_decompress(temp_buffer.get(), decompressed_length, ptr_in + sizeof(uint32_t) * 2, section_length);
 	function(temp_buffer.get(), decompressed_length);
 	return ptr_in + sizeof(uint32_t) * 2 + section_length;
+}
+
+void decompress_load_entire_mp_state(sys::state& state, const uint8_t* mp_state_data, uint32_t length) {
+	with_network_decompressed_section(mp_state_data, [&state](uint8_t const* ptr_in, uint32_t length) {
+		read_entire_mp_state(ptr_in, ptr_in + length, state);
+	});
+}
+
+std::string add_line_to_oos_report(const std::string& member_name, const std::string& value_1, const std::string& value_2) {
+	return "\tObject " + member_name + ": " + value_1 + ", " + value_2 + "\n";
+
+}
+template<typename T>
+std::string add_compare_to_oos_report_indexed(const T& item_1, const T& item_2, const std::string& member_name, uint32_t index) {
+
+	bool equal = false;
+	if constexpr(std::is_trivially_copyable<T>::value) {
+		equal = std::memcmp(&item_1, &item_2, sizeof(T)) == 0;
+	}
+	else {
+		equal = (item_1 == item_2);
+	}
+	if(!equal) {
+		std::string result = "\tobject " + member_name + ": at index " + std::to_string(index) + ": ";
+		if constexpr(std::is_same<T, bool>::value) {
+			std::string item_1_str = (item_1) ? "true" : "false";
+			std::string item_2_str = (item_2) ? "true" : "false";
+			return result + item_1_str + ", " + item_2_str + "\n";
+		} else if constexpr(requires{ sys::to_debug_string(item_1); }) {
+			return result + sys::to_debug_string(item_1) + ", " + sys::to_debug_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1); }) {
+			return result + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1.value); }) {
+			return result + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		} else if constexpr(std::is_same<T, char>::value || std::is_same<T, std::string>::value) {
+			return result + item_1 + ", " + item_2 + "\n";
+		}
+		else {
+			return result + "no supported tostring\n";
+		}
+	} else {
+		return "";
+	}
+
+
+
+
+
+
+
+
+
+	//bool equal = false;
+	//// have to have this special case as bitfield type does not have a comparison operator and is an external dependency
+	//if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+	//	equal = (item_1.v == item_2.v);
+	//} else {
+	//	equal = (item_1 == item_2);
+	//}
+	//if(!equal) {
+	//	if constexpr(std::is_arithmetic<T>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, dcon::bitfield_type>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.v) + ", " + std::to_string(item_2.v) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, char>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1 + ", " + item_2 + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, sys::date>::value || std::is_same<T, dcon::nation_id>::value || std::is_same<T, dcon::state_instance_id>::value || std::is_same<T, dcon::war_id>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+	//	}
+	//	else if constexpr(std::is_enum<T>::value) {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + std::to_string(std::underlying_type_t<T>(item_1)) + ", " + std::to_string(std::underlying_type_t<T>(item_2)) + "\n";
+	//	}
+	//	else if constexpr(std::is_same<T, bool>::value) {
+	//		std::string item_1_str = (item_1) ? "true" : "false";
+	//		std::string item_2_str = (item_2) ? "true" : "false";
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ": " + item_1_str + ", " + item_2_str + "\n";
+	//	}
+	//	else {
+	//		return "\tobject " + member_name + ": at index " + std::to_string(index) + ":\n";
+	//	}
+	//}
+	//else {
+	//	return "";
+	//}
+}
+
+template<typename T>
+std::string add_compare_to_oos_report(const T& item_1, const T& item_2, const std::string& member_name) {
+	bool equal = false;
+	if constexpr(std::is_trivially_copyable<T>::value) {
+		equal = std::memcmp(&item_1, &item_2, sizeof(T)) == 0;
+	} else {
+		equal = (item_1 == item_2);
+	}
+
+	if(!equal) {
+		std::string result = "\tobject " + member_name + ": ";
+		if constexpr(std::is_same<T, bool>::value) {
+			std::string item_1_str = (item_1) ? "true" : "false";
+			std::string item_2_str = (item_2) ? "true" : "false";
+			return result + item_1_str + ", " + item_2_str + "\n";
+		} else if constexpr(requires{ sys::to_debug_string(item_1); }) {
+			return result + sys::to_debug_string(item_1) + ", " + sys::to_debug_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1); }) {
+			return result + std::to_string(item_1) + ", " + std::to_string(item_2) + "\n";
+		} else if constexpr(requires{ std::to_string(item_1.value); }) {
+			return result + std::to_string(item_1.value) + ", " + std::to_string(item_2.value) + "\n";
+		}
+		else if constexpr(std::is_same<T, char>::value || std::is_same<T, std::string>::value) {
+			return result + item_1 + ", " + item_2 + "\n";
+		}
+		else {
+			return result + "no supported tostring\n";
+		}
+	}
+	else {
+		return "";
+	}
+}
+
+template<typename T>
+std::string add_collection_compare_to_oos_report(const std::span<const T> collection_1, const std::span<const T> collection_2, const std::string& member_name) {
+	std::string result{ };
+	if(collection_1.size() != collection_2.size()) {
+		result += "\tSize mismatch in " + member_name + ", 1st size: " + std::to_string(collection_1.size()) + ", 2nd size: " + std::to_string(collection_2.size()) + "\n";
+	}
+	uint32_t smallest_size = std::min(uint32_t(collection_1.size()), uint32_t(collection_2.size()));
+	for(uint32_t i = 0; i < smallest_size; i++) {
+		result += add_compare_to_oos_report_indexed<T>(collection_1[i], collection_2[i], member_name, i);
+	}
+	return result;
+}
+
+std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
+	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
+	std::string report = generate_oos_report(state_1.world, state_2.world, record);
+	// Only non-local scenario & save fields which CAN contribute to changing the gamestate should be included here (so eg. skip text data and local_player_nation)
+	report += "SAVE_HANDWRITTEN_CONTRIBUTION\n";
+	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
+		add_collection_compare_to_oos_report<int32_t>(state_1.unit_names_indices, state_2.unit_names_indices, "unit_names_indices") +
+		//add_compare_to_oos_report(state_1.local_player_nation, state_2.local_player_nation, "local_player_nation") +
+		add_compare_to_oos_report(state_1.current_date, state_2.current_date, "current_date") +
+		add_compare_to_oos_report(state_1.game_seed, state_2.game_seed, "game_seed") +
+		add_compare_to_oos_report(state_1.current_crisis_state, state_2.current_crisis_state, "current_crisis_state") +
+		add_collection_compare_to_oos_report<sys::crisis_member_def>(state_1.crisis_participants, state_2.crisis_participants, "crisis_participants") +
+		add_compare_to_oos_report(state_1.crisis_temperature, state_2.crisis_temperature, "crisis_temperature") +
+		add_compare_to_oos_report(state_1.crisis_attacker, state_2.crisis_attacker, "crisis_attacker") +
+		add_compare_to_oos_report(state_1.crisis_defender, state_2.crisis_defender, "crisis_defender") +
+		add_compare_to_oos_report(state_1.primary_crisis_attacker, state_2.primary_crisis_attacker, "primary_crisis_attacker") +
+		add_compare_to_oos_report(state_1.primary_crisis_defender, state_2.primary_crisis_defender, "primary_crisis_defender") +
+		add_compare_to_oos_report(state_1.crisis_state_instance, state_2.crisis_state_instance, "crisis_state_instance") +
+		add_compare_to_oos_report(state_1.crisis_last_checked_gp, state_2.crisis_last_checked_gp, "crisis_last_checked_gp") +
+		add_compare_to_oos_report(state_1.crisis_war, state_2.crisis_war, "crisis_war") +
+		add_compare_to_oos_report(state_1.last_crisis_end_date, state_2.last_crisis_end_date, "last_crisis_end_date") +
+		add_collection_compare_to_oos_report<sys::full_wg>(state_1.crisis_defender_wargoals, state_2.crisis_defender_wargoals, "crisis_defender_wargoals") +
+		add_collection_compare_to_oos_report<sys::full_wg>(state_1.crisis_attacker_wargoals, state_2.crisis_attacker_wargoals, "crisis_attacker_wargoals") +
+		add_compare_to_oos_report(state_1.inflation, state_2.inflation, "inflation") +
+		add_collection_compare_to_oos_report<sys::great_nation>(state_1.great_nations, state_2.great_nations, "great_nations") +
+		add_collection_compare_to_oos_report<event::pending_human_n_event>(state_1.pending_n_event, state_2.pending_n_event, "pending_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_f_n_event>(state_1.pending_f_n_event, state_2.pending_f_n_event, "pending_f_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_p_event>(state_1.pending_p_event, state_2.pending_p_event, "pending_p_event") +
+		add_collection_compare_to_oos_report<event::pending_human_f_p_event>(state_1.pending_f_p_event, state_2.pending_f_p_event, "pending_f_p_event") +
+		add_collection_compare_to_oos_report<diplomatic_message::message>(state_1.pending_messages, state_2.pending_messages, "pending_messages") +
+		add_collection_compare_to_oos_report<event::pending_human_n_event>(state_1.future_n_event, state_2.future_n_event, "future_n_event") +
+		add_collection_compare_to_oos_report<event::pending_human_p_event>(state_1.future_p_event, state_2.future_p_event, "future_p_event") +
+		add_collection_compare_to_oos_report<dcon::bitfield_type>(state_1.national_definitions.global_flag_variables, state_2.national_definitions.global_flag_variables, "global_flag_variables") +
+		add_compare_to_oos_report(state_1.military_definitions.great_wars_enabled, state_2.military_definitions.great_wars_enabled, "great_wars_enabled") +
+		add_compare_to_oos_report(state_1.military_definitions.world_wars_enabled, state_2.military_definitions.world_wars_enabled, "world_wars_enabled");
+
+	report += "SCENARIO_HANDWRITTEN_CONTRIBUTION\n";
+	report += add_compare_to_oos_report(state_1.lua_combined_script, state_2.lua_combined_script, "lua_combined_script") +
+	add_compare_to_oos_report(state_1.lua_game_loop_script, state_2.lua_game_loop_script, "lua_game_loop_script") +
+	add_compare_to_oos_report(state_1.lua_ui_script, state_2.lua_ui_script, "lua_ui_script") +
+	add_compare_to_oos_report(state_1.map_state.map_data.size_x, state_2.map_state.map_data.size_x, "map_data.size_x") +
+	add_compare_to_oos_report(state_1.map_state.map_data.size_y, state_2.map_state.map_data.size_y, "map_data.size_y") +
+		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
+		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
+		//add_collection_compare_to_oos_report<map::textured_line_vertex_b_enriched_with_province_index>(state_1.map_state.map_data.border_vertices, state_2.map_state.map_data.border_vertices, "border_vertices") + // this is local actually!
+		add_collection_compare_to_oos_report<map::border>(state_1.map_state.map_data.borders, state_2.map_state.map_data.borders, "borders") +
+		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.terrain_id_map, state_1.map_state.map_data.terrain_id_map, "terrain_id_map") +
+		add_collection_compare_to_oos_report<uint16_t>(state_1.map_state.map_data.province_id_map, state_1.map_state.map_data.province_id_map, "province_id_map") +
+		add_collection_compare_to_oos_report<uint32_t>(state_1.map_state.map_data.province_area, state_1.map_state.map_data.province_area, "province_area") +
+		add_collection_compare_to_oos_report<float>(state_1.map_state.map_data.province_area_km2, state_1.map_state.map_data.province_area_km2, "province_area_km2") +
+		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.diagonal_borders, state_2.map_state.map_data.diagonal_borders, "diagnoal_borders") +
+		add_compare_to_oos_report(state_1.defines, state_2.defines, "defines") +
+		add_compare_to_oos_report(state_1.economy_definitions, state_2.economy_definitions, "economy_defitions") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.party_issues, state_2.culture_definitions.party_issues, "party_issues") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.political_issues, state_2.culture_definitions.political_issues, "political_issues") +
+		add_collection_compare_to_oos_report<dcon::issue_id>(state_1.culture_definitions.social_issues, state_2.culture_definitions.social_issues, "social_issues") +
+		add_collection_compare_to_oos_report<dcon::reform_id>(state_1.culture_definitions.military_issues, state_2.culture_definitions.military_issues, "military_issues") +
+		add_collection_compare_to_oos_report<dcon::reform_id>(state_1.culture_definitions.economic_issues, state_2.culture_definitions.economic_issues, "economic_issues") +
+		add_collection_compare_to_oos_report<culture::folder_info>(state_1.culture_definitions.tech_folders, state_2.culture_definitions.tech_folders, "tech_folders") +
+		add_collection_compare_to_oos_report<culture::crime_info>(state_1.culture_definitions.crimes, state_2.culture_definitions.crimes, "crimes") +
+		add_compare_to_oos_report(state_1.culture_definitions.artisans, state_2.culture_definitions.artisans, "artisans") +
+		add_compare_to_oos_report(state_1.culture_definitions.capitalists, state_2.culture_definitions.capitalists, "capitalists") +
+		add_compare_to_oos_report(state_1.culture_definitions.farmers, state_2.culture_definitions.farmers, "farmers") +
+		add_compare_to_oos_report(state_1.culture_definitions.laborers, state_2.culture_definitions.laborers, "labrourers") +
+		add_compare_to_oos_report(state_1.culture_definitions.clergy, state_2.culture_definitions.clergy, "clergy") +
+		add_compare_to_oos_report(state_1.culture_definitions.soldiers, state_2.culture_definitions.soldiers, "soldiers") +
+		add_compare_to_oos_report(state_1.culture_definitions.officers, state_2.culture_definitions.officers, "officers") +
+		add_compare_to_oos_report(state_1.culture_definitions.slaves, state_2.culture_definitions.slaves, "slaves") +
+		add_compare_to_oos_report(state_1.culture_definitions.bureaucrat, state_2.culture_definitions.bureaucrat, "buraucrat") +
+		add_compare_to_oos_report(state_1.culture_definitions.aristocrat, state_2.culture_definitions.aristocrat, "aristocrat") +
+		add_compare_to_oos_report(state_1.culture_definitions.primary_factory_worker, state_2.culture_definitions.primary_factory_worker, "primary_factory_worker") +
+		add_compare_to_oos_report(state_1.culture_definitions.secondary_factory_worker, state_2.culture_definitions.secondary_factory_worker, "secondary_factory_worker") +
+		add_compare_to_oos_report(state_1.culture_definitions.officer_leadership_points, state_2.culture_definitions.officer_leadership_points, "officer_leadership_points") +
+		add_compare_to_oos_report(state_1.culture_definitions.bureaucrat_tax_efficiency, state_2.culture_definitions.bureaucrat_tax_efficiency, "bureaucrat_tax_efficiency") +
+		add_compare_to_oos_report(state_1.culture_definitions.conservative, state_2.culture_definitions.conservative, "conservative") +
+		add_compare_to_oos_report(state_1.culture_definitions.jingoism, state_2.culture_definitions.jingoism, "jingoism") +
+		add_compare_to_oos_report(state_1.culture_definitions.promotion_chance, state_2.culture_definitions.promotion_chance, "promotion_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.demotion_chance, state_2.culture_definitions.demotion_chance, "demotion_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.migration_chance, state_2.culture_definitions.migration_chance, "migration_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.colonialmigration_chance, state_2.culture_definitions.colonialmigration_chance, "colonialmigration_chance") +
+		add_compare_to_oos_report(state_1.culture_definitions.emigration_chance, state_2.culture_definitions.emigration_chance, "emigration_chance") +
+			add_compare_to_oos_report(state_1.culture_definitions.assimilation_chance, state_2.culture_definitions.assimilation_chance, "assimilation_chance") +
+			add_compare_to_oos_report(state_1.culture_definitions.conversion_chance, state_2.culture_definitions.conversion_chance, "conversion_chance") +
+			add_compare_to_oos_report(state_1.military_definitions.first_background_trait, state_2.military_definitions.first_background_trait, "first_background_trait") +
+			add_collection_compare_to_oos_report<military::unit_definition>(state_1.military_definitions.unit_base_definitions, state_2.military_definitions.unit_base_definitions, "unit_base_definitions") +
+			add_compare_to_oos_report(state_1.military_definitions.base_army_unit, state_2.military_definitions.base_army_unit, "base_army_unit") +
+			add_compare_to_oos_report(state_1.military_definitions.base_naval_unit, state_2.military_definitions.base_naval_unit, "base_naval_unit") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_civil_war, state_2.military_definitions.standard_civil_war, "standard_civil_war") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_great_war, state_2.military_definitions.standard_great_war, "standard_great_war") +
+			add_compare_to_oos_report(state_1.military_definitions.standard_status_quo, state_2.military_definitions.standard_status_quo, "standard_status_quo") +
+			add_compare_to_oos_report(state_1.military_definitions.liberate, state_2.military_definitions.liberate, "liberate") +
+			add_compare_to_oos_report(state_1.military_definitions.uninstall_communist_gov, state_2.military_definitions.uninstall_communist_gov, "uninstall_communist_gov") +
+			add_compare_to_oos_report(state_1.military_definitions.crisis_colony, state_2.military_definitions.crisis_colony, "crisis_colony") +
+			add_compare_to_oos_report(state_1.military_definitions.crisis_liberate, state_2.military_definitions.crisis_liberate, "crisis_liberate") +
+			add_compare_to_oos_report(state_1.military_definitions.irregular, state_2.military_definitions.irregular, "irregular") +
+			add_collection_compare_to_oos_report<nations::triggered_modifier>(state_1.national_definitions.triggered_modifiers, state_2.national_definitions.triggered_modifiers, "triggered_modifiers") +
+
+
+			add_compare_to_oos_report(state_1.national_definitions.rebel_id, state_2.national_definitions.rebel_id, "rebel_id") +
+			add_compare_to_oos_report(state_1.national_definitions.very_easy_player, state_2.national_definitions.very_easy_player, "very_easy_player") +
+			add_compare_to_oos_report(state_1.national_definitions.easy_player, state_2.national_definitions.easy_player, "easy_player") +
+
+			add_compare_to_oos_report(state_1.national_definitions.hard_player, state_2.national_definitions.hard_player, "hard_player") +
+			add_compare_to_oos_report(state_1.national_definitions.very_hard_player, state_2.national_definitions.very_hard_player, "very_hard_player") +
+			add_compare_to_oos_report(state_1.national_definitions.very_easy_ai, state_2.national_definitions.very_easy_ai, "very_easy_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.easy_ai, state_2.national_definitions.easy_ai, "easy_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.hard_ai, state_2.national_definitions.hard_ai, "hard_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.very_hard_ai, state_2.national_definitions.very_hard_ai, "very_hard_ai") +
+			add_compare_to_oos_report(state_1.national_definitions.overseas, state_2.national_definitions.overseas, "overseas") +
+			add_compare_to_oos_report(state_1.national_definitions.coastal, state_2.national_definitions.coastal, "coastal") +
+			add_compare_to_oos_report(state_1.national_definitions.non_coastal, state_2.national_definitions.non_coastal, "non_coastal") +
+			add_compare_to_oos_report(state_1.national_definitions.coastal_sea, state_2.national_definitions.coastal_sea, "coastal_sea") +
+			add_compare_to_oos_report(state_1.national_definitions.sea_zone, state_2.national_definitions.sea_zone, "sea_zone") +
+			add_compare_to_oos_report(state_1.national_definitions.land_province, state_2.national_definitions.land_province, "land_province") +
+			add_compare_to_oos_report(state_1.national_definitions.blockaded, state_2.national_definitions.blockaded, "blockaded") +
+			add_compare_to_oos_report(state_1.national_definitions.no_adjacent_controlled, state_2.national_definitions.no_adjacent_controlled, "no_adjacent_controlled") +
+			add_compare_to_oos_report(state_1.national_definitions.core, state_2.national_definitions.core, "core") +
+			add_compare_to_oos_report(state_1.national_definitions.has_siege, state_2.national_definitions.has_siege, "has_siege") +
+			add_compare_to_oos_report(state_1.national_definitions.occupied, state_2.national_definitions.occupied, "occupied") +
+			add_compare_to_oos_report(state_1.national_definitions.nationalism, state_2.national_definitions.nationalism, "nationalism") +
+			add_compare_to_oos_report(state_1.national_definitions.infrastructure, state_2.national_definitions.infrastructure, "infrastructure") +
+			add_compare_to_oos_report(state_1.national_definitions.base_values, state_2.national_definitions.base_values, "base_values") +
+			add_compare_to_oos_report(state_1.national_definitions.war, state_2.national_definitions.war, "war") +
+			add_compare_to_oos_report(state_1.national_definitions.peace, state_2.national_definitions.peace, "peace") +
+			add_compare_to_oos_report(state_1.national_definitions.disarming, state_2.national_definitions.disarming, "disarming") +
+			add_compare_to_oos_report(state_1.national_definitions.war_exhaustion, state_2.national_definitions.war_exhaustion, "war_exhaustion") +
+			add_compare_to_oos_report(state_1.national_definitions.badboy, state_2.national_definitions.badboy, "badboy") +
+			add_compare_to_oos_report(state_1.national_definitions.debt_default_to, state_2.national_definitions.debt_default_to, "debt_default_to") +
+			add_compare_to_oos_report(state_1.national_definitions.bad_debter, state_2.national_definitions.bad_debter, "bad_debter") +
+			add_compare_to_oos_report(state_1.national_definitions.great_power, state_2.national_definitions.great_power, "great_power") +
+			add_compare_to_oos_report(state_1.national_definitions.second_power, state_2.national_definitions.second_power, "second_power") +
+			add_compare_to_oos_report(state_1.national_definitions.civ_nation, state_2.national_definitions.civ_nation, "civ_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.unciv_nation, state_2.national_definitions.unciv_nation, "unciv_nation") +
+			add_compare_to_oos_report(state_1.national_definitions.average_literacy, state_2.national_definitions.average_literacy, "average_literacy") +
+			add_compare_to_oos_report(state_1.national_definitions.plurality, state_2.national_definitions.plurality, "plurality") +
+			add_compare_to_oos_report(state_1.national_definitions.generalised_debt_default, state_2.national_definitions.generalised_debt_default, "generalized_debt_default") +
+			add_compare_to_oos_report(state_1.national_definitions.total_occupation, state_2.national_definitions.total_occupation, "total_occupation") +
+			add_compare_to_oos_report(state_1.national_definitions.total_blockaded, state_2.national_definitions.total_blockaded, "total_blockaded") +
+			add_compare_to_oos_report(state_1.national_definitions.in_bankrupcy, state_2.national_definitions.in_bankrupcy, "in_bankrupcy") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_variables, state_2.national_definitions.num_allocated_national_variables, "num_allocated_national_variables") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_national_flags, state_2.national_definitions.num_allocated_national_flags, "num_allocated_national_flags") +
+			add_compare_to_oos_report(state_1.national_definitions.num_allocated_global_flags, state_2.national_definitions.num_allocated_global_flags, "num_allocated_global_flags") +
+			add_compare_to_oos_report(state_1.national_definitions.flashpoint_focus, state_2.national_definitions.flashpoint_focus, "flashpoint_focus") +
+			add_compare_to_oos_report(state_1.national_definitions.flashpoint_amount, state_2.national_definitions.flashpoint_amount, "flashpoint_amount") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_yearly_pulse, state_2.national_definitions.on_yearly_pulse, "on_yearly_pulse") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_quarterly_pulse, state_2.national_definitions.on_quarterly_pulse, "on_quarterly_pulse") +
+			add_collection_compare_to_oos_report<nations::fixed_province_event>(state_1.national_definitions.on_battle_won, state_2.national_definitions.on_battle_won, "on_battle_won") +
+			add_collection_compare_to_oos_report<nations::fixed_province_event>(state_1.national_definitions.on_battle_lost, state_2.national_definitions.on_battle_lost, "on_battle_lost") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_surrender, state_2.national_definitions.on_surrender, "on_surrender") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_new_great_nation, state_2.national_definitions.on_new_great_nation, "on_new_great_nation") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_lost_great_nation, state_2.national_definitions.on_lost_great_nation, "on_lost_great_nation") +
+			add_collection_compare_to_oos_report<nations::fixed_election_event>(state_1.national_definitions.on_election_tick, state_2.national_definitions.on_election_tick, "on_election_tick") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_colony_to_state, state_2.national_definitions.on_colony_to_state, "on_colony_to_state") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_state_conquest, state_2.national_definitions.on_state_conquest, "on_state_conquest") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_colony_to_state_free_slaves, state_2.national_definitions.on_colony_to_state_free_slaves, "on_colony_to_state_free_slaves") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default, state_2.national_definitions.on_debtor_default, "on_debtor_default") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default_small, state_2.national_definitions.on_debtor_default_small, "on_debtor_default_small") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_debtor_default_second, state_2.national_definitions.on_debtor_default_second, "on_debtor_default_second") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_civilize, state_2.national_definitions.on_civilize, "on_civilize") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_my_factories_nationalized, state_2.national_definitions.on_my_factories_nationalized, "on_my_factories_nationalized") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_crisis_declare_interest, state_2.national_definitions.on_crisis_declare_interest, "on_crisis_declare_interest") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_election_started, state_2.national_definitions.on_election_started, "on_election_started") +
+			add_collection_compare_to_oos_report<nations::fixed_event>(state_1.national_definitions.on_election_finished, state_2.national_definitions.on_election_finished, "on_election_finished") +
+			add_collection_compare_to_oos_report<dcon::province_adjacency_id>(state_1.province_definitions.canals, state_2.province_definitions.canals, "canals") +
+			add_collection_compare_to_oos_report<dcon::province_id>(state_1.province_definitions.canal_provinces, state_2.province_definitions.canal_provinces, "canal_provinces") +
+			add_compare_to_oos_report(state_1.province_definitions.first_sea_province, state_2.province_definitions.first_sea_province, "first_sea_province") +
+			add_compare_to_oos_report(state_1.province_definitions.europe, state_2.province_definitions.europe, "europe") +
+			add_compare_to_oos_report(state_1.province_definitions.asia, state_2.province_definitions.asia, "asia") +
+			add_compare_to_oos_report(state_1.province_definitions.africa, state_2.province_definitions.africa, "africa") +
+			add_compare_to_oos_report(state_1.province_definitions.north_america, state_2.province_definitions.north_america, "north_america") +
+			add_compare_to_oos_report(state_1.province_definitions.south_america, state_2.province_definitions.south_america, "south_america") +
+			add_compare_to_oos_report(state_1.province_definitions.oceania, state_2.province_definitions.oceania, "oceania") +
+			add_compare_to_oos_report(state_1.start_date, state_1.start_date, "start_date") +
+			add_compare_to_oos_report(state_1.end_date, state_1.end_date, "end_date") +
+			add_collection_compare_to_oos_report<uint16_t>(state_1.trigger_data, state_2.trigger_data, "trigger_data") +
+			add_collection_compare_to_oos_report<int32_t>(state_1.trigger_data_indices, state_2.trigger_data_indices, "trigger_data_indices") +
+			add_collection_compare_to_oos_report<uint16_t>(state_1.effect_data, state_2.effect_data, "effect_data") +
+			add_collection_compare_to_oos_report<int32_t>(state_1.effect_data_indices, state_2.effect_data_indices, "effect_data_indices") +
+			add_collection_compare_to_oos_report<sys::value_modifier_segment>(state_1.value_modifier_segments, state_2.value_modifier_segments, "value_modifier_segments") +
+			add_collection_compare_to_oos_report<sys::value_modifier_description>(state_1.value_modifiers, state_2.value_modifiers, "value_modifiers") +
+			add_compare_to_oos_report(state_1.hardcoded_gamerules, state_1.hardcoded_gamerules, "hardcoded_gamerules");
+
+			return report;
+}
+
+void dump_oos_report(sys::state& state_1, sys::state& state_2) {
+	auto sdir = simple_fs::get_or_create_oos_directory();
+	auto saveprefix = simple_fs::utf8_to_native(state_1.network_state.nickname.to_string() + state_2.network_state.nickname.to_string());
+	auto dt = state_1.current_date.to_ymd(state_1.start_date);
+	auto savepostfix = NATIVE("OOS.log");
+	auto filename = saveprefix + simple_fs::utf8_to_native(std::to_string(dt.year) + std::to_string(dt.month) + std::to_string(dt.day)) + savepostfix;
+	std::string result = generate_full_oos_report(state_1, state_2);
+	simple_fs::write_file(sdir, filename, result.data(), uint32_t(result.length()));
 }
 
 
@@ -1302,7 +1647,7 @@ int server_process_handshake(sys::state& state, network::client_data& client) {
 }
 
 int server_process_client_commands(sys::state& state, network::client_data& client) {
-	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag , [&]() {
+	int r = socket_recv_command<sys::network_mode_type::host>(client.socket_fd, &client.recv_buffer, &client.recv_count, &client.receiving_payload_flag, state, [&]() {
 		switch(client.recv_buffer.header.type) {
 			// client can notify the host that they are loaded without needing to check the num of clients loading
 		case command::command_type::notify_player_fully_loaded:
@@ -1399,6 +1744,21 @@ void write_network_save(sys::state& state) {
 
 }
 
+
+std::unique_ptr<uint8_t[]> write_network_entire_mp_state(sys::state& state, uint32_t& size_out) {
+	// We do not compress it as it is so large that it usually takes longer to compress it, than to just send the entire uncompressed payload
+	size_t length = sizeof_entire_mp_state(state);
+	auto mp_state_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[length]);
+	write_entire_mp_state(mp_state_buffer.get(), state); //writeoff data
+	size_out = uint32_t(length);
+	return mp_state_buffer;
+
+}
+
+
+
+
+
 void broadcast_save_to_clients(sys::state& state) {
 	send_savegame(state, [](const client_data& d) {return true; });
 }
@@ -1464,6 +1824,31 @@ static void accept_new_clients(sys::state& state) {
 	}
 }
 
+bool should_do_oos_check(const sys::state& state) {
+	if(state.cheat_data.daily_oos_check) {
+		return true;
+	}
+	switch(state.host_settings.oos_interval) {
+	case network::oos_check_interval::daily:
+	{
+		return true;
+	}
+	case network::oos_check_interval::monthly:
+	{
+		return state.current_date.to_ymd(state.start_date).day == 1;
+	}
+	case network::oos_check_interval::yearly:
+	{
+		auto ymd = state.current_date.to_ymd(state.start_date);
+		return ymd.day == 1 && ymd.month == 1;
+	}
+	default:
+	{
+		return false;
+	}
+	}
+}
+
 void send_and_receive_commands(sys::state& state) {
 
 
@@ -1492,19 +1877,20 @@ void send_and_receive_commands(sys::state& state) {
 			auto* c = state.network_state.outgoing_commands.front();
 			while(c) {
 				if(!command::is_console_command(c->header.type)) {
-					// Generate checksum on the spot
-					if(c->header.type == command::command_type::advance_tick) {
-						if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
-							auto& payload = c->get_payload<command::advance_tick_data>();
-							payload.checksum = state.get_mp_state_checksum();
-						}
-					}
 #ifndef NDEBUG
 					const auto now = std::chrono::system_clock::now();
 					state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->header.type))]);
 #endif
 					// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
 					if(command::execute_command(state, *c) && command::should_broadcast_command(state, *c)) {
+						// Generate checksum on the spot.
+						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
+						if(c->header.type == command::command_type::advance_tick) {
+							if(should_do_oos_check(state)) {
+								auto& payload = c->get_payload<command::advance_tick_data>();
+								payload.checksum = state.get_mp_state_checksum();
+							}
+						}
 						broadcast_to_clients(state, *c);
 					}
 					command_executed = true;
@@ -1514,7 +1900,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 
 			// Clear lost sockets
-			if(state.current_date.to_ymd(state.start_date).day == 1 || state.cheat_data.daily_oos_check) {
+			if(should_do_oos_check(state)) {
 				for(auto& client : state.network_state.clients) {
 					if(!client.is_active())
 						continue;
@@ -1619,7 +2005,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, [&]() {
+			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload_flag, state, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
@@ -1666,6 +2052,9 @@ void send_and_receive_commands(sys::state& state) {
 	if(command_executed) {
 		if(state.network_state.out_of_sync && !state.network_state.reported_oos) {
 			command::notify_player_oos(state, state.local_player_nation);
+			if(state.host_settings.oos_debug_mode) {
+				command::notify_oos_gamestate(state, state.local_player_nation);
+			}
 			state.network_state.reported_oos = true;
 		}
 		state.game_state_updated.store(true, std::memory_order::release);
@@ -1796,6 +2185,8 @@ state.host_settings.y = data[x]
 		HS_LOAD("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_LOAD("alice_persistent_server_unpause", alice_persistent_server_unpause);
 		HS_LOAD("alice_host_port", alice_host_port);
+		HS_LOAD("oos_interval", oos_interval);
+		HS_LOAD("oos_debug_mode", oos_debug_mode);
 	}
 }
 
@@ -1817,6 +2208,8 @@ data[x] = state.host_settings.y
 		HS_SAVE("alice_persistent_server_pause", alice_persistent_server_pause);
 		HS_SAVE("alice_persistent_server_unpause", alice_persistent_server_unpause);
 		HS_SAVE("alice_host_port", alice_host_port);
+		HS_SAVE("oos_interval", oos_interval);
+		HS_SAVE("oos_debug_mode", oos_debug_mode);
 
 		std::string res = data.dump();
 

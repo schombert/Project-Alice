@@ -1,8 +1,11 @@
+#include "system_state.hpp"
 #include "ai_war.hpp"
 #include "ai_campaign_values.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
 #include "triggers.hpp"
+#include "province.hpp"
+#include "diplomatic_messages.hpp"
 
 namespace ai {
 

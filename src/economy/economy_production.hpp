@@ -1,12 +1,31 @@
 #pragma once
 
+#include "system_state_forward.hpp"
+#include "container_types.hpp"
 #include "economy_stats.hpp"
+#include "economy_common_api_containers.hpp"
 
 // this .cpp and .hpp pair of files contains:
 // - employment updates of productive forces
 // - consumption updates of productive forces
 // - production updates of productive forces
 // as all of these things are related to "productive forces", the file is named as "economy_production"
+
+namespace production_directives {
+
+constexpr inline dcon::production_directive_id factory_profit(0);
+constexpr inline dcon::production_directive_id factory_employment(1);
+constexpr inline dcon::production_directive_id factory_specialization(2);
+constexpr inline dcon::production_directive_id factory_upgrades(3);
+constexpr inline dcon::production_directive_id no_factories(4);
+constexpr inline dcon::production_directive_id railroads(5);
+constexpr inline dcon::production_directive_id naval_bases(6);
+constexpr inline dcon::production_directive_id forts(7);
+constexpr inline uint32_t count_special_keys = 8;
+
+dcon::production_directive_id to_key(sys::state const& state, dcon::commodity_id v);
+uint32_t size(sys::state const& state);
+}
 
 namespace economy {
 
@@ -29,6 +48,8 @@ struct inputs_data {
 	float min_available = 0.f;
 	float total_cost = 0.f;
 };
+
+void set_initial_factory_values(sys::state& state, dcon::factory_id f);
 
 template<typename SET>
 inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SET const& inputs);
@@ -98,6 +119,9 @@ float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_factory_consumption(sys::state& state, dcon::commodity_id c);
 
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of);
+float estimate_factory_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of);
+
 float estimate_factory_profit_margin(
 	sys::state& state,
 	dcon::province_id pid,
@@ -113,6 +137,8 @@ float factory_output(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 float factory_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float factory_output(sys::state& state, dcon::commodity_id c);
+
+float factory_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float factory_total_desired_employment_score(sys::state const& state, dcon::factory_id f);
 float factory_total_desired_employment(sys::state const& state, dcon::factory_id f);
@@ -257,6 +283,9 @@ float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c, dcon::nation_id n);
 float estimate_artisan_consumption(sys::state& state, dcon::commodity_id c);
 
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::state_instance_id s, dcon::commodity_id production_of);
+float estimate_artisan_consumption_in_production(sys::state& state, dcon::commodity_id c, dcon::nation_id n, dcon::commodity_id production_of);
+
 float estimate_intermediate_consumption(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 float estimate_production(sys::state& state, dcon::commodity_id c, dcon::province_id p);
 
@@ -266,6 +295,8 @@ float artisan_output(sys::state& state, dcon::commodity_id c, dcon::province_id 
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c, dcon::nation_id id);
 float artisan_output(sys::state& state, dcon::commodity_id c);
+
+float artisan_potential_output(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::province_id id);
 float artisan_employment_target(sys::state& state, dcon::commodity_id c, dcon::state_instance_id id);
@@ -286,19 +317,9 @@ breakdown_commodity explain_output(sys::state& state, dcon::commodity_id c);
 
 
 namespace gdp {
-
-struct breakdown {
-	float primary;
-	float secondary_factory;
-	float secondary_artisan;
-	float total;
-	float total_non_negative;
-};
-
 float value_nation(sys::state& state, dcon::nation_id n);
 float value_market(sys::state& state, dcon::market_id n);
 float value_nation_adjusted(sys::state& state, dcon::nation_id n);
-
 breakdown breakdown_province(sys::state& state, dcon::province_id pid);
 }
 

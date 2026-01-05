@@ -1,11 +1,13 @@
-#include "system_state.hpp"
-#include "serialization.hpp"
-
 #ifndef UNICODE
 #define UNICODE
 #endif
 #define NOMINMAX
 #define WIN32_LEAN_AND_MEAN
+
+#include "system_state.hpp"
+#include "game_scene.hpp"
+#include "serialization.hpp"
+#include "parsers_declarations.hpp"
 
 #include <Windows.h>
 #include <shellapi.h>
@@ -33,7 +35,7 @@ void signal_abort_handler(int) {
 		si.cb = sizeof(si);
 		PROCESS_INFORMATION pi;
 		ZeroMemory(&pi, sizeof(pi));
-		// Start the child process. 
+		// Start the child process.
 		if(CreateProcessW(
 			L"dbg_alice.exe",   // Module name
 			NULL, // Command line

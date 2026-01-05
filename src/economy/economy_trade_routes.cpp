@@ -4,6 +4,12 @@
 #include "system_state.hpp"
 #include "economy_government.hpp"
 #include "adaptive_ve.hpp"
+#include "province_templates.hpp"
+#include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
+#include "economy_templates.hpp"
+#include "money.hpp"
+#include "province.hpp"
 
 // implements trade routes
 // when changing logic of trade routes please update it everywhere
@@ -15,6 +21,30 @@ namespace economy {
 // 0 means that trade profit due to price difference is pocketed by exporters
 // 1 means that trade profit due to price difference is pocketed by importers
 constexpr inline float import_profit_priority = 0.5f;
+
+
+template<typename TRADE_ROUTE>
+auto trade_route_effect_of_scale(sys::state& state, TRADE_ROUTE trade_route) {
+	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
+	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
+	MARKET A = ve::apply([&](auto route) {
+		return state.world.trade_route_get_connected_markets(route, 0);
+	}, trade_route);
+	MARKET B = ve::apply([&](auto route) {
+		return state.world.trade_route_get_connected_markets(route, 1);
+	}, trade_route);
+
+	VALUE cargo = 0.f;
+	state.world.for_each_commodity([&](auto cid) {
+		VALUE volume = state.world.trade_route_get_volume(trade_route, cid);
+		MARKET origin = ve::select(volume > 0.f, A, B);
+		cargo = cargo + adaptive_ve::abs(volume) * state.world.market_get_actual_probability_to_buy(origin, cid);;
+	});
+	return adaptive_ve::max<VALUE>(
+		trade_effect_of_scale_lower_bound,
+		1.f - cargo * effect_of_transportation_scale
+	);
+}
 
 
 // US3AC2 Labour demand for a single trade route
@@ -446,7 +476,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	// use expectation because it's a behaviour-related update
 	auto bought_A = state.world.market_get_expected_probability_to_buy(A, cid);
 	auto bought_B = state.world.market_get_expected_probability_to_buy(B, cid);
-	auto bought = current_volume > 0.f ? bought_A :	bought_B;
+	auto bought = (current_volume + change) > 0.f ? bought_A : bought_B;
 
 	result.expected_to_buy_in_origin_ratio = bought;
 
@@ -480,7 +510,9 @@ void update_trade_routes_volume(
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
 	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>& coastal_capital_buffer,
-	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied
+	ve::vectorizable_buffer<float, dcon::state_instance_id>& state_port_is_occupied,
+	ve::vectorizable_buffer<float, dcon::market_id>& available_port_capacity,
+	ve::vectorizable_buffer<float, dcon::market_id>& price_port_capacity
 ) {
 	state.world.execute_parallel_over_trade_route([&](auto trade_route) {
 		auto A = ve::apply([&](auto route) {
@@ -535,9 +567,6 @@ void update_trade_routes_volume(
 		auto import_tariff_effect_B = 1.f - ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, import_tariff_buffer.get(B));
 		auto export_tariff_effect_B = 1.f + ve::select(same_nation || B_is_open_to_A, ve::fp_vector{ 0.f }, export_tariff_buffer.get(B));
 
-		auto wage_A = (state.world.province_get_labor_price(capital_A, labor::no_education) + 0.00001f);
-		auto wage_B = (state.world.province_get_labor_price(capital_B, labor::no_education) + 0.00001f);
-
 		ve::fp_vector distance = invalid_trade_route_distance;
 		auto land_distance = state.world.trade_route_get_land_distance(trade_route);
 		auto sea_distance = state.world.trade_route_get_sea_distance(trade_route);
@@ -557,10 +586,27 @@ void update_trade_routes_volume(
 		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
 
+		auto transport_availability_A = ve::select(is_land_route, ve::fp_vector{ state.world.province_get_labor_demand_satisfaction(capital_A, labor::no_education) }, ve::fp_vector{ 0.f });
+		auto transport_availability_B = ve::select(is_land_route, ve::fp_vector{ state.world.province_get_labor_demand_satisfaction(capital_B, labor::no_education) }, ve::fp_vector{ 0.f });
+
+		transport_availability_A = ve::select(is_sea_route, available_port_capacity.get(A), transport_availability_A);
+		transport_availability_B = ve::select(is_sea_route, available_port_capacity.get(B), transport_availability_B);
+
+		auto transport_availability = ve::min(transport_availability_A, transport_availability_B);
+
+		auto wage_A = state.world.province_get_labor_price(capital_A, labor::no_education);
+		auto wage_B = state.world.province_get_labor_price(capital_B, labor::no_education);
+
+		auto transport_cost_A = ve::select(is_land_route, wage_A, 0.f);
+		auto transport_cost_B = ve::select(is_land_route, wage_B, 0.f);
+
+		transport_cost_A = ve::select(is_sea_route, price_port_capacity.get(A), transport_cost_A);
+		transport_cost_B = ve::select(is_sea_route, price_port_capacity.get(B), transport_cost_B);
+
 		auto transport_cost =
 			distance
 			/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
-			* (wage_A + wage_B);
+			* (transport_cost_A + transport_cost_B);
 
 		auto reset_route = trade_closed || trade_banned
 			|| !ve::apply([&](auto r) { return state.world.trade_route_is_valid(r); }, trade_route)
@@ -608,8 +654,9 @@ void update_trade_routes_volume(
 			// US3AC21 effect of scale
 			// volume reduces transport costs
 
-			auto current_profit_A_to_B = ve::max(0.f, price_B_import - price_A_export * merchant_cut - transport_cost * effect_of_scale);
-			auto current_profit_B_to_A = ve::max(0.f, price_A_import - price_B_export * merchant_cut - transport_cost * effect_of_scale);
+			auto sold_boundary = stockpile_to_supply / (stockpile_spoilage + stockpile_to_supply);
+			auto current_profit_A_to_B = ve::max(0.f, price_B_import * sold_boundary - (price_A_export * merchant_cut + transport_cost * effect_of_scale));
+			auto current_profit_B_to_A = ve::max(0.f, price_A_import * sold_boundary - (price_B_export * merchant_cut + transport_cost * effect_of_scale));
 
 			auto change = current_profit_A_to_B / price_A_export - current_profit_B_to_A / price_B_export;
 
@@ -617,10 +664,10 @@ void update_trade_routes_volume(
 			auto expected_to_buy_A = state.world.market_get_expected_probability_to_buy(A, c);
 			auto expected_to_buy_B = state.world.market_get_expected_probability_to_buy(B, c);
 			auto expected_to_buy_inputs = ve::select(
-				current_volume > 0.f,
+				current_volume + change > 0.f,
 				expected_to_buy_A,
 				expected_to_buy_B
-			);
+			) * transport_availability;
 			change = ve::select(
 				change * (current_volume + change) >= 0.f, // change and volume are collinear
 				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (expected_to_buy_inputs - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
@@ -673,21 +720,44 @@ void update_trade_routes_consumption(sys::state& state) {
 
 	// US3AC2 register trade demand on transportation labor:
 	// money are paid during calculation of trade route profits and actual movement of goods
-	state.world.for_each_trade_route([&](auto trade_route) {
 
+	auto port_services_buffer = state.world.market_make_vectorizable_float_buffer();
+
+	state.world.for_each_trade_route([&](auto trade_route) {
 		auto A = state.world.trade_route_get_connected_markets(trade_route, 0);
 		auto B = state.world.trade_route_get_connected_markets(trade_route, 1);
-
 		auto A_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(A));
 		auto B_capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(B));
 
 		auto total_demanded_labor = trade_route_labour_demand(state, trade_route, A_capital, B_capital);
-
-		state.world.province_get_labor_demand(A_capital, labor::no_education) += total_demanded_labor;
-		state.world.province_get_labor_demand(B_capital, labor::no_education) += total_demanded_labor;
 		assert(std::isfinite(total_demanded_labor));
-		assert(std::isfinite(state.world.province_get_labor_demand(A_capital, labor::no_education)));
-		assert(std::isfinite(state.world.province_get_labor_demand(B_capital, labor::no_education)));
+
+		if(state.world.trade_route_get_is_sea_route(trade_route)) {
+			port_services_buffer.set(A, port_services_buffer.get(A) + total_demanded_labor);
+			port_services_buffer.set(B, port_services_buffer.get(B) + total_demanded_labor);
+			assert(std::isfinite(port_services_buffer.get(A)));
+			assert(std::isfinite(port_services_buffer.get(B)));
+		} else {
+			state.world.province_get_labor_demand(A_capital, labor::no_education) += total_demanded_labor;
+			state.world.province_get_labor_demand(B_capital, labor::no_education) += total_demanded_labor;
+			assert(std::isfinite(state.world.province_get_labor_demand(A_capital, labor::no_education)));
+			assert(std::isfinite(state.world.province_get_labor_demand(B_capital, labor::no_education)));
+		}
+	});
+
+	auto port_services_total_weight = state.world.market_make_vectorizable_float_buffer();
+
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto local_weight = 1.f / (0.000001f + state.world.province_get_service_price(pid, services::list::port_capacity));
+		port_services_total_weight.set(mid, port_services_total_weight.get(mid) + local_weight);
+	});
+
+	province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+		auto local_weight = 1.f / (0.000001f + state.world.province_get_service_price(pid, services::list::port_capacity));
+		auto total_weight = port_services_total_weight.get(mid);
+		auto market_demand = port_services_buffer.get(mid);
+		auto local_demand = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::port_capacity);
+		state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::port_capacity, local_demand + market_demand * local_weight / total_weight);
 	});
 
 	// US3AC3 register demand on local transportation/accounting due to trade
@@ -938,13 +1008,53 @@ trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state&
 	auto import_amount = absolute_volume * trade_good_loss_mult;
 
 	auto effect_of_scale = std::max(trade_effect_of_scale_lower_bound, 1.f - absolute_volume * effect_of_transportation_scale);
+
+	auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route);
+	auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
+
+	auto wage_origin = state.world.province_get_labor_price(capital_origin, labor::no_education);
+	auto wage_target = state.world.province_get_labor_price(capital_target, labor::no_education);
+
+	auto transport_cost_origin = is_land_route ? wage_origin : 0.f;
+	auto transport_cost_target = is_land_route ? wage_target : 0.f;
+
+	auto port_capacity = 0.f;
+
+	auto port_weight_origin_total = 0.f;
+	auto price_port_origin = 0.f;
+	province::for_each_province_in_state_instance(state, s_origin, [&](dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + price);
+		port_weight_origin_total += local_weight;
+	});
+	province::for_each_province_in_state_instance(state, s_origin, [&](dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto size = 100.f + state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+		auto local_weight = size / (0.000001f + price);
+		price_port_origin += local_weight / port_weight_origin_total * price;
+	});
+
+	auto port_weight_target_total = 0.f;
+	auto price_port_target = 0.f;
+	province::for_each_province_in_state_instance(state, s_target, [&](dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto local_weight = 1.f / (0.000001f + price);
+		port_weight_origin_total += local_weight;
+	});
+	province::for_each_province_in_state_instance(state, s_target, [&](dcon::province_id pid) {
+		auto price = state.world.province_get_service_price(pid, services::list::port_capacity);
+		auto local_weight = 1.f / (0.000001f + price);
+		price_port_target += local_weight / std::max(0.000001f, port_weight_target_total) * price;
+	});
+
+	transport_cost_origin = is_sea_route ? price_port_origin : transport_cost_origin;
+	transport_cost_target = is_sea_route ? price_port_target : transport_cost_target;
+
 	auto transport_cost =
-		distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good
-		* (
-			state.world.province_get_labor_price(capital_origin, labor::no_education)
-			+ state.world.province_get_labor_price(capital_target, labor::no_education)
-		)
-		* effect_of_scale;
+		distance
+		/ trade_distance_covered_by_pair_of_workers_per_unit_of_good
+		* (transport_cost_origin + transport_cost_target) * effect_of_scale;
 
 	auto export_tariff = origin_is_open_to_target ? 0.f : effective_tariff_export_rate(state, controller_capital_origin, origin);
 	auto import_tariff = target_is_open_to_origin ? 0.f : effective_tariff_import_rate(state, controller_capital_target, target);
@@ -1057,6 +1167,155 @@ std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dco
 	});
 
 	return result;
+}
+
+
+
+template <typename TRADE_ROUTE>
+auto explain_trade_route(
+	sys::state& state,
+	TRADE_ROUTE trade_route,
+	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff,
+	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff
+) {
+	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
+
+	auto m0 = ve::apply([&](auto route) {
+		return state.world.trade_route_get_connected_markets(route, 0);
+	}, trade_route);
+	auto m1 = ve::apply([&](auto route) {
+		return state.world.trade_route_get_connected_markets(route, 1);
+	}, trade_route);
+
+	auto s0 = state.world.market_get_zone_from_local_market(m0);
+	auto s1 = state.world.market_get_zone_from_local_market(m1);
+	auto formal_n0 = state.world.state_instance_get_nation_from_state_ownership(s0);
+	auto formal_n1 = state.world.state_instance_get_nation_from_state_ownership(s1);
+
+	auto capital_0 = state.world.state_instance_get_capital(s0);
+	auto capital_1 = state.world.state_instance_get_capital(s1);
+
+	auto controller_capital_0 = state.world.province_get_nation_from_province_control(capital_0);
+	auto controller_capital_1 = state.world.province_get_nation_from_province_control(capital_1);
+
+	controller_capital_0 = adaptive_ve::select(controller_capital_0 != dcon::nation_id{}, controller_capital_0, formal_n0);
+	controller_capital_1 = adaptive_ve::select(controller_capital_1 != dcon::nation_id{}, controller_capital_1, formal_n1);
+
+	auto market_leader_0 = nations::get_market_leader(state, controller_capital_0);
+	auto market_leader_1 = nations::get_market_leader(state, controller_capital_1);
+
+	auto applies_tariffs_0 = ve::apply([&](auto n_a, auto n_b) {
+		auto source_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_b, n_a);
+		if(source_tariffs_rel) {
+			auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(source_tariffs_rel);
+			// Enddt empty signalises revoken agreement
+			// Enddt > cur_date signalises that the agreement can't be broken
+			if(enddt) {
+				return false;
+			}
+		}
+		return true;
+	}, market_leader_0, controller_capital_1);
+
+	auto applies_tariffs_1 = ve::apply([&](auto n_a, auto n_b) {
+		auto target_tariffs_rel = state.world.get_unilateral_relationship_by_unilateral_pair(n_a, n_b);
+		if(target_tariffs_rel) {
+			auto enddt = state.world.unilateral_relationship_get_no_tariffs_until(target_tariffs_rel);
+			if(enddt) {
+				return false;
+			}
+		}
+		return true;
+	}, market_leader_1, controller_capital_0);
+
+	auto is_open_0_to_1 = market_leader_0 == controller_capital_1 || !applies_tariffs_0 || controller_capital_0 == controller_capital_1;
+	auto is_open_1_to_0 = market_leader_1 == controller_capital_0 || !applies_tariffs_1 || controller_capital_0 == controller_capital_1;
+
+	auto distance = state.world.trade_route_get_distance(trade_route);
+	auto trade_good_loss_mult = adaptive_ve::max<VALUE>(0.f, 1.f - trade_loss_per_distance_unit * distance);
+	auto scale = trade_route_effect_of_scale(state, trade_route);
+	auto base_cost_per_unit = distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good * (
+		state.world.province_get_labor_price(capital_0, labor::no_education)
+		+ state.world.province_get_labor_price(capital_1, labor::no_education)
+	);
+
+	auto export_tariff_0 = ve::select(is_open_0_to_1, 0.f, export_tariff.get(m0));
+	auto import_tariff_0 = ve::select(is_open_0_to_1, 0.f, import_tariff.get(m0));
+	auto export_tariff_1 = ve::select(is_open_1_to_0, 0.f, export_tariff.get(m1));
+	auto import_tariff_1 = ve::select(is_open_1_to_0, 0.f, import_tariff.get(m1));
+
+	tariff_data<TRADE_ROUTE> result{
+		.applies_tariff = {is_open_0_to_1, is_open_1_to_0},
+		.export_tariff = {export_tariff_0, export_tariff_1 },
+		.import_tariff = {import_tariff_0, import_tariff_1 },
+		.markets = { m0, m1 },
+		.distance = distance,
+		.loss = trade_good_loss_mult,
+		.base_distance_cost = base_cost_per_unit,
+		.workers_satisfaction = adaptive_ve::min(
+			state.world.province_get_labor_demand_satisfaction(capital_0, labor::no_education),
+			state.world.province_get_labor_demand_satisfaction(capital_1, labor::no_education)
+		),
+		.effect_of_scale = scale,
+		.distance_cost_scaled = scale * base_cost_per_unit
+	};
+
+	return result;
+}
+
+void fill_trade_buffers(
+	sys::state& state,
+
+	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
+	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
+
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_payment_0,
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_payment_1,
+
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_tariff_0,
+	ve::vectorizable_buffer<float, dcon::trade_route_id>& buffer_tariff_1,
+
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_export_0,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_export_1,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_import_0,
+	std::vector<ve::vectorizable_buffer<float, dcon::trade_route_id>>& per_commodity_import_1
+) {
+	uint32_t total_commodities = state.world.commodity_size();
+
+	state.world.execute_parallel_over_trade_route([&](auto routes) {
+		auto data = explain_trade_route(state, routes, export_tariff_buffer, import_tariff_buffer);
+		auto m0 = data.markets[0];
+		auto m1 = data.markets[1];
+
+		for(uint32_t k = 0; k < total_commodities; k++) {
+			dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
+			if(state.world.commodity_get_money_rgo(cid)) continue;
+
+			auto route_data = explain_trade_route_commodity(state, routes, data, cid);
+
+			auto origin = route_data.origin;
+			auto target = route_data.target;
+
+			auto origin_recieve = route_data.amount_origin * route_data.payment_received_per_unit;
+			auto target_pay = route_data.amount_origin * route_data.payment_per_unit;
+
+			auto mask_origin_is_0 = origin == m0;
+			auto mask_origin_is_1 = !mask_origin_is_0;
+			auto origin_is_0 = ve::select(mask_origin_is_0, ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f });
+			auto origin_is_1 = 1.f - origin_is_0;
+
+			buffer_payment_0.set(routes, buffer_payment_0.get(routes) + ve::select(mask_origin_is_0, origin_recieve, -target_pay));
+			buffer_payment_1.set(routes, buffer_payment_1.get(routes) + ve::select(mask_origin_is_1, origin_recieve, -target_pay));
+
+			buffer_tariff_0.set(routes, buffer_tariff_0.get(routes) + ve::select(mask_origin_is_0, route_data.tariff_origin, route_data.tariff_target));
+			buffer_tariff_1.set(routes, buffer_tariff_1.get(routes) + ve::select(mask_origin_is_1, route_data.tariff_origin, route_data.tariff_target));
+
+			per_commodity_export_0[k].set(routes, per_commodity_export_0[k].get(routes) + origin_is_0 * route_data.amount_origin);
+			per_commodity_export_1[k].set(routes, per_commodity_export_1[k].get(routes) + origin_is_1 * route_data.amount_origin);
+			per_commodity_import_0[k].set(routes, per_commodity_import_0[k].get(routes) + origin_is_1 * route_data.amount_target);
+			per_commodity_import_1[k].set(routes, per_commodity_import_1[k].get(routes) + origin_is_0 * route_data.amount_target);
+		}
+	});
 }
 
 }

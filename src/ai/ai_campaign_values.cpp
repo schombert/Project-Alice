@@ -1,5 +1,6 @@
 #include "ai_types.hpp"
 #include "ai_campaign_values.hpp"
+#include "system_state.hpp"
 
 namespace ai {
 

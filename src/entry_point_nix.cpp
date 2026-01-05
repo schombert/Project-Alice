@@ -1,5 +1,7 @@
 #include "serialization.hpp"
 #include "system_state.hpp"
+#include "game_scene.hpp"
+#include "parsers_declarations.hpp"
 
 static sys::state game_state;
 struct scenario_file {

@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "ai_influence.hpp"
 #include "economy_stats.hpp"
 #include "demographics.hpp"

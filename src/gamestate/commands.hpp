@@ -1,8 +1,13 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "common_types.hpp"
 #include "events.hpp"
-#include "diplomatic_messages.hpp"
+#include "diplomatic_messages_containers.hpp"
+#include "constants_dcon.hpp"
+#include "constants.hpp"
+#include "container_types.hpp"
+#include "commands_containers.hpp"
+#include "military_constants.hpp"
 
 namespace command {
 
@@ -120,8 +125,11 @@ enum class command_type : uint8_t {
 		command_units = 111,
 		give_back_units = 112,
 		change_game_rule_setting = 113,
+		toggle_production_directive = 114,
+
 
 		// network
+		notify_oos_gamestate = 234, // sent from Client to Host, with the clients OOS gamestate for the host to compare, and generate report from. NOT SAFE for use to untrusted clients as there is no safety in seralizing the binary blob which the client sends.
 		notify_mp_data = 235, // notify client that MP data (not save) is here and should be loaded
 		resync_lobby = 236,
 		notify_player_ban = 237,
@@ -249,6 +257,10 @@ struct generic_location_data {
 	dcon::province_id prov;
 };
 
+struct generic_state_definition_data {
+	dcon::state_definition_id state_def;
+};
+
 struct cheat_location_data {
 	dcon::province_id prov;
 	dcon::nation_id n;
@@ -322,43 +334,6 @@ struct call_to_arms_data {
 	dcon::nation_id target;
 	dcon::war_id war;
 	bool automatic_call = false;
-};
-
-struct pending_human_n_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	int32_t primary_slot;
-	int32_t from_slot;
-	sys::date date;
-	dcon::national_event_id e;
-	uint8_t opt_choice;
-	event::slot_type pt;
-	event::slot_type ft;
-};
-struct pending_human_f_n_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	sys::date date;
-	dcon::free_national_event_id e;
-	uint8_t opt_choice;
-};
-struct pending_human_p_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	int32_t from_slot;
-	sys::date date;
-	dcon::provincial_event_id e;
-	dcon::province_id p;
-	uint8_t opt_choice;
-	event::slot_type ft;
-};
-struct pending_human_f_p_event_data {
-	uint32_t r_lo = 0;
-	uint32_t r_hi = 0;
-	sys::date date;
-	dcon::free_provincial_event_id e;
-	dcon::province_id p;
-	uint8_t opt_choice;
 };
 
 struct cb_fabrication_data {
@@ -440,7 +415,6 @@ struct new_admiral_data {
 struct retreat_from_naval_battle_data {
 	dcon::navy_id navy;
 	dcon::province_id dest;
-	bool auto_retreat;
 };
 
 struct land_battle_data {
@@ -530,8 +504,19 @@ struct notify_player_ban_data {
 struct notify_player_kick_data {
 	bool make_ai;
 };
+struct notify_oos_gamestate_data {
+	uint32_t size;
+	const uint8_t* gamestate_data() const {
+		return reinterpret_cast<const uint8_t*>(&size + 1);
+	}
+};
 //struct notify_player_oos_data {
-//	sys::player_name player_name;
+//	uint32_t size;
+//	uint8_t* variable_data() {
+//		return reinterpret_cast<uint8_t*>(&size + 1);
+//	}
+//
+//
 //};
 struct change_ai_nation_state_data {
 	bool no_ai;
@@ -560,7 +545,12 @@ struct notify_mp_data_data_recv {
 	notify_mp_data_data base;
 	uint8_t mp_data[1];
 };
+struct production_directive_data {
+	dcon::state_instance_id for_state;
+	dcon::production_directive_id id;
+};
 
+constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire MP state
 
 static ankerl::unordered_dense::map<command::command_type, command::command_type_data> command_type_handlers = {
 	{command_type::change_nat_focus, command_type_data{ sizeof(command::national_focus_data), sizeof(command::national_focus_data) } },
@@ -591,7 +581,7 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{command_type::upgrade_colony_to_state, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::invest_in_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
 	{command_type::abandon_colony, command_type_data{ sizeof(command::generic_location_data), sizeof(command::generic_location_data) } },
-	{command_type::finish_colonization, command_type_data{sizeof(command::generic_location_data),  sizeof(command::generic_location_data) } },
+	{command_type::finish_colonization, command_type_data{sizeof(command::generic_state_definition_data),  sizeof(command::generic_state_definition_data) } },
 	{command_type::intervene_in_war, command_type_data{sizeof(command::war_target_data),  sizeof(command::war_target_data) } },
 	{command_type::suppress_movement, command_type_data{ sizeof(command::movement_data), sizeof(command::movement_data) } },
 	{command_type::civilize_nation, command_type_data{ 0, 0 } },
@@ -675,8 +665,10 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::command_units, command_type_data{ sizeof(command::command_units_data), sizeof(command::command_units_data) } },
 	{ command_type::give_back_units, command_type_data{ sizeof(command::command_units_data), sizeof(command::command_units_data) } },
 	{ command_type::change_game_rule_setting, command_type_data{ sizeof(command::change_gamerule_setting_data), sizeof(command::change_gamerule_setting_data) } },
+	{ command_type::toggle_production_directive, command_type_data{ sizeof(command::production_directive_data), sizeof(command::production_directive_data) } },
 
 	// network
+	{ command_type::notify_oos_gamestate, command_type_data{ sizeof(command::notify_oos_gamestate_data), sizeof(command::notify_oos_gamestate_data) + MAX_MP_STATE_SIZE } },
 	{ command_type::notify_player_ban, command_type_data{ sizeof(command::notify_player_ban_data), sizeof(command::notify_player_ban_data) } },
 	{ command_type::notify_player_kick, command_type_data{ sizeof(command::notify_player_kick_data), sizeof(command::notify_player_kick_data) } },
 	{ command_type::notify_player_picks_nation, command_type_data{ sizeof(command::nation_pick_data), sizeof(command::nation_pick_data) } },
@@ -698,152 +690,8 @@ static ankerl::unordered_dense::map<command::command_type, command::command_type
 	{ command_type::console_command, command_type_data{ 0, 0 } },
 	{ command_type::resync_lobby, command_type_data{ 0, 0 } },
 	{ command_type::notify_mp_data, command_type_data{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + (32 * 1000 * 1000), } },
-
 };
 
-
-// padding due to alignment
-struct cmd_header {
-	command_type type;
-	uint8_t padding = 0;
-	dcon::mp_player_id player_id;
-	uint32_t payload_size = 0;
-
-};
-static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
-
-//struct command_data_vec {
-//	cmd_header header;
-//	std::vector<uint8_t> payload;
-//	command_data(command_type _type)  {
-//		header.type = _type;
-//	};
-//	command_data(command_type _type, dcon::nation_id _source) {
-//		header.type = _type;
-//		header.source = _source;
-//	};
-//	size_t size() const {
-//		return sizeof(cmd_header) + payload.size();
-//	}
-//	// push data to the payload
-//	template<typename data_type>
-//	friend command_data& operator << (command_data& msg, data_type& data) {
-//
-//		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to push");
-//		size_t curr_size = msg.payload.size();
-//		msg.payload.resize(payload.size() + sizeof(data_type));
-//
-//		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
-//		return msg;
-//	}
-//
-//	// grab data from the payload
-//	template<typename data_type>
-//	friend command_data& operator >> (command_data& msg, data_type& data) {
-//
-//		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex to pull");
-//		size_t i = msg.payload.size() - sizeof(data_type);
-//		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
-//		msg.payload.resize(i);
-//		return msg;
-//
-//	}
-//	template<typename data_type>
-//	data_type get_payload() const {
-//		data_type output{ };
-//		*this >> output;
-//		return output;
-//	}
-//
-//
-//	
-//	std::unique_ptr<uint8_t> serialize();
-//	size_t size();
-//};
-
-
-
-
-struct command_data {
-	cmd_header header{};
-	std::vector<uint8_t> payload;
-	command_data() { };
-	command_data(command_type _type) {
-		header.type = _type;
-	};
-	command_data(command_type _type, dcon::mp_player_id _player_id) {
-		header.type = _type;
-		header.player_id = _player_id;
-	};
-	// add data to the payload
-	template<typename data_type>
-	friend command_data& operator << (command_data& msg, data_type& data) {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		size_t curr_size = msg.payload.size();
-		msg.payload.resize(msg.payload.size() + sizeof(data_type));
-		
-		std::memcpy(msg.payload.data() + curr_size, &data, sizeof(data_type));
-
-		msg.header.payload_size = msg.payload.size();
-
-		return msg;
-	}
-	// adds data from pointer to the payload
-	template<typename data_type>
-	void push_ptr(data_type* ptr, size_t size) {
-		size_t curr_size = payload.size();
-		payload.resize(payload.size() + sizeof(data_type) * size);
-
-		std::memcpy(payload.data() + curr_size, ptr, sizeof(data_type) * size);
-
-		header.payload_size = payload.size();
-	}
-
-
-	// grab data from the payload
-	template<typename data_type>
-	friend command_data& operator >> (command_data& msg, data_type& data) {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-
-		size_t i = msg.payload.size() - sizeof(data_type);
-		std::memcpy(&data, msg.payload.data() + i, sizeof(data_type));
-		msg.payload.resize(i);
-
-		msg.header.payload_size = msg.payload.size();
-
-		return msg;
-
-
-
-	}
-	// Makes a copy of the data and returns it
-	/*template<typename data_type>
-	data_type copy_payload() const {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
-
-		data_type output{ };
-		std::memcpy(&output, payload.data() + (payload.size() - sizeof(data_type)), sizeof(data_type));
-		return output;
-	}*/
-	// returns a reference to the payload of the desired type, starting from the start of the vector
-	template<typename data_type>
-	data_type& get_payload() {
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		uint8_t* ptr = payload.data();
-		return reinterpret_cast<data_type&>(*ptr);
-	}
-	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes). Returns true if that is the case, false otherwise
-	template<typename data_type>
-	bool check_variable_size_payload(uint32_t expected_size) {
-		return expected_size == (payload.size() - sizeof(data_type));
-	}
-
-};
-static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(command_data::payload));
 
 // decides whether the host should broadcast the command or execute it only for themself
 bool should_broadcast_command(sys::state& state, const command_data& command);
@@ -966,8 +814,8 @@ bool can_invest_in_colony(sys::state& state, dcon::nation_id source, dcon::provi
 void abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 bool can_abandon_colony(sys::state& state, dcon::nation_id source, dcon::province_id p);
 
-void finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
-bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::province_id p);
+void finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
+bool can_finish_colonization(sys::state& state, dcon::nation_id source, dcon::state_definition_id d);
 
 void intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
 bool can_intervene_in_war(sys::state& state, dcon::nation_id source, dcon::war_id w, bool for_attacker);
@@ -1158,8 +1006,8 @@ void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
 		std::array<dcon::regiment_id, num_packed_units> const& list);
 void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list);
 
-void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
-std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, bool auto_retreat, dcon::province_id dest = dcon::province_id{ });
+void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
 
 void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
 bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
@@ -1196,6 +1044,9 @@ bool can_use_province_button(sys::state& state, dcon::nation_id source, dcon::gu
 
 void use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
 bool can_use_nation_button(sys::state& state, dcon::nation_id source, dcon::gui_def_id d, dcon::nation_id n);
+
+void toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive);
+void execute_toggle_production_directive(sys::state& state, dcon::nation_id source, dcon::state_instance_id for_state, dcon::production_directive_id directive);
 
 /*
 PEACE OFFER COMMANDS:
@@ -1252,6 +1103,8 @@ bool can_release_subject(sys::state& state, dcon::nation_id source, dcon::nation
 void state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 bool can_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nation_id target, dcon::state_definition_id sid);
 
+void notify_oos_gamestate(sys::state& state, dcon::nation_id source);
+
 void advance_tick(sys::state& state, dcon::nation_id source);
 void notify_player_ban(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id banned_player);
 bool can_notify_player_ban(sys::state& state, dcon::nation_id source, dcon::mp_player_id banned_player);
@@ -1284,7 +1137,7 @@ bool execute_command(sys::state& state, command_data& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, command_data& c);
 // Returns true if the command type can be recevied by the host FROM a client. False otherwise
-bool valid_host_receive_commands(command_type type);
+bool valid_host_receive_commands(command_type type, const sys::state& state);
 
 
 void notify_console_command(sys::state& state);

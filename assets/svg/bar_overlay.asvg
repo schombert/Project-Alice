@@ -1,0 +1,61 @@
+<svg 
+	xmlns = "http://www.w3.org/2000/svg"
+	viewBox = "0 0 [[W;1000;0]] [[H;1000;0]] " 
+	width = "[[W;1000;0]]" 
+	height = "[[H;1000;0]]" >  
+	
+	<defs>
+		<pattern id="printpattern" x="0" y="0" width="[[P;64;0]]" height="[[P;64;0]]" patternUnits="userSpaceOnUse" >
+			<image href="printbrush.png" height="[[P;64;0]]" width="[[P;64;0]]" />
+		</pattern>
+		<mask  id="printmask">
+			<rect  x="0" y="0" fill="url(#printpattern)" width="[[W;1000;0]]" height="[[H;1000;0]]" />
+		</mask>
+	</defs>
+	
+	<g mask="url(#printmask)">
+	<g transform="translate(0 [[P;-1.25;0]])">
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;160;170]]" height="[[H;10;-5]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;600;-20]]" height="[[H;10;-5]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;670;-85]]" height="[[H;20;-10]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;740;-120]]" height="[[H;30;-15]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;810;-165]]" height="[[H;30;-15]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;870;-185]]" height="[[H;40;-20]]" />
+		<rect fill="#32291f"
+			x="250" width="[[W;1000;-500]]"
+			y="[[H;930;-215]]" height="[[H;50;-25]]" />
+		</g>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;1.25;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-250]],250
+			h [[W;-1000;500]]
+			v [[H;1000;-500]] "
+		/>
+		<path
+			style = "fill:#000000;fill-opacity:0;stroke:#32291f;stroke-width:[[P;2.5;0]];stroke-dasharray:none;stroke-opacity:1"
+			width = "[[W;1000;0]]"
+			height = "[[H;1000;0]]"
+			x = "0"
+			y = "0"
+			d = "M [[W;1000;-250]],250
+				v [[H;1000;-500]]
+				h [[W;-1000;500]] "
+		/>
+	</g>
+</svg>

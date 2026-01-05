@@ -11,6 +11,26 @@
 #include "text.hpp"
 
 namespace simple_fs {
+
+char to_lowercase(unsigned char c) {
+	return std::tolower(c);
+}
+// check if there are any matching files with diffrent case. Vic2 itself and many mods expect caseless match when looking for files. Eg several gfx files in vanilla
+// Even if it is technically not the linux standard, it has to read the Vic2 files which the developers expected to be windows-only
+std::optional<unopened_file> find_file_caseless(const directory& dir, native_string_view file_name) {
+	native_string file_name_str = native_string{ file_name };
+	std::transform(file_name_str.cbegin(), file_name_str.cend(), file_name_str.begin(), to_lowercase);
+	for(auto file : list_files(dir, NATIVE("\0"))) {
+		std::string other_filename = get_file_name(file);
+		std::transform(other_filename.cbegin(), other_filename.cend(), other_filename.begin(), to_lowercase);
+		if(file_name_str == other_filename) {
+			return std::optional<unopened_file>(file);
+		}
+	}
+	return std::optional<unopened_file>{};
+}
+
+
 file::~file() {
 #if defined(_GNU_SOURCE) || defined(_DEFAULT_SOURCE) || defined(_BSD_SOURCE) || defined(_SVID_SOURCE)
 	if(mapping_handle) {
@@ -372,6 +392,13 @@ std::optional<file> open_file(directory const& dir, native_string_view file_name
 			return std::optional<file>(file(file_descriptor, full_path));
 		}
 	}
+	auto caseless_file = find_file_caseless(dir, file_name);
+	if(caseless_file) {
+		auto opened_file = open_file(*caseless_file);
+		if(opened_file) {
+			return opened_file;
+		}
+	}
 	return std::optional<file>{};
 }
 
@@ -399,6 +426,15 @@ std::optional<file> open_file(directory const& dir, std::vector<native_string_vi
 			}
 		}
 	}
+	for(auto file_name : file_names) {
+		auto caseless_file = find_file_caseless(dir, file_name);
+		if(caseless_file) {
+			auto opened_file = open_file(*caseless_file);
+			if(opened_file) {
+				return opened_file;
+			}
+		}
+	}
 	return std::optional<file>{};
 }
 
@@ -423,7 +459,9 @@ std::optional<unopened_file> peek_file(directory const& dir, native_string_view 
 			return std::optional<unopened_file>(unopened_file(full_path, file_name));
 		}
 	}
-	return std::optional<unopened_file>{};
+	// check if there are any matching files with diffrent case. Vic2 itself and many mods expect caseless match when looking for files. Eg several gfx files in vanilla
+	// Even if it is technically not the linux standard, it has to read the Vic2 files which the developers expected to be windows-only
+	return find_file_caseless(dir, file_name);
 }
 
 void add_ignore_path(file_system& fs, native_string_view replaced_path) {
@@ -539,7 +577,7 @@ directory get_or_create_settings_directory() {
 directory get_or_create_save_game_directory(native_string mod_dir) {
 	native_string path = native_string(getenv("HOME")) + "/.local/share/Alice/saves/";
 	if(mod_dir.length() > 0) {
-		path += mod_dir;
+		path += mod_dir + NATIVE_DIR_SEPARATOR;
 	}
 	make_directories(path);
 
@@ -698,6 +736,11 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	}
 	return result;
 }
+
+native_string utf16_to_native(std::u16string_view str) {
+	return utf16_to_utf8(str);
+}
+
 std::u16string utf8_to_utf16(std::string_view str) {
 	std::u16string result;
 
@@ -749,5 +792,45 @@ native_string correct_slashes(native_string_view path) {
 	}
 	return res;
 }
+
+void fileseperators_from_native_to_standard(std::vector<char>& input) {
+	for(char& c : input) {
+		if(c == '/') {
+			c = '\\';
+		}
+	}
+}
+void fileseperators_from_standard_to_native(std::vector<char>& input) {
+	for(char& c : input) {
+		if(c == '\\') {
+			c = '/';
+		}
+	}
+}
+
+std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char>& input) {
+	std::vector<char> result{ input };
+	for(char& c : result) {
+		if(c == '/') {
+			c = '\\';
+		}
+	}
+	return result;
+}
+std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char>& input) {
+	std::vector<char> result{ input };
+	for(char& c : result) {
+		if(c == '\\') {
+			c = '/';
+		}
+	}
+	return result;
+}
+void standardize_newlines(std::string& input) {
+	// Nix already uses standard \n only
+	return;
+}
+
+
 
 } // namespace simple_fs

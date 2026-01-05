@@ -5,14 +5,15 @@
 #include "text.hpp"
 #include "commands.hpp"
 
-sys::state* alice_state_ptr;
+static sys::state* alice_state_ptr;
 
 #include "lua_dcon_generated.cpp"
 
-// how to add new lua ffi functions
+// how to add new lua ffi functions (calls from LUA to C++)
 // write their definition inside extern "C" somewhere in executable
 // provide their definition
 // add ffi declaration somewhere in lua folder of assets
+// FFI is preferred method of exposing functions to manually passing them into LUA env
 
 extern "C" {
 	DCON_LUADLL_API bool alice_at_war(int32_t nation_a, int32_t nation_b);
@@ -30,6 +31,11 @@ extern "C" {
 
 	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
+	DCON_LUADLL_API void console_log(const char message[]);
+}
+
+void console_log(const char message[]) {
+	alice_state_ptr->console_log(message);
 }
 
 int32_t local_player_nation() {
@@ -181,7 +187,219 @@ void remove_battle_end(const char function_name[]) {
 
 
 namespace lua_alice_api {
+
+void setup_gameloop_environment(sys::state& state) {
+	// Setup LUA game loop environment
+
+	state.lua_game_loop_environment = luaL_newstate();
+	luaL_openlibs(state.lua_game_loop_environment); // Load precalculated LUA environment into the LUA state
+
+	{
+		lua_newtable(state.lua_game_loop_environment);
+		lua_setglobal(state.lua_game_loop_environment, "alice");
+		assert(lua_gettop(state.lua_game_loop_environment) == 0);
+	}
+}
+
+// example of providing LUA API if someone would ever need it for something
+static int draw_rectangle(lua_State* L) {
+	// get amount of arguments
+	int n = lua_gettop(L);
+
+	// validation
+	if(n != 4) {
+		lua_pushstring(L, "incorrect count of arguments");
+		lua_error(L);
+	}
+	for(int i = 1; i <= n; i++) {
+		if(!lua_isnumber(L, i)) {
+			lua_pushstring(L, "incorrect argument");
+			lua_error(L);
+		}
+	}
+
+
+	auto x = lua_tonumber(L, 1);
+	auto y = lua_tonumber(L, 2);
+	auto width = lua_tonumber(L, 3);
+	auto height = lua_tonumber(L, 4);
+
+	lua_getfield(L, LUA_GLOBALSINDEX, "alice_state");
+	sys::state* alice_state = (sys::state*)(lua_touserdata(L, -1));
+
+	ogl::render_simple_rect(*alice_state, (float)x, (float)y, (float)width, (float)height, ui::rotation::upright, false, false);
+
+	// return number of results
+	return 0;
+}
+
+void setup_ui_environment(sys::state& state) {
+	// LOAD LUA UI Environment
+	state.lua_ui_environment = luaL_newstate();
+	luaL_openlibs(state.lua_ui_environment); // Load precalculated LUA environment into the LUA state
+
+	// pointer to alice state
+	lua_pushlightuserdata(state.lua_ui_environment, (void*)(&state));
+	lua_setfield(state.lua_ui_environment, LUA_GLOBALSINDEX, "alice_state");
+
+	// alice table
+	{
+		lua_newtable(state.lua_ui_environment);
+		lua_setglobal(state.lua_ui_environment, "alice");
+		assert(lua_gettop(state.lua_ui_environment) == 0);
+	}
+
+	// Expose graphics functions to LUA
+
+	// graphics subsystem
+	lua_getfield(state.lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+	lua_newtable(state.lua_ui_environment); // [alice, table
+	lua_setfield(state.lua_ui_environment, -2, "graphics"); // [alice
+	lua_remove(state.lua_ui_environment, -1); // [
+
+	assert(lua_gettop(state.lua_ui_environment) == 0);
+
+	// rectangle
+	lua_getfield(state.lua_ui_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+	lua_getfield(state.lua_ui_environment, -1, "graphics"); // [alice, graphics
+	lua_remove(state.lua_ui_environment, -2); // [graphics
+	lua_pushcfunction(state.lua_ui_environment, draw_rectangle); // [graphics, draw_rectangle
+	lua_setfield(state.lua_ui_environment, -2, "rect"); // [graphics,
+	lua_remove(state.lua_ui_environment, -1); // [
+
+	assert(lua_gettop(state.lua_ui_environment) == 0);
+}
+
 void set_state(sys::state* state_ptr) {
 	alice_state_ptr = state_ptr;
 }
+
+bool has_named_function(sys::state& state, const char function_name[]) {
+	std::string name = function_name;
+	auto found = state.lua_registered_functions.find(name);
+	int index;
+
+	if(found != state.lua_registered_functions.end()) {
+		return true;
+	} else {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+		lua_getfield(state.lua_game_loop_environment, -1, function_name); // [alice, function
+
+		if(lua_isfunction(state.lua_game_loop_environment, -1)) {
+			lua_remove(state.lua_game_loop_environment, -2); // [function
+			index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+			state.lua_registered_functions[name] = index;
+			assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+			return true;
+		} else {
+			lua_pop(state.lua_game_loop_environment, 2);
+			assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+			return false;
+		}
+	}
+}
+
+void call_named_function(sys::state& state, const char function_name[]) {
+	std::string name = function_name;
+	auto found = state.lua_registered_functions.find(name);
+	int index;
+
+	if(found != state.lua_registered_functions.end()) {
+		index = found->second;
+	} else {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+		lua_getfield(state.lua_game_loop_environment, -1, function_name); // [alice, function
+		lua_remove(state.lua_game_loop_environment, -2); // [function
+		index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+
+		assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+		state.lua_registered_functions[name] = index;
+	}
+
+	lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, index);
+	//lua_pushnumber(state.lua_game_loop_environment, b.index());
+	//lua_pushboolean(state.lua_game_loop_environment, result != battle_result::indecisive);
+	//lua_pushboolean(state.lua_game_loop_environment, result == battle_result::attacker_won);
+	auto pcall_result = lua_pcall(state.lua_game_loop_environment, 0, 0, 0);
+	if(pcall_result) {
+		state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+		lua_settop(state.lua_game_loop_environment, 0);
+	}
+	assert(lua_gettop(state.lua_game_loop_environment) == 0);
+}
+
+void call_named_function(sys::state& state, const char function_name[], dcon::province_id prov) {
+	std::string name = function_name;
+	auto found = state.lua_registered_functions.find(name);
+	int index;
+
+	if(found != state.lua_registered_functions.end()) {
+		index = found->second;
+	} else {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+		lua_getfield(state.lua_game_loop_environment, -1, function_name); // [alice, function
+		lua_remove(state.lua_game_loop_environment, -2); // [function
+		index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+
+		assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+		state.lua_registered_functions[name] = index;
+	}
+
+	lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, index);
+	lua_pushnumber(state.lua_game_loop_environment, prov.index());
+	auto pcall_result = lua_pcall(state.lua_game_loop_environment, 1, 0, 0);
+	if(pcall_result) {
+		state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+		lua_settop(state.lua_game_loop_environment, 0);
+	}
+	assert(lua_gettop(state.lua_game_loop_environment) == 0);
+}
+
+void call_named_function_safe(sys::state& state, const char function_name[], dcon::province_id prov) {
+	std::string name = function_name;
+	auto found = state.lua_registered_functions.find(name);
+	int index = LUA_REFNIL;
+
+	if(found != state.lua_registered_functions.end()) {
+		index = found->second;
+	} else {
+		auto stack_size_at_start = lua_gettop(state.lua_game_loop_environment);
+
+		lua_getfield(state.lua_game_loop_environment, LUA_GLOBALSINDEX, "alice"); // [alice
+		lua_getfield(state.lua_game_loop_environment, -1, function_name); // [alice, function
+
+		if(lua_isfunction(state.lua_game_loop_environment, -1)) {
+			lua_remove(state.lua_game_loop_environment, -2); // [function
+			index = luaL_ref(state.lua_game_loop_environment, LUA_REGISTRYINDEX); // [
+		} else {
+			lua_pop(state.lua_game_loop_environment, 2);
+		}
+
+		assert(lua_gettop(state.lua_game_loop_environment) == stack_size_at_start);
+
+		state.lua_registered_functions[name] = index;
+	}
+
+	if(index != LUA_REFNIL) {
+		lua_rawgeti(state.lua_game_loop_environment, LUA_REGISTRYINDEX, index);
+		lua_pushnumber(state.lua_game_loop_environment, prov.index());
+		auto pcall_result = lua_pcall(state.lua_game_loop_environment, 1, 0, 0);
+		if(pcall_result) {
+			state.lua_notification(lua_tostring(state.lua_game_loop_environment, -1));
+			lua_settop(state.lua_game_loop_environment, 0);
+		}
+	}
+	assert(lua_gettop(state.lua_game_loop_environment) == 0);
+}
+
 }

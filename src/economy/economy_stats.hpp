@@ -1,6 +1,6 @@
 #pragma once
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 // #include "adaptive_ve.hpp"
 
 namespace sys {
@@ -417,87 +417,6 @@ trade_volume_data_detailed export_volume_detailed(
 	dcon::commodity_id c
 );
 
-//template <typename T, typename FROM, typename U>
-//struct switch_value_of_container{
-//	using container = typename U;
-//};
-//template <typename FROM, typename U>
-//struct switch_value_of_container<ve::tagged_vector<FROM>, FROM, U> {
-//	using container = typename ve::tagged_vector<U>;
-//};
-//template <typename FROM, typename U>
-//struct switch_value_of_container<ve::contiguous_tags<FROM>, FROM, U> {
-//	using container = typename ve::contiguous_tags<U>;
-//};
-//template <typename FROM, typename U>
-//struct switch_value_of_container<ve::unaligned_contiguous_tags<FROM>, FROM, U> {
-//	using container = typename ve::unaligned_contiguous_tags<U>;
-//};
-//template <typename FROM, typename U>
-//struct switch_value_of_container<ve::partial_contiguous_tags<FROM>, FROM, U> {
-//	using container = typename ve::partial_contiguous_tags<U>;
-//};
-
-template<typename X, typename FROM, typename TO>
-using convert_value_type = typename std::conditional_t<
-	ve::is_vector_type_s<X>::value,
-	typename ve::tagged_vector<TO>,
-	TO
->;
-
-template<typename TRADE_ROUTE>
-struct tariff_data {
-	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
-	using BOOL_VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::mask_vector, bool>;
-	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
-
-	std::array<BOOL_VALUE, 2> applies_tariff;
-	std::array<VALUE, 2> export_tariff;
-	std::array<VALUE, 2> import_tariff;
-	std::array<MARKET, 2> markets;
-
-	VALUE distance;
-	VALUE loss;
-	VALUE base_distance_cost;
-	VALUE workers_satisfaction;
-	VALUE effect_of_scale;
-	VALUE distance_cost_scaled;
-};
-
-template<typename TRADE_ROUTE>
-struct trade_and_tariff {
-	using VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::fp_vector, float>;
-	using BOOL_VALUE = typename std::conditional_t<ve::is_vector_type_s<TRADE_ROUTE>::value, ve::mask_vector, bool>;
-	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
-	using NATION = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::nation_id>;
-
-	MARKET origin;
-	MARKET target;
-
-	NATION origin_nation;
-	NATION target_nation;
-
-	VALUE amount_origin;
-	VALUE amount_target;
-
-	VALUE tariff_origin;
-	VALUE tariff_target;
-
-	VALUE tariff_rate_origin;
-	VALUE tariff_rate_target;
-
-	VALUE price_origin;
-	VALUE price_target;
-
-	VALUE transport_cost;
-	VALUE transportaion_loss;
-	VALUE distance;
-
-	VALUE payment_per_unit;
-	VALUE payment_received_per_unit;
-};
-
-
 float import_volume(
 	sys::state& state,
 	dcon::market_id s,
@@ -540,7 +459,8 @@ float effective_tariff_import_rate(sys::state& state, dcon::nation_id n, dcon::m
 float effective_tariff_export_rate(sys::state& state, dcon::nation_id n, dcon::market_id m);
 
 float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon::market_id, dcon::commodity_id, float additional_demand);
-
+float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
+float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
 float estimate_next_budget(sys::state& state, dcon::nation_id n);
 
 }

@@ -1,8 +1,7 @@
 #pragma once
 
-#include "constants.hpp"
-#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
+#include "gui_listbox_templates.hpp"
 
 namespace ui {
 
@@ -111,7 +110,8 @@ inline std::string get_setting_text_key(int32_t type) {
 		"amsg_bankruptcy", //bankruptcy
 		"amsg_entered_automatic_alliance",//entered_automatic_alliance
 		"amsg_chat_message",//chat_message
-		"amsg_embargo"
+		"amsg_embargo",
+		"amsg_embargod"
 	};
 	return std::string{key_str[type]};
 }
@@ -275,7 +275,7 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		for(uint32_t i = 0; i <= 103; ++i)
+		for(uint32_t i = 0; i <= 104; ++i)
 			row_contents.push_back(i);
 		update(state);
 	}

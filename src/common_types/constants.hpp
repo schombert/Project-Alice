@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <iterator>
 
 namespace sys {
 enum class virtual_key : uint8_t {
@@ -163,8 +164,23 @@ enum class key_modifiers : uint8_t {
 	modifiers_alt_shift = 0x5,
 	modifiers_all = 0x7
 };
-constexpr inline float ui_scales[] = {0.25f, 0.30f, 0.35f, 0.5f, 0.75f, 1.0f, 1.25f, 1.5f, 1.75f, 2.0f, 2.5f, 3.0f};
-constexpr inline uint32_t ui_scales_count = 12;
+constexpr inline float ui_scales[] = {
+	0.25f,
+	0.50f,
+	0.75f, 0.80f, 0.85f, 0.90f, 0.95f,
+	1.00f, 1.05f, 1.10f, 1.15f, 1.20f,
+	1.25f,
+	1.50f,
+	1.75f,
+	2.00f,
+	2.25f,
+	2.50f,
+	2.75f,
+	3.00f,
+	3.50f,
+	4.00f
+};
+constexpr inline size_t ui_scales_count = std::size(ui_scales);
 
 enum class autosave_frequency : uint8_t {
 	none = 0,
@@ -179,7 +195,8 @@ enum class map_label_mode : uint8_t {
 	none = 0,
 	linear = 1,
 	quadratic = 2,
-	cubic = 3
+	cubic = 3,
+	spherical = 4
 };
 
 enum class map_zoom_mode : uint8_t {
@@ -194,30 +211,6 @@ enum class map_vassal_color_mode : uint8_t {
 	inherit = 0,
 	same = 1,
 	none = 2
-};
-
-enum class army_group_regiment_status : uint8_t {
-	move_to_target,
-	move_to_port,
-	standby,
-	await_transport,
-	is_transported,
-	disembark,
-	embark
-};
-
-enum class army_group_regiment_task : uint8_t {
-	idle,
-	gather_at_hq,
-	defend_position,
-	siege,
-};
-
-enum class army_group_order : uint8_t {
-	siege,
-	defend,
-	designate_port,
-	none
 };
 
 enum class commodity_group : uint8_t { military_goods = 0, raw_material_goods, industrial_goods, consumer_goods, industrial_and_consumer_goods, count };
@@ -579,8 +572,7 @@ enum class graphics_mode {
 	ugly, classic, modern, total
 };
 
-constexpr int32_t max_event_options = 8;
-constexpr uint32_t max_gamerule_settings = 15;
+
 constexpr uint32_t max_languages = 64;
 
 enum save_type : uint8_t {
@@ -590,15 +582,6 @@ enum save_type : uint8_t {
 };
 
 } // namespace sys
-
-namespace culture {
-inline constexpr int32_t max_issue_options = 6;
-}
-
-namespace economy {
-enum class province_building_type : uint8_t { railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator };
-constexpr inline int32_t max_building_types = 5;
-}
 
 namespace ui {
 
@@ -623,6 +606,7 @@ constexpr inline uint8_t impassible_bit = 0x08;
 constexpr inline uint8_t non_adjacent_bit = 0x10;
 constexpr inline uint8_t river_crossing_bit = 0x20;
 constexpr inline uint8_t test_bit = 0x40;
+constexpr inline uint8_t river_connection_bit = 0x80;
 } // namespace border
 } // namespace province
 
@@ -657,7 +641,8 @@ enum class army_activity {
 	attack_gathered = 7,
 	attack_transport = 8,
 };
+}
 
-
-
+namespace text {
+constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to convert the 26.6 fixed point representation used in many places by fonts to a floating point value
 }

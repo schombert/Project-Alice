@@ -12,7 +12,11 @@
 #include "gui_element_base.hpp"
 
 #include "economy_pops.hpp"
+#include "province.hpp"
 
+#include "projections.hpp"
+
+//#include <filesystem>
 
 #include <set>
 
@@ -59,6 +63,40 @@ glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
 	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
 
 	return vertex.position * map_size;
+}
+
+glm::vec2 get_port_direction(sys::state& state, dcon::province_id p) {
+	auto pt = state.world.province_get_port_to(p);
+	if(!pt)
+		return glm::vec2{};
+
+	auto adj = state.world.get_province_adjacency_by_province_pair(p, pt);
+	assert(adj);
+	auto id = adj.index();
+	auto& map_data = state.map_state.map_data;
+	auto& border = map_data.borders[id];
+	auto& vertex = map_data.border_vertices[border.start_index + border.count / 4];
+
+	auto& next_vertex = vertex.next_point;
+	auto& prev_vertex = vertex.previous_point;
+
+	glm::vec2 map_size = glm::vec2(map_data.size_x, map_data.size_y);
+	auto center = state.world.province_get_mid_point(p) / map_size;
+	auto from_center_to_port = vertex.position - center;
+
+	if(glm::length(next_vertex - prev_vertex) < 0.0001f) {
+		return glm::normalize(from_center_to_port * map_size);
+	}
+
+	auto tangent_direction = glm::normalize(next_vertex - prev_vertex);
+	auto candidate_direction = glm::vec2(tangent_direction.y, -tangent_direction.x);
+
+
+	if(glm::dot(from_center_to_port, candidate_direction) < 0.f){
+		candidate_direction = -candidate_direction;
+	}
+
+	return glm::normalize(candidate_direction * map_size);
 }
 
 bool is_sea_province(sys::state& state, dcon::province_id prov_id) {
@@ -150,7 +188,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 	std::map<int32_t, std::map<int32_t, float>> trade_graph;
 	
 	std::map<int32_t, float> trade_graph_toward_port;
-
+	/*
 	state.world.for_each_province([&](dcon::province_id province) {
 		auto local_in = economy::estimate_intermediate_consumption(state, cid, province) + economy::estimate_pops_consumption(state, cid, province);
 		auto local_out = economy::estimate_production(state, cid, province);
@@ -221,7 +259,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			}
 		}
 	});
-
+	*/
 
 	state.world.for_each_trade_route([&](dcon::trade_route_id trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, cid);
@@ -244,7 +282,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 
-		bool is_sea = state.world.trade_route_get_distance(trade_route) == state.world.trade_route_get_sea_distance(trade_route);
+		bool is_sea = state.world.trade_route_get_is_sea_route(trade_route);
 		if(is_sea) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
@@ -638,72 +676,102 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		return std::abs(volume) / std::max(0.05f, the_most_fat_route) * 40000.f;
 	};
 
-	for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
-		auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
-
-		glm::vec2 current_pos = get_army_location(state, coastal_province);
-		glm::vec2 next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
-
-		if(volume < 0.f) {
-			current_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
-			next_pos = put_in_local(get_army_location(state, coastal_province), current_pos, size_x);
-		}
-
-		glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
-
-		auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
-		auto norm_pos = current_pos / glm::vec2(size_x, size_y);
-		auto norm_next_pos = next_pos / glm::vec2(size_x, size_y);
-
-		auto old_size = map_data.trade_flow_vertices.size();
-		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-
-		auto width = volume_to_width(volume);
-
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_pos,
-			+start_normal,
-			0.f,
-			0.0f,
-			width
-		});
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_pos,
-			-start_normal,
-			1.f,
-			0.0f,
-			width
-		});
-
-		// assume that province is a square
-		auto distance =
-			std::sqrt(float(state.map_state.map_data.province_area[province::to_map_id(coastal_province)]))
-			/ 20000.f;
-
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_next_pos,
-			+start_normal,
-			0.f,
-			distance,
-			width
-		});
-		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-			norm_next_pos,
-			-start_normal,
-			1.f,
-			distance,
-			width
-		});
-
-		map_data.trade_flow_arrow_counts.push_back(
-			GLsizei(map_data.trade_flow_vertices.size() - old_size)
-		);
-	}
+	//for(auto const& [coastal_province_index, volume] : trade_graph_toward_port) {
+	//	auto coastal_province = dcon::province_id{ dcon::province_id::value_base_t(coastal_province_index) };
+	//	glm::vec2 current_pos = get_army_location(state, coastal_province);
+	//	glm::vec2 next_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
+	//	auto port_direction = get_port_direction(state, coastal_province);
+	//	if(volume < 0.f) {
+	//		current_pos = put_in_local(get_port_location(state, coastal_province), current_pos, size_x);
+	//		next_pos = put_in_local(get_army_location(state, coastal_province), current_pos, size_x);
+	//		port_direction = -port_direction;
+	//	}
+	//	glm::vec2 prev_tangent = glm::normalize(next_pos - current_pos);
+	//	auto start_normal = glm::vec2(-prev_tangent.y, prev_tangent.x);
+	//	auto norm_pos = current_pos / glm::vec2(size_x, size_y);
+	//	auto norm_next_pos = next_pos / glm::vec2(size_x, size_y);
+	//	auto old_size = map_data.trade_flow_vertices.size();
+	//	map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+	//	auto width = volume_to_width(volume);
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_pos,
+	//		+start_normal,
+	//		0.f,
+	//		0.0f,
+	//		width
+	//	});
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_pos,
+	//		-start_normal,
+	//		1.f,
+	//		0.0f,
+	//		width
+	//	});
+	//	// assume that province is a square
+	//	auto distance =
+	//		std::sqrt(float(state.map_state.map_data.province_area[province::to_map_id(coastal_province)]))
+	//		/ 20000.f;
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_next_pos,
+	//		+start_normal,
+	//		0.f,
+	//		distance,
+	//		width
+	//	});
+	//	map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+	//		norm_next_pos,
+	//		-start_normal,
+	//		1.f,
+	//		distance,
+	//		width
+	//	});
+	//	map_data.trade_flow_arrow_counts.push_back(
+	//		GLsizei(map_data.trade_flow_vertices.size() - old_size)
+	//	);
+	//}
 
 	std::map<int32_t, bool> vertices_built;
 	state.world.for_each_province([&](dcon::province_id origin) { vertices_built[origin.index()] = false; });
 
-
+	auto build_bezier = [&](glm::vec2 start, glm::vec2 start_tangent, float start_width, glm::vec2 end, glm::vec2 end_tangent, float end_width, float& distance) {
+		auto old_size = map_data.trade_flow_vertices.size();
+		map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
+		auto start_normal = glm::vec2(-start_tangent.y, start_tangent.x);
+		auto norm_pos = start / glm::vec2(size_x, size_y);
+		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			start_normal,
+			0.f,
+			distance,
+			start_width
+		});
+		map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
+			norm_pos,
+			-start_normal,
+			1.f,
+			distance,
+			start_width
+		});
+		add_bezier_to_buffer_variable_width(
+			map_data.trade_flow_vertices,
+			start,
+			end,
+			start_tangent,
+			end_tangent,
+			1.0f,
+			false,
+			size_x,
+			size_y,
+			40,
+			distance,
+			start_width,
+			end_width,
+			end_width
+		);
+		map_data.trade_flow_arrow_counts.push_back(
+			GLsizei(map_data.trade_flow_vertices.size() - old_size)
+		);
+	};
 
 	state.world.for_each_province([&](dcon::province_id origin) {
 		
@@ -724,18 +792,25 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto left_outgoing = total_outgoing;
 			auto left_incoming = total_incoming;
 
-			auto max_incoming = 0.f;
-			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
-				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
-					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+			//auto max_incoming = 0.f;
+			//for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
+			//	for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
+			//		auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
+			//		auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+			//	}
+			//}
 
-				}
-			}
+			
 
 			for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
 				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
 					glm::vec2 current_pos = get_army_location(state, origin);
+
+					auto volume_start =
+						source_volume;
+					auto volume_end =
+						volume_start
+						* map_data.particle_next_node_probability[origin.index()][target_index];
 
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
 					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
@@ -744,11 +819,20 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
 
 					if(source == target) {
+						// model of probabilistic movement is not perfect, so we have to ignore something when we attempt to move in a loop
+						left_incoming -= volume_end;
+						left_outgoing -= volume_end;
 						continue;
 					}
 
+					// by default: connect centers of the segments between midpoints of provinces and use their tangents as start and end tangents
 
-					// sea->[port]->sea
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					glm::vec2 tangent_end = glm::normalize(next_pos - current_pos);
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = (current_pos + next_pos) / 2.f;
+
+					// sea -> [port->land->port] -> sea
 					if(
 						is_sea(target)
 						&&
@@ -756,46 +840,57 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 						&&
 						is_sea(source)
 					) {
+						// if we are entering a port from sea and then go back to sea, use port location instead of actual center
 						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+
+						// adjust tangents and start/end positions
+						tangent_start = glm::normalize(current_pos - prev_pos);
+						tangent_end = glm::normalize(next_pos - current_pos);
+						start = (current_pos + prev_pos) / 2.f;
+						end = (current_pos + next_pos) / 2.f;
+					} else {
+						// ??? -> sea -> [port->land]
+						if(
+							is_sea(origin)
+							&&
+							!is_sea(target)
+						) {
+							// if we are currently at sea, but next position is a port, use port location as the end of the path
+							end = put_in_local(get_port_location(state, target), current_pos, size_x);
+							tangent_end = -get_port_direction(state, target);
+						}
+						// sea -> [port->land] -> ???
+						if(
+							!is_sea(origin)
+							&&
+							is_sea(source)
+						) {
+							// currently we are at center of the province and we want to connect start with a path which was terminated at port
+							start = put_in_local(get_port_location(state, origin), current_pos, size_x);
+							tangent_start = -get_port_direction(state, origin);
+						}
+
+						// ??? -> [land->port] -> sea
+						if(
+							!is_sea(origin)
+							&&
+							is_sea(target)
+						) {
+							// currently we are at center of the province and we want to connect end with a path which starts at port
+							end = put_in_local(get_port_location(state, origin), current_pos, size_x);
+							tangent_end = get_port_direction(state, origin);
+						}
+						// [land->port] -> sea -> ???
+						if(
+							!is_sea(source)
+							&&
+							is_sea(origin)
+						) {
+							// if we are currently at sea, but previous position is a port, use port location as the start of the path
+							start = put_in_local(get_port_location(state, source), current_pos, size_x);
+							tangent_start = get_port_direction(state, source);
+						}					
 					}
-
-					// sea->sea->[port]
-					// [port]->sea->[port]
-					if(
-						!is_sea(target)
-						&&
-						is_sea(origin)
-					) {
-						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
-					}
-					// [port]->sea->sea
-					// [port]->sea->[port]
-					if(
-						!is_sea(source)
-						&&
-						is_sea(origin)
-					) {
-						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
-					}
-
-					// if land->[port]->sea - abort
-					// if sea->[port]->land - abort
-					if(is_sea(source) && !is_sea(origin) && !is_sea(target))continue;
-					if(!is_sea(source) && !is_sea(origin) && is_sea(target))continue;
-
-					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
-					glm::vec2 tangent_end = glm::normalize(next_pos - current_pos);
-
-					glm::vec2 start = (current_pos + prev_pos) / 2.f;
-					glm::vec2 end = (current_pos + next_pos) / 2.f;
-
-					float distance = distance_field[source_index];
-
-					auto volume_start =
-						source_volume;
-					auto volume_end =
-						volume_start
-						* map_data.particle_next_node_probability[origin.index()][target_index];
 
 					left_incoming -= volume_end;
 					left_outgoing -= volume_end;
@@ -805,202 +900,119 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 					}
 
 					auto start_width = volume_to_width(trade_graph_max_incoming[origin.index()][source_index]);
-
-					if(start_width < 10.f) {
+					if(start_width < 50.f) {
 						continue;
 					}
-					if(volume_to_width(volume_end) < 10.f) {
+					if(volume_to_width(volume_end) < 50.f) {
 						continue;
 					}
 
 					// finally
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_pos = start / glm::vec2(size_x, size_y);
-
-
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_pos,
-						start_normal,
-						0.f,
-						distance,
-						start_width
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_pos,
-						-start_normal,
-						1.f,
-						distance,
-						start_width
-					});
-
-					add_bezier_to_buffer_variable_width(
-						map_data.trade_flow_vertices,
-						start,
-						end,
-						tangent_start,
-						tangent_end,
-						1.0f,
-						false,
-						size_x,
-						size_y,
-						40,
-						distance,
-						start_width,
-						volume_to_width(volume_end),
-						volume_to_width(volume_end)
-					);
-
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					float distance = distance_field[source_index];
+					build_bezier(
+						start, tangent_start, start_width, end, tangent_end, volume_to_width(volume_end), distance
 					);
 				}
 			}
 
-			auto distance = distance_field[origin.index()];
+			
+
 
 			if(left_incoming > 0.001f) {
+				// here we treat the case when some volume in was not matched with volume out
+				// in this case we assume that the remaining volume is "consumed" in the middle of the province
 				for(auto const& [source_index, source_volume] : trade_graph_incoming[origin.index()]) {
-					glm::vec2 current_pos = get_army_location(state, origin);
-
+					auto distance = distance_field[source_index];
 					auto source = dcon::province_id{ dcon::province_id::value_base_t(source_index) };
+
+					glm::vec2 current_pos = get_army_location(state, origin);
 					glm::vec2 prev_pos = put_in_local(get_army_location(state, source), current_pos, size_x);
 
-					//[port]->sea
+					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					glm::vec2 tangent_end = tangent_start;
+					glm::vec2 start = (current_pos + prev_pos) / 2.f;
+					glm::vec2 end = current_pos;
+
+					//source -> origin
+
+
+					//[land->port] -> sea
 					if(
 						!is_sea(source)
 						&&
 						is_sea(origin)
 					) {
-						prev_pos = put_in_local(get_port_location(state, source), current_pos, size_x);
+						// just start from the (port location, port direction) and stop at (origin midpoint, direction from port to origin)
+						start = put_in_local(get_port_location(state, source), current_pos, size_x);
+						tangent_start = get_port_direction(state, source);
 					}
 
-					//sea->[port]
+					//sea -> [port->land]
 					if(
 						is_sea(source)
 						&&
 						!is_sea(origin)
 					) {
-						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						start = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						tangent_start = -get_port_direction(state, origin);
 					}
 
-					glm::vec2 tangent_start = glm::normalize(current_pos - prev_pos);
+					auto volume_start =	source_volume * left_incoming / total_incoming;
+					auto volume_end = volume_start;
+					auto width_start = volume_to_width(volume_start);
+					auto width_end = volume_to_width(volume_end);
+					if(width_start < 50.f || width_end < 50.f) {
+						continue;
+					}
 
-					glm::vec2 start = (current_pos + prev_pos) / 2.f;
-					glm::vec2 end = current_pos;
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_start = start / glm::vec2(size_x, size_y);
-					auto norm_end = end / glm::vec2(size_x, size_y);
-
-					auto volume = source_volume * left_incoming / total_incoming;
-
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						start_normal,
-						0.f,
-						distance - glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						-start_normal,
-						1.f,
-						distance - glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						start_normal,
-						0.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						-start_normal,
-						1.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					build_bezier(
+						start, tangent_start, width_start, end, tangent_end, width_end, distance
 					);
 				}
 			}
 
 			if(left_outgoing > 0.001f) {
 				for(auto const& [target_index, target_volume] : trade_graph[origin.index()]) {
-					glm::vec2 current_pos = get_army_location(state, origin);
-
+					auto distance = distance_field[origin.index()];
 					auto target = dcon::province_id{ dcon::province_id::value_base_t(target_index) };
-					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
 
-					//sea->[port]
+					glm::vec2 current_pos = get_army_location(state, origin);
+					glm::vec2 next_pos = put_in_local(get_army_location(state, target), current_pos, size_x);
+					glm::vec2 tangent_start = glm::normalize(next_pos - current_pos);
+					glm::vec2 tangent_end = tangent_start;
+
+					//origin -> target
+
+					//sea -> [port->land]
 					if(
 						!is_sea(target)
 						&&
 						is_sea(origin)
 					) {
 						next_pos = put_in_local(get_port_location(state, target), current_pos, size_x);
+						tangent_end = -get_port_direction(state, target);
 					}
 
-					//[port]->sea
+					//[land->port] -> sea
 					if(
 						is_sea(target)
 						&&
 						!is_sea(origin)
 					) {
-						current_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						next_pos = put_in_local(get_port_location(state, origin), current_pos, size_x);
+						tangent_end = get_port_direction(state, origin);
 					}
 
-					glm::vec2 tangent_start = glm::normalize(next_pos - current_pos);
+					auto volume_start =	target_volume * left_outgoing / total_outgoing;
+					auto volume_end = volume_start;
+					auto width_start = volume_to_width(volume_start);
+					auto width_end = volume_to_width(volume_end);
+					if(width_start < 50.f || width_end < 50.f) {
+						continue;
+					}
 
-					glm::vec2 start = current_pos;
-					glm::vec2 end = (current_pos + next_pos) / 2.f;
-
-					auto start_normal = glm::vec2(-tangent_start.y, tangent_start.x);
-					auto norm_start = start / glm::vec2(size_x, size_y);
-					auto norm_end = end / glm::vec2(size_x, size_y);
-
-					auto volume = target_volume * left_outgoing / total_outgoing;
-
-					auto old_size = map_data.trade_flow_vertices.size();
-					map_data.trade_flow_arrow_starts.push_back(GLint(old_size));
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						start_normal,
-						0.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_start,
-						-start_normal,
-						1.f,
-						distance,
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						start_normal,
-						0.f,
-						distance + glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_vertices.emplace_back(map::textured_line_with_width_vertex{
-						norm_end,
-						-start_normal,
-						1.f,
-						distance + glm::distance(norm_end, norm_start),
-						volume_to_width(volume)
-					});
-					map_data.trade_flow_arrow_counts.push_back(
-						GLsizei(map_data.trade_flow_vertices.size() - old_size)
+					build_bezier(
+						current_pos, tangent_start, width_start, next_pos, tangent_end, width_end, distance
 					);
 				}
 			}
@@ -1017,6 +1029,37 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			GL_STATIC_DRAW
 		);
 	}
+}
+
+void clear_drawing(sys::state& state, display_data& map_data) {
+	map_data.arbitrary_map_triangles_counts.clear();
+	map_data.arbitrary_map_triangles_starts.clear();
+	map_data.arbitrary_map_triangles.clear();
+	map_data.new_arbitrary_map_triangle = true;
+}
+
+void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size) {
+	auto current_size = map_data.arbitrary_map_triangles.size();
+	map_data.arbitrary_map_triangles_starts.push_back(GLint(current_size));
+
+	square::point top_right = { {x.data.x + size, x.data.y + size} };
+	square::point top_left = { {x.data.x - size, x.data.y + size} };
+	square::point bottom_right = { {x.data.x + size, x.data.y - size} };
+	square::point bottom_left = { {x.data.x - size, x.data.y - size} };
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(top_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+
+	map_data.arbitrary_map_triangles.push_back(top_right);
+	map_data.arbitrary_map_triangles.push_back(bottom_left);
+	map_data.arbitrary_map_triangles.push_back(bottom_right);
+
+	map_data.arbitrary_map_triangles_counts.push_back(
+		GLsizei(map_data.arbitrary_map_triangles.size() - current_size)
+	);
+
+	map_data.new_arbitrary_map_triangle = true;
 }
 
 void update_unit_arrows(sys::state& state, display_data& map_data) {
@@ -1256,7 +1299,8 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 }
 
 void update_text_lines(sys::state& state, display_data& map_data) {
-	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
+
+	//clear_drawing(state, state.map_state.map_data);
 
 	// retroscipt
 	std::vector<text_line_generator_data> text_data;
@@ -1267,26 +1311,8 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 
 	std::unordered_map<uint16_t, std::set<uint16_t>> regions_graph;
 
-	int samples_N = 200;
-	int samples_M = 100;
-	float step_x = float(map_data.size_x) / float(samples_N);
-	float step_y = float(map_data.size_y) / float(samples_M);
-
-	// generate additional points
-	/*std::vector<uint16_t> samples_regions;
-	for(int i = 0; i < samples_N; i++)
-		for(int j = 0; j < samples_M; j++) {
-			float x = float(i) * step_x;
-			float y = float(map_data.size_y) - float(j) * step_y;
-			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-
-			if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-				auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-				samples_regions.push_back(fat_id.get_connected_region_id());
-			} else {
-				samples_regions.push_back(0);
-			}
-		}*/
+	std::vector<dcon::nation_id> sea_owner;
+	sea_owner.resize(state.world.province_size());
 
 	// generate graph of regions:
 	for(auto candidate : state.world.in_province) {
@@ -1323,6 +1349,44 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			}
 		}
 	}
+
+	// update mapping from provinces to regions
+
+	for(auto p : state.world.in_province) {
+		auto owner = state.world.province_get_nation_from_province_ownership(p);
+		if(owner) {
+			continue;
+		}
+
+		dcon::nation_id current_owner = { };
+		bool sea_is_claimed = false;
+
+		for(auto neigh : p.get_province_adjacency()) {
+			auto other_idx = neigh.get_connected_provinces(0) != p.id ? 0 : 1;
+			auto other = neigh.get_connected_provinces(other_idx);
+
+			auto other_owner = other.get_nation_from_province_ownership();
+
+			if(other_owner.id) {
+				if(!current_owner) {
+					current_owner = other_owner;
+					sea_is_claimed = true;
+				} else {
+					auto top_overlord = get_top_overlord(state, other_owner);
+					if(top_overlord != current_owner) {
+						sea_is_claimed = false;
+					}
+				}
+			}
+		}
+
+		if(sea_is_claimed) {
+			sea_owner[p.id.index()] = current_owner;
+		} else {
+			sea_owner[p.id.index()] = { };
+		}
+	}
+
 	for(auto p : state.world.in_province) {
 		if(p.id.index() >= state.province_definitions.first_sea_province.index())
 			break;
@@ -1486,9 +1550,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			continue;
 		}
 
+		float step_x = 40.f;
+		float step_y = 25.f;
 
-		std::vector<glm::vec2> points;
-		std::vector<glm::vec2> bad_points;
+		std::vector<glm::vec3> points;
+		std::vector<sphere_R3::point> points_R3;
 
 		rough_box_bottom = std::max(0.f, rough_box_bottom - step_y);
 		rough_box_top = std::min(float(map_data.size_y), rough_box_top + step_y);
@@ -1499,10 +1565,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float rough_box_height = rough_box_top - rough_box_bottom;
 
 		float rough_box_ratio = rough_box_width / rough_box_height;
-		float height_steps = 15.f;
-		float width_steps = std::max(10.f, height_steps * rough_box_ratio);
+		int height_steps = 30;
+		int width_steps = 30; //(int)std::max(10.f, (float)height_steps* rough_box_ratio);
 
-		glm::vec2 local_step = glm::vec2(rough_box_width, rough_box_height) / glm::vec2(width_steps, height_steps);
+		glm::vec2 local_step = glm::vec2(rough_box_width, rough_box_height) / glm::vec2((float)width_steps, (float)height_steps);
 
 		float best_y = 0.f;
 		//float best_y_length = 0.f;
@@ -1510,60 +1576,241 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		float best_y_length_real = 0.f;
 		float best_y_left_x = 0.f;
 
-		// prepare points for a local grid
-		for(int j = 0; j < height_steps; j++) {
-			float y = rough_box_bottom + j * local_step.y;
+		auto check_point = [&](float x, float y) {
+			if(x < 0.f) return 0.f;
+			if(y < 0.f) return 0.f;
+			if((uint32_t)x >= map_data.size_x) return 0.f;
+			if((uint32_t)y >= map_data.size_y) return 0.f;
+			glm::vec2 candidate = { x, y };
+			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
+			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
+			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			if(!pid) {
+				return 0.f;
+			}
+			auto owner = state.world.province_get_nation_from_province_ownership(pid);
+			if(!owner) {
+				if(sea_owner[pid.index()] == n) {
+					return 0.85f;
+				}
+				return 0.2f;
+			}
+			for(auto visited_region : group_of_regions) {
+				if(state.world.province_get_connected_region_id(pid) == visited_region) {
+					return 1.f;
+				}
+			}
+			return 0.f;
+		};
 
+		auto weight_decay = [&](float x, float y) {
+			if(x < 0.f) return 0.f;
+			if(y < 0.f) return 0.f;
+			if((uint32_t)x >= map_data.size_x) return 0.f;
+			if((uint32_t)y >= map_data.size_y) return 0.f;
+			glm::vec2 candidate = { x, y };
+			auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
+			if(!(0 <= idx && size_t(idx) < map_data.province_id_map.size())) return 0.f;
+			auto pid = province::from_map_id(map_data.province_id_map[idx]);
+			if(!pid) {
+				return 0.7f;
+			}
+			auto owner = state.world.province_get_nation_from_province_ownership(pid);
+			if(!owner) {
+				if(sea_owner[pid.index()] == n) {
+					return 0.8f;
+				}
+				return 0.7f;
+			}
+			for(auto visited_region : group_of_regions) {
+				if(state.world.province_get_connected_region_id(pid) == visited_region) {
+					return 0.99f;
+				}
+			}
+			return 0.f;
+		};
+
+		std::vector<float> original_weights{ };
+		std::vector<float> decay_multiplier{ };
+		std::vector<float> weights_buffer{ };
+		std::vector<glm::vec3> grid{ };
+
+		auto get = [&](int x, int y) {
+			return grid[y * width_steps + x].z;
+		};
+
+		for(int j = 0; j < height_steps; j++) {
 			for(int i = 0; i < width_steps; i++) {
+				float y = rough_box_bottom + float(j) * local_step.y;
 				float x = rough_box_left + float(i) * local_step.x;
-				glm::vec2 candidate = { x, y };
-				auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-				if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-					for(auto visited_region : group_of_regions) {
-						if(fat_id.get_connected_region_id() == visited_region) {
-							points.push_back(candidate);
+				//glm::vec2 candidate = { x, y };
+				float weight = check_point(x, y);
+				float local_density = 1.f;
+				if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+					float lat = (y / (float)map_data.size_y - 0.5f) * std::numbers::pi_v<float>;
+					local_density = cos(lat);
+				}
+				weight *= local_density;
+				grid.push_back(glm::vec3{ x, y, weight });
+				original_weights.push_back(weight);
+				decay_multiplier.push_back(weight_decay(x, y));
+				weights_buffer.push_back(0.f);
+			}
+		}
+
+		for(int iteration = 0; iteration < 10; iteration++) {
+			// smooth image
+			{		
+				float corner = 1.f;
+				float edge = 2.f;
+				float center = 3.f;
+
+				float total = 4.f * corner + 4.f * edge + center;
+
+				corner /= total;
+				edge /= total;
+				center /= total;
+
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						if(i == 0 || j == 0 || i == width_steps - 1 || j == height_steps - 1) {
+							weights_buffer[j * width_steps + i] = 0.f;
+							continue;
+						}
+
+						auto smooth =
+							corner * get(i - 1, j - 1) + edge * get(i - 1, j) + corner * get(i - 1, j + 1)
+							+ edge * get(i, j - 1) + center * get(i, j) + edge * get(i, j + 1)
+							+ edge * get(i + 1, j - 1) + center * get(i + 1, j) + edge * get(i + 1, j + 1);
+
+						weights_buffer[j * width_steps + i] = std::min(3.f,
+							smooth
+							* (1.f + original_weights[j * width_steps + i] * 0.1f)
+							* decay_multiplier[j * width_steps + i]
+						);
+					}
+				}
+			}
+
+			// push buffer to grid:
+			{
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						grid[j * width_steps + i].z = weights_buffer[j * width_steps + i];
+					}
+				}
+			}
+
+			// threshold
+			{
+				for(int j = 0; j < height_steps; j++) {
+					for(int i = 0; i < width_steps; i++) {
+						if(grid[j * width_steps + i].z < 0.2f) {
+							grid[j * width_steps + i].z = 0.f;
 						}
 					}
 				}
 			}
 		}
 
-		float points_above = 0.f;
-
 		for(int j = 0; j < height_steps; j++) {
-			float y = rough_box_bottom + j * local_step.y;
-
-			float current_length = 0.f;
-			float left_x = (float)(map_data.size_x);
-
 			for(int i = 0; i < width_steps; i++) {
-				float x = rough_box_left + float(i) * local_step.x;
+				if(grid[j * width_steps + i].z > 0.5f) {
+					points.push_back(grid[j * width_steps + i]);
 
-				glm::vec2 candidate = { x, y };
+					square::point point_square{ { grid[j * width_steps + i].x / (float)map_data.size_x, grid[j * width_steps + i].y / (float)map_data.size_y } };
 
-				auto idx = int32_t(y) * int32_t(map_data.size_x) + int32_t(x);
-				if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
-					auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
-					for(auto visited_region : group_of_regions)
-						if(fat_id.get_connected_region_id() == visited_region) {
-							points_above++;
-							current_length += local_step.x;
-							if(x < left_x) {
-								left_x = x;
-							}
-						}
+					points_R3.push_back(sphere_R3::from_square(point_square));
+
+					//auto x = grid[j * width_steps + i].x;
+					//auto y = grid[j * width_steps + i].y;
+					//auto weight = grid[j * width_steps + i].z;
+					//draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00004f * weight);
 				}
 			}
+		}
 
-			if(points_above * 2.f > points.size()) {
-				//best_y_length = current_length_adjusted;
-				best_y_length_real = current_length;
-				best_y = y;
-				best_y_left_x = left_x;
-				break;
+		/*
+		// remove edges
+		for(int j = 0; j < height_steps; j++) {
+			for(int i = 0; i < width_steps; i++) {
+				bool is_edge = false;
+				if(i == 0 || j == 0) {
+					is_edge = true;
+				}
+				if(i == width_steps - 1 || j == height_steps - 1) {
+					is_edge = true;
+				}
+				{
+					auto x = grid[j * width_steps + i].x;
+					auto y = grid[j * width_steps + i].y;
+					auto weight = grid[j * width_steps + i].z;
+					draw_small_square(state, state.map_state.map_data, { { x / (float)map_data.size_x, y / (float)map_data.size_y } }, 0.00005f * weight);
+				}
+				
+				if(!is_edge) {
+					auto sobel_i =
+						get(i - 1, j - 1) + 2.f * get(i - 1, j) + get(i - 1, j + 1)
+						- (get(i + 1, j - 1) + 2.f * get(i + 1, j) + get(i + 1, j + 1));
+					auto sobel_j =
+						get(i - 1, j - 1) + 2.f * get(i, j - 1) + get(i + 1, j - 1)
+						- (get(i - 1, j + 1) + 2.f * get(i, j + 1) + get(i + 1, j + 1));
+
+					auto grad_norm = sqrt(sobel_i * sobel_i + sobel_j * sobel_j);
+
+					if(grad_norm > 0.2f) {
+						continue;
+					}
+				}
 			}
 		}
+		*/
+
+		// prepare points for a local grid
+		/*
+		float aversion_radius = 1.5f;
+		for(int roughness = 1; roughness < 3; roughness++) {		
+			for(int j = 0; j < height_steps / roughness; j++) {
+				float y = rough_box_bottom + j * local_step.y * roughness;
+
+				for(int i = 0; i < width_steps / roughness; i++) {
+					float x = rough_box_left + float(i) * local_step.x * roughness;
+					glm::vec2 candidate = { x, y };
+					float weight = 0.f;
+
+					weight += check_point(x, y);
+					weight += check_point(x - local_step.x * roughness * aversion_radius, y);
+					weight += check_point(x + local_step.x * roughness * aversion_radius, y);
+					weight += check_point(x, y - local_step.y * roughness * aversion_radius);
+					weight += check_point(x, y + local_step.y * roughness * aversion_radius);
+
+					if(weight >= 2.f) {
+						points.push_back(glm::vec3{ candidate, weight });
+
+						
+					}
+				}
+			}
+		}
+		*/
+		// print points into files
+
+		static int file_index = 0;
+		file_index++;
+		/*
+		std::filesystem::create_directory("shapes");
+
+		{		
+			std::string file_name = "shapes/shape_" + std::to_string(file_index);
+			auto pf = fopen(file_name.c_str(), "w");
+			fprintf(pf, "x,y\n");
+			for(auto& data : points) {
+				fprintf(pf, "%f,%f\n", data.x, data.y);
+			}
+			fflush(pf);
+			fclose(pf);
+		}
+		*/
 
 		if(points.size() < 2) {
 			continue;
@@ -1577,24 +1824,29 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(state.user_settings.map_label == sys::map_label_mode::quadratic) {
 			min_amount = 3;
 		}
-		size_t num_of_clusters = std::max(min_amount, (size_t)(points.size() / 40));
-		size_t neighbours_requirement = std::clamp(int(std::log(num_of_clusters + 1)), 1, 3);
+
+		auto num_of_clusters = min_amount;
 
 		if(points.size() < num_of_clusters) {
-			num_of_clusters = points.size();
+			continue;
 		}
 
 		std::vector<glm::vec2> centroids;
+		std::vector<sphere_R3::point> centroids_R3;
 
 		for(size_t i = 0; i < num_of_clusters; i++) {
 			centroids.push_back(points[i]);
+			centroids_R3.push_back(points_R3[i]);
 		}
 
-		for(int step = 0; step < 100; step++) {
+		for(int step = 0; step < 50; step++) {
 			std::vector<glm::vec2> new_centroids;
-			std::vector<int> counters;
+			std::vector<sphere_R3::point> new_centroids_R3;
+			std::vector<float> counters;
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids.push_back(glm::vec2(0, 0));
+				sphere_R3::point r3_cent{ {0.f, 0.f, 0.f } };
+				new_centroids_R3.push_back(r3_cent);
 				counters.push_back(0);
 			}
 
@@ -1603,158 +1855,148 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				size_t closest = 0;
 				float best_dist = std::numeric_limits<float>::max();
 
+				auto point = glm::vec2{ points[i].x, points[i].y };
+				auto point_sphere = points_R3[i];
+				auto weight = points[i].z;
+
 				//finding the closest centroid
 				for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
-					if(best_dist > glm::distance(centroids[cluster], points[i])) {
+					float dist = glm::distance(centroids[cluster], point);
+					if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+						auto centroid_sphere = centroids_R3[cluster];
+						dist = glm::distance(centroid_sphere.data, point_sphere.data);
+					}
+
+					if(best_dist > dist) {
 						closest = cluster;
-						best_dist = glm::distance(centroids[cluster], points[i]);
+						best_dist = dist;
 					}
 				}
 
-				new_centroids[closest] += points[i];
-				counters[closest] += 1;
+				new_centroids[closest] += point * weight;
+				new_centroids_R3[closest].data += point_sphere.data * weight;
+				counters[closest] += weight;
 			}
 
 			for(size_t i = 0; i < num_of_clusters; i++) {
 				new_centroids[i] /= counters[i];
+				new_centroids_R3[i].data /= counters[i];
+				new_centroids_R3[i].data /= glm::length(new_centroids_R3[i].data);
 			}
 
 			centroids = new_centroids;
+			centroids_R3 = new_centroids_R3;
 		}
-
-		std::vector<size_t> good_centroids;
-		float min_cross = 1;
-
-		std::vector<glm::vec2> final_points;
-
-		for(size_t i = 0; i < num_of_clusters; i++) {
-			float locally_good_distance = std::numeric_limits<float>::max();
-			for(size_t j = 0; j < num_of_clusters; j++) {
-				if(i == j) continue;
-				if(locally_good_distance > glm::distance(centroids[i], centroids[j]))
-					locally_good_distance = glm::distance(centroids[i], centroids[j]);
-			}
-
-			size_t counter_of_neighbors = 0;
-			for(size_t j = 0; j < num_of_clusters; j++) {
-				if(i == j) {
-					continue;
-				}
-				if(glm::distance(centroids[i], centroids[j]) < locally_good_distance * 1.2f) {
-					counter_of_neighbors++;
-				}
-			}
-			if(counter_of_neighbors >= neighbours_requirement) {
-				good_centroids.push_back(i);
-				final_points.push_back(centroids[i]);
-			}
-		}
-
-
-		if(good_centroids.size() <= 1) {
-			good_centroids.clear();
-			final_points.clear();
-			for(size_t i = 0; i < num_of_clusters; i++) {
-				good_centroids.push_back(i);
-				final_points.push_back(centroids[i]);
-			}
-		}
-
-		//throwing away bad cluster
-
-		std::vector<glm::vec2> good_points;
 
 		glm::vec2 sum_points = { 0.f, 0.f };
 
-		//OutputDebugStringA("\n\n");
-
+		auto average_weight = 0.f;
 		for(auto point : points) {
-			size_t closest = 0;
-			float best_dist = std::numeric_limits<float>::max();
-
-			//finding the closest centroid
-			for(size_t cluster = 0; cluster < num_of_clusters; cluster++) {
-				if(best_dist > glm::distance(centroids[cluster], point)) {
-					closest = cluster;
-					best_dist = glm::distance(centroids[cluster], point);
-				}
-			}
-
-
-			bool is_good = false;
-			for(size_t i = 0; i < good_centroids.size(); i++) {
-				if(closest == good_centroids[i])
-					is_good = true;
-			}
-
-			if (is_good) {
-				good_points.push_back(point);
-				sum_points += point;
-			}
+			auto coord = glm::vec2{ point.x, point.y };
+			average_weight += point.z;
+			sum_points += coord;
 		}
 
-		points = good_points;
-
+		average_weight /= (float)(points.size());
 
 		//initial center:
-		glm::vec2 center = sum_points / (float)(points.size());
-
-		//calculate deviation
-		float total_sum = 0;
-
-		for(auto point : points) {
-			auto dif_v = point - center;
-			total_sum += dif_v.x * dif_v.x;
-		}
-
-		float mse = total_sum / points.size();
-		//ignore points beyond 3 std
-		float limit = mse * 3;
-
-		//calculate radius
-		//OutputDebugStringA("\n");
-		//OutputDebugStringA("\n");
-		float right = 0.f;
-		float left = 0.f;
-		float top = 0.f;
-		float bottom = 0.f;
-		for(auto point: points) {
-			//OutputDebugStringA((std::to_string(point.x) + ", " + std::to_string(point.y) + ", \n").c_str());
-			glm::vec2 current = point - center;
-			if((current.x > right) && (current.x * current.x < limit)) {
-				right = current.x;
-			}
-			if(current.y > top) {
-				top = current.y;
-			}
-			if((current.x < left) && (current.x * current.x < limit)) {
-				left = current.x;
-			}
-			if(current.y < bottom) {
-				bottom = current.y;
-			}
-		}
+		glm::vec2 center = sum_points / (float)(points.size());		
 
 		std::vector<glm::vec2> key_points;
 
-		key_points.push_back(center + glm::vec2(left, 0));
-		key_points.push_back(center + glm::vec2(0, bottom + local_step.y));
-		key_points.push_back(center + glm::vec2(right, 0));
-		key_points.push_back(center + glm::vec2(0, top - local_step.y));
+		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+			float right = 0.f;
+			float left = 0.f;
+			float top = 0.f;
+			float bottom = 0.f;
+			for(auto point : centroids) {
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			key_points.push_back(center + glm::vec2(left, 0));
+			key_points.push_back(center + glm::vec2(0, bottom));
+			key_points.push_back(center + glm::vec2(right, 0));
+			key_points.push_back(center + glm::vec2(0, top));
+		} else {
+			float right = 0.f;
+			float left = 0.f;
+			float top = 0.f;
+			float bottom = 0.f;
+			for(auto point : points) {
+				if(point.z < average_weight * 0.1f) continue;
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			for(auto point : centroids) {
+				auto coord = glm::vec2{ point.x, point.y };
+				glm::vec2 current = coord - center;
+				if((current.x > right)) {
+					right = current.x;
+				}
+				if(current.y > top) {
+					top = current.y;
+				}
+				if((current.x < left)) {
+					left = current.x;
+				}
+				if(current.y < bottom) {
+					bottom = current.y;
+				}
+			}
+			key_points.push_back(center + glm::vec2(left, 0));
+			key_points.push_back(center + glm::vec2(0, bottom - local_step.y));
+			key_points.push_back(center + glm::vec2(right, 0));
+			key_points.push_back(center + glm::vec2(0, top + local_step.y));
+		}
 
 		std::array<glm::vec2, 5> key_provs{
-			center, //capital
-			center, //min x
-			center, //min y
-			center, //max x
-			center //max y
+			center, // center
+			center, // [1] -> left
+			center, // [2] -> bottom
+			center, // [3] -> right
+			center  // [4] -> top
 		};
 
 		for(auto key_point : key_points) {
-			//if (glm::length(key_point - center) < 100.f * glm::length(eigenvector_1))
 			update_bbox(key_provs, key_point);
 		}
 
+		/*
+		{
+			std::string file_name = "shapes/shape_box_" + std::to_string(file_index);
+			auto pf = fopen(file_name.c_str(), "w");
+			fprintf(pf, "x,y\n");
+			for(auto& data : key_provs) {
+				fprintf(pf, "%f,%f\n", data.x, data.y);
+			}
+			fflush(pf);
+			fclose(pf);
+		}
+		*/
 
 		glm::vec2 map_size{ float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y) };
 		glm::vec2 basis{ key_provs[1].x, key_provs[2].y };
@@ -1763,7 +2005,11 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		if(ratio.x < 0.001f || ratio.y < 0.001f)
 			continue;
 
-		points = final_points;
+		// throw out centroids at the edge of the box:
+		//points.clear();
+
+		auto width_unit = (key_provs[0].x - key_provs[1].x) / 5.f;
+		auto height_unit = (key_provs[0].y - key_provs[2].x) / 5.f;
 
 		//regularisation parameters
 		float lambda = 0.00001f;
@@ -1780,8 +2026,14 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		std::vector<std::array<float, 4>> in_x;
 		std::vector<std::array<float, 4>> in_y;
 
-		for (auto point : points) {
+		//draw_small_square(state, state.map_state.map_data, { { basis.x / (float)map_data.size_x, basis.y / (float)map_data.size_y } }, 0.005f);
+
+		//draw_small_square(state, state.map_state.map_data, { { (basis.x + ratio.x) / (float)map_data.size_x, (basis.y + ratio.y) / (float)map_data.size_y } }, 0.005f);
+
+		for (auto point : centroids) {
 			auto e = point;
+
+			//draw_small_square(state, state.map_state.map_data, { { point.x / (float)map_data.size_x, point.y / (float)map_data.size_y } }, 0.002f);
 
 			if(e.x < basis.x) {
 				continue;
@@ -1802,8 +2054,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
-		auto prepared_name = text::stored_glyphs(state, text::font_selection::map_font, name);
-		float name_extent = f.text_extent(state, prepared_name, 0, uint32_t(prepared_name.glyph_info.size()), 1);
+		text::stored_glyphs prepared_name;
+		state.font_collection.mfont.remake_map_cache(state, prepared_name, name);
+		float name_extent = state.font_collection.mfont.text_extent(state, prepared_name, 0, uint32_t(prepared_name.glyph_info.size()));
 
 		bool use_quadratic = false;
 		// We will try cubic regression first, if that results in very
@@ -1918,6 +2171,15 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f), basis, ratio);
 		}
 
+
+		if(state.user_settings.map_label == sys::map_label_mode::spherical) {
+			if(in_x[0][1] < in_x[1][1]) {
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[0][1], in_y[0][1], in_x[1][1], in_y[1][1]), basis, ratio);
+			} else {
+				text_data.emplace_back(std::move(prepared_name), glm::vec4(in_x[1][1], in_y[1][1], in_x[0][1], in_y[0][1]), basis, ratio);
+			}
+		}
+
 		if(state.user_settings.map_label == sys::map_label_mode::linear || use_linear) {
 			// Now lets try linear
 			glm::mat2x2 m0(0.f);
@@ -1943,41 +2205,14 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 				return mo[0] * l_0 + mo[1] * x * l_1;
 			};
 
-
-			// check if this is really better than taking the longest horizontal
-
-			// firstly check if we are already horizontal
-			if(abs(mo[1]) > 0.05) {
-				// calculate where our line will start and end:
-				float left_side = 0.f;
-				float right_side = 1.f;
-
-				if(mo[1] > 0.01f) {
-					left_side = -mo[0] / mo[1];
-					right_side = (1.f - mo[0]) / mo[1];
-				} else if(mo[1] < -0.01f) {
-					left_side = (1.f - mo[0]) / mo[1];
-					right_side = -mo[0] / mo[1];
-				}
-
-				left_side = std::clamp(left_side, 0.f, 1.f);
-				right_side = std::clamp(right_side, 0.f, 1.f);
-
-				float length_in_box_units = glm::length(ratio * glm::vec2(poly_fn(left_side), poly_fn(right_side)));
-
-				if(best_y_length_real * 1.05f >= length_in_box_units) {
-					basis.x = best_y_left_x;
-					ratio.x = best_y_length_real;
-					mo[0] = (best_y - basis.y) / ratio.y;
-					mo[1] = 0;
-				}
-			}
-
+			if(abs(mo[1]) <= 0.05) 
+				mo[1] = 0.f;
 
 			if(ratio.x <= map_size.x * 0.75f && ratio.y <= map_size.y * 0.75f)
 				text_data.emplace_back(std::move(prepared_name), glm::vec4(mo, 0.f, 0.f), basis, ratio);
 		}
 	}
+
 	map_data.set_text_lines(state, text_data);
 
 	if(state.cheat_data.province_names) {
@@ -1985,7 +2220,9 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		for(auto p : state.world.in_province) {
 			if(p.get_name()) {
 				std::string name = text::produce_simple_string(state, p.get_name());
-				p_text_data.emplace_back(text::stored_glyphs(state, text::font_selection::map_font, name), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
+				text::stored_glyphs temp;
+				state.font_collection.mfont.remake_map_cache(state, temp, name);
+				p_text_data.emplace_back(std::move(temp), glm::vec4(0.f, 0.f, 0.f, 0.f), p.get_mid_point() - glm::vec2(5.f, 0.f), glm::vec2(10.f, 10.f));
 			}
 		}
 		map_data.set_province_text_lines(state, p_text_data);
@@ -1997,6 +2234,18 @@ void map_state::update(sys::state& state) {
 	// Set the last_update_time if it hasn't been set yet
 	if(last_update_time == std::chrono::time_point<std::chrono::steady_clock>{})
 		last_update_time = now;
+
+	if(state.map_state.map_data.new_arbitrary_map_triangle) {
+		state.map_state.map_data.new_arbitrary_map_triangle = false;
+		glBindBuffer(GL_ARRAY_BUFFER, map_data.vbo_array[map_data.vo_arbitrary_map_triangles]);
+		glBufferData(
+			GL_ARRAY_BUFFER,
+			sizeof(square::point)
+			* map_data.arbitrary_map_triangles.size(),
+			map_data.arbitrary_map_triangles.data(),
+			GL_STATIC_DRAW
+		);
+	}
 
 	if(state.selected_trade_good && state.update_trade_flow.load(std::memory_order::acquire)) {
 		update_trade_flow_arrows(state, map_data);
@@ -2066,6 +2315,10 @@ void map_state::update(sys::state& state) {
 
 	glm::vec2 velocity = pos_velocity * (seconds_since_last_update / zoom);
 	velocity.x *= float(map_data.size_y) / float(map_data.size_x);
+	if(std::abs(velocity.x) >= 0.00001f || std::abs(velocity.y) >= 0.00001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	pos += velocity;
 
 	pos.x = glm::mod(pos.x, 1.f);
@@ -2079,6 +2332,10 @@ void map_state::update(sys::state& state) {
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
 
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
+	if(std::abs(zoom_diff) >= 0.0001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	zoom += zoom_diff;
 	zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
@@ -2126,6 +2383,10 @@ void map_state::update(sys::state& state) {
 	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
 
 	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
+	if(std::abs(keyboard_zoom_diff) >= 0.0001f) {
+		last_map_movement = now;
+		last_map_movement_handled = false;
+	}
 	zoom += keyboard_zoom_diff;
 	keyboard_zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
@@ -2228,6 +2489,9 @@ void map_state::set_pos(glm::vec2 new_pos) {
 void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
 	if(!p)
 		return;
+
+	last_map_movement = std::chrono::steady_clock::now();
+	last_map_movement_handled = false;
 
 	auto map_pos = state.world.province_get_mid_point(p);
 	map_pos.x /= float(map_data.size_x);

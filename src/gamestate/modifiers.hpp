@@ -1,7 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include "date_interface.hpp"
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "system_state_forward.hpp"
 
 namespace sys {
@@ -228,120 +228,6 @@ MOD_NAT_LIST
 #undef MOD_LIST_ELEMENT
 constexpr inline uint32_t count = MOD_NAT_LIST_COUNT;
 } // namespace national_mod_offsets
-
-struct provincial_modifier_definition {
-	static constexpr uint32_t modifier_definition_size = 22;
-
-	float values[modifier_definition_size] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-	dcon::provincial_modifier_value offsets[modifier_definition_size] = {dcon::provincial_modifier_value{}};
-	uint16_t padding = 0;
-};
-static_assert(sizeof(provincial_modifier_definition) ==
-	sizeof(provincial_modifier_definition::values)
-	+ sizeof(provincial_modifier_definition::offsets)
-	+ sizeof(provincial_modifier_definition::padding));
-
-struct national_modifier_definition {
-	static constexpr uint32_t modifier_definition_size = 22;
-
-	float values[modifier_definition_size] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
-	dcon::national_modifier_value offsets[modifier_definition_size] = {dcon::national_modifier_value{}};
-	uint16_t padding = 0;
-};
-static_assert(sizeof(national_modifier_definition) ==
-	sizeof(national_modifier_definition::values)
-	+ sizeof(national_modifier_definition::offsets)
-	+ sizeof(national_modifier_definition::padding));
-
-struct commodity_modifier {
-	float amount = 0.0f;
-	dcon::commodity_id type;
-	uint8_t padding[3] = {0};
-};
-static_assert(sizeof(commodity_modifier) ==
-	sizeof(commodity_modifier::amount)
-	+ sizeof(commodity_modifier::type)
-	+ sizeof(commodity_modifier::padding));
-
-struct unit_variable_stats {
-	int32_t build_time = 0;
-	int32_t default_organisation = 0;
-	float maximum_speed = 0.0f;
-	float defence_or_hull = 0.0f;
-	float attack_or_gun_power = 0.0f;
-	float supply_consumption = 0.0f;
-	float support = 0.0f;
-	float siege_or_torpedo_attack = 0.0f;
-	float reconnaissance_or_fire_range = 0.0f;
-	float discipline_or_evasion = 0.0f;
-	float maneuver = 0.0f;
-
-	void operator+=(unit_variable_stats const& other) {
-		build_time += other.build_time;
-		default_organisation += other.default_organisation;
-		maximum_speed += other.maximum_speed;
-		defence_or_hull += other.defence_or_hull;
-		attack_or_gun_power += other.attack_or_gun_power;
-		supply_consumption += other.supply_consumption;
-		support += other.support;
-		maneuver += other.maneuver;
-		siege_or_torpedo_attack += other.siege_or_torpedo_attack;
-		reconnaissance_or_fire_range += other.reconnaissance_or_fire_range;
-		discipline_or_evasion += other.discipline_or_evasion;
-	}
-	void operator-=(unit_variable_stats const& other) {
-		build_time -= other.build_time;
-		default_organisation -= other.default_organisation;
-		maximum_speed -= other.maximum_speed;
-		defence_or_hull -= other.defence_or_hull;
-		attack_or_gun_power -= other.attack_or_gun_power;
-		supply_consumption -= other.supply_consumption;
-		support -= other.support;
-		maneuver -= other.maneuver;
-		siege_or_torpedo_attack -= other.siege_or_torpedo_attack;
-		reconnaissance_or_fire_range -= other.reconnaissance_or_fire_range;
-		discipline_or_evasion -= other.discipline_or_evasion;
-	}
-};
-static_assert(sizeof(unit_variable_stats) ==
-	sizeof(unit_variable_stats::build_time)
-	+ sizeof(unit_variable_stats::default_organisation)
-	+ sizeof(unit_variable_stats::maximum_speed)
-	+ sizeof(unit_variable_stats::defence_or_hull)
-	+ sizeof(unit_variable_stats::attack_or_gun_power)
-	+ sizeof(unit_variable_stats::supply_consumption)
-	+ sizeof(unit_variable_stats::support)
-	+ sizeof(unit_variable_stats::maneuver)
-	+ sizeof(unit_variable_stats::siege_or_torpedo_attack)
-	+ sizeof(unit_variable_stats::reconnaissance_or_fire_range)
-	+ sizeof(unit_variable_stats::discipline_or_evasion));
-
-struct unit_modifier : public unit_variable_stats {
-	dcon::unit_type_id type;
-	uint8_t padding[3] = { 0 };
-};
-static_assert(sizeof(unit_modifier) ==
-	sizeof(unit_variable_stats)
-	+ sizeof(unit_modifier::type)
-	+ sizeof(unit_modifier::padding));
-
-struct rebel_org_modifier {
-	float amount = 0.0f; //4
-	dcon::rebel_type_id type; //1 - no type set = all rebels
-	uint8_t padding[2] = { 0, 0 };
-};
-static_assert(sizeof(rebel_org_modifier) ==
-	sizeof(rebel_org_modifier::amount)
-	+ sizeof(rebel_org_modifier::type)
-	+ sizeof(rebel_org_modifier::padding));
-
-struct dated_modifier {
-	sys::date expiration;
-	dcon::modifier_id mod_id;
-};
-static_assert(sizeof(dated_modifier) ==
-	sizeof(dated_modifier::expiration)
-	+ sizeof(dated_modifier::mod_id));
 
 // restores values after loading a save
 void repopulate_modifier_effects(sys::state& state);

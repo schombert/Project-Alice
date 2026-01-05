@@ -52,8 +52,9 @@ map_label_0;无
 map_label_1;线性
 map_label_2;二次线性
 map_label_3;立体
+map_label_4;球面
 antialiasing_label;反锯齿
-spoilers_label;遮挡任务栏
+spoilers_label;额外细节提示
 graphics_details_label;图形
 graphics_details_0;像素
 graphics_details_1;经典

@@ -1,6 +1,10 @@
+#include "system_state.hpp"
 #include "demographics.hpp"
 #include "economy_stats.hpp"
 #include "economy_trade_routes.hpp"
+#include "economy_constants.hpp"
+#include "money.hpp"
+#include "economy_templates_pure.hpp"
 
 namespace economy {
 
@@ -356,7 +360,7 @@ float domestic_trade_volume(
 		auto market = state.world.state_instance_get_market_from_local_market(sid);
 
 		state.world.market_for_each_trade_route(market, [&](auto trade_route) {
-			trade_and_tariff explanation = explain_trade_route_commodity(state, trade_route, c);
+			trade_and_tariff<dcon::trade_route_id> explanation = explain_trade_route_commodity(state, trade_route, c);
 			if(explanation.origin_nation == s && explanation.target_nation == s)
 				total_volume += explanation.amount_origin;
 		});
@@ -646,11 +650,7 @@ float trade_supply(sys::state& state,
 	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
-	auto price_rating = (price(state, m, c)) / local_wage_rating;
-	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
-	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * actual_stockpile_to_supply;
+	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
 	return result;
 }
 
@@ -676,10 +676,7 @@ float trade_demand(sys::state& state,
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto local_wage_rating = state.defines.alice_needs_scaling_factor * wage + 0.00001f;
-	auto price_rating = (price(state, m, c)) / local_wage_rating;
-	auto actual_stockpile_to_supply = std::min(1.f, stockpile_to_supply + price_rating);
-	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * actual_stockpile_to_supply;
+	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
 
 	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
@@ -1330,6 +1327,21 @@ float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon:
 	auto target_demand = historical_demand + additional_demand;
 	return target_demand == 0.f ? 0.f : std::min(1.f, historical_supply / target_demand);
 }
+
+float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
+	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
+	auto target_supply = historical_supply + additional_supply;
+	return historical_demand == 0.f ? 0.f : std::min(1.f, target_supply / historical_demand);
+}
+
+float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply) {
+	auto historical_demand = state.world.market_get_aggregated_demand_history(m, c);
+	auto historical_supply = state.world.market_get_aggregated_supply_history(m, c);
+	auto target_supply = historical_supply + additional_supply;
+	return target_supply == 0.f ? 0.f : std::min(1.f, historical_demand / target_supply);
+}
+
 
 float estimate_next_budget(sys::state& state, dcon::nation_id n) {
 	// treasury is remainder after spending + income

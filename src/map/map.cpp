@@ -15,6 +15,7 @@
 #include "system_state.hpp"
 #include "prng.hpp"
 #include "demographics.hpp"
+#include "projections.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -63,6 +64,145 @@ void add_nation_visible_provinces(sys::state& state, std::vector<dcon::province_
 		list.push_back(ac.get_army().get_location_from_army_location());
 	for(auto nc : state.world.nation_get_navy_control_as_controller(n))
 		list.push_back(nc.get_navy().get_location_from_navy_location());
+}
+
+display_data::display_data() {
+	{
+		square::tangent square_tangent{ { {0.5f, 0.5f} }, { 1.f, 0.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.5f, 0.25f} }, { 1.f, 0.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.5f, 0.75f} }, { 1.f, 0.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.25f, 0.5f} }, { 1.f, 0.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+
+	{
+		square::tangent square_tangent{ { {0.75f, 0.5f} }, { 1.f, 0.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.25f, 0.5f} }, { 1.f, 1.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+
+	{
+		square::tangent square_tangent{ { {0.75f, 0.5f} }, { 1.f, 1.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.5f, 0.5f} }, { 0.f, 1.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
+
+	{
+		square::tangent square_tangent{ { {0.5f, 0.5f} }, { 1.f, 1.f } };
+
+		auto sphere_tangent = sphere_R3::from_square(square_tangent);
+		auto back_to_square = sphere_R3::to_square(sphere_tangent);
+
+		auto base_error = glm::distance(back_to_square.base.data, square_tangent.base.data);
+		auto tangent_error = glm::distance(back_to_square.data, square_tangent.data);
+		auto rotation_error = sphere_R3::dot(square_tangent, sphere_R3::rotate_left(square_tangent));
+
+		assert(base_error < 0.01f);
+		assert(tangent_error < 0.01f);
+		assert(rotation_error < 0.01f);
+	}
 }
 
 void display_data::update_fog_of_war(sys::state& state) {
@@ -253,20 +393,23 @@ void create_text_line_vbo(GLuint vbo) {
 	// Set up vertex attribute format for the direction
 	glVertexAttribFormat(2, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, direction_));
 	// Set up vertex attribute format for the texture coordinates
-	glVertexAttribFormat(3, 3, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
+	glVertexAttribFormat(3, 2, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, texture_coord_));
 	glVertexAttribFormat(4, 1, GL_FLOAT, GL_FALSE, offsetof(text_line_vertex, thickness_));
+	glVertexAttribIFormat(5, 1, GL_INT, offsetof(text_line_vertex, buffer_index_));
 	glEnableVertexAttribArray(0);
 	glEnableVertexAttribArray(1);
 	glEnableVertexAttribArray(2);
 	glEnableVertexAttribArray(3);
 	glEnableVertexAttribArray(4);
 	glEnableVertexAttribArray(5);
+	//glEnableVertexAttribArray(6);
 	glVertexAttribBinding(0, 0);
 	glVertexAttribBinding(1, 0);
 	glVertexAttribBinding(2, 0);
 	glVertexAttribBinding(3, 0);
 	glVertexAttribBinding(4, 0);
 	glVertexAttribBinding(5, 0);
+	//glVertexAttribBinding(6, 0);
 }
 
 void create_drag_box_vbo(GLuint vbo) {
@@ -379,6 +522,17 @@ void display_data::create_meshes() {
 		glVertexAttribBinding(0, 0);
 		glVertexAttribBinding(1, 0);
 	}
+	{
+		// Create and populate the border VBO
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		// Bind the VBO to 0 of the VAO
+		glBindVertexBuffer(0, vbo_array[vo_arbitrary_map_triangles], 0, sizeof(square::point));
+		// Set up vertex attribute format for the position
+		glVertexAttribFormat(0, 2, GL_FLOAT, GL_FALSE, offsetof(square::point, data));
+		glEnableVertexAttribArray(0);
+		glVertexAttribBinding(0, 0);
+	}
 	glBindVertexArray(vao_array[vo_coastal]);
 	create_textured_line_b_vbo(vbo_array[vo_coastal], coastal_vertices);
 	glBindVertexArray(vao_array[vo_trade_flow]);
@@ -397,8 +551,8 @@ void display_data::create_meshes() {
 	create_unit_arrow_vbo(vbo_array[vo_other_objective_unit_arrow], other_objective_unit_arrow_vertices);
 	glBindVertexArray(vao_array[vo_text_line]);
 	create_text_line_vbo(vbo_array[vo_text_line]);
-	glBindVertexArray(vao_array[vo_province_text_line]);
-	create_text_line_vbo(vbo_array[vo_province_text_line]);
+	//glBindVertexArray(vao_array[vo_province_text_line]);
+	//create_text_line_vbo(vbo_array[vo_province_text_line]);
 	glBindVertexArray(vao_array[vo_drag_box]);
 	create_drag_box_vbo(vbo_array[vo_drag_box]);
 	glBindVertexArray(vao_array[vo_square]);
@@ -455,6 +609,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto triangles_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_v.glsl"));
 	auto triangles_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_triangle_f.glsl"));
 
+	// even more generic on-map shader
+	auto map_triangle_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_v.glsl"));
+	auto map_triangle_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/debug_map_triangle_f.glsl"));
+
 	// On-map sprite shader
 	auto sprite_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_v.glsl"));
 	auto sprite_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_sprite_f.glsl"));
@@ -463,8 +621,10 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	auto line_unit_arrow_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_v.glsl"));
 	auto line_unit_arrow_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/line_unit_arrow_f.glsl"));
 
-	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
-	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	//auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_v.glsl"));
+	//auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/text_line_f.glsl"));
+	auto text_line_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_v.glsl"));
+	auto text_line_fshader = try_load_shader(root, NATIVE("assets/shaders/glsl/map_font_f.glsl"));
 
 	auto tline_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_v.glsl"));
 	auto tline_width_vshader = try_load_shader(root, NATIVE("assets/shaders/glsl/textured_line_variable_width_v.glsl"));
@@ -497,6 +657,7 @@ void display_data::load_shaders(simple_fs::directory& root) {
 	shaders[shader_map_standing_object] = create_program(*model3d_vshader, *model3d_fshader);
 	shaders[shader_map_sprite] = create_program(*sprite_vshader, *sprite_fshader);
 	shaders[shader_textured_triangle] = create_program(*triangles_vshader, *triangles_fshader);
+	shaders[shader_map_triangle] = create_program(*map_triangle_vshader, *map_triangle_fshader);
 
 	for(uint32_t i = 0; i < shader_count; i++) {
 		if(shaders[i] == 0)
@@ -547,6 +708,9 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_sprite_texture_size] = glGetUniformLocation(shaders[i], "texture_size");
 		shader_uniforms[i][uniform_is_national_border] = glGetUniformLocation(shaders[i], "is_national_border");
 		shader_uniforms[i][uniform_graphics_mode] = glGetUniformLocation(shaders[i], "graphics_mode");
+		shader_uniforms[i][uniform_color] = glGetUniformLocation(shaders[i], "color");
+		shader_uniforms[i][uniform_glyphs] = glGetUniformLocation(shaders[i], "glyphs");
+		shader_uniforms[i][uniform_curves] = glGetUniformLocation(shaders[i], "curves");
 	}
 }
 
@@ -562,24 +726,36 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	// Load general shader stuff, used by both land and borders
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(shaders[program]);
-		glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
-		glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
-		glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
-		glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
-		glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
-		glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
-		glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
-		glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
-		glUniform1f(shader_uniforms[program][uniform_time], time_counter);
-		glUniform3f(shader_uniforms[program][uniform_light_direction],
-			state.map_state.light_direction.x,
-			state.map_state.light_direction.y,
-			state.map_state.light_direction.z
-		);
-		if(state.map_state.light_on) {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
-		} else {
-			glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+		if(shader_uniforms[program][uniform_offset] != -1)
+			glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
+		if(shader_uniforms[program][uniform_aspect_ratio] != -1)
+			glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
+		if(shader_uniforms[program][uniform_screen_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_screen_size], screen_size.x, screen_size.y);
+		if(shader_uniforms[program][uniform_zoom] != -1)
+			glUniform1f(shader_uniforms[program][uniform_zoom], zoom);
+		if(shader_uniforms[program][uniform_map_size] != -1)
+			glUniform2f(shader_uniforms[program][uniform_map_size], GLfloat(size_x), GLfloat(size_y));
+		if(shader_uniforms[program][uniform_rotation] != -1)
+			glUniformMatrix3fv(shader_uniforms[program][uniform_rotation], 1, GL_FALSE, glm::value_ptr(glm::mat3(globe_rotation)));
+		if(shader_uniforms[program][uniform_gamma] != -1)
+			glUniform1f(shader_uniforms[program][uniform_gamma], state.user_settings.gamma);
+		if(shader_uniforms[program][uniform_subroutines_index] != -1)
+			glUniform1ui(shader_uniforms[program][uniform_subroutines_index], GLuint(map_view_mode));
+		if(shader_uniforms[program][uniform_time] != -1)
+			glUniform1f(shader_uniforms[program][uniform_time], time_counter);
+		if(shader_uniforms[program][uniform_light_direction] != -1)
+			glUniform3f(shader_uniforms[program][uniform_light_direction],
+				state.map_state.light_direction.x,
+				state.map_state.light_direction.y,
+				state.map_state.light_direction.z
+			);
+		if(shader_uniforms[program][uniform_ignore_light] != -1) {
+			if(state.map_state.light_on) {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 0.f);
+			} else {
+				glUniform1f(shader_uniforms[program][uniform_ignore_light], 1.f);
+			}
 		}
 	};
 
@@ -701,8 +877,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		glUniform1i(shader_uniforms[shader_terrain][uniform_terrain_is_array], 1);
 	}
 	if (
-		state.map_state.active_map_mode == map_mode::mode::political
-		|| state.map_state.active_map_mode == map_mode::mode::terrain
+		(state.map_state.active_map_mode == map_mode::mode::political
+		|| state.map_state.active_map_mode == map_mode::mode::terrain)
+		&& (state.current_scene.id != game_scene::scene_id::in_game_economy_viewer)
 	) {
 		glUniform1i(shader_uniforms[shader_terrain][uniform_map_mode_is_data], 0);
 	} else {
@@ -1053,6 +1230,17 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 
+	// arbitrary things
+
+	{
+		glDisable(GL_CULL_FACE);
+		load_shader(shader_map_triangle);
+		glBindVertexArray(vao_array[vo_arbitrary_map_triangles]);
+		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_arbitrary_map_triangles]);
+		glMultiDrawArrays(GL_TRIANGLES, arbitrary_map_triangles_starts.data(), arbitrary_map_triangles_counts.data(), GLsizei(arbitrary_map_triangles_starts.size()));
+		glEnable(GL_CULL_FACE);
+	}
+
 	// trade flow
 	if(state.selected_trade_good && !trade_flow_vertices.empty()) {
 		glActiveTexture(GL_TEXTURE0);
@@ -1076,102 +1264,102 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				state.ui_defs.gui[
 					state.ui_state.defs_by_name.find(
 						state.lookup_key("gfx_storage_commodity")
-					)->second.definition
+							)->second.definition
 				].data.image.gfx_object;
-			auto& gfx_def = state.ui_defs.gfx[gfx_id];
-			auto frame = state.world.commodity_get_icon(state.selected_trade_good);
-			auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
+				auto& gfx_def = state.ui_defs.gfx[gfx_id];
+				auto frame = state.world.commodity_get_icon(state.selected_trade_good);
+				auto texture_handle = ogl::get_texture_handle(state, gfx_def.primary_texture_handle, gfx_def.is_partially_transparent());
 
-			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, texture_handle);
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, texture_handle);
 
-			glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
-			glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
+				glUniform1i(shader_uniforms[shader_map_sprite][uniform_texture_sampler], 0);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_start], (float)frame / gfx_def.number_of_frames, 0.f);
+				glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_texture_size], 1.f / gfx_def.number_of_frames, 1.f);
 
-			glBindVertexArray(vao_array[vo_square]);
-			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
+				glBindVertexArray(vao_array[vo_square]);
+				glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_square]);
 
-			const float speed = 0.5f;
+				const float speed = 0.5f;
 
-			bool spawned_something = false;
+				bool spawned_something = false;
 
-			for(size_t i = 0; i < trade_particles_positions.size(); i++) {
-				auto& p = trade_particles_positions[i];
+				for(size_t i = 0; i < trade_particles_positions.size(); i++) {
+					auto& p = trade_particles_positions[i];
 
-				// update movement
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
-					auto direction = p.target_ - p.position_;
-					auto length = float(glm::length(direction));
-					if(length < speed * 2) {
-						p.trade_graph_node_prev = p.trade_graph_node_current;
-						p.trade_graph_node_current = p.trade_graph_node_next;
-						p.trade_graph_node_next = -1;
-					} else {
-						p.position_ += direction / length * speed;
-					}
-				}
-
-				// choose target
-				if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
-					// choose next target according to probability
-					// use time as random engine for simplicity
-					auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
-
-					int target = -1;
-
-					auto accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
-						accumulated += probability;
-						// prevent trivial loops
-						if(random < accumulated && candidate != p.trade_graph_node_prev) {
-							target = candidate;
-							break;
+					// update movement
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next != -1) {
+						auto direction = p.target_ - p.position_;
+						auto length = float(glm::length(direction));
+						if(length < speed * 2) {
+							p.trade_graph_node_prev = p.trade_graph_node_current;
+							p.trade_graph_node_current = p.trade_graph_node_next;
+							p.trade_graph_node_next = -1;
+						} else {
+							p.position_ += direction / length * speed;
 						}
 					}
 
-					// moving to itself or having no paths to go out implies deletion
-					if(target == -1 || target == p.trade_graph_node_current) {
-						p.trade_graph_node_current = -1;
-					} else {
-						p.trade_graph_node_next = target;
-						p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
-					}
-				}
+					// choose target
+					if(p.trade_graph_node_current != -1 && p.trade_graph_node_next == -1) {
+						// choose next target according to probability
+						// use time as random engine for simplicity
+						auto random = fmod(sin(time_counter * 971641.5397643) + 1.f, 1.f);
 
+						int target = -1;
 
-				if(p.trade_graph_node_current != -1) {
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
-					glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
-					glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-				}
+						auto accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_next_node_probability[p.trade_graph_node_current]) {
+							accumulated += probability;
+							// prevent trivial loops
+							if(random < accumulated && candidate != p.trade_graph_node_prev) {
+								target = candidate;
+								break;
+							}
+						}
 
-				// spawn "new" particles
-				// don't spawn them too often
-				if(!spawned_something && p.trade_graph_node_current == -1) {
-					spawned_something = true;
-
-					auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
-
-					int target = -1;
-					float accumulated = 0.f;
-					for(auto const& [candidate, probability] : particle_creation_probability) {
-						accumulated += probability;
-						if(random < accumulated) {
-							target = candidate;
-							break;
+						// moving to itself or having no paths to go out implies deletion
+						if(target == -1 || target == p.trade_graph_node_current) {
+							p.trade_graph_node_current = -1;
+						} else {
+							p.trade_graph_node_next = target;
+							p.target_ = put_in_local(trade_node_position[target], p.position_, (float)size_x);
 						}
 					}
 
-					if(target != -1) {
-						p.trade_graph_node_current = target;
-						p.position_ = trade_node_position[target];
-						p.target_ = trade_node_position[target];
-						p.trade_graph_node_next = -1;
-						p.trade_graph_node_prev = -1;
+
+					if(p.trade_graph_node_current != -1) {
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_offsets], trade_particles_positions[i].position_.x / float(size_x), trade_particles_positions[i].position_.y / float(size_y));
+						glUniform2f(shader_uniforms[shader_map_sprite][uniform_sprite_scale], 4.f / float(size_x), 4.f / float(size_y));
+						glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+					}
+
+					// spawn "new" particles
+					// don't spawn them too often
+					if(!spawned_something && p.trade_graph_node_current == -1) {
+						spawned_something = true;
+
+						auto random = fmod(sin(time_counter * 92637.1323076) + 1.f, 1.f);
+
+						int target = -1;
+						float accumulated = 0.f;
+						for(auto const& [candidate, probability] : particle_creation_probability) {
+							accumulated += probability;
+							if(random < accumulated) {
+								target = candidate;
+								break;
+							}
+						}
+
+						if(target != -1) {
+							p.trade_graph_node_current = target;
+							p.position_ = trade_node_position[target];
+							p.target_ = trade_node_position[target];
+							p.trade_graph_node_next = -1;
+							p.trade_graph_node_prev = -1;
+						}
 					}
 				}
-			}
 		}
 	}
 
@@ -1235,20 +1423,40 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	}
 
 	if(state.user_settings.map_label != sys::map_label_mode::none) {
-		auto const& f = state.font_collection.get_font(state, text::font_selection::map_font);
 		load_shader(shader_text_line);
-		glUniform1i(shader_uniforms[shader_text_line][uniform_texture_sampler], 0);
-		glUniform1f(shader_uniforms[shader_text_line][uniform_is_black], state.user_settings.black_map_font ? 1.f : 0.f);
+		state.font_collection.mfont.ready_textures();
+
+		glEnable(GL_BLEND);
+		glBlendEquation(GL_FUNC_ADD);
+		glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+
+		auto location = shader_uniforms[shader_text_line][uniform_color];
+		if(state.user_settings.black_map_font)
+			glUniform4f(location, 0.0f, 0.0f, 0.0f, 1.0f);
+		else
+			glUniform4f(location, 1.0f, 1.0f, 1.0f, 1.0f);
+
+		location = shader_uniforms[shader_text_line][uniform_glyphs];
+		glUniform1i(location, 0);
+		
+		location = shader_uniforms[shader_text_line][uniform_curves];
+		glUniform1i(location, 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.glyph_texture);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_BUFFER, state.font_collection.mfont.curve_texture);
+
+		glActiveTexture(GL_TEXTURE0);
+
 		if((!state.cheat_data.province_names || zoom < map::zoom_very_close) && !text_line_vertices.empty()) {
-			glUniform1f(shader_uniforms[shader_text_line][uniform_opaque], 0.f);
 			glBindVertexArray(vao_array[vo_text_line]);
 			glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
-			for(uint32_t i = 0; i < uint32_t(text_line_texture_per_quad.size()); i++) {
-				glActiveTexture(GL_TEXTURE0);
-				glBindTexture(GL_TEXTURE_2D, text_line_texture_per_quad[i]);
-				glDrawArrays(GL_TRIANGLES, i * 6, 6);
-			}
+			glDrawArrays(GL_TRIANGLES, 0, int32_t(text_line_vertices.size()));
 		}
+
+		glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_ONE, GL_ONE);
 	}
 
 	/*
@@ -1583,6 +1791,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindVertexArray(0);
 	glDisable(GL_CULL_FACE);
 
+	
 	if(ogl::msaa_enabled(state)) {
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, state.open_gl.msaa_framebuffer);
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, state.open_gl.msaa_interbuffer);
@@ -1600,6 +1809,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		//glBindBuffer(GL_ARRAY_BUFFER, state.open_gl.msaa_vbo);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
+	
 }
 
 GLuint load_province_map(std::vector<uint16_t>& province_index, uint32_t size_x, uint32_t size_y) {
@@ -2806,187 +3016,337 @@ void display_data::update_sprawl(sys::state& state) {
 }
 
 void display_data::set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	// Clear previous text line vertices
 	text_line_vertices.clear();
-	text_line_texture_per_quad.clear();
 
+	// Map aspect ratio scaling factor
 	const auto map_x_scaling = float(size_x) / float(size_y);
-	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
 
 	for(const auto& e : data) {
-		// omit invalid, nan or infinite coefficients
+		// Skip invalid polynomial coefficients
 		if(!std::isfinite(e.coeff[0]) || !std::isfinite(e.coeff[1]) || !std::isfinite(e.coeff[2]) || !std::isfinite(e.coeff[3]))
 			continue;
 
-		bool is_linear = true;
-		if((e.coeff[2] != 0) || (e.coeff[3] != 0)) {
-			is_linear = false;
-		}
+		// Skip empty text to prevent invalid operations
+		if(e.text.glyph_info.empty())
+			continue;
 
-		// y = a + bx + cx^2 + dx^3
-		// y = mo[0] + mo[1] * x + mo[2] * x * x + mo[3] * x * x * x
-		auto poly_fn = [&](float x) {
+		// Detect linear path (no quadratic or cubic terms)
+		bool is_linear = (e.coeff[2] == 0.f && e.coeff[3] == 0.f);
+		// Spherical mode uses 3D projection; planar uses 2D polynomial
+		bool is_spherical = state.user_settings.map_label == sys::map_label_mode::spherical;
+
+		// Polynomial function y(x)
+		auto poly_fn = [&](float x) -> float {
 			return e.coeff[0] + e.coeff[1] * x + e.coeff[2] * x * x + e.coeff[3] * x * x * x;
 			};
-		auto dpoly_fn = [&](float x) {
-			// y = a + 1bx^1 + 1cx^2 + 1dx^3
-			// y = 0 + 1bx^0 + 2cx^1 + 3dx^2
+
+		// Derivative dy/dx for tangent
+		auto dpoly_fn = [&](float x) -> float {
 			return e.coeff[1] + 2.f * e.coeff[2] * x + 3.f * e.coeff[3] * x * x;
 			};
 
+		// Spherical great-circle stepping
+		auto sphere_step = [&](glm::vec3 position, glm::vec3 direction, float step) -> glm::vec3 {
+			auto away = position / glm::length(position);
+			auto coordinate_away = glm::dot(direction, away);
+			direction -= away * coordinate_away;
+			direction /= glm::length(direction);
+			position += direction * step;
+			return position / glm::length(position);
+			};
 
-		//cutting box if graph goes outside
+		// Spherical tangent computation
+		auto sphere_tangent = [&](glm::vec3 position, glm::vec3 direction) -> sphere_R3::tangent {
+			auto away = position / glm::length(position);
+			auto coordinate_away = glm::dot(direction, away);
+			direction -= away * coordinate_away;
+			direction /= glm::length(direction);
+			return sphere_R3::tangent{ { position }, direction };
+			};
 
+		// Clip parameter range to visible map
 		float left = 0.f;
 		float right = 1.f;
 
-		if(is_linear) {
-			if(e.coeff[1] > 0.01f) {
-				left = (-e.coeff[0]) / e.coeff[1];
-				right = (1.f - e.coeff[0]) / e.coeff[1];
-			} else if(e.coeff[1] < -0.01f) {
-				left = (1.f - e.coeff[0]) / e.coeff[1];
-				right = (-e.coeff[0]) / e.coeff[1];
-			}
-		} else {
-			while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
-				left += 1.f / 300.f;
-			}
-			while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
-				right -= 1.f / 300.f;
+		if(!is_spherical) {
+			if(is_linear) {
+				if(e.coeff[1] > 0.01f) {
+					left = (-e.coeff[0]) / e.coeff[1];
+					right = (1.f - e.coeff[0]) / e.coeff[1];
+				} else if(e.coeff[1] < -0.01f) {
+					left = (1.f - e.coeff[0]) / e.coeff[1];
+					right = (-e.coeff[0]) / e.coeff[1];
+				}
+			} else {
+				while(((poly_fn(left) < 0.f) || (poly_fn(left) > 1.f)) && (left < 1.f)) {
+					left += 1.f / 300.f;
+				}
+				while(((poly_fn(right) < 0.f) || (poly_fn(right) > 1.f)) && (right > 0.f)) {
+					right -= 1.f / 300.f;
+				}
 			}
 		}
-
 
 		left = std::clamp(left, 0.f, 1.f);
 		right = std::clamp(right, 0.f, 1.f);
 
-
-		if(right <= left) {
-			continue;
-		}
-
-		float result_interval = right - left;
-		float center = (right + left) / 2.f;
+		if(right <= left) continue;
 
 		glm::vec2 ratio = e.ratio;
 		glm::vec2 basis = e.basis;
 
-		auto effective_ratio = ratio.x * map_x_scaling / ratio.y;
+		// Increased table resolution to ensure <0.1% error even on high-curvature paths
+		constexpr int TABLE_STEPS = 20000;
+		std::vector<float> arc_length_table;
+		float curve_length = 0.f;
 
-		float text_length = f.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size()), 1);
-		assert(std::isfinite(text_length) && text_length != 0.f);
-		float x_step = (result_interval / float(e.text.glyph_info.size() * 32.f));
-		float curve_length = 0.f; //width of whole string polynomial
-		if(is_linear) {
-			float height = poly_fn(right) - poly_fn(left);
-			curve_length = 2.f * glm::length(glm::vec2(height * ratio.y, result_interval * ratio.x));
-		} else for(float x = left; x <= right; x += x_step) {
-			curve_length += 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
+		// Spherical state (independent runner for clean margin/glyph advance)
+		glm::vec3 sph_direction{};
+		float sph_direct_distance = 0.f;
+		float sph_step_unit = 0.f;
+		glm::vec3 sph_runner{};
+		glm::vec3 sph_runner_prev{};
+		sphere_R3::point sph_start{};
+		sphere_R3::point sph_end{};
+
+		if(is_spherical) {
+			// Project endpoints to sphere
+			square::point sq_start{ (glm::vec2(e.coeff[0], e.coeff[1]) * ratio + basis) / glm::vec2(size_x, size_y) };
+			square::point sq_end{ (glm::vec2(e.coeff[2], e.coeff[3]) * ratio + basis) / glm::vec2(size_x, size_y) };
+			sph_start = sphere_R3::from_square(sq_start);
+			sph_end = sphere_R3::from_square(sq_end);
+
+			sph_direction = sph_end.data - sph_start.data;
+			sph_direct_distance = glm::distance(sph_start.data, sph_end.data);
+			if(sph_direct_distance < 1e-6f) continue;
+
+			sph_step_unit = sph_direct_distance / std::max(1.f, float(e.text.glyph_info.size() * 32.f));
+
+			// Compute curve length (original rough stepping)
+			sph_runner_prev = sph_start.data;
+			sph_runner = sph_start.data;
+			int safety = 1000000;
+			while(glm::distance(sph_runner, sph_end.data) > sph_direct_distance * 0.05f && curve_length < sph_direct_distance * 2.f && --safety > 0) {
+				sph_runner = sphere_step(sph_runner, sph_direction, sph_step_unit);
+				curve_length += glm::distance(sph_runner, sph_runner_prev);
+				sph_runner_prev = sph_runner;
+			}
+		} else {
+			if(is_linear) {
+				float dx = (right - left) * ratio.x;
+				float dy = (poly_fn(right) - poly_fn(left)) * ratio.y;
+				curve_length = glm::length(glm::vec2(dx, dy));
+			} else {
+				arc_length_table.reserve(TABLE_STEPS + 1);
+				arc_length_table.push_back(0.f);
+
+				float step = (right - left) / float(TABLE_STEPS);
+				float prev_x = left;
+				float prev_y = poly_fn(left);
+				for(int i = 1; i <= TABLE_STEPS; ++i) {
+					float curr_x = prev_x + step;
+					float curr_y = poly_fn(curr_x);
+					float seg_len = glm::length(glm::vec2(step * ratio.x, (curr_y - prev_y) * ratio.y));
+					arc_length_table.push_back(arc_length_table.back() + seg_len);
+					prev_x = curr_x;
+					prev_y = curr_y;
+				}
+				curve_length = arc_length_table.back();
+			}
 		}
-		float size = (curve_length / text_length) * 0.8f; //* 0.66f;
 
-		// typography "golden ratio" steps
+		if(curve_length <= 0.f) continue;
+
+		float text_length = state.font_collection.mfont.text_extent(state, e.text, 0, uint32_t(e.text.glyph_info.size())) / (1.0f * text::dr_size);
+		assert(std::isfinite(text_length) && text_length != 0.f);
+
+		float size = (curve_length / text_length) * 0.8f;
 
 		float font_size_index = std::round(5.f * log(size) / log(1.618034f));
-
-		if(font_size_index > 45.f) {
-			font_size_index = 45.f;
-		}
-		if(font_size_index > 5.f)
-			font_size_index = 5.f * std::round(font_size_index / 5.f);
-
+		if(font_size_index > 45.f) font_size_index = 45.f;
+		if(font_size_index > 5.f) font_size_index = 5.f * std::round(font_size_index / 5.f);
 		size = std::pow(1.618034f, font_size_index / 5.f);
 
-		// fixed step
+		auto real_text_half_size = size / size_x / 2.f;
+		if(!is_spherical) real_text_half_size /= 2.f;
 
-		/*
-		float size_step = 30.f;
-
-		if(size > size_step * 6.f) {
-			size = size_step * 6.f; //+ (size - 200.0f) * 0.5f;
+		float letter_spacing_map = 0.f;
+		if(!state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale()) && e.text.glyph_info.size() > 1) {
+			letter_spacing_map = std::clamp((0.8f * curve_length - text_length * size) / (e.text.glyph_info.size() - 1) / 2.f, 0.f, size * 2.f);
 		}
 
-		if(size > ratio.x / 2.f) {
-			size = ratio.x / 2.f;
-		}
-		if(size > ratio.y / 2.f) {
-			size = ratio.y / 2.f;
-		}
+		float margin = (curve_length - text_length * size - (e.text.glyph_info.size() - 1) * letter_spacing_map) / 2.0f;
+		if(margin < 0.f) margin = 0.f;
 
-		size = std::round(size / size_step) * size_step;
-
-		if(size < size_step) {
-			continue;
-		}
-		*/
-
-		auto real_text_size = size / (size_x * 2.0f);
-
-		float letter_spacing_map = std::clamp((0.8f * curve_length / text_length - size) / 2.f, 0.f, size * 2.f);
-		if(state.world.locale_get_prevent_letterspace(state.font_collection.get_current_locale())) {
-			letter_spacing_map = 0.f;
-		}
-
-		float margin = (curve_length - text_length * (size + letter_spacing_map * 2.f) + letter_spacing_map) / 2.0f;
-		float x = left;
-		for(float accumulated_length = 0.f; ; x += x_step) {
-			auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * e.ratio.y));
-			if(accumulated_length + added_distance >= margin) {
-				x += x_step * (margin - accumulated_length) / added_distance;
-				break;
+		// Precise lookup for planar paths
+		auto find_x_for_target_S = [&](float target_S) -> float {
+			if(is_linear) {
+				return left + (right - left) * (target_S / curve_length);
 			}
-			accumulated_length += added_distance;
-		}
 
+			if(target_S <= 0.f) return left;
+			if(target_S >= curve_length) return right;
 
-		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
-		for(unsigned int i = 0; i < glyph_count; i++) {
-			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
-			auto gso = f.glyph_positions[glyphid];
-			float x_advance = float(e.text.glyph_info[i].x_advance) / (float((1 << 6) * text::magnification_factor));
-			float x_offset = float(e.text.glyph_info[i].x_offset) / (float((1 << 6) * text::magnification_factor)) + float(gso.x);
-			float y_offset = float(gso.y) - float(e.text.glyph_info[i].y_offset) / (float((1 << 6) * text::magnification_factor));
-			if(glyphid != FT_Get_Char_Index(f.font_face, ' ')) {
-				// Add up baseline and kerning offsets
-				glm::vec2 glyph_positions{ x_offset / 64.f, -y_offset / 64.f };
+			auto it = std::lower_bound(arc_length_table.begin(), arc_length_table.end(), target_S);
+			if(it == arc_length_table.end()) return right;
+			if(it == arc_length_table.begin()) return left;
 
-				glm::vec2 curr_dir = glm::normalize(glm::vec2(effective_ratio, dpoly_fn(x)));
-				glm::vec2 curr_normal_dir = glm::vec2(-curr_dir.y, curr_dir.x);
-				curr_dir.x *= 0.5f;
-				curr_normal_dir.x *= 0.5f;
+			size_t idx = std::distance(arc_length_table.begin(), it);
+			float S_prev = arc_length_table[idx - 1];
+			float S_curr = arc_length_table[idx];
+			float frac = (target_S - S_prev) / (S_curr - S_prev);
+			return left + (right - left) * (float(idx - 1 + frac) / float(TABLE_STEPS));
+			};
 
-				glm::vec2 shader_direction = glm::normalize(glm::vec2(ratio.x, dpoly_fn(x) * ratio.y));
+		// Planar state
+		float cur_x = left;
+		float cur_S = 0.f;
 
-				auto p0 = glm::vec2(x, poly_fn(x)) * ratio + basis;
-				p0 /= glm::vec2(size_x, size_y); // Rescale the coordinate to 0-1
-				p0 -= (1.5f - 2.f * glyph_positions.y) * curr_normal_dir * real_text_size;
-				p0 += (1.0f + 2.f * glyph_positions.x) * curr_dir * real_text_size;
+		// Separate runner for spherical placement (clean restart for margin + glyphs)
+		glm::vec3 sph_placement_runner = sph_start.data;
+		glm::vec3 sph_placement_prev = sph_start.data;
 
-				float type = float((gso.texture_slot >> 6) % text::max_texture_layers);
-				float step = 1.f / 8.f;
-				float tx = float(gso.texture_slot & 7) * step;
-				float ty = float((gso.texture_slot & 63) >> 3) * step;
+		if(!is_spherical) {
+			cur_S = margin;
+			cur_x = find_x_for_target_S(cur_S);
 
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, -1), shader_direction, glm::vec3(tx, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-
-				text_line_vertices.emplace_back(p0, glm::vec2(1, -1), shader_direction, glm::vec3(tx + step, ty + step, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(1, 1), shader_direction, glm::vec3(tx + step, ty, type), real_text_size);
-				text_line_vertices.emplace_back(p0, glm::vec2(-1, 1), shader_direction, glm::vec3(tx, ty, type), real_text_size);
-				text_line_texture_per_quad.emplace_back(f.textures[gso.texture_slot >> 6]);
-			}
-			float glyph_advance = x_advance * size / 64.f;
-			for(float glyph_length = 0.f; ; x += x_step) {
-				auto added_distance = 2.0f * glm::length(glm::vec2(x_step * ratio.x, (poly_fn(x) - poly_fn(x + x_step)) * ratio.y));
-				if(glyph_length + added_distance >= glyph_advance + letter_spacing_map) {
-					x += x_step * (glyph_advance + letter_spacing_map - glyph_length) / added_distance;
+			// Margin accuracy assertion
+			float expected_ratio = margin / curve_length;
+			float param_range = right - left;
+			float actual_ratio = (cur_x - left) / param_range;
+			float diff = std::abs(actual_ratio - expected_ratio);
+			assert(diff < 0.04f);
+		} else {
+			// Clean margin advance on sphere (restart from start)
+			float accumulated = 0.f;
+			int safety = 1000000;
+			sph_placement_runner = sph_start.data;
+			sph_placement_prev = sph_start.data;
+			for(; --safety > 0; ) {
+				sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit);
+				float added = glm::distance(sph_placement_runner, sph_placement_prev);
+				sph_placement_prev = sph_placement_runner;
+				if(added <= 1e-8f || accumulated + added >= margin) {
+					if(added > 1e-8f) {
+						sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit * (margin - accumulated) / added);
+					}
 					break;
 				}
-				glyph_length += added_distance;
+				accumulated += added;
 			}
 		}
+
+		auto letter_scale = 1.f / (1.0f * text::dr_size);
+
+		unsigned int glyph_count = static_cast<unsigned int>(e.text.glyph_info.size());
+		float max_glyph_height = 0.f;
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
+			state.font_collection.mfont.make_glyph(glyphid);
+			auto& gi = state.font_collection.mfont.glyphs[glyphid];
+			float h = gi.ft_height * letter_scale;
+			if(h > max_glyph_height) max_glyph_height = h;
+		}
+
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = e.text.glyph_info[i].codepoint;
+			state.font_collection.mfont.make_glyph(glyphid);
+			auto& gi = state.font_collection.mfont.glyphs[glyphid];
+
+			float glyph_width = gi.ft_width * letter_scale;
+			float glyph_height = gi.ft_height * letter_scale;
+			float x_advance = float(e.text.glyph_info[i].x_advance) * letter_scale;
+			float x_offset = float(e.text.glyph_info[i].x_offset) * letter_scale;
+			float y_offset = float(e.text.glyph_info[i].y_offset) * letter_scale;
+			float x_bearing = float(gi.ft_x_bearing) * letter_scale;
+			float y_bearing = float(gi.ft_y_bearing) * letter_scale;
+
+			if(gi.curveCount > 0) {
+				glm::vec2 actual_center;
+				glm::vec2 final_direction;
+				if(is_spherical) {
+					auto forward_sphere = sphere_tangent(sph_placement_runner, sph_direction);
+					auto forward_square = sphere_R3::to_square(forward_sphere);
+					auto up_square = sphere_R3::rotate_left(forward_square);
+					auto central_point = sphere_R3::to_square(sphere_R3::point{ sph_placement_runner });
+					actual_center = central_point.data;
+					actual_center -= up_square.data / 2.f * size / 64.f * glyph_height;
+					actual_center -= up_square.data / 2.f * size / 64.f * max_glyph_height;
+					actual_center += up_square.data / 1.f * size / 64.f * y_bearing;
+					actual_center += up_square.data / 1.f * size / 64.f * y_offset;
+					actual_center += forward_square.data * size / 64.f * glyph_width / 2.f;
+					auto new_tangent = sphere_tangent(sphere_R3::from_square(square::point{ actual_center }).data, sph_direction);
+					auto new_tangent_square = sphere_R3::to_square(new_tangent);
+					final_direction = new_tangent_square.data * (float)size_x;
+				} else {
+					glm::vec2 forward_raw = glm::vec2(ratio.x / (float)size_x, ratio.y / (float)size_y * dpoly_fn(cur_x));
+					float norm = sqrt(equirectangular::dot({ {{0.f,0.f}}, forward_raw }, { {{0.f,0.f}}, forward_raw }, (float)size_x, (float)size_y));
+					if(norm <= 0.f) norm = 1.f;
+					auto forward = forward_raw / norm * (float)size_x;
+					glm::vec2 up = equirectangular::rotate_left({ {{0.f,0.f}}, forward }, (float)size_x, (float)size_y).data;
+					auto raw_center = glm::vec2(cur_x, poly_fn(cur_x)) * ratio + basis;
+					auto center = raw_center / glm::vec2(size_x, size_y);
+					actual_center = center
+						+ (-0.5f * max_glyph_height + 0.5f * glyph_height + y_offset - (glyph_height - y_bearing)) * up * real_text_half_size / 64.f
+						+ (glyph_width + x_offset) * forward * real_text_half_size / 64.f;
+					final_direction = forward;
+				}
+
+				float u0 = float(gi.ft_x_bearing) / (64.0f * text::dr_size);
+				float v0 = float(gi.ft_y_bearing - gi.ft_height) / (64.0f * text::dr_size);
+				float u1 = float(gi.ft_x_bearing + gi.ft_width) / (64.0f * text::dr_size);
+				float v1 = float(gi.ft_y_bearing) / (64.0f * text::dr_size);
+
+				float height_scale = float(gi.ft_height) / (64.0f * text::dr_size);
+				float width_scale = float(gi.ft_width) / (64.0f * text::dr_size);
+
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, -height_scale), final_direction, glm::vec2(u0, v0), real_text_half_size, gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, -height_scale), final_direction, glm::vec2(u1, v0), real_text_half_size, gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(width_scale, height_scale), final_direction, glm::vec2(u1, v1), real_text_half_size, gi.bufferIndex);
+				text_line_vertices.emplace_back(actual_center, glm::vec2(-width_scale, height_scale), final_direction, glm::vec2(u0, v1), real_text_half_size, gi.bufferIndex);
+			}
+
+			auto current_spacing = (i == glyph_count - 1) ? 0.f : letter_spacing_map;
+			float glyph_advance = x_advance * size / 64.f;
+			float D = glyph_advance + current_spacing;
+
+			if(is_spherical) {
+				sph_placement_prev = sph_placement_runner;
+				float glyph_length = 0.f;
+				int safety = 1000000;
+				for(; --safety > 0; ) {
+					sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit);
+					float added = glm::distance(sph_placement_runner, sph_placement_prev);
+					sph_placement_prev = sph_placement_runner;
+					if(added <= 1e-8f || glyph_length + added >= D) {
+						if(added > 1e-8f) {
+							sph_placement_runner = sphere_step(sph_placement_runner, sph_direction, sph_step_unit * (D - glyph_length) / added);
+						}
+						break;
+					}
+					glyph_length += added;
+				}
+			} else {
+				cur_S += D;
+				cur_x = find_x_for_target_S(cur_S);
+			}
+		}
+
+		// End-of-label accuracy assertion for planar paths
+		if(!is_spherical) {
+			float expected_end_S = curve_length - margin;
+			float expected_ratio = expected_end_S / curve_length;
+			float param_range = right - left;
+			float actual_ratio = (cur_x - left) / param_range;
+			float diff = std::abs(actual_ratio - expected_ratio);
+			assert(diff < 0.04f);
+		}
 	}
+
 	if(text_line_vertices.size() > 0) {
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_text_line]);
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * text_line_vertices.size(), &text_line_vertices[0], GL_STATIC_DRAW);
@@ -2995,6 +3355,7 @@ void display_data::set_text_lines(sys::state& state, std::vector<text_line_gener
 }
 
 void display_data::set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data) {
+	/*
 	province_text_line_vertices.clear();
 	const auto map_x_scaling = float(size_x) / float(size_y);
 	auto& f = state.font_collection.get_font(state, text::font_selection::map_font);
@@ -3090,6 +3451,7 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 		glBufferData(GL_ARRAY_BUFFER, sizeof(text_line_vertex) * province_text_line_vertices.size(), &province_text_line_vertices[0], GL_STATIC_DRAW);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
+	*/
 }
 
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {

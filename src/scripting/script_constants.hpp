@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <cstring>
 
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 
 namespace effect {
 // flags
@@ -1518,6 +1518,8 @@ union payload {
 	// variables::global_variable_tag global_var;
 	// events::event_tag event;
 	// trigger_tag trigger;
+
+
 
 	payload(payload const& i) noexcept : value(i.value) { }
 	payload(uint16_t i) : value(i) { }

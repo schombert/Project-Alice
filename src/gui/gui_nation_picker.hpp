@@ -3,6 +3,7 @@
 #include "gui_element_types.hpp"
 #include "gui_chat_window.hpp"
 #include "serialization.hpp"
+#include "gui_containers.hpp"
 
 namespace ui {
 

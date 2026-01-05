@@ -1,9 +1,13 @@
 #pragma once
-#include "dcon_generated.hpp"
+#include "dcon_generated_ids.hpp"
 #include "effects.hpp"
 
 namespace sys {
-	struct state;
+struct state;
+}
+
+namespace parsers {
+struct scenario_building_context;
 }
 
 namespace gamerule {

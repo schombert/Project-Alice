@@ -1,13 +1,6 @@
 #pragma once
 
-#ifdef _WIN64
-// WINDOWS typedefs go here
-#include "native_types_win.hpp"
-
-#else
-// LINUX typedefs go here
-#include "native_types_nix.hpp"
-#endif
+#include "native_types.hpp"
 
 #include <stdint.h>
 #include <vector>
@@ -98,8 +91,15 @@ native_string win1250_to_native(std::string_view data_in);
 std::string utf16_to_utf8(std::u16string_view data_in);
 std::string native_to_utf8(native_string_view data_in);
 std::u16string utf8_to_utf16(std::string_view data_in);
+native_string utf16_to_native(std::u16string_view str);
 
 std::string remove_double_backslashes(std::string_view data_in); // unfortunately, paradox decided to escape their paths ...
 native_string correct_slashes(native_string_view path);
 native_string remove_file_extension(const native_string& str);
+void fileseperators_from_native_to_standard(std::vector<char>& input); // in-place conversion of file seperators to the "standard" one to be stored in the scenario file. Currently windows seperator "\" is the standard.
+void fileseperators_from_standard_to_native(std::vector<char>& input); // in-place conversion of file seperators from the "standard" which stored in the scenario file, to the native one used by the OS. Currently windows seperator "\" is the standard.
+std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char>& input);
+std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char>& input);
+// Standardizes newlines in-place by removing all \r's in Windows, and doing nothing in Nix. The purpose is to produce identical string output in scenario generation. Mainly for lua scripts
+void standardize_newlines(std::string& input);
 } // namespace simple_fs

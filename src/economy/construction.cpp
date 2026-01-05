@@ -2,6 +2,8 @@
 #include "economy_stats.hpp"
 #include "province_templates.hpp"
 #include "text.hpp"
+#include "money.hpp"
+#include "province.hpp"
 
 namespace economy {
 
@@ -562,6 +564,105 @@ factory_construction_data explain_factory_building_construction(
 	};
 	return result;
 }
+
+
+float factory_construction_progress(sys::state& state, dcon::factory_construction_id construction) {
+	auto details = explain_factory_building_construction(state, construction);
+	auto base_cost =
+		details.refit_target
+		? calculate_factory_refit_goods_cost(
+			state, details.owner, details.province, details.building_type, details.refit_target
+		)
+		: state.world.factory_type_get_construction_costs(details.building_type);
+	auto& current_purchased = state.world.factory_construction_get_purchased_goods(construction);
+
+	auto total_purchased = 0.f;
+	auto total_required = 0.f;
+
+	auto pid = state.world.factory_construction_get_province(construction);
+	auto sid = state.world.province_get_state_membership(pid);
+	auto mid = state.world.state_instance_get_market_from_local_market(sid);
+
+	for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
+		auto cid = base_cost.commodity_type[i];
+		if(!cid) break;
+		auto current = current_purchased.commodity_amounts[i];
+		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
+
+		auto commodity_price = state.world.market_get_price(mid, cid);
+
+		total_purchased += std::min(current, required) * commodity_price;
+		total_required += required * commodity_price;
+	}
+
+	if(total_required == 0.f) {
+		return 1.f;
+	} else {
+		return total_purchased / total_required;
+	}
+}
+
+void factory_construction_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_construction_id fcid) {
+	auto fat_fcid = dcon::fatten(state.world, fcid);
+	auto ftid = state.world.factory_construction_get_type(fcid);
+
+	auto details = explain_factory_building_construction(state, fcid);
+	auto base_cost =
+		details.refit_target
+		? calculate_factory_refit_goods_cost(
+			state, details.owner, details.province, details.building_type, details.refit_target
+		)
+		: state.world.factory_type_get_construction_costs(details.building_type);
+	auto& current_purchased = state.world.factory_construction_get_purchased_goods(fcid);
+
+	float total = 0.0f;
+	float purchased = 0.0f;
+
+	float factory_mod = economy::factory_build_cost_multiplier(state, fat_fcid.get_nation(), fat_fcid.get_province(), fat_fcid.get_is_pop_project());
+	float refit_discount = (fat_fcid.get_refit_target()) ? state.defines.alice_factory_refit_cost_modifier : 1.0f;
+	auto market = state.world.state_instance_get_market_from_local_market(fat_fcid.get_province().get_state_membership());
+
+	text::add_line(state, contents, state.world.factory_type_get_name(fat_fcid.get_type()));
+
+	if(fat_fcid.get_is_pop_project()) {
+		text::add_line(state, contents, "pop_project");
+	} else {
+		text::add_line(state, contents, "state_project");
+	}
+
+	text::add_line(state, contents, "alice_construction_cost");
+
+	// List factory type construction costs
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
+		auto cid = base_cost.commodity_type[i];
+		if(!cid) break;
+
+		auto commodity_price = state.world.market_get_price(market, cid);
+		auto current = current_purchased.commodity_amounts[i];
+		auto required = base_cost.commodity_amounts[i] * details.cost_multiplier;
+
+		total += required * commodity_price;
+		purchased += std::min(current, required) * commodity_price;
+
+		auto left = std::max(0.f, required - current);
+
+		text::substitution_map m;
+		text::add_to_substitution_map(m, text::variable_type::name, state.world.commodity_get_name(cid));
+		text::add_to_substitution_map(m, text::variable_type::val, text::fp_currency{ commodity_price });
+		text::add_to_substitution_map(m, text::variable_type::need, text::fp_four_places{ left });
+		text::add_to_substitution_map(m, text::variable_type::cost, text::fp_currency{ commodity_price * left });
+		auto box = text::open_layout_box(contents, 0);
+		text::localised_format_box(state, contents, box, "alice_factory_input_item", m);
+		text::close_layout_box(contents, box);
+	}
+
+	text::add_line_break_to_layout(state, contents);
+	auto progress = total > 0.0f ? purchased / total : 0.0f;
+	text::add_line(state, contents, "alice_factory_construction_explain_3", text::variable_type::x, text::fp_currency{ purchased });
+	text::add_line(state, contents, "alice_factory_construction_explain_4", text::variable_type::x, text::fp_currency{ total });
+	text::add_line(state, contents, "alice_factory_construction_explain_5", text::variable_type::x, text::fp_percentage{ progress });
+};
+
 
 //handles both private and public factories
 void advance_factory_construction(

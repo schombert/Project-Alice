@@ -627,6 +627,10 @@ std::string utf16_to_utf8(std::u16string_view str) {
 	return std::string("");
 }
 
+native_string utf16_to_native(std::u16string_view str) {
+	return std::wstring((wchar_t const*)str.data(), str.length());
+}
+
 std::string remove_double_backslashes(std::string_view data_in) {
 	std::string res;
 	res.reserve(data_in.size());
@@ -660,4 +664,29 @@ native_string correct_slashes(native_string_view path) {
 	}
 	return res;
 }
+std::vector<char> fileseperators_from_native_to_standard_copy(const std::vector<char>& input) {
+	// Native seperator in Windows is the standard one
+	return std::vector<char>{ input};
+}
+std::vector<char> fileseperators_from_standard_to_native_copy(const std::vector<char>& input) {
+	// Native seperator in Windows is the standard one
+	return std::vector<char>{ input};
+}
+
+void fileseperators_from_native_to_standard(std::vector<char>& input) {
+	// Native seperator in Windows is the standard one
+	return;
+}
+void fileseperators_from_standard_to_native(std::vector<char>& input) {
+	// Native seperator in Windows is the standard one
+	return;
+}
+
+
+void standardize_newlines(std::string& input) {
+	// Standard is \n only, so remove \r's that windows likes to add
+	std::erase(input, '\r');
+}
+
+
 } // namespace simple_fs

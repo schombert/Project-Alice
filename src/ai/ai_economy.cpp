@@ -1,3 +1,4 @@
+#include "system_state.hpp"
 #include "ai_economy.hpp"
 #include "ai_campaign_values.hpp"
 #include "economy_stats.hpp"
@@ -8,6 +9,10 @@
 #include "demographics.hpp"
 #include "prng.hpp"
 #include "math_fns.hpp"
+#include "economy.hpp"
+#include "economy_factory_view.hpp"
+#include "province.hpp"
+#include "money.hpp"
 
 namespace ai {
 
@@ -122,7 +127,7 @@ void filter_factories_disjunctive(
 	bool pop_project,
 	std::vector<dcon::factory_type_id>& desired_types,
 	float filter_profitability,
-	float filter_output_demand_satisfaction,
+	float filter_output_probability_to_buy,
 	float filter_payback_time,
 	float effective_profit
 ) {
@@ -144,11 +149,19 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		bool output_is_in_demand = state.world.market_get_expected_probability_to_sell(mid, type.get_output()) < filter_output_demand_satisfaction;
+		auto estimated_probability_to_buy_output = economy::estimate_probability_to_buy_after_supply_increase(
+			state,
+			mid,
+			state.world.factory_type_get_output(type),
+			state.world.factory_type_get_output_amount(type) * 0.1f
+		);
+		bool output_is_in_demand = estimated_probability_to_buy_output < filter_output_probability_to_buy;
 
 		float cost = economy::factory_type_build_cost(state, n, pid, type, pop_project) + 0.1f;
-		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
-		// -50%;50% range of miscalculation
+		// we add a probability to make a mistake:
+		// if output is equal to 1, then we can underestimate it to be 0.75 or overestimate it to be equal to 1.25 at most
+		// it provides a quite wide range of potential mistakes which makes the process a bit more interesting
+		float output = economy::factory_type_output_cost(state, n, mid, type) * effective_profit * (1.f + std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
 		float input = economy::factory_type_input_cost(state, n, mid, type) + 0.1f;
 		float profitability = (output - input - wage * type.get_base_workforce()) / input;
 		float payback_time = cost / std::max(0.00001f, (output - input - wage * type.get_base_workforce()));
@@ -213,12 +226,12 @@ void retrieve_list_of_provinces_for_national_construction(sys::state& state, dco
 	});
 }
 
-inline bool province_has_available_workers(sys::state& state, dcon::province_id p) {
+bool province_has_available_workers(sys::state& state, dcon::province_id p) {
 	return state.world.province_get_labor_supply_sold(p, economy::labor::no_education) <= 0.95f;
 }
 
-inline bool province_has_workers(sys::state& state, dcon::province_id p) {
-	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 1000.f;
+bool province_has_workers(sys::state& state, dcon::province_id p) {
+	return state.world.province_get_labor_supply(p, economy::labor::no_education) > 5000.f;
 }
 
 bool can_build(sys::state& state, dcon::province_id p, dcon::factory_type_id ftid) {
@@ -300,11 +313,9 @@ void build_or_upgrade_desired_factories(
 		if(craved_types.empty()) {
 			continue; // no craved factories
 		}
-		if(!province_has_workers(state, p)) {
+		if(!province_has_workers(state, p)) { 
 			continue; // no labor at all
 		}
-		if(!province_has_available_workers(state, p))
-			continue; // no spare workers
 
 		auto type_selection = craved_types[rng::get_random(state, uint32_t(n.index() + int32_t(budget))) % craved_types.size()];
 		assert(type_selection);
@@ -348,9 +359,9 @@ void update_ai_econ_construction(sys::state& state) {
 	constexpr float insanely_good_demand_supply_disbalance = 0.1f;
 	constexpr float insanely_good_payback_time = 20.f;
 
-	constexpr float good_profitability = 1.5f;
+	constexpr float good_profitability = 0.5f;
 	constexpr float good_demand_supply_disbalance = 0.8f;
-	constexpr float good_payback_time = 365.f;
+	constexpr float good_payback_time = 365.f * 4.f;
 
 	for(auto n : state.world.in_nation) {
 		// skip over: non ais, dead nations, and nations that aren't making money
@@ -683,7 +694,9 @@ void update_budget(sys::state& state, bool presim) {
 		if(n.get_is_player_controlled() || n.get_owned_province_count() == 0)
 			return;
 
-		float base_income = economy::estimate_daily_income(state, n) + n.get_stockpiles(economy::money) / 365.f;
+		// current stockpiles roughly correspond to current income
+		// and calculation of actual prediction is insanely expensive
+		float base_income = n.get_stockpiles(economy::money);
 
 		// they don't have to add up to 1.f
 		// the reason they are there is to slow down AI spendings,
@@ -699,8 +712,8 @@ void update_budget(sys::state& state, bool presim) {
 			sea_budget_ratio = 0.5f;
 			
 		}
-		float education_budget_ratio = 0.25f;
-		float investments_budget_ratio = 0.20f;
+		float education_budget_ratio = 0.30f;
+		float investments_budget_ratio = 0.15f;
 		float soldiers_budget_ratio = 0.30f;
 		float construction_budget_ratio = 0.45f;
 		float overseas_maintenance_budget_ratio = 0.10f;
@@ -741,7 +754,7 @@ void update_budget(sys::state& state, bool presim) {
 		n.set_land_spending(int8_t(ratio_land));
 		n.set_naval_spending(int8_t(ratio_naval));
 	
-		n.set_administrative_spending(35);
+		n.set_administrative_spending(15);
 
 		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);

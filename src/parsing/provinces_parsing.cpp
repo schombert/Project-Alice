@@ -192,6 +192,9 @@ void make_terrain_modifier(std::string_view name, token_generator& gen, error_ha
 	if(auto it = context.gfx_context.map_of_names.find(gfx_name); it != context.gfx_context.map_of_names.end()) {
 		context.state.province_definitions.terrain_to_gfx_map.insert_or_assign(new_modifier, it->second);
 	}
+	else {
+		err.accumulated_warnings += "Couldn't load terrain GFX for terrain type " + std::string(name) + "\n";
+	}
 
 	context.state.world.modifier_set_icon(new_modifier, uint8_t(parsed_modifier.icon_index));
 	context.state.world.modifier_set_name(new_modifier, name_id);
@@ -214,6 +217,8 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		context.state.world.region_set_name(rdef, name_id);
 		return; //empty, tooltip metaregions
 	}
+
+	int16_t index = 1;
 
 	bool is_state = false;
 	bool is_region = false;
@@ -240,7 +245,9 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		for(const auto prov : new_context.provinces) {
 			context.state.world.force_create_region_membership(prov, rdef); //include first, regions take priority over states!
 			if(!context.state.world.province_get_state_from_abstract_state_membership(prov)) {
-				context.state.world.force_create_abstract_state_membership(prov, sdef); //new assignment
+				auto new_rel = context.state.world.force_create_abstract_state_membership(prov, sdef); //new assignment
+				context.state.world.abstract_state_membership_set_priority(new_rel, index);
+				index++;
 			}
 		}
 		context.state.world.state_definition_set_name(sdef, name_id);
@@ -256,7 +263,9 @@ void make_state_definition(std::string_view name, token_generator& gen, error_ha
 		auto sdef = context.state.world.create_state_definition();
 		context.map_of_state_names.insert_or_assign(std::string(name), sdef);
 		for(const auto prov : new_context.provinces) {
-			context.state.world.force_create_abstract_state_membership(prov, sdef);
+			auto new_rel = context.state.world.force_create_abstract_state_membership(prov, sdef);
+			context.state.world.abstract_state_membership_set_priority(new_rel, index);
+			index++;
 		}
 		context.state.world.state_definition_set_name(sdef, name_id);
 	}

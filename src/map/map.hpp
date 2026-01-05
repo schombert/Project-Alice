@@ -11,6 +11,8 @@
 #include <glm/vec2.hpp>
 #include <glm/mat4x4.hpp>
 
+#include "projections.hpp"
+
 namespace sys {
 struct state;
 };
@@ -80,20 +82,36 @@ struct textured_line_vertex_b_enriched_with_province_index {
 	glm::vec2 position;
 	glm::vec2 previous_point;
 	glm::vec2 next_point;
-	uint16_t province_index;
+	uint16_t province_index = 0;
+	uint16_t padding = 0;
 	float texture_coordinate = 0.f;
 	float distance = 0.f;
+	textured_line_vertex_b_enriched_with_province_index(glm::vec2 _position, glm::vec2 _previous_point, glm::vec2 _next_point, uint16_t _province_index, float _texture_coordinate, float _distance) :
+		position(_position), previous_point(_previous_point), next_point(_next_point), province_index(_province_index), texture_coordinate(_texture_coordinate), distance(_distance) { }
+	textured_line_vertex_b_enriched_with_province_index() { }
+	bool operator==(const textured_line_vertex_b_enriched_with_province_index& other) const = default;
 };
+// explicit padding because this will be memcmp'd and bitwise checksummed
+static_assert(sizeof(textured_line_vertex_b_enriched_with_province_index) ==
+	sizeof(textured_line_vertex_b_enriched_with_province_index::position) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::previous_point) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::next_point) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::province_index) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::padding) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::texture_coordinate) +
+	sizeof(textured_line_vertex_b_enriched_with_province_index::distance));
+
 
 struct text_line_vertex {
 	text_line_vertex() { };
-	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec3 texture_coord, float thickness)
-		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }  { };
+	text_line_vertex(glm::vec2 position, glm::vec2 normal_direction, glm::vec2 direction, glm::vec2 texture_coord, float thickness, int32_t buffer_index)
+		: position_(position), normal_direction_(normal_direction), direction_(direction), texture_coord_(texture_coord), thickness_{ thickness }, buffer_index_(buffer_index) { };
 	glm::vec2 position_;
 	glm::vec2 normal_direction_;
 	glm::vec2 direction_;
-	glm::vec3 texture_coord_;
+	glm::vec2 texture_coord_;
 	float thickness_ = 0.f;
+	int32_t buffer_index_ = 0;
 };
 
 struct text_line_generator_data {
@@ -110,12 +128,13 @@ struct border {
 	int count = 0;
 	dcon::province_adjacency_id adj;
 	uint16_t padding = 0;
+	bool operator==(const border&) const = default;
 };
 
 enum class map_view;
 class display_data {
 public:
-	display_data(){};
+	display_data();
 	~display_data();
 
 	// Called to load the terrain and province map data
@@ -191,7 +210,11 @@ public:
 	std::vector<GLint> other_objective_unit_arrow_starts;
 	std::vector<GLsizei> other_objective_unit_arrow_counts;
 	//
-	std::vector<GLuint> text_line_texture_per_quad;
+	bool new_arbitrary_map_triangle = false;
+	std::vector<square::point> arbitrary_map_triangles;
+	std::vector<GLint> arbitrary_map_triangles_starts;
+	std::vector<GLsizei> arbitrary_map_triangles_counts;
+	//
 	std::vector<text_line_vertex> text_line_vertices;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
@@ -232,7 +255,8 @@ public:
 	static constexpr uint32_t vo_trade_flow = 15;
 	static constexpr uint32_t vo_square = 16;
 	static constexpr uint32_t vo_cities = 17;
-	static constexpr uint32_t vo_count = 18;
+	static constexpr uint32_t vo_arbitrary_map_triangles = 18;
+	static constexpr uint32_t vo_count = 19;
 	GLuint vao_array[vo_count] = { 0 };
 	GLuint vbo_array[vo_count] = { 0 };
 	// Textures
@@ -287,7 +311,8 @@ public:
 	static constexpr uint32_t shader_borders_provinces = 12;
 	static constexpr uint32_t shader_map_sprite = 13;
 	static constexpr uint32_t shader_textured_triangle = 14;
-	static constexpr uint32_t shader_count = 15;
+	static constexpr uint32_t shader_map_triangle = 15;
+	static constexpr uint32_t shader_count = 16;
 	GLuint shaders[shader_count] = { 0 };
 
 	static constexpr uint32_t uniform_offset = 0;
@@ -337,8 +362,11 @@ public:
 	static constexpr uint32_t uniform_terrainsheet_texture_sampler_array = 43;
 	static constexpr uint32_t uniform_terrain_is_array = 44;
 	static constexpr uint32_t uniform_map_mode_is_data = 45;
-	static constexpr uint32_t uniform_count = 46;
-	GLuint shader_uniforms[shader_count][uniform_count] = { };
+	static constexpr uint32_t uniform_color = 46;
+	static constexpr uint32_t uniform_glyphs = 47;
+	static constexpr uint32_t uniform_curves = 48;
+	static constexpr uint32_t uniform_count = 49;
+	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes
 	static constexpr uint32_t max_static_meshes = 42;

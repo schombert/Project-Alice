@@ -1,6 +1,8 @@
 #pragma once
-#include "dcon_generated.hpp"
-#include "system_state.hpp"
+#include "dcon_generated_ids.hpp"
+#include "system_state_forward.hpp"
+#include "triggers.hpp"
+#include "prng.hpp"
 
 namespace pop_demographics {
 
@@ -56,6 +58,7 @@ inline ve::fp_vector from_pmc(ve::int_vector v) {
 	return ve::to_float(v) * pop_mc_scaling;
 }
 
+
 void regenerate_is_primary_or_accepted(sys::state& state);
 float get_demo(sys::state const& state, dcon::pop_id p, dcon::pop_demographics_key k);
 void set_demo(sys::state& state, dcon::pop_id p, dcon::pop_demographics_key k, float v);
@@ -64,8 +67,6 @@ void set_militancy(sys::state& state, dcon::pop_id p, float v);
 float get_consciousness(sys::state const& state, dcon::pop_id p);
 void set_consciousness(sys::state& state, dcon::pop_id p, float v);
 float get_literacy(sys::state const& state, dcon::pop_id p);
-template<typename P, typename V>
-void set_literacy(sys::state& state, P p, V v);
 float get_employment(sys::state const& state, dcon::pop_id p);
 float get_raw_employment(sys::state const& state, dcon::pop_id p);
 void set_employment(sys::state& state, dcon::pop_id p, float v);
@@ -73,82 +74,11 @@ void set_raw_employment(sys::state& state, dcon::pop_id p, float v);
 float get_life_needs(sys::state const& state, dcon::pop_id p);
 float get_everyday_needs(sys::state const& state, dcon::pop_id p);
 float get_luxury_needs(sys::state const& state, dcon::pop_id p);
-template<typename P, typename V>
-void set_life_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_ulife_needs_satisfaction(p, to_pu8(v));
-}
-template<typename P, typename V>
-void set_everyday_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_ueveryday_needs_satisfaction(p, to_pu8(v));
-}
-template<typename P, typename V>
-void set_luxury_needs(sys::state& state, P p, V v) {
-	state.world.pop_set_uluxury_needs_satisfaction(p, to_pu8(v));
-}
+
 float get_social_reform_desire(sys::state const& state, dcon::pop_id p);
 void set_social_reform_desire(sys::state& state, dcon::pop_id p, float v);
 float get_political_reform_desire(sys::state const& state, dcon::pop_id p);
 void set_political_reform_desire(sys::state& state, dcon::pop_id p, float v);
-
-template<typename T>
-auto get_employment(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uemployment(p);
-	return from_pu8(ival) * state.world.pop_get_size(p);
-}
-template<typename T>
-auto get_raw_employment(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uemployment(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_social_reform_desire(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_usocial_reform_desire(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_political_reform_desire(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_upolitical_reform_desire(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_militancy(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_umilitancy(p);
-	return from_pmc(ival);
-}
-template<typename T>
-auto get_consciousness(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uconsciousness(p);
-	return from_pmc(ival);
-}
-template<typename T>
-auto get_literacy(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uliteracy(p);
-	return from_pu16(ival);
-}
-template<typename P, typename V>
-void set_literacy(sys::state& state, P p, V v) {
-	state.world.pop_set_uliteracy(p, to_pu16(v));
-}
-template<typename T>
-auto get_life_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_ulife_needs_satisfaction(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_everyday_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_ueveryday_needs_satisfaction(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_luxury_needs(sys::state const& state, T p) {
-	auto ival = state.world.pop_get_uluxury_needs_satisfaction(p);
-	return from_pu8(ival);
-}
-template<typename T>
-auto get_demo(sys::state const& state, T p, dcon::pop_demographics_key k) {
-	auto ival = state.world.pop_get_udemographics(p, k);
-	return from_pu8(ival);
-}
 
 } // namespace pop_demographics
 namespace demographics {
@@ -202,37 +132,36 @@ struct ideology_buffer {
 	tagged_vector<ve::vectorizable_buffer<uint8_t, dcon::pop_id>, dcon::ideology_id> temp_buffers;
 	uint32_t size = 0;
 
-	ideology_buffer(sys::state& state) : size(0) {
-		for(uint32_t i = 0; i < state.world.ideology_size(); ++i) {
-			temp_buffers.emplace_back(uint32_t(0));
-		}
-	}
-
-	void update(sys::state& state, uint32_t s) {
-		if(size < s) {
-			size = s;
-			state.world.for_each_ideology(
-					[&](dcon::ideology_id i) { temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s);  /*state.world.pop_make_vectorizable_float_buffer();*/ });
-		}
-	}
+	ideology_buffer(sys::state& state);
+	void update(sys::state& state, uint32_t s);
 };
 
 struct issues_buffer {
 	tagged_vector<ve::vectorizable_buffer<uint8_t, dcon::pop_id>, dcon::issue_option_id> temp_buffers;
 	uint32_t size = 0;
 
-	issues_buffer(sys::state& state) : size(0) {
-		for(uint32_t i = 0; i < state.world.issue_option_size(); ++i) {
-			temp_buffers.emplace_back(uint32_t(0));
-		}
-	}
+	issues_buffer(sys::state& state);
+	void update(sys::state& state, uint32_t s);
+};
 
-	void update(sys::state& state, uint32_t s) {
-		if(size < s) {
-			size = s;
-			state.world.for_each_issue_option(
-					[&](dcon::issue_option_id i) { temp_buffers[i] = ve::vectorizable_buffer<uint8_t, dcon::pop_id>(s); /*state.world.pop_make_vectorizable_float_buffer();*/ });
-		}
+
+
+struct pop_promotion_demotion_data {
+	float amount = 0.0f;
+	dcon::pop_type_id target = dcon::pop_type_id{};
+};
+enum class promotion_type : bool {
+	demotion = 0,
+	promotion = 1
+};
+
+struct promotion_demotion_weights {
+	tagged_vector<float, dcon::pop_type_id> pop_weights;
+	float total_weights;
+
+	promotion_demotion_weights(size_t size) {
+		pop_weights = tagged_vector<float, dcon::pop_type_id>(size);
+		total_weights = 0.0f;
 	}
 };
 
@@ -290,7 +219,7 @@ void update_militancy(sys::state& state, uint32_t offset, uint32_t divisions);
 void update_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& ibuf);
 void update_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& ibuf);
 void update_growth(sys::state& state, uint32_t offset, uint32_t divisions);
-void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf);
 void update_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 void update_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void update_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
@@ -299,7 +228,6 @@ void update_immigration(sys::state& state, uint32_t offset, uint32_t divisions, 
 float get_estimated_literacy_change(sys::state& state, dcon::nation_id n);
 float get_estimated_mil_change(sys::state& state, dcon::nation_id n);
 float get_estimated_con_change(sys::state& state, dcon::nation_id n);
-float get_estimated_promotion(sys::state& state, dcon::nation_id n);
 
 // bureacracy has to travel around the realm
 inline constexpr float administration_base_push = 0.9f;
@@ -310,13 +238,14 @@ struct province_migration_weight_explanation {
 	float base_weight;
 	float modifier;
 	float wage_multiplier;
+	float culture_multiplier;
 	float result;
 };
 province_migration_weight_explanation explain_province_internal_migration_weight(sys::state& state, dcon::pop_id p, dcon::province_id pid);
 
 void apply_ideologies(sys::state& state, uint32_t offset, uint32_t divisions, ideology_buffer& pbuf);
 void apply_issues(sys::state& state, uint32_t offset, uint32_t divisions, issues_buffer& pbuf);
-void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& pbuf);
+void apply_type_changes(sys::state& state, uint32_t offset, uint32_t divisions, promotion_buffer& promotion_buf, promotion_buffer& demotion_buf);
 void apply_assimilation(sys::state& state, uint32_t offset, uint32_t divisions, assimilation_buffer& pbuf);
 void apply_internal_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
 void apply_colonial_migration(sys::state& state, uint32_t offset, uint32_t divisions, migration_buffer& pbuf);
@@ -324,6 +253,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
+void fixup_state_only_pops(sys::state& state);
 
 float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers);
 float get_pop_growth_modifiers(sys::state& state, dcon::pop_id pop);
@@ -339,7 +269,6 @@ float get_estimated_literacy_change(sys::state& state, dcon::pop_id n);
 float get_estimated_mil_change(sys::state& state, dcon::pop_id n);
 float get_estimated_con_change(sys::state& state, dcon::pop_id n);
 float get_estimated_type_change(sys::state& state, dcon::pop_id n);
-float get_effective_estimation_type_change(sys::state& state, dcon::nation_id nation, dcon::pop_type_id target_type);
 float get_estimated_promotion(sys::state& state, dcon::pop_id n);
 float get_estimated_demotion(sys::state& state, dcon::pop_id n);
 float get_estimated_assimilation(sys::state& state, dcon::pop_id n);
