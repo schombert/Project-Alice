@@ -35,24 +35,22 @@ inline void init(sys::state& state) noexcept {
 	if(state.host_settings.alice_expose_webui != 1 || state.network_mode == sys::network_mode_type::client) {
 		return;
 	}
+	/* Conventions:
+	/{collection}/(\d+) for one entry retrieval,
+	/{collection}/all to retrieve all entries of type
+	*/
 
 	svr.Get("/", [](const httplib::Request&, httplib::Response& res) {
 		res.set_content("Homepage", "text/plain");
 	});
 
 	svr.Get("/date", [&](const httplib::Request& req, httplib::Response& res) {
-		auto dt = state.current_date.to_ymd(state.start_date);
-		json j = json::object();
-		j["year"] = dt.year;
-		j["month"] = dt.month;
-		j["day"] = dt.day;
-		j["date"] = std::to_string(dt.day) + "." + std::to_string(dt.month) + "." + std::to_string(dt.year);
-
+		json j = format_date(state, state.current_date);
 		res.set_content(j.dump(), "text/plain");
 	});
 
 
-	svr.Get("/nations", [&](const httplib::Request& req, httplib::Response& res) {
+	svr.Get("/nation/all", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto nation : state.world.in_nation) {
@@ -86,7 +84,7 @@ inline void init(sys::state& state) noexcept {
 		res.set_content(j.dump(), "text/plain");
 	});
 
-	svr.Get("/commodities", [&](const httplib::Request& req, httplib::Response& res) {
+	svr.Get("/commodity/all", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto commodity : state.world.in_commodity) {
@@ -178,7 +176,7 @@ inline void init(sys::state& state) noexcept {
 		res.set_content(j.dump(), "text/plain");
 	});
 
-	svr.Get("/provinces", [&](const httplib::Request& req, httplib::Response& res) {
+	svr.Get("/province/all", [&](const httplib::Request& req, httplib::Response& res) {
 		json jlist = json::array();
 
 		for(auto prov : state.world.in_province) {
@@ -300,6 +298,63 @@ inline void init(sys::state& state) noexcept {
 
 		j["attacker_wargoals"] = jawgslist;
 		j["defender_wargoals"] = jdwgslist;
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get("/unittype/all", [&](const httplib::Request& req, httplib::Response& res) {
+		json jlist = json::array();
+
+		for(uint32_t i = 2; i < state.military_definitions.unit_base_definitions.size(); ++i) {
+			dcon::unit_type_id uid = dcon::unit_type_id{ dcon::unit_type_id::value_base_t(i) };
+			auto j = json::object();
+			
+			jlist.push_back(format_unit_type(state, uid));
+		}
+
+		res.set_content(jlist.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/army/all)", [&](const httplib::Request& req, httplib::Response& res) {
+
+		auto j = json::array();
+
+		for(auto a : state.world.in_army) {
+			j.push_back(format_army(state, a));
+		}
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/navy/all)", [&](const httplib::Request& req, httplib::Response& res) {
+
+		auto j = json::array();
+
+		for(auto n : state.world.in_navy) {
+			j.push_back(format_navy(state, n));
+		}
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/regiment/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto num = std::atoi(match.str().c_str());
+
+		dcon::regiment_id p{ dcon::regiment_id::value_base_t(num) };
+
+		auto j = format_regiment(state, p);
+
+		res.set_content(j.dump(), "text/plain");
+	});
+
+	svr.Get(R"(/ship/(\d+))", [&](const httplib::Request& req, httplib::Response& res) {
+		auto match = req.matches[1];
+		auto num = std::atoi(match.str().c_str());
+
+		dcon::ship_id p{ dcon::ship_id::value_base_t(num) };
+
+		auto j = format_ship(state, p);
 
 		res.set_content(j.dump(), "text/plain");
 	});
