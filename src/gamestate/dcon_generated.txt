@@ -6072,18 +6072,6 @@ object{
 		tag { mp_checksum_excluded }
 	}
 	property{
-		name{ send_buffer }
-		type{ std::queue<std::shared_ptr<command::command_data>> }
-		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
-		name{ early_send_buffer }
-		type{ std::vector<char> }
-		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ total_sent_bytes }
 		type{ size_t }
 		tag { keep_after_state_reload }

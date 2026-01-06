@@ -248,6 +248,10 @@ struct host_command_wrapper {
 	host_command_wrapper& operator=(const host_command_wrapper& other) = default;
 
 };
+struct server_send_buffers {
+	std::queue<std::shared_ptr<command::command_data>> send_buffer;
+	std::vector<char> early_send_buffer;
+};
 
 struct network_state {
 	server_handshake_data s_hshake;
@@ -261,12 +265,22 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	std::string ip_address = "127.0.0.1";
 	std::string port = "1984";
+	tagged_vector<server_send_buffers, dcon::client_id> server_send_buffers;
+
+	std::vector<char>& server_get_early_send_buffer(dcon::client_id client) {
+		return server_send_buffers[client].early_send_buffer;
+	}
+	std::queue<std::shared_ptr<command::command_data>>& server_get_send_buffer(dcon::client_id client) {
+		return server_send_buffers[client].send_buffer;
+	}
+	
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
 	uint8_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint8_t sending_payload_flag = false; // flag indicating whether we are currently sending the payload of a command
 	uint32_t command_send_count = 0;
+	size_t total_send_count = 0;
 
 	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;

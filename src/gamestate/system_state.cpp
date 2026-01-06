@@ -3456,6 +3456,9 @@ void state::reset_state() {
 	future_p_event*/
 
 	adjacency_data_out_of_date = true;
+	/*national_cached_values_out_of_date = true;
+	diplomatic_cached_values_out_of_date = true;
+	trade_route_cached_values_out_of_date = true;*/
 
 	dcon::load_record loaded;
 	scenario_size scenario_sz = sizeof_scenario_section(*this);

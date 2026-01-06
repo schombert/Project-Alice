@@ -558,7 +558,8 @@ public:
 			bool old_disabled = disabled;
 			for(auto client : state.world.in_client) {
 				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
-					disabled = disabled || !client.get_send_buffer().empty();
+					auto& send_buffer = state.network_state.server_get_send_buffer(client);
+					disabled = disabled || !send_buffer.empty();
 				}
 			}
 			button_element_base::render(state, x, y);
@@ -579,7 +580,8 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			for(auto client : state.world.in_client) {
 				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
-					if(!client.get_send_buffer().empty()) {
+					auto& send_buffer = state.network_state.server_get_send_buffer(client);
+					if(!send_buffer.empty()) {
 						auto& hshake_buffer = client.get_hshake_buffer();
 						text::substitution_map sub;
 						text::add_to_substitution_map(sub, text::variable_type::playername, hshake_buffer.nickname.to_string_view());
