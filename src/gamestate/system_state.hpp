@@ -982,11 +982,10 @@ struct alignas(64) state {
 	int32_t type_localized_key = -1;
 
 
+	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
+	std::condition_variable ui_lock_cv;
+	bool yield_ui_lock = false;
 
-
-	std::mutex cache_lock; // lock for the cache updates.
-	std::condition_variable cache_lock_cv;
-	bool yield_cache_lock = false;
 
 	// the following functions will be invoked by the window subsystem
 

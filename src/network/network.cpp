@@ -679,18 +679,17 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 //
 
 void delete_client(sys::state& state, dcon::client_id client) {
-	auto player_client = state.world.client_get_player_client(client);
-	if(player_client) {
-		state.world.delete_player_client(player_client);
-	}
-	state.world.delete_client(client);
 	auto& queue = state.network_state.server_get_send_buffer(client);
 	while(!queue.empty()) {
 		queue.pop();
 	}
 	state.network_state.server_get_early_send_buffer(client).clear();
+	auto player_client = state.world.client_get_player_client(client);
+	if(player_client) {
+		state.world.delete_player_client(player_client);
+	}
+	state.world.delete_client(client);
 	state.network_state.server_send_buffers.resize(state.world.client_size());
-
 
 }
 
