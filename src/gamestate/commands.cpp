@@ -6346,8 +6346,8 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		}
 	}
 	{
-		state.yield_ui_lock = true;
-		std::unique_lock lock(state.ui_lock);
+		state.yield_game_state_resetting_lock = true;
+		std::unique_lock lock(state.game_state_resetting_lock);
 
 		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
 		state.set_selected_province(dcon::province_id{});
@@ -6357,9 +6357,9 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		cache.nation = state.local_player_nation;
 		state.player_data_cache.push_back(cache);
 
-		state.yield_ui_lock = false;
+		state.yield_game_state_resetting_lock = false;
 		lock.unlock();
-		state.ui_lock_cv.notify_one();
+		state.game_state_resetting_cv.notify_all();
 	}
 }
 void notify_start_game(sys::state& state) {
@@ -6421,16 +6421,16 @@ bool can_notify_stop_game(sys::state& state, dcon::nation_id source) {
 
 void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 	{
-		state.yield_ui_lock = true;
-		std::unique_lock lock(state.ui_lock);
+		state.yield_game_state_resetting_lock = true;
+		std::unique_lock lock(state.game_state_resetting_lock);
 
 		game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
 		state.set_selected_province(dcon::province_id{});
 		state.map_state.unhandled_province_selection = true;
 
-		state.yield_ui_lock = false;
+		state.yield_game_state_resetting_lock = false;
 		lock.unlock();
-		state.ui_lock_cv.notify_one();
+		state.game_state_resetting_cv.notify_all();
 	}
 }
 
@@ -6553,8 +6553,8 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 	});
 	native_string native_filename = simple_fs::utf8_to_native(filename);
 	// Lock Ui thread while the save is being loaded, otherwise the user may hover over a ui element which in progress of being loaded, with not good results
-	state.yield_ui_lock = true;
-	std::unique_lock lock{ state.ui_lock };
+	state.yield_game_state_resetting_lock = true;
+	std::unique_lock lock{ state.game_state_resetting_lock };
 
 
 	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
@@ -6622,9 +6622,9 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 	state.railroad_built.store(true, std::memory_order::release);
 	state.sprawl_update_requested.store(true, std::memory_order::release);
 
-	state.yield_ui_lock = false;
+	state.yield_game_state_resetting_lock = false;
 	lock.unlock();
-	state.ui_lock_cv.notify_one();
+	state.game_state_resetting_cv.notify_all();
 	state.game_state_updated.store(true, std::memory_order_release);
 	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question

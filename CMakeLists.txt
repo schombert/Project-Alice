@@ -436,6 +436,7 @@ target_precompile_headers(Alice
 	PRIVATE <iterator>
 	PRIVATE <utility>
 	PRIVATE <any>
+	PRIVATE <shared_mutex>
 )
 target_precompile_headers(AliceIncremental
 	PRIVATE <vector>
@@ -458,6 +459,7 @@ target_precompile_headers(AliceIncremental
 	PRIVATE <limits>
 	PRIVATE <iterator>
 	PRIVATE <utility>
+	PRIVATE <shared_mutex>
 )
 
 # Aliases for C library

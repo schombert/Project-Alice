@@ -742,6 +742,14 @@ static void disconnect_client(sys::state& state, dcon::client_id client, bool ma
 		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
 		break;
 	}
+	case disconnect_reason::game_full:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_game_full;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
 
 	default:
 	{
@@ -1003,6 +1011,12 @@ int client_process_handshake(sys::state& state) {
 		case handshake_result::fail_game_ended:
 		{
 			auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_game_ended") });
+			finish(state, false);
+			break;
+		}
+		case handshake_result::fail_game_full:
+		{
+			auto discard = state.error_windows.try_push(ui::error_window{ text::produce_simple_string(state, "disconnected_message_header"), text::produce_simple_string(state, "disconnected_message_game_full") });
 			finish(state, false);
 			break;
 		}
@@ -1449,8 +1463,8 @@ void dump_oos_report(sys::state& state_1, sys::state& state_2) {
 // loads the save from network which is currently in the save buffer
 void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	
-	state.yield_ui_lock = true;
-	std::unique_lock lock(state.ui_lock);
+	state.yield_game_state_resetting_lock = true;
+	std::unique_lock lock(state.game_state_resetting_lock);
 
 	std::vector<dcon::nation_id> no_ai_nations;
 	for(const auto n : state.world.in_nation)
@@ -1468,9 +1482,9 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	state.fill_unsaved_data();
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
 
-	state.yield_ui_lock = false;
+	state.yield_game_state_resetting_lock = false;
 	lock.unlock();
-	state.ui_lock_cv.notify_one();
+	state.game_state_resetting_cv.notify_all();
 	
 }
 
@@ -1807,14 +1821,16 @@ void broadcast_to_clients(sys::state& state, host_command_wrapper&& c) {
 	/* Propagate to the valid clients which passes the selector. Or all valid clients if selector is nullptr */
 	if(!c.selector) {
 		for(auto client : state.world.in_client) {
-			if(client.is_valid() && can_add_data(state, client)) {
+			bool handshake = client.get_handshake();
+			if(client.is_valid() && !handshake && can_add_data(state, client)) {
 				socket_add_command_to_send_queue(state.network_state.server_get_send_buffer(client), cmd_ptr);
 			}
 		}
 	}
 	else {
 		for(auto client : state.world.in_client) {
-			if(client.is_valid() && can_add_data(state,client) && c.selector(client, state, c.arg)) {
+			bool handshake = client.get_handshake();
+			if(client.is_valid() && !handshake && can_add_data(state,client) && c.selector(client, state, c.arg)) {
 				socket_add_command_to_send_queue(state.network_state.server_get_send_buffer(client), cmd_ptr);
 			}
 		}
@@ -1837,6 +1853,14 @@ dcon::client_id create_client(sys::state& state) {
 	state.world.client_set_command_send_count(client_id, 0);
 	return client_id;
 }
+// Returns the count of internal clients + host.
+uint8_t internal_player_count(sys::state& state) {
+	uint8_t count = 1; // start at one to include host
+	state.world.for_each_client([&](dcon::client_id client) {
+		count++;
+	});
+	return count;
+}
 
 static void accept_new_clients(sys::state& state) {
 	/* Check if any new clients are to join us */
@@ -1854,6 +1878,10 @@ static void accept_new_clients(sys::state& state) {
 
 	socklen_t addr_len = state.network_state.as_v6 ? sizeof(sockaddr_in6) : sizeof(sockaddr_in);
 	client_id.set_socket_fd(accept(state.network_state.socket_fd, (struct sockaddr*)&client_id.get_address(), &addr_len));
+	if(internal_player_count(state) >= state.host_settings.max_players) {
+		disconnect_client(state, client_id, false, disconnect_reason::game_full);
+		return;
+	}
 	if(is_banned(state, client_id)) {
 		disconnect_client(state, client_id, false, disconnect_reason::on_banlist);
 		return;
@@ -1866,8 +1894,8 @@ static void accept_new_clients(sys::state& state) {
 }
 void reload_save_locally(sys::state& state) {
 	
-	state.yield_ui_lock = true;
-	std::unique_lock lock(state.ui_lock);
+	state.yield_game_state_resetting_lock = true;
+	std::unique_lock lock(state.game_state_resetting_lock);
 
 	std::vector<dcon::nation_id> no_ai_nations;
 	for(const auto n : state.world.in_nation)
@@ -1886,9 +1914,9 @@ void reload_save_locally(sys::state& state) {
 	state.local_player_nation = old_local_player_nation;
 	state.fill_unsaved_data();
 
-	state.yield_ui_lock = false;
+	state.yield_game_state_resetting_lock = false;
 	lock.unlock();
-	state.ui_lock_cv.notify_one();
+	state.game_state_resetting_cv.notify_all();
 	
 }
 
@@ -2294,6 +2322,11 @@ state.host_settings.y = data[x]
 		HS_LOAD("alice_host_port", alice_host_port);
 		HS_LOAD("oos_interval", oos_interval);
 		HS_LOAD("oos_debug_mode", oos_debug_mode);
+		HS_LOAD("max_players", max_players);
+
+		if(state.host_settings.max_players > MAX_PLAYER_COUNT) {
+			state.host_settings.max_players = MAX_PLAYER_COUNT;
+		}
 	}
 }
 
@@ -2317,6 +2350,7 @@ data[x] = state.host_settings.y
 		HS_SAVE("alice_host_port", alice_host_port);
 		HS_SAVE("oos_interval", oos_interval);
 		HS_SAVE("oos_debug_mode", oos_debug_mode);
+		HS_SAVE("max_players", max_players);
 
 		std::string res = data.dump();
 

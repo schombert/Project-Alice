@@ -345,8 +345,8 @@ void create_window(sys::state& game_state, creation_parameters const& params) {
 
 	while(!glfwWindowShouldClose(window)) {
 		{
-			std::unique_lock lock(game_state.ui_lock);
-			game_state.ui_lock_cv.wait(lock, [&] { return !game_state.yield_ui_lock; });
+			std::shared_lock lock(game_state.game_state_resetting_lock);
+			game_state.game_state_resetting_cv.wait(lock, [&] { return !game_state.yield_game_state_resetting_lock; });
 			glfwPollEvents();
 			// Run game code
 			game_state.render();

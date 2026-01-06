@@ -981,11 +981,9 @@ struct alignas(64) state {
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
 
-
-	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
-	std::condition_variable ui_lock_cv;
-	bool yield_ui_lock = false;
-
+	std::shared_mutex game_state_resetting_lock; // THe update thread acquires an exclusive lock for this mutex when the gamestate is resetting/loading and is thus not safe to read from in other threads. Other threads should acquire a shared_lock when reading
+	std::condition_variable_any game_state_resetting_cv;
+	bool yield_game_state_resetting_lock = false;
 
 	// the following functions will be invoked by the window subsystem
 

@@ -163,6 +163,7 @@ static std::map<int, std::string> readableCommandTypes = {
 
 
 inline constexpr short default_server_port = 1984;
+inline constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
 
 inline static SHA512 sha512;
 
@@ -183,6 +184,7 @@ enum class disconnect_reason : uint8_t {
 	game_has_ended = 6,
 	timed_out = 7,
 	network_error = 8,
+	game_full = 9
 };
 
 enum class handshake_result : uint8_t {
@@ -191,6 +193,7 @@ enum class handshake_result : uint8_t {
 	fail_wrong_password = 2,
 	fail_on_banlist = 3,
 	fail_game_ended = 4,
+	fail_game_full = 5,
 };
 
 
@@ -207,6 +210,7 @@ struct host_settings_s {
 	uint16_t alice_host_port = 1984;
 	oos_check_interval oos_interval = oos_check_interval::monthly;
 	bool oos_debug_mode = false; // enables sending of gamestate from client to host when an OOS happens, so the host can generate a OOS report. Is NOT safe to enable unless you trust clients
+	uint8_t max_players = MAX_PLAYER_COUNT; 
 };
 
 
@@ -287,9 +291,6 @@ struct network_state {
 	uint32_t current_save_length = 0;
 	socket_t socket_fd = 0;
 	uint8_t lobby_password[16] = { 0 };
-	std::mutex command_lock; // when this lock is held, the command thread will be blocked. Used on the UI thread to ensure no commands are executed in the meantime
-	std::condition_variable command_lock_cv; // condition variable for command lock
-	bool yield_command_lock = false;
 	bool as_v6 = false;
 	bool as_server = false;
 	bool is_new_game = true; // has save been loaded?

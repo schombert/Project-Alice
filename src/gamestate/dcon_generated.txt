@@ -5978,7 +5978,7 @@ object {
 object{
 	name{ mp_player }
 	storage_type{ erasable }
-	size{ 200 }
+	size{ 300 }
 	tag { keep_after_state_reload }
 	tag { mp_data }
 
@@ -6037,7 +6037,7 @@ relationship{
 object{
 	name{ client }
 	storage_type{ erasable }
-	size{ 199 }
+	size{ 300 }
 	tag { keep_after_state_reload }
 	tag { mp_checksum_excluded }
 

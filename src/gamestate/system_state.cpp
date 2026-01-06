@@ -648,6 +648,8 @@ void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running)
 		updates_running = true;
 	}
 	if(!slot.update_completed) {
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
 		updates_running = true;
 		if(slot.update(state)) {
 			slot.update_completed = true;
@@ -4802,8 +4804,6 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-		std::unique_lock lock(network_state.command_lock);
-		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
 		if(network_mode == sys::network_mode_type::single_player) {
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);
