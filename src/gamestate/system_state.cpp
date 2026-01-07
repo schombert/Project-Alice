@@ -3489,6 +3489,33 @@ void state::reset_state() {
 
 }
 
+void state::push_log_message(std::string&& str) {
+	pending_log_messages.try_enqueue(std::move(str));
+}
+void state::push_log_message(const std::string& str) {
+	pending_log_messages.try_enqueue(str);
+}
+void state::flush_pending_log_messages() {
+	static std::string msg;
+	while(pending_log_messages.try_dequeue(msg)) {
+#ifdef _WIN32
+		OutputDebugStringA(msg.c_str());
+		OutputDebugStringA("\n");
+#else
+		std::clog << msg + "\n";
+#endif
+
+		auto folder = simple_fs::get_or_create_data_dumps_directory();
+		msg += "\n";
+		simple_fs::append_file(
+				folder,
+				NATIVE("console_log.txt"),
+				msg.c_str(),
+				uint32_t(msg.size())
+		);
+	}
+}
+
 void state::preload() {
 
 	adjacency_data_out_of_date = true;
@@ -4803,6 +4830,13 @@ void state::game_loop() {
 	game_speed[3] = int32_t(defines.alice_speed_3);
 	game_speed[4] = int32_t(defines.alice_speed_4);
 
+	std::thread logger_thread([this]() {
+		while(quit_signaled.load(std::memory_order::acquire) == false) {
+			this->flush_pending_log_messages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(20));
+		}
+	});
+
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		if(network_mode == sys::network_mode_type::single_player) {
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
@@ -4839,6 +4873,8 @@ void state::game_loop() {
 			}
 		}
 	}
+
+	logger_thread.join();
 }
 
 void state::new_army_group(dcon::province_id hq) {

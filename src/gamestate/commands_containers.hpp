@@ -44,6 +44,8 @@ struct command_data {
 	command_data& operator=(command_data&& other) = default;
 	command_data& operator=(const command_data& other) = default;
 
+	~command_data() = default;
+
 	// add data to the payload
 	template<typename data_type>
 	friend command_data& operator << (command_data& msg, data_type& data) {

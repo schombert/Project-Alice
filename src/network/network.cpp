@@ -1522,37 +1522,31 @@ bool is_banned(sys::state& state, dcon::client_id client) {
 
 void send_post_handshake_commands(sys::state& state, dcon::client_id client) {
 
+	// We always send the save & MP data to the connecting client, and reload commands to everyone else (including the host).
+	// Because the vast majority of the time, the save will need to be sent anyway if the host is using non-default gamerules (which will change the gamestate)
+
 	bool paused = false;
+	bool in_progress = state.current_scene.game_in_progress;
 
-	if(state.current_scene.starting_scene) {
-		/* Lobby - existing savegame */
-		if(!state.network_state.is_new_game) {
-			command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client != std::get<dcon::client_id>(arg);
-			});
-			command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client == std::get<dcon::client_id>(arg);
-			});
-			command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client == std::get< dcon::client_id>(arg);
-			});
-			
-		}
+	if(in_progress) {
+		paused = pause_game(state);
+	}
 
-	} else if(state.current_scene.game_in_progress) {
-		if(!state.network_state.is_new_game) {
-			paused = pause_game(state);
-			command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client != std::get<dcon::client_id>(arg);
-			});
-			command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client == std::get<dcon::client_id>(arg);
-			});
-			command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-				return other_client == std::get< dcon::client_id>(arg);
-			});
-			
-		}
+	command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+		return other_client != std::get<dcon::client_id>(arg);
+	});
+	
+
+	command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+		return other_client == std::get<dcon::client_id>(arg);
+	});
+
+	command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
+		return other_client == std::get< dcon::client_id>(arg);
+	});
+	
+
+	if(in_progress) {
 		command::notify_start_game(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
 			return other_client == std::get<dcon::client_id>(arg);
 		});
@@ -1581,19 +1575,6 @@ void full_reset_after_oos(sys::state& state) {
 				command::notify_player_is_loading(state, player_id);
 			}
 		}
-	}
-	{
-
-		// if the save state has changed, write a new network save
-		//if(!state.network_state.last_save_checksum.is_equal(state.get_save_checksum())) {
-		//	network::write_network_save(state);
-		//}
-
-		//load_network_save(state, state.network_state.current_save_buffer.get());
-
-		// generate checksum for the entire mp state
-		//state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-
 	}
 	{
 		// send MP data and savegame to oos'd clients. Reload will happen automatically together with saveloading. Send explicit reload command to non-oos clients
@@ -1704,8 +1685,7 @@ int server_process_client_commands(sys::state& state, dcon::client_id client) {
 	int r = socket_recv_command<sys::network_mode_type::host>(socket_fd, &recv_buffer, &recv_count, &receiving_payload_flag, state, [&]() {
 		// verify that the command's sender is correct
 		if(recv_buffer.header.player_id == player_id) {
-			std::scoped_lock lock{ state.commandqueue_producer_lock };
-			bool pushed = state.network_state.server_outgoing_commands.try_push(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
+			bool pushed = state.network_state.server_outgoing_commands.enqueue(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
 			assert(pushed);
 		}
 			
@@ -2105,38 +2085,36 @@ void send_and_receive_commands(sys::state& state) {
 		receive_from_clients(state); // receive new commands
 
 		// send the commands of the server to all the clients
-		auto* c = state.network_state.server_outgoing_commands.front();
-		while(c) {
-			if(!command::is_console_command(c->cmd_data.header.type)) {
+		static host_command_wrapper command_buffer;
+		while(state.network_state.server_outgoing_commands.try_dequeue(command_buffer)) {
+			if(!command::is_console_command(command_buffer.cmd_data.header.type)) {
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(c->cmd_data.header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(c->cmd_data.header.type))]);
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " host:send:cmd | from " + std::to_string(command_buffer.cmd_data.header.player_id.index()) + " type:" + readableCommandTypes[(uint32_t(command_buffer.cmd_data.header.type))]);
 #endif
 				// Execute the pre-execute, pre-broadcast function, if applicable
-				const auto* pre_exec_handler = command::command_type_handlers[c->cmd_data.header.type];
+				const auto* pre_exec_handler = command::command_type_handlers[command_buffer.cmd_data.header.type];
 				if(pre_exec_handler && pre_exec_handler->pre_execution_broadcast_modifications) {
-					pre_exec_handler->pre_execution_broadcast_modifications(state, c->cmd_data);
+					pre_exec_handler->pre_execution_broadcast_modifications(state, command_buffer.cmd_data);
 					command_executed = true;
 				}
 				// if the command could not be performed on the host, don't bother sending it to the clients. Also check if command is supposed to be broadcast
-				if((c->host_execute && command::execute_command(state, c->cmd_data)) || (!c->host_execute &&  command::can_perform_command(state, c->cmd_data))) {
-					if(command::is_host_broadcast_command(state, c->cmd_data)) {
+				if((command_buffer.host_execute && command::execute_command(state, command_buffer.cmd_data)) || (!command_buffer.host_execute &&  command::can_perform_command(state, command_buffer.cmd_data))) {
+					if(command::is_host_broadcast_command(state, command_buffer.cmd_data)) {
 						// Generate checksum on the spot.
 						// Send checksum AFTER the tick has been executed on the host, as it checks it after the tick has happend on client
-						if(c->cmd_data.header.type == command::command_type::advance_tick) {
+						if(command_buffer.cmd_data.header.type == command::command_type::advance_tick) {
 							if(should_do_oos_check(state)) {
-								auto& payload = c->cmd_data.get_payload<command::advance_tick_data>();
+								auto& payload = command_buffer.cmd_data.get_payload<command::advance_tick_data>();
 								payload.checksum = state.get_mp_state_checksum();
 							}
 						}
-						broadcast_to_clients(state, std::move(*c));
+						broadcast_to_clients(state, std::move(command_buffer));
 					}
 					command_executed = true;
 	
 				}
 			}
-			state.network_state.server_outgoing_commands.pop();
-			c = state.network_state.server_outgoing_commands.front();
 		}
 		flush_closing_sockets(state);
 		server_send_to_clients(state);
@@ -2168,20 +2146,18 @@ void send_and_receive_commands(sys::state& state) {
 				return;
 			}
 			// send the outgoing commands to the server and flush the entire queue
-			auto* c = state.network_state.client_outgoing_commands.front();
-			while(c) {
+			static command::command_data command_buffer;
+			while(state.network_state.client_outgoing_commands.try_dequeue(command_buffer)) {
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
-				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:send:cmd | type:" + readableCommandTypes[uint32_t(c->header.type)]);
+				state.console_log(format("{:%d-%m-%Y %H:%M:%OS}", now) + " client:send:cmd | type:" + readableCommandTypes[uint32_t(command_buffer.header.type)]);
 #endif
-				if(c->header.type == command::command_type::save_game) {
-					command::execute_command(state, *c);
+				if(command_buffer.header.type == command::command_type::save_game) {
+					command::execute_command(state, command_buffer);
 					command_executed = true;
 				} else {
-					socket_add_command_to_send_queue(state.network_state.send_buffer, c);
+					socket_add_command_to_send_queue(state.network_state.send_buffer, &command_buffer);
 				}
-				state.network_state.client_outgoing_commands.pop();
-				c = state.network_state.client_outgoing_commands.front();
 			}
 		}
 		if(socket_send(state.network_state.socket_fd, state.network_state.send_buffer, state.network_state.total_send_count) != 0) { // error
@@ -2211,19 +2187,15 @@ void finish(sys::state& state, bool notify_host) {
 	state.network_state.finished = true;
 	if(notify_host && state.network_mode == sys::network_mode_type::client) {
 		// send the outgoing commands to the server and flush the entire queue
-		{
-			auto* c = state.network_state.client_outgoing_commands.front();
-			while(c) {
-				if(c->header.type == command::command_type::save_game) {
-					command::execute_command(state, *c);
-				} else {
-					socket_add_command_to_send_queue(state.network_state.send_buffer, c);
-				}
-				state.network_state.client_outgoing_commands.pop();
-				c = state.network_state.client_outgoing_commands.front();
-			}
+		static command::command_data command_buffer;
+		while(state.network_state.client_outgoing_commands.try_dequeue(command_buffer)) {
+			if(command_buffer.header.type == command::command_type::save_game) {
+				command::execute_command(state, command_buffer);
+			} else {
+				socket_add_command_to_send_queue(state.network_state.send_buffer, &command_buffer);
+			};
 		}
-
+		
 		command::command_data c{ command::command_type::notify_player_leaves, state.local_player_id };
 
 		command::notify_leaves_data payload{  };

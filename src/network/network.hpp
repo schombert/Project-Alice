@@ -17,6 +17,7 @@
 #include "container_types.hpp"
 #include "commands.hpp"
 #include "SHA512.hpp"
+#include "concurrentqueue.h"
 
 namespace sys {
 struct state;
@@ -239,17 +240,20 @@ struct host_command_wrapper {
 	selector_function selector; // Selector function for which clients should get the command broadcasted. nullptr = all clients
 	bool host_execute = true; // Should the host execute this command?
 
+	host_command_wrapper() { };
+
 	host_command_wrapper(const command::command_data& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(_cmd_data), arg(_arg), selector(_selector) {}
 	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector) { }
 
 	host_command_wrapper(const command::command_data& _cmd_data, selector_arg _arg, selector_function _selector, bool _host_execute) : cmd_data(_cmd_data), arg(_arg), selector(_selector), host_execute(_host_execute) { }
-	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector, bool _host_execute) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector), host_execute(_host_execute) {
-	}
+	host_command_wrapper(command::command_data&& _cmd_data, selector_arg _arg, selector_function _selector, bool _host_execute) : cmd_data(std::move(_cmd_data)), arg(_arg), selector(_selector), host_execute(_host_execute) { }
 	host_command_wrapper(host_command_wrapper&& other) = default;
 	host_command_wrapper(const host_command_wrapper& other) = default;
 
 	host_command_wrapper& operator=(host_command_wrapper&& other) = default;
 	host_command_wrapper& operator=(const host_command_wrapper& other) = default;
+
+	~host_command_wrapper() = default;
 
 };
 struct server_send_buffers {
@@ -263,8 +267,8 @@ struct network_state {
 	sys::player_password_raw player_password;
 	sys::checksum_key current_mp_state_checksum;
 	struct sockaddr_storage address;
-	rigtorp::SPSCQueue<host_command_wrapper> server_outgoing_commands;
-	rigtorp::SPSCQueue<command::command_data> client_outgoing_commands;
+	moodycamel::ConcurrentQueue<host_command_wrapper> server_outgoing_commands;
+	moodycamel::ConcurrentQueue<command::command_data> client_outgoing_commands;
 	std::vector<struct in6_addr> v6_banlist;
 	std::vector<struct in_addr> v4_banlist;
 	std::string ip_address = "127.0.0.1";

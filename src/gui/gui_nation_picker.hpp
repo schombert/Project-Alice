@@ -536,7 +536,7 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			if(command::can_notify_start_game(state, state.local_player_nation)) {
+			if(command::can_notify_start_game(state, state.local_player_nation) && state.network_mode != sys::network_mode_type::client) {
 				if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
 					if(state.map_state.get_zoom() < map::zoom_very_close)
 						state.map_state.zoom = map::zoom_very_close;
@@ -550,7 +550,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !command::can_notify_start_game(state, state.local_player_nation);
+		disabled = (!command::can_notify_start_game(state, state.local_player_nation) || state.network_mode == sys::network_mode_type::client);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {

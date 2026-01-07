@@ -841,29 +841,7 @@ void console_log_other(sys::state& state, std::string_view message) {
 	auto dt = state.current_date.to_ymd(state.start_date);
 	auto dtstr = std::to_string(dt.year) + "." + std::to_string(dt.month) + "." + std::to_string(dt.day);
 	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "| " + msg;
-#ifdef _WIN32
-	OutputDebugStringA(msg.c_str());
-	OutputDebugStringA("\n");
-#endif
-
-	auto folder = simple_fs::get_or_create_data_dumps_directory();
-
-	msg += "\n";
-
-	simple_fs::append_file(
-			folder,
-			NATIVE("console_log.txt"),
-			msg.c_str(),
-			uint32_t(msg.size())
-	);
-	/*if(state.ui_state.console_window) {
-		Cyto::Any payload = std::string(message);
-		state.ui_state.console_window->impl_get(state, payload);
-		if(true && !(state.ui_state.console_window->is_visible())) {
-			state.ui_state.root->move_child_to_front(state.ui_state.console_window);
-			state.ui_state.console_window->set_visible(state, true);
-		}
-	}*/
+	state.push_log_message(std::move(msg));
 }
 
 

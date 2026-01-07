@@ -60,13 +60,12 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	case command_type::resync_lobby:
 	case command_type::notify_oos_gamestate:
 	case command_type::notify_mp_data:
-		// Notifications can be sent because it's an-always do thing
+		// Notifications dont change the save gamestate
 		break;
 	default:
 		state.network_state.is_new_game = false;
 		break;
 	}
-	std::scoped_lock lock{ state.commandqueue_producer_lock };
 	switch(state.network_mode) {
 	case sys::network_mode_type::single_player:
 	{
@@ -77,7 +76,8 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	{
 		if(is_console_command(p.header.type))
 			break;
-		bool pushed = state.network_state.client_outgoing_commands.try_push(p);
+		bool pushed = state.network_state.client_outgoing_commands.enqueue(p);
+		
 		assert(pushed);
 		break;
 	}
@@ -85,7 +85,7 @@ void add_to_command_queue(sys::state& state, command_data& p) {
 	{
 		if(is_console_command(p.header.type))
 			break;
-		bool pushed = state.network_state.server_outgoing_commands.try_push(network::host_command_wrapper{ p, network::selector_arg{ }, nullptr });
+		bool pushed = state.network_state.server_outgoing_commands.enqueue(network::host_command_wrapper{ p, network::selector_arg{ }, nullptr });
 		assert(pushed);
 		break;
 	}
@@ -122,7 +122,7 @@ void add_to_command_queue(sys::state& state, network::host_command_wrapper& p) {
 	case command_type::resync_lobby:
 	case command_type::notify_oos_gamestate:
 	case command_type::notify_mp_data:
-		// Notifications can be sent because it's an-always do thing
+		// Notifications dont change the save gamestate
 		break;
 	default:
 		state.network_state.is_new_game = false;
@@ -132,8 +132,7 @@ void add_to_command_queue(sys::state& state, network::host_command_wrapper& p) {
 	if(is_console_command(p.cmd_data.header.type)) {
 		return;
 	}
-	std::scoped_lock lock{ state.commandqueue_producer_lock };
-	bool pushed = state.network_state.server_outgoing_commands.try_push(p);
+	bool pushed = state.network_state.server_outgoing_commands.enqueue(p);
 	assert(pushed);
 }
 
