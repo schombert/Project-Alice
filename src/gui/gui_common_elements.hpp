@@ -15,6 +15,7 @@
 #include "text.hpp"
 #include "triggers.hpp"
 #include <vector>
+#include "commands.hpp"
 #include "province.hpp"
 
 namespace ui {

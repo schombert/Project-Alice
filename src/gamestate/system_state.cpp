@@ -712,7 +712,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 	// Process queued ui function invocations from command thread
 	auto* queued_func = ui_state.queued_invocations.front();
 	while(queued_func) {
-		(*queued_func)(*this);
+		(*queued_func->first)(*this, queued_func->second);
 		ui_state.queued_invocations.pop();
 		queued_func = ui_state.queued_invocations.front();
 	}
@@ -3496,7 +3496,7 @@ void state::push_log_message(const std::string& str) {
 	pending_log_messages.try_enqueue(str);
 }
 void state::flush_pending_log_messages() {
-	static std::string msg;
+	std::string msg;
 	while(pending_log_messages.try_dequeue(msg)) {
 #ifdef _WIN32
 		OutputDebugStringA(msg.c_str());

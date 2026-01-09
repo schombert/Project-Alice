@@ -4756,6 +4756,10 @@ void notify_console_command(sys::state& state) {
 	add_to_command_queue(state, p);
 }
 
+bool can_console_command(sys::state& state) {
+	return state.network_mode == sys::network_mode_type::single_player;
+}
+
 void execute_console_command(sys::state& state) {
 	std::string command;
 	{
@@ -5700,60 +5704,83 @@ void execute_use_nation_button(sys::state& state, dcon::nation_id source, dcon::
 }
 
 void post_chat_message(sys::state& state, ui::chat_message& m) {
-	// Private message
-	bool can_see = true;
-	if(bool(m.target)) {
-		can_see = state.local_player_nation == m.source || state.local_player_nation == m.target;
-	}
-	if(can_see) {
-		state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
-		if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
-			state.ui_state.chat_messages_index = 0;
-		notification::post(state, notification::message{
-			[m](sys::state& state, text::layout_base& contents) {
-				text::add_line(state, contents, "msg_chat_message_1", text::variable_type::x, m.source);
-				text::add_line(state, contents, "msg_chat_message_2", text::variable_type::x, m.body);
-			},
-			"msg_chat_message_title",
-			m.source, dcon::nation_id{}, dcon::nation_id{},
-			sys::message_base_type::chat_message
-		});
-	}
+	state.ui_state.chat_messages[state.ui_state.chat_messages_index++] = m;
+	if(state.ui_state.chat_messages_index >= state.ui_state.chat_messages.size())
+		state.ui_state.chat_messages_index = 0;
+	notification::post(state, notification::message{
+		[m](sys::state& state, text::layout_base& contents) {
+			text::add_line(state, contents, "msg_chat_message_1", text::variable_type::x, m.source);
+			text::add_line(state, contents, "msg_chat_message_2", text::variable_type::x, m.body);
+		},
+		"msg_chat_message_title",
+		m.source, dcon::nation_id{}, dcon::nation_id{},
+		sys::message_base_type::chat_message
+	});
+	
 }
 
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target) {
 
+void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, bool targets_everyone) {
+	ui::chat_message m{};
+	m.targets_everyone = targets_everyone;
+	m.source = state.world.mp_player_get_nation_from_player_nation(sender);
+	m.body = std::string(body);
+	m.set_sender_name(state.world.mp_player_get_nickname(sender));
+	post_chat_message(state, m);
+}
+
+void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets) {
+	bool targets_everyone = [&]() {
+		for(auto player_id : state.world.in_mp_player) {
+			if(player_id == state.local_player_id) {
+				continue; // We dont care if we are targetting ourselves
+			}
+			if(!targets[player_id.id.index()]) {
+				// If this message has a target excluded
+				return false;
+			}
+		}
+		// If this message targets everyone (except ourselves, if we werent supposed to receive it, it should've been filtered out earlier)
+		return true;
+	}();
+	create_and_post_message(state, sender, body, targets_everyone);
+}
+
+void chat_message(sys::state& state, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, std::string_view body, bool send_to_all) {
 
 	command_data p{ command_type::chat_message, state.local_player_id };
 	auto data = chat_message_data{ };
-	data.target = target;
 
-	data.msg_len = std::min<uint16_t>(uint16_t(body.length()), ui::max_chat_message_len);
+	data.msg_len = std::min<size_t>(ui::max_chat_message_len, body.size());
+	data.targets = targets;
 
 	p << data;
-	p.push_ptr(body.data(), std::min<uint16_t>(uint16_t(body.length()), ui::max_chat_message_len));
+	p.push_string_view(body, data.msg_len);
+	
 	add_to_command_queue(state, p);
 }
 bool can_chat_message(sys::state& state, command_data& command) {
 	// TODO: bans, kicks, mutes?
 
-	auto& payload = command.get_payload<chat_message_data>();
+	const auto& payload = command.get_payload<chat_message_data>();
 
+	size_t message_bytes = payload.msg_len * sizeof(char);
 	// check that the message length is correct before reading from it
-	if(!command.check_variable_size_payload<chat_message_data>(payload.msg_len)) {
+	if(!command.check_variable_size_payload<chat_message_data>(message_bytes)) {
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
 
 	return true;
 }
-void execute_chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target, dcon::mp_player_id sender) {
-	ui::chat_message m{};
-	m.source = source;
-	m.target = target;
-	m.body = std::string(body);
-	m.set_sender_name(state.world.mp_player_get_nickname(sender));
-	post_chat_message(state, m);
+void execute_chat_message(sys::state& state, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, dcon::mp_player_id sender) {
+	// if host is not an included target, return and dont post the message
+	if(state.network_mode == sys::network_mode_type::host) {
+		if(sender != state.local_player_id && !targets[state.local_player_id.index()]) {
+			return;
+		}
+	}
+	create_and_post_message(state, sender, body, targets);
 }
 
 void notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, bool needs_loading, dcon::nation_id player_nation, network::selector_arg arg, bool host_execute, network::selector_function client_selector) {
@@ -5786,14 +5813,8 @@ void execute_change_gamerule_setting(sys::state& state, dcon::nation_id source, 
 	auto setting_name = state.world.gamerule_get_options(gamerule)[new_setting].name;
 	text::add_to_substitution_map(sub, text::variable_type::y, setting_name);
 	auto str = text::resolve_string_substitution(state, "alice_gamerules_change_chat_msg", sub);
-	if(state.network_mode == sys::network_mode_type::single_player) {
-		execute_chat_message(state, state.local_player_nation, str, dcon::nation_id{ }, state.local_player_id);
-	}
-	else {
-		auto host = network::get_host_player(state);
-		auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-		execute_chat_message(state, host_nation, str, dcon::nation_id{ }, host);
-	}
+	dcon::mp_player_id msg_sender = (state.network_mode == sys::network_mode_type::single_player ? state.local_player_id : network::get_host_player(state));
+	create_and_post_message(state, msg_sender, str, true);
 	// if you are in control of the gamerules (either host, or single player), then save the current gamerules as your default preferances in file
 	if(state.network_mode == sys::network_mode_type::single_player || state.network_mode == sys::network_mode_type::host) {
 
@@ -5825,13 +5846,10 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_i
 	// make the chat message appear as if it is sent by the host
 	auto host = network::get_host_player(state);
 	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, name.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_joins", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_player_joins", sub);
+	create_and_post_message(state, host, msg, true);
 
 	/* Hotjoin */
 	if(state.current_scene.game_in_progress)
@@ -5844,6 +5862,7 @@ dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_i
 		network::server_send_handshake(state, client, player_nation, player_id);
 		network::send_post_handshake_commands(state, client);
 	}
+
 	return player_id;
 }
 
@@ -5855,7 +5874,9 @@ void notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_a
 	p << data;
 	add_to_command_queue(state, p);
 	// Add the command directly to the target's player send buffer, because the command will delete and start disconnecting the player once the host executes
-	network::add_command_to_player_buffer(state, leaving_player, std::move(p));
+	if(state.network_mode == sys::network_mode_type::host) {
+		network::add_command_to_player_buffer(state, leaving_player, std::move(p));
+	}
 }
 bool can_notify_player_leaves(sys::state& state, dcon::nation_id source, bool make_ai, dcon::mp_player_id leaving_player) {
 	return state.world.mp_player_is_valid(leaving_player);
@@ -5869,15 +5890,11 @@ void execute_notify_player_leaves(sys::state& state, dcon::nation_id source, boo
 
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 	const auto& nickname = state.world.mp_player_get_nickname(leaving_player);
 	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_leaves", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_player_leaves", sub);
+	create_and_post_message(state, host, msg, true);
 
 	network::delete_mp_player(state, leaving_player, make_ai);
 }
@@ -5910,15 +5927,11 @@ void execute_notify_player_timeout(sys::state& state, dcon::nation_id source, bo
 
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 	const auto& nickname = state.world.mp_player_get_nickname(disconnected_player);
 	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_timed_out", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_timed_out", sub);
+	create_and_post_message(state, host, msg, true);
 
 	network::delete_mp_player(state, disconnected_player, make_ai);
 }
@@ -5958,14 +5971,10 @@ void execute_notify_player_ban(sys::state& state, dcon::nation_id source, bool m
 	// it should look like a message sent by the host
 
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_ban", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_player_ban", sub);
+	create_and_post_message(state, host, msg, true);
 
 	network::delete_mp_player(state, banned_player, make_ai);
 }
@@ -6003,16 +6012,11 @@ void execute_notify_player_kick(sys::state& state, dcon::nation_id source, bool 
 
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 
 	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_kick", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_player_kick", sub);
+	create_and_post_message(state, host, msg, true);
 
 	network::delete_mp_player(state, kicked_player, make_ai);
 }
@@ -6080,15 +6084,11 @@ void execute_notify_player_oos(sys::state& state, dcon::nation_id source, dcon::
 	
 	// send message and make it appear as if it is coming from the host
 	auto host = network::get_host_player(state);
-	auto host_nation = state.world.mp_player_get_nation_from_player_nation(host);
-	ui::chat_message m{};
-	m.source = host_nation;
 	text::substitution_map sub{};
 	const auto& nickname = state.world.mp_player_get_nickname(oos_player);
 	text::add_to_substitution_map(sub, text::variable_type::playername, nickname.to_string_view());
-	m.body = text::resolve_string_substitution(state, "chat_player_oos", sub);
-	m.set_sender_name(state.world.mp_player_get_nickname(host));
-	post_chat_message(state, m);
+	std::string msg = text::resolve_string_substitution(state, "chat_player_oos", sub);
+	create_and_post_message(state, host, msg, true);
 
 #ifndef NDEBUG
 	state.console_log("client:rcv:cmd | type=notify_player_oos | from:" + std::to_string(source.index()));
@@ -6226,7 +6226,7 @@ bool can_notify_save_loaded(sys::state& state, command_data& command) {
 
 
 void execute_notify_save_loaded(sys::state& state, command_data& command) {
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor to show the save is being loaded
 	});
 	auto& data = command.get_payload<notify_save_loaded_data>();
@@ -6259,7 +6259,7 @@ void execute_notify_save_loaded(sys::state& state, command_data& command) {
 	if(!mp_state_checksum.is_equal(state.session_host_checksum)) {
 		state.network_state.out_of_sync = true;
 	}
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question
 	});
 	command::notify_player_fully_loaded(state, state.local_player_nation); // notify that we are loaded and ready to start
@@ -6273,7 +6273,7 @@ void notify_reload(sys::state& state, network::selector_arg arg, bool host_execu
 
 }
 void execute_notify_reload(sys::state& state, command_data& command) {
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
 	});
 	auto& data = command.get_payload<notify_reload_data>();
@@ -6304,7 +6304,7 @@ void execute_notify_reload(sys::state& state, command_data& command) {
 		state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
 		data.checksum = state.network_state.current_mp_state_checksum;
 	}
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 	});
 }
@@ -6499,10 +6499,10 @@ void notify_mp_data(sys::state& state, const network::selector_arg arg, bool hos
 
 void execute_notify_mp_data(sys::state& state, command_data& command) {
 	auto& data = command.get_payload<notify_mp_data_data>();
+	size_t mp_player_old_sz = state.world.mp_player_size();
 	// size boundary is checked in can_notify_mp_data so we can safely do this
 	sys::read_mp_data(data.mp_data(), data.mp_data() + data.data_len, state);
-	// update UI immediately incase alot of long commands (ie loading save) is queued up
-	state.game_state_updated.store(true, std::memory_order::release);
+	
 }
 
 bool can_notify_mp_data(sys::state& state, command_data& command) {
@@ -6547,7 +6547,7 @@ void load_save_game(sys::state& state, const std::string& filename, bool is_new_
 
 
 void execute_load_save_game(sys::state& state, std::string_view filename, bool is_new_game) {
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
 	});
 	native_string native_filename = simple_fs::utf8_to_native(filename);
@@ -6556,7 +6556,7 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 	std::unique_lock lock{ state.game_state_resetting_lock };
 
 
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		if(state.ui_state.request_window)
 			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
 		if(state.ui_state.msg_window)
@@ -6625,7 +6625,7 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 	lock.unlock();
 	state.game_state_resetting_cv.notify_all();
 	state.game_state_updated.store(true, std::memory_order_release);
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy); //show busy cursor so player doesn't question
 	});
 
@@ -6637,7 +6637,7 @@ bool notify_oos_gamestate_is_host_receive_command(const sys::state& state) {
 }
 
 void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state, command_data& command) {
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::busy);
 	});
 	auto& data = command.get_payload<notify_save_loaded_data>();
@@ -6651,7 +6651,7 @@ void pre_execution_broadcast_modifications_notify_save_loaded(sys::state& state,
 	data.checksum = state.network_state.current_mp_state_checksum;
 	data.length = state.network_state.current_save_length;
 	command.push_ptr(state.network_state.current_save_buffer.get(), data.length);
-	state.ui_state.invoke_on_ui_thread([](sys::state& state) {
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
 		window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 	});
 }
@@ -7378,7 +7378,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	}
 	case command_type::console_command:
 	{
-		return true;
+		return can_console_command(state);
 	}
 	case command_type::grant_province:
 	{
@@ -7447,9 +7447,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	return false;
 }
 
-bool execute_command(sys::state& state, command_data& c) {
-	if(!can_perform_command(state, c))
-		return false;
+void execute_command(sys::state& state, command_data& c) {
 	state.tick_start_counter.fetch_add(1, std::memory_order::seq_cst);
 	auto source_nation = state.world.mp_player_get_nation_from_player_nation(c.header.player_id);
 	switch(c.header.type) {
@@ -8110,7 +8108,7 @@ bool execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<chat_message_data>();
 		std::string_view sv(data.body(), data.msg_len);
-		execute_chat_message(state, source_nation, sv, data.target, c.header.player_id);
+		execute_chat_message(state, sv, data.targets, c.header.player_id);
 		break;
 	}
 	case command_type::notify_player_ban:
@@ -8270,7 +8268,16 @@ bool execute_command(sys::state& state, command_data& c) {
 	}
 	}
 	state.tick_end_counter.fetch_add(1, std::memory_order::seq_cst);
-	return true;
+}
+
+bool try_execute_command(sys::state& state, command_data& c) {
+	if(can_perform_command(state, c)) {
+		execute_command(state, c);
+		return true;
+	}
+	else {
+		return false;
+	}
 }
 
 bool is_host_receive_command(command_type type, const sys::state& state) {
@@ -8302,7 +8309,7 @@ void execute_pending_commands(sys::state& state) {
 	bool command_executed = false;
 	while(c) {
 		command_executed = true;
-		execute_command(state, *c);
+		try_execute_command(state, *c);
 		state.singleplayer_commands.pop();
 		c = state.singleplayer_commands.front();
 	}

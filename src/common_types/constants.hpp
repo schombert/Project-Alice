@@ -646,3 +646,9 @@ enum class army_activity {
 namespace text {
 constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to convert the 26.6 fixed point representation used in many places by fonts to a floating point value
 }
+
+// global namespace
+
+// Boolean primitive which is guarrenteed to be 1 byte, whereas normal bool can theoretically wary
+typedef uint8_t fixed_bool_t;
+

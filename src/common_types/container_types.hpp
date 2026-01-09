@@ -259,8 +259,20 @@ public:
 	auto begin() {
 		return storage.begin();
 	}
+	auto rbegin() {
+		return storage.rbegin();
+	}
+	auto rbegin() const {
+		return storage.rbegin();
+	}
 	auto end() {
 		return storage.end();
+	}
+	auto rend() const {
+		return storage.rend();
+	}
+	auto rend() {
+		return storage.rend();
 	}
 	auto size() const {
 		return storage.size();
@@ -420,7 +432,7 @@ namespace ui {
 
 struct chat_message {
 	dcon::nation_id source{};
-	dcon::nation_id target{};
+	bool targets_everyone = true; // Whether this message is a public message which targets everyone (and the message will be marked as such), or a private message
 	std::string body;
 	// the reason the sender name is a unique_ptr and not a string or simple array is cause the Cyto:Any has a space limit of 64 bytes which it becomes encapsulated in later, and together with the body the struct will overflow with a array of size 24.
 	std::unique_ptr<sys::player_name> sender_name;
@@ -431,7 +443,7 @@ struct chat_message {
 	chat_message(const chat_message& m) {
 		sender_name = std::make_unique<sys::player_name>();
 		source = m.source;
-		target = m.target;
+		targets_everyone = m.targets_everyone;
 		body = m.body;
 		memcpy(sender_name.get(), m.sender_name.get(), 24);
 	}
@@ -440,7 +452,7 @@ struct chat_message {
 		if(this == &m)
 			return *this;
 		source = m.source;
-		target = m.target;
+		targets_everyone = m.targets_everyone;
 		body = m.body;
 		memcpy(sender_name.get(), m.sender_name.get(), 24);
 		return *this;
@@ -450,7 +462,7 @@ struct chat_message {
 	}
 
 	bool operator==(chat_message const& o) const {
-		return source == o.source && target == o.target && body == o.body;
+		return source == o.source && body == o.body && targets_everyone == o.targets_everyone;
 	}
 	bool operator!=(chat_message const& o) const {
 		return !(*this == o);

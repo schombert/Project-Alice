@@ -458,7 +458,7 @@ struct set_factory_priority_data {
 };
 
 struct chat_message_data {
-	dcon::nation_id target;
+	std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> targets;
 	uint16_t msg_len = 0;
 	const char* body() const {
 		return reinterpret_cast<const char*>(&msg_len + 1);
@@ -578,7 +578,7 @@ struct command_handler {
 	static bool false_is_host_receive_command(const sys::state& state) {
 		return false;
 	}
-	static bool true_is_host_receive_command( const sys::state& state) {
+	static bool true_is_host_receive_command(const sys::state& state) {
 		return true;
 	}
 
@@ -594,6 +594,7 @@ struct command_handler {
 constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire MP state
 constexpr uint32_t MAX_SAVE_SIZE = 32000000; // max 32 MB for entire save
 constexpr uint32_t MAX_MP_DATA_SIZE = 5000000; // max 5 MB for mp data
+constexpr uint32_t MAX_CHAT_MESSAGE_TARGETS = network::MAX_PLAYER_COUNT;
 
 // Defines max and min sizes for each command, aswell as handlers for certain functions
 constexpr enum_array<command_type, command_handler> command_type_handlers = {
@@ -725,13 +726,13 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::notify_pause_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::advance_tick, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len + (MAX_CHAT_MESSAGE_TARGETS * sizeof(dcon::mp_player_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::network_inactivity_ping, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::true_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::notify_player_fully_loaded, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_is_loading, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::change_ai_nation_state, command_handler{ sizeof(command::change_ai_nation_state_data), sizeof(command::change_ai_nation_state_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::network_populate, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::console_command, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::console_command, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::resync_lobby, command_handler{ 0, 0 , &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + MAX_MP_DATA_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_mp_data } },
 	{ command_type::notify_player_timeout, command_handler{ sizeof(notify_player_timeout_data), sizeof(notify_player_timeout_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -1136,7 +1137,8 @@ void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon:
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void post_chat_message(sys::state& state, ui::chat_message& m);
-void chat_message(sys::state& state, dcon::nation_id source, std::string_view body, dcon::nation_id target);
+void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets);
+void chat_message(sys::state& state, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, std::string_view body, bool send_to_all = false);
 bool can_chat_message(sys::state& state, command_data& command);
 
 void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting);
@@ -1185,8 +1187,10 @@ bool can_notify_player_timeout(sys::state& state, dcon::nation_id source, bool m
 
 dcon::mp_player_id execute_notify_player_joins(sys::state& state, dcon::client_id client, const sys::player_name& name, const sys::player_password_raw& password, bool needs_loading, dcon::nation_id player_nation);
 
-// returns true if the command was performed, false if not
-bool execute_command(sys::state& state, command_data& c);
+// executes command no matter if the player is allowed to
+void execute_command(sys::state& state, command_data& c);
+// Only executes the command if the player is allowed to, and returns true if allowed, false if not
+bool try_execute_command(sys::state& state, command_data& c);
 void execute_pending_commands(sys::state& state);
 bool can_perform_command(sys::state& state, command_data& c);
 // Returns true if the command type can be recevied by the host FROM a client. False otherwise

@@ -3053,6 +3053,7 @@ state::state() : queued_invocations(512) {
 	root_production_view = std::make_unique<container_base>();
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;
+	chat_message_recieve_targets.fill(true);
 }
 
 state::~state() = default;
