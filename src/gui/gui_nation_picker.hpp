@@ -672,24 +672,20 @@ public:
 
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
-			set_text(state, text::produce_simple_string(state, "ready"));
-		}
-		else {;
-			if(state.world.mp_player_get_fully_loaded(player)) {
-				color = text::text_color::dark_green;
-				set_text(state, text::produce_simple_string(state, "ready"));
-			} else {
+			set_text(state, text::produce_simple_string(state, "player_loaded_status"));
+		} else {
+			if(!state.world.mp_player_get_fully_loaded(player)) {
 				color = text::text_color::yellow;
-				set_text(state, text::produce_simple_string(state, "Loading"));
+				set_text(state, text::produce_simple_string(state, "player_loading_status"));
+			} else if(state.world.mp_player_get_is_oos(player)) {
+				color = text::text_color::red;
+				set_text(state, text::produce_simple_string(state, "player_oos_status"));
+			} else {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 			}
 		}
 
-
-		//if(state.network_mode == sys::network_mode_type::host) {
-		//	// on render
-		//} else {
-		//	set_text(state, text::produce_simple_string(state, "ready"));
-		//}
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		//auto n = retrieve<dcon::nation_id>(state, parent);

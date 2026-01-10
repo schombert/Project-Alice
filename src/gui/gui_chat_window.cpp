@@ -187,15 +187,18 @@ class chat_player_ready_state : public color_text_element {
 
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
-			set_text(state, text::produce_simple_string(state, "ready"));
+			set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 		}
 		else {
-			if(state.world.mp_player_get_fully_loaded(player)) {
-				color = text::text_color::dark_green;
-				set_text(state, text::produce_simple_string(state, "ready"));
-			} else {
+			if(!state.world.mp_player_get_fully_loaded(player)) {
 				color = text::text_color::yellow;
-				set_text(state, text::produce_simple_string(state, "Loading"));
+				set_text(state, text::produce_simple_string(state, "player_loading_status"));
+			} else if(state.world.mp_player_get_is_oos(player)) {
+				color = text::text_color::red;
+				set_text(state, text::produce_simple_string(state, "player_oos_status"));
+			} else {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 			}
 		}
 		

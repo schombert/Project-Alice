@@ -172,7 +172,7 @@ struct nation_hash {
 
 } // namespace sys
 
-
+// Mainly just used to hold the command handlers in a constexpr array with map-like syntax
 template<typename enum_type, typename value_type> requires std::is_enum<enum_type>::value
 class enum_array {
 private:
@@ -185,14 +185,14 @@ public:
 			data[static_cast<size_t>(item.first)] = std::optional<value_type>{ item.second };
 		}
 	}
-	constexpr const value_type* operator[](enum_type index) const {
-		const auto* item =  &data[static_cast<size_t>(index)];
-		if(*item) {
+	constexpr const std::optional<value_type>& operator[](enum_type index) const {
+		return data[static_cast<size_t>(index)];
+		/*if(*item) {
 			return &item->value();
 		}
 		else {
 			return nullptr;
-		}
+		}*/
 	}
 };
 

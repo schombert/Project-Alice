@@ -395,7 +395,7 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 	// otherwise, start receiving the payload
 	else {
 		auto payload_sz = data->header.payload_size;
-		const auto* handler = command::command_type_handlers[data->header.type];
+		const auto& handler = command::command_type_handlers[data->header.type];
 		// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
 		if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
 			data->payload.resize(payload_sz);
@@ -519,9 +519,12 @@ static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data
 static void socket_add_command_to_send_queue(std::queue<std::shared_ptr<command::command_data>>& buffer, const std::shared_ptr<command::command_data>& data) {
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
-	const auto* handler = command::command_type_handlers[data->header.type];
+	const auto& handler = command::command_type_handlers[data->header.type];
 	if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
 		buffer.push(data);
+	}
+	else {
+		assert(false && "Sent a command with invalid size or handler");
 	}
 
 }
@@ -531,7 +534,7 @@ static void socket_add_command_to_send_queue(std::queue<std::shared_ptr<command:
 static void socket_add_command_to_send_queue(std::vector<char>& buffer, const command::command_data* data) {
 	auto payload_sz = data->header.payload_size;
 	assert(payload_sz == data->payload.size());
-	const auto* handler = command::command_type_handlers[data->header.type];
+	const auto& handler = command::command_type_handlers[data->header.type];
 	if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
 		// Send the header
 		socket_add_to_send_queue(buffer, data, sizeof(command::cmd_header));
@@ -1611,7 +1614,8 @@ void full_reset_after_oos(sys::state& state) {
 	{
 
 		// send message to everyone letting them know that the lobby has been resync'd
-		std::array<fixed_bool_t, MAX_PLAYER_COUNT> all_players = { true };
+		std::array<fixed_bool_t, MAX_PLAYER_COUNT> all_players;
+		std::memset(&all_players, true, sizeof(all_players));
 		command::chat_message(state, all_players, text::produce_simple_string(state, "alice_host_has_resync"), true);
 	}
 	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
@@ -2152,7 +2156,7 @@ bool process_server_outgoing_queue(sys::state& state) {
 		// if the command fails the can_perform check, skip over it completley
 		if(command::can_perform_command(state, command_buffer.cmd_data)) {
 			// Execute the pre-execute, pre-broadcast function, if applicable
-			const auto* pre_exec_handler = command::command_type_handlers[command_buffer.cmd_data.header.type];
+			const auto& pre_exec_handler = command::command_type_handlers[command_buffer.cmd_data.header.type];
 			if(pre_exec_handler && pre_exec_handler->pre_execution_broadcast_modifications) {
 				pre_exec_handler->pre_execution_broadcast_modifications(state, command_buffer.cmd_data);
 			}

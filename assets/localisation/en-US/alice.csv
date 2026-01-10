@@ -1941,3 +1941,6 @@ disconnected_message_game_ended;The game has ended
 disconnected_message_game_full;The lobby cannot support more players
 private_message_btn_disabled_tooltip;You cannot private message yourself
 private_message_button_tooltip;Click to toggle whether this player will receive chat messages from you
+player_loaded_status;Ready
+player_loading_status;Loading
+player_oos_status;OOS
