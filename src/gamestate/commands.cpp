@@ -5729,7 +5729,7 @@ void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::
 	post_chat_message(state, m);
 }
 
-void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets) {
+void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const network::chat_message_targets& targets) {
 	bool targets_everyone = [&]() {
 		for(auto player_id : state.world.in_mp_player) {
 			if(player_id == state.local_player_id) {
@@ -5746,7 +5746,7 @@ void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::
 	create_and_post_message(state, sender, body, targets_everyone);
 }
 
-void chat_message(sys::state& state, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, std::string_view body, bool send_to_all) {
+void chat_message(sys::state& state, const network::chat_message_targets& targets, std::string_view body, bool send_to_all) {
 
 	command_data p{ command_type::chat_message, state.local_player_id };
 	auto data = chat_message_data{ };
@@ -5773,7 +5773,7 @@ bool can_chat_message(sys::state& state, command_data& command) {
 
 	return true;
 }
-void execute_chat_message(sys::state& state, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, dcon::mp_player_id sender) {
+void execute_chat_message(sys::state& state, std::string_view body, const network::chat_message_targets& targets, dcon::mp_player_id sender) {
 	// if host is not an included target, return and dont post the message
 	if(state.network_mode == sys::network_mode_type::host) {
 		if(sender != state.local_player_id && !targets[state.local_player_id.index()]) {

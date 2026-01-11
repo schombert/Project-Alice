@@ -171,7 +171,7 @@ struct state {
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
 	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
-	std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> chat_message_recieve_targets; // Set all to true so that by default messages will reach everyone
+	network::chat_message_targets chat_message_recieve_targets; // Set all to true so that by default messages will reach everyone
 	rigtorp::SPSCQueue<std::pair<ui_function, ui_function_argument>> queued_invocations;
 	bool recently_pressed_resync = false; // flag to prevent clicking the resync button again after already pressing it once
 

@@ -3200,6 +3200,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	nations::update_revanchism(*this);
+	bool old_game_in_prog = current_scene.game_in_progress;
+	current_scene.game_in_progress = true; // Many of the "can_perform_command" functions require the game to be in progress. To avoid any assert trips in presumulation, we set it to be in progress here and reset it later
 	fill_unsaved_data(); // we need this to run triggers
 
 	// Clean up and fixup armies and navies
@@ -3426,6 +3428,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+	current_scene.game_in_progress = old_game_in_prog;
 }
 
 void state::reset_state() {

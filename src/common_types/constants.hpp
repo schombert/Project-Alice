@@ -2,7 +2,15 @@
 #include <stdint.h>
 #include <iterator>
 
+namespace dcon {
+class client_id;
+class mp_player_id;
+}
+
 namespace sys {
+
+struct state;
+
 enum class virtual_key : uint8_t {
 	NONE = 0x00,
 	LBUTTON = 0x01,
@@ -651,4 +659,12 @@ constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to 
 
 // Boolean primitive which is guarrenteed to be 1 byte, whereas normal bool can theoretically wary
 typedef uint8_t fixed_bool_t;
+
+namespace network {
+	constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
+	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
+	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
+	typedef std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> chat_message_targets;
+}
+
 

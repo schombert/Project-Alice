@@ -10,6 +10,10 @@ namespace ui {
 template<bool IsShadow>
 class chat_message_text : public multiline_text_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+		base_data.size.y *= 2; // make space for two lines of text instead of one
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<chat_message>(state, parent);
 		auto border = base_data.data.text.border_size;
@@ -48,6 +52,10 @@ public:
 
 class chat_message_entry : public listbox_row_element_base<chat_message> {
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<chat_message>::on_create(state);
+		base_data.size.y *= 2; // make space for two lines of text instead of one
+	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<flag_button>(state, id);
@@ -177,9 +185,35 @@ void player_name_text::on_update(sys::state& state) noexcept {
 		auto p = retrieve<dcon::mp_player_id>(state, parent);
 
 		auto nickname = state.world.mp_player_get_nickname(p);
-		set_text(state, sys::player_name{ nickname }.to_string());
+		set_text(state, nickname.to_string());
 	}
 }
+
+void player_name_text::on_create(sys::state& state) noexcept {
+	simple_text_element_base::on_create(state);
+	base_data.size.x -= 45; // Reduce size so that it doesnt overflow into the player status text
+}
+
+tooltip_behavior player_name_text::has_tooltip(sys::state& state) noexcept {
+	return tooltip_behavior::tooltip;
+}
+void player_name_text::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		text::add_line(state, contents, text::produce_simple_string(state, "player"));
+	} else {
+		auto p = retrieve<dcon::mp_player_id>(state, parent);
+		auto nickname = state.world.mp_player_get_nickname(p);
+		text::add_line(state, contents, nickname.to_string());
+	}
+}
+
+
+
+
+
+
+
+
 
 class chat_player_ready_state : public color_text_element {
 	void on_update(sys::state& state) noexcept override {
@@ -286,14 +320,10 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			row_contents.push_back(dcon::mp_player_id{ });
-		}
-		else {
-			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
-				row_contents.push_back(p);
-			});
-		}
+		state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+			row_contents.push_back(p);
+		});
+		
 		
 		update(state);
 	}

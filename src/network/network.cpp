@@ -1614,7 +1614,7 @@ void full_reset_after_oos(sys::state& state) {
 	{
 
 		// send message to everyone letting them know that the lobby has been resync'd
-		std::array<fixed_bool_t, MAX_PLAYER_COUNT> all_players;
+		chat_message_targets all_players;
 		std::memset(&all_players, true, sizeof(all_players));
 		command::chat_message(state, all_players, text::produce_simple_string(state, "alice_host_has_resync"), true);
 	}
@@ -1837,9 +1837,10 @@ void broadcast_to_clients(sys::state& state, host_command_wrapper&& c) {
 	if(cmd_ptr->header.type == command::command_type::chat_message) {
 		const auto& payload = cmd_ptr->get_payload<command::chat_message_data>();
 
-		const std::array<fixed_bool_t, MAX_PLAYER_COUNT>& message_targets = payload.targets;
+		const chat_message_targets& message_targets = payload.targets;
 		// create local array to keep track of which players has already received the chat message
-		std::array<fixed_bool_t, MAX_PLAYER_COUNT> targets_received = { false };
+		chat_message_targets targets_received;
+		std::memset(&targets_received, false, sizeof(targets_received));
 		auto sender_player_id = cmd_ptr->header.player_id;
 		auto sender_client = state.world.mp_player_get_client_from_player_client(sender_player_id);
 		auto sender_handshake = state.world.client_get_handshake(sender_client);

@@ -163,7 +163,6 @@ static std::map<int, std::string> readableCommandTypes = {
 
 
 inline constexpr short default_server_port = 1984;
-inline constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
 
 inline static SHA512 sha512;
 
@@ -230,8 +229,6 @@ bool can_add_data(const sys::state& state, dcon::client_id client);
 bool can_send_data(const sys::state& state, dcon::client_id client);
 bool is_flushing(const sys::state& state, dcon::client_id client);
 
-typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
-typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 
 struct host_command_wrapper {
 	command::command_data cmd_data; // the command data itself

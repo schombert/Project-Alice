@@ -9,10 +9,6 @@
 #include "commands_containers.hpp"
 #include "military_constants.hpp"
 
-namespace network {
-	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
-	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
-}
 
 namespace command {
 
@@ -458,7 +454,7 @@ struct set_factory_priority_data {
 };
 
 struct chat_message_data {
-	std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> targets;
+	network::chat_message_targets targets;
 	uint16_t msg_len = 0;
 	const char* body() const {
 		return reinterpret_cast<const char*>(&msg_len + 1);
@@ -1137,8 +1133,8 @@ void toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon:
 bool can_toggle_immigrator_province(sys::state& state, dcon::nation_id source, dcon::province_id prov);
 
 void post_chat_message(sys::state& state, ui::chat_message& m);
-void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets);
-void chat_message(sys::state& state, const std::array<fixed_bool_t, network::MAX_PLAYER_COUNT>& targets, std::string_view body, bool send_to_all = false);
+void create_and_post_message(sys::state& state, dcon::mp_player_id sender, std::string_view body, const network::chat_message_targets& targets);
+void chat_message(sys::state& state, const network::chat_message_targets& targets, std::string_view body, bool send_to_all = false);
 bool can_chat_message(sys::state& state, command_data& command);
 
 void change_gamerule_setting(sys::state& state, dcon::nation_id source, dcon::gamerule_id gamerule, uint8_t new_setting);
