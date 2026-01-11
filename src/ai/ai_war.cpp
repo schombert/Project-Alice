@@ -6,6 +6,7 @@
 #include "triggers.hpp"
 #include "province.hpp"
 #include "diplomatic_messages.hpp"
+#include "commands.hpp"
 
 namespace ai {
 

@@ -6097,7 +6097,7 @@ object{
 	}
 	property{
 		name{ receiving_payload_flag }
-		type{ uint8_t }
+		type{ fixed_bool_t }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}

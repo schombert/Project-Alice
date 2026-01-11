@@ -5751,7 +5751,7 @@ void chat_message(sys::state& state, const network::chat_message_targets& target
 	command_data p{ command_type::chat_message, state.local_player_id };
 	auto data = chat_message_data{ };
 
-	data.msg_len = std::min<size_t>(ui::max_chat_message_len, body.size());
+	data.msg_len = static_cast<uint16_t>(std::min<size_t>(ui::max_chat_message_len, body.size()));
 	data.targets = targets;
 
 	p << data;

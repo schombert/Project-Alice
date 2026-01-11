@@ -4820,6 +4820,16 @@ void state::debug_scenario_oos_dump() {
 	}
 }
 
+std::thread state::start_logger_thread() {
+	std::thread thread([this]() {
+		while(quit_signaled.load(std::memory_order::acquire) == false) {
+			this->flush_pending_log_messages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
+	});
+	return thread;
+}
+
 void state::game_loop() {
 	static int32_t game_speed[] = {
 		0,		// speed 0
@@ -4832,13 +4842,6 @@ void state::game_loop() {
 	game_speed[2] = int32_t(defines.alice_speed_2);
 	game_speed[3] = int32_t(defines.alice_speed_3);
 	game_speed[4] = int32_t(defines.alice_speed_4);
-
-	std::thread logger_thread([this]() {
-		while(quit_signaled.load(std::memory_order::acquire) == false) {
-			this->flush_pending_log_messages();
-			std::this_thread::sleep_for(std::chrono::milliseconds(20));
-		}
-	});
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
 		if(network_mode == sys::network_mode_type::single_player) {
@@ -4876,8 +4879,6 @@ void state::game_loop() {
 			}
 		}
 	}
-
-	logger_thread.join();
 }
 
 void state::new_army_group(dcon::province_id hq) {

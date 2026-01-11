@@ -11,6 +11,7 @@
 #include "gui_leaders.hpp"
 #include "alice_ui.hpp"
 #include "immediate_mode.hpp"
+#include "commands.hpp"
 
 namespace game_scene {
 

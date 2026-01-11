@@ -1,6 +1,7 @@
 #include "gui_leaders.hpp"
 #include "gui_templates.hpp"
 #include "gui_listbox_templates.hpp"
+#include "commands.hpp"
 
 namespace ui {
 

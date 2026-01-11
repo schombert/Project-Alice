@@ -767,7 +767,7 @@ struct alignas(64) state {
 	uint32_t scenario_counter = 0;		// for identifying the scenario file
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
-	sys::checksum_key session_host_checksum;// for checking that the client can join a session
+	sys::checksum_key session_host_checksum;// checksum of the MP state sent by the host when needed.
 	native_string mod_save_dir;
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
@@ -934,6 +934,8 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<military::land_battle_report> land_battle_reports;
 	rigtorp::SPSCQueue<ui::error_window> error_windows;
 
+	std::thread logger_thread;
+
 	moodycamel::ConcurrentQueue<std::string> pending_log_messages;
 
 	// internal game timer / update logic
@@ -1008,6 +1010,7 @@ struct alignas(64) state {
 	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
 	text_mouse_test_result detailed_text_mouse_test(int32_t x, int32_t y);
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+	std::thread start_logger_thread();
 
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
@@ -1058,10 +1061,15 @@ struct alignas(64) state {
 
 	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), singleplayer_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256), error_windows(256), pending_log_messages(256) {
 
+
 		key_data.push_back(0);
+		logger_thread = start_logger_thread(); // create logger thread to handle incoming log message asynchronously
 	}
 
-	~state() = default;
+	~state() {
+		quit_signaled.store(true, std::memory_order::release);
+		logger_thread.join(); // wait for logger thread to quit after signalling
+	}
 
 	void save_user_settings() const;
 	void load_user_settings();

@@ -176,7 +176,8 @@ void do_sim_game_test(const native_string& savefile = native_string{ }) {
 		}
 	}
 
-
+	game_state_1->current_scene.game_in_progress = true;
+	game_state_2->current_scene.game_in_progress = true;
 	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
 
 	compare_game_states(*game_state_1, *game_state_2);
@@ -203,6 +204,7 @@ void do_sim_game_solo_test(const native_string& savefile = native_string{ }) {
 			game_state_1->fill_unsaved_data();
 		}
 	}
+	game_state_1->current_scene.game_in_progress = true;
 	game_state_1->game_seed = test_game_seed;
 
 	for(int i = 0; i <= 3653; i++) {
@@ -226,6 +228,7 @@ void do_fill_unsaved_values_test(const native_string& savefile = native_string{ 
 			game_state_1->fill_unsaved_data();
 		}
 	}
+	game_state_1->current_scene.game_in_progress = true;
 	game_state_1->game_seed = test_game_seed;
 
 
@@ -271,6 +274,8 @@ void do_save_game_with_saveload(const native_string& savefile = native_string{ }
 		}
 
 	}
+	game_state_1->current_scene.game_in_progress = true;
+	game_state_2->current_scene.game_in_progress = true;
 
 	game_state_2->game_seed = game_state_1->game_seed = test_game_seed;
 
@@ -320,6 +325,8 @@ TEST_CASE("sim_none", "[determinism]") {
 TEST_CASE("populate_test_saves", "[determinism]") {
 
 	std::unique_ptr<sys::state> game_state_1 = load_testing_scenario_file_with_save(sys::network_mode_type::host);
+
+	game_state_1->current_scene.game_in_progress = true;
 
 
 	game_state_1->game_seed = test_game_seed;

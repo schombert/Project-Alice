@@ -373,7 +373,7 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 
 
 template<sys::network_mode_type NetworkType, typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, uint8_t* receiving_payload, const sys::state& state, F&& func) {
+static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, fixed_bool_t* receiving_payload, const sys::state& state, F&& func) {
 	// check flag to see if the receiving payload flag is off, an thus should read the header
 	if(!(*receiving_payload)) {
 		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
@@ -413,7 +413,7 @@ static int socket_recv_command(socket_t socket_fd, command::command_data* data, 
 
 
 
-inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, uint8_t& sending_payload, size_t& total_sent_bytes) {
+inline static int socket_send_command(socket_t socket_fd, std::queue<std::shared_ptr<command::command_data>>& buffer, uint32_t& cmd_bytes_sent, fixed_bool_t& sending_payload, size_t& total_sent_bytes) {
 	while(!buffer.empty()) {
 		const auto* ptr = buffer.front().get();
 		if(!sending_payload) {
@@ -1070,7 +1070,6 @@ int client_process_handshake(sys::state& state) {
 					window::emit_error_message(msg.c_str(), true);
 				}
 			}
-			state.session_host_checksum = state.network_state.s_hshake.save_checksum;
 			state.game_seed = state.network_state.s_hshake.seed;
 			state.local_player_nation = state.network_state.s_hshake.assigned_nation;
 			state.local_player_id = state.network_state.s_hshake.assigned_player_id;
@@ -1103,7 +1102,6 @@ void server_send_handshake(sys::state& state, dcon::client_id client, dcon::nati
 	hshake.seed = state.game_seed;
 	hshake.assigned_nation = player_nation;
 	hshake.scenario_checksum = state.scenario_checksum;
-	hshake.save_checksum = state.get_save_checksum();
 	hshake.assigned_player_id = player_id;
 	hshake.host_settings = state.host_settings;
 	network::socket_add_to_send_queue(state.network_state.server_get_early_send_buffer(client), &hshake, sizeof(hshake));

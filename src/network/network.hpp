@@ -215,7 +215,6 @@ struct host_settings_s {
 
 struct server_handshake_data {
 	sys::checksum_key scenario_checksum;
-	sys::checksum_key save_checksum;
 	uint32_t seed;
 	dcon::nation_id assigned_nation;
 	dcon::mp_player_id assigned_player_id;
@@ -281,8 +280,7 @@ struct network_state {
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
 	command::command_data recv_buffer;
-	uint8_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
-	uint8_t sending_payload_flag = false; // flag indicating whether we are currently sending the payload of a command
+	fixed_bool_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint32_t command_send_count = 0;
 	size_t total_send_count = 0;
 

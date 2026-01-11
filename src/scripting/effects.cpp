@@ -15,6 +15,7 @@
 #include "money.hpp"
 #include "diplomatic_messages.hpp"
 #include "economy.hpp"
+#include "events.hpp"
 
 namespace effect {
 

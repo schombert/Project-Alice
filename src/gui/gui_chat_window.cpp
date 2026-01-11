@@ -4,6 +4,7 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 #include "system_state.hpp"
+#include "commands.hpp"
 
 namespace ui {
 

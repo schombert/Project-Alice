@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.h>
 #include <iterator>
+#include "constants_dcon.hpp"
 
 namespace dcon {
 class client_id;
@@ -655,16 +656,14 @@ namespace text {
 constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to convert the 26.6 fixed point representation used in many places by fonts to a floating point value
 }
 
-// global namespace
 
-// Boolean primitive which is guarrenteed to be 1 byte, whereas normal bool can theoretically wary
-typedef uint8_t fixed_bool_t;
 
 namespace network {
 	constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
 	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
 	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 	typedef std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> chat_message_targets;
+	static_assert(sizeof(chat_message_targets) == sizeof(fixed_bool_t[network::MAX_PLAYER_COUNT])); 
 }
 
 
