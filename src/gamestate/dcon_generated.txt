@@ -6060,12 +6060,6 @@ object{
 		tag { mp_checksum_excluded }
 	}
 	property{
-		name{ recv_buffer }
-		type{ command::command_data }
-		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ recv_count }
 		type{ size_t }
 		tag { keep_after_state_reload }

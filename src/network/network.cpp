@@ -370,43 +370,77 @@ static int socket_recv(socket_t socket_fd, void* data, size_t len, size_t* m, F&
 	return -1;
 }
 
-
-
-template<sys::network_mode_type NetworkType, typename F>
-static int socket_recv_command(socket_t socket_fd, command::command_data* data, size_t* recv_count, fixed_bool_t* receiving_payload, const sys::state& state, F&& func) {
+// Receives a command from a client as host, and stores it in the respective client recv buffer
+template<typename F>
+static int host_socket_recv_command(sys::state& state, dcon::client_id client, F&& func) {
+	size_t& recv_count = state.world.client_get_recv_count(client);
+	fixed_bool_t& receiving_payload = state.world.client_get_receiving_payload_flag(client);
+	socket_t socket_fd = state.world.client_get_socket_fd(client);
+	command::command_data& recv_buffer = state.network_state.server_get_recv_buffer(client);
 	// check flag to see if the receiving payload flag is off, an thus should read the header
-	if(!(*receiving_payload)) {
-		return socket_recv(socket_fd, data, sizeof(command::cmd_header), recv_count, [&]() {
-			// if this is being run as host, early discard commands which the host aren't meant to receive
-			if constexpr(NetworkType == sys::network_mode_type::host) {
-				if(command::is_host_receive_command(data->header.type, state)) {
-					*receiving_payload = true;
+	if(!receiving_payload) {
+		return socket_recv(socket_fd, &recv_buffer, sizeof(command::cmd_header), &recv_count, [&]() {
+			auto payload_sz = recv_buffer.header.payload_size;
+			//early check commands which the host aren't meant to receive. Disconnect client if invalid command is received
+			if(command::is_host_receive_command(recv_buffer.header.type, state)) {
+				// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
+				const auto& handler = command::command_type_handlers[recv_buffer.header.type];
+				if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
+					recv_buffer.payload.resize(payload_sz);
+					receiving_payload = true;
 				}
 				else {
-					// TODO: disconnect client entirely if an invalid command is received
-					*receiving_payload = false;
+					receiving_payload = false;
+					state.console_log("Invalid command received: command_type: " + std::to_string(static_cast<std::underlying_type_t<command::command_type>>(recv_buffer.header.type)) + ", payload size: " + std::to_string(payload_sz));
+					assert(false && "Malformed/invalid command received");
+					disconnect_client(state, client, state.host_settings.alice_place_ai_upon_disconnection == 1.0f, network::disconnect_reason::network_error);
 				}
 			}
 			else {
-				*receiving_payload = true;
+				receiving_payload = false;
+				state.console_log("Invalid command received: command_type: " + std::to_string(static_cast<std::underlying_type_t<command::command_type>>(recv_buffer.header.type)) + ", payload size: " + std::to_string(payload_sz));
+				assert(false && "Malformed/invalid command received");
+				disconnect_client(state, client, state.host_settings.alice_place_ai_upon_disconnection == 1.0f, network::disconnect_reason::network_error);
+			}
+			
+		});
+	}
+	// otherwise, start receiving the payload
+	else {
+		auto payload_sz = recv_buffer.header.payload_size;
+		return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(recv_buffer.payload.data()), payload_sz, &recv_count, [&]() { func(); receiving_payload = false; });
+	}
+}
+
+// Receives a command from the host as client, and stores it in the local recv buffer
+template<typename F>
+static int client_socket_recv_command(sys::state& state, F&& func) {
+	size_t& recv_count = state.network_state.recv_count;
+	fixed_bool_t& receiving_payload = state.network_state.receiving_payload;
+	socket_t socket_fd = state.network_state.socket_fd;
+	command::command_data& recv_buffer = state.network_state.recv_buffer;
+	// check flag to see if the receiving payload flag is off, an thus should read the header
+	if(!receiving_payload) {
+		return socket_recv(socket_fd, &recv_buffer, sizeof(command::cmd_header), &recv_count, [&]() {
+			// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
+			auto payload_sz = recv_buffer.header.payload_size;
+			const auto& handler = command::command_type_handlers[recv_buffer.header.type];
+			if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
+				recv_buffer.payload.resize(payload_sz);
+				receiving_payload = true;
+			} else {
+				receiving_payload = false;
+				state.console_log("Invalid command received: command_type: " + std::to_string(static_cast<std::underlying_type_t<command::command_type>>(recv_buffer.header.type)) + ", payload size: " + std::to_string(payload_sz));
+				state.error_windows.push(ui::error_window{ "disconnected_message_header", "disconnected_message_invalid_command_received_client" });
+				assert(false && "Malformed/invalid command received");
+				finish(state, false);
 			}
 		});
 	}
 	// otherwise, start receiving the payload
 	else {
-		auto payload_sz = data->header.payload_size;
-		const auto& handler = command::command_type_handlers[data->header.type];
-		// command must have a defined max and min size, and the specified size in the header must be equal to or less than the max size, and equal to or greater than the min size
-		if(handler && handler->min_payload_size <= payload_sz && handler->max_payload_size >= payload_sz) {
-			data->payload.resize(payload_sz);
-			return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(data->payload.data()), payload_sz, recv_count, [&]() { func(); *receiving_payload = false; });
-		}
-		// if the command does not fit these requirements, discard it and reset recv count
-		else {
-			*recv_count = 0;
-			*receiving_payload = false;
-			return -1;
-		}
+		auto payload_sz = recv_buffer.header.payload_size;
+		return socket_recv(socket_fd, reinterpret_cast<uint8_t*>(recv_buffer.payload.data()), payload_sz, &recv_count, [&]() { func(); receiving_payload = false; });
 	}
 }
 
@@ -682,17 +716,13 @@ static socket_t socket_init_client(bool& as_v6, struct sockaddr_storage& client_
 //
 
 void delete_client(sys::state& state, dcon::client_id client) {
-	auto& queue = state.network_state.server_get_send_buffer(client);
-	while(!queue.empty()) {
-		queue.pop();
-	}
-	state.network_state.server_get_early_send_buffer(client).clear();
+	state.network_state.server_send_recv_buffers[client].reset();
 	auto player_client = state.world.client_get_player_client(client);
 	if(player_client) {
 		state.world.delete_player_client(player_client);
 	}
 	state.world.delete_client(client);
-	state.network_state.server_send_buffers.resize(state.world.client_size());
+	state.network_state.server_send_recv_buffers.resize(state.world.client_size());
 
 }
 
@@ -1688,12 +1718,10 @@ int server_process_handshake(sys::state& state, dcon::client_id client) {
 }
 
 int server_process_client_commands(sys::state& state, dcon::client_id client) {
-	auto socket_fd = state.world.client_get_socket_fd(client);
-	auto& recv_buffer = state.world.client_get_recv_buffer(client);
-	auto& recv_count = state.world.client_get_recv_count(client);
-	auto& receiving_payload_flag = state.world.client_get_receiving_payload_flag(client);
-	auto player_id = state.world.client_get_mp_player_from_player_client(client);
-	int r = socket_recv_command<sys::network_mode_type::host>(socket_fd, &recv_buffer, &recv_count, &receiving_payload_flag, state, [&]() {
+
+	int r = host_socket_recv_command(state, client, [&]() {
+		auto& recv_buffer = state.network_state.server_get_recv_buffer(client);
+		auto player_id = state.world.client_get_mp_player_from_player_client(client);
 		// verify that the command's sender is correct
 		if(recv_buffer.header.player_id == player_id) {
 			bool pushed = state.network_state.server_outgoing_commands.enqueue(host_command_wrapper{ recv_buffer, selector_arg{ }, nullptr });
@@ -1873,7 +1901,7 @@ void broadcast_to_clients(sys::state& state, host_command_wrapper&& c) {
 
 dcon::client_id create_client(sys::state& state) {
 	auto client_id = state.world.create_client();
-	state.network_state.server_send_buffers.resize(state.world.client_size());
+	state.network_state.server_send_recv_buffers.resize(state.world.client_size());
 	state.world.client_set_client_state(client_id, client_state::normal);
 	state.world.client_set_total_sent_bytes(client_id, 0);
 	state.world.client_set_save_stream_size(client_id, 0);
@@ -2205,7 +2233,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = socket_recv_command<sys::network_mode_type::client>(state.network_state.socket_fd, &state.network_state.recv_buffer, &state.network_state.recv_count, &state.network_state.receiving_payload, state, [&]() {
+			int r = client_socket_recv_command(state, [&]() {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();

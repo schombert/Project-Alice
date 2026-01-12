@@ -1939,6 +1939,7 @@ disconnected_message_banned;You were banned from the lobby by the host
 disconnected_message_on_banlist;You are banned from this lobby
 disconnected_message_game_ended;The game has ended
 disconnected_message_game_full;The lobby cannot support more players
+disconnected_message_invalid_command_received_client;Network error: Received an malformed/invalid command from the host. Check log for details
 private_message_btn_disabled_tooltip;You cannot private message yourself
 private_message_button_tooltip;Click to toggle whether this player will receive chat messages from you
 player_loaded_status;Ready

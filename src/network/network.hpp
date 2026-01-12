@@ -251,9 +251,18 @@ struct host_command_wrapper {
 	~host_command_wrapper() = default;
 
 };
-struct server_send_buffers {
+struct server_send_recv_buffers {
 	std::queue<std::shared_ptr<command::command_data>> send_buffer;
 	std::vector<char> early_send_buffer;
+	command::command_data recv_buffer;
+
+	void reset() {
+		recv_buffer.payload.clear();
+		early_send_buffer.clear();
+		while(!send_buffer.empty()) {
+			send_buffer.pop();
+		}
+	}
 };
 
 struct network_state {
@@ -268,13 +277,16 @@ struct network_state {
 	std::vector<struct in_addr> v4_banlist;
 	std::string ip_address = "127.0.0.1";
 	std::string port = "1984";
-	tagged_vector<server_send_buffers, dcon::client_id> server_send_buffers;
+	tagged_vector<server_send_recv_buffers, dcon::client_id> server_send_recv_buffers; // These buffers are kept outside of dcon because they allocate dynamic memory and are not trivially copyable.
 
-	std::vector<char>& server_get_early_send_buffer(dcon::client_id client) {
-		return server_send_buffers[client].early_send_buffer;
+	inline std::vector<char>& server_get_early_send_buffer(dcon::client_id client) {
+		return server_send_recv_buffers[client].early_send_buffer;
 	}
-	std::queue<std::shared_ptr<command::command_data>>& server_get_send_buffer(dcon::client_id client) {
-		return server_send_buffers[client].send_buffer;
+	inline std::queue<std::shared_ptr<command::command_data>>& server_get_send_buffer(dcon::client_id client) {
+		return server_send_recv_buffers[client].send_buffer;
+	}
+	inline command::command_data& server_get_recv_buffer(dcon::client_id client) {
+		return server_send_recv_buffers[client].recv_buffer;
 	}
 	
 	std::vector<char> send_buffer;
@@ -283,11 +295,11 @@ struct network_state {
 	fixed_bool_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint32_t command_send_count = 0;
 	size_t total_send_count = 0;
-
-	std::unique_ptr<uint8_t[]> current_save_buffer;
 	size_t recv_count = 0;
-	uint32_t current_save_length = 0;
+
 	socket_t socket_fd = 0;
+	std::unique_ptr<uint8_t[]> current_save_buffer;
+	uint32_t current_save_length = 0;
 	uint8_t lobby_password[16] = { 0 };
 	bool as_v6 = false;
 	bool as_server = false;
