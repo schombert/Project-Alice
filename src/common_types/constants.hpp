@@ -659,9 +659,8 @@ constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to 
 
 
 namespace network {
+	inline constexpr short default_server_port = 1984;
 	constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
-	typedef std::variant<dcon::mp_player_id, dcon::client_id> selector_arg;
-	typedef bool (*selector_function)(dcon::client_id, const sys::state&, const selector_arg);
 	typedef std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> chat_message_targets;
 	static_assert(sizeof(chat_message_targets) == sizeof(fixed_bool_t[network::MAX_PLAYER_COUNT])); 
 }

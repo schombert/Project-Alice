@@ -45,6 +45,7 @@ using fmt::format;
 #include "gui_error_window.hpp"
 #include "persistent_server_extensions.hpp"
 #include "debug_string_convertions.hpp"
+#include "network_containers.hpp"
 
 #define ZSTD_STATIC_LINKING_ONLY
 #define XXH_NAMESPACE ZSTD_
@@ -1635,22 +1636,22 @@ void send_post_handshake_commands(sys::state& state, dcon::client_id client) {
 	}
 
 	command::notify_reload(state, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-		return other_client != std::get<dcon::client_id>(arg);
+		return other_client != arg.client;
 	});
 	
 
 	command::notify_mp_data(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-		return other_client == std::get<dcon::client_id>(arg);
+		return other_client == arg.client;
 	});
 
 	command::notify_save_loaded(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-		return other_client == std::get< dcon::client_id>(arg);
+		return other_client == arg.client;
 	});
 	
 
 	if(in_progress) {
 		command::notify_start_game(state, selector_arg{ client }, false, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-			return other_client == std::get<dcon::client_id>(arg);
+			return other_client == arg.client;
 		});
 	}
 
@@ -1772,7 +1773,7 @@ int server_process_handshake(sys::state& state, dcon::client_id client) {
 		// queue up the player_join command, which will trigger the handshake ack when it is executed
 		// Send the command to all clients, except the joining one, as said client will receive it as MP data in the post-handshake
 		command::notify_player_joins(state, client, hshake_buffer.nickname, !state.network_state.is_new_game, plnation, selector_arg{ client }, true, [](dcon::client_id other_client, const sys::state& state, const selector_arg arg) {
-			return other_client != std::get<dcon::client_id>(arg);
+			return other_client != arg.client;
 		});
 		state.game_state_updated.store(true, std::memory_order::release);
 	});

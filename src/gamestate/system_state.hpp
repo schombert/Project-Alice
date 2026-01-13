@@ -25,7 +25,7 @@
 #include "notifications.hpp"
 #include "map_state.hpp"
 #include "immediate_mode_state.hpp"
-#include "network.hpp"
+#include "network_containers.hpp"
 #include "container_types_ui.hpp"
 
 namespace game_scene {

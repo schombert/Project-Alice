@@ -8,6 +8,7 @@
 #include "container_types.hpp"
 #include "commands_containers.hpp"
 #include "military_constants.hpp"
+#include "network_containers.hpp"
 
 
 namespace command {
