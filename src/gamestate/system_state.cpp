@@ -199,7 +199,7 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_framebuffer_for_province_indices(*this);
 	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
 
-	
+
 
 	if(win_state != window::window_state::minimized) {
 		ui_state.for_each_root([&](ui::element_base& elm) {
@@ -209,13 +209,12 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
-		if(current_scene.game_in_progress) {
+		if(current_scene.id == game_scene::scene_id::in_game_production_view) {
 			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 			alice_ui::display_at_front<alice_ui::make_production_rh_view>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
 	}
 }
-
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
