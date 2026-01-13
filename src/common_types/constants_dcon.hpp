@@ -6,6 +6,10 @@ namespace culture {
 inline constexpr int32_t max_issue_options = 6;
 }
 
+namespace network {
+constexpr size_t RECV_BUFFER_SIZE = 262144;
+}
+
 namespace sys {
 
 constexpr int32_t max_event_options = 8;

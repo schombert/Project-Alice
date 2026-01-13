@@ -6072,26 +6072,34 @@ object{
 		tag { mp_checksum_excluded }
 	}
 	property{
-		name{ save_stream_offset }
-		type{ size_t }
-		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
-		name{ save_stream_size }
-		type{ size_t }
-		tag { keep_after_state_reload }
-		tag { mp_checksum_excluded }
-	}
-	property{
 		name{ handshake }
 		type{ bitfield }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}
+
+	property{
+		name{ receive_buffer }
+		type{ std::array<uint8_t,network::RECV_BUFFER_SIZE> }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+
 	property{
 		name{ receiving_payload_flag }
 		type{ fixed_bool_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ recv_buffer_size_used }
+		type{ int }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ recv_buffer_bytes_read }
+		type{ int }
 		tag { keep_after_state_reload }
 		tag { mp_checksum_excluded }
 	}

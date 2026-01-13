@@ -197,7 +197,6 @@ enum class handshake_result : uint8_t {
 
 
 
-
 struct host_settings_s {
 	float alice_persistent_server_mode = 0.0f;
 	float alice_persistent_server_unpause = 12.f;
@@ -254,10 +253,10 @@ struct host_command_wrapper {
 struct server_send_recv_buffers {
 	std::queue<std::shared_ptr<command::command_data>> send_buffer;
 	std::vector<char> early_send_buffer;
-	command::command_data recv_buffer;
+	command::command_data command_recv_buffer;
 
 	void reset() {
-		recv_buffer.payload.clear();
+		command_recv_buffer.payload.clear();
 		early_send_buffer.clear();
 		while(!send_buffer.empty()) {
 			send_buffer.pop();
@@ -286,16 +285,19 @@ struct network_state {
 		return server_send_recv_buffers[client].send_buffer;
 	}
 	inline command::command_data& server_get_recv_buffer(dcon::client_id client) {
-		return server_send_recv_buffers[client].recv_buffer;
+		return server_send_recv_buffers[client].command_recv_buffer;
 	}
 	
 	std::vector<char> send_buffer;
 	std::vector<char> early_send_buffer;
-	command::command_data recv_buffer;
+	command::command_data command_recv_buffer;
+	std::array<uint8_t, RECV_BUFFER_SIZE> receive_buffer;
 	fixed_bool_t receiving_payload = false; // flag indicating whether we are currently awaiting a payload for a command, or if its awaiting a header for a command from the server
 	uint32_t command_send_count = 0;
 	size_t total_send_count = 0;
 	size_t recv_count = 0;
+	int recv_buffer_size_used = 0;
+	int recv_buffer_bytes_read = 0;
 
 	socket_t socket_fd = 0;
 	std::unique_ptr<uint8_t[]> current_save_buffer;
