@@ -31,13 +31,18 @@ enum class partial_retreat_settings : uint8_t {
 };
 enum class fog_of_war_settings : uint8_t {
 	disable = 0,
-	enable = 1
+	enable = 1,
+	disable_for_observer = 2,
 };
 enum class auto_concession_peace_settings : uint8_t {
 	cannot_reject = 0,
 	can_reject = 1
 };
 
+enum class command_units_settings : uint8_t {
+	disabled = 0,
+	enabled = 1
+};
 
 
 struct hardcoded_gamerules {
@@ -45,6 +50,7 @@ struct hardcoded_gamerules {
 	dcon::gamerule_id allow_partial_retreat;
 	dcon::gamerule_id fog_of_war;
 	dcon::gamerule_id auto_concession_peace;
+	dcon::gamerule_id command_units;
 
 };
 

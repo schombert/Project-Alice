@@ -330,7 +330,7 @@ public:
 			text::add_line_with_condition(state, contents, "alice_command_units_condition_2", asker_wars.begin() != asker_wars.end() && target_wars.begin() != target_wars.end());
 		}
 
-		if(state.network_mode == sys::network_mode_type::single_player) {
+		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.command_units, uint8_t(gamerule::command_units_settings::disabled))) {
 			text::add_line_with_condition(state, contents, "alice_command_units_condition_4", false);
 		}
 

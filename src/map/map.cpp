@@ -16,6 +16,7 @@
 #include "prng.hpp"
 #include "demographics.hpp"
 #include "projections.hpp"
+#include "gamerule_templates.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -221,7 +222,9 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
+	gamerule::fog_of_war_settings cur_gamerule_setting = gamerule::get_gamerule_setting<gamerule::fog_of_war_settings>(state, state.hardcoded_gamerules.fog_of_war);
+	if(cur_gamerule_setting == gamerule::fog_of_war_settings::enable ||
+	(state.world.nation_get_identity_from_identity_holder(state.local_player_nation) != state.national_definitions.rebel_id && cur_gamerule_setting == gamerule::fog_of_war_settings::disable_for_observer)) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {

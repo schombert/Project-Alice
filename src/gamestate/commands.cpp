@@ -3002,11 +3002,11 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	// disable in SP for now. Maybe could be a game rule later?
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
-	if(state.network_mode == sys::network_mode_type::single_player) {
+	// If disabled in gamerules, you cant
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.command_units, uint8_t(gamerule::command_units_settings::disabled))) {
 		return false;
 	}
 	if(asker == target)

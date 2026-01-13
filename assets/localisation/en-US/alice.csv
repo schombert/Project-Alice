@@ -1803,7 +1803,7 @@ alice_declarewar_truce_with_explain;?Y$NATION$?W: Have truce with ?Y$TARGET$?W. 
 alice_command_units_condition_1;?Y$NATION$?W is our subject
 alice_command_units_condition_2;Both you and the target is at war
 alice_command_units_condition_3;Target is not a player
-alice_command_units_condition_4;Playing singleplayer
+alice_command_units_condition_4;Is enabled in game rules
 free_trade_di;Free trade agreement
 free_trade_offer;$actor$ is offering a free trade agreement, allowing us to trade tariff-free for $years$ years
 alice_original_war_participant_not_in_war;?Y$NATION$?W is no longer in the war
@@ -1834,10 +1834,15 @@ alice_gamerule_fog_of_war;Fog of war
 alice_gamerule_fog_of_war_desc;Specifies whether to enable fog of war (FoW) to obscure vision of neutral/enemy provinces&units
 alice_gamerule_fog_of_war_opt_disabled;Fog of war is OFF
 alice_gamerule_fog_of_war_opt_enabled;Fog of war is ON
+alice_gamerule_fog_of_war_opt_disabled_for_observer; Fog of war is OFF for observer
 alice_gamerule_auto_concession_peace;Auto-peace when conceding wargoals
 alice_gamerule_auto_concession_peace_desc;Specifies whether a conceding peacedeal (ie one side surrenders to ALL added wargoals, or 100 warscore) will always be accepted no matter what
 alice_gamerule_auto_concession_peace_opt_cannot_reject;Conceding peace offers cannot be rejected
 alice_gamerule_auto_concession_peace_opt_can_reject;Conceding peace offers can be rejected
+alice_gamerule_command_units;Command AI puppet units while at war
+alice_gamerule_command_units_opt_disabled;Disabled
+alice_gamerule_command_units_opt_enabled;Enabled
+alice_gamerule_command_units_desc;Specifies whether AI puppet units may be commanded by the player at war
 alice_savegame_incompatible_warning;?RThis savegame is from a diffrent scenario than the currently loaded one. The save may be buggy, fail to load or crash the game.?W
 alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list

@@ -33,12 +33,16 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context) {
 		context.state.hardcoded_gamerules.allow_partial_retreat = create_hardcoded_gamerule(context, "alice_gamerule_allow_partial_retreat", options, uint8_t(context.state.defines.alice_allow_partial_retreat_default_setting));
 	}
 	{
-		std::vector<std::string> options = { "alice_gamerule_fog_of_war_opt_disabled", "alice_gamerule_fog_of_war_opt_enabled" };
+		std::vector<std::string> options = { "alice_gamerule_fog_of_war_opt_disabled", "alice_gamerule_fog_of_war_opt_enabled", "alice_gamerule_fog_of_war_opt_disabled_for_observer" };
 		context.state.hardcoded_gamerules.fog_of_war = create_hardcoded_gamerule(context, "alice_gamerule_fog_of_war", options, uint8_t(context.state.defines.alice_fog_of_war_default_setting));
 	}
 	{
 		std::vector<std::string> options = { "alice_gamerule_auto_concession_peace_opt_cannot_reject", "alice_gamerule_auto_concession_peace_opt_can_reject" };
 		context.state.hardcoded_gamerules.auto_concession_peace = create_hardcoded_gamerule(context, "alice_gamerule_auto_concession_peace", options, uint8_t(context.state.defines.alice_auto_concession_peace_default_setting));
+	}
+	{
+		std::vector<std::string> options = { "alice_gamerule_command_units_opt_disabled", "alice_gamerule_command_units_opt_enabled" };
+		context.state.hardcoded_gamerules.command_units = create_hardcoded_gamerule(context, "alice_gamerule_command_units", options, uint8_t(context.state.defines.alice_command_units_default_setting));
 	}
 }
 
