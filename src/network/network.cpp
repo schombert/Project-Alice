@@ -336,6 +336,85 @@ static int internal_socket_send(socket_t socket_fd, const void *data, size_t n) 
 }
 
 
+
+static void socket_add_to_send_queue(std::vector<char>& buffer, const void* data, size_t n) {
+	buffer.resize(buffer.size() + n);
+	std::memcpy(buffer.data() + buffer.size() - n, data, n);
+}
+
+
+static void disconnect_client(sys::state& state, dcon::client_id client, bool make_ai, disconnect_reason reason) {
+	//std::vector<char> last_send_buffer;
+	assert(client);
+	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(state.world.client_get_mp_player_from_player_client(client));
+	auto& early_send_buffer = state.network_state.server_get_early_send_buffer(client);
+	switch(reason) {
+	case disconnect_reason::incorrect_password:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_wrong_password;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+	case disconnect_reason::name_taken:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_name_taken;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+
+	case disconnect_reason::on_banlist:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_on_banlist;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+	case disconnect_reason::game_has_ended:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_game_ended;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+	case disconnect_reason::game_full:
+	{
+		// since this is during handshake, we send a handshake object back with the fail flag set
+		server_handshake_data hshake;
+		hshake.result = handshake_result::fail_game_full;
+		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
+		break;
+	}
+
+	default:
+	{
+		break;
+	}
+	}
+
+#ifndef NDEBUG
+	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
+	log_player_nations(state);
+#endif
+	state.world.client_set_client_state(client, client_state::flushing);
+	state.world.client_set_shutdown_time(client, time(NULL));
+}
+
+
+void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason) {
+	auto client = state.world.mp_player_get_client_from_player_client(player_id);
+	if(client && !is_scheduled_shutdown(state, client)) {
+		disconnect_client(state, client, make_ai, reason);
+	}
+}
+
+
+
 // Helper function for network command receiving which calls the specified function and cleans up the variables so a new command is ready to be parsed
 template<typename F>
 static inline void finish_command_parsing(command::command_data& command_recv_buffer, fixed_bool_t& receiving_payload, size_t& recv_count, F&& func) {
@@ -363,9 +442,30 @@ static int translate_network_error() {
 #endif
 }
 
+// helper function to copy the command header, and update accociated counters
+static void memcpy_command_header(size_t& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
+	size_t to_read = std::min(sizeof(command::cmd_header) - recv_count, static_cast<size_t>(buf_size_used - bytes_read));
+	std::memcpy(reinterpret_cast<uint8_t*>(&command_recv_buffer) + recv_count, receive_buffer.data() + bytes_read, to_read);
+	recv_count += to_read;
+	bytes_read += static_cast<int>(to_read);
+}
+
+
+// helper function to copy the command payload, and update accociated counters
+static void memcpy_command_payload(size_t& recv_count, int& buf_size_used, int& bytes_read, command::command_data& command_recv_buffer, std::array<uint8_t, RECV_BUFFER_SIZE>& receive_buffer) {
+	auto payload_sz = command_recv_buffer.header.payload_size;
+	size_t to_read = std::min<uint64_t>(payload_sz - recv_count, static_cast<uint64_t>(buf_size_used - bytes_read));
+	std::memcpy(command_recv_buffer.payload.data() + recv_count, receive_buffer.data() + bytes_read, to_read);
+	recv_count += to_read;
+	bytes_read += static_cast<int>(to_read);
+}
+
+
+
+
 // Receives data from the host as client and calls the provided function on each fully parsed command, if any.
 template<typename F>
-static int client_socket_recv_command_new(sys::state& state, F&& func) {
+static int client_socket_recv_command(sys::state& state, F&& func) {
 	auto& command_recv_buffer = state.network_state.command_recv_buffer;
 	auto& receive_buffer = state.network_state.receive_buffer;
 	auto& recv_count = state.network_state.recv_count;
@@ -386,10 +486,7 @@ static int client_socket_recv_command_new(sys::state& state, F&& func) {
 		// bytes_read = how many bytes has been read from the buffer. Once bytes_read == buf_size_used, it will try to receive new data from the socket and insert it to the buffer
 		while(bytes_read != buf_size_used) {
 			if(!receiving_payload) {
-				size_t to_read = std::min(sizeof(command::cmd_header) - recv_count, static_cast<size_t>(buf_size_used - bytes_read)); // memcpy an amount up to the size of the command header. Dont exceed the received bytes (r)
-				std::memcpy(reinterpret_cast<uint8_t*>(&command_recv_buffer) + recv_count, receive_buffer.data() + bytes_read, to_read);
-				recv_count += to_read;
-				bytes_read += to_read;
+				memcpy_command_header(recv_count, buf_size_used, bytes_read, command_recv_buffer, receive_buffer);
 				if(recv_count == sizeof(command::cmd_header)) {
 					recv_count = 0;
 					auto payload_sz = command_recv_buffer.header.payload_size;
@@ -404,7 +501,6 @@ static int client_socket_recv_command_new(sys::state& state, F&& func) {
 						}
 					} else {
 						receiving_payload = false;
-						recv_count = 0;
 						state.console_log("Invalid command received: command_type: " + std::to_string(static_cast<std::underlying_type_t<command::command_type>>(command_recv_buffer.header.type)) + ", payload size: " + std::to_string(payload_sz));
 						state.error_windows.push(ui::error_window{ "disconnected_message_header", "disconnected_message_invalid_command_received_client" });
 						assert(false && "Malformed/invalid command received");
@@ -413,11 +509,8 @@ static int client_socket_recv_command_new(sys::state& state, F&& func) {
 				}
 
 			} else {
+				memcpy_command_payload(recv_count, buf_size_used, bytes_read, command_recv_buffer, receive_buffer);
 				auto payload_sz = command_recv_buffer.header.payload_size;
-				size_t to_read = std::min<uint64_t>(payload_sz - recv_count, static_cast<uint64_t>(buf_size_used - bytes_read));
-				std::memcpy(command_recv_buffer.payload.data() + recv_count, receive_buffer.data() + bytes_read, to_read);
-				recv_count += to_read;
-				bytes_read += to_read;
 				if(recv_count == payload_sz) {
 					finish_command_parsing(command_recv_buffer, receiving_payload, recv_count, func);
 				}
@@ -433,9 +526,10 @@ static int client_socket_recv_command_new(sys::state& state, F&& func) {
 }
 
 
+
 // Receives data from a client as host and calls the provided function on each fully parsed command, if any. May only process up to max_commands before returning
 template<typename F>
-static int host_socket_recv_command_new(sys::state& state, dcon::client_id client, int max_commands, F&& func) {
+static int host_socket_recv_command(sys::state& state, dcon::client_id client, int max_commands, F&& func) {
 	auto& command_recv_buffer = state.network_state.server_get_recv_buffer(client);
 	auto& receive_buffer = state.world.client_get_receive_buffer(client);
 	auto& recv_count = state.world.client_get_recv_count(client);
@@ -457,10 +551,7 @@ static int host_socket_recv_command_new(sys::state& state, dcon::client_id clien
 		int commands_per_tick = 0;
 		while(bytes_read != buf_size_used && commands_per_tick <= max_commands) {
 			if(!receiving_payload) {
-				size_t to_read = std::min(sizeof(command::cmd_header) - recv_count, static_cast<size_t>(buf_size_used - bytes_read)); // memcpy an amount up to the size of the command header. Dont exceed the received bytes (r)
-				std::memcpy(reinterpret_cast<uint8_t*>(&command_recv_buffer) + recv_count, receive_buffer.data() + bytes_read, to_read);
-				recv_count += to_read;
-				bytes_read += to_read;
+				memcpy_command_header(recv_count, buf_size_used, bytes_read, command_recv_buffer, receive_buffer);
 				if(recv_count == sizeof(command::cmd_header)) {
 					recv_count = 0;
 					auto payload_sz = command_recv_buffer.header.payload_size;
@@ -493,11 +584,8 @@ static int host_socket_recv_command_new(sys::state& state, dcon::client_id clien
 				}
 
 			} else {
+				memcpy_command_payload(recv_count, buf_size_used, bytes_read, command_recv_buffer, receive_buffer);
 				auto payload_sz = command_recv_buffer.header.payload_size;
-				size_t to_read = std::min<uint64_t>(payload_sz - recv_count, static_cast<uint64_t>(buf_size_used - bytes_read));
-				std::memcpy(command_recv_buffer.payload.data() + recv_count, receive_buffer.data() + bytes_read, to_read);
-				recv_count += to_read;
-				bytes_read += to_read;
 				if(recv_count == payload_sz) {
 					finish_command_parsing(command_recv_buffer, receiving_payload, recv_count, func);
 					commands_per_tick++;
@@ -608,10 +696,6 @@ inline static int socket_send(socket_t socket_fd, std::vector<char>& buffer, siz
 	return 0;
 }
 
-static void socket_add_to_send_queue(std::vector<char>& buffer, const void *data, size_t n) {
-	buffer.resize(buffer.size() + n);
-	std::memcpy(buffer.data() + buffer.size() - n, data, n);
-}
 
 // Adds to a client send buffer of shared_ptr's as host
 static void socket_add_command_to_send_queue(std::queue<std::shared_ptr<command::command_data>>& buffer, const std::shared_ptr<command::command_data>& data) {
@@ -799,75 +883,6 @@ void clear_socket(sys::state& state, dcon::client_id client) {
 	delete_client(state, client);
 }
 
-
-static void disconnect_client(sys::state& state, dcon::client_id client, bool make_ai, disconnect_reason reason) {
-	//std::vector<char> last_send_buffer;
-	assert(client);
-	auto leaving_player_nation = state.world.mp_player_get_nation_from_player_nation(state.world.client_get_mp_player_from_player_client(client));
-	auto& early_send_buffer = state.network_state.server_get_early_send_buffer(client);
-	switch(reason) {
-	case disconnect_reason::incorrect_password:
-	{
-		// since this is during handshake, we send a handshake object back with the fail flag set
-		server_handshake_data hshake;
-		hshake.result = handshake_result::fail_wrong_password;
-		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
-		break;
-	}
-	case disconnect_reason::name_taken:
-	{
-		// since this is during handshake, we send a handshake object back with the fail flag set
-		server_handshake_data hshake;
-		hshake.result = handshake_result::fail_name_taken;
-		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
-		break;
-	}
-
-	case disconnect_reason::on_banlist:
-	{
-		// since this is during handshake, we send a handshake object back with the fail flag set
-		server_handshake_data hshake;
-		hshake.result = handshake_result::fail_on_banlist;
-		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
-		break;
-	}
-	case disconnect_reason::game_has_ended:
-	{
-		// since this is during handshake, we send a handshake object back with the fail flag set
-		server_handshake_data hshake;
-		hshake.result = handshake_result::fail_game_ended;
-		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
-		break;
-	}
-	case disconnect_reason::game_full:
-	{
-		// since this is during handshake, we send a handshake object back with the fail flag set
-		server_handshake_data hshake;
-		hshake.result = handshake_result::fail_game_full;
-		socket_add_to_send_queue(early_send_buffer, &hshake, sizeof(hshake));
-		break;
-	}
-
-	default:
-	{
-		break;
-	}
-	}
-	
-#ifndef NDEBUG
-	state.console_log("server:disconnectclient | country:" + std::to_string(leaving_player_nation.index()));
-	log_player_nations(state);
-#endif
-	state.world.client_set_client_state(client, client_state::flushing);
-	state.world.client_set_shutdown_time(client, time(NULL));
-}
-
-void disconnect_player(sys::state& state, dcon::mp_player_id player_id, bool make_ai, disconnect_reason reason) {
-	auto client = state.world.mp_player_get_client_from_player_client(player_id);
-	if(client && !is_scheduled_shutdown(state, client)) {
-		disconnect_client(state, client, make_ai, reason);
-	}
-}
 
 
 // Host-only. Sends commands directly to client socket while skipping the command queue. Should be used for utility network commands ONLY. For regular commands use their respective functions
@@ -1783,7 +1798,7 @@ int server_process_handshake(sys::state& state, dcon::client_id client) {
 
 int server_process_client_commands(sys::state& state, dcon::client_id client) {
 
-	int r = host_socket_recv_command_new(state, client, 10, [&](command::command_data& out_cmd) {
+	int r = host_socket_recv_command(state, client, 10, [&](command::command_data& out_cmd) {
 		auto player_id = state.world.client_get_mp_player_from_player_client(client);
 #ifndef NDEBUG
 		const auto now = std::chrono::system_clock::now();
@@ -2294,7 +2309,7 @@ void send_and_receive_commands(sys::state& state) {
 			}
 		} else {
 			// receive commands from the server and immediately execute them
-			int r = client_socket_recv_command_new(state, [&](command::command_data& out_cmd) {
+			int r = client_socket_recv_command(state, [&](command::command_data& out_cmd) {
 
 #ifndef NDEBUG
 				const auto now = std::chrono::system_clock::now();
