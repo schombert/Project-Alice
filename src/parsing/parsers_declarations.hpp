@@ -513,13 +513,15 @@ struct gamerule_option {
 	uint8_t option_id = 0;
 	dcon::gamerule_id gamerule_id;
 	bool default_option = false;
-	dcon::effect_key on_select;
-	dcon::effect_key on_deselect;
+
+	dcon::text_key on_select_lua_function;
+	dcon::text_key on_deselect_lua_function;
 	std::string_view defined_name;
 
 	void name(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
 	void finish(scenario_building_context& context);
-
+	void on_deselect(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
+	void on_select(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context);
 
 };
 

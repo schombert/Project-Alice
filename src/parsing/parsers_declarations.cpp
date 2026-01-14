@@ -5,6 +5,7 @@
 #include "demographics.hpp"
 #include "military_templates.hpp"
 #include "demographics_templates.hpp"
+#include "lua_alice_api.hpp"
 
 namespace parsers {
 
@@ -70,7 +71,7 @@ void scripted_gamerule::option(gamerule_option option, error_handler& err, int32
 		has_default = true;
 	}
 	auto opt_name_key = text::find_or_add_key(context.state, option.defined_name, false);
-	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select, option.on_deselect };
+	options[option.option_id] = sys::gamerule_option{ opt_name_key, option.on_select_lua_function, option.on_deselect_lua_function };
 }
 
 
@@ -92,6 +93,27 @@ void gamerule_option::name(association_type, std::string_view text, error_handle
 
 void gamerule_option::finish(scenario_building_context& context) {
 
+}
+
+void gamerule_option::on_select(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	std::string function_name = std::string(text);
+	if(lua_alice_api::has_named_function(context.state, function_name.c_str())) {
+		on_select_lua_function = text::find_or_add_key(context.state, function_name, false);
+
+	} else {
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. Line " + std::to_string(line) + " in gamerules.txt\n";
+	}
+}
+
+void gamerule_option::on_deselect(association_type, std::string_view text, error_handler& err, int32_t line, scenario_building_context& context) {
+	std::string function_name = std::string(text);
+	if(lua_alice_api::has_named_function(context.state, function_name.c_str())) {
+		on_deselect_lua_function = text::find_or_add_key(context.state, function_name, false);
+
+	}
+	else {
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. Line " + std::to_string(line) + " in gamerules.txt\n";
+	}
 }
 
 void gamerule_file::finish(scenario_building_context& context) {

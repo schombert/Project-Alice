@@ -54,11 +54,12 @@ struct hardcoded_gamerules {
 
 };
 
-void load_hardcoded_gamerules(parsers::scenario_building_context& context);
+void load_hardcoded_gamerules(parsers::scenario_building_context& context, parsers::error_handler& err);
 
 void restore_gamerule_ui_settings(sys::state& state);
 
 void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting);
+void set_gamerule_no_lua_exec(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_setting);
 
 bool check_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t setting);
 
