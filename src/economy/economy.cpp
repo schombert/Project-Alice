@@ -554,10 +554,10 @@ void initialize(sys::state& state) {
 		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(ftid);
 		for(uint32_t i = 0; i < e_inputs.set_size; i++) {
 			if(e_inputs.commodity_type[i]) {
-				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].value] +=
+				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].index()] +=
 					e_inputs.commodity_amounts[i]
 					/ state.world.factory_type_get_base_workforce(ftid);
-				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].value] += 1;
+				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].index()] += 1;
 			}
 		}
 	});
@@ -643,9 +643,9 @@ void initialize(sys::state& state) {
 		dcon::modifier_id climate = fp.get_climate();
 		dcon::modifier_id terrain = fp.get_terrain();
 		dcon::modifier_id continent = fp.get_continent();
-		per_climate_distribution_buffer[climate.value][main_trade_good.value] += 1.f;
-		per_terrain_distribution_buffer[terrain.value][main_trade_good.value] += 1.f;
-		per_continent_distribution_buffer[continent.value][main_trade_good.value] += 1.f;
+		per_climate_distribution_buffer[climate.value][main_trade_good.index()] += 1.f;
+		per_terrain_distribution_buffer[terrain.value][main_trade_good.index()] += 1.f;
+		per_continent_distribution_buffer[continent.value][main_trade_good.index()] += 1.f;
 	});
 
 	// normalisation
@@ -698,9 +698,9 @@ void initialize(sys::state& state) {
 
 			float total = 0.f;
 			state.world.for_each_commodity([&](dcon::commodity_id c) {
-				float climate_d = per_climate_distribution_buffer[climate.value][c.value];
-				float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
-				float continent_d = per_continent_distribution_buffer[continent.value][c.value];
+				float climate_d = per_climate_distribution_buffer[climate.value][c.index()];
+				float terrain_d = per_terrain_distribution_buffer[terrain.value][c.index()];
+				float continent_d = per_continent_distribution_buffer[continent.value][c.index()];
 				float current = (climate_d + terrain_d) * (climate_d + terrain_d) * continent_d;
 				true_distribution[c.index()] = current;
 				total += current;
@@ -709,8 +709,8 @@ void initialize(sys::state& state) {
 			// remove continental restriction if failed:
 			if(total == 0.f) {
 				state.world.for_each_commodity([&](dcon::commodity_id c) {
-					float climate_d = per_climate_distribution_buffer[climate.value][c.value];
-					float terrain_d = per_terrain_distribution_buffer[terrain.value][c.value];
+					float climate_d = per_climate_distribution_buffer[climate.value][c.index()];
+					float terrain_d = per_terrain_distribution_buffer[terrain.value][c.index()];
 					float current = (climate_d + terrain_d) * (climate_d + terrain_d);
 					true_distribution[c.index()] = current;
 					total += current;
