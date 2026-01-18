@@ -5978,7 +5978,7 @@ object {
 object{
 	name{ mp_player }
 	storage_type{ erasable }
-	size{ 200 }
+	size{ 300 }
 	tag { keep_after_state_reload }
 	tag { mp_data }
 
@@ -6031,6 +6031,130 @@ relationship{
 		type{unique}
 	}
 }
+
+
+
+object{
+	name{ client }
+	storage_type{ erasable }
+	size{ 300 }
+	tag { keep_after_state_reload }
+	tag { mp_checksum_excluded }
+
+	property{
+		name{ socket_fd }
+		type{ network::socket_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ address }
+		type{ sockaddr_storage }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ hshake_buffer }
+		type{ network::client_handshake_data }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ recv_count }
+		type{ size_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ total_sent_bytes }
+		type{ size_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ handshake }
+		type{ bitfield }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+
+	property{
+		name{ receive_buffer }
+		type{ std::array<uint8_t,network::RECV_BUFFER_SIZE> }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+
+	property{
+		name{ receiving_payload_flag }
+		type{ fixed_bool_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ recv_buffer_size_used }
+		type{ int }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ recv_buffer_bytes_read }
+		type{ int }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ client_state }
+		type{ network::client_state }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ shutdown_time }
+		type{ time_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ last_seen }
+		type{ sys::date }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ sending_payload }
+		type{ uint8_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+	property{
+		name{ command_send_count }
+		type{ uint32_t }
+		tag { keep_after_state_reload }
+		tag { mp_checksum_excluded }
+	}
+}
+
+
+relationship{
+	name{ player_client }
+	tag { keep_after_state_reload }
+	tag { mp_checksum_excluded }
+	link{
+		object{client}
+		name{client}
+		type{unique}
+	}
+
+	link{
+		object{mp_player}
+		name{mp_player}
+		type{unique}
+	}
+}
+
+
+
 
 load_save{
 	name{store_scenario}

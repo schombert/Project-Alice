@@ -4,16 +4,21 @@
 #include "gui_listbox_templates.hpp"
 #include "gui_templates.hpp"
 #include "system_state.hpp"
+#include "commands.hpp"
 
 namespace ui {
 
 template<bool IsShadow>
 class chat_message_text : public multiline_text_element_base {
 public:
+	void on_create(sys::state& state) noexcept override {
+		multiline_text_element_base::on_create(state);
+		base_data.size.y *= 2; // make space for two lines of text instead of one
+	}
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<chat_message>(state, parent);
 		auto border = base_data.data.text.border_size;
-		auto color = IsShadow ? text::text_color::black : (content.target ? text::text_color::orange : text::text_color::white);
+		auto color = IsShadow ? text::text_color::black : (content.targets_everyone ? text::text_color::white : text::text_color::orange );
 		auto container = text::create_endless_layout(state, 
 			internal_layout,
 			text::layout_parameters{
@@ -48,6 +53,10 @@ public:
 
 class chat_message_entry : public listbox_row_element_base<chat_message> {
 public:
+	void on_create(sys::state& state) noexcept override {
+		listbox_row_element_base<chat_message>::on_create(state);
+		base_data.size.y *= 2; // make space for two lines of text instead of one
+	}
 	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
 		if(name == "shield") {
 			return make_element_by_type<flag_button>(state, id);
@@ -132,8 +141,7 @@ void player_kick_button::on_update(sys::state& state) noexcept {
 
 void player_kick_button::button_action(sys::state& state) noexcept {
 	auto player = retrieve<dcon::mp_player_id>(state, parent);
-	auto nickname = sys::player_name{ state.world.mp_player_get_nickname(player) };
-	command::notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
+	command::notify_player_kick(state, state.world.mp_player_get_nation_from_player_nation(player), false, player);
 }
 
 tooltip_behavior player_kick_button::has_tooltip(sys::state& state) noexcept {
@@ -158,7 +166,7 @@ void player_ban_button::on_update(sys::state& state) noexcept {
 
 void player_ban_button::button_action(sys::state& state) noexcept {
 	auto player =  retrieve<dcon::mp_player_id>(state, parent);
-	command::notify_player_ban(state, state.world.mp_player_get_nation_from_player_nation(player), true, player);
+	command::notify_player_ban(state, state.world.mp_player_get_nation_from_player_nation(player), false, player);
 }
 
 tooltip_behavior player_ban_button::has_tooltip(sys::state& state) noexcept {
@@ -178,9 +186,35 @@ void player_name_text::on_update(sys::state& state) noexcept {
 		auto p = retrieve<dcon::mp_player_id>(state, parent);
 
 		auto nickname = state.world.mp_player_get_nickname(p);
-		set_text(state, sys::player_name{ nickname }.to_string());
+		set_text(state, nickname.to_string());
 	}
 }
+
+void player_name_text::on_create(sys::state& state) noexcept {
+	simple_text_element_base::on_create(state);
+	base_data.size.x -= 45; // Reduce size so that it doesnt overflow into the player status text
+}
+
+tooltip_behavior player_name_text::has_tooltip(sys::state& state) noexcept {
+	return tooltip_behavior::tooltip;
+}
+void player_name_text::update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept {
+	if(state.network_mode == sys::network_mode_type::single_player) {
+		text::add_line(state, contents, text::produce_simple_string(state, "player"));
+	} else {
+		auto p = retrieve<dcon::mp_player_id>(state, parent);
+		auto nickname = state.world.mp_player_get_nickname(p);
+		text::add_line(state, contents, nickname.to_string());
+	}
+}
+
+
+
+
+
+
+
+
 
 class chat_player_ready_state : public color_text_element {
 	void on_update(sys::state& state) noexcept override {
@@ -188,15 +222,18 @@ class chat_player_ready_state : public color_text_element {
 
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
-			set_text(state, text::produce_simple_string(state, "ready"));
+			set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 		}
 		else {
-			if(state.world.mp_player_get_fully_loaded(player)) {
-				color = text::text_color::dark_green;
-				set_text(state, text::produce_simple_string(state, "ready"));
-			} else {
+			if(!state.world.mp_player_get_fully_loaded(player)) {
 				color = text::text_color::yellow;
-				set_text(state, text::produce_simple_string(state, "Loading"));
+				set_text(state, text::produce_simple_string(state, "player_loading_status"));
+			} else if(state.world.mp_player_get_is_oos(player)) {
+				color = text::text_color::red;
+				set_text(state, text::produce_simple_string(state, "player_oos_status"));
+			} else {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 			}
 		}
 		
@@ -219,6 +256,36 @@ public:
 
 };
 
+class chat_player_private_message_icon : public button_element_base {
+	void on_update(sys::state& state) noexcept override {
+		dcon::mp_player_id target_player = retrieve<dcon::mp_player_id>(state, parent);
+		if(state.ui_state.chat_message_recieve_targets[target_player.index()]) {
+			frame = 1;
+		}
+		else {
+			frame = 0;
+		}
+		disabled = (target_player == state.local_player_id);
+	}
+	void button_action(sys::state& state) noexcept override {
+		dcon::mp_player_id target_player = retrieve<dcon::mp_player_id>(state, parent);
+		fixed_bool_t cur_value = state.ui_state.chat_message_recieve_targets[target_player.index()];
+		state.ui_state.chat_message_recieve_targets[target_player.index()] = !cur_value;
+		state.game_state_updated.store(true, std::memory_order_release);
+	}
+	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
+		return tooltip_behavior::variable_tooltip;
+	}
+	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
+		if(disabled) {
+			text::add_line(state, contents, "private_message_btn_disabled_tooltip");
+		}
+		else {
+			text::add_line(state, contents, "private_message_button_tooltip");
+		}
+	}
+};
+
 class chat_player_entry : public listbox_row_element_base<dcon::mp_player_id> {
 public:
 	void on_create(sys::state& state) noexcept override {
@@ -237,6 +304,8 @@ public:
 			return make_element_by_type<player_ban_button>(state, id);
 		} else if(name == "ready_state") {
 			return make_element_by_type<chat_player_ready_state>(state, id);
+		} else if(name == "private_message_toggle") {
+			return make_element_by_type<chat_player_private_message_icon>(state, id);
 		}
 		else {
 			return nullptr;
@@ -252,14 +321,10 @@ protected:
 public:
 	void on_update(sys::state& state) noexcept override {
 		row_contents.clear();
-		if(state.network_mode == sys::network_mode_type::single_player) {
-			row_contents.push_back(dcon::mp_player_id{ });
-		}
-		else {
-			state.world.for_each_mp_player([&](dcon::mp_player_id p) {
-				row_contents.push_back(p);
-			});
-		}
+		state.world.for_each_mp_player([&](dcon::mp_player_id p) {
+			row_contents.push_back(p);
+		});
+		
 		
 		update(state);
 	}
@@ -435,21 +500,11 @@ void chat_edit_box::on_edit_command(sys::state& state, edit_command command, sys
 		if(s.empty())
 			return;
 
-		dcon::nation_id target{};
-		if(s.length() > 4 && s[0] == '@') {
-			state.world.for_each_national_identity([&](dcon::national_identity_id id) {
-				auto curr = nations::int_to_tag(state.world.national_identity_get_identifying_int(id));
-				if(curr == std::string(s).substr(1, 3))
-					target = state.world.national_identity_get_nation_from_identity_holder(id);
-			});
-		}
-
 		char body[max_chat_message_len + 1];
 		size_t len = s.length() >= max_chat_message_len ? max_chat_message_len : s.length();
 		memcpy(body, s.data(), len);
 		body[len] = '\0';
-
-		command::chat_message(state, state.local_player_nation, body, target);
+		command::chat_message(state, state.ui_state.chat_message_recieve_targets, body);
 
 		Cyto::Any payload = this;
 		impl_get(state, payload);

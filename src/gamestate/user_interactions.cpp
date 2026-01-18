@@ -6,6 +6,8 @@
 #include "gui_message_settings_window.hpp"
 #include "gui_message_window.hpp"
 #include "gui_templates.hpp"
+#include "gui_error_window.hpp"
+#include "commands.hpp"
 
 namespace sys {
 
@@ -38,6 +40,15 @@ void on_mouse_wheel(sys::state& state, int32_t x, int32_t y, key_modifiers mod, 
 			state.ui_state.mouse_sensitive_target->set_visible(state, false);
 			state.ui_state.mouse_sensitive_target = nullptr;
 		}
+	}
+}
+
+void process_errorpopup_boxes(sys::state& state) {
+	auto* lr = state.error_windows.front();
+	while(lr) {
+		ui::popup_error_window(state, lr->header_text, lr->description_text);
+		state.error_windows.pop();
+		lr = state.error_windows.front();
 	}
 }
 

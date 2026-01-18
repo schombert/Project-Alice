@@ -648,6 +648,8 @@ void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running)
 		updates_running = true;
 	}
 	if(!slot.update_completed) {
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
 		updates_running = true;
 		if(slot.update(state)) {
 			slot.update_completed = true;
@@ -690,9 +692,6 @@ GLuint request_query(std::vector<GLuint>& ids, std::vector<bool>& free_ids) {
 
 void state::render() { // called to render the frame may (and should) delay returning until the frame is rendered, including
 	// waiting for vsync
-	/*if(!render_semaphore.try_acquire()) {
-		return;
-	}*/
 	if(!current_scene.get_root)
 		return;
 
@@ -708,8 +707,16 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(game_state_was_updated && !current_scene.starting_scene && !ui_state.lazy_load_in_game) {
 		window::change_cursor(*this, window::cursor_type::busy);
 		ui::create_in_game_windows(*this);
-		window::change_cursor(*this, window::cursor_type::normal);
+		window::change_cursor(*this, window::cursor_type::normal_cancel_busy);
 	}
+	// Process queued ui function invocations from command thread
+	auto* queued_func = ui_state.queued_invocations.front();
+	while(queued_func) {
+		(*queued_func->first)(*this, queued_func->second);
+		ui_state.queued_invocations.pop();
+		queued_func = ui_state.queued_invocations.front();
+	}
+
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
 		map_state.map_data.update_borders_mesh();
@@ -788,6 +795,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 		if(current_scene.accept_events) {
 			process_dialog_boxes(*this);
 		}
+		process_errorpopup_boxes(*this);
 		root_elm->impl_on_update(*this);
 
 		current_scene.on_game_state_update_update_ui(*this);
@@ -3192,6 +3200,8 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	nations::update_revanchism(*this);
+	bool old_game_in_prog = current_scene.game_in_progress;
+	current_scene.game_in_progress = true; // Many of the "can_perform_command" functions require the game to be in progress. To avoid any assert trips in presumulation, we set it to be in progress here and reset it later
 	fill_unsaved_data(); // we need this to run triggers
 
 	// Clean up and fixup armies and navies
@@ -3418,6 +3428,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+	current_scene.game_in_progress = old_game_in_prog;
 }
 
 void state::reset_state() {
@@ -3450,6 +3461,9 @@ void state::reset_state() {
 	future_p_event*/
 
 	adjacency_data_out_of_date = true;
+	/*national_cached_values_out_of_date = true;
+	diplomatic_cached_values_out_of_date = true;
+	trade_route_cached_values_out_of_date = true;*/
 
 	dcon::load_record loaded;
 	scenario_size scenario_sz = sizeof_scenario_section(*this);
@@ -3476,6 +3490,33 @@ void state::reset_state() {
 	//deserialize protected state
 	world.deserialize(const_start, reinterpret_cast<std::byte const*>(protected_buffer.get() + protected_size), loaded);
 
+}
+
+void state::push_log_message(std::string&& str) {
+	pending_log_messages.try_enqueue(std::move(str));
+}
+void state::push_log_message(const std::string& str) {
+	pending_log_messages.try_enqueue(str);
+}
+void state::flush_pending_log_messages() {
+	std::string msg;
+	while(pending_log_messages.try_dequeue(msg)) {
+#ifdef _WIN32
+		OutputDebugStringA(msg.c_str());
+		OutputDebugStringA("\n");
+#else
+		std::clog << msg + "\n";
+#endif
+
+		auto folder = simple_fs::get_or_create_data_dumps_directory();
+		msg += "\n";
+		simple_fs::append_file(
+				folder,
+				NATIVE("console_log.txt"),
+				msg.c_str(),
+				uint32_t(msg.size())
+		);
+	}
 }
 
 void state::preload() {
@@ -4779,6 +4820,16 @@ void state::debug_scenario_oos_dump() {
 	}
 }
 
+std::thread state::start_logger_thread() {
+	std::thread thread([this]() {
+		while(quit_signaled.load(std::memory_order::acquire) == false) {
+			this->flush_pending_log_messages();
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));
+		}
+	});
+	return thread;
+}
+
 void state::game_loop() {
 	static int32_t game_speed[] = {
 		0,		// speed 0
@@ -4793,13 +4844,12 @@ void state::game_loop() {
 	game_speed[4] = int32_t(defines.alice_speed_4);
 
 	while(quit_signaled.load(std::memory_order::acquire) == false) {
-
-		std::unique_lock lock(network_state.command_lock);
-		network_state.command_lock_cv.wait(lock, [this] { return !network_state.yield_command_lock; });
-		network::send_and_receive_commands(*this);
-		{
+		if(network_mode == sys::network_mode_type::single_player) {
 			std::lock_guard l{ ugly_ui_game_interaction_hack };
 			command::execute_pending_commands(*this);
+		}
+		else {
+			network::send_and_receive_commands(*this);
 		}
 		if(network_mode == sys::network_mode_type::client) {
 			std::this_thread::sleep_for(std::chrono::milliseconds(15));

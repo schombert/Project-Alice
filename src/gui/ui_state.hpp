@@ -3,8 +3,19 @@
 #include <chrono>
 #include "gui_units.hpp"
 #include "opengl_wrapper_containers.hpp"
+#include "SPSCQueue.h"
+#include "network.hpp"
 
 namespace ui {
+
+union ui_function_argument {
+	uint32_t placeholder;
+
+	ui_function_argument() { };
+
+};
+
+typedef void(*ui_function)(sys::state& state, ui_function_argument arg);
 
 struct state {
 	element_base* under_mouse = nullptr;
@@ -160,6 +171,8 @@ struct state {
 	bool shift_held_down = false;
 	military::special_army_order selected_army_order;
 	ankerl::unordered_dense::map<dcon::gamerule_id, uint8_t, sys::gamerule_hash> gamerule_ui_settings;
+	network::chat_message_targets chat_message_recieve_targets; // Set all to true so that by default messages will reach everyone
+	rigtorp::SPSCQueue<std::pair<ui_function, ui_function_argument>> queued_invocations;
 	bool recently_pressed_resync = false; // flag to prevent clicking the resync button again after already pressing it once
 
 	float last_tick_investment_pool_change;
@@ -173,6 +186,7 @@ struct state {
 	void reposition_tooltip(ui::urect tooltip_bounds, int16_t root_height, int16_t root_width);
 	void handle_map_tooltip(sys::state& state, int16_t max_height);
 	void render_tooltip(sys::state& state, bool follow_mouse, int32_t mouse_x, int32_t mouse_y, int32_t screen_size_x, int32_t screen_size_y, float ui_scale);
+	void invoke_on_ui_thread(ui_function func, ui_function_argument arg = ui_function_argument{ }); // Invoke a function on the UI thread, using a SPSC queue
 
 	state();
 	~state();

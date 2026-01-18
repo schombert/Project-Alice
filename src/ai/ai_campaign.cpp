@@ -3,6 +3,7 @@
 #include "ai_types.hpp"
 #include "prng.hpp"
 #include "system_state.hpp"
+#include "commands.hpp"
 
 namespace ai {
 

@@ -2,6 +2,7 @@
 #include "ai_influence.hpp"
 #include "economy_stats.hpp"
 #include "demographics.hpp"
+#include "commands.hpp"
 
 namespace ai {
 

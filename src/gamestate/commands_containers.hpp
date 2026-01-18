@@ -1,6 +1,7 @@
 #pragma once
 
 #include "events_constants.hpp"
+#include <span>
 
 namespace command {
 enum class command_type : uint8_t;
@@ -11,6 +12,16 @@ struct cmd_header {
 	uint8_t padding = 0;
 	dcon::mp_player_id player_id;
 	uint32_t payload_size = 0;
+	bool operator==(const cmd_header& other) const = default;
+	bool operator!=(const cmd_header& other) const = default;
+
+	cmd_header() { };
+
+	cmd_header(cmd_header&& other) = default;
+	cmd_header(const cmd_header& other) = default;
+
+	cmd_header& operator=(cmd_header&& other) = default;
+	cmd_header& operator=(const cmd_header& other) = default;
 
 };
 static_assert(sizeof(command::cmd_header) == sizeof(command::cmd_header::type) + sizeof(command::cmd_header::padding) + sizeof(command::cmd_header::player_id) + sizeof(command::cmd_header::payload_size));
@@ -27,6 +38,15 @@ struct command_data {
 		header.type = _type;
 		header.player_id = _player_id;
 	};
+
+	command_data(command_data&& other) = default;
+	command_data(const command_data& other) = default;
+
+	command_data& operator=(command_data&& other) = default;
+	command_data& operator=(const command_data& other) = default;
+
+	~command_data() = default;
+
 	// add data to the payload
 	template<typename data_type>
 	friend command_data& operator << (command_data& msg, data_type& data) {
@@ -44,6 +64,7 @@ struct command_data {
 	// adds data from pointer to the payload
 	template<typename data_type>
 	void push_ptr(data_type* ptr, size_t size) {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
 		size_t curr_size = payload.size();
 		payload.resize(payload.size() + sizeof(data_type) * size);
 
@@ -51,7 +72,32 @@ struct command_data {
 
 		header.payload_size = (uint32_t)payload.size();
 	}
+	// adds data from a memory span to payload with a specified size, up to a maximum of vec.size()
+	template<typename data_type>
+	void push_span(const std::span<data_type> vec, size_t size) {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		size = std::min(size, vec.size());
+		size_t curr_size = payload.size();
+		payload.resize(payload.size() + sizeof(data_type) * size);
 
+		std::memcpy(payload.data() + curr_size, vec.data(), sizeof(data_type) * size);
+
+		header.payload_size = (uint32_t)payload.size();
+	}
+	// adds data from a memory span to payload
+	template<typename data_type>
+	void push_span(const std::span<data_type> vec) {
+		push_span(vec, vec.size());
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+	}
+	// adds data from a string to the payload, with a size up to a maximum size of string.size()
+	void push_string(const std::string& string, size_t size) {
+		push_ptr(string.data(), std::min(size, string.size()));
+	}
+	// adds data from a string_view to the payload, with a size up to a maximum size of string_view.size()
+	void push_string_view(std::string_view string_view, size_t size) {
+		push_ptr(string_view.data(), std::min(size, string_view.size()));
+	}
 
 	// grab data from the payload
 	template<typename data_type>
@@ -66,33 +112,62 @@ struct command_data {
 		msg.header.payload_size = (uint32_t)msg.payload.size();
 
 		return msg;
-
-
-
 	}
-	// Makes a copy of the data and returns it
-	/*template<typename data_type>
-	data_type copy_payload() const {
-
-		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
-		static_assert(sizeof(data_type) <= MAX_PAYLOAD_SIZE, "data type used is larger than MAX_PAYLOAD_SIZE. Did you forget to add it?");
-
-		data_type output{ };
-		std::memcpy(&output, payload.data() + (payload.size() - sizeof(data_type)), sizeof(data_type));
-		return output;
-	}*/
-	// returns a reference to the payload of the desired type, starting from the start of the vector
+	// returns a mutable reference to the payload of the desired type, starting from the start of the vector
 	template<typename data_type>
 	data_type& get_payload() {
 		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
 		uint8_t* ptr = payload.data();
 		return reinterpret_cast<data_type&>(*ptr);
 	}
+	// returns a const reference to the payload of the desired type, starting from the start of the vector
+	template<typename data_type>
+	const data_type& get_payload() const {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		const uint8_t* ptr = payload.data();
+		return reinterpret_cast<const data_type&>(*ptr);
+	}
+
 	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes). Returns true if that is the case, false otherwise
 	template<typename data_type>
-	bool check_variable_size_payload(uint32_t expected_size) {
+	bool check_variable_size_payload(size_t expected_size) const {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
 		return expected_size == (payload.size() - sizeof(data_type));
 	}
+	// Checks if the payload of the given type has an additional variable payload of size "expected_size" (in bytes) with the specified offset from the start. Returns true if that is the case, false otherwise
+	template<typename data_type>
+	bool check_variable_size_payload(size_t expected_size, size_t offset) const {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		return expected_size == ((payload.size() - offset) - sizeof(data_type));
+	}
+	// Checks if the payload of the given type has an additional variable payload of atleast size "expected_size" (in bytes). Returns true if that is the case, false otherwise
+	template<typename data_type>
+	bool check_atleast_variable_size_payload(size_t expected_size) const {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		return expected_size <= (payload.size() - sizeof(data_type));
+	}
+
+	// removes "count" items of "data_type" from the vector starting from "offset" at the beginning of the vector. Aka it starts removing the FIRST items added
+	template<typename data_type>
+	void remove_payload_from_begin(size_t count, size_t offset = 0) {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		size_t bytes_to_remove = count * sizeof(data_type);
+		size_t offset_bytes = offset * sizeof(data_type);
+		payload.erase(payload.begin() + offset_bytes, payload.begin() + offset_bytes + bytes_to_remove);
+	}
+	// removes "count" items of "data_type" from the vector starting from "offset" at the end of the vector. Aka it starts removing the LAST items added
+	template<typename data_type>
+	void remove_payload_from_end(size_t count, size_t offset = 0) {
+		static_assert(std::is_standard_layout<data_type>::value, "Data type is too complex");
+		size_t bytes_to_remove = count * sizeof(data_type);
+		size_t offset_bytes = offset * sizeof(data_type);
+		payload.erase(payload.end() - (1 + offset_bytes), payload.end() - (1 + offset_bytes + bytes_to_remove));
+	}
+
+
+
+	bool operator==(const command_data&) const = default;
+	bool operator!=(const command_data&) const = default;
 
 };
 static_assert(sizeof(command_data) == sizeof(command_data::header) + sizeof(command_data::payload));

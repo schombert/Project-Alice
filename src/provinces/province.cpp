@@ -10,6 +10,7 @@
 #include "prng.hpp"
 #include "triggers.hpp"
 #include "economy_stats.hpp"
+#include "events.hpp"
 #include <set>
 
 namespace province {

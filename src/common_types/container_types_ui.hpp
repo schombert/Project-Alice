@@ -40,4 +40,10 @@ struct mouse_probe {
 	xy_pair relative_location;
 };
 
+struct error_window {
+	std::string header_text;
+	std::string description_text;
+
+};
+
 }

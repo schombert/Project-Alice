@@ -5,6 +5,7 @@
 #include "lua_alice_api.hpp"
 #include "economy_production.hpp"
 #include "labour_details.hpp"
+#include "commands.hpp"
 #ifdef __clang__
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wswitch"

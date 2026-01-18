@@ -141,109 +141,23 @@ public:
 		save_item* i = retrieve< save_item*>(state, parent);
 		if(!i->is_new_game && i->file_name == state.loaded_save_file)
 			return;
-
-		window::change_cursor(state, window::cursor_type::busy); //show busy cursor so player doesn't question
-		if(state.ui_state.request_window)
-			static_cast<ui::diplomacy_request_window*>(state.ui_state.request_window)->messages.clear();
-		if(state.ui_state.msg_window)
-			static_cast<ui::message_window*>(state.ui_state.msg_window)->messages.clear();
-		if(state.ui_state.request_topbar_listbox)
-			static_cast<ui::diplomatic_message_topbar_listbox*>(state.ui_state.request_topbar_listbox)->messages.clear();
-		if(state.ui_state.msg_log_window)
-			static_cast<ui::message_log_window*>(state.ui_state.msg_log_window)->messages.clear();
-		for(const auto& win : land_combat_end_popup::land_reports_pool)
-			win->set_visible(state, false);
-		for(const auto& win : naval_combat_end_popup::naval_reports_pool)
-			win->set_visible(state, false);
-		ui::clear_event_windows(state);
-
-		{
-			state.network_state.yield_command_lock = true;
-			std::unique_lock lock{ state.network_state.command_lock };
-			std::vector<dcon::nation_id> no_ai_nations;
-			for(const auto n : state.world.in_nation)
-				if(state.world.nation_get_is_player_controlled(n))
-					no_ai_nations.push_back(n);
-			dcon::nation_id old_local_player_nation = state.local_player_nation;
-			/*state.preload();*/
-			/*state.render_semaphore.acquire();*/
-			state.reset_state();
-			bool loaded = false;
-			if(i->is_new_game) {
-				if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
-					auto msg = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-					ui::popup_error_window(state, "Scenario Error", msg);
-				} else {
-					loaded = true;
-				}
-			} else {
-				if(!sys::try_read_save_file(state, i->file_name)) {
-					auto msg = std::string("Save file ") + simple_fs::native_to_utf8(i->file_name) + " could not be loaded.";
-					ui::popup_error_window(state, "Save Error", msg);
-					state.save_list_updated.store(true, std::memory_order::release); //update savefile list
-					//try loading save from scenario so we atleast have something to work on
-					if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {
-						auto msg2 = std::string("Scenario file ") + simple_fs::native_to_utf8(state.loaded_scenario_file) + " could not be loaded.";
-						ui::popup_error_window(state, "Scenario Error", msg2);
-					} else {
-						loaded = true;
+		if(state.network_mode == sys::network_mode_type::host) {
+			command::notify_player_is_loading(state, state.local_player_id);
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && network::can_add_data(state, client)) {
+					auto player_id = client.get_mp_player_from_player_client();
+					if(player_id) {
+						command::notify_player_is_loading(state, player_id);
 					}
-				} else {
-					loaded = true;
 				}
 			}
-			if(loaded) {
-				/* Updating this flag lets the network state know that we NEED to send the
-				savefile data, otherwise it is safe to assume the client has its own data
-				friendly reminder that, scenario loading and reloading ends up with different outcomes */
-				state.network_state.is_new_game = false;
-				if(state.network_mode == sys::network_mode_type::host) {
-
-
-					// notfy every client that every client is now loading (loading the save)
-					for(auto& loading_client : state.network_state.clients) {
-						if(loading_client.is_active()) {
-							network::notify_player_is_loading(state, loading_client.player_id, true);
-						}
-					}
-
-					/* Save the buffer before we fill the unsaved data */
-					state.local_player_nation = dcon::nation_id{ };
-					//network::place_host_player_after_saveload(state);
-
-					network::write_network_save(state);
-					network::set_no_ai_nations_after_reload(state, no_ai_nations, old_local_player_nation);
-					/* Now fill unsaved data, take checksum of gamestate and send the save + checksum all clients. */
-					state.fill_unsaved_data();
-					state.network_state.current_mp_state_checksum = state.get_mp_state_checksum();
-
-					assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-
-					// set last_seen to current date for all clients, as the save may have a diffrent date than the current one
-					for(auto& client : state.network_state.clients) {
-						client.last_seen = state.current_date;
-					}
-					network::broadcast_save_to_clients(state);
-				} else {
-					// in singleplayer, swap player to the local player nation. local_player_nation is loaded with the save, but we need to update other data too. In MP we keep the same existing nations for each player on saveload
-					nations::switch_all_players(state, state.local_player_nation, old_local_player_nation);
-					state.fill_unsaved_data();
-				}
-			}
-			/* Savefiles might load with new railroads, so for responsiveness we
-			   update whenever one is loaded. */
-			state.set_selected_province(dcon::province_id{});
-			state.map_state.unhandled_province_selection = true;
-			state.railroad_built.store(true, std::memory_order::release);
-			state.sprawl_update_requested.store(true, std::memory_order::release);
-			state.network_state.yield_command_lock = false;
-			lock.unlock();
-			state.network_state.command_lock_cv.notify_one();
+			command::load_save_game(state, simple_fs::native_to_utf8(i->file_name), i->is_new_game);
+			command::notify_save_loaded(state, network::selector_arg{ },false, nullptr);
+			command::notify_player_fully_loaded(state, state.local_player_nation);
 		}
-		state.game_state_updated.store(true, std::memory_order_release);
-		/*state.render_semaphore.release();*/
-
-		window::change_cursor(state, window::cursor_type::normal); //normal cursor now
+		else if(state.network_mode == sys::network_mode_type::single_player) {
+			command::load_save_game(state, simple_fs::native_to_utf8(i->file_name), i->is_new_game);
+		}
 	}
 	void on_update(sys::state& state) noexcept override {
 		save_item* i = retrieve< save_item*>(state, parent);
@@ -622,44 +536,35 @@ public:
 		if(state.network_mode == sys::network_mode_type::client) {
 			//clients cant start the game, only tell that they're "ready"
 		} else {
-			if(command::can_notify_start_game(state, state.local_player_nation)) {
+			if(command::can_notify_start_game(state, state.local_player_nation) && state.network_mode != sys::network_mode_type::client) {
 				if(auto cap = state.world.nation_get_capital(state.local_player_nation); cap) {
 					if(state.map_state.get_zoom() < map::zoom_very_close)
 						state.map_state.zoom = map::zoom_very_close;
 					state.map_state.center_map_on_province(state, cap);
 				}
-				command::notify_start_game(state, state.local_player_nation);
+				command::notify_start_game(state);
+				
 			}
 			
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		disabled = !command::can_notify_start_game(state, state.local_player_nation);
-
-		if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) { //in the middle of a save stream
-				disabled = true;
-			}
-		}
+		disabled = (!command::can_notify_start_game(state, state.local_player_nation) || state.network_mode == sys::network_mode_type::client);
 	}
 
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(state.network_mode == sys::network_mode_type::host) {
 			bool old_disabled = disabled;
-			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
-					disabled = disabled || !client.send_buffer.empty();
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
+					auto& send_buffer = state.network_state.server_get_send_buffer(client);
+					disabled = disabled || !send_buffer.empty();
 				}
 			}
 			button_element_base::render(state, x, y);
 			disabled = old_disabled;
 		} else if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) {
-				set_button_text(state, text::format_percentage(float(state.network_state.recv_count) / float(state.network_state.save_data.size())));
-			} else {
-				set_button_text(state, text::produce_simple_string(state, "ready"));
-			}
 			button_element_base::render(state, x, y);
 		} else {
 			button_element_base::render(state, x, y);
@@ -673,14 +578,13 @@ public:
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		auto box = text::open_layout_box(contents, 0);
 		if(state.network_mode == sys::network_mode_type::client) {
-			if(state.network_state.save_stream) {
-				text::localised_format_box(state, contents, box, std::string_view("alice_play_save_stream"));
-			}
-			for(auto const& client : state.network_state.clients) {
-				if(client.is_active()) {
-					if(!client.send_buffer.empty()) {
+			for(auto client : state.world.in_client) {
+				if(client.is_valid() && !network::is_scheduled_shutdown(state, client)) {
+					auto& send_buffer = state.network_state.server_get_send_buffer(client);
+					if(!send_buffer.empty()) {
+						auto& hshake_buffer = client.get_hshake_buffer();
 						text::substitution_map sub;
-						text::add_to_substitution_map(sub, text::variable_type::playername, client.hshake_buffer.nickname.to_string_view());
+						text::add_to_substitution_map(sub, text::variable_type::playername, hshake_buffer.nickname.to_string_view());
 						text::localised_format_box(state, contents, box, std::string_view("alice_play_pending_client"), sub);
 					}
 				}
@@ -768,24 +672,20 @@ public:
 
 		if(state.network_mode == sys::network_mode_type::single_player) {
 			color = text::text_color::dark_green;
-			set_text(state, text::produce_simple_string(state, "ready"));
-		}
-		else {;
-			if(state.world.mp_player_get_fully_loaded(player)) {
-				color = text::text_color::dark_green;
-				set_text(state, text::produce_simple_string(state, "ready"));
-			} else {
+			set_text(state, text::produce_simple_string(state, "player_loaded_status"));
+		} else {
+			if(!state.world.mp_player_get_fully_loaded(player)) {
 				color = text::text_color::yellow;
-				set_text(state, text::produce_simple_string(state, "Loading"));
+				set_text(state, text::produce_simple_string(state, "player_loading_status"));
+			} else if(state.world.mp_player_get_is_oos(player)) {
+				color = text::text_color::red;
+				set_text(state, text::produce_simple_string(state, "player_oos_status"));
+			} else {
+				color = text::text_color::dark_green;
+				set_text(state, text::produce_simple_string(state, "player_loaded_status"));
 			}
 		}
 
-
-		//if(state.network_mode == sys::network_mode_type::host) {
-		//	// on render
-		//} else {
-		//	set_text(state, text::produce_simple_string(state, "ready"));
-		//}
 	}
 	void render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		//auto n = retrieve<dcon::nation_id>(state, parent);

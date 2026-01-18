@@ -1,8 +1,17 @@
 #pragma once
 #include <stdint.h>
 #include <iterator>
+#include "constants_dcon.hpp"
+
+namespace dcon {
+class client_id;
+class mp_player_id;
+}
 
 namespace sys {
+
+struct state;
+
 enum class virtual_key : uint8_t {
 	NONE = 0x00,
 	LBUTTON = 0x01,
@@ -646,3 +655,14 @@ enum class army_activity {
 namespace text {
 constexpr inline float fixed_to_fp = float(1 << 6); // this constant is used to convert the 26.6 fixed point representation used in many places by fonts to a floating point value
 }
+
+
+
+namespace network {
+	inline constexpr short default_server_port = 1984;
+	constexpr uint8_t MAX_PLAYER_COUNT = 200; // The abseloute max player count allowed in host_settings
+	typedef std::array<fixed_bool_t, network::MAX_PLAYER_COUNT> chat_message_targets;
+	static_assert(sizeof(chat_message_targets) == sizeof(fixed_bool_t[network::MAX_PLAYER_COUNT])); 
+}
+
+

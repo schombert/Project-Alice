@@ -28,7 +28,7 @@ TEST_CASE("run_fresh_lobby", "[determinism]") {
 	std::thread update_thread_client([&]() { client_game_state->game_loop(); });
 	std::this_thread::sleep_for(std::chrono::milliseconds(5000));
 	command::notify_player_picks_nation(*client_game_state, client_game_state->local_player_nation, dcon::nation_id{5 });
-	command::notify_start_game(*host_game_state, host_game_state->local_player_nation);
+	command::notify_start_game(*host_game_state);
 	
 	while(true) {
 		std::cout << "Host date: " << host_game_state->current_date.to_string(host_game_state->start_date);

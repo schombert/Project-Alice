@@ -1930,3 +1930,19 @@ directive_description_rail;Build and upgrade railroads when possible
 directive_description_naval;Build and upgrade naval bases when possible
 directive_description_forts;Build and upgrade forts on national borders when possible
 directive_description_commodity;Prioritize building and upgrading factories producing ?Y$x$?W
+chat_timed_out;$playername$ timed out
+disconnected_message_header;Disconnected
+disconnected_message_name_taken;Your name is taken. Restart and try again with a diffrent name
+disconnected_message_incorrect_password;Incorrect password for this lobby
+disconnected_message_timed_out;Connection timed out
+disconnected_message_kicked;You were kicked from the lobby by the host
+disconnected_message_banned;You were banned from the lobby by the host
+disconnected_message_on_banlist;You are banned from this lobby
+disconnected_message_game_ended;The game has ended
+disconnected_message_game_full;The lobby cannot support more players
+disconnected_message_invalid_command_received_client;Network error: Received an malformed/invalid command from the host. Check log for details
+private_message_btn_disabled_tooltip;You cannot private message yourself
+private_message_button_tooltip;Click to toggle whether this player will receive chat messages from you
+player_loaded_status;Ready
+player_loading_status;Loading
+player_oos_status;OOS

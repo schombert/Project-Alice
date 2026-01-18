@@ -321,6 +321,9 @@ void state::handle_map_tooltip(sys::state& state, int16_t max_height) {
 		tooltip->set_visible(state, false);
 	}
 }
+void state::invoke_on_ui_thread(ui_function func, ui_function_argument arg) {
+	bool discard = queued_invocations.try_push(std::make_pair(func, arg));
+}
 
 void state::render_tooltip(sys::state& state, bool follow_mouse, int32_t mouse_x, int32_t mouse_y, int32_t window_size_x, int32_t window_size_y, float ui_scale) {
 	if(!tooltip->is_visible()) {
