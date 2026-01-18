@@ -82,7 +82,7 @@ void gamerule_option::name(association_type, std::string_view text, error_handle
 	defined_name = text;
 	auto gamerule_opt_it = context.map_of_gamerule_options.find(std::string(text));
 	if(gamerule_opt_it == context.map_of_gamerule_options.end()) {
-		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in map (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
+		err.accumulated_errors += "Could not find previously declared gamerule option " + std::string(text) + " in file (" + err.file_name + ")" + " line" + std::to_string(line) + ". This shouldn't happen, report this as a bug!\n";
 		return;
 	}
 	else {

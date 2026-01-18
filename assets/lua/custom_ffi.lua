@@ -51,6 +51,13 @@ ffi.cdef[[
     int32_t local_player_nation();
 
     void console_log(const char text[]);
+	
+	int32_t get_gamerule_id_by_name(const char gamerule_name[]);
+	bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]);
+	bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id);
+	
+	
+	
 ]]
 
 
@@ -83,6 +90,34 @@ end
 function MILITARY.get_stats(a)
 	return ffi.C.alice_get_unit_stats(a)
 end
+
+
+GAMERULE = {}
+
+---returns the gamerule ID for the gamerule with the supplied name
+---@param the text name of a gamerule
+---@return a gamerule ID, or -1 if there is no gamerule with that name
+function GAMERULE.get_gamerule_id_by_name(gamerule_name)
+	return ffi.C.get_gamerule_id_by_name(gamerule_name);
+end
+
+
+---returns true if the given gamerule has the specified option selected, false otherwise
+---@param the text name of a gamerule
+---@param the text name of a gamerule option to check
+---@return a boolean representing if the specified gamerule option is selected
+function GAMERULE.check_gamerule_option_by_name(gamerule_name, gamerule_option_name)
+	return ffi.C.check_gamerule_option_by_name(gamerule_name, gamerule_option_name);
+end
+
+---returns true if the given gamerule has the specified option selected, false otherwise
+---@param the text name of a gamerule
+---@param the numeric ID of the gamerule option to check.
+---@return a boolean representing if the specified gamerule option is selected
+function GAMERULE.check_gamerule_option_by_id(gamerule_name, opt_id)
+	return ffi.C.check_gamerule_option_by_id(gamerule_name, opt_id);
+end
+
 
 ON_ACTION = {}
 

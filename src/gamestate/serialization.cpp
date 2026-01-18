@@ -1097,6 +1097,8 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 
+		state.on_scenario_load();
+
 		return true;
 	} else {
 		return false;

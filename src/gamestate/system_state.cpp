@@ -3585,6 +3585,14 @@ void state::preload() {
 }
 
 void state::on_scenario_load() {
+
+	// update map of gamerules
+	for(auto gamerule : world.in_gamerule) {
+		if(gamerule.is_valid()) {
+			gamerules_map.insert_or_assign(text::produce_simple_string(*this, gamerule.get_name()), gamerule.id);
+		}
+	}
+
 	world.pop_type_resize_issues_fns(world.issue_option_size());
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());

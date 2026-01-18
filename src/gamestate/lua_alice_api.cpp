@@ -32,6 +32,9 @@ extern "C" {
 	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void console_log(const char message[]);
+	DCON_LUADLL_API int32_t get_gamerule_id_by_name(const char gamerule_name[]);
+	DCON_LUADLL_API bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]);
+	DCON_LUADLL_API bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id);
 }
 
 void console_log(const char message[]) {
@@ -47,6 +50,38 @@ void command_move_army(int32_t unit, int32_t target, bool reset) {
 }
 void command_move_navy(int32_t unit, int32_t target, bool reset) {
 	command::move_navy(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::navy_id{ uint16_t(unit) }, dcon::province_id{ uint16_t(target) }, reset);
+}
+
+
+int32_t get_gamerule_id_by_name(const char gamerule_name[]) {
+	auto iterator = alice_state_ptr->gamerules_map.find(gamerule_name);
+	if(iterator == alice_state_ptr->gamerules_map.end()) {
+		return -1;
+	}
+	else {
+		return iterator->second.index();
+	}
+}
+
+bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]) {
+	auto id_index = get_gamerule_id_by_name(gamerule_name);
+	auto id = dcon::gamerule_id{ dcon::gamerule_id::value_base_t(id_index) };
+	auto& options = alice_state_ptr->world.gamerule_get_options(id);
+	auto current_selected = alice_state_ptr->world.gamerule_get_current_setting(id);
+	auto current_selected_name = text::produce_simple_string(*alice_state_ptr, options[current_selected].name);
+	if(std::strcmp(gamerule_option_name, current_selected_name.c_str()) == 0) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+
+
+bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id) {
+	auto id_index = get_gamerule_id_by_name(gamerule_name);
+	auto id = dcon::gamerule_id{ dcon::gamerule_id::value_base_t(id_index) };
+	return gamerule::check_gamerule(*alice_state_ptr, id, opt_id);
 }
 
 namespace ui {

@@ -736,6 +736,7 @@ struct alignas(64) state {
 	nations::global_national_state national_definitions;
 	province::global_provincial_state province_definitions;
 	gamerule::hardcoded_gamerules hardcoded_gamerules;
+	ankerl::unordered_dense::map<std::string, dcon::gamerule_id> gamerules_map; // map of gamerule name -> gamerule ID. Values are initialized at runtime and used by lua functions to locate gamerules by their script names
 
 	absolute_time_point start_date;
 	absolute_time_point end_date;
