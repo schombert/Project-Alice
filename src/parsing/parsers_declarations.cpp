@@ -101,7 +101,7 @@ void gamerule_option::on_select(association_type, std::string_view text, error_h
 		on_select_lua_function = text::find_or_add_key(context.state, function_name, false);
 
 	} else {
-		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. Line " + std::to_string(line) + " in gamerules.txt\n";
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. (Line " + std::to_string(line) + " in gamerules.txt)\n";
 	}
 }
 
@@ -112,7 +112,7 @@ void gamerule_option::on_deselect(association_type, std::string_view text, error
 
 	}
 	else {
-		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. Line " + std::to_string(line) + " in gamerules.txt\n";
+		err.accumulated_errors += "Lua function " + function_name + " dosen't exist. (Line " + std::to_string(line) + " in gamerules.txt)\n";
 	}
 }
 

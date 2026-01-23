@@ -32,9 +32,11 @@ extern "C" {
 	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void console_log(const char message[]);
-	DCON_LUADLL_API int32_t get_gamerule_id_by_name(const char gamerule_name[]);
-	DCON_LUADLL_API bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]);
-	DCON_LUADLL_API bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id);
+	DCON_LUADLL_API int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]);
+	DCON_LUADLL_API uint8_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]);
+	DCON_LUADLL_API bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id);
+	DCON_LUADLL_API int32_t lua_get_active_gamerule_option(int32_t gamerule_id);
+
 }
 
 void console_log(const char message[]) {
@@ -53,35 +55,20 @@ void command_move_navy(int32_t unit, int32_t target, bool reset) {
 }
 
 
-int32_t get_gamerule_id_by_name(const char gamerule_name[]) {
-	auto iterator = alice_state_ptr->gamerules_map.find(gamerule_name);
-	if(iterator == alice_state_ptr->gamerules_map.end()) {
-		return -1;
-	}
-	else {
-		return iterator->second.index();
-	}
+int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]) {
+	return gamerule::get_gamerule_id_by_name(*alice_state_ptr, std::string_view(gamerule_name)).index();
 }
 
-bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]) {
-	auto id_index = get_gamerule_id_by_name(gamerule_name);
-	auto id = dcon::gamerule_id{ dcon::gamerule_id::value_base_t(id_index) };
-	auto& options = alice_state_ptr->world.gamerule_get_options(id);
-	auto current_selected = alice_state_ptr->world.gamerule_get_current_setting(id);
-	auto current_selected_name = text::produce_simple_string(*alice_state_ptr, options[current_selected].name);
-	if(std::strcmp(gamerule_option_name, current_selected_name.c_str()) == 0) {
-		return true;
-	}
-	else {
-		return false;
-	}
+uint8_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]) {
+	return gamerule::get_gamerule_option_id_by_name(*alice_state_ptr, std::string_view(gamerule_option_name));
 }
 
+bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id) {
+	return gamerule::check_gamerule(*alice_state_ptr, dcon::gamerule_id{ dcon::gamerule_id::value_base_t(gamerule_id) }, opt_id);
+}
 
-bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id) {
-	auto id_index = get_gamerule_id_by_name(gamerule_name);
-	auto id = dcon::gamerule_id{ dcon::gamerule_id::value_base_t(id_index) };
-	return gamerule::check_gamerule(*alice_state_ptr, id, opt_id);
+int32_t lua_get_active_gamerule_option(int32_t gamerule_id) {
+	return static_cast<int32_t>(gamerule::get_active_gamerule_option(*alice_state_ptr, dcon::gamerule_id{ dcon::gamerule_id::value_base_t(gamerule_id) }));
 }
 
 namespace ui {

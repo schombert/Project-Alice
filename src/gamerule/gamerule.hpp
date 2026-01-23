@@ -63,6 +63,13 @@ void set_gamerule_no_lua_exec(sys::state& state, dcon::gamerule_id gamerule, uin
 
 bool check_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t setting);
 
+dcon::gamerule_id get_gamerule_id_by_name(const sys::state& state, std::string_view gamerule_name);
+
+// Returns the gamerule option id with the given name
+uint8_t get_gamerule_option_id_by_name(const sys::state& state, std::string_view gamerule_option_name);
+
+uint8_t get_active_gamerule_option(const sys::state& state, dcon::gamerule_id gamerule);
+
 
 }
 

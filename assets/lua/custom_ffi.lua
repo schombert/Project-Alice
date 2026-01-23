@@ -51,10 +51,12 @@ ffi.cdef[[
     int32_t local_player_nation();
 
     void console_log(const char text[]);
-	
-	int32_t get_gamerule_id_by_name(const char gamerule_name[]);
-	bool check_gamerule_option_by_name(const char gamerule_name[], const char gamerule_option_name[]);
-	bool check_gamerule_option_by_id(const char gamerule_name[], uint8_t opt_id);
+
+    int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]);
+	int32_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]);
+	bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id);
+	int32_t lua_get_active_gamerule_option(int32_t gamerule_id);
+
 	
 	
 	
@@ -98,24 +100,32 @@ GAMERULE = {}
 ---@param the text name of a gamerule
 ---@return a gamerule ID, or -1 if there is no gamerule with that name
 function GAMERULE.get_gamerule_id_by_name(gamerule_name)
-	return ffi.C.get_gamerule_id_by_name(gamerule_name);
+	return ffi.C.lua_get_gamerule_id_by_name(gamerule_name)
 end
 
 
----returns true if the given gamerule has the specified option selected, false otherwise
----@param the text name of a gamerule
----@param the text name of a gamerule option to check
----@return a boolean representing if the specified gamerule option is selected
-function GAMERULE.check_gamerule_option_by_name(gamerule_name, gamerule_option_name)
-	return ffi.C.check_gamerule_option_by_name(gamerule_name, gamerule_option_name);
+---returns a numeric ID for the gamerule option with the supplied name
+---@param the text name of a gamerule option
+---@return a numeric ID for the a matching gamerule option
+function GAMERULE.get_gamerule_option_id_by_name(gamerule_option_name)
+	return ffi.C.check_gamerule_option_by_name(gamerule_option_name)
 end
 
----returns true if the given gamerule has the specified option selected, false otherwise
----@param the text name of a gamerule
+---returns true if the given gamerule has the specified option ID selected, false otherwise
+---@param the numeric ID of the gamerule
 ---@param the numeric ID of the gamerule option to check.
 ---@return a boolean representing if the specified gamerule option is selected
-function GAMERULE.check_gamerule_option_by_id(gamerule_name, opt_id)
-	return ffi.C.check_gamerule_option_by_id(gamerule_name, opt_id);
+function GAMERULE.check_gamerule(gamerule_id, opt_id)
+	return ffi.C.lua_check_gamerule(gamerule_id, opt_id)
+end
+
+
+
+---returns the currently active gamerule option ID for a gamerule ID
+---@param the numeric ID of the gamerule
+---@return a numeric ID representing the active gamerule option
+function GAMERULE.get_active_gamerule_option(gamerule_id)
+	return ffi.C.lua_get_active_gamerule_option(gamerule_id)
 end
 
 

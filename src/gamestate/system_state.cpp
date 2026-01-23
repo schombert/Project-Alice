@@ -3586,10 +3586,16 @@ void state::preload() {
 
 void state::on_scenario_load() {
 
-	// update map of gamerules
+	// update map of gamerules. No gamerules or gamerule options should be added after scenario load, as they themselves are scenario data. The only thing that may change is the active gamerule option
 	for(auto gamerule : world.in_gamerule) {
 		if(gamerule.is_valid()) {
 			gamerules_map.insert_or_assign(text::produce_simple_string(*this, gamerule.get_name()), gamerule.id);
+			const auto& gamerule_options = world.gamerule_get_options(gamerule);
+			auto gamerule_option_count = world.gamerule_get_settings_count(gamerule);
+			for(uint8_t option_id = 0; option_id < gamerule_option_count; option_id++) {
+				gamerule_options_map.insert_or_assign(text::produce_simple_string(*this, gamerule_options[option_id].name), option_id);
+
+			}
 		}
 	}
 

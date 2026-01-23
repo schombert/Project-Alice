@@ -2,6 +2,7 @@
 #include "gamerule.hpp"
 #include "parsers_declarations.hpp"
 #include "lua_alice_api.hpp"
+#include "lua_alice_api_templates.hpp"
 
 
 
@@ -108,9 +109,34 @@ void set_gamerule(sys::state& state, dcon::gamerule_id gamerule, uint8_t new_set
 	}
 	auto on_select_lua_fun = options[new_setting].on_select_lua_function;
 	if(on_select_lua_fun) {
-		lua_alice_api::call_named_function(state, text::produce_simple_string(state, on_select_lua_fun).c_str(), gamerule);
+		auto func_name = text::produce_simple_string(state, on_select_lua_fun);
+		lua_alice_api::call_named_function(state, func_name.c_str(), gamerule);
 	}
 
+}
+
+
+dcon::gamerule_id get_gamerule_id_by_name(const sys::state& state, std::string_view gamerule_name) {
+	auto iterator = state.gamerules_map.find(std::string(gamerule_name));
+	if(iterator == state.gamerules_map.end()) {
+		return dcon::gamerule_id{ };
+	} else {
+		return iterator->second;
+	}
+}
+
+uint8_t get_gamerule_option_id_by_name(const sys::state& state, std::string_view gamerule_option_name) {
+	auto iterator = state.gamerule_options_map.find(std::string(gamerule_option_name));
+	if(iterator == state.gamerule_options_map.end()) {
+		return 0;
+	} else {
+		return int32_t(iterator->second);
+	}
+}
+
+uint8_t get_active_gamerule_option(const sys::state& state, dcon::gamerule_id gamerule) {
+	assert(gamerule);
+	return state.world.gamerule_get_current_setting(gamerule);
 }
 
 
