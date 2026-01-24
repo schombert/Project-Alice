@@ -1810,8 +1810,8 @@ alice_extra_navies_tooltip;+ ?Y$x$?W 更多海军
 alice_pop_details_ln_short;必
 alice_pop_details_en_short;日
 alice_pop_details_lx_short;奢
-alice_pop_details_need_weight;权重
-alice_pop_details_need_weight_tooltip;所选商品预算优先级
+alice_pop_details_need_weight;倾向
+alice_pop_details_need_weight_tooltip;预算优先级
 button_pop_budget;打开预算信息
 pop_budget_details;预算信息
 pop_budget_unemployment;失业补贴
@@ -1923,3 +1923,19 @@ directive_description_naval;尽力建设升级海军基地
 directive_description_forts;尽力建设升级边界要塞
 directive_description_commodity;扩大生产优先 ?Y$x$?W
 pop_migration_culture;人群倾向于迁移到其文化核心地区：$x$
+chat_timed_out;$playername$ 超时
+disconnected_message_header;断开连接
+disconnected_message_name_taken;名称被占用。试试别的名称。
+disconnected_message_incorrect_password;大厅密码错误
+disconnected_message_timed_out;连接超时
+disconnected_message_kicked;你被主持请出大厅
+disconnected_message_banned;你被主持禁入大厅
+disconnected_message_on_banlist;你已被禁入大厅
+disconnected_message_game_ended;游戏结束了
+disconnected_message_game_full;大厅太多玩家
+disconnected_message_invalid_command_received_client;网络错误：收到主机发布的错误或无效命令。查看日志。
+private_message_btn_disabled_tooltip;别自言自语了
+private_message_button_tooltip;点击切换是否接受聊天
+player_loaded_status;准备
+player_loading_status;加载
+player_oos_status;结果偏差（OOS）
