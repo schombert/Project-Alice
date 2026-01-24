@@ -23,8 +23,10 @@ namespace sys {
 
 struct gamerule_option {
 	dcon::text_key name;
-	dcon::effect_key on_select;
-	dcon::effect_key on_deselect;
+
+	dcon::text_key on_select_lua_function;
+	dcon::text_key on_deselect_lua_function;
+
 
 	bool operator==(const gamerule_option& other) const = default;
 	bool operator!=(const gamerule_option& other) const = default;

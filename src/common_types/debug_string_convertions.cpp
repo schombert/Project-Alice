@@ -9,7 +9,7 @@ std::string to_debug_string(const event_option& obj) {
 }
 
 std::string to_debug_string(const gamerule_option& obj)  {
-	return "(name;on_select;on_deselect) => " + std::to_string(obj.name.value) + ";" + std::to_string(obj.on_select.value) + ";" + std::to_string(obj.on_deselect.value);
+	return "(name;on_select_lua_function;on_deselect_lua_function) => " + std::to_string(obj.name.value) + ";" + std::to_string(obj.on_select_lua_function.value) + ";" + std::to_string(obj.on_deselect_lua_function.value);
 }
 
 

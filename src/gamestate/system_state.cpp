@@ -199,7 +199,7 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_framebuffer_for_province_indices(*this);
 	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
 
-	
+
 
 	if(win_state != window::window_state::minimized) {
 		ui_state.for_each_root([&](ui::element_base& elm) {
@@ -209,13 +209,12 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
-		if(current_scene.game_in_progress) {
+		if(current_scene.id == game_scene::scene_id::in_game_production_view) {
 			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 			alice_ui::display_at_front<alice_ui::make_production_rh_view>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
 	}
 }
-
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
@@ -1588,7 +1587,7 @@ void state::load_gamerule_settings() {
 			uint8_t setting = data_ptr[i];
 			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
 			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
-				gamerule::set_gamerule(*this, gamerule, setting);
+				gamerule::set_gamerule_no_lua_exec(*this, gamerule, setting);
 			}
 		}
 	}
@@ -1674,6 +1673,106 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+	// read lua scripts
+	lua_combined_script.clear();
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
+	{
+		// read dcon wrappers
+		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
+		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
+			auto opened_file = open_file(province_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
+		if(hand_written_wrappers) {
+			auto content = view_contents(*hand_written_wrappers);
+			lua_combined_script += content.data;
+			simple_fs::standardize_newlines(lua_combined_script);
+			lua_combined_script += "\n";
+		}
+
+		// read loader for game thread
+		lua_game_loop_script.clear();
+		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
+		if(game_loop) {
+			auto content = view_contents(*game_loop);
+			lua_game_loop_script += content.data;
+			simple_fs::standardize_newlines(lua_game_loop_script);
+			lua_game_loop_script += "\n";
+		}
+
+		// read loader for ui thread
+		lua_ui_script.clear();
+		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
+		if(ui_script) {
+			auto content = view_contents(*ui_script);
+			lua_ui_script += content.data;
+			simple_fs::standardize_newlines(lua_ui_script);
+			lua_ui_script += "\n";
+		}
+
+		// game scripts
+		auto game_scripts_dir = open_directory(assets_lua, NATIVE("game_scripts"));
+		for(auto lua_file : list_files(game_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		// custom scripts
+		auto custom_scripts_dir = open_directory(assets_lua, NATIVE("custom_scripts"));
+		for(auto lua_file : list_files(custom_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+	}
+
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
+		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
+	}
+
+
+
 
 	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
@@ -2002,7 +2101,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	// create the hardcoded gamerules
-	gamerule::load_hardcoded_gamerules(context);
+	gamerule::load_hardcoded_gamerules(context, err);
 	// pre parse scripted gamerules
 	{
 
@@ -3266,13 +3365,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
 		}
 	}
-	// apply effects from gamerule options which are on by default
-	for(auto gamerule : context.state.world.in_gamerule) {
-		if(gamerule.get_settings_count() > 0) {
-			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
-			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
-		}
-	}
 
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
@@ -3282,79 +3374,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
-
-	// read lua scripts
-	lua_combined_script.clear();
-	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
-	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
-	{
-		// read dcon wrappers
-		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
-		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
-			auto opened_file = open_file(province_file);
-			if(opened_file) {
-				auto content = view_contents(*opened_file);
-				lua_combined_script += content.data;
-				simple_fs::standardize_newlines(lua_combined_script);
-				lua_combined_script += "\n";
-			}
-		}
-
-		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
-		if(hand_written_wrappers) {
-			auto content = view_contents(*hand_written_wrappers);
-			lua_combined_script += content.data;
-			simple_fs::standardize_newlines(lua_combined_script);
-			lua_combined_script += "\n";
-		}
-
-		// read loader for game thread
-		lua_game_loop_script.clear();
-		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
-		if(game_loop) {
-			auto content = view_contents(*game_loop);
-			lua_game_loop_script += content.data;
-			simple_fs::standardize_newlines(lua_game_loop_script);
-			lua_game_loop_script += "\n";
-		}
-
-		// read loader for ui thread
-		lua_ui_script.clear();
-		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
-		if(ui_script) {
-			auto content = view_contents(*ui_script);
-			lua_ui_script += content.data;
-			simple_fs::standardize_newlines(lua_ui_script);
-			lua_ui_script += "\n";
-		}
-	}
-
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
-	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
-		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
-	}
 
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
@@ -3566,6 +3585,20 @@ void state::preload() {
 }
 
 void state::on_scenario_load() {
+
+	// update map of gamerules. No gamerules or gamerule options should be added after scenario load, as they themselves are scenario data. The only thing that may change is the active gamerule option
+	for(auto gamerule : world.in_gamerule) {
+		if(gamerule.is_valid()) {
+			gamerules_map.insert_or_assign(text::produce_simple_string(*this, gamerule.get_name()), gamerule.id);
+			const auto& gamerule_options = world.gamerule_get_options(gamerule);
+			auto gamerule_option_count = world.gamerule_get_settings_count(gamerule);
+			for(uint8_t option_id = 0; option_id < gamerule_option_count; option_id++) {
+				gamerule_options_map.insert_or_assign(text::produce_simple_string(*this, gamerule_options[option_id].name), option_id);
+
+			}
+		}
+	}
+
 	world.pop_type_resize_issues_fns(world.issue_option_size());
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());

@@ -1097,6 +1097,8 @@ bool try_read_scenario_file(sys::state& state, native_string_view name) {
 		buffer_pos = with_decompressed_section(buffer_pos,
 				[&](uint8_t const* ptr_in, uint32_t length) { read_scenario_section(ptr_in, ptr_in + length, state); });
 
+		state.on_scenario_load();
+
 		return true;
 	} else {
 		return false;
@@ -1349,7 +1351,7 @@ void write_save_file(sys::state& state, save_type type, std::string const& name,
 		state.cheat_data.supply_dump_buffer.clear();
 	}
 }
-bool try_read_save_file(sys::state& state, native_string_view name) {
+bool try_read_save_file(sys::state& state, native_string_view name, bool ignore_checksum) {
 	auto dir = simple_fs::get_or_create_save_game_directory(state.mod_save_dir);
 	auto save_file = open_file(dir, name);
 	if(save_file) {
@@ -1372,8 +1374,13 @@ bool try_read_save_file(sys::state& state, native_string_view name) {
 		//	return false;
 		//if(state.scenario_time_stamp != header.timestamp)
 		//	return false;
-		if(!state.scenario_checksum.is_equal(header.checksum))
-			return false;
+		// 
+		// check the checksum if we dont want to ignore it, and refuse to load if it mismatches
+		if(!ignore_checksum) {
+			if(!state.scenario_checksum.is_equal(header.checksum))
+				return false;
+		}
+		
 
 		state.loaded_save_file = name;
 

@@ -768,6 +768,7 @@
 	LUA_DEFINES_LIST_ELEMENT(alice_allow_partial_retreat_default_setting, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_fog_of_war_default_setting, 1.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_auto_concession_peace_default_setting, 1.0) \
+	LUA_DEFINES_LIST_ELEMENT(alice_command_units_default_setting, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_render_on_map_generals, 0.0) \
 	LUA_DEFINES_LIST_ELEMENT(alice_economy_presim_days, 730.0) \
 

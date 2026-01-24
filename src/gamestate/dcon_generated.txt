@@ -4366,6 +4366,7 @@ object {
 	property {
 		name{ overlord_commanding_units }
 		type{ bitfield }
+		tag{ save }
 	}
 	property {
 		name{ averge_land_unit_score }

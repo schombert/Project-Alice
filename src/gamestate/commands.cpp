@@ -3002,11 +3002,11 @@ void execute_state_transfer(sys::state& state, dcon::nation_id asker, dcon::nati
 }
 
 bool can_command_units(sys::state& state, dcon::nation_id asker, dcon::nation_id target) {
-	// disable in SP for now. Maybe could be a game rule later?
 	if(!state.current_scene.game_in_progress) {
 		return false;
 	}
-	if(state.network_mode == sys::network_mode_type::single_player) {
+	// If disabled in gamerules, you cant
+	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.command_units, uint8_t(gamerule::command_units_settings::disabled))) {
 		return false;
 	}
 	if(asker == target)
@@ -6343,6 +6343,13 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 				military::give_back_units(state, n);
 			}
 		}
+		else {
+			// If the nation's overlord is NOT a player and their armies are commanded by the overlord, return them since the overlord arent a player anymore
+			auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));
+			if(state.world.nation_is_valid(overlord) && !state.world.nation_get_is_player_controlled(overlord)) {
+				military::give_back_units(state, n);
+			}
+		}
 	}
 	{
 		state.yield_game_state_resetting_lock = true;
@@ -6587,7 +6594,9 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 				return true;
 			}
 		} else {
-			if(!sys::try_read_save_file(state, native_filename)) {
+			// If the user has the show all saves setting on, try to load it no matter the consequence. The user has already been warned
+			bool ignore_checksum = state.user_settings.show_all_saves;
+			if(!sys::try_read_save_file(state, native_filename, ignore_checksum)) {
 				auto msg = std::string("Save file ") + std::string(filename) + " could not be loaded.";
 				auto discard = state.error_windows.try_push(ui::error_window{ "Save Error", msg });
 				state.save_list_updated.store(true, std::memory_order::release); //update savefile list

@@ -32,7 +32,6 @@ std::unique_ptr<sys::state> load_testing_scenario_file(sys::network_mode_type mo
 	if(!sys::try_read_scenario_file(*game_state, NATIVE("tests_scenario.bin"))) {
 		std::abort();
 	} else {
-		game_state->on_scenario_load();
 		INFO("Scenario loaded");
 	}
 
