@@ -743,7 +743,7 @@ cancel_ally_explain_1;你不能取消自己盟约
 cancel_ally_explain_2;拥有至少 $x$ 外交点
 cancel_ally_explain_3;你已结盟
 cancel_ally_explain_4;你不能再加入一场战争
-cancel_ally_explain_5;你不能是目标国傀儡
+cancel_ally_explain_5;你不能是目标国附庸
 ally_explain_1;你不能与自己结盟
 ally_explain_2;你至少有 $x$ 外交点
 ally_explain_3;你目前不可能结盟
@@ -1733,7 +1733,7 @@ alice_declarewar_truce_with_explain;?Y$NATION$?W：休战于 ?Y$TARGET$?W。持�
 alice_command_units_condition_1;?Y$NATION$?W 是我附庸
 alice_command_units_condition_2;你和目标处于战时。
 alice_command_units_condition_3;目标是非玩家
-alice_command_units_condition_4;玩单人游戏
+alice_command_units_condition_4;游戏规则中已启用
 free_trade_di;自由贸易协议
 free_trade_offer;$actor$ 提供了一项自由贸易协议，允许我们在 $years$ 年内免税贸易。
 alice_original_war_participant_not_in_war;?Y$NATION$?W 不再参战
@@ -1939,3 +1939,8 @@ private_message_button_tooltip;点击切换是否接受聊天
 player_loaded_status;准备
 player_loading_status;加载
 player_oos_status;结果偏差（OOS）
+alice_gamerule_fog_of_war_opt_disabled_for_observer;战争迷雾对观察者关闭
+alice_gamerule_command_units;战时指挥AI附庸单位
+alice_gamerule_command_units_opt_disabled;禁用
+alice_gamerule_command_units_opt_enabled;启用
+alice_gamerule_command_units_desc;玩家战时是否可指挥AI附庸单位
