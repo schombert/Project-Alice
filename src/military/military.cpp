@@ -2029,7 +2029,7 @@ float truce_break_cb_infamy(sys::state& state, dcon::cb_type_id t, dcon::nation_
 	return total * state.world.cb_type_get_break_truce_infamy_factor(t);
 }
 
-// Calculate victory points that a province P is worth in the nation N. Used for warscore, occupation rate.
+// US101AC4 Calculate victory points that a province P is worth in the nation N. Used for warscore, occupation rate.
 // This logic is duplicated in province_victory_points_text UI component
 int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation_id n) {
 	/*
@@ -6491,6 +6491,7 @@ float relative_attrition_amount(sys::state& state, dcon::army_id a, dcon::provin
 
 	auto max_attrition = std::max(0.f, state.world.province_get_modifier_values(prov, sys::provincial_mod_offsets::max_attrition));
 
+	// US101AC3 Forts increase hostile siege attrition by state.defines.alice_fort_siege_attrition_per_level per level
 	float siege_attrition = 0.0f;
 	if(state.world.province_get_siege_progress(prov) > 0.f) {
 		siege_attrition = state.defines.siege_attrition + hostile_fort * state.defines.alice_fort_siege_attrition_per_level;
@@ -6859,7 +6860,7 @@ float get_reg_org_damage(sys::state& state, dcon::regiment_id damage_dealer, dco
 	}
 	return dmg_dealer_str * (org_dam_mul / receiver_max_org_divisor) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers / (fort_mod * dmg_receiver_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::land_organisation)) * (1.0f + receiver_exp));
 }
-// defines the general algorithm for getting the effective fort level with said amount of total strength of units who are enemies with the fort controller,
+// US101AC5 defines the general algorithm for getting the effective fort level with said amount of total strength of units who are enemies with the fort controller,
 // total strength of siege units who are enemies with the fort controller, and the highest siege stat among them.
 int32_t get_effective_fort_level(sys::state& state, dcon::province_id location, float total_strength, float strength_siege_units, float max_siege_value) {
 	/*
@@ -9047,7 +9048,7 @@ void update_siege_progress(sys::state& state) {
 			assert(bool(first_army));
 
 			/*
-			We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
+			US101AC5 We find the effective level of the fort by subtracting: (rounding this value down to to the nearest integer)
 			greatest-siege-value-present x
 			((the ratio of the strength of regiments with siege present to the total strength of all regiments) ^
 			define:ENGINEER_UNIT_RATIO) / define:ENGINEER_UNIT_RATIO, reducing it to a minimum of 0.
@@ -9056,7 +9057,7 @@ void update_siege_progress(sys::state& state) {
 			int32_t effective_fort_level = get_effective_fort_level(state, prov, total_sieging_strength, strength_siege_units, max_siege_value);
 
 			/*
-			We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the
+			US101AC6. We calculate the siege speed modifier as: 1 + define:RECON_SIEGE_EFFECT x greatest-reconnaissance-value-present x ((the
 			ratio of the strength of regiments with reconnaissance present to the total strength of all regiments) ^
 			define:RECON_UNIT_RATIO) / define:RECON_UNIT_RATIO.
 			*/
@@ -9090,7 +9091,7 @@ void update_siege_progress(sys::state& state) {
 
 			float added_progress = siege_speed_modifier * num_brigades_modifier *
 				progress_table[rng::get_random(state, uint32_t(prov.value)) % 10] *
-				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / (effective_fort_level * state.defines.alice_fort_siege_slowdown + 1.0f);
+				(owner_involved ? 1.25f : (core_owner_involved ? 1.1f : 1.0f)) / (effective_fort_level * state.defines.alice_fort_siege_slowdown + 1.0f); // US101AC2 Forts reduce siege speed by alice_fort_siege_slowdown factor (0.75 by default) per level.
 
 			auto& progress = state.world.province_get_siege_progress(prov);
 			state.world.province_set_siege_progress(prov, progress + siege_speed_mul * added_progress);
