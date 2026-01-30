@@ -35,3 +35,13 @@
 
 # US18 Ships repairs
 
+# US101 Sieges and Occupations
+
+| AC1 | Forts are built once with construction cost of some goods comparable to an extra factory level. |
+| AC2 | Forts reduce siege speed by alice_fort_siege_slowdown factor (0.75 by default) per level. |
+| AC3 | Forts increase hostile siege attrition by state.defines.alice_fort_siege_attrition_per_level per level (0.35 by default). | 
+| AC4 | Forts moderately impact victory points score of a province (+1 per fort level). |
+| AC5 | Engineers reduce the effective fort level. Number of engineers required to reduce by 1 level depends on the sieging army size. At least state.defines.engineer_unit_ratio required (0.1 by default) |
+| AC6 | Recon units increase occupation speed of any province. At least state.defines.recon_unit_ratio is required (0.1 by default) |
+| AC7 | Nation sieges its owned provinces 25% faster. |
+| AC8 | Nation sieges its core provinces 10% faster. |
