@@ -555,10 +555,10 @@ void initialize(sys::state& state) {
 		auto& e_inputs = state.world.factory_type_get_efficiency_inputs(ftid);
 		for(uint32_t i = 0; i < e_inputs.set_size; i++) {
 			if(e_inputs.commodity_type[i]) {
-				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].index()] +=
+				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].value] +=
 					e_inputs.commodity_amounts[i]
 					/ state.world.factory_type_get_base_workforce(ftid);
-				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].index()] += 1;
+				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].value] += 1;
 			}
 		}
 	});
@@ -598,21 +598,21 @@ void initialize(sys::state& state) {
 	// generate commodity set:
 	economy::commodity_set base_rgo_e_inputs { };
 
-	if(most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ uint8_t(most_common_value - 1) };
+	if(most_common_count > 0 && most_common_value != 0) {
+		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ dcon::commodity_id::value_base_t(most_common_value - 1) };
 		base_rgo_e_inputs.commodity_amounts[0] =
 			rgo_efficiency_inputs_amount[most_common_value]
 			/ (float)most_common_count * 0.005f;
 	}
-	if(second_most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ uint8_t(second_most_common_value - 1) };
+	if(second_most_common_count > 0 && second_most_common_value != 0) {
+		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ dcon::commodity_id::value_base_t(second_most_common_value - 1) };
 		base_rgo_e_inputs.commodity_amounts[1] =
 			rgo_efficiency_inputs_amount[second_most_common_value]
 			/ (float)second_most_common_count * 0.005f;
 	}
 
-	if(third_most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ uint8_t(third_most_common_value - 1) };
+	if(third_most_common_count > 0 && third_most_common_value != 0) {
+		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ dcon::commodity_id::value_base_t(third_most_common_value - 1) };
 		base_rgo_e_inputs.commodity_amounts[2] =
 			rgo_efficiency_inputs_amount[third_most_common_value]
 			/ (float)third_most_common_count * 0.005f;
