@@ -1294,7 +1294,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(trigger_data.data() + 1, trigger_data.data() + trigger_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
 		auto const start = search_result - trigger_data.data();
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
@@ -1328,7 +1328,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(effect_data.data() + 1, effect_data.data() + effect_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != effect_data.data() + effect_data.size()) {
 		auto const start = search_result - effect_data.data();
 		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
