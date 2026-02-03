@@ -11,6 +11,7 @@
 #include "economy.hpp"
 #include "province.hpp"
 #include "immediate_mode.hpp"
+#include "commands.hpp"
 
 
 namespace economy_viewer {

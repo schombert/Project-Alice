@@ -25,7 +25,8 @@
 #include "notifications.hpp"
 #include "map_state.hpp"
 #include "immediate_mode_state.hpp"
-#include "network.hpp"
+#include "network_containers.hpp"
+#include "container_types_ui.hpp"
 
 namespace game_scene {
 scene_properties nation_picker();
@@ -766,7 +767,7 @@ struct alignas(64) state {
 	uint32_t scenario_counter = 0;		// for identifying the scenario file
 	int32_t autosave_counter = 0; // which autosave file is next
 	sys::checksum_key scenario_checksum;// for checksum for savefiles
-	sys::checksum_key session_host_checksum;// for checking that the client can join a session
+	sys::checksum_key session_host_checksum;// checksum of the MP state sent by the host when needed.
 	native_string mod_save_dir;
 	native_string loaded_scenario_file;
 	native_string loaded_save_file;
@@ -913,7 +914,7 @@ struct alignas(64) state {
 	std::atomic<bool> save_list_updated = false;                     // game state -> ui signal
 	std::atomic<bool> quit_signaled = false;                         // ui -> game state signal
 	std::atomic<int32_t> actual_game_speed = 0;                      // ui -> game state message
-	rigtorp::SPSCQueue<command::command_data> incoming_commands;          // ui or network -> local gamestate
+	rigtorp::SPSCQueue<command::command_data> singleplayer_commands;          // ui -> local gamestate
 	std::atomic<bool> ui_pause = false;                              // force pause by an important message being open
 	std::atomic<bool> railroad_built = true; // game state -> map
 	std::atomic<bool> sprawl_update_requested = true;
@@ -931,6 +932,11 @@ struct alignas(64) state {
 	rigtorp::SPSCQueue<notification::message> new_messages;
 	rigtorp::SPSCQueue<military::naval_battle_report> naval_battle_reports;
 	rigtorp::SPSCQueue<military::land_battle_report> land_battle_reports;
+	rigtorp::SPSCQueue<ui::error_window> error_windows;
+
+	std::thread logger_thread;
+
+	moodycamel::ConcurrentQueue<std::string> pending_log_messages;
 
 	// internal game timer / update logic
 	std::chrono::time_point<std::chrono::steady_clock> last_update = std::chrono::steady_clock::now();
@@ -978,10 +984,9 @@ struct alignas(64) state {
 	int32_t type_text_key = -1;
 	int32_t type_localized_key = -1;
 
-
-	std::mutex ui_lock; // lock for rendering the ui, when this is locked no rendering updates will occur
-	std::condition_variable ui_lock_cv;
-	bool yield_ui_lock = false;
+	std::shared_mutex game_state_resetting_lock; // THe update thread acquires an exclusive lock for this mutex when the gamestate is resetting/loading and is thus not safe to read from in other threads. Other threads should acquire a shared_lock when reading
+	std::condition_variable_any game_state_resetting_cv;
+	bool yield_game_state_resetting_lock = false;
 
 	// the following functions will be invoked by the window subsystem
 
@@ -1005,10 +1010,16 @@ struct alignas(64) state {
 	bool send_edit_mouse_move(int32_t x, int32_t y, bool extend_selection);
 	text_mouse_test_result detailed_text_mouse_test(int32_t x, int32_t y);
 	void render(); // called to render the frame may (and should) delay returning until the frame is rendered, including waiting for vsync
+	std::thread start_logger_thread();
 
 	void single_game_tick();
 	// this function runs the internal logic of the game. It will return *only* after a quit notification is sent to it
 	void game_loop();
+
+	void push_log_message(std::string&& str);
+	void push_log_message(const std::string& str);
+	void flush_pending_log_messages();
+
 	sys::checksum_key get_save_checksum();
 	sys::checksum_key get_mp_state_checksum(); // gets the checksum of the ENTIRE multiplayer state which is not strictly local
 	checksum_key get_scenario_checksum();
@@ -1048,12 +1059,17 @@ struct alignas(64) state {
 	dcon::trigger_key commit_trigger_data(std::vector<uint16_t> data);
 	dcon::effect_key commit_effect_data(std::vector<uint16_t> data);
 
-	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), incoming_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256) {
+	state() : untrans_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), locale_key_to_text_sequence(0, text::vector_backed_ci_hash(key_data), text::vector_backed_ci_eq(key_data)), current_scene(game_scene::nation_picker()), singleplayer_commands(4096), new_n_event(1024), new_f_n_event(1024), new_p_event(1024), new_f_p_event(1024), new_requests(256), new_messages(2048), naval_battle_reports(256), land_battle_reports(256), error_windows(256), pending_log_messages(256) {
+
 
 		key_data.push_back(0);
+		logger_thread = start_logger_thread(); // create logger thread to handle incoming log message asynchronously
 	}
 
-	~state() = default;
+	~state() {
+		quit_signaled.store(true, std::memory_order::release);
+		logger_thread.join(); // wait for logger thread to quit after signalling
+	}
 
 	void save_user_settings() const;
 	void load_user_settings();

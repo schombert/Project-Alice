@@ -12,6 +12,10 @@ using json = nlohmann::json;
 
 namespace webui {
 
+/*
+Convention: pass id.index() for references (-1 for invalid value) and convert indexes back into values on client-side (0 for invalid value)
+*/
+
 json format_color(sys::state& state, uint32_t c) {
 	json j = json::object();
 
@@ -19,6 +23,16 @@ json format_color(sys::state& state, uint32_t c) {
 	j["g"] = sys::int_green_from_int(c);
 	j["b"] = sys::int_blue_from_int(c);
 
+	return j;
+}
+
+json format_date(sys::state& state, sys::date date) {
+	json j = json::object();
+	auto dt = date.to_ymd(state.start_date);
+	j["year"] = dt.year;
+	j["month"] = dt.month;
+	j["day"] = dt.day;
+	j["date"] = std::to_string(dt.day) + "." + std::to_string(dt.month) + "." + std::to_string(dt.year);
 
 	return j;
 }
@@ -60,7 +74,7 @@ json format_commodity(sys::state& state, dcon::commodity_id c) {
 json format_commodity_link(sys::state& state, dcon::commodity_id c) {
 	json j = json::object();
 
-	j["id"] = c.index();;
+	j["id"] = c.index();
 	j["name"] = text::produce_simple_string(state, state.world.commodity_get_name(c));
 	j["key"] = state.to_string_view(state.world.commodity_get_name(c));
 	j["color"] = format_color(state, state.world.commodity_get_color(c));
@@ -80,7 +94,7 @@ json format_nation(sys::state& state, dcon::nation_id n) {
 	j["color"] = format_color(state, color);
 
 	auto capital = state.world.nation_get_capital(n);
-	j["capital"] = format_province_link(state, capital);
+	j["capital"] = capital.id.index();
 
 	json jlist = json::array();
 	for(auto st : state.world.in_state_instance) {
@@ -223,8 +237,10 @@ json format_province(sys::state& state, dcon::province_id pid) {
 	j["name"] = province_name;
 	j["provid"] = state.world.province_get_provid(prov);
 
-	j["owner"] = format_nation_link(state, owner);
-	j["state"] = format_state_link(state, sid);
+	if(owner) {
+		j["owner"] = owner.index(); // format_nation_link(state, owner);
+	}
+	// j["state"] = format_state_instance_link(state, sid);
 
 	j["x"] = state.world.province_get_mid_point(prov).x;
 	j["y"] = state.world.province_get_mid_point(prov).y;
@@ -270,7 +286,7 @@ json format_province(sys::state& state, dcon::province_id pid) {
 			if(economy::rgo_max_employment(state, c, prov) > 100.f) {
 				json t = json::object();
 
-				t["commodity"] = format_commodity_link(state, c);
+				t["commodity"] = c.id.index();
 
 				t["max_employment"] = economy::rgo_max_employment(state, c, prov);
 
@@ -286,7 +302,7 @@ json format_province(sys::state& state, dcon::province_id pid) {
 				t["employment"]["no_education"]["target"] = int(target_employment);
 				t["employment"]["no_education"]["satisfaction"] = satisfaction;
 				t["employment"]["no_education"]["actual"] = int(target_employment * satisfaction);
-				t["employment"]["no_education"]["wage"] = state.world.province_get_labor_price(prov, economy::labor::no_education);
+				t["employment"]["no_education"]["wage"] = double(state.world.province_get_labor_price(prov, economy::labor::no_education));
 				t["employment"]["no_education"]["max"] = int(economy::rgo_max_employment(state, c, prov));
 
 				bool const is_mine = state.world.commodity_get_is_mine(c);
@@ -311,7 +327,9 @@ json format_province(sys::state& state, dcon::province_id pid) {
 		json jlist = json::array();
 		for(auto floc : state.world.in_factory_location) {
 			if(floc.get_province() == prov) {
-				jlist.push_back(format_factory(state, floc.get_factory()));
+				// jlist.push_back(format_factory(state, floc.get_factory()));
+				auto fid = floc.get_factory().id.index();
+				jlist.push_back(fid);
 			}
 		}
 		j["factories"] = jlist;
@@ -446,5 +464,136 @@ json format_wargoal(sys::state& state, sys::full_wg wid) {
 
 	return j;
 }
+
+json format_ship(sys::state& state, dcon::ship_id id) {
+	json j = json::object();
+
+	j["id"] = id.index();
+
+	// j["name"] = text::produce_simple_string(state, state.world.ship_get_name(id));
+	j["type"] = state.world.ship_get_type(id).value;
+	j["strength"] = state.world.ship_get_strength(id);
+	j["org"] = state.world.ship_get_org(id);
+	j["pending_split"] = state.world.ship_get_pending_split(id);
+	j["experience"] = state.world.ship_get_experience(id);
+	return j;
+
+}
+json format_army(sys::state& state, dcon::army_id id) {
+	json j = json::object();
+
+	j["id"] = id.index();
+	j["name"] = state.to_string_view(state.world.army_get_name(id));
+
+	j["location"] = (int32_t) state.world.army_get_location_from_army_location(id).index();
+
+	j["black_flag"] = state.world.army_get_black_flag(id);
+	j["is_retreating"] = state.world.army_get_is_retreating(id);
+	j["is_rebel_hunter"] = state.world.army_get_is_rebel_hunter(id);
+	j["moving_to_merge"] = state.world.army_get_moving_to_merge(id);
+	j["special_order"] = state.world.army_get_special_order(id);
+	j["dig_in"] = state.world.army_get_dig_in(id);
+	j["path"] = json::array();
+	for(auto p : state.world.army_get_path(id)) {
+		j["path"].push_back((int32_t)p.index());
+	}
+	j["arrival_time"] = format_date(state, state.world.army_get_arrival_time(id));
+	j["unused_travel_days"] = state.world.army_get_unused_travel_days(id);
+	// j["ai_activity"] = state.world.army_get_ai_activity(id);
+	// j["ai_province"] = state.world.army_get_ai_province(id);
+	j["is_ai_controlled"] = state.world.army_get_is_ai_controlled(id);
+
+	j["regiments"] = json::array();
+	for(const auto am : state.world.army_get_army_membership(id)) {
+		auto rid = am.get_regiment();
+		j["regiments"].push_back(rid.id.index());
+	}
+	
+	return j;
+
+}
+json format_navy(sys::state& state, dcon::navy_id id) {
+	json j = json::object();
+
+	j["id"] = id.index();
+	j["name"] = state.to_string_view(state.world.navy_get_name(id));
+	j["path"] = json::array();
+
+	j["location"] = (int32_t)state.world.navy_get_location_from_navy_location(id).index();
+
+	for(auto p : state.world.navy_get_path(id)) {
+		j["path"].push_back((int32_t)p.index());
+	}
+	j["arrival_time"] = format_date(state, state.world.navy_get_arrival_time(id));
+	j["unused_travel_days"] = state.world.navy_get_unused_travel_days(id);
+	j["months_outside_naval_range"] = state.world.navy_get_months_outside_naval_range(id);
+	j["is_retreating"] = state.world.navy_get_is_retreating(id);
+	j["moving_to_merge"] = state.world.navy_get_moving_to_merge(id);
+	j["ai_activity"] = state.world.navy_get_ai_activity(id);
+
+	j["ships"] = json::array();
+	for(const auto am : state.world.navy_get_navy_membership(id)) {
+		auto rid = am.get_ship();
+		j["ships"].push_back(rid.id.index());
+	}
+	return j;
+
+}
+
+json format_regiment(sys::state& state, dcon::regiment_id id) {
+	json j = json::object();
+
+	j["id"] = id.index();
+	j["name"] = text::produce_simple_string(state, state.to_string_view(state.world.regiment_get_name(id)));
+
+	// Non-localised type name and id
+	auto type = state.world.regiment_get_type(id);
+	j["type_name"] = state.to_string_view(state.military_definitions.unit_base_definitions[type].name);
+	j["type_id"] = type.index();
+
+	j["strength"] = state.world.regiment_get_strength(id);
+	j["pending_combat_damage"] = state.world.regiment_get_pending_combat_damage(id);
+	j["pending_attrition_damage"] = state.world.regiment_get_pending_attrition_damage(id);
+	j["org"] = state.world.regiment_get_org(id);
+	j["pending_split"] = state.world.regiment_get_pending_split(id);
+	j["experience"] = state.world.regiment_get_experience(id);
+	return j;
+}
+
+json format_unit_type(sys::state& state, dcon::unit_type_id id) {
+	json j = json::object();
+
+	auto type = state.military_definitions.unit_base_definitions[id];
+
+	j["id"] = id.index();
+	j["name"] = state.to_string_view(type.name);
+
+	j["attack_or_gun_power"] = type.attack_or_gun_power;
+	j["build_cost"] = format_commodity_set(state, type.build_cost);
+	j["build_time"] = type.build_time;
+	j["can_build_overseas"] = type.can_build_overseas;
+	j["capital"] = type.capital;
+	j["colonial_points"] = type.colonial_points;
+	j["default_organisation"] = type.default_organisation;
+	j["defence_or_hull"] = type.defence_or_hull;
+	j["discipline_or_evasion"] = type.discipline_or_evasion;
+	j["is_land"] = type.is_land;
+	j["maneuver"] = type.maneuver;
+	j["maximum_speed"] = type.maximum_speed;
+	j["min_port_level"] = type.min_port_level;
+	j["naval_icon"] = type.naval_icon;
+	j["primary_culture"] = type.primary_culture;
+	j["reconnaissance_or_fire_range"] = type.reconnaissance_or_fire_range;
+	j["siege_or_torpedo_attack"] = type.siege_or_torpedo_attack;
+	j["supply_consumption"] = type.supply_consumption;
+	j["supply_consumption_score"] = type.supply_consumption_score;
+	j["supply_cost"] = format_commodity_set(state, type.supply_cost);
+	j["support"] = type.support;
+
+	return j;
+
+}
+
+
 
 }

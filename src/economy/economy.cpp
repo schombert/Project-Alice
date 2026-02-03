@@ -20,7 +20,8 @@
 #include "money.hpp"
 #include "economy_constants.hpp"
 #include "economy_factory_view.hpp"
-
+#include "events.hpp"
+#include "commands.hpp"
 
 namespace economy {
 

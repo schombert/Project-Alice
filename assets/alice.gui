@@ -5260,6 +5260,14 @@ guiTypes = {
 		textureFile = ""
 		font = "vic_18_black"
 	}
+	
+	iconType = {
+            name = "private_message_toggle"
+			extends = "ingame_multiplayer_entry"
+            spriteType = "GFX_messageicon_icon"
+            position = { x=6 y =5}
+            Orientation = "UPPER_LEFT"
+        } 
 
 	guiButtonType = {
 		name = "button_ban"

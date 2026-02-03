@@ -3042,7 +3042,7 @@ std::unique_ptr<element_base> make_element(sys::state& state, std::string_view n
 	return std::unique_ptr<element_base>{};
 }
 
-state::state() {
+state::state() : queued_invocations(512) {
 	units_root = std::make_unique<container_base>();
 	rgos_root = std::make_unique<container_base>();
 	province_details_root = std::make_unique<container_base>();
@@ -3053,6 +3053,7 @@ state::state() {
 	root_production_view = std::make_unique<container_base>();
 	tooltip = std::make_unique<tool_tip>();
 	tooltip->flags |= element_base::is_invisible_mask;
+	chat_message_recieve_targets.fill(true);
 }
 
 state::~state() = default;

@@ -1017,15 +1017,15 @@ public:
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		if(state.network_mode == sys::network_mode_type::host) {
-			for(auto& pl : state.network_state.clients) {
-				if(!pl.is_active()) {
-					continue;
-				}
+			for(auto pl : state.world.in_client) {
+				auto& hshake_buffer = state.world.client_get_hshake_buffer(pl);
+				auto mp_player = state.world.client_get_mp_player_from_player_client(pl);
+				auto last_seen = state.world.client_get_last_seen(pl);
 				text::substitution_map sub{};
 
-				text::add_to_substitution_map(sub, text::variable_type::name, pl.hshake_buffer.nickname.to_string_view());
-				text::add_to_substitution_map(sub, text::variable_type::country, state.world.mp_player_get_nation_from_player_nation(pl.player_id));
-				text::add_to_substitution_map(sub, text::variable_type::date, pl.last_seen);
+				text::add_to_substitution_map(sub, text::variable_type::name, hshake_buffer.nickname.to_string_view());
+				text::add_to_substitution_map(sub, text::variable_type::country, state.world.mp_player_get_nation_from_player_nation(mp_player));
+				text::add_to_substitution_map(sub, text::variable_type::date, last_seen);
 
 				auto box = text::open_layout_box(contents);
 				text::localised_format_box(state, contents, box, "alice_player_date_sync", sub);

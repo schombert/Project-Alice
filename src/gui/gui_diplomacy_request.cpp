@@ -3,6 +3,7 @@
 #include "diplomatic_messages.hpp"
 #include "gui_diplomacy_request_templates.hpp"
 #include "gui_templates.hpp"
+#include "commands.hpp"
 
 namespace ui {
 

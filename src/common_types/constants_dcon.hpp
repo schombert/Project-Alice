@@ -6,6 +6,10 @@ namespace culture {
 inline constexpr int32_t max_issue_options = 6;
 }
 
+namespace network {
+constexpr size_t RECV_BUFFER_SIZE = 262144;
+}
+
 namespace sys {
 
 constexpr int32_t max_event_options = 8;
@@ -42,3 +46,7 @@ enum class province_building_type : uint8_t {
 };
 constexpr inline int32_t max_building_types = 5;
 }
+// global namespace
+
+// Boolean primitive which is guarrenteed to be 1 byte, whereas normal bool can theoretically wary
+typedef uint8_t fixed_bool_t;

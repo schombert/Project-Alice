@@ -19,6 +19,7 @@
 #include "gui_unit_panel_subwindow.hpp"
 #include "gui_modifier_tooltips.hpp"
 #include "game_scene.hpp"
+#include "commands.hpp"
 
 namespace ui {
 

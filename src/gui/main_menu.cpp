@@ -2869,7 +2869,7 @@ void main_menu_misc_language_dropdown_t::on_selection(sys::state& state, int32_t
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 
 	state.user_setting_changed = true;
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 // END
 }
 void main_menu_misc_language_dropdown_t::clear_list() {	list_contents.clear();
@@ -4214,7 +4214,7 @@ bool main_menu_graphics_fonts_label_t::button_action(sys::state& state) noexcept
 	state.game_state_updated.store(true, std::memory_order::release); //update ui
 	state.ui_state.tooltip->set_visible(state, false);
 	state.ui_state.last_tooltip = nullptr;
-	window::change_cursor(state, window::cursor_type::normal);
+	window::change_cursor(state, window::cursor_type::normal_cancel_busy);
 
 	state.user_setting_changed = true;
 // END

@@ -4,14 +4,20 @@
 #include <locale>
 #include <codecvt>
 
+#ifndef HEADLESS_BUILD
+
 #define GLFW_EXPOSE_NATIVE_X11
 #include <GLFW/glfw3.h>
 #include <GLFW/glfw3native.h>
 
+#endif
+
 #include "launcher_main.hpp"
 
 namespace launcher {
+#ifndef HEADLESS_BUILD
 static GLFWwindow* m_window = nullptr;
+#endif
 
 double last_cursor_blink_time = 0.0;
 const double CURSOR_BLINK_INTERVAL = 0.5;
@@ -85,9 +91,9 @@ void make_mod_file() {
 				});
 				scenario_key = game_state->scenario_checksum;
 			} else {
-	#ifndef NDEBUG
+#ifndef NDEBUG
 				sys::write_scenario_file(*game_state, std::to_string(date_index) + NATIVE(".bin"), 0);
-	#endif
+#endif
 				game_state->scenario_checksum = scenario_key;
 				sys::write_save_file(*game_state, sys::save_type::bookmark, bookmark_context.bookmark_dates[date_index].name_);
 				fprintf(stdout, (std::string("Bookmark " + bookmark_context.bookmark_dates[date_index].name_ + " Scenario ") + std::to_string(date_index) + ".bin built\n").c_str());
@@ -105,9 +111,13 @@ void make_mod_file() {
 		}
 		file_is_ready.store(true, std::memory_order_release);
 
+#ifndef HEADLESS_BUILD
+
 		if(autoBuild && !headless) {
 			glfwSetWindowShouldClose(m_window, 1);
 		}
+
+#endif
 	});
 
 	if(!headless) {
@@ -136,10 +146,16 @@ void find_scenario_file() {
 }
 
 void MessageBox(const char* title, const char* message) {
+#ifndef HEADLESS_BUILD
 	char command[1024];
 	snprintf(command, sizeof(command), "zenity --info --title=\"%s\" --text=\"%s\"", title, message);
 	system(command);
+#else
+	fprintf(stderr, "[%s] %s\n", title, message);
+#endif
 }
+
+#ifndef HEADLESS_BUILD
 
 void set_cursor() {
 	if(obj_under_mouse == active_textbox) {
@@ -908,7 +924,11 @@ void render() {
 
 }
 
+#endif
+
 }
+
+#ifndef HEADLESS_BUILD
 
 int create_window() {
 	using namespace launcher;
@@ -1106,6 +1126,8 @@ int create_window() {
 	return 0;
 }
 
+#endif
+
 int main(int argc, char* argv[]) {
 	using namespace launcher;
 
@@ -1115,11 +1137,20 @@ int main(int argc, char* argv[]) {
 			headless = true;
 		}
 	}
+
+#ifndef HEADLESS_BUILD
+
 	if(!headless) {
 		auto r = create_window();
 		if(r < 0)
 			return r;
 	}
+
+#else
+
+	headless = true;
+
+#endif
 
 	simple_fs::file_system fs;
 	simple_fs::add_root(fs, NATIVE("."));
@@ -1207,6 +1238,8 @@ int main(int argc, char* argv[]) {
 	load_playername();
 	load_playerpassw();
 
+#ifndef HEADLESS_BUILD
+
 	if(!headless) {
 		while(!glfwWindowShouldClose(m_window)) {
 			if(active_textbox != -1 && (glfwGetTime() - last_cursor_blink_time > CURSOR_BLINK_INTERVAL)) {
@@ -1223,5 +1256,40 @@ int main(int argc, char* argv[]) {
 		glfwTerminate();
 	}
 
-	return 0;
+#else
+
+	const char* hereEnv = std::getenv("HERE");
+
+	if(file_is_ready.load(std::memory_order_acquire) && !selected_scenario_file.empty()) {
+		std::string alicePath;
+		__builtin_cpu_init();
+		// check if cpu supports avx. If it supports neither then fallbackt to SSE
+		if(__builtin_cpu_supports("avx512f") && __builtin_cpu_supports("avx512cd") && __builtin_cpu_supports("avx512bw") && __builtin_cpu_supports("avx512dq") && __builtin_cpu_supports("avx512vl")) {
+			alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice512" : "./Alice512";
+		} else if(__builtin_cpu_supports("avx2")) {
+			alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/Alice" : "./Alice";
+		} else {
+			alicePath = (hereEnv != nullptr) ? std::string(hereEnv) + "/usr/bin/AliceSSE" : "./AliceSSE";
+		}
+		std::vector<native_string> args;
+		args.push_back(native_string(alicePath));
+		args.push_back(selected_scenario_file);
+		printf("Starting game with scenario %s\n", selected_scenario_file.c_str());
+
+		pid_t pid = fork();
+		if(pid == 0) {
+			std::vector<char*> argv;
+			for(const auto& s : args) {
+				argv.push_back(const_cast<char*>(s.c_str()));
+			}
+			argv.push_back(nullptr);
+			execv(argv[0], argv.data());
+			perror("execv");
+			exit(127);
+		} else if(pid < 0) {
+			perror("fork");
+		}
+	}
+
+#endif
 }

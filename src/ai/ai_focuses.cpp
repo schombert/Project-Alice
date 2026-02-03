@@ -2,6 +2,7 @@
 #include "ai_focuses.hpp"
 #include "demographics.hpp"
 #include "triggers.hpp"
+#include "commands.hpp"
 
 
 namespace ai {

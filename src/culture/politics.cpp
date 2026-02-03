@@ -7,6 +7,7 @@
 #include "triggers.hpp"
 #include "economy.hpp"
 #include "economy_factory_view.hpp"
+#include "events.hpp"
 
 namespace politics {
 

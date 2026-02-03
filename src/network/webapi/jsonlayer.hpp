@@ -5,6 +5,7 @@ using json = nlohmann::json;
 namespace webui {
 
 json format_color(sys::state& state, uint32_t c);
+json format_date(sys::state& state, sys::date date);
 
 json format_commodity(sys::state& state, dcon::commodity_id c);
 json format_commodity_link(sys::state& state, dcon::commodity_id c);

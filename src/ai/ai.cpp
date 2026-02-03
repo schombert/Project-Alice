@@ -16,6 +16,7 @@
 #include "province_templates.hpp"
 #include "triggers.hpp"
 #include "province.hpp"
+#include "commands.hpp"
 
 
 namespace ai {

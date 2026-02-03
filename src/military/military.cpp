@@ -17,6 +17,7 @@
 #include "province.hpp"
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
+#include "commands.hpp"
 
 namespace military {
 
