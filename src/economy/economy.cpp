@@ -566,31 +566,31 @@ void initialize(sys::state& state) {
 	// find the two most common efficiency inputs (usually, cement and machine parts)
 	// TODO: add modding support to overwrite this generation
 
-	int most_common_value = -1;
-	int second_most_common_value = -1;
-	int third_most_common_value = -1;
+	int most_common_index = -1;
+	int second_most_common_index = -1;
+	int third_most_common_index = -1;
 	int most_common_count = -1;
 	int second_most_common_count = -1;
 	int third_most_common_count = -1;
 
 	for(size_t i = 0; i < rgo_efficiency_inputs_amount.size(); i++) {
 		if(rgo_efficiency_inputs_count[i] >= most_common_count) {
-			third_most_common_value = second_most_common_value;
+			third_most_common_index = second_most_common_index;
 			third_most_common_count = second_most_common_count;
 
-			second_most_common_value = most_common_value;
+			second_most_common_index = most_common_index;
 			second_most_common_count = most_common_count;
 
-			most_common_value = int(i);
+			most_common_index = int(i);
 			most_common_count = rgo_efficiency_inputs_count[i];
 		} else if(rgo_efficiency_inputs_count[i] >= second_most_common_count) {
-			third_most_common_value = second_most_common_value;
+			third_most_common_index = second_most_common_index;
 			third_most_common_count = second_most_common_count;
 
-			second_most_common_value = int(i);
+			second_most_common_index = int(i);
 			second_most_common_count = rgo_efficiency_inputs_count[i];
 		} else if(rgo_efficiency_inputs_count[i] >= third_most_common_count) {
-			third_most_common_value = int(i);
+			third_most_common_index = int(i);
 			third_most_common_count = rgo_efficiency_inputs_count[i];
 		}
 	}
@@ -598,23 +598,23 @@ void initialize(sys::state& state) {
 	// generate commodity set:
 	economy::commodity_set base_rgo_e_inputs { };
 
-	if(most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ uint8_t(most_common_value - 1) };
+	if(most_common_count > 0 && most_common_index != -1) {
+		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ dcon::commodity_id::value_base_t(most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[0] =
-			rgo_efficiency_inputs_amount[most_common_value]
+			rgo_efficiency_inputs_amount[most_common_index]
 			/ (float)most_common_count * 0.005f;
 	}
-	if(second_most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ uint8_t(second_most_common_value - 1) };
+	if(second_most_common_count > 0 && second_most_common_index != -1) {
+		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ dcon::commodity_id::value_base_t(second_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[1] =
-			rgo_efficiency_inputs_amount[second_most_common_value]
+			rgo_efficiency_inputs_amount[second_most_common_index]
 			/ (float)second_most_common_count * 0.005f;
 	}
 
-	if(third_most_common_count > 0) {
-		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ uint8_t(third_most_common_value - 1) };
+	if(third_most_common_count > 0 && third_most_common_index != -1) {
+		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ dcon::commodity_id::value_base_t(third_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[2] =
-			rgo_efficiency_inputs_amount[third_most_common_value]
+			rgo_efficiency_inputs_amount[third_most_common_index]
 			/ (float)third_most_common_count * 0.005f;
 	}
 
