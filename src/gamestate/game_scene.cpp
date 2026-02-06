@@ -173,8 +173,8 @@ void selected_units_control(
 	float volume = get_effects_volume(state);
 	if(reset_orders) {
 		for(auto a : state.selected_armies) {
-			if(command::can_move_or_stop_army(state, state.local_player_nation, a, target)) {
-				command::move_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order);
+			if(command::can_retreat_move_or_stop_army(state, state.local_player_nation, a, target)) {
+				command::move_retreat_or_stop_army(state, state.local_player_nation, a, target, state.ui_state.selected_army_order);
 				army_play = true;
 			}
 			else {

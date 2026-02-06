@@ -35,6 +35,7 @@
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
 #include "alice_ui.hpp"
+#include "commands.hpp"
 
 namespace sys {
 
@@ -817,7 +818,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				bool can_move = [this, prov]() {
 					for(auto a : selected_armies) {
 						auto army_loc = world.army_get_location_from_army_location(a);
-						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+						if(!command::can_retreat_move_or_stop_army(*this, local_player_nation, a, prov)) {
 							return false;
 						}
 					}

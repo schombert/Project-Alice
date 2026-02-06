@@ -416,7 +416,9 @@ struct retreat_from_naval_battle_data {
 };
 
 struct land_battle_data {
-	dcon::land_battle_id b;
+	dcon::army_id army;
+	dcon::province_id dest;
+	military::retreat_type retreat_type;
 };
 
 constexpr inline size_t num_packed_units = 10;
@@ -982,7 +984,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 
 // Wrapper to check if a given army can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-bool can_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
+bool can_retreat_move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest);
 
 // Wrapper to check if a given navy can either move to the specified destination, OR stop movement if the dest province is equal to the current army location
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
@@ -990,7 +992,7 @@ bool can_move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dc
 
 // Wrapper to either add a stop move command to the queue if the army location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
-void move_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order);
+void move_retreat_or_stop_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, military::special_army_order order);
 
 // Wrapper to either add a stop move command to the queue if the navy location is equal to the destination, or add a move command if not
 // The movement in this function is always non-shift click behaviour, ie the old path will be cleared and a new path wil override it.
@@ -1052,8 +1054,8 @@ void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<d
 void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ });
 std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
 
-void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
-bool can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::land_battle_id b);
+void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::army_id army, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
+std::vector<dcon::province_id> can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::army_id army, military::retreat_type retreat_type, dcon::province_id dest = dcon::province_id{ });
 
 void change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);
 bool can_change_general(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::leader_id l);

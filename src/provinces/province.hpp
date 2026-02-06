@@ -30,6 +30,7 @@ bool province_is_deep_waters(sys::state& state, dcon::province_id prov);
 bool sea_province_is_adjacent_to_accessible_coast(sys::state& state, dcon::province_id prov, dcon::nation_id nation);
 
 bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id b);
+bool provinces_are_adjacent(sys::state& state, dcon::province_id a, dcon::province_id b);
 void update_connected_regions(sys::state& state);
 void update_cached_values(sys::state& state);
 void update_blockaded_cache(sys::state& state);
@@ -136,7 +137,10 @@ std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::
 //for "trade display" routes from province to the market center
 //std::vector<dcon::province_id> make_whatever_path(sys::state& state, dcon::province_id start, dcon::province_id end);
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
-std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+// For clicking on the retreat button, or forced retreats
+std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
+// for manual retreating (ie right-clicking a unit out of a battle)
+std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);

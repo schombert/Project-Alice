@@ -435,8 +435,10 @@ std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dc
 template<battle_is_ending battle_state>
 bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
+void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::province_id>& retreat_path, bool end_finished_battle);
+
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker = dcon::nation_id{ }, dcon::nation_id lead_defender = dcon::nation_id{ });
-void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
+void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result, dcon::nation_id extra_notify = dcon::nation_id{ });
 
 void invalidate_unowned_wargoals(sys::state& state);
 void update_blackflag_status(sys::state& state, dcon::province_id p);
@@ -485,6 +487,8 @@ void stop_navy_movement(sys::state& state, dcon::navy_id navy);
 void stop_army_movement(sys::state& state, dcon::army_id army);
 
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_enemy_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_war_ally_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
@@ -502,7 +506,7 @@ void update_blackflag_status(sys::state& state);
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
 bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type);
-bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
+bool is_battle_retreatable(sys::state& state, dcon::land_battle_id battle);
 
 dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
 dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_battle_id b);

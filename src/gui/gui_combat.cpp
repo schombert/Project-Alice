@@ -860,10 +860,37 @@ public:
 class lc_retreat_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = !command::can_retreat_from_land_battle(state, state.local_player_nation, retrieve<dcon::land_battle_id>(state, parent));
+
+
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		auto battle_location = state.world.land_battle_get_location_from_land_battle_location(b);
+		bool is_involved_in_battle = [&]() {
+			for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
+				if(a.get_army().get_controller_from_army_control() == state.local_player_nation) {
+					return true;
+				}
+			}
+			return false;
+		}();
+		if(!is_involved_in_battle) {
+			disabled = true;
+			return;
+		}
+		if(!military::is_battle_retreatable(state, b) || province::make_land_auto_retreat_path(state, state.local_player_nation, battle_location).empty()) {
+			disabled = true;
+			return;
+		}
+		disabled = false;
 	}
 	void button_action(sys::state& state) noexcept override {
-		command::retreat_from_land_battle(state, state.local_player_nation, retrieve<dcon::land_battle_id>(state, parent));
+
+		auto b = retrieve<dcon::land_battle_id>(state, parent);
+		for(auto a : state.world.land_battle_get_army_battle_participation(b)) {
+			auto army = a.get_army();
+			if(!command::can_retreat_from_land_battle(state, state.local_player_nation, army, military::retreat_type::automatic).empty()) {
+				command::retreat_from_land_battle(state, state.local_player_nation, army, military::retreat_type::automatic);
+			}
+		}
 	}
 	tooltip_behavior has_tooltip(sys::state& state) noexcept override {
 		return tooltip_behavior::variable_tooltip;

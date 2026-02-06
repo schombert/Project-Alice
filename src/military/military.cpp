@@ -5288,26 +5288,94 @@ bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type) {
 template bool retreat<battle_is_ending::yes>(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 template bool retreat<battle_is_ending::no>(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
-bool retreat(sys::state& state, dcon::army_id n) {
-	auto province_start = state.world.army_get_location_from_army_location(n);
+bool try_retreat(sys::state& state, dcon::army_id n, military::retreat_type retreat_type, bool end_finished_battle, dcon::province_id destination = dcon::province_id{ }) {
 	auto nation_controller = state.world.army_get_controller_from_army_control(n);
 
-	if(!nation_controller)
-		return false; // rebels don't retreat
-
-	auto retreat_path = province::make_land_retreat_path(state, nation_controller, province_start);
+	auto retreat_path = command::can_retreat_from_land_battle(state, nation_controller, n, retreat_type, destination);
 	if(retreat_path.size() > 0) {
-		state.world.army_set_is_retreating(n, true);
-		auto existing_path = state.world.army_get_path(n);
-		existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
-
-		auto arrival_info = arrival_time_to(state, n, retreat_path.back());
-		state.world.army_set_arrival_time(n, arrival_info.arrival_time);
-		state.world.army_set_unused_travel_days(n, arrival_info.unused_travel_days);
-		state.world.army_set_dig_in(n, 0);
+		retreat(state, n, retreat_path, end_finished_battle);
 		return true;
 	} else {
 		return false;
+	}
+}
+
+
+void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::province_id>& retreat_path, bool end_finished_battle) {
+	auto nation_controller = state.world.army_get_controller_from_army_control(n);
+	auto battle = state.world.army_get_battle_from_army_battle_participation(n);
+
+	assert(nation_controller);
+	assert(battle);
+	assert(retreat_path.size() > 0);
+	state.world.army_set_is_retreating(n, true);
+	auto existing_path = state.world.army_get_path(n);
+	existing_path.load_range(retreat_path.data(), retreat_path.data() + retreat_path.size());
+
+	auto arrival_info = arrival_time_to(state, n, retreat_path.back());
+	state.world.army_set_arrival_time(n, arrival_info.arrival_time);
+	state.world.army_set_unused_travel_days(n, arrival_info.unused_travel_days);
+	state.world.army_set_dig_in(n, 0);
+	// Move away FROM battle
+	if(battle) {
+		state.world.army_set_is_retreating(n, true);
+		bool battle_attacker = military::is_attacker_in_battle(state, n);
+		state.world.army_set_battle_from_army_battle_participation(n, dcon::land_battle_id{});
+		for(auto reg : state.world.army_get_army_membership(n)) {
+			{
+				auto& line = state.world.land_battle_get_attacker_front_line(battle);
+				for(auto& lr : line) {
+					if(lr == reg.get_regiment())
+						lr = dcon::regiment_id{};
+				}
+			}
+			{
+				auto& line = state.world.land_battle_get_attacker_back_line(battle);
+				for(auto& lr : line) {
+					if(lr == reg.get_regiment())
+						lr = dcon::regiment_id{};
+				}
+			}
+			{
+				auto& line = state.world.land_battle_get_defender_front_line(battle);
+				for(auto& lr : line) {
+					if(lr == reg.get_regiment())
+						lr = dcon::regiment_id{};
+				}
+			}
+			{
+				auto& line = state.world.land_battle_get_defender_back_line(battle);
+				for(auto& lr : line) {
+					if(lr == reg.get_regiment())
+						lr = dcon::regiment_id{};
+				}
+			}
+			auto res = state.world.land_battle_get_reserves(battle);
+			for(uint32_t i = res.size(); i-- > 0;) {
+				if(res[i].regiment == reg.get_regiment()) {
+					res[i] = res[res.size() - 1];
+					res.pop_back();
+				}
+			}
+		}
+		//update leaders
+		military::update_battle_leaders(state, battle);
+		if(end_finished_battle) {
+			// if there is still an army in the battle which is in OUR side, then the battle shouldnt end.
+			bool battle_end = [&]() {
+				for(auto army : state.world.land_battle_get_army_battle_participation(battle)) {
+					if(battle_attacker == military::is_attacker_in_battle(state, army.get_army())) {
+						return false;
+					}
+				}
+				return true;
+				}();
+			// If we were the attacker and the battle ends as a result of us retreating, that means the defender won and vice-verca
+			if(battle_end) {
+				military::battle_result result = (battle_attacker ? military::battle_result::defender_won : military::battle_result::attacker_won);
+				military::end_battle(state, battle, result, nation_controller);
+			} 
+		}
 	}
 }
 
@@ -5445,12 +5513,10 @@ bool is_attacker_in_battle(sys::state& state, dcon::army_id a) {
 	assert(state.world.army_get_battle_from_army_battle_participation(a)); // make sure the army is actually in a battle
 	auto battle = state.world.army_get_battle_from_army_battle_participation(a);
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(battle);
-	auto lead_attacker = get_land_battle_lead_attacker(state, battle);
-	auto lead_defender = get_land_battle_lead_defender(state, battle);
 	auto thisnation = state.world.army_get_controller_from_army_control(a);
 	bool war_attacker = state.world.land_battle_get_war_attacker_is_attacker(battle);
-	// country vs country
-	if(lead_attacker && lead_defender) {
+	// country vs country if war is not invalid
+	if(war) {
 		for(const auto par : state.world.nation_get_war_participant(thisnation)) {
 			if(par.get_war() == war) {
 				if((par.get_is_attacker() && war_attacker) || (!par.get_is_attacker() && !war_attacker)) {
@@ -5766,7 +5832,7 @@ bool nation_participating_in_battle(sys::state& state, dcon::naval_battle_id bat
 
 
 
-void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result) {
+void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result, dcon::nation_id extra_notify) {
 	auto war = state.world.land_battle_get_war_from_land_battle_in_war(b);
 	auto location = state.world.land_battle_get_location_from_land_battle_location(b);
 
@@ -5785,6 +5851,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 	auto a_nation = get_land_battle_lead_attacker(state, b);
 	auto d_nation = get_land_battle_lead_defender(state, b);
 
+	bool notify = nation_participating_in_battle(state, b, state.local_player_nation) || state.local_player_nation == extra_notify;
+
 	for(auto n : state.world.land_battle_get_army_battle_participation(b)) {
 		auto nation_owner = state.world.army_get_controller_from_army_control(n.get_army());
 
@@ -5796,17 +5864,17 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 
 
 		if(battle_attacker && result == battle_result::defender_won) {
-			if(!can_retreat_from_battle(state, b)) {
+			if(!is_battle_retreatable(state, b)) {
 				stackwipe(n.get_army());
 			} else {
-				if(!retreat(state, n.get_army()))
+				if(!try_retreat(state, n.get_army(), military::retreat_type::automatic, false))
 					stackwipe(n.get_army());
 			}
 		} else if(!battle_attacker && result == battle_result::attacker_won) {
-			if(!can_retreat_from_battle(state, b)) {
+			if(!is_battle_retreatable(state, b)) {
 				stackwipe(n.get_army());
 			} else {
-				if(!retreat(state, n.get_army()))
+				if(!try_retreat(state, n.get_army(), retreat_type::automatic, false))
 					stackwipe(n.get_army());
 			}
 		} else {
@@ -5875,7 +5943,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_lost_score_to_leadership);
 
 			// Report.
-			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
+			if(notify) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -5944,7 +6012,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result)
 				adjust_leadership_from_battle(state, d_nation, score / state.defines.alice_battle_won_score_to_leadership);
 
 			// Report
-			if(nation_participating_in_battle(state, b, state.local_player_nation)) {
+			if(notify) {
 				land_battle_report rep;
 				rep.attacker_infantry_losses = state.world.land_battle_get_attacker_infantry_lost(b);
 				rep.attacker_infantry = state.world.land_battle_get_attacker_infantry(b);
@@ -9413,13 +9481,27 @@ float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 	return state.world.ship_get_strength(ship_id);
 }
 
-bool province_has_enemy_unit(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+bool province_has_enemy_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 	for(auto army : state.world.province_get_army_location(location)) {
 		if(!army.get_army()) {
 			// no armies present
 			return false;
 		}
 		if(are_enemies(state, our_nation, army.get_army().get_controller_from_army_control())) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool province_has_war_ally_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+	for(auto army : state.world.province_get_army_location(location)) {
+		if(!army.get_army()) {
+			// no armies present
+			return false;
+		}
+		auto army_controller = army.get_army().get_controller_from_army_control();
+		if(army_controller == our_nation || are_allied_in_war(state, our_nation, army.get_army().get_controller_from_army_control())) {
 			return true;
 		}
 	}
@@ -9437,6 +9519,7 @@ bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dco
 	}
 	return false;
 }
+
 // returns true if there is a battle at the location, where one of the participants is an enemy to our_nation
 //bool enemy_battle(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
 //	auto battle = get_province_battle(state, location);
@@ -9470,7 +9553,7 @@ bool get_allied_prov_adjacency_reinforcement_bonus(sys::state& state, dcon::prov
 		}
 		auto prov_controller = state.world.province_get_nation_from_province_control(prov);
 		// enemy battles or units will not allow for reinforcements
-		if(province_has_enemy_unit(state, prov, our_nation)) {
+		if(province_has_enemy_army(state, prov, our_nation)) {
 			return false;
 		}
 		// checks if the province controlled by us, or is controlled by someone who is at enemies with the owner of location
@@ -9563,7 +9646,7 @@ float calculate_location_reinforce_modifier_battle(sys::state& state, dcon::prov
 			continue;
 		}
 		// if there are enemy battles or enemy units sourrinding the province, it will get no reinforcements
-		if(province_has_enemy_unit(state, prov, in_nation)) {
+		if(province_has_enemy_army(state, prov, in_nation)) {
 			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, 0.0f);
 		} else {
 			highest_adj_prov_modifier = std::max(highest_adj_prov_modifier, calculate_location_reinforce_modifier_no_battle(state, prov, in_nation));
@@ -10044,7 +10127,7 @@ bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retr
 		return true;
 	}
 }
-bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle) {
+bool is_battle_retreatable(sys::state& state, dcon::land_battle_id battle) {
 	return (state.world.land_battle_get_start_date(battle) + days_before_retreat < state.current_date);
 }
 

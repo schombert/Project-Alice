@@ -29,6 +29,16 @@ bool nations_are_adjacent(sys::state& state, dcon::nation_id a, dcon::nation_id 
 	auto it = state.world.get_nation_adjacency_by_nation_adjacency_pair(a, b);
 	return bool(it);
 }
+bool provinces_are_adjacent(sys::state& state, dcon::province_id a, dcon::province_id b) {
+	for(auto adj : state.world.province_get_province_adjacency(a)) {
+		auto adj_prov =
+			adj.get_connected_provinces(0) == a ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+		if(adj_prov == b) {
+			return true;
+		}
+	}
+	return false;
+}
 
 bool province_is_deep_waters(sys::state& state, dcon::province_id prov) {
 	assert(prov.index() >= state.province_definitions.first_sea_province.index());
@@ -2834,6 +2844,173 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 	assert_path_result(path_result);
 	return path_result;
 }
+
+
+
+
+
+
+
+std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a) {
+
+	std::vector<province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	std::vector<dcon::province_id> path_result;
+
+	if(start == end)
+		return path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		path_result.push_back(end);
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+		};
+
+	path_heap.push_back(province_and_distance{ 0.0f, direct_distance(state, start, end), start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov)) {
+			
+
+				if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) { // is land
+					// Province must be accelsible, and must not be both adjacent to the start province AND have an enemy unit on it
+					if(has_access_to_province(state, nation_as, other_prov) && !(province::provinces_are_adjacent(state, other_prov, start) && military::province_has_enemy_army(state, other_prov, nation_as))) {
+						if(other_prov == end) {
+							fill_path_result(nearest.province);
+							assert_path_result(path_result);
+							return path_result;
+						}
+						/* This will work fine for most instances, except, possibly, for allied nations or enemy ones */
+						auto armies = state.world.province_get_army_location(other_prov);
+						float danger_factor = (armies.begin() == armies.end() || (*armies.begin()).get_army().get_controller_from_army_control() == nation_as) ? 1.f : 4.f;
+						path_heap.push_back(
+								province_and_distance{ nearest.distance_covered + distance * danger_factor, direct_distance(state, other_prov, end) * danger_factor, other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					} else {
+						origins_vector.set(other_prov, dcon::province_id{ 0 }); // exclude it from being checked again
+					}
+				} else { // is sea
+					if(military::can_embark_onto_sea_tile(state, nation_as, other_prov, a)) {
+						if(other_prov == end) {
+							fill_path_result(nearest.province);
+							assert_path_result(path_result);
+							return path_result;
+						}
+						path_heap.push_back(
+								province_and_distance{ nearest.distance_covered + distance, direct_distance(state, other_prov, end), other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					} else {
+						origins_vector.set(other_prov, dcon::province_id{ 0 }); // exclude it from being checked again
+					}
+				}
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+}
+
+
+std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
+
+	std::vector<retreat_province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	origins_vector.set(start, dcon::province_id{ 0 });
+
+	std::vector<dcon::province_id> path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+		};
+
+	path_heap.push_back(retreat_province_and_distance{ 0.0f, start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		if(nearest.province != start) {
+			fill_path_result(nearest.province);
+			assert_path_result(path_result);
+			return path_result;
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+			if(other_prov.id.index() < state.province_definitions.first_sea_province.index()) {
+				if(!is_adjacency_impassable(state, nation_as, adj.id) && !origins_vector.get(other_prov) && has_access_to_province(state, nation_as, other_prov) && province::provinces_are_adjacent(state, other_prov, start) && !military::province_has_enemy_army(state, other_prov, nation_as)) {
+
+					if((bits & province::border::coastal_bit) == 0) { // doesn't cross coast -- i.e. is land province
+						// Reduce prioitiy of provinces which are controlled by an enemy, or dosent have an allied army present
+						float danger_modifier = [&]() {
+							float modifier = 0;
+							auto other_prov_controller = state.world.province_get_nation_from_province_control(other_prov);
+							if(military::are_enemies(state, nation_as, other_prov_controller)) {
+								modifier += 20000;
+							}
+							if(!military::province_has_war_ally_army(state, other_prov, nation_as)) {
+								modifier += 10000;
+							}
+							return modifier;
+						}();
+
+						path_heap.push_back(retreat_province_and_distance{ nearest.distance_covered + distance + danger_modifier, other_prov });
+						std::push_heap(path_heap.begin(), path_heap.end());
+						origins_vector.set(other_prov, nearest.province);
+					} else { // is sea province
+						// nothing
+					}
+				}
+
+			}
+			else { // is sea
+				//TODO: Add auto retreat to transports
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 std::vector<dcon::province_id> make_land_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
 
