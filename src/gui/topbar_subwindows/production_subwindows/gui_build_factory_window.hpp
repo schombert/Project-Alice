@@ -10,6 +10,8 @@
 #include "economy_factory_view.hpp"
 #include "economy.hpp"
 
+// US53 Build Factory Window
+
 namespace ui {
 
 class factory_build_cancel_button : public generic_close_button {
@@ -276,22 +278,30 @@ public:
 		}
 		text::add_line(state, contents, "alice_factory_total_bonus", text::variable_type::x, text::fp_four_places{ sum });*/
 
-		/* If mod uses Factory Province limits */
-		auto output = state.world.factory_type_get_output(content);
-		if(state.world.commodity_get_uses_potentials(output)) {
-			auto limit = economy::calculate_state_factory_limit(state, sid, output);
-
-			text::add_line_with_condition(state, contents, "factory_build_condition_11", 1 <= limit);
-		}
+		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "alice_building_conditions");
+
+		// US53AC10 Tooltip for a factory type displays if the factory type has been activated with a technology
 
 		text::add_line_with_condition(state, contents, "nation_is_factory_type_active", state.world.nation_get_active_building(n, content) || state.world.factory_type_get_is_available_from_start(content), 15);
 
 		auto p = state.world.state_instance_get_capital(sid);
 
+		// US53AC11 Tooltip for a factory type displays if the target state is a colony and target factory type can be built in colonies
+
 		if(state.world.province_get_is_colonial(p)) {
 			text::add_line_with_condition(state, contents, "nation_is_factory_type_colonies", state.world.factory_type_get_can_be_built_in_colonies(content), 15);
+		}
+
+		// US53AC12 Tooltip for a factory type displays if the factory type requires potentials and target state doesn't have required potentials
+
+		/* If mod uses Factory Province limits */
+		auto output = state.world.factory_type_get_output(content);
+		if(state.world.commodity_get_uses_potentials(output)) {
+			auto limit = economy::calculate_province_factory_limit(state, p, output);
+
+			text::add_line_with_condition(state, contents, "factory_build_condition_11", 1 <= limit, 15);
 		}
 
 		auto const tax_eff = economy::tax_collection_rate(state, n, p);
@@ -308,15 +318,36 @@ public:
 		float profitability = (output_value - input - wage * content.get_base_workforce()) / input;
 		float payback_time = cost / std::max(0.00001f, (output_value - input - wage * content.get_base_workforce()));
 
-		text::add_line(state, contents, "construction_cost", text::variable_type::x, text::fp_currency{ cost });
-		text::add_line(state, contents, "input_value", text::variable_type::x, text::fp_currency{ input });
-		text::add_line(state, contents, "output_value", text::variable_type::x, text::fp_currency{ output_value });
-		text::add_line(state, contents, "profitability", text::variable_type::x, text::fp_percentage_one_place{ profitability });
-		text::add_line(state, contents, "payback_time", text::variable_type::x, text::fp_two_places{ payback_time });
+		// US53AC13 Tooltip for a factory type displays key economic metrics of the potential construction: construction cost, input costs, output prices, profitability, payback type
+
+		text::add_line(state, contents, "construction_cost", text::variable_type::value, text::fp_currency{ cost });
+		text::add_line(state, contents, "input_value", text::variable_type::value, text::fp_currency{ input });
+		text::add_line(state, contents, "output_value", text::variable_type::value, text::fp_currency{ output_value });
+		text::add_line(state, contents, "profitability", text::variable_type::value, text::fp_percentage_one_place{ profitability });
+		text::add_line(state, contents, "payback_time", text::variable_type::value, text::fp_two_places{ payback_time });
 
 		// Some extra outputs for AI debugging
 
-		text::add_line(state, contents, "alice_pop_show_details");
+		text::add_line_break_to_layout(state, contents);
+		text::add_line(state, contents, "alice_factory_type_score");
+
+		// US53AC14 Tooltip for a factory type displays the score AI places to the factory type
+
+		auto factory_type_score = ai::evaluate_factory_type(state, n, mid, p, content, false, 0.3f, 0.5f, 200.f, rich_effect);
+
+		for(auto line : factory_type_score.getSteps()) {
+			if(line.operation == sys::StackedCalculationWithExplanations::Operation::ADD || line.operation == sys::StackedCalculationWithExplanations::Operation::SUBTRACT) {
+				text::add_line(state, contents, line.explanation, text::variable_type::value, text::fp_one_place{ line.value }, 15);
+			}
+			else if (line.operation == sys::StackedCalculationWithExplanations::Operation::DIVIDE) {
+				text::add_line(state, contents, line.explanation, text::variable_type::value, text::fp_one_place{ 1 / line.value }, 15);
+			}
+			else {
+				text::add_line(state, contents, line.explanation, text::variable_type::value, text::fp_one_place{ line.value }, 15);
+			}
+		}
+
+		text::add_line(state, contents, "total_score", text::variable_type::value, text::fp_one_place{ factory_type_score.getResult() });
 		
 		text::add_line_with_condition(state, contents, "province_has_workers", ai::province_has_workers(state, p));
 

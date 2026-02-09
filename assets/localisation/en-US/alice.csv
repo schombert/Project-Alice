@@ -1328,15 +1328,15 @@ alice_factory_total_bonus;This sums to about ?Y$x$?W
 alice_slider_controls;?YLeft-Click?W to increment by ?Y$value$?W\n?YSHIFT-Left-Click?W to increment by ?Y$x$?W\n?YSHIFT-Right-Click?W to increment to maximum
 alice_slider_controls_2;?YLeft-Click?W to decrement by ?Y$value$?W\n?YSHIFT-Left-Click?W to decrement by ?Y$x$?W\n?YSHIFT-Right-Click?W to decrement to minimum
 explain_colonial_points;Secondary and Great Powers accumulate colonial points.
-province_has_workers;Province has any workforce.
-province_has_available_workers;Province has unemployed workforce.
-nation_is_factory_type_active;Necessary technology has been researched.
-nation_is_factory_type_colonies;Target factory type can be built in colonies.
-payback_time;Payback time: ?Y$x$?!
-construction_cost;Construction cost: ?Y$x$?!
-output_value;Output value: ?Y$x$?!
-input_value;Input value: ?Y$x$?!
-profitability;Profitability: ?Y$x$?!
+province_has_workers;Province has any workforce
+province_has_available_workers;Province has unemployed workforce
+nation_is_factory_type_active;Necessary technology has been researched
+nation_is_factory_type_colonies;This is a colonial province and target factory type can be built in colonies.
+payback_time;Payback time: ?Y$value$?!
+construction_cost;Construction cost: ?Y$value$?!
+output_value;Output value: ?Y$value$?!
+input_value;Input value: ?Y$value$?!
+profitability;Profitability: ?Y$value$?!
 alice_lobby_back;Back to lobby
 alice_lobby_back_tt_1;You're already in the fucking lobby
 alice_lobby_back_tt_2;Only the host may go back to lobby
@@ -1951,3 +1951,13 @@ private_message_button_tooltip;Click to toggle whether this player will receive 
 player_loaded_status;Ready
 player_loading_status;Loading
 player_oos_status;OOS
+output_is_in_demand;Output is in demand: $value$
+alice_factory_type_score;AI factory type score
+factory_exploits_local_potentials;Factory exploits local potentials: $value$
+factory_output_consumed_by_other_factory;Output consumed by other local factory: $value$
+factory_consumes_other_factory_output;Consumes other local factory's output: $value$
+factory_consumes_local_potential_resource;Consumes resource present in local potentials: $value$
+factory_consumes_local_rgo_resource;Consumes local RGO resource: $value$
+total_score;Total score: $value$
+private_investors_avoid_high_taxes;Private investors avoid taxation: $value$
+state_seeks_to_maximize_taxes;The State prioritizes high taxation areas: $value$
