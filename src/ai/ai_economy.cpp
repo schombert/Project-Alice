@@ -258,7 +258,7 @@ void filter_factories_disjunctive(
 			continue;
 		}
 
-		auto score = evaluate_factory_type(state, nid, mid, pid, type, pop_project, filter_profitability, filter_output_demand_satisfaction, filter_payback_time, effective_profit);
+		auto score = evaluate_factory_type(state, nid, mid, pid, type, pop_project, filter_profitability, filter_output_probability_to_buy, filter_payback_time, effective_profit);
 
 		scores.push_back(evaluated_factory_type{ type, score });
 	}
