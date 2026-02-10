@@ -1274,7 +1274,7 @@ void render(sys::state& state) {
 		for(uint8_t i = 0; i < uint8_t(iui::commodity_info_mode::total); i++) {
 			iui::rect button_rect = { size_selector_w + 10.f, screen_size.y - 350.f + i * view_mode_height, view_mode_width, view_mode_height };
 
-			// US48AC19 On market level, display potentials option only for commodities that use resource potentials (mods-only feature)
+			// US48AC18 On market level, display potentials option only for commodities that use resource potentials (mods-only feature)
 			if(!economy::get_commodity_uses_potentials(state, state.selected_trade_good) && (uint8_t)iui::commodity_info_mode::potentials == i) {
 				continue;
 			}
