@@ -1951,13 +1951,17 @@ private_message_button_tooltip;Click to toggle whether this player will receive 
 player_loaded_status;Ready
 player_loading_status;Loading
 player_oos_status;OOS
-output_is_in_demand;Output is in demand: $value$
+output_is_not_in_demand;Output is not in high demand: $value$
+output_is_in_demand;Output is in high demand: $value$
 alice_factory_type_score;AI factory type score
 factory_exploits_local_potentials;Factory exploits local potentials: $value$
+factory_doesnt_exploit_local_potentials;Factory doesn't exploit local potentials: $value$
 factory_output_consumed_by_other_factory;Output consumed by other local factory: $value$
 factory_consumes_other_factory_output;Consumes other local factory's output: $value$
 factory_consumes_local_potential_resource;Consumes resource present in local potentials: $value$
 factory_consumes_local_rgo_resource;Consumes local RGO resource: $value$
 total_score;Total score: $value$
+this_is_not_a_pop_project;This is not a pop project: $value$
 private_investors_avoid_high_taxes;Private investors avoid taxation: $value$
+this_is_not_a_state_project;This is not a state project: $value$
 state_seeks_to_maximize_taxes;The State prioritizes high taxation areas: $value$

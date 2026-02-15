@@ -122,13 +122,9 @@ void update_factory_types_priority(sys::state& state) {
 	});
 }
 
-struct evaluated_factory_type {
-	dcon::factory_type_id type;
-	sys::StackedCalculationWithExplanations score;
-};
-
 // US50AC1 Each factory type is evaluated by its profitability, payback time, and a number of synergies
-sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
+// Unprofitable factories have negative scores
+factory_evaluation_stack evaluate_factory_type(sys::state& state,
 	dcon::nation_id nid,
 	dcon::market_id mid,
 	dcon::province_id pid, dcon::factory_type_id type,
@@ -150,40 +146,42 @@ sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
 	float cost = economy::factory_type_build_cost(state, nid, pid, type, pop_project) + 0.1f;
 	float output = economy::factory_type_output_cost(state, nid, mid, type) * effective_profit;
 
-	// -50%;50% range of miscalculation
-	// output *= (std::remainder(rng::get_random(state, n.id.value * pid.value * type.id.value) / 100.f, 0.5f) - 0.25f);
-
 	float input = economy::factory_type_input_cost(state, nid, mid, type) + 0.1f;
 	float profitability = (output - input - wage * workforce) / input;
 	float payback_time = cost / std::max(0.00001f, (output - input - wage * workforce));
 
-	auto score = sys::StackedCalculationWithExplanations(1.f);
+	auto score = sys::stacked_calculation(1.f)
+		.multiply(std::min(profitability, 100.f), "profitability")
+		.divide(std::clamp(payback_time, 1.f, 365.f * 100.f), "payback_time");
 
-	score.multiply(std::min(profitability, 100.f), "profitability");
-	score.divide(std::clamp(payback_time, 1.f, 365.f * 100.f), "payback_time");
-
+	auto score2 = score.multiply(1.f, "output_is_not_in_demand");
 	if(output_is_in_demand) {
-		score.multiply(10.f, "output_is_in_demand");
+		score2 = score.multiply(10.f, "output_is_in_demand");
 	}
 
+	// Increase score with diminishing control if this is a pop project
+	auto score3 = score2.divide(1.f, "this_is_not_a_pop_project");
 	if(pop_project) {
-		score.divide(control, "private_investors_avoid_high_taxes");
-	}
-	else {
-		score.multiply(control, "state_seeks_to_maximize_taxes");
+		// Control is usually <100% so this increases the score
+		score3 = score2.divide(control, "private_investors_avoid_high_taxes");
 	}
 
-	// Uncomment for release
-	if(score.getResult() < 1) {
-	 	return score;
+	// Higher score for better controlled provinces if this is a state project
+	auto score4 = score3.multiply(1.f, "this_is_not_a_state_project");
+	if(!pop_project) {
+		score4 = score3.multiply(control, "state_seeks_to_maximize_taxes");
 	}
 
 	// Increase score if there are local resouce potentials present
+	auto score5 = score4.multiply(1.f, "factory_doesnt_exploit_local_potentials");
 	if(outputc.get_uses_potentials() && state.world.province_get_factory_max_size(pid, outputc) > 0) {
-		score.multiply(10.f, "factory_exploits_local_potentials");
+		score5 = score4.multiply(10.f, "factory_exploits_local_potentials");
 	}
 
 	// Increase score for local synergies
+	auto factory_output_consumed_by_other_factory = 1.f;
+	auto factory_consumes_other_factory_output = 1.f;
+
 	for(auto otherfl : state.world.province_get_factory_location(pid)) {
 		auto otherf = otherfl.get_factory();
 		auto othertype = otherf.get_building_type();
@@ -194,7 +192,7 @@ sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
 				break;
 
 			if(cid == outputc) {
-				score.multiply(1.5f, "factory_output_consumed_by_other_factory");
+				factory_output_consumed_by_other_factory *= 1.5f;
 			}
 		}
 
@@ -204,10 +202,13 @@ sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
 				break;
 
 			if(cid == othertype.get_output()) {
-				score.multiply(1.5f, "factory_consumes_other_factory_output");
+				factory_consumes_other_factory_output *= 1.f;
 			}
 		}
 	}
+
+	auto factory_consumes_local_potential_resource = 1.f;
+	auto factory_consumes_local_rgo_resource = 1.f;
 
 	for(uint32_t i = 0; i < economy::commodity_set::set_size; ++i) {
 		auto cid = inputs.commodity_type[i];
@@ -215,16 +216,26 @@ sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
 			break;
 
 		if(state.world.province_get_factory_max_size(pid, cid) > 1) {
-			score.multiply(1.5f, "factory_consumes_local_potential_resource");
+			factory_consumes_local_potential_resource *= 1.5f;
 		}
 
 		if(state.world.province_get_rgo(pid) == cid) {
-			score.multiply(1.5f, "factory_consumes_local_rgo_resource");
+			factory_consumes_local_rgo_resource *= 1.5f;
 		}
 	}
 
-	return score;
+	auto score6 = score5.multiply(factory_output_consumed_by_other_factory, "factory_output_consumed_by_other_factory")
+		.multiply(factory_consumes_other_factory_output, "factory_consumes_other_factory_output")
+		.multiply(factory_consumes_local_potential_resource, "factory_consumes_local_potential_resource")
+		.multiply(factory_consumes_local_rgo_resource, "factory_consumes_local_rgo_resource");
+
+	return score6;
 }
+
+struct evaluated_factory_type {
+	dcon::factory_type_id type;
+	float score;
+};
 
 void filter_factories_disjunctive(
 	sys::state& state,
@@ -260,15 +271,18 @@ void filter_factories_disjunctive(
 
 		auto score = evaluate_factory_type(state, nid, mid, pid, type, pop_project, filter_profitability, filter_output_probability_to_buy, filter_payback_time, effective_profit);
 
-		scores.push_back(evaluated_factory_type{ type, score });
+		// Build only profitable factories
+		if(score.getResult() > 0.f) {
+			scores.push_back(evaluated_factory_type{ type, score.getResult() });
+		}
 	}
 
 	std::sort(scores.begin(), scores.end(), [](evaluated_factory_type a, evaluated_factory_type b) {
-		return a.score.getResult() > b.score.getResult();
+		return a.score > b.score;
 	});
 	// US50AC2 The State takes top 5 factory options for construction
 	// US51AC6 Private Investment takes top 5 factory options for contrustion
-	// Previously used filtering approach with hardcoded values didn't work well for mods changing the vanilla economy
+	// Previously used approach that had filters with hardcoded values didn't work well for mods changing the vanilla economy
 	for(size_t i = 0; i < 5 && i < scores.size(); i++) {
 		desired_types.push_back(scores[i].type);
 	}

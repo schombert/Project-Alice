@@ -54,6 +54,8 @@
 #include "gui_population_window.cpp"
 #include "gui_context_window.cpp"
 #include "gui_factory_refit_window.cpp"
+#include "gui_build_factory_window.cpp"
+#include "gui_scripted_elements.cpp"
 #include "province_tiles.cpp"
 #include "immediate_mode.cpp"
 #include "economy_viewer.cpp"

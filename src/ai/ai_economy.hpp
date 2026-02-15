@@ -14,7 +14,23 @@ bool province_has_available_workers(sys::state& state, dcon::province_id p);
 bool province_has_workers(sys::state& state, dcon::province_id p);
 
 void update_budget(sys::state& state, bool presim = false);
-sys::StackedCalculationWithExplanations evaluate_factory_type(sys::state& state,
+
+using factory_evaluation_stack = decltype(
+	std::declval<sys::stacked_calculation<>>()
+		.multiply(1.f, "profitability")
+		.divide(1.f, "payback_time")
+		.multiply(1.f, "output_is_in_demand")
+		.divide(1.f, "private_investors_avoid_high_taxes")
+		.multiply(1.f, "state_seeks_to_maximize_taxes")
+		.multiply(10.f, "factory_exploits_local_potentials")
+		.multiply(1.f, "factory_output_consumed_by_other_factory")
+		.multiply(1.f, "factory_consumes_other_factory_output")
+		.multiply(1.f, "factory_consumes_local_potential_resource")
+		.multiply(1.f, "factory_consumes_local_rgo_resource")
+);
+
+// Returns score AI (nation or private investors) places to the factory type construction in the given market with explanation localisation keys. Filters are redundant for now
+factory_evaluation_stack evaluate_factory_type(sys::state& state,
 	dcon::nation_id nid,
 	dcon::market_id mid,
 	dcon::province_id pid, dcon::factory_type_id type,
