@@ -43,6 +43,7 @@
 #include "events.cpp"
 #include "gui_graphics.cpp"
 #include "gui_common_elements.cpp"
+#include "gui_build_factory_window.cpp"
 #include "widgets/table.cpp"
 #include "gui_trigger_tooltips.cpp"
 #include "gui_effect_tooltips.cpp"
