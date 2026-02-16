@@ -383,6 +383,8 @@ void update(sys::state& state) {
 			});
 		}
 	} else if(state.selected_trade_good && state.iui_state.tab == iui::iui_tab::commodities_markets) {
+		// US48 Economic Scene Commodities tab
+		// US48AC0 Display data only if a commodity is selected
 		if(state.iui_state.national_data) {
 			state.world.for_each_nation([&](dcon::nation_id n) {
 				auto exists = (state.world.nation_get_owned_province_count(n) != 0);
@@ -390,19 +392,23 @@ void update(sys::state& state) {
 					return;
 				}
 				switch(state.iui_state.selected_commodity_info) {
+					// US48AC1 On national level, when price option is selected, display median price
 				case iui::commodity_info_mode::price:
 					state.iui_state.per_nation_data[n.index()] = economy::median_price(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::supply:
+					// US48AC2 On national level, when supply option is selected, display total supply (SUM)
 					state.iui_state.per_nation_data[n.index()] = economy::supply(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::demand:
+					// US48AC3 On national level, when demand option is selected, display total supply (SUM)
 					state.iui_state.per_nation_data[n.index()] = economy::demand(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::production:
+					// US48AC4 On national level, when a production option is selected, display total production (SUM)
 					state.iui_state.per_nation_data[n.index()] =
 						std::max(
 							0.f,
@@ -412,6 +418,7 @@ void update(sys::state& state) {
 					break;
 
 				case iui::commodity_info_mode::consumption:
+					// US48AC5 On national level, when a consumption option is selected, display total consumption (SUM)
 					state.iui_state.per_nation_data[n.index()] =
 						std::max(
 							0.f,
@@ -421,17 +428,20 @@ void update(sys::state& state) {
 					break;
 
 				case iui::commodity_info_mode::stockpiles:
+					// US48AC6 On national level, when a stockpiles option is selected, display total stockpiles (SUM)
 					state.iui_state.per_nation_data[n.index()] = economy::stockpile(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::potentials:
 				{
+					// US48AC7 On national level, when a potentials option is selected, display total potentials (SUM)
 					state.iui_state.per_nation_data[n.index()] = (float) economy::calculate_nation_factory_limit(state, n, state.selected_trade_good);
 					break;
 				}
 
 				case iui::commodity_info_mode::balance:
 				{
+					// US48AC8 On national level, when a balance option is selected, display total balance with logarithmic scale (SUM)
 					auto supply = economy::supply(state, n, state.selected_trade_good);
 					auto demand = economy::demand(state, n, state.selected_trade_good);
 					auto shift = 0.001f;
@@ -443,15 +453,18 @@ void update(sys::state& state) {
 				}
 
 				case iui::commodity_info_mode::trade_in:
+					// US48AC9 On national level, when a trade_in option is selected, display total imports volume (SUM of goods)
 					state.iui_state.per_nation_data[n.index()] = economy::import_volume(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::trade_out:
+					// US48AC10 On national level, when a trade_out option is selected, display total exports volume (SUM of goods)
 					state.iui_state.per_nation_data[n.index()] = economy::export_volume(state, n, state.selected_trade_good);
 					break;
 
 				case iui::commodity_info_mode::trade_balance:
 				{
+					// US48AC11 On national level, when a trade_balance option is selected, display total trade_balance volume (SUM of goods)
 					auto supply = economy::import_volume(state, n, state.selected_trade_good);
 					auto demand = economy::export_volume(state, n, state.selected_trade_good);
 					auto shift = 0.001f;
@@ -468,18 +481,22 @@ void update(sys::state& state) {
 			state.world.for_each_market([&](dcon::market_id market) {
 				switch(state.iui_state.selected_commodity_info) {
 					case iui::commodity_info_mode::price:
+						// US48AC12 On market level, when a price option is selected, display price
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_price(market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::supply:
+						// US48AC13 On market level, when a supply option is selected, display commodity supply
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_supply(market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::demand:
+						// US48AC14 On market level, when a demand option is selected, display commodity demand
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_demand(market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::production:
+						// US48AC15 On market level, when a production option is selected, display commodity production
 						state.iui_state.per_market_data[market.index()] =
 							std::max(
 								0.f,
@@ -489,6 +506,7 @@ void update(sys::state& state) {
 						break;
 
 					case iui::commodity_info_mode::consumption:
+						// US48AC16 On market level, when a consumption option is selected, display commodity consumption
 						state.iui_state.per_market_data[market.index()] =
 							std::max(
 								0.f,
@@ -498,11 +516,13 @@ void update(sys::state& state) {
 						break;
 
 					case iui::commodity_info_mode::stockpiles:
+						// US48AC17 On market level, when a stockpiles option is selected, display commodity stockpiles
 						state.iui_state.per_market_data[market.index()] = state.world.market_get_stockpile(market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::potentials:
 					{
+						// US48AC19 On market level, when a potentials option is selected, display commodity potentials
 						auto loc = state.world.market_get_zone_from_local_market(market);
 						state.iui_state.per_market_data[market.index()] = (float) economy::calculate_state_factory_limit(state, loc, state.selected_trade_good);
 						cut_away_negative = true;
@@ -512,6 +532,7 @@ void update(sys::state& state) {
 
 					case iui::commodity_info_mode::balance:
 					{
+						// US48AC20 On market level, when a balance option is selected, display commodity trade balance
 						auto supply = state.world.market_get_supply(market, state.selected_trade_good);
 						auto demand = state.world.market_get_demand(market, state.selected_trade_good);
 						auto shift = 0.001f;
@@ -523,15 +544,18 @@ void update(sys::state& state) {
 					}
 
 					case iui::commodity_info_mode::trade_in:
+						// US48AC21 On market level, when a trade_in option is selected, display commodity trade_in volume
 						state.iui_state.per_market_data[market.index()] = economy::trade_influx(state, market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::trade_out:
+						// US48AC22 On market level, when a trade_out option is selected, display commodity trade_out volume
 						state.iui_state.per_market_data[market.index()] = economy::trade_outflux(state, market, state.selected_trade_good);
 						break;
 
 					case iui::commodity_info_mode::trade_balance:
 					{
+						// US48AC23 On market level, when a trade_balance option is selected, display commodity trade_balance volume (supply - demand)
 						auto supply = economy::trade_influx(state, market, state.selected_trade_good);
 						auto demand = economy::trade_outflux(state, market, state.selected_trade_good);
 						auto shift = 0.001f;
@@ -1250,7 +1274,7 @@ void render(sys::state& state) {
 		for(uint8_t i = 0; i < uint8_t(iui::commodity_info_mode::total); i++) {
 			iui::rect button_rect = { size_selector_w + 10.f, screen_size.y - 350.f + i * view_mode_height, view_mode_width, view_mode_height };
 
-			// Don't show Potentials buttons if there are no potentials for this good
+			// US48AC18 On market level, display potentials option only for commodities that use resource potentials (mods-only feature)
 			if(!economy::get_commodity_uses_potentials(state, state.selected_trade_good) && (uint8_t)iui::commodity_info_mode::potentials == i) {
 				continue;
 			}
