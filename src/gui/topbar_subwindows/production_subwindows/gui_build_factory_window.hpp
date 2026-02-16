@@ -9,6 +9,7 @@
 #include "economy_production.hpp"
 #include "economy_factory_view.hpp"
 #include "economy.hpp"
+#include "commands.hpp"
 
 // US53 Build Factory Window
 

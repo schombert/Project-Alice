@@ -47,6 +47,20 @@ namespace sys {
 
 		StepNode(float v, std::string_view exp, Next n)
 			: value(v), explanation(exp), next(std::move(n)) { }
+
+		// Apply the operation to the current value – fully compile‑time resolved.
+		float apply(float current) const {
+			if constexpr(Op == Operation::ADD) {
+				return current + value;
+			} else if constexpr(Op == Operation::SUBTRACT) {
+				return current - value;
+			} else if constexpr(Op == Operation::MULTIPLY) {
+				return current * value;
+			} else if constexpr(Op == Operation::DIVIDE) {
+				if(value == 0.0f) throw std::runtime_error("Division by zero");
+				return current / value;
+			}
+		}
 	};
 
 	// US49 stacked_calculation class allows uniting number calculations for backend with explanation tooltips for the UI
@@ -56,19 +70,6 @@ namespace sys {
 		float initialValue;
 		Steps steps;
 
-		// Apply a single operation to a value
-		static float apply(Operation op, float current, float val) {
-			switch(op) {
-			case Operation::ADD:      return current + val;
-			case Operation::SUBTRACT: return current - val;
-			case Operation::MULTIPLY: return current * val;
-			case Operation::DIVIDE:
-				if(val == 0.0f) throw std::runtime_error("Division by zero");
-				return current / val;
-			}
-			return current; // unreachable
-		}
-
 		// Evaluation helpers
 		static float evaluate_impl(const NoStep&, float current) {
 			return current;
@@ -76,7 +77,7 @@ namespace sys {
 
 		template<Operation Op, typename Next>
 		static float evaluate_impl(const StepNode<Op, Next>& step, float current) {
-			float newCurrent = apply(Op, current, step.value);
+			float newCurrent = step.apply(current);   // compile‑time operation
 			return evaluate_impl(step.next, newCurrent);
 		}
 
@@ -129,7 +130,7 @@ namespace sys {
 		float getResult() const {
 			return evaluate_impl(steps, initialValue);
 		}
-		// US49AC6 User can get all steps used for calculation for tooltipsand UI
+		// US49AC6 User can get all steps used for calculation for tooltips and UI
 		std::vector<CalculationStep> getSteps() const {
 			std::vector<CalculationStep> result;
 			collect_steps(steps, result);
@@ -140,11 +141,10 @@ namespace sys {
 		auto clear() const {
 			return stacked_calculation<NoStep>(initialValue);
 		}
-		// US49AC8 User can reuse existing stack by reseting it to a different initial value
+		// US49AC8 User can reuse existing stack by resetting it to a different initial value
 		auto reset(float newInitialValue) const {
 			return stacked_calculation<NoStep>(newInitialValue);
 		}
 	};
-
 
 }
