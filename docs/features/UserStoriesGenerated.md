@@ -1,5 +1,5 @@
 # User Stories
-*Automatically generated file on 2026-02-10*
+*Automatically generated file on 2026-02-24*
 
 ## US1.  Regiment construction
 
@@ -12,51 +12,42 @@
 
 ## US3.  Trade
 
-| AC9 |  Wartime embargoes |
-| AC10 |  diplomatic embargos |
-| AC11 |  sphere joins embargo |
-| AC15 |  Equal |
-| AC17 |  if market capital controller is at war with market coastal controller is different |
 | AC2 | register trade demand on transportation labor |
 | AC3 | register demand on local transportation |
 | AC7 | US3AC8 Ban international sea routes or international land routes based on the corresponding modifiers |
 | AC8 |  Ban international sea routes or international land routes based on the corresponding modifiers |
+| AC9 |  Wartime embargoes |
+| AC10 |  diplomatic embargos |
+| AC11 |  sphere joins embargo |
 | AC12 | subject joins embargo |
+| AC15 |  Equal |
+| AC17 |  if market capital controller is at war with market coastal controller is different |
 | AC21 | effect of scale |
-| AC5 | Trade Route Attraction from naval bases |
-| AC22 | Trade Route attraction modifier |
 
-## US4.  War and peace
+## US4.  War
 
 
 ## US5.  Warscore
 
-| AC4 |  What  |
-| AC5 |  count 50 |
 | AC1 | Army arrives to province |
 | AC2 | Army siege |
+| AC4 |  What % of the province score should be counted towards occupation. [0.0f |
+| AC5 |  count 50% of occupation score for wars declared after targetted war |
 
-## US6.  Ticking warscore
+## US6.  Special Army Orders
 
 | AC3 | Reset selected army orders |
-| AC20 | Reduce accumulated ticking warscore when the side adds a new wargoal |
-| AC2 | US6AC3 |
-| AC12 | US6AC13 US6AC17 US6AC18 US6AC19 Ticking warscore may go into negative only after grace period ends |
-| AC5 | US6AC6 Ticking warscope for make_puppet war |
-| AC7 | We hold some non |
-| AC8 | Battle score |
-| AC10 | US6AC17 US6AC18 US6AC19 |
 
 ## US7. Move and Siege army order
 
-| AC2 | Enable  |
 | AC1 | Handle  |
+| AC2 | Enable  |
 
 ## US8. Strategic Redeployment army order
 
-| AC3 | Toggle strategic redeployment order on B. |
-| AC2 | Button to order Strategic Redeployment |
 | AC1 | Movement finished  |
+| AC2 | Button to order Strategic Redeployment |
+| AC3 | Toggle strategic redeployment order on B. |
 
 ## US9. Pursue and engage army order
 
@@ -73,17 +64,17 @@
 ## US13. Regiments organization regain
 
 | AC3 | US13AC4 US13AC5 Morale  |
+| AC6 | Max organization of the regiment is 100%  |
 | AC7 | Unfulfilled supply doesn't lower max org as it makes half the game unplayable |
 | AC8 | Unfilfilled supply doesn't prevent org regain as it makes half the game unplayable |
-| AC6 | Max organization of the regiment is 100 |
 
 ## US14. Calculates reinforcement for a particular regiment
 
 
-## US15.  Host settings
+## US15. Navy supplies
 
 
-## US16.  Player accounts
+## US16. Ship supplies
 
 
 ## US17. Ships organization regain
@@ -92,65 +83,60 @@
 ## US18. Ships repairs
 
 
-## US20. De facto annexations
-
-
-## US27.  Scriptable buttons
-
-| AC5 | National level interactions first |
-| AC1 | US27AC2 US27AC3 US27AC4 |
-
-## US28.  Toggleable windows
-
-| AC5 | US28AC6 UI variable toggle buttons can have nation |
-| AC2 | When clicking button with toggle_ui_key the associated UI variable is toggled True |
-| AC4 | Window is shown only when UI variable in `visible_ui_key` is set to True |
-
-## US29.  Scriptable images with dynamic frames through datamodels
-
-| AC2 | US29AC3 When an icon has `datamodel |
-| AC3 | US29AC3 When an icon has `datamodel |
-| AC4 | US29AC5 Extracted into a separate function because both icon classes  |
-| AC6 | US29AC7 |
-
 ## US31.  Map
 
 | AC3 | If a valid province has been selected, reset selection of armies as well |
 
-## US40.  Winter
+## US48. Economic Scene Commodities tab
 
-| AC1 | Winter textures |
-| AC2 | Winter siege attrition |
+| AC0 | Display data only if a commodity is selected |
+| AC1 | On national level, when price option is selected, display median price |
+| AC2 | On national level, when supply option is selected, display total supply  |
+| AC3 | On national level, when demand option is selected, display total supply  |
+| AC4 | On national level, when a production option is selected, display total production  |
+| AC5 | On national level, when a consumption option is selected, display total consumption  |
+| AC6 | On national level, when a stockpiles option is selected, display total stockpiles  |
+| AC7 | On national level, when a potentials option is selected, display total potentials  |
+| AC8 | On national level, when a balance option is selected, display total balance with logarithmic scale  |
+| AC9 | On national level, when a trade_in option is selected, display total imports volume  |
+| AC10 | On national level, when a trade_out option is selected, display total exports volume  |
+| AC11 | On national level, when a trade_balance option is selected, display total trade_balance volume  |
+| AC12 | On market level, when a price option is selected, display price |
+| AC13 | On market level, when a supply option is selected, display commodity supply |
+| AC14 | On market level, when a demand option is selected, display commodity demand |
+| AC15 | On market level, when a production option is selected, display commodity production |
+| AC16 | On market level, when a consumption option is selected, display commodity consumption |
+| AC17 | On market level, when a stockpiles option is selected, display commodity stockpiles |
+| AC18 | On market level, display potentials option only for commodities that use resource potentials  |
+| AC19 | On market level, when a potentials option is selected, display commodity potentials |
+| AC20 | On market level, when a balance option is selected, display commodity trade balance |
+| AC21 | On market level, when a trade_in option is selected, display commodity trade_in volume |
+| AC22 | On market level, when a trade_out option is selected, display commodity trade_out volume |
+| AC23 | On market level, when a trade_balance option is selected, display commodity trade_balance volume  |
 
-## US49. StackedCalculationWithExplanations allows uniting number calculations for backend with explanation tooltips for the UI
+## US49. stacked_calculation class allows uniting number calculations for backend with explanation tooltips for the UI
 
-| AC1 | StackedCalculationWithExplanations is constructed with initial float value |
+| AC1 | stacked_calculation is constructed with initial float value  |
 | AC2 | User can add a value with a string_view explanation of the reason |
 | AC3 | User can subtract a value with a string_view explanation of the reason |
-| AC4 | User can divide current value by provided value with a string_view explanation of the reason |
+| AC4 | User can multiply current value by provided value with a string_view explanation of the reason |
 | AC5 | User can get resulting value from the stack |
-| AC6 | User can get all steps used for calculation for tooltipsand UI |
+| AC6 | User can get all steps used for calculation for tooltips and UI |
 | AC7 | User can reuse existing stack by clearing it |
-| AC8 | User can reuse existing stack by reseting it to a different initial value |
+| AC8 | User can reuse existing stack by resetting it to a different initial value |
 
 ## US50. The State constructs factories
 
 | AC1 | Each factory type is evaluated by its profitability, payback time, and a number of synergies |
 | AC2 | The State takes top 5 factory options for construction |
-| AC4 | The State doesn't initiate more constructions if it doesn't have free funds |
 | AC3 | The State takes one random option for construction |
+| AC4 | The State doesn't initiate more constructions if it doesn't have free funds |
 | AC5 | The State doesn't evaluate the cost of the factory it constructs beyond inital analysis |
+| AC10 | This is legacy flow that is no longer called for State Constructions, refer to US52 |
 
-## US51. Private investment fund builds factories
+## US51. 
 
 | AC6 | Private Investment takes top 5 factory options for contrustion |
-| AC1 | Investment fund doesn't build if it's over courage with current investments |
-| AC2 | Colonial pops are eligible for construction of certain factories |
-| AC3 | Provinces are sorted by population descending |
-| AC4 | If the province an existing construction, no new construction will be run |
-| AC5 | If the state has over state.defines.factories_per_state factories, no new construction will be done |
-| AC7 | Private Investment takes random option out of top 5 |
-| AC8 | Private Investment doesn't get afraid of expensive constructions. It initiates one and stop the following ones |
 
 ## US52. Nation builds some random factories if it can build by itself
 
@@ -165,7 +151,9 @@
 | AC13 | Tooltip for a factory type displays key economic metrics of the potential construction |
 | AC14 | Tooltip for a factory type displays the score AI places to the factory type |
 
-## US1010. When a factory is created, do market adjustments
+## US101. Sieges and Occupations
 
-| AC1 | When a factory is created, add 10 units of its output to local market to stimulate consumption and demand registration |
-| AC2 | when a factory is created, increase price of its inputs to stimulate producing those |
+| AC2 | Forts reduce siege speed by alice_fort_siege_slowdown factor  |
+| AC3 | Forts increase hostile siege attrition by state.defines.alice_fort_siege_attrition_per_level per level |
+| AC4 | Calculate victory points that a province P is worth in the nation N. Used for warscore, occupation rate. |
+| AC5 | defines the general algorithm for getting the effective fort level with said amount of total strength of units who are enemies with the fort controller, |
