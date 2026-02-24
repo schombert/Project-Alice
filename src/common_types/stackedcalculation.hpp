@@ -57,7 +57,7 @@ namespace sys {
 			} else if constexpr(Op == Operation::MULTIPLY) {
 				return current * value;
 			} else if constexpr(Op == Operation::DIVIDE) {
-				if(value == 0.0f) throw std::runtime_error("Division by zero");
+				assert(value != 0.f); // Division by zero
 				return current / value;
 			}
 		}
