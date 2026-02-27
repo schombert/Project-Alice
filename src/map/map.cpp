@@ -789,6 +789,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 	glDisable(GL_PRIMITIVE_RESTART);
 
+	float pixel_size = (screen_size.y) / float(size_y) * zoom;
+
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 		load_shader(shader_borders_provinces);
@@ -804,6 +806,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		for(auto b : borders) {
 			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f); // width
 			if(b.count == 0) continue;
+
+			bool national = false;
+
 			if(!b.adj || (
 				state.world.province_adjacency_get_type(b.adj) &
 				(
@@ -813,12 +818,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				)
 			)) {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
+				national = true;
 			} else {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 			}
 
-			glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
-			glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
+			if(national || pixel_size > 2.f) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
+			}
 		}
 	}
 

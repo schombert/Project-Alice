@@ -156,6 +156,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n, flo
 
 			auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto demand = budget_per_administration / wage;
+			assert(std::isfinite(demand));
 			state.world.nation_set_administration_employment_target_in_capital(n, demand);
 			auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
@@ -175,6 +176,7 @@ void update_consumption_administration(sys::state& state, dcon::nation_id n, flo
 
 		auto wage = state.world.province_get_labor_price(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto demand = budget_per_administration / wage;
+		assert(std::isfinite(demand));
 		state.world.province_set_administration_employment_target(capital_of_capital_state, demand);
 		auto& cur_labor_demand = state.world.province_get_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		state.world.province_set_labor_demand(capital_of_capital_state, economy::labor::high_education_and_accepted, cur_labor_demand + demand);
@@ -191,6 +193,7 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 			auto demand = state.world.nation_get_administration_employment_target_in_capital(n);
 			auto bought = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 			auto current = state.world.nation_get_stockpiles(n, economy::money);
+			assert(std::isfinite(current + (1.f - bought) * demand * wage));
 			state.world.nation_set_stockpiles(n, economy::money, current + (1.f - bought) * demand * wage);
 		}
 	}
@@ -207,6 +210,7 @@ void refund_demand_administration(sys::state& state, dcon::nation_id n) {
 		auto demand = state.world.province_get_administration_employment_target(capital_of_capital_state);
 		auto bought = state.world.province_get_labor_demand_satisfaction(capital_of_capital_state, economy::labor::high_education_and_accepted);
 		auto current = state.world.nation_get_stockpiles(n, economy::money);
+		assert(std::isfinite(current + (1.f - bought) * demand * wage));
 		state.world.nation_set_stockpiles(n, economy::money, current + (1.f - bought) * demand * wage);
 	});
 }

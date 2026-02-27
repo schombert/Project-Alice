@@ -303,9 +303,9 @@ int state::get_edit_y(){
 }
 
 
-bool commodity_per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size()) return true;
-	if(!commodity) return true;
+cache_response commodity_per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size()) return cache_response::ready;
+	if(!commodity) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
@@ -314,7 +314,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::nation_id current_nation{ progress };
@@ -333,7 +333,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -344,16 +344,16 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	consumption_volume.set(progress, consumption_temp);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool nation_per_nation_cache_slot::update(sys::state& state) {
-	if(!nation) return true;
+cache_response nation_per_nation_cache_slot::update(sys::state& state) {
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 	if(counter_start_before != counter_end_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// ACTUAL CALCULATIONS BEGIN
@@ -366,7 +366,7 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -374,19 +374,19 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 	export_value.assign_data(export_temp);
 	import_value.assign_data(import_temp);
 
-	return true;
+	return cache_response::ready;
 }
 
-bool nation_per_commodity_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.commodity_size()) return true;
-	if(!nation) return true;
+cache_response nation_per_commodity_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.commodity_size()) return cache_response::ready;
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::commodity_id current_item{ progress };
@@ -401,7 +401,7 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -410,10 +410,10 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_province_cache_slot::update(sys::state& state) {
+cache_response per_province_cache_slot::update(sys::state& state) {
 	// we can't create provinces thankfully
 	if(progress >= state.world.province_size()) {
 		// update sorting
@@ -432,11 +432,11 @@ bool per_province_cache_slot::update(sys::state& state) {
 				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 
 	// validate size
-	if(gdp.unsafe_data.size() < state.world.province_size()) {
+	if(sorted_by_gdp.unsafe_data.size() < state.world.province_size()) {
 		sorted_by_gdp.clear();
 		sorted_by_gdp_per_capita.clear();
 		state.world.for_each_province([&](auto pid) {
@@ -454,7 +454,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -471,7 +471,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -480,18 +480,18 @@ bool per_province_cache_slot::update(sys::state& state) {
 	population.set(progress, population_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
+cache_response per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		reset_progress();
-		return false;
+		return cache_response::busy;
 	}
 
 	if(progress < state.world.nation_size()) {
@@ -527,7 +527,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -536,7 +536,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_parent.set(progress, parent_of_current);
 
 		progress++;
-		return false;
+		return cache_response::in_progress;
 	} else {
 		dcon::nation_id current_item{ progress_sphere };
 
@@ -555,7 +555,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -563,11 +563,11 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_gdp.set(progress_sphere, total);
 
 		progress_sphere++;
-		return false;
+		return cache_response::in_progress;
 	}
 }
 
-bool commodity_per_province_cache_slot::update(sys::state& state) {
+cache_response commodity_per_province_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.province_size()) {
 		// update sorting
 		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
@@ -585,7 +585,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 	// validate size
 	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
@@ -606,7 +606,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -623,7 +623,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -632,7 +632,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 	consumption_volume.set(progress, consumption_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
 void ui_cache::update_ui(sys::state& state) {
@@ -650,9 +650,15 @@ void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running)
 		std::shared_lock lock(state.game_state_resetting_lock);
 		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
 		updates_running = true;
-		if(slot.update(state)) {
+		auto res = slot.update(state);
+		if(res == cache_response::ready) {
 			slot.update_completed = true;
 			update_ui(state);
+			delay = std::max(0.1f, delay * 0.95f);
+		} else if (res == cache_response::busy) {
+			delay = std::min(100.f, delay * 1.05f);
+		} else if(res == cache_response::in_progress) {
+			delay = std::max(0.1f, delay * 0.95f);
 		}
 	}
 }
@@ -672,6 +678,10 @@ void ui_cache::process_update(sys::state& state) {
 			sleep_iterations = std::min(1000, (sleep_iterations + 1));
 		} else {
 			sleep_iterations = 0;
+		}
+
+		if(delay > 1.f) {
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
 		}
 	}
 };
@@ -2418,6 +2428,16 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		load_from_dir(prov_history);
 		for(auto const& subdir : list_subdirectories(prov_history)) {
 			load_from_dir(subdir);
+		}
+	}
+
+	// check that all provinces are assigned to a state
+	// it's required to avoid issues with functions which assume that every land province is in a state
+	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
+		auto pid = dcon::province_id{ dcon::province_id::value_base_t(i) };
+		auto v2id = world.province_get_provid(pid);
+		if(world.province_get_nation_from_province_ownership(pid)) {
+			assert(world.abstract_state_membership_get_state(world.province_get_abstract_state_membership(pid)));
 		}
 	}
 

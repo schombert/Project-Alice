@@ -2,10 +2,13 @@
 
 #include "system_state_forward.hpp"
 #include "dcon_generated_ids.hpp"
+#include "constants_dcon.hpp"
 
 namespace text {
 struct columnar_layout;
 }
+
+
 
 namespace ui {
 void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, dcon::factory_id fid);

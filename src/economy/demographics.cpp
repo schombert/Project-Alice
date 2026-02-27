@@ -2010,7 +2010,10 @@ void alt_demographics_update_extras(sys::state& state) {
 				ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()), [&, key = to_key(state, c)](auto p) {
 					auto v = state.world.province_get_demographics_alt(p, key);
 					auto old_max = max_buffer.get(p);
-					auto mask = v > old_max && nations::nation_accepts_culture(state, state.world.province_get_nation_from_province_ownership(p), c);
+					auto nations = state.world.province_get_nation_from_province_ownership(p);
+					auto is_primary = state.world.nation_get_primary_culture(nations) == c;
+					auto is_accepted = state.world.nation_get_accepted_cultures(nations, c);
+					auto mask = v > old_max && (is_primary || is_accepted);
 					state.world.province_set_dominant_accepted_culture(p,
 							ve::select(mask, ve::tagged_vector<dcon::culture_id>(c), state.world.province_get_dominant_accepted_culture(p)));
 					max_buffer.set(p, ve::select(mask, v, old_max));
