@@ -22,7 +22,6 @@ namespace economy {
 // 1 means that trade profit due to price difference is pocketed by importers
 constexpr inline float import_profit_priority = 0.5f;
 
-
 template<typename TRADE_ROUTE>
 auto trade_route_effect_of_scale(sys::state& state, TRADE_ROUTE trade_route) {
 	using MARKET = convert_value_type<TRADE_ROUTE, dcon::trade_route_id, dcon::market_id>;
@@ -47,7 +46,8 @@ auto trade_route_effect_of_scale(sys::state& state, TRADE_ROUTE trade_route) {
 }
 
 
-// US3AC2 Labour demand for a single trade route
+// US3AC2
+// Labour demand for a single trade route
 float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_route, dcon::province_id A_capital, dcon::province_id B_capital) {
 	auto cargo = 0.f;
 	state.world.for_each_commodity([&](auto cid) {
@@ -64,7 +64,8 @@ float trade_route_labour_demand(sys::state& state, dcon::trade_route_id trade_ro
 	return total_demanded_labor;
 }
 
-// US3AC2 Calculate labour demand for trade routes between markets
+// US3AC2 Markets have associated labour costs for trade routes management
+// Calculate labour demand for trade routes between markets
 float transportation_between_markets_labor_demand(sys::state& state, dcon::market_id market) {
 
 	auto total_demanded_labour = 0.f;
@@ -83,7 +84,8 @@ float transportation_between_markets_labor_demand(sys::state& state, dcon::marke
 }
 
 
-// US3AC3 Calculate labour demand for trade inside the market
+// US3AC3 Markets have associated labour costs for trade inside the state
+// Calculate labour demand for trade inside the market
 float transportation_inside_market_labor_demand(sys::state& state, dcon::market_id market, dcon::province_id capital) {
 	auto base_cargo_transport_demand = 0.f;
 
@@ -360,11 +362,12 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto is_land_route = state.world.trade_route_get_is_land_route(route);
 	auto same_nation = controller_capital_A == controller_capital_B;
 
-	// US3AC7. Ban international sea routes or international land routes based on the corresponding modifiers
+	// Ban international sea routes or international land routes based on the corresponding modifiers
+	// US3AC7 If disallow_naval_trade national modifier is non-zero then its states can't trade by sea
 	auto A_bans_sea_trade = state.world.nation_get_modifier_values(controller_capital_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 	auto B_bans_sea_trade = state.world.nation_get_modifier_values(controller_capital_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 	auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
-	// US3AC8. Ban international sea routes or international land routes based on the corresponding modifiers
+	// US3AC8 If disallow_land_trade national modifier is non-zero then its states can't trade by land
 	auto A_bans_land_trade = state.world.nation_get_modifier_values(controller_capital_A, sys::national_mod_offsets::disallow_land_trade) > 0.f;
 	auto B_bans_land_trade = state.world.nation_get_modifier_values(controller_capital_B, sys::national_mod_offsets::disallow_land_trade) > 0.f;
 	auto land_trade_banned = A_bans_land_trade || B_bans_land_trade;
@@ -372,7 +375,7 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	is_sea_route = is_sea_route && !is_A_blockaded && !is_B_blockaded;
 
-	// US3AC9. Wartime embargoes
+	// US3AC9
 	auto A_joins_sphere_wide_embargo = ve::apply([&](auto n_a, auto n_b) {
 		return military::are_at_war(state, n_a, n_b);
 	}, market_leader_A, market_leader_B);
@@ -381,9 +384,9 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 		return military::are_at_war(state, n_a, n_b);
 	}, market_leader_B, market_leader_A);
 
-	// US3AC10. diplomatic embargos
-	// US3AC11. sphere joins embargo
-	// US3AC12 subject joins embargo
+	// US3AC10
+	// US3AC11
+	// US3AC12
 	auto A_has_embargo = non_war_embargo_status(state, controller_capital_A, controller_capital_B, market_leader_A, market_leader_B);
 	A_joins_sphere_wide_embargo = A_has_embargo || A_joins_sphere_wide_embargo;
 
@@ -411,7 +414,8 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 
 	auto trade_good_loss_mult = std::max(0.f, 1.f - trade_loss_per_distance_unit * distance);
 
-	// US3AC2 we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
+	// US3AC2
+	// We assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 	// we do it this way to avoid another assymetry in calculations
 	auto transport_cost =
 		distance / trade_distance_covered_by_pair_of_workers_per_unit_of_good
@@ -551,7 +555,8 @@ void update_trade_routes_volume(
 		auto is_sea_route = state.world.trade_route_get_is_sea_route(trade_route) && !is_A_blockaded && !is_B_blockaded;
 		auto is_land_route = state.world.trade_route_get_is_land_route(trade_route);
 		auto same_nation = controller_A == controller_B;
-		// US3AC7 US3AC8 Ban international sea routes or international land routes based on the corresponding modifiers
+		// US3AC7
+		// US3AC8
 		auto A_bans_sea_trade = state.world.nation_get_modifier_values(controller_A, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 		auto B_bans_sea_trade = state.world.nation_get_modifier_values(controller_B, sys::national_mod_offsets::disallow_naval_trade) > 0.f;
 		auto sea_trade_banned = A_bans_sea_trade || B_bans_sea_trade;
@@ -583,7 +588,8 @@ void update_trade_routes_volume(
 		// US3AC18
 		auto trade_good_loss_mult = ve::max(0.f, 1.f - trade_loss_per_distance_unit * distance);
 
-		// US3AC2. we assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
+		// US3AC2
+		// We assume that 2 uneducated persons (1 from each market) can transport 1 unit of goods along path of 1 effective day length
 		// we do it this way to avoid another assymetry in calculations
 
 		auto transport_availability_A = ve::select(is_land_route, ve::fp_vector{ state.world.province_get_labor_demand_satisfaction(capital_A, labor::no_education) }, ve::fp_vector{ 0.f });
@@ -718,7 +724,8 @@ void update_trade_routes_consumption(sys::state& state) {
 		});
 	});
 
-	// US3AC2 register trade demand on transportation labor:
+	// US3AC2
+	// Register trade demand on transportation labor:
 	// money are paid during calculation of trade route profits and actual movement of goods
 
 	auto port_services_buffer = state.world.market_make_vectorizable_float_buffer();
@@ -760,7 +767,8 @@ void update_trade_routes_consumption(sys::state& state) {
 		state.world.province_set_service_demand_forbidden_public_supply(pid, services::list::port_capacity, local_demand + market_demand * local_weight / total_weight);
 	});
 
-	// US3AC3 register demand on local transportation/accounting due to trade
+	// US3AC3
+	// register demand on local transportation/accounting due to trade
 	// all trade generates uneducated labor demand for goods transport locally
 	// labor demand satisfaction does not set limits on transportation: it would be way too jumpy
 	// we assume that 1 human could move 100 units of goods daily locally

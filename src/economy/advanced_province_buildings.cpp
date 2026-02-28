@@ -342,7 +342,7 @@ void update_national_size(sys::state& state) {
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
-			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
+			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type) + 0.001f;
 			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * tmod * nmod * def.output_amount;
 
 			auto spending_scale = state.world.nation_get_spending_level(owner);
@@ -354,6 +354,36 @@ void update_national_size(sys::state& state) {
 			auto weight = ve::select(total_population == 0.f, 0.f, local_population / total_population);
 			auto local_education_budget = weight * education_budget;
 			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::max(0.f, local_education_budget / cost_of_input));
+
+#ifndef NDEBUG
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, cost_of_input);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, cost_of_output);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, spending_scale);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, national_budget);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, education_priority);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, total_population);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, local_population);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, local_education_budget);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, cost_of_input);
+#endif
 		});
 	}
 }
@@ -377,9 +407,34 @@ void update_production(sys::state& state) {
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
 			state.world.province_set_advanced_province_building_private_output(pids, bid, current_private_size * output);
 
+#ifndef NDEBUG
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_private_supply);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_private_size);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, output);
+#endif
+
 			auto current_public_size = state.world.province_get_advanced_province_building_national_size(pids, bid);
 			auto current_public_supply = state.world.province_get_service_supply_public(pids, def.output);
 			state.world.province_set_service_supply_public(pids, def.output, current_public_supply + current_public_size * output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, current_public_size * output);
+
+#ifndef NDEBUG
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_public_supply);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_public_size);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, output);
+#endif
 		});
 
 		// TODO:
@@ -403,8 +458,19 @@ void update_production(sys::state& state) {
 			//assume that low trade volume doesn't require any additional infrastructure or workers
 			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount * efficiency;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
-			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
-			state.world.province_set_advanced_province_building_private_output(pids, bid, output);
+			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + current_private_size * output);
+
+#ifndef NDEBUG
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_private_supply);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, current_private_size);
+			ve::apply([&](float s) {
+				assert(!std::isnan(s));
+			}, output);
+#endif
 		});
 	}
 }
