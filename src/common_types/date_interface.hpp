@@ -1,6 +1,8 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
+
 namespace sys {
 
 struct year_month_day {

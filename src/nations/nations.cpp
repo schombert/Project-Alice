@@ -683,7 +683,7 @@ void generate_initial_state_instances(sys::state& state) {
 				if(prov.get_nation_from_province_ownership() == owner) {
 					prov.set_state_membership(state_instance);
 				}
-			}
+			}			
 		}
 	}
 

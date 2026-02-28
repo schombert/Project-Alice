@@ -4,6 +4,9 @@
 #include <stdint.h>
 #include <atomic>
 #include <chrono>
+#include <mutex>
+#include <shared_mutex>
+
 #include <condition_variable>
 
 #include "window.hpp"
@@ -376,7 +379,7 @@ struct user_settings_s {
 		message_response::ignore,//issue_embargo = 103,
 		message_response::ignore,//is_embargod = 104,
 	};
-	bool show_all_saves = true; 
+	bool show_all_saves = true;
 	map_label_mode map_label = map_label_mode::linear;
 	uint8_t antialias_level = 4;
 	float gaussianblur_level = 1.f;
@@ -554,6 +557,10 @@ struct ui_cached_vector {
 	}
 };
 
+enum class cache_response {
+	busy, in_progress, ready
+};
+
 struct ui_cache_slot {
 	std::atomic<bool> update_requested = false;
 	std::mutex update_mutex;
@@ -561,8 +568,8 @@ struct ui_cache_slot {
 	void reset_progress() {
 		return;
 	}
-	bool update(sys::state& state) {
-		return true;
+	cache_response update(sys::state& state) {
+		return cache_response::ready;
 	}
 	// can be used outside of cache thread
 	void request_update() {
@@ -586,7 +593,7 @@ struct commodity_per_nation_cache_slot : ui_cache_slot {
 		update_completed = false;
 		progress = 0;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct nation_per_nation_cache_slot : ui_cache_slot {
@@ -598,7 +605,7 @@ struct nation_per_nation_cache_slot : ui_cache_slot {
 	void reset_progress() {
 		update_completed = false;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct nation_per_commodity_cache_slot : ui_cache_slot {
@@ -612,7 +619,7 @@ struct nation_per_commodity_cache_slot : ui_cache_slot {
 		update_completed = false;
 		progress = 0;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct commodity_per_province_cache_slot : ui_cache_slot {
@@ -628,7 +635,7 @@ struct commodity_per_province_cache_slot : ui_cache_slot {
 		update_completed = false;
 		progress = 0;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct per_province_cache_slot : ui_cache_slot {
@@ -643,7 +650,7 @@ struct per_province_cache_slot : ui_cache_slot {
 		update_completed = false;
 		progress = 0;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct per_nation_cache_slot : ui_cache_slot {
@@ -659,7 +666,7 @@ struct per_nation_cache_slot : ui_cache_slot {
 		progress = 0;
 		progress_sphere = 0;
 	}
-	bool update(sys::state& state);
+	cache_response update(sys::state& state);
 };
 
 struct ui_cache {
@@ -676,6 +683,8 @@ struct ui_cache {
 	nation_per_nation_cache_slot nation_per_nation{ };
 	nation_per_commodity_cache_slot nation_per_commodity{ };
 	per_nation_cache_slot per_nation{ };
+
+	float delay;
 
 	void update_ui(sys::state& state);
 
