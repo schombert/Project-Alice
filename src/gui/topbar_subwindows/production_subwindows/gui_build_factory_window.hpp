@@ -1,5 +1,8 @@
 #pragma once
 
+#include "system_state.hpp"
+#include "gui_listbox_templates.hpp"
+#include "gui_common_elements.hpp"
 #include "gui_element_types.hpp"
 #include "gui_production_enum.hpp"
 #include "ai_economy.hpp"
