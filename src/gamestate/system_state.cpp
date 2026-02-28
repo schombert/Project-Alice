@@ -2651,7 +2651,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 			for(const auto ft : world.in_factory_type) {
 				if(!bool(world.factory_type_get_output(ft))) {
+					err.fatal = true;
 					err.accumulated_errors += "No output defined for factory " + std::string(text::produce_simple_string(*this, world.factory_type_get_name(ft))) + " (" + err.file_name + ")\n";
+					assert(world.factory_type_get_output(ft));
 				}
 			}
 			if(!new_context.found_worker_types) {
