@@ -407,6 +407,10 @@ void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value)
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
+// Computes the effective military distance between two provinces by taking movement cost modifiers into account
+float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to);
+// Calculates the avg movement cost modifier between two provinces
+float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov_a, dcon::province_id prov_b);
 arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);

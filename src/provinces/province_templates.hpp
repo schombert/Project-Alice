@@ -70,4 +70,166 @@ void for_each_market_province_parallel_over_market(sys::state& state, F const& f
 	});
 }
 
+
+struct retreat_province_and_distance {
+	float distance_covered = 0.0f;
+	dcon::province_id province;
+
+	bool operator<(retreat_province_and_distance const& other) const noexcept {
+		if(other.distance_covered != distance_covered)
+			return distance_covered > other.distance_covered;
+		return other.province.index() > province.index();
+	}
+};
+
+
+
+struct province_and_distance {
+	float distance_covered = 0.0f;
+	float distance_to_target = 0.0f;
+	dcon::province_id province;
+
+	bool operator<(province_and_distance const& other) const noexcept {
+		if(other.distance_covered + other.distance_to_target != distance_covered + distance_to_target)
+			return distance_covered + distance_to_target > other.distance_covered + other.distance_to_target;
+		return other.province.index() > province.index();
+	}
+};
+
+
+
+template<typename AdjFunc, typename ProvFunc, typename ModifierFunc>
+std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func) {
+
+	std::vector<province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+
+	std::vector<dcon::province_id> path_result;
+
+	if(start == end)
+		return path_result;
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		//path_result.push_back(end);
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+	};
+	auto assert_path_result = [](std::vector<dcon::province_id>& v) {
+		for(auto const e : v)
+			assert(bool(e));
+		};
+
+	path_heap.push_back(province_and_distance{ 0.0f, direct_distance(state, start, end), start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		if(nearest.province == end) {
+			fill_path_result(nearest.province);
+			assert_path_result(path_result);
+			return path_result;
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if(adj_func(adj.id) && !origins_vector.get(other_prov)) {
+
+				if(prov_func(other_prov)) {
+					/*if(other_prov == end) {
+						fill_path_result(nearest.province);
+						assert_path_result(path_result);
+						return path_result;
+					}*/
+					float modifier = mod_func(other_prov, nearest.province); // to and from province
+					path_heap.push_back(
+								province_and_distance{ nearest.distance_covered + distance * modifier, direct_distance(state, other_prov, end) * modifier, other_prov });
+					std::push_heap(path_heap.begin(), path_heap.end());
+					origins_vector.set(other_prov, nearest.province);
+				} else {
+					origins_vector.set(other_prov, dcon::province_id{ 0 }); // exclude it from being checked again
+				}
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+
+}
+
+
+
+
+
+
+template<typename AdjFunc, typename ProvFunc, typename ModifierFunc, typename EndFunc>
+std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::province_id start, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func, EndFunc&& end_expression) {
+
+	std::vector<retreat_province_and_distance> path_heap;
+	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
+	origins_vector.set(start, dcon::province_id{ 0 });
+
+	std::vector<dcon::province_id> path_result;
+
+	if(end_expression(start)) {
+		return path_result;
+	}
+
+	auto fill_path_result = [&](dcon::province_id i) {
+		while(i && i != start) {
+			path_result.push_back(i);
+			i = origins_vector.get(i);
+		}
+	};
+	auto assert_path_result = [](std::vector<dcon::province_id>& v) {
+		for(auto const e : v)
+			assert(bool(e));
+		};
+
+	path_heap.push_back(retreat_province_and_distance{ 0.0f, start });
+	while(path_heap.size() > 0) {
+		std::pop_heap(path_heap.begin(), path_heap.end());
+		auto nearest = path_heap.back();
+		path_heap.pop_back();
+
+		if(end_expression(nearest.province)) {
+			fill_path_result(nearest.province);
+			assert_path_result(path_result);
+			return path_result;
+		}
+
+		for(auto adj : state.world.province_get_province_adjacency(nearest.province)) {
+			auto other_prov =
+				adj.get_connected_provinces(0) == nearest.province ? adj.get_connected_provinces(1) : adj.get_connected_provinces(0);
+			auto bits = adj.get_type();
+			auto distance = adj.get_distance();
+
+			if(adj_func(adj.id) && !origins_vector.get(other_prov)) {
+
+				if(prov_func(other_prov)) {
+					float modifier = mod_func(other_prov, nearest.province); // to and from province
+					path_heap.push_back(
+								retreat_province_and_distance{ nearest.distance_covered + distance * modifier, other_prov });
+					std::push_heap(path_heap.begin(), path_heap.end());
+					origins_vector.set(other_prov, nearest.province);
+				} else {
+					origins_vector.set(other_prov, dcon::province_id{ 0 }); // exclude it from being checked again
+				}
+			}
+		}
+	}
+
+	assert_path_result(path_result);
+	return path_result;
+
+}
+
+
 } // namespace province

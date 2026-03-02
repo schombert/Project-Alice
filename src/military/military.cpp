@@ -4868,16 +4868,25 @@ float effective_navy_speed(sys::state& state, dcon::navy_id n) {
 	auto leader_move = state.world.leader_trait_get_speed(bg) + state.world.leader_trait_get_speed(per);
 	return min_speed * (leader_move + 1.0f);
 }
+float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov_a, dcon::province_id prov_b) {
+	// take the average of the modifiers in the two provinces. If prov is a sea prov use 1.0f as the movement_cost.
+	float prov_a_mod = prov_a.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, as_nation, prov_a, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_b_mod = prov_b.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, as_nation, prov_b, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float avg_mods = (prov_a_mod + prov_b_mod) / 2.0f;
+	return avg_mods;
+}
 
-float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
+float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance_km(state, adj);
-	auto controller = state.world.army_get_controller_from_army_control(a);
-	// take the average of the modifiers in the two provinces. If the army is "over" a sea prov (naval invading or moving into transports), use 1.0f as the movement_cost.
-	float prov_from_mod = from.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, from, sys::provincial_mod_offsets::movement_cost) : 1.0f;
-	float prov_to_mod = to.index() < state.province_definitions.first_sea_province.index() ? province::get_province_modifier_without_hostile_buildings(state, controller, to, sys::provincial_mod_offsets::movement_cost) : 1.0f;
-	float avg_mods = (prov_from_mod + prov_to_mod) / 2.0f;
+	float avg_mods = get_avg_movement_cost_modifier(state, as_nation, from, to);
 	float effective_distance = std::max(0.1f, distance * avg_mods);
+	return effective_distance;
+}
+
+float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to) {
+	auto controller = state.world.army_get_controller_from_army_control(a);
+	float effective_distance = effective_military_distance(state, controller, from, to);
 
 	float effective_speed = effective_army_speed(state, a);
 
@@ -4886,9 +4895,8 @@ float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_i
 	return days;
 }
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to) {
-	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
-	float distance = province::distance_km(state, adj);
-	float effective_distance = distance;
+	auto controller = state.world.navy_get_controller_from_navy_control(n);
+	float effective_distance = effective_military_distance(state, controller, from, to);
 
 	float effective_speed = effective_navy_speed(state, n);
 
