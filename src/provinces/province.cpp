@@ -2848,7 +2848,7 @@ std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, 
 		return danger_factor + movement_cost_mod;
 	};
 
-	return make_path_to_prov(state, start, end, adjacency_func, province_func, modifier_func);
+	return make_path_to_prov<0.5f>(state, start, end, adjacency_func, province_func, modifier_func); // multiply heuristic by 0.5 for more optimal paths
 }
 
 
@@ -2882,7 +2882,7 @@ std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dc
 		}
 		return modifier;
 	};
-	// The other_prov must pass the province and adjacency function checks to get to this point. If it does then it is valid as long as it is not the start province
+	// The final province must pass the checks in the province_func, and in addition it must not be equal to the start province
 	auto end_func = [&](dcon::province_id to) {
 		return to != start;
 	};
