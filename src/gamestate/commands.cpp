@@ -4028,8 +4028,27 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	}
 	// pass army owner directly instead of source nation for path calculation, as the army owner may be diffrent than source if commanding a subject's units
 	auto army_owner = state.world.army_get_controller_from_army_control(a);
+	// Special case: If reset is false and the current path destination is adjacent to the new destiatnion then we skip pathfinding and directly check province validity and return the 1 province path if valid
+	// This is done because with shift-click movement we want to go straight to the destination without pathing though any other provinces. With normal pathfinding, its possible that there is a faster indrect route even when moving to an adjacent prov
+	if(!reset && province::provinces_are_adjacent(state, dest, last_province)) {
+		auto adj = state.world.get_province_adjacency_by_province_pair(dest, last_province);
+		if(state.world.army_get_black_flag(a)) {
+			if(province::make_land_unit_path_adjacency_valid(state, army_owner, adj, a) && province::make_land_unit_path_province_valid<province::blackflagged_state::blackflagged>(state, army_owner, dest, a)) {
+				return std::vector<dcon::province_id>{ dest };
+			}
+		}
+		else {
+			if(province::make_land_unit_path_adjacency_valid(state, army_owner, adj, a) && province::make_land_unit_path_province_valid<province::blackflagged_state::not_blackflagged>(state, army_owner, dest, a)) {
+				return std::vector<dcon::province_id>{ dest };
+			}
+		}
+		
+		
+	}
 
-	return calculate_army_path(state, army_owner, a, last_province, dest);
+	return province::make_land_unit_path(state, last_province, dest, source, a);
+
+	//return calculate_army_path(state, army_owner, a, last_province, dest);
 }
 
 
@@ -4104,39 +4123,23 @@ std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nati
 				if(state.world.army_get_black_flag(a)) {
 					return province::make_unowned_land_path(state, last_province, dest);
 				} else if(province::has_access_to_province(state, source, dest) && b_12 && b_13) {
-					return province::make_land_path(state, last_province, dest, source, a);
+					return province::make_land_unit_path(state, last_province, dest, source, a);
 				} else if(b_10) {
 					return province::make_unowned_land_path(state, last_province, dest);
 				} else {
 					return std::vector<dcon::province_id>{};
 				}
 			} else {
-				if(state.world.army_get_black_flag(a)) {
-					return province::make_unowned_land_path(state, last_province, dest);
-				} else if(province::has_access_to_province(state, source, dest)) {
-					return province::make_land_path(state, last_province, dest, source, a);
-				} else {
-					return std::vector<dcon::province_id>{};
-				}
+				return province::make_land_unit_path(state, last_province, dest, source, a);
 			}
 		} else {
-			if(state.world.army_get_black_flag(a)) {
-				return province::make_unowned_land_path(state, last_province, dest);
-			} else if(province::has_access_to_province(state, source, dest)) {
-				return province::make_land_path(state, last_province, dest, source, a);
-			} else {
-				return std::vector<dcon::province_id>{};
-			}
+			return province::make_land_unit_path(state, last_province, dest, source, a);
 		}
 	} else {
 		if(!military::can_embark_onto_sea_tile(state, source, dest, a))
 			return std::vector<dcon::province_id>{};
 
-		if(state.world.army_get_black_flag(a)) {
-			return province::make_unowned_land_path(state, last_province, dest);
-		} else {
-			return province::make_land_path(state, last_province, dest, source, a);
-		}
+		return province::make_land_unit_path(state, last_province, dest, source, a);
 	}
 }
 
@@ -4149,7 +4152,7 @@ void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id 
 	// Build new path
 	auto path = can_move_army(state, source, a, dest, reset);
 
-	if(military::move_army_fast(state, a, path, army_owner, reset)) {
+	if(military::set_army_path(state, a, path, army_owner, reset)) {
 		state.world.army_set_is_rebel_hunter(a, false);
 
 		// US9AC1 Command army to pursue the target
@@ -4190,7 +4193,7 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 		return std::vector<dcon::province_id>{}; // can't move while in battles, use retreat command
 	}
 	if(!dest)
-		return std::vector<dcon::province_id>{}; // stop movement
+		return std::vector<dcon::province_id>{}; 
 
 	// Behavior for shift+click movement. Otherwise - path is cleared beforehand. If movement is reset, make the path from the units current location. If not reset, make the path from the destination prov
 	auto last_province = state.world.navy_get_location_from_navy_location(n);
@@ -4202,7 +4205,20 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 	}
 	// pass navy owner directly instead of source nation for path calculation, as the navy owner may be diffrent than source if commanding a subject's units
 	auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
-	return calculate_navy_path(state, navy_owner, n, last_province, dest);
+
+	// Special case: If reset is false and the current path destination is adjacent to the new destiatnion then we skip pathfinding and directly check province validity and return the 1 province path if valid
+	// This is done because with shift-click movement we want to go straight to the destination without pathing though any other provinces. With normal pathfinding, its possible that there is a faster indrect route even when moving to an adjacent prov
+	if(!reset && province::provinces_are_adjacent(state, dest, last_province)) {
+		auto adj = state.world.get_province_adjacency_by_province_pair(dest, last_province);
+		if(province::make_naval_unit_path_adjacency_valid(state, navy_owner, dest, last_province, adj) && province::make_naval_unit_path_province_valid(state, navy_owner, dest)) {
+			return std::vector<dcon::province_id>{ dest }; 
+		}
+
+	}
+
+
+	return province::make_naval_unit_path(state, last_province, dest, navy_owner);
+	//return calculate_navy_path(state, navy_owner, n, last_province, dest);
 }
 
 
@@ -4215,7 +4231,7 @@ std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nat
 		return std::vector<dcon::province_id>{};
 
 	if(dest.index() >= state.province_definitions.first_sea_province.index()) {
-		return province::make_naval_path(state, last_province, dest, source);
+		return province::make_naval_unit_path(state, last_province, dest, source);
 	} else {
 		if(!state.world.province_get_is_coast(dest))
 			return std::vector<dcon::province_id>{};
@@ -4223,26 +4239,13 @@ std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nat
 		if(!province::has_naval_access_to_province(state, source, dest))
 			return std::vector<dcon::province_id>{};
 
-		return province::make_naval_path(state, last_province, dest, source);
+		return province::make_naval_unit_path(state, last_province, dest, source);
 	}
 }
 
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 
 	auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
-	if(source != military::get_effective_unit_commander(state, n))
-		return;
-	if(state.world.navy_get_is_retreating(n))
-		return;
-
-	auto battle = state.world.navy_get_battle_from_navy_battle_participation(n);
-	if(bool(battle)) {
-		return;
-	}
-	if(!dest) {
-		military::stop_navy_movement(state, n);
-		return;
-	}
 
 	auto path = can_move_navy(state, source, n, dest, reset);
 	if(!military::move_navy_fast(state, n, path, reset)) {

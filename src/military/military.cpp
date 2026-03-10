@@ -4876,6 +4876,14 @@ float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_natio
 	return avg_mods;
 }
 
+float get_avg_movement_cost_modifier_unowned(sys::state& state, dcon::province_id prov_a, dcon::province_id prov_b) {
+	// take the average of the modifiers in the two provinces. If prov is a sea prov use 1.0f as the movement_cost.
+	float prov_a_mod = prov_a.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(prov_a, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float prov_b_mod = prov_b.index() < state.province_definitions.first_sea_province.index() ? state.world.province_get_modifier_values(prov_b, sys::provincial_mod_offsets::movement_cost) : 1.0f;
+	float avg_mods = (prov_a_mod + prov_b_mod) / 2.0f;
+	return avg_mods;
+}
+
 float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to) {
 	auto adj = state.world.get_province_adjacency_by_province_pair(from, to);
 	float distance = province::distance_km(state, adj);
@@ -8814,9 +8822,9 @@ void update_movement(sys::state& state) {
 							auto army_dest = a.get_ai_province();
 							a.set_location_from_army_location(dest);
 							if(army_dest && army_dest != dest) {
-								auto apath = province::make_land_path(state, dest, army_dest, acontroller, a);
+								auto apath = province::make_land_unit_path(state, dest, army_dest, acontroller, a);
 								if(apath.size() > 0) {
-									move_army_fast(state, a, apath, acontroller);
+									set_army_path(state, a, apath, acontroller);
 									auto activity = ai::army_activity(a.get_ai_activity());
 									if(activity == ai::army_activity::transport_guard) {
 										a.set_ai_activity(uint8_t(ai::army_activity::on_guard));
@@ -9010,8 +9018,8 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 		if(prov == next_prov.p)
 			continue;
 
-		auto path = province::make_land_path(state, prov, next_prov.p, controller, a);
-		if(move_army_fast(state, a, path, controller)) {
+		auto path = province::make_land_unit_path(state, prov, next_prov.p, controller, a);
+		if(set_army_path(state, a, path, controller)) {
 			break;
 		}
 	}
@@ -9020,8 +9028,8 @@ void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dco
 		if(home == prov)
 			return;
 
-		auto path = province::make_land_path(state, prov, home, controller, a);
-		move_army_fast(state, a, path, controller);
+		auto path = province::make_land_unit_path(state, prov, home, controller, a);
+		set_army_path(state, a, path, controller);
 	}
 }
 
@@ -9490,11 +9498,11 @@ float unit_get_strength(sys::state& state, dcon::ship_id ship_id) {
 }
 
 bool province_has_enemy_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
-	for(auto army : state.world.province_get_army_location(location)) {
-		if(!army.get_army()) {
-			// no armies present
-			return false;
-		}
+	auto armies = state.world.province_get_army_location(location);
+	if(armies.begin() == armies.end()) {
+		return false; // no armies present
+	}
+	for(auto army : armies) {
 		if(are_enemies(state, our_nation, army.get_army().get_controller_from_army_control())) {
 			return true;
 		}
@@ -9516,11 +9524,12 @@ bool province_has_war_ally_army(sys::state& state, dcon::province_id location, d
 	return false;
 }
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation) {
+	auto navies = state.world.province_get_navy_location(location);
+	if(navies.begin() == navies.end()) {
+		return false; // no navies present
+	}
 	for(auto navy : state.world.province_get_navy_location(location)) {
-		if(!navy.get_navy()) {
-			// no fleet present
-			return false;
-		} else if(are_at_war(state, our_nation, navy.get_navy().get_controller_from_navy_control())) {
+		if(are_at_war(state, our_nation, navy.get_navy().get_controller_from_navy_control())) {
 			// someone who we are at war with has a fleet in the province
 			return true;
 		}
@@ -10331,8 +10340,8 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 			}
 		}
 	} else {
-		auto path = province::make_land_path(state, start, dest, by, a);
-		if(move_army_fast(state, a, path, by)) {
+		auto path = province::make_land_unit_path(state, start, dest, by, a);
+		if(set_army_path(state, a, path, by)) {
 			state.world.army_set_moving_to_merge(a, true);
 		}
 	}
@@ -10371,7 +10380,7 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon:
 template<ai_path_length path_length_to_use>
 bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
-		auto naval_path = province::make_naval_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
+		auto naval_path = province::make_naval_unit_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
 			while(naval_path.size() > path_length_to_use.length) {
 				naval_path.erase(naval_path.begin());
@@ -10381,7 +10390,7 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id des
 		return move_navy_fast(state, navy, naval_path, reset);
 	} else {
 		auto from_prov = state.world.navy_get_path(navy).at(0);
-		auto naval_path = province::make_naval_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
+		auto naval_path = province::make_naval_unit_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
 			while(naval_path.size() > path_length_to_use.length) {
 				naval_path.erase(naval_path.begin());
@@ -10397,11 +10406,11 @@ template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::n
 template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
 
 
-bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool reset) {
+bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool override_path) {
 	if(army_path.size() > 0) {
 		auto existing_path = state.world.army_get_path(army);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
-		if(reset) {
+		if(override_path) {
 			existing_path.clear();
 		}
 
@@ -10441,24 +10450,24 @@ bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id des
 	}
 
 	if(reset || state.world.army_get_path(army).size() == 0) {
-		auto army_path = blackflag ? province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(army), destination) : province::make_land_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
+		auto army_path = province::make_land_unit_path(state, state.world.army_get_location_from_army_location(army), destination, nation_as, army);
 		if constexpr(path_length_to_use.length != 0) {
 			while(army_path.size() > path_length_to_use.length) {
 				army_path.erase(army_path.begin());
 			}
 
 		}
-		return move_army_fast(state, army, army_path, nation_as, reset);
+		return set_army_path(state, army, army_path, nation_as, reset);
 
 	} else {
 		auto from_prov = state.world.army_get_path(army).at(0);
-		auto army_path = blackflag ? province::make_unowned_land_path(state, from_prov, destination) : province::make_land_path(state, from_prov, destination, nation_as, army);
+		auto army_path = province::make_land_unit_path(state, from_prov, destination, nation_as, army);
 		if constexpr(path_length_to_use.length != 0) {
 			while(army_path.size() > path_length_to_use.length) {
 				army_path.erase(army_path.begin());
 			}
 		}
-		return move_army_fast(state, army, army_path, nation_as, reset);
+		return set_army_path(state, army, army_path, nation_as, reset);
 	}
 }
 
@@ -10484,7 +10493,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 			}
 		}
 	} else {
-		auto path = province::make_naval_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
+		auto path = province::make_naval_unit_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
 		if(!path.empty()) {
 			military::move_navy_fast(state, a, path);
 			state.world.navy_set_moving_to_merge(a, true);

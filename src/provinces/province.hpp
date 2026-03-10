@@ -119,29 +119,48 @@ bool has_naval_access_to_province(sys::state& state, dcon::nation_id nation_as, 
 // determines whether a land unit is allowed to move to / be in a province that isn't an active enemy
 bool has_safe_access_to_province(sys::state& state, dcon::nation_id nation_as, dcon::province_id prov);
 
+enum class blackflagged_state : uint8_t {
+	not_blackflagged,
+	blackflagged
+};
+
 //
 // when pathfinding, check that the destination province is valid on its own (i.e. accessible for normal, or embark-able for sea)
 //
 
-// normal pathfinding
-std::vector<dcon::province_id> make_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
+// wrapper for checking if adjacencies are valid for make_land_unit_path
+bool make_land_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_adjacency_id adj, dcon::army_id army);
+
+// wrapper for checking if provinces are valid for make_land_unit_path
+template<blackflagged_state BlackflagState>
+bool make_land_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::army_id army);
+
+// normal pathfinding, also includes logic for handling blackflagged units
+std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 // pathfind through non-enemy controlled, not under siege provinces
 std::vector<dcon::province_id> make_safe_land_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 std::vector<dcon::province_id> make_unowned_path(sys::state& state, dcon::province_id start, dcon::province_id end);
-// used for rebel unit and black-flagged unit pathfinding
+// creates a path in which only impassable provinces and sea provinces obstructs pathing
 std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+
+// wrapper for checking if adjacencies are valid for make_naval_unit_path
+bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj);
+
+// wrapper for checking if provinces are valid for make_naval_unit_path
+bool make_naval_unit_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to);
+
 // naval unit pathfinding; start and end provinces may be land provinces; function assumes you have naval access to both
-std::vector<dcon::province_id> make_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
+std::vector<dcon::province_id> make_naval_unit_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as);
 //for sea trade routes
-std::vector<dcon::province_id> make_unowned_naval_path(sys::state& state, dcon::province_id start, dcon::province_id end);
-//for "trade display" routes from province to the market center
-//std::vector<dcon::province_id> make_whatever_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+std::vector<dcon::province_id> make_sea_trade_route_path(sys::state& state, dcon::province_id start, dcon::province_id end);
+//naval retreats
 std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 // For clicking on the retreat button, or forced retreats
 std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 // for manual retreating (ie right-clicking a unit out of a battle)
 std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a);
 
+//ai pathfinding to nearest coast
 std::vector<dcon::province_id> make_path_to_nearest_coast(sys::state& state, dcon::nation_id nation_as, dcon::province_id start);
 std::vector<dcon::province_id> make_unowned_path_to_nearest_coast(sys::state& state, dcon::province_id start);
 

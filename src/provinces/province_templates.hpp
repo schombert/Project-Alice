@@ -120,13 +120,19 @@ struct path_node_heuristic {
 
 // Creates a path from start province to end province,with given template functions to decide various factors
 // HeuristicModifier: Modifier to the heuristic used (direct distance). The higher this value is, the less accurate but more performant the pathfinding will be. If 0.0f, it will always find the optimal path
-// AdjFunc: Lambda which takes a province_adjacency_id as parameter and returns a bool. Decides if the given adjacency is passable
+// AdjFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency)  and returns a bool. Decides if the passage between the two provinces is possible.
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
-// ModifierFunc: Lambda which takes two province_id as parameters as (to_prov, from_prov) and returns a float. The returned value is used as a modifer on the movement cost in pathfinding
-template<float HeuristicModifier, typename AdjFunc, typename ProvFunc, typename ModifierFunc>
-std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func) {
+// MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
+template<float HeuristicModifier, typename AdjFunc, typename ProvFunc, typename MovementCostFunc>
+std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
 
 	// uses an A* implementation with direct distance as heuristic
+
+	std::vector<dcon::province_id> path_result;
+
+	if(start == end || !prov_func(end)) // early exit if start is already at destination, or if the end province would fail the province check
+		return path_result;
+
 
 	std::vector<dcon::province_id> open_queue; // prioity queue of nodes to be processed, ordered by computed distance. Smallest distance goes first
 	// contains nodes for all provinces, including if they are in the open queue, are closed and its parent for constructing path later. It is allocated as a static thread local buffer, as it is possible both the UI and update thread will calculate paths
@@ -135,10 +141,6 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 	path_node_container.resize(state.world.province_size());
 	std::memset(path_node_container.data(), 0, sizeof(path_node_heuristic) * path_node_container.size()); // memset incase it was used earlier
 
-	std::vector<dcon::province_id> path_result;
-
-	if(start == end)
-		return path_result;
 
 	auto province_comparer = [&](dcon::province_id a, dcon::province_id b) {
 		return path_node_container[a] > path_node_container[b];
@@ -187,11 +189,11 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 			auto& neighbor_node = path_node_container[other_prov];
 
 			// check if not present in the closed list, and passes the adjacency check (aka the specific adjacency is passable). It is not added to the closed list if the adj check fails as it may be passable from a diffrent adjacency
-			if(!neighbor_node.is_in_closed_list && adj_func(adj.id)) {
+			if(!neighbor_node.is_in_closed_list && adj_func(other_prov, current_prov, adj)) {
 				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list as this will stay impassable
 				if(prov_func(other_prov)) {
-					float modifier = mod_func(other_prov, current_prov); // to and from province
-					float distance_to_neighbor = current_node.distance_covered + distance * modifier; // computes net distance to neighbor from the start province
+					float actual_dist = movementcost_func(other_prov, current_prov, adj, distance); // to and from province
+					float distance_to_neighbor = current_node.distance_covered + actual_dist; // computes net distance to neighbor from the start province
 					float approx_dist_to_end;
 					if constexpr(HeuristicModifier != 0.0f) {
 						approx_dist_to_end = direct_distance(state, other_prov, end) * HeuristicModifier;
@@ -236,11 +238,11 @@ std::vector<dcon::province_id> make_path_to_prov(sys::state& state, dcon::provin
 
 
 // Creates a path from start province to end province,with given template functions to decide various factors. This one is faster, but at the cost of precision when dealing with distance modifiers
-// AdjFunc: Lambda which takes a province_adjacency_id as parameter and returns a bool. Decides if the given adjacency is passable
+// AdjFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency)  and returns a bool. Decides if the passage between the two provinces is possible.
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
-// ModifierFunc: Lambda which takes two province_id as parameters as (to_prov, from_prov) and returns a float. The returned value is used as a modifer on the movement cost in pathfinding
-template<typename AdjFunc, typename ProvFunc, typename ModifierFunc>
-std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func) {
+// MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
+template<typename AdjFunc, typename ProvFunc, typename MovementCostFunc>
+std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::province_id start, dcon::province_id end, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func) {
 
 	std::vector<province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
@@ -280,7 +282,7 @@ std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::p
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if(adj_func(adj.id) && !origins_vector.get(other_prov)) {
+			if(adj_func(other_prov, nearest.province, adj) && !origins_vector.get(other_prov)) {
 
 				if(prov_func(other_prov)) {
 					/*if(other_prov == end) {
@@ -288,9 +290,9 @@ std::vector<dcon::province_id> make_path_to_prov_fast(sys::state& state, dcon::p
 						assert_path_result(path_result);
 						return path_result;
 					}*/
-					float modifier = mod_func(other_prov, nearest.province); // to and from province
+					float new_dist = movementcost_func(other_prov, nearest.province, adj, distance); // to and from province
 					path_heap.push_back(
-								province_and_distance{ nearest.distance_covered + distance * modifier, direct_distance(state, other_prov, end) * modifier, other_prov });
+								province_and_distance{ nearest.distance_covered + new_dist, direct_distance(state, other_prov, end), other_prov });
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
 				} else {
@@ -329,12 +331,12 @@ struct path_node {
 
 
 // Creates a path from start province to end province,with given template functions to decide various factors
-// AdjFunc: Lambda which takes a province_adjacency_id as parameter and returns a bool. Decides if the given adjacency is passable
+// AdjFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency)  and returns a bool. Decides if the passage between the two provinces is possible.
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
-// ModifierFunc: Lambda which takes two province_id as parameters as (to_prov, from_prov) and returns a float. The returned value is used as a modifer on the movement cost in pathfinding
+// MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
 // EndFunc: Lambda which takes a province_id and returns a bool. Decides if the given province is the end goal
-template<typename AdjFunc, typename ProvFunc, typename ModifierFunc, typename EndFunc>
-std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::province_id start, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func, EndFunc&& end_expression) {
+template<typename AdjFunc, typename ProvFunc, typename MovementCostFunc, typename EndFunc>
+std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::province_id start, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func, EndFunc&& end_expression) {
 
 	// uses an Dijkstra's algorithm implementation to find the best possible path to the end expression
 
@@ -397,11 +399,11 @@ std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::
 			auto& neighbor_node = path_node_container[other_prov];
 
 			// check if not present in the closed list, and passes the adjacency check (aka the specific adjacency is passable). It is not added to the closed list if the adj check fails as it may be passable from a diffrent adjacency
-			if(!neighbor_node.is_in_closed_list && adj_func(adj.id)) {
+			if(!neighbor_node.is_in_closed_list && adj_func(other_prov, current_prov, adj)) {
 				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list as this will stay impassable
 				if(prov_func(other_prov)) {
-					float modifier = mod_func(other_prov, current_prov); // to and from province
-					float distance_to_neighbor = current_node.distance_covered + distance * modifier; // computes net distance to neighbor from the start province
+					float new_dist = movementcost_func(other_prov, current_prov, adj, distance); // to and from province
+					float distance_to_neighbor = current_node.distance_covered + distance; // computes net distance to neighbor from the start province
 					// if not present in the open queue add it to the open queue for processing later
 
 					if(!neighbor_node.is_in_open_list) {
@@ -435,12 +437,12 @@ std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::
 
 
 // Creates a path from start province to end province,with given template functions to decide various factors. This one is faster, but at the cost of precision when dealing with modifiers to distance
-// AdjFunc: Lambda which takes a province_adjacency_id as parameter and returns a bool. Decides if the given adjacency is passable
+// AdjFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency)  and returns a bool. Decides if the passage between the two provinces is possible.
 // ProvFunc: Lambda which takes a province_id as parameter and returns a bool. Decides if the given province is passable from any direction
-// ModifierFunc: Lambda which takes two province_id as parameters as (to_prov, from_prov) and returns a float. The returned value is used as a modifer on the movement cost in pathfinding
+// MovementCostFunc: Lambda which takes the following as parameters (to_prov, from_prov, adjacency, distance) and returns a float. The returned value is used as movement cost in pathfinding
 // EndFunc: Lambda which takes a province_id and returns a bool. Decides if the given province is the end goal
-template<typename AdjFunc, typename ProvFunc, typename ModifierFunc, typename EndFunc>
-std::vector<dcon::province_id> make_path_to_expression_fast(sys::state& state, dcon::province_id start, AdjFunc&& adj_func, ProvFunc&& prov_func, ModifierFunc&& mod_func, EndFunc&& end_expression) {
+template<typename AdjFunc, typename ProvFunc, typename MovementCostFunc, typename EndFunc>
+std::vector<dcon::province_id> make_path_to_expression_fast(sys::state& state, dcon::province_id start, AdjFunc&& adj_func, ProvFunc&& prov_func, MovementCostFunc&& movementcost_func, EndFunc&& end_expression) {
 
 	std::vector<retreat_province_and_distance> path_heap;
 	auto origins_vector = ve::vectorizable_buffer<dcon::province_id, dcon::province_id>(state.world.province_size());
@@ -481,12 +483,12 @@ std::vector<dcon::province_id> make_path_to_expression_fast(sys::state& state, d
 			auto bits = adj.get_type();
 			auto distance = adj.get_distance();
 
-			if(adj_func(adj.id) && !origins_vector.get(other_prov)) {
+			if(adj_func(other_prov, nearest.province, adj) && !origins_vector.get(other_prov)) {
 
 				if(prov_func(other_prov)) {
-					float modifier = mod_func(other_prov, nearest.province); // to and from province
+					float new_dist = movementcost_func(other_prov, nearest.province, adj, distance); // to and from province
 					path_heap.push_back(
-								retreat_province_and_distance{ nearest.distance_covered + distance * modifier, other_prov });
+								retreat_province_and_distance{ nearest.distance_covered + new_dist, other_prov });
 					std::push_heap(path_heap.begin(), path_heap.end());
 					origins_vector.set(other_prov, nearest.province);
 				} else {

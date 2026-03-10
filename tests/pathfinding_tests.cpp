@@ -55,49 +55,49 @@ TEST_CASE("make_path_to_prov_valid_tests", "[pathfinding]") {
 		make_path_to_prov_params{ // expect a empty path if start == end on land prov
 			dcon::province_id{ 0 }, // start
 			dcon::province_id{ 0 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{  }, // expected path
 		},
 		make_path_to_prov_params{ // expect a empty path if start == end on sea prov
 			dcon::province_id{ 3000 }, // start
 			dcon::province_id{ 3000 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{  } // expected path
 		},
 		make_path_to_prov_params{ // expect a empty path if two land provinces are not reachable from eachother ( Tries to go from Europe to USA) while sea is not allowed to be crossed
 			dcon::province_id{ 20 }, // start
 			dcon::province_id{ 300 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{  } // expected path
 		},
 		make_path_to_prov_params{ // expect a empty path if two sea provinces are not reachable from eachother ( Tries to go from red sea to the Yang Tse Delta) while land is not allowed to be crossed
 			dcon::province_id{ 2779 }, // start
 			dcon::province_id{ 2826 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return false; } else {return true; } }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{  } // expected path
 		},
 		make_path_to_prov_params{ // expect a 1-tile path to the end province when pathfinding from London to Chelmsford
 			dcon::province_id{ 299 }, // start
 			dcon::province_id{ 292 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{ dcon::province_id{ 292 } }// expected path
 		},
 		make_path_to_prov_params{ // expect a 3-tile fastest path to the end province when pathfinding from Nitra to Budapest as expression. It is fastest to go Nitra -> Gyor -> Szejesfegervar -> Budapest
 			dcon::province_id{ 634}, // start
 			dcon::province_id{ 640 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 642 },  dcon::province_id{ 641 }}// expected path
 		},
 
@@ -106,27 +106,27 @@ TEST_CASE("make_path_to_prov_valid_tests", "[pathfinding]") {
 		make_path_to_prov_params{ // expect a 2-tile fastest path to the end province when pathfinding from Nitra to Budapest when Gyor is impassabble. It is fastest to go Nitra -> Miskolc -> Budapest
 			dcon::province_id{ 634}, // start
 			dcon::province_id{ 640 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return to_prov != dcon::province_id{ 641 }; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 645 }}// expected path
 		},
 
 		make_path_to_prov_params{ // expect a 2-tile fastest path to the end province when pathfinding from Nitra to Budapest when river adjacencies are impassable. It is fastest to go Nitra -> Miskolc -> Budapest
 			dcon::province_id{ 634}, // start
 			dcon::province_id{ 640 }, //end
-			[](auto adj) { return (gamestate->world.province_adjacency_get_type(adj) & province::border::river_crossing_bit) == 0; }, // adj fn
+			[](auto to, auto from, auto adj) { return (gamestate->world.province_adjacency_get_type(adj) & province::border::river_crossing_bit) == 0; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 645 }}// expected path
 		},
 
 		make_path_to_prov_params{ // expect a 6-tile fastest path to the end province when pathfinding from Rostov to Kiev. It is fastest to go Yuzovka-> Kramatorsk -> Ekaterinoslav -> Krivoyrog -> Cherkassy -> Kiev
 			dcon::province_id{ 978}, // start
 			dcon::province_id{ 957 }, // end
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			std::vector<dcon::province_id>{ dcon::province_id{ 957 }, dcon::province_id{ 960 },dcon::province_id{ 970 }, dcon::province_id{ 971 }, dcon::province_id{ 973 },  dcon::province_id{ 974 }}// expected path
 		}
 
@@ -140,43 +140,39 @@ TEST_CASE("make_path_to_prov_valid_tests", "[pathfinding]") {
 
 
 TEST_CASE("make_path_to_expression_valid_tests", "[pathfinding]") {
-	dcon::province_id nitra = dcon::province_id{ 634 };
-	dcon::province_id miskolc = dcon::province_id{ 645 };
-	dcon::province_id budapest = dcon::province_id{ 640 };
-	dcon::province_id gyor = dcon::province_id{ 641 };
 
 	gamestate = load_testing_scenario_file_with_save(sys::network_mode_type::host);
 
 	auto params = std::make_tuple(
 		make_path_to_expression_params{ // expect a empty path if start passes the end expression
 			dcon::province_id{ 414 }, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return gamestate->world.province_get_is_coast(end_prov); }, // end expression
 			std::vector<dcon::province_id>{  }, // expected path
 		},
 		make_path_to_expression_params{ // expect a empty path if no reachable province passes the expression check
 			dcon::province_id{ 20 }, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 300 }; }, // end expression
 			std::vector<dcon::province_id>{  } // expected path
 		},
 		make_path_to_expression_params{ // expect a 1-tile path to the end province when pathfinding from London to Chelmsford as expression
 			dcon::province_id{ 299 }, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 292 }; }, // end expression
 			std::vector<dcon::province_id>{ dcon::province_id{ 292 } }// expected path
 		},
 		make_path_to_expression_params{ // expect a 3-tile fastest path to the end province when pathfinding from Nitra to Budapest as expression. It is fastest to go Nitra -> Gyor -> Szejesfegervar -> Budapest
 			dcon::province_id{ 634}, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 640 }; }, // end expression
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 642 },  dcon::province_id{ 641 }}// expected path
 		},
@@ -185,18 +181,18 @@ TEST_CASE("make_path_to_expression_valid_tests", "[pathfinding]") {
 
 		make_path_to_expression_params{ // expect a 2-tile fastest path to the end province when pathfinding from Nitra to Budapest as expression when Gyor is impassabble. It is fastest to go Nitra -> Miskolc -> Budapest
 			dcon::province_id{ 634}, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { return to_prov != dcon::province_id{ 641 }; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 640 }; }, // end expression
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 645 }}// expected path
 		},
 
 		make_path_to_expression_params{ // expect a 2-tile fastest path to the end province when pathfinding from Nitra to Budapest as expression when river adjacencies are impassable. It is fastest to go Nitra -> Miskolc -> Budapest
 			dcon::province_id{ 634}, // start
-			[](auto adj) { return (gamestate->world.province_adjacency_get_type(adj) & province::border::river_crossing_bit) == 0; }, // adj fn
+			[](auto to, auto from, auto adj) { return (gamestate->world.province_adjacency_get_type(adj) & province::border::river_crossing_bit) == 0; }, // adj fn
 			[](dcon::province_id to_prov) { return true; }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 640 }; }, // end expression
 			std::vector<dcon::province_id>{ dcon::province_id{ 640 }, dcon::province_id{ 645 }}// expected path
 		},
@@ -207,9 +203,9 @@ TEST_CASE("make_path_to_expression_valid_tests", "[pathfinding]") {
 
 		make_path_to_expression_params{ // expect a 6-tile fastest path to the end province when pathfinding from Rostov to Kiev. It is fastest to go Yuzovka-> Kramatorsk -> Ekaterinoslav -> Krivoyrog -> Cherkassy -> Kiev
 			dcon::province_id{ 978}, // start
-			[](auto adj) { return true; }, // adj fn
+			[](auto to, auto from, auto adj) { return true; }, // adj fn
 			[](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } }, // prov fn
-			[](auto to_prov, auto from_prov) { return 1.0f; }, // mod fn
+			[](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; }, // mod fn
 			[](auto end_prov) { return end_prov == dcon::province_id{ 957 }; }, // end expression
 			std::vector<dcon::province_id>{ dcon::province_id{ 957 }, dcon::province_id{ 960 },dcon::province_id{ 970 }, dcon::province_id{ 971 }, dcon::province_id{ 973 },  dcon::province_id{ 974 }}// expected path
 		}
@@ -283,11 +279,11 @@ std::vector<dcon::province_id> make_path_to_expression_tagged_vector_heap(sys::s
 			auto& neighbor_node = path_node_container[other_prov];
 
 			// check if not present in the closed list, and passes the adjacency check (aka the specific adjacency is passable)
-			if(!neighbor_node.is_in_closed_list && adj_func(adj.id)) {
+			if(!neighbor_node.is_in_closed_list && adj_func(other_prov, current_prov, adj)) {
 				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list
 				if(prov_func(other_prov)) {
-					float modifier = mod_func(other_prov, current_node.province); // to and from province
-					float distance_to_neighbor = current_node.distance_covered + distance * modifier;
+					float new_dist = mod_func(other_prov, current_prov, adj, distance); // to and from province
+					float distance_to_neighbor = current_node.distance_covered + new_dist;
 					// if not present in the path heap, add it to the path heap for processing later
 
 					if(!neighbor_node.is_in_open_list || distance_to_neighbor < neighbor_node.distance_covered) {
@@ -382,11 +378,11 @@ std::vector<dcon::province_id> make_path_to_expression_tagged_vector_thread_loca
 			auto& neighbor_node = path_node_container[other_prov];
 
 			// check if not present in the closed list, and passes the adjacency check (aka the specific adjacency is passable)
-			if(!neighbor_node.is_in_closed_list && adj_func(adj.id)) {
+			if(!neighbor_node.is_in_closed_list && adj_func(other_prov, current_prov, adj)) {
 				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list
 				if(prov_func(other_prov)) {
-					float modifier = mod_func(other_prov, current_node.province); // to and from province
-					float distance_to_neighbor = current_node.distance_covered + distance * modifier;
+					float new_dist = mod_func(other_prov, current_prov, adj, distance); // to and from province
+					float distance_to_neighbor = current_node.distance_covered + new_dist;
 					// if not present in the path heap, add it to the path heap for processing later
 
 					if(!neighbor_node.is_in_open_list || distance_to_neighbor < neighbor_node.distance_covered) {
@@ -423,9 +419,9 @@ TEST_CASE("make_path_to_expression_profiling", "[pathfinding_profiling]") {
 
 	{ 
 		auto start = dcon::province_id{ 978};
-		auto adj_func = [&](auto adj) { return true; };
+		auto adj_func = [&](auto to, auto from, auto adj) { return true; };
 		auto prov_func = [&](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } };
-		auto mod_func = [&](auto to_prov, auto from_prov) { return 1.0f; };
+		auto mod_func = [&](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; };
 		auto end_exp = [&](auto end_prov) { return end_prov == dcon::province_id{ 975 }; };
 
 
@@ -457,9 +453,9 @@ TEST_CASE("make_path_to_expression_profiling", "[pathfinding_profiling]") {
 	}
 	{ 
 		auto start = dcon::province_id{ 978};
-		auto adj_func = [&](auto adj) { return true; };
+		auto adj_func = [&](auto to, auto from, auto adj) { return true; };
 		auto prov_func = [&](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) { return true; } else {return false; } };
-		auto mod_func = [&](auto to_prov, auto from_prov) { return 1.0f; };
+		auto mod_func = [](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; };
 		auto end_exp = [&](auto end_prov) { return end_prov == dcon::province_id{ 957 }; };
 
 
@@ -500,13 +496,13 @@ TEST_CASE("make_path_to_expression_profiling_AStar", "[pathfinding_profiling]") 
 	gamestate = load_testing_scenario_file_with_save(sys::network_mode_type::host);
 	{
 		auto start = dcon::province_id{ 978 };
-		auto adj_func = [&](auto adj) { return true; };
+		auto adj_func = [&](auto to, auto from, auto adj) { return true; };
 		auto prov_func = [&](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) {
 			return true;
 		} else {
 			return false;
 		} };
-		auto mod_func = [&](auto to_prov, auto from_prov) { return 1.0f; };
+		auto mod_func = [&](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; };
 		auto end_exp = [&](auto end_prov) { return end_prov == dcon::province_id{ 957 }; };
 
 
@@ -525,7 +521,7 @@ TEST_CASE("make_path_to_expression_profiling_AStar", "[pathfinding_profiling]") 
 
 		time_start = std::chrono::steady_clock::now();
 		for(int i = 0; i < 1000000; i++) {
-			auto a = province::make_path_to_expression_old(*gamestate, start, adj_func, prov_func, mod_func, end_exp);
+			auto a = province::make_path_to_expression_fast(*gamestate, start, adj_func, prov_func, mod_func, end_exp);
 			placeholder.push_back(a.size());
 		}
 		time_end = std::chrono::steady_clock::now();
@@ -540,13 +536,13 @@ TEST_CASE("make_path_to_expression_profiling_AStar", "[pathfinding_profiling]") 
 
 	{
 		auto start = dcon::province_id{ 978 };
-		auto adj_func = [&](auto adj) { return true; };
+		auto adj_func = [&](auto to, auto from, auto adj) { return true; };
 		auto prov_func = [&](dcon::province_id to_prov) { if(to_prov.index() < gamestate->province_definitions.first_sea_province.index()) {
 			return true;
 		} else {
 			return false;
 		} };
-		auto mod_func = [&](auto to_prov, auto from_prov) { return 1.0f; };
+		auto mod_func = [&](auto to_prov, auto from_prov, auto adj, auto dist) { return dist; };
 		auto end_exp = [&](auto end_prov) { return end_prov == dcon::province_id{ 1470 }; };
 
 
@@ -565,7 +561,7 @@ TEST_CASE("make_path_to_expression_profiling_AStar", "[pathfinding_profiling]") 
 
 		time_start = std::chrono::steady_clock::now();
 		for(int i = 0; i < 1000000; i++) {
-			auto a = province::make_path_to_expression_old(*gamestate, start, adj_func, prov_func, mod_func, end_exp);
+			auto a = province::make_path_to_expression_fast(*gamestate, start, adj_func, prov_func, mod_func, end_exp);
 			placeholder.push_back(a.size());
 		}
 		time_end = std::chrono::steady_clock::now();

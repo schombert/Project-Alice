@@ -998,8 +998,8 @@ void rebel_hunting_check(sys::state& state) {
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();
 						break;
-					} else if(auto path = province::make_land_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
-						military::move_army_fast(state, a, path, faction_owner);
+					} else if(auto path = province::make_land_unit_path(state, state.world.army_get_location_from_army_location(a), closest_prov, faction_owner, a); path.size() > 0) {
+						military::set_army_path(state, a, path, faction_owner);
 
 						rebel_hunters[i] = rebel_hunters.back();
 						rebel_hunters.pop_back();

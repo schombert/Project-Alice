@@ -409,8 +409,10 @@ float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_i
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
 // Computes the effective military distance between two provinces by taking movement cost modifiers into account
 float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to);
-// Calculates the avg movement cost modifier between two provinces
+// Calculates the avg movement cost modifier between two provinces as a specific nation
 float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov_a, dcon::province_id prov_b);
+// Calculates the avg movement cost modifier between two provinces as unowned (ie blackflagged)
+float get_avg_movement_cost_modifier_unowned(sys::state& state, dcon::province_id prov_a, dcon::province_id prov_b);
 arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);
@@ -544,7 +546,7 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id des
 
 // shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
 // takes a path directly instead of calculating it
-bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
 
 // shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path

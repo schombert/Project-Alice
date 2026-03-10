@@ -1203,7 +1203,7 @@ void move_idle_guards(sys::state& state) {
 			auto path = state.world.army_get_black_flag(require_transport[i])
 				? province::make_unowned_path_to_nearest_coast(state, coastal_target_prov)
 				: province::make_path_to_nearest_coast(state, controller, coastal_target_prov);
-			bool valid_path = military::move_army_fast(state, require_transport[i], path, controller);
+			bool valid_path = military::set_army_path(state, require_transport[i], path, controller);
 			if(!valid_path) {
 				state.world.army_set_ai_province(require_transport[i], dcon::province_id{}); // stop rechecking unit
 				continue; // army could not reach coast
@@ -1242,9 +1242,7 @@ void move_idle_guards(sys::state& state) {
 						tcap -= int32_t(jregs.end() - jregs.begin());
 					} else {
 						auto valid_path = military::move_army_fast(state, require_transport[j], coastal_target_prov, controller);
-						auto jpath = state.world.army_get_black_flag(require_transport[j])
-							? province::make_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov, controller, require_transport[j])
-							: province::make_unowned_land_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov);
+						auto jpath = province::make_land_unit_path(state, state.world.army_get_location_from_army_location(require_transport[j]), coastal_target_prov, controller, require_transport[j]);
 						if(valid_path) {
 							state.world.army_set_ai_activity(require_transport[i], uint8_t(army_activity::transport_guard));
 							tcap -= int32_t(jregs.end() - jregs.begin());
@@ -1715,7 +1713,7 @@ void assign_targets(sys::state& state, dcon::nation_id n) {
 					ar.get_army().set_ai_province(potential_targets[i].location);
 					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
 				} else if(auto path = province::make_safe_land_path(state, ready_armies[m].p, central_province, n); !path.empty()) {
-					military::move_army_fast(state, ar.get_army(), path, n);
+					military::set_army_path(state, ar.get_army(), path, n);
 					ar.get_army().set_ai_province(potential_targets[i].location);
 					ar.get_army().set_ai_activity(uint8_t(army_activity::attacking));
 				}
@@ -1831,13 +1829,13 @@ void move_gathered_attackers(sys::state& state) {
 								o.get_army().set_ai_activity(uint8_t(army_activity::attack_gathered));
 							}
 						}
-					} else if(auto path = province::make_land_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar); path.size() > 0) {
+					} else if(auto path = province::make_land_unit_path(state, ar.get_location_from_army_location(), ar.get_ai_province(), ar.get_controller_from_army_control(), ar); path.size() > 0) {
 
 						for(auto o : ar.get_location_from_army_location().get_army_location()) {
 							if(o.get_army().get_ai_province() == ar.get_ai_province()
 								&& o.get_army().get_path().size() == 0) {
 
-								military::move_army_fast(state, o.get_army(), path, o.get_army().get_controller_from_army_control());
+								military::set_army_path(state, o.get_army(), path, o.get_army().get_controller_from_army_control());
 
 								o.get_army().set_ai_activity(uint8_t(army_activity::attack_gathered));
 							}
@@ -1894,7 +1892,7 @@ void move_gathered_attackers(sys::state& state) {
 			} else {
 				coastal_target_prov = path.front();
 
-				military::move_army_fast(state, require_transport[i], path, controller);
+				military::set_army_path(state, require_transport[i], path, controller);
 			}
 		}
 

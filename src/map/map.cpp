@@ -2337,7 +2337,7 @@ void make_sea_path(
 	float shift_x,
 	float shift_y
 ) {
-	auto path = province::make_unowned_naval_path(state, origin, target);
+	auto path = province::make_sea_trade_route_path(state, origin, target);
 	float distance = 0.0f;
 
 	auto shift = glm::vec2(shift_x, shift_y) / glm::vec2(size_x, size_y);
