@@ -4013,9 +4013,6 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 	if(state.world.army_get_battle_from_army_battle_participation(a)) {
 		return std::vector<dcon::province_id>{};
 	}
-	if(state.world.army_get_location_from_army_location(a) == dest) {
-		return std::vector<dcon::province_id>{};
-	}
 
 	// Behavior for shift+click movement. Otherwise - path is cleared beforehand
 	// the "reset" param dictaties whether or not it checks if you can move from the armies *current position* (reset is true), or from the province the army is currently queued to walk to (reset is false)
@@ -4248,7 +4245,7 @@ void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id 
 	auto navy_owner = state.world.navy_get_controller_from_navy_control(n);
 
 	auto path = can_move_navy(state, source, n, dest, reset);
-	if(!military::move_navy_fast(state, n, path, reset)) {
+	if(!military::set_navy_path(state, n, path, reset)) {
 		if(reset) {
 			military::stop_navy_movement(state, n);
 		}

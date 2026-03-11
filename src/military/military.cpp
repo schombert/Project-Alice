@@ -5043,6 +5043,8 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 	assert(state.world.army_is_valid(a));
 	assert(!state.world.army_get_battle_from_army_battle_participation(a));
 
+	state.world.army_set_is_retreating(a, false); // can only be in the retreating state for max 1 province arrivial
+
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
 	if(!state.world.army_get_black_flag(a) && !state.world.army_get_is_retreating(a) && regs.begin() != regs.end()) {
@@ -8542,6 +8544,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 	assert(state.world.navy_is_valid(n));
 	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
 
+
 	state.world.navy_set_location_from_navy_location(n, p);
 	if(p.index() < state.province_definitions.first_sea_province.index()) {
 		state.world.navy_set_months_outside_naval_range(n, uint8_t(0));
@@ -10347,26 +10350,30 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 	}
 }
 
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset) {
+bool set_navy_path(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool override_path) {
 	if(naval_path.size() > 0) {
 		auto existing_path = state.world.navy_get_path(navy);
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
-		if(reset) {
+		if(override_path) {
 			existing_path.clear();
+			existing_path.load_range(naval_path.data(), naval_path.data() + naval_path.size());
 		}
-		auto append_size = uint32_t(naval_path.size());
-		auto old_size = existing_path.size();
-		auto new_size = old_size + append_size;
-		existing_path.resize(new_size);
+		else {
+			auto append_size = uint32_t(naval_path.size());
+			auto old_size = existing_path.size();
+			auto new_size = old_size + append_size;
+			existing_path.resize(new_size);
 
-		for(uint32_t i = old_size; i-- > 0; ) {
-			existing_path.at(append_size + i) = existing_path.at(i);
-		}
-		for(uint32_t i = 0; i < append_size; ++i) {
-			existing_path.at(i) = naval_path[i];
-		}
+			for(uint32_t i = old_size; i-- > 0; ) {
+				existing_path.at(append_size + i) = existing_path.at(i);
+			}
+			for(uint32_t i = 0; i < append_size; ++i) {
+				existing_path.at(i) = naval_path[i];
+			}
 
-		if(existing_path.at(new_size - 1) != old_first_prov) {
+		
+		}
+		if(existing_path.at(existing_path.size() - 1) != old_first_prov) {
 			auto arrival_info = military::arrival_time_to(state, navy, naval_path.back());
 			state.world.navy_set_arrival_time(navy, arrival_info.arrival_time);
 			state.world.navy_set_unused_travel_days(navy, arrival_info.unused_travel_days);
@@ -10378,7 +10385,7 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon:
 }
 
 template<ai_path_length path_length_to_use>
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset) {
 	if(reset || state.world.navy_get_path(navy).size() == 0) {
 		auto naval_path = province::make_naval_unit_path(state, state.world.navy_get_location_from_navy_location(navy), destination, state.world.navy_get_controller_from_navy_control(navy));
 		if constexpr(path_length_to_use.length != 0) {
@@ -10387,7 +10394,7 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id des
 			}
 
 		}
-		return move_navy_fast(state, navy, naval_path, reset);
+		return set_navy_path(state, navy, naval_path, reset);
 	} else {
 		auto from_prov = state.world.navy_get_path(navy).at(0);
 		auto naval_path = province::make_naval_unit_path(state, from_prov, destination, state.world.navy_get_controller_from_navy_control(navy));
@@ -10397,13 +10404,13 @@ bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id des
 			}
 
 		}
-		return move_navy_fast(state, navy, naval_path, reset);
+		return set_navy_path(state, navy, naval_path, reset);
 	}
 
 }
 
-template bool move_navy_fast < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
-template bool move_navy_fast < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_ai < ai_path_length{ 4 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
+template bool move_navy_ai < ai_path_length{ 0 } > (sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset);
 
 
 bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool override_path) {
@@ -10412,21 +10419,24 @@ bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::
 		auto old_first_prov = existing_path.size() > 0 ? existing_path.at(existing_path.size() - 1) : dcon::province_id{};
 		if(override_path) {
 			existing_path.clear();
+			existing_path.load_range(army_path.data(), army_path.data() + army_path.size());
+			
+		}
+		else {
+			auto append_size = uint32_t(army_path.size());
+			auto old_size = existing_path.size();
+			auto new_size = old_size + append_size;
+			existing_path.resize(new_size);
+
+			for(uint32_t i = old_size; i-- > 0; ) {
+				existing_path.at(append_size + i) = existing_path.at(i);
+			}
+			for(uint32_t i = 0; i < append_size; ++i) {
+				existing_path.at(i) = army_path[i];
+			}
 		}
 
-		auto append_size = uint32_t(army_path.size());
-		auto old_size = existing_path.size();
-		auto new_size = old_size + append_size;
-		existing_path.resize(new_size);
-
-		for(uint32_t i = old_size; i-- > 0; ) {
-			existing_path.at(append_size + i) = existing_path.at(i);
-		}
-		for(uint32_t i = 0; i < append_size; ++i) {
-			existing_path.at(i) = army_path[i];
-		}
-
-		if(existing_path.at(new_size - 1) != old_first_prov) {
+		if(existing_path.at(existing_path.size() - 1) != old_first_prov) {
 			auto arrival_data = military::arrival_time_to(state, army, army_path.back());
 			state.world.army_set_arrival_time(army, arrival_data.arrival_time);
 			state.world.army_set_unused_travel_days(army, arrival_data.unused_travel_days);
@@ -10441,7 +10451,7 @@ bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::
 
 // Extracted as a separate function for the AI to use instead of command (remove redundancy in AI code)
 template<ai_path_length path_length_to_use>
-bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset) {
 	bool blackflag = state.world.army_get_black_flag(army);
 
 	// When AI takes over the nation (on tag swaps, players leaving or not joining on savegame load), AI armies can have leftover special orders
@@ -10471,8 +10481,8 @@ bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id des
 	}
 }
 
-template bool move_army_fast<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
-template bool move_army_fast < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_ai<ai_path_length{ 4 }>(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
+template bool move_army_ai < ai_path_length{ 0 } > (sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset);
 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest) {
 	if(state.world.nation_get_is_player_controlled(by) == false)
@@ -10495,7 +10505,7 @@ void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, 
 	} else {
 		auto path = province::make_naval_unit_path(state, start, dest, state.world.navy_get_controller_from_navy_control(a));
 		if(!path.empty()) {
-			military::move_navy_fast(state, a, path);
+			military::set_navy_path(state, a, path);
 			state.world.navy_set_moving_to_merge(a, true);
 		}
 	}

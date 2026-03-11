@@ -1020,7 +1020,7 @@ void rebel_hunting_check(sys::state& state) {
 			&& a.get_location_from_army_location() != a.get_ai_province()
 			&& a.get_location_from_army_location().get_province_control().get_nation() == a.get_location_from_army_location().get_province_ownership().get_nation())
 		{
-			if(auto path_valid = military::move_army_fast(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
+			if(auto path_valid = military::move_army_ai(state, a, a.get_ai_province(), a.get_army_control().get_controller()); !path_valid) {
 				state.world.army_set_ai_province(a, state.world.army_get_location_from_army_location(a));
 			}
 		}
