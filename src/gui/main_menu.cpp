@@ -5374,6 +5374,7 @@ bool main_menu_message_setting_row_self_icon_t::button_action(sys::state& state)
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
@@ -5398,6 +5399,7 @@ bool main_menu_message_setting_row_self_icon_t::button_right_action(sys::state& 
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
@@ -5461,6 +5463,7 @@ bool main_menu_message_setting_row_interesting_icon_t::button_action(sys::state&
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
@@ -5485,6 +5488,7 @@ bool main_menu_message_setting_row_interesting_icon_t::button_right_action(sys::
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
@@ -5548,6 +5552,7 @@ bool main_menu_message_setting_row_other_icon_t::button_action(sys::state& state
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
@@ -5572,6 +5577,7 @@ bool main_menu_message_setting_row_other_icon_t::button_right_action(sys::state&
 
 	state.user_setting_changed = true;
 	parent->impl_on_update(state);
+	state.game_state_updated.store(true, std::memory_order::release); //update ui so the tooltip also updates
 // END
 	return true;
 }
