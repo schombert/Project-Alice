@@ -2408,7 +2408,7 @@ std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::prov
 
 		};
 		auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
-			float danger_factor = (military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
+			float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
 			return distance * military::get_avg_movement_cost_modifier(state, nation_as, from, to) * danger_factor;
 
 		};
@@ -2424,7 +2424,7 @@ std::vector<dcon::province_id> make_land_unit_path(sys::state& state, dcon::prov
 
 		};
 		auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
-			float danger_factor = (military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
+			float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.f : 1.f;
 			return distance * military::get_avg_movement_cost_modifier(state, nation_as, from, to) * danger_factor;
 
 		};
@@ -3147,7 +3147,7 @@ std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, 
 	};
 	auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
 		auto armies = state.world.province_get_army_location(to);
-		float danger_factor = (military::province_has_enemy_army(state, to, nation_as)) ? 4.0f : 1.0f;
+		float danger_factor = (to != end && military::province_has_enemy_army(state, to, nation_as)) ? 4.0f : 1.0f;
 		float movement_cost_mod = military::get_avg_movement_cost_modifier(state, nation_as, to, from);
 		return distance * movement_cost_mod * danger_factor;
 	};

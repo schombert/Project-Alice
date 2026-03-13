@@ -439,7 +439,7 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
+bool try_retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
 
 void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::province_id>& retreat_path, bool end_finished_battle);
 
@@ -535,18 +535,16 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 
 
-// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.. 
-// takes a path directly instead of calculating it
-bool set_navy_path(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset = true);
+// Sets a navy to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_navy_path(sys::state& state, dcon::navy_id navy, std::span<const dcon::province_id, std::dynamic_extent> naval_path, bool override_path = true);
 
 // shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
 bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
 
-// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
-// takes a path directly instead of calculating it
-bool set_army_path(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+// Sets a army to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_army_path(sys::state& state, dcon::army_id army, std::span<const dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool override_path = true);
 
 // shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path

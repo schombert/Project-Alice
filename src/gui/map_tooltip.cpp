@@ -111,7 +111,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			// Army arrival time tooltip
 			auto army = dcon::fatten(state.world, a);
-			auto path = command::calculate_army_path(state, state.local_player_nation, a, army.get_location_from_army_location(), prov);
+			auto path = province::make_land_unit_path(state, army.get_location_from_army_location(), prov, state.local_player_nation, a);
 			auto curprov = army.get_army_location().get_location().id;
 			auto current_path = army.get_path();
 
@@ -186,7 +186,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			auto navy = dcon::fatten(state.world, n);
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
-			auto path = command::calculate_navy_path(state, state.local_player_nation, n, navy.get_location_from_navy_location(), prov);
+			auto path = province::make_naval_unit_path(state, navy.get_location_from_navy_location(), prov, state.local_player_nation);
 			auto curprov = navy.get_navy_location().get_location().id;
 
 			/* No available route */
