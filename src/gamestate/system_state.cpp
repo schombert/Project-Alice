@@ -2323,6 +2323,14 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
+			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+			world.province_set_rgo(p, economy::money);
+		}
+	});
+
 	culture::set_default_issue_and_reform_options(*this);
 	// load pop history files
 	{
@@ -3403,14 +3411,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	economy::sanity_check(*this);
-
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		if(auto rgo = world.province_get_rgo(p); !rgo) {
-			auto name = world.province_get_name(p);
-			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
-			world.province_set_rgo(p, economy::money);
-		}
-	});
 
 	economy::sanity_check(*this);
 
