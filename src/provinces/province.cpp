@@ -2789,11 +2789,6 @@ std::vector<dcon::province_id> make_unowned_land_path(sys::state& state, dcon::p
 
 
 
-
-
-
-
-
 bool make_naval_unit_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 	bool to_prov_is_land = to.index() < state.province_definitions.first_sea_province.index();
 	bool from_prov_is_land = from.index() < state.province_definitions.first_sea_province.index();
@@ -3126,23 +3121,28 @@ std::vector<dcon::province_id> make_naval_retreat_path(sys::state& state, dcon::
 	//return path_result;
 }
 
+bool make_land_manual_retreat_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_adjacency_id adj) {
+	return !is_adjacency_impassable(state, nation_as, adj);
+}
 
+bool make_land_manual_retreat_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id start, dcon::province_id to, dcon::army_id a) {
+	if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
+		// Province must be accelsible, and must not be both adjacent to the start province AND have an enemy unit on it
+		return has_access_to_province(state, nation_as, to) && !(province::provinces_are_adjacent(state, to, start) && military::province_has_enemy_army(state, to, nation_as));
+
+	} else { // is sea
+		return military::can_embark_onto_sea_tile(state, nation_as, to, a);
+	}
+}
 
 
 std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, dcon::province_id start, dcon::province_id end, dcon::nation_id nation_as, dcon::army_id a) {
 
 	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
-		return !is_adjacency_impassable(state, nation_as, adj);
+		return make_land_manual_retreat_path_adjacency_valid(state, nation_as, adj);
 	};
 	auto province_func = [&](dcon::province_id to) {
-		if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
-			// Province must be accelsible, and must not be both adjacent to the start province AND have an enemy unit on it
-			return has_access_to_province(state, nation_as, to) && !(province::provinces_are_adjacent(state, to, start) && military::province_has_enemy_army(state, to, nation_as));
-				
-		}
-		else { // is sea
-			return military::can_embark_onto_sea_tile(state, nation_as, to, a);
-		}
+		return make_land_manual_retreat_path_province_valid(state, nation_as, start, to, a);
 
 	};
 	auto modifier_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj, float distance) {
@@ -3155,23 +3155,29 @@ std::vector<dcon::province_id> make_land_manual_retreat_path(sys::state& state, 
 	return make_path_to_prov<0.5f>(state, start, end, adjacency_func, province_func, modifier_func); // multiply heuristic by 0.5 for more optimal paths
 }
 
+bool make_land_auto_retreat_path_adjacency_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_adjacency_id adj) {
+	return !is_adjacency_impassable(state, nation_as, adj);
+}
+
+bool make_land_auto_retreat_path_province_valid(sys::state& state, dcon::nation_id nation_as, dcon::province_id start, dcon::province_id to) {
+	if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
+		// Province must be accelsible, adjecent to the start province, and cannot have an enemy unit on it
+		return has_access_to_province(state, nation_as, to) && province::provinces_are_adjacent(state, to, start) && !military::province_has_enemy_army(state, to, nation_as);
+
+	} else { // is sea
+		/*return military::can_embark_onto_sea_tile(state, nation_as, other_prov, a);*/
+		return false;
+	}
+}
+
 
 std::vector<dcon::province_id> make_land_auto_retreat_path(sys::state& state, dcon::nation_id nation_as, dcon::province_id start) {
-
-
 
 	auto adjacency_func = [&](dcon::province_id to, dcon::province_id from, dcon::province_adjacency_id adj) {
 		return !is_adjacency_impassable(state, nation_as, adj);
 	};
 	auto province_func = [&](dcon::province_id to) {
-		if(to.index() < state.province_definitions.first_sea_province.index()) { // is land
-			// Province must be accelsible, adjecent to the start province, and cannot have an enemy unit on it
-			return has_access_to_province(state, nation_as, to) && province::provinces_are_adjacent(state, to, start) && !military::province_has_enemy_army(state, to, nation_as);
-
-		} else { // is sea
-			/*return military::can_embark_onto_sea_tile(state, nation_as, other_prov, a);*/
-			return false;
-		}
+		return make_land_auto_retreat_path_province_valid(state, nation_as, start, to);
 
 	};
 	// Increase prioitiy of provinces which are controlled by an ally, or has an allied army present by reducing the estimated distance with a modifier

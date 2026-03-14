@@ -5041,7 +5041,6 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 	assert(state.world.army_is_valid(a));
 	assert(!state.world.army_get_battle_from_army_battle_participation(a));
 
-	state.world.army_set_is_retreating(a, false); // can only be in the retreating state for max 1 province arrivial
 
 	state.world.army_set_location_from_army_location(a, p);
 	auto regs = state.world.army_get_army_membership(a);
@@ -8660,6 +8659,8 @@ void update_movement(sys::state& state) {
 			auto dest = path.at(path.size() - 1);
 			path.pop_back();
 
+			state.world.army_set_is_retreating(a, false); // can only be in the retreating state for max 1 province arrivial
+
 			// Can the army reach the target
 			if(dest.index() >= state.province_definitions.first_sea_province.index()) { // sea province
 				// check for embarkation possibility, then embark
@@ -10337,6 +10338,19 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 		}
 	}
 }
+void append_path(dcon::dcon_vv_fat_id<dcon::province_id> existing_path, std::span<const dcon::province_id, std::dynamic_extent> to_append) {
+	auto append_size = uint32_t(to_append.size());
+	auto old_size = existing_path.size();
+	auto new_size = old_size + append_size;
+	existing_path.resize(new_size);
+
+	for(uint32_t i = old_size; i-- > 0; ) {
+		existing_path.at(append_size + i) = existing_path.at(i);
+	}
+	for(uint32_t i = 0; i < append_size; ++i) {
+		existing_path.at(i) = to_append[i];
+	}
+}
 
 bool set_navy_path(sys::state& state, dcon::navy_id navy, std::span<const dcon::province_id, std::dynamic_extent> naval_path, bool override_path) {
 	if(naval_path.size() > 0) {
@@ -10347,18 +10361,7 @@ bool set_navy_path(sys::state& state, dcon::navy_id navy, std::span<const dcon::
 			existing_path.load_range(naval_path.data(), naval_path.data() + naval_path.size());
 		}
 		else {
-			auto append_size = uint32_t(naval_path.size());
-			auto old_size = existing_path.size();
-			auto new_size = old_size + append_size;
-			existing_path.resize(new_size);
-
-			for(uint32_t i = old_size; i-- > 0; ) {
-				existing_path.at(append_size + i) = existing_path.at(i);
-			}
-			for(uint32_t i = 0; i < append_size; ++i) {
-				existing_path.at(i) = naval_path[i];
-			}
-
+			append_path(existing_path, naval_path);
 		
 		}
 		if(existing_path.at(existing_path.size() - 1) != old_first_prov) {
@@ -10411,17 +10414,7 @@ bool set_army_path(sys::state& state, dcon::army_id army, std::span<const dcon::
 			
 		}
 		else {
-			auto append_size = uint32_t(army_path.size());
-			auto old_size = existing_path.size();
-			auto new_size = old_size + append_size;
-			existing_path.resize(new_size);
-
-			for(uint32_t i = old_size; i-- > 0; ) {
-				existing_path.at(append_size + i) = existing_path.at(i);
-			}
-			for(uint32_t i = 0; i < append_size; ++i) {
-				existing_path.at(i) = army_path[i];
-			}
+			append_path(existing_path, army_path);
 		}
 
 		if(existing_path.at(existing_path.size() - 1) != old_first_prov) {
