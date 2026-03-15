@@ -5144,6 +5144,9 @@ void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::
 	add_to_command_queue(state, p);
 }
 std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, military::retreat_type retreat_type, dcon::province_id dest) {
+	if(!state.world.navy_is_valid(navy)) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
 	}
@@ -5160,13 +5163,17 @@ std::vector<dcon::province_id> can_retreat_from_naval_battle(sys::state& state, 
 	}
 	if(state.world.navy_get_is_retreating(navy))
 		return std::vector<dcon::province_id>{};
+
+	auto navy_owner = state.world.navy_get_controller_from_navy_control(navy);
+	auto start_prov = state.world.navy_get_location_from_navy_location(navy);
+
 	if(retreat_type == military::retreat_type::manual) {
-		if(dest == state.world.navy_get_location_from_navy_location(navy)) {
+		if(dest == start_prov) {
 			return std::vector<dcon::province_id>{};
 		}
 	}
 
-	return province::make_naval_retreat_path(state, source, state.world.navy_get_location_from_navy_location(navy));
+	return province::make_naval_retreat_path(state, navy_owner, start_prov);
 }
 void execute_retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest = dcon::province_id{ }) {
 	// This can be extended with diffrent retreat rules later, but to start this is compliant with Vic2 naval retreat behaviour
@@ -5200,6 +5207,9 @@ void retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::a
 }
 
 std::vector<dcon::province_id> can_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::army_id army, military::retreat_type retreat_type, dcon::province_id dest) {
+	if(!state.world.army_is_valid(army)) {
+		return std::vector<dcon::province_id>{};
+	}
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
 	}
@@ -5211,14 +5221,17 @@ std::vector<dcon::province_id> can_retreat_from_land_battle(sys::state& state, d
 	}
 	auto land_battle = state.world.army_get_battle_from_army_battle_participation(army);
 	if(!land_battle) {
-		return std::vector<dcon::province_id>{};;
+		return std::vector<dcon::province_id>{};
 	}
 	if(!military::is_battle_retreatable(state, land_battle))
 		return std::vector<dcon::province_id>{};;
 	auto start_prov = state.world.land_battle_get_location_from_land_battle_location(land_battle);
 	auto army_owner = state.world.army_get_controller_from_army_control(army);
 	if(retreat_type == military::retreat_type::manual) {
-		assert(dest);
+		// destination must be a valid province for manual retreats
+		if(!state.world.province_is_valid(dest)) {
+			return std::vector<dcon::province_id>{};
+		}
 		// Special case: If the current path destination is adjacent to the battle, then we skip pathfinding and directly check province validity and return the 1 province path if valid
 		// It is expected that when retreating to a province adjacent to the battle, the path should go directly there, even if there is a faster indirect route
 		if(province::provinces_are_adjacent(state, dest, start_prov)) {
@@ -5227,11 +5240,11 @@ std::vector<dcon::province_id> can_retreat_from_land_battle(sys::state& state, d
 				return std::vector<dcon::province_id>{ dest };
 			}
 		}
-		return province::make_land_manual_retreat_path(state, start_prov, dest, source, army);
+		return province::make_land_manual_retreat_path(state, start_prov, dest, army_owner, army);
 		
 	}
 	else {
-		return province::make_land_auto_retreat_path(state, source, start_prov);
+		return province::make_land_auto_retreat_path(state, army_owner, start_prov);
 	}
 }
 void execute_retreat_from_land_battle(sys::state& state, dcon::nation_id source, dcon::army_id army, military::retreat_type retreat_type, dcon::province_id dest) {
