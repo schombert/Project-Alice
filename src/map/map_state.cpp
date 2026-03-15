@@ -2265,6 +2265,10 @@ void map_state::update_map_labels(sys::state& state) {
 	float delay = 200.f;
 
 	while (state.quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
+
 		if (state.map_state.map_labels_current_state == map::map_labels_state::generate_text) {
 			map::update_text_lines(state, state.map_state.map_data);
 			state.map_state.map_labels_current_state = map::map_labels_state::load_glyphs;
@@ -2281,6 +2285,10 @@ void map_state::update_cache(sys::state& state) {
 	float delay = 50;
 
 	while (state.quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
+
 		auto screen_size  = glm::vec2(state.x_size, state.y_size);
 		if (update_cache_on_map_movement) {
 			for (auto& b : map_data.borders) {
