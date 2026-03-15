@@ -3983,22 +3983,6 @@ void move_retreat_or_stop_navy(sys::state& state, dcon::nation_id source, dcon::
 	}
 }
 
-
-bool can_partial_retreat_from(sys::state& state, dcon::land_battle_id b) {
-	if(!b)
-		return true;
-	if(!military::is_battle_retreatable(state, b))
-		return false;
-	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
-}
-bool can_partial_retreat_from(sys::state& state, dcon::naval_battle_id b) {
-	if(!b)
-		return true;
-	if(!military::is_battle_retreatable(state, b, military::retreat_type::manual))
-		return false;
-	return gamerule::check_gamerule(state, state.hardcoded_gamerules.allow_partial_retreat, uint8_t(gamerule::partial_retreat_settings::enable));
-}
-
 std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset) {
 	if(!state.current_scene.game_in_progress) {
 		return std::vector<dcon::province_id>{};
@@ -4060,100 +4044,8 @@ std::vector<dcon::province_id> can_move_army(sys::state& state, dcon::nation_id 
 		return province::make_land_unit_path(state, last_province, dest, source, a);
 	}
 
-	//return calculate_army_path(state, army_owner, a, last_province, dest);
 }
 
-
-std::vector<dcon::province_id> calculate_army_path(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id last_province, dcon::province_id dest) {
-	if(last_province == dest) {
-		return std::vector<dcon::province_id>{};
-	}
-
-	if(!can_partial_retreat_from(state, state.world.army_get_battle_from_army_battle_participation(a)))
-		return std::vector<dcon::province_id>{};
-
-	if(dest.index() < state.province_definitions.first_sea_province.index()) {
-		if(state.network_mode != sys::network_mode_type::single_player) {
-			if(state.world.army_get_battle_from_army_battle_participation(a)) {
-				// MP special ruleset (basically applies to most MP games)
-				// Being able to withdraw:
-				// extern - YOUR own territory
-				// extern - Allied territory (this is in a state of war)
-				// extern - Territory that you have military access to (this is regulated in MP)
-				// handled 1.0 - Enemy territory that does not have troops at the time of withdrawal (regulated in mp)
-				// handled 1.1 - Allied/your territory that is being occupied in a war
-				// extern - To ships (including when a naval battle is in progress)
-				// Not being able to withdraw:
-				// handled 1.2 - When all provinces adjacent to a battle are surrounded by enemies
-				// handled 1.3 - No more than 1 province, to avoid multiprovince
-				// handled 1.4 - Where there are enemy troops (your territory / ally or enemy, it doesn't matter)
-				bool b_10 = false; // Also handles 1-1, occupied territory of allies or yours
-				// 1.0/1.1 - Enemy territory
-				if(military::are_at_war(state, state.world.province_get_nation_from_province_control(dest), source)) {
-					auto units = state.world.province_get_army_location_as_location(dest);
-					b_10 = true;  // Enemy territory with no enemy units -- can retreat
-					for(const auto unit : units) {
-						if(unit.get_army().get_controller_from_army_control() == source)
-							continue;
-						if(unit.get_army().get_controller_from_army_rebel_control()
-						|| military::are_at_war(state, unit.get_army().get_controller_from_army_control(), source)) {
-							b_10 = false;  // Enemy territory with enemy units -- CAN'T retreat
-							break;
-						}
-					}
-				}
-				// 1.2 - Sorrounding/encirclement of land units
-				bool b_12 = false;
-				for(const auto adj : state.world.province_get_province_adjacency(dest)) {
-					auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == dest ? 1 : 0);
-					if(other.id.index() < state.province_definitions.first_sea_province.index()) {
-						auto units = state.world.province_get_army_location_as_location(dest);
-						bool has_enemy_units = false;
-						for(const auto unit : units) {
-							if(unit.get_army().get_controller_from_army_rebel_control()
-							|| military::are_at_war(state, unit.get_army().get_controller_from_army_control(), source)) {
-								has_enemy_units = true;
-								break;
-							}
-						}
-						if(!has_enemy_units) { //Not a full encirclement -- can retreat
-							b_12 = true;
-							break;
-						}
-					}
-				}
-				// 1.3 - Not more than 1 province
-				bool b_13 = true; /*
-				for(const auto adj : state.world.province_get_province_adjacency(dest)) {
-					auto other = adj.get_connected_provinces(adj.get_connected_provinces(0) == dest ? 1 : 0);
-					if(last_province == other) {
-						b_13 = true; //Is adjacent to destination, hence a single province retreat!?
-						break;
-					}
-				}*/
-
-				if(state.world.army_get_black_flag(a)) {
-					return province::make_unowned_land_path(state, last_province, dest);
-				} else if(province::has_access_to_province(state, source, dest) && b_12 && b_13) {
-					return province::make_land_unit_path(state, last_province, dest, source, a);
-				} else if(b_10) {
-					return province::make_unowned_land_path(state, last_province, dest);
-				} else {
-					return std::vector<dcon::province_id>{};
-				}
-			} else {
-				return province::make_land_unit_path(state, last_province, dest, source, a);
-			}
-		} else {
-			return province::make_land_unit_path(state, last_province, dest, source, a);
-		}
-	} else {
-		if(!military::can_embark_onto_sea_tile(state, source, dest, a))
-			return std::vector<dcon::province_id>{};
-
-		return province::make_land_unit_path(state, last_province, dest, source, a);
-	}
-}
 
 
 void execute_move_army(sys::state& state, dcon::nation_id source, dcon::army_id a, dcon::province_id dest, bool reset, military::special_army_order special_order) {
@@ -4230,30 +4122,8 @@ std::vector<dcon::province_id> can_move_navy(sys::state& state, dcon::nation_id 
 
 
 	return province::make_naval_unit_path(state, last_province, dest, navy_owner);
-	//return calculate_navy_path(state, navy_owner, n, last_province, dest);
 }
 
-
-std::vector<dcon::province_id> calculate_navy_path(sys::state & state, dcon::nation_id source, dcon::navy_id n, dcon::province_id last_province, dcon::province_id dest) {
-
-	if(last_province == dest)
-		return std::vector<dcon::province_id>{};
-
-	if(!can_partial_retreat_from(state, state.world.navy_get_battle_from_navy_battle_participation(n)))
-		return std::vector<dcon::province_id>{};
-
-	if(dest.index() >= state.province_definitions.first_sea_province.index()) {
-		return province::make_naval_unit_path(state, last_province, dest, source);
-	} else {
-		if(!state.world.province_get_is_coast(dest))
-			return std::vector<dcon::province_id>{};
-
-		if(!province::has_naval_access_to_province(state, source, dest))
-			return std::vector<dcon::province_id>{};
-
-		return province::make_naval_unit_path(state, last_province, dest, source);
-	}
-}
 
 void execute_move_navy(sys::state& state, dcon::nation_id source, dcon::navy_id n, dcon::province_id dest, bool reset) {
 
