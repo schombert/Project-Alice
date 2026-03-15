@@ -204,6 +204,45 @@ bool parse_bool(std::string_view content, int32_t, error_handler&) {
 	else
 		return (content[0] == 'Y') || (content[0] == 'y') || (content[0] == '1');
 }
+bool try_parse_bool_strict(std::string_view content, int32_t, error_handler&, bool& val_out) {
+	switch(content.length()) {
+	case 0:
+		return false;
+	
+	case 1:
+		if(content[0] == '0') {
+			val_out = false;
+			return true;
+		}
+		else if(content[0] == '1') {
+			val_out = true;
+			return true;
+
+		}
+		else {
+			return false;
+		}
+	case 2:
+		
+		if((content[0] == 'n' || content[0] == 'N') && (content[0] == 'o' || content[0] == 'O')) {
+			val_out = false;
+			return true;
+		}
+		else {
+			return false;
+		}
+	case 3:
+		if((content[0] == 'y' || content[0] == 'Y') && (content[0] == 'e' || content[0] == 'E') && (content[0] == 's' || content[0] == 'S')) {
+			val_out = true;
+			return true;
+		}
+		else {
+			return false;
+		};
+	default:
+		return false;
+	}
+}
 
 float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	float rvalue = 0.0f;
@@ -213,6 +252,14 @@ float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	}
 
 	return rvalue;
+}
+
+bool try_parse_float(std::string_view content, int32_t line, error_handler& err, float& val_out) {
+	if(!float_from_chars(content.data(), content.data() + content.length(), val_out)) {
+		return false;
+	}
+
+	return true;
 }
 
 double parse_double(std::string_view content, int32_t line, error_handler& err) {
