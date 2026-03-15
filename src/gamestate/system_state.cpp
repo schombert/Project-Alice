@@ -730,10 +730,34 @@ void state::render() { // called to render the frame may (and should) delay retu
 	auto ownership_update = province_ownership_changed.exchange(false, std::memory_order::acq_rel);
 	if(ownership_update) {
 		map_state.map_data.update_borders_mesh();
-		if(user_settings.map_label != sys::map_label_mode::none) {
-			map::update_text_lines(*this, map_state.map_data);
+		map_state.request_fresh_border_index = true;
+	}
+
+	if (
+		user_settings.map_label != sys::map_label_mode::none 
+	) {
+		if (ownership_update){
+			if (map_state.map_labels_current_state == map::map_labels_state::idle) {
+				map_state.map_labels_current_state = map::map_labels_state::generate_text;
+			} else {
+				map_state.scheduled_map_labels_update = true;
+			}
+		}
+		if(map_state.map_labels_current_state == map::map_labels_state::commit) {
+			map::commit_text_lines(*this, map_state.map_data);
+			if (map_state.scheduled_map_labels_update) {
+				map_state.map_labels_current_state = map::map_labels_state::generate_text;
+				map_state.scheduled_map_labels_update = false;
+			} else {
+				map_state.map_labels_current_state = map::map_labels_state::idle;
+			}
+		}
+		if(map_state.map_labels_current_state == map::map_labels_state::load_glyphs) {
+			map::load_map_text_glyphs(*this);
+			map_state.map_labels_current_state = map::map_labels_state::update;
 		}
 	}
+
 	if(game_state_was_updated) {
 		map_state.map_data.update_fog_of_war(*this);
 	}
@@ -744,6 +768,11 @@ void state::render() { // called to render the frame may (and should) delay retu
 	if(!map_state.last_map_movement_handled && std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::steady_clock::now() - map_state.last_map_movement).count() > 50) {
 		map_state.last_map_movement_handled = true;
 		current_scene.on_map_movement_stopped(*this);
+		map_state.update_cache_on_map_movement = true;
+	}
+
+	if (!map_state.last_map_movement_handled) {
+		map_state.update_cache_on_map_movement = true;
 	}
 
 	ui::element_base* root_elm = current_scene.get_root(*this);
