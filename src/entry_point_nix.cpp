@@ -372,8 +372,18 @@ int main(int argc, char* argv[]) {
 		game_state.local_player_nation = dcon::nation_id{};
 		game_state.game_loop();
 	} else {
-		std::thread update_thread([&]() { game_state.game_loop(); });
-		std::thread ui_cache_update([&]() { game_state.ui_cached_data.process_update(game_state); });
+		std::thread update_thread([&]() { 
+			game_state.game_loop(); 
+		});
+		std::thread ui_cache_update([&]() {
+			game_state.ui_cached_data.process_update(game_state); 
+		});
+		std::thread graphics_cache_update([&](){
+			game_state.map_state.update_cache(game_state);
+		});
+		std::thread map_labels_update([&]() {
+			game_state.map_state.update_map_labels(game_state);
+		});
 
 		window::emit_error_message("Starting the game.\n", false);
 		window::create_window(game_state, window::creation_parameters{ 1024, 780, window::window_state::maximized, game_state.user_settings.prefer_fullscreen });
@@ -381,6 +391,8 @@ int main(int argc, char* argv[]) {
 
 		update_thread.join();
 		ui_cache_update.join();
+		graphics_cache_update.join();
+		map_labels_update.join();
 	}
 
 	network::finish(game_state, true);

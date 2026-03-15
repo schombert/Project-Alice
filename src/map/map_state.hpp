@@ -17,6 +17,7 @@ struct scenario_building_context;
 namespace map {
 
 enum class map_view { globe, globe_perspect, flat };
+enum class map_labels_state { idle, generate_text, load_glyphs, update, commit };
 class map_state {
 public:
 	map_state(){};
@@ -79,6 +80,20 @@ public:
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
 	std::chrono::steady_clock::time_point last_map_movement = std::chrono::steady_clock::now();
 	bool last_map_movement_handled = true;
+	bool update_cache_on_map_movement = true;
+
+	bool request_fresh_border_index  = true;
+
+	map_labels_state map_labels_current_state = map_labels_state::update;
+	bool scheduled_map_labels_update = false;
+
+	std::array<std::vector<size_t>, 2> smoothing_borders_index {};
+	uint8_t smoothing_borders_index_current;
+	size_t smoothing_borders_count = 0;
+	std::vector<size_t> coastal_borders_index {};
+	size_t coastal_borders_count = 0;
+
+	bool border_indices_ready = false;
 
 	// lighting
 	glm::vec3 light_direction {1.f, 0.f, -0.3f};
@@ -100,6 +115,8 @@ public:
 	std::vector<bool> visible_provinces;
 
 	void update(sys::state& state);
+	void update_cache(sys::state& state);
+	void update_map_labels(sys::state& state);
 
 	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
 
@@ -108,7 +125,9 @@ public:
 	}
 };
 
+void load_map_text_glyphs(sys::state& state);
 void update_text_lines(sys::state& state, display_data& map_data);
+void commit_text_lines(sys::state& state, display_data& map_data);
 void draw_small_square(sys::state& state, display_data& map_data, square::point x, float size);
 
 } // namespace map
