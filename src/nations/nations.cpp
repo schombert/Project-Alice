@@ -259,7 +259,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto market_0_center = state.world.state_instance_get_capital(sid_0);
 				auto market_1_center = state.world.state_instance_get_capital(sid_1);
-				path = province::make_unowned_path(state, market_0_center, market_1_center);
+				path = province::make_land_trade_path(state, market_0_center, market_1_center);
 
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(market_0_center);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership(market_1_center);
