@@ -288,7 +288,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto coast_origin = province::state_get_coastal_capital(state, s_origin);
 			auto coast_target = province::state_get_coastal_capital(state, s_target);
 
-			auto path = province::make_unowned_naval_path(state, coast_origin, coast_target);
+			auto path = province::make_sea_trade_route_path(state, coast_origin, coast_target);
 			auto start = coast_origin;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];
@@ -316,7 +316,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 				start = end;
 			}
 		} else {
-			auto path = province::make_unowned_path(state, p_origin, p_target);
+			auto path = province::make_land_trade_path(state, p_origin, p_target);
 			auto start = p_origin.id;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];
@@ -408,7 +408,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 		}
 
 		if(trade_balance_sea > cutoff) {
-			auto path = province::make_unowned_path(state, stockpile_location, port);
+			auto path = province::make_land_trade_path(state, stockpile_location, port);
 			auto start = stockpile_location.id;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];
@@ -433,7 +433,7 @@ void update_trade_flow_arrows(sys::state& state, display_data& map_data) {
 			auto city_index = port.index();
 			register_trade_flow(map_data, city_index, port_index, absolute_volume);
 		} else if(trade_balance_sea < -cutoff) {
-			auto path = province::make_unowned_path(state, port, stockpile_location);
+			auto path = province::make_land_trade_path(state, port, stockpile_location);
 			auto start = port;
 			for(int i = int(path.size()) - 1; i >= 0; i--) {
 				auto end = path[i];

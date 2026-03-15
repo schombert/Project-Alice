@@ -220,7 +220,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto speed = std::max(1.f, std::max(stats_0.maximum_speed, stats_1.maximum_speed));
 
-				path = province::make_unowned_naval_path(state, coast_0, coast_1);
+				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();
@@ -259,7 +259,7 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto market_0_center = state.world.state_instance_get_capital(sid_0);
 				auto market_1_center = state.world.state_instance_get_capital(sid_1);
-				path = province::make_unowned_path(state, market_0_center, market_1_center);
+				path = province::make_land_trade_path(state, market_0_center, market_1_center);
 
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(market_0_center);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership(market_1_center);
@@ -484,7 +484,7 @@ void generate_sea_trade_routes(sys::state& state) {
 				std::vector<dcon::province_id> path{ };
 				auto speed = base_speed;
 				dcon::province_id p_prev{ };
-				path = province::make_unowned_naval_path(state, coast_0, coast_1);
+				path = province::make_sea_trade_route_path(state, coast_0, coast_1);
 				p_prev = coast_0;
 
 				auto ps = path.size();

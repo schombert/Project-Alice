@@ -407,6 +407,12 @@ void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value)
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
+// Computes the effective military distance between two provinces by taking movement cost modifiers into account
+float effective_military_distance(sys::state& state, dcon::nation_id as_nation, dcon::province_id from, dcon::province_id to);
+// Calculates the avg movement cost modifier between two provinces as a specific nation
+float get_avg_movement_cost_modifier(sys::state& state, dcon::nation_id as_nation, dcon::province_id prov_a, dcon::province_id prov_b);
+// Calculates the avg movement cost modifier between two provinces as unowned (ie blackflagged)
+float get_avg_movement_cost_modifier_unowned(sys::state& state, dcon::province_id prov_a, dcon::province_id prov_b);
 arrival_time_info arrival_time_to(sys::state& state, dcon::army_id a, dcon::province_id p);
 arrival_time_info arrival_time_to(sys::state& state, dcon::navy_id n, dcon::province_id p);
 arrival_time_info_raw arrival_time_to_in_days(sys::state& state, dcon::army_id a, dcon::province_id to, dcon::province_id from);
@@ -433,10 +439,12 @@ void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province
 std::vector<dcon::nation_id> get_one_side_war_participants(sys::state& state, dcon::war_id war, bool attackers);
 
 template<battle_is_ending battle_state>
-bool retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
+bool try_retreat(sys::state& state, dcon::navy_id n, retreat_type retreat_type);
+
+void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::province_id>& retreat_path, bool end_finished_battle);
 
 void end_battle(sys::state& state, dcon::naval_battle_id b, battle_result result, dcon::nation_id lead_attacker = dcon::nation_id{ }, dcon::nation_id lead_defender = dcon::nation_id{ });
-void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result);
+void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result, dcon::nation_id extra_notify = dcon::nation_id{ });
 
 void invalidate_unowned_wargoals(sys::state& state);
 void update_blackflag_status(sys::state& state, dcon::province_id p);
@@ -485,6 +493,8 @@ void stop_navy_movement(sys::state& state, dcon::navy_id navy);
 void stop_army_movement(sys::state& state, dcon::army_id army);
 
 bool province_has_enemy_fleet(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_enemy_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
+bool province_has_war_ally_army(sys::state& state, dcon::province_id location, dcon::nation_id our_nation);
 float calculate_battle_reinforcement(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_supply_spending(sys::state& state, dcon::land_battle_id b, bool attacker);
 float calculate_average_battle_location_modifier(sys::state& state, dcon::land_battle_id b, bool attacker);
@@ -502,7 +512,7 @@ void update_blackflag_status(sys::state& state);
 void send_rebel_hunter_to_next_province(sys::state& state, dcon::army_id ar, dcon::province_id prov);
 
 bool is_battle_retreatable(sys::state& state, dcon::naval_battle_id battle, retreat_type retreat_type);
-bool can_retreat_from_battle(sys::state& state, dcon::land_battle_id battle);
+bool is_battle_retreatable(sys::state& state, dcon::land_battle_id battle);
 
 dcon::nation_id get_land_battle_lead_attacker(sys::state& state, dcon::land_battle_id b);
 dcon::nation_id get_land_battle_lead_defender(sys::state& state, dcon::land_battle_id b);
@@ -525,23 +535,21 @@ void move_land_to_merge(sys::state& state, dcon::nation_id by, dcon::army_id a, 
 void move_navy_to_merge(sys::state& state, dcon::nation_id by, dcon::navy_id a, dcon::province_id start, dcon::province_id dest);
 
 
-// shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.. 
-// takes a path directly instead of calculating it
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, const std::span<dcon::province_id, std::dynamic_extent> naval_path, bool reset = true);
+// Sets a navy to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_navy_path(sys::state& state, dcon::navy_id navy, std::span<const dcon::province_id, std::dynamic_extent> naval_path, bool override_path = true);
 
 // shortcut function for moving navies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_navy_fast(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
+bool move_navy_ai(sys::state& state, dcon::navy_id navy, dcon::province_id destination, bool reset = true);
 
-// shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend.
-// takes a path directly instead of calculating it
-bool move_army_fast(sys::state& state, dcon::army_id army, const std::span<dcon::province_id, std::dynamic_extent>, dcon::nation_id nation_as, bool reset = true);
+// Sets a army to have the specific path. If override_path is true it will clear the path first, if false it will append to the existing path
+bool set_army_path(sys::state& state, dcon::army_id army, std::span<const dcon::province_id, std::dynamic_extent> army_path, dcon::nation_id nation_as, bool override_path = true);
 
 // shortcut function for moving armies. skips most player-movement checks and assumes the move command is legitimate. Will return false if there is no valid path and no movement has happend..
 // if path_length_to_use is 0, use the entire path. Otherwise, it will only use said length of the path
 template<ai_path_length path_length_to_use = ai_path_length{ 0 } >
-bool move_army_fast(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
+bool move_army_ai(sys::state& state, dcon::army_id army, dcon::province_id destination, dcon::nation_id nation_as, bool reset = true);
 
 bool pop_eligible_for_mobilization(sys::state& state, dcon::pop_id p);
 

@@ -47,7 +47,7 @@ enum class command_units_settings : uint8_t {
 
 struct hardcoded_gamerules {
 	dcon::gamerule_id sphereling_can_declare_spherelord;
-	dcon::gamerule_id allow_partial_retreat;
+	dcon::gamerule_id unused_gamerule;
 	dcon::gamerule_id fog_of_war;
 	dcon::gamerule_id auto_concession_peace;
 	dcon::gamerule_id command_units;

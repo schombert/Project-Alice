@@ -47,14 +47,6 @@ void load_hardcoded_gamerules(parsers::scenario_building_context& context, parse
 		context.state.hardcoded_gamerules.sphereling_can_declare_spherelord = create_hardcoded_gamerule(context, base_name, options, uint8_t(context.state.defines.alice_can_goto_war_against_spherelord_default_setting), err);
 	}
 	{
-		std::string base_name = "alice_gamerule_allow_partial_retreat";
-		std::vector<sys::gamerule_option> options =
-			{ {text::find_or_add_key(context.state, base_name + "_opt_disabled", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_select", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_deselect", false) },
-			{ text::find_or_add_key(context.state, base_name + "_opt_enabled", false), text::find_or_add_key(context.state, base_name + "_opt_enabled_on_select", false), text::find_or_add_key(context.state, base_name + "_opt_enabled_on_deselect", false) },
-		};
-		context.state.hardcoded_gamerules.allow_partial_retreat = create_hardcoded_gamerule(context, base_name, options, uint8_t(context.state.defines.alice_allow_partial_retreat_default_setting), err);
-	}
-	{
 		std::string base_name = "alice_gamerule_fog_of_war";
 		std::vector<sys::gamerule_option> options =
 			{ {text::find_or_add_key(context.state, base_name + "_opt_disabled", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_select", false), text::find_or_add_key(context.state, base_name + "_opt_disabled_on_deselect", false) },

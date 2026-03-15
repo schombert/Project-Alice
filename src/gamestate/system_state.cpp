@@ -35,6 +35,7 @@
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
 #include "alice_ui.hpp"
+#include "commands.hpp"
 
 namespace sys {
 
@@ -826,7 +827,7 @@ void state::render() { // called to render the frame may (and should) delay retu
 				bool can_move = [this, prov]() {
 					for(auto a : selected_armies) {
 						auto army_loc = world.army_get_location_from_army_location(a);
-						if(!command::can_move_or_stop_army(*this, local_player_nation, a, prov)) {
+						if(!command::can_retreat_move_or_stop_army(*this, local_player_nation, a, prov)) {
 							return false;
 						}
 					}
@@ -2431,6 +2432,13 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
+	province::for_each_land_province(*this, [&](dcon::province_id p) {
+		if(auto rgo = world.province_get_rgo(p); !rgo) {
+			auto name = world.province_get_name(p);
+			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
+			world.province_set_rgo(p, economy::money);
+		}
+	});
 	// check that all provinces are assigned to a state
 	// it's required to avoid issues with functions which assume that every land province is in a state
 	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
@@ -3441,14 +3449,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	economy::sanity_check(*this);
-
-	province::for_each_land_province(*this, [&](dcon::province_id p) {
-		if(auto rgo = world.province_get_rgo(p); !rgo) {
-			auto name = world.province_get_name(p);
-			err.accumulated_errors += std::string("province ") + text::produce_simple_string(*this, name) + " is missing an rgo\n";
-			world.province_set_rgo(p, economy::money);
-		}
-	});
 
 	economy::sanity_check(*this);
 
