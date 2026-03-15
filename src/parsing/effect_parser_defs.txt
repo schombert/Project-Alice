@@ -366,5 +366,5 @@ event_option
 gamerule_option
 	name                  value      text								 member_fn
 	default_option                  value      bool								 member
-	on_select						extern	   make_gamerule_effect					 member
-	on_deselect						extern	   make_gamerule_effect					 member
+	on_select			  value	    text  											 member_fn
+	on_deselect			  value	    text  											 member_fn

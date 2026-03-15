@@ -1,5 +1,6 @@
 #pragma once
 #include "concurrentqueue.h"
+#include <queue>
 
 namespace network {
 

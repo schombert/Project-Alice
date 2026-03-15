@@ -16,6 +16,7 @@
 #include "prng.hpp"
 #include "demographics.hpp"
 #include "projections.hpp"
+#include "gamerule_templates.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -221,7 +222,9 @@ void display_data::update_fog_of_war(sys::state& state) {
 
 	// update fog of war too
 	std::vector<uint32_t> province_fows(state.world.province_size() + 1, 0xFFFFFFFF);
-	if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
+	gamerule::fog_of_war_settings cur_gamerule_setting = gamerule::get_gamerule_setting<gamerule::fog_of_war_settings>(state, state.hardcoded_gamerules.fog_of_war);
+	if(cur_gamerule_setting == gamerule::fog_of_war_settings::enable ||
+	(state.world.nation_get_identity_from_identity_holder(state.local_player_nation) != state.national_definitions.rebel_id && cur_gamerule_setting == gamerule::fog_of_war_settings::disable_for_observer)) {
 		state.map_state.visible_provinces.clear();
 		state.map_state.visible_provinces.resize(state.world.province_size() + 1, false);
 		for(auto p : direct_provinces) {
@@ -786,6 +789,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glDrawElements(GL_TRIANGLE_STRIP, GLsizei(map_indices.size() - 1), GL_UNSIGNED_SHORT, map_indices.data());
 	glDisable(GL_PRIMITIVE_RESTART);
 
+	float pixel_size = (screen_size.y) / float(size_y) * zoom;
+
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 		load_shader(shader_borders_provinces);
@@ -801,6 +806,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		for(auto b : borders) {
 			glUniform1f(shader_uniforms[shader_borders_provinces][uniform_width], 0.002f); // width
 			if(b.count == 0) continue;
+
+			bool national = false;
+
 			if(!b.adj || (
 				state.world.province_adjacency_get_type(b.adj) &
 				(
@@ -810,12 +818,15 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 				)
 			)) {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 1.f);
+				national = true;
 			} else {
 				glUniform1f(shader_uniforms[shader_borders_provinces][uniform_is_national_border], 0.f);
 			}
 
-			glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
-			glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
+			if(national || pixel_size > 2.f) {
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index, b.count / 2);
+				glDrawArrays(GL_TRIANGLE_STRIP, b.start_index + b.count / 2, b.count / 2);
+			}
 		}
 	}
 

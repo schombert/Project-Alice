@@ -15,6 +15,7 @@
 #include "province.hpp"
 
 #include "projections.hpp"
+#include "gamerule_templates.hpp"
 
 //#include <filesystem>
 
@@ -1139,7 +1140,9 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 		// Exclude if out of FOW
-		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
+		gamerule::fog_of_war_settings cur_gamerule_setting = gamerule::get_gamerule_setting<gamerule::fog_of_war_settings>(state, state.hardcoded_gamerules.fog_of_war);
+		if(cur_gamerule_setting == gamerule::fog_of_war_settings::enable ||
+		(state.world.nation_get_identity_from_identity_holder(state.local_player_nation) != state.national_definitions.rebel_id && cur_gamerule_setting == gamerule::fog_of_war_settings::disable_for_observer)) {
 			auto pc = map_army.get_army_location().get_location().id;
 			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
 				continue;
@@ -1182,7 +1185,9 @@ void update_unit_arrows(sys::state& state, display_data& map_data) {
 			return;
 		}
 		// Exclude if out of FOW
-		if(gamerule::check_gamerule(state, state.hardcoded_gamerules.fog_of_war, uint8_t(gamerule::fog_of_war_settings::enable))) {
+		gamerule::fog_of_war_settings cur_gamerule_setting = gamerule::get_gamerule_setting<gamerule::fog_of_war_settings>(state, state.hardcoded_gamerules.fog_of_war);
+		if(cur_gamerule_setting == gamerule::fog_of_war_settings::enable ||
+		(state.world.nation_get_identity_from_identity_holder(state.local_player_nation) != state.national_definitions.rebel_id && cur_gamerule_setting == gamerule::fog_of_war_settings::disable_for_observer)) {
 			auto pc = map_navy.get_navy_location().get_location().id;
 			if(!state.map_state.visible_provinces[province::to_map_id(pc)]) {
 				continue;

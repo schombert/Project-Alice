@@ -486,38 +486,72 @@ bool navy_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon::navy_id
 	return false;
 }
 
-void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
-	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) == 0) {
-		deselect_units(state);
-	}
-	// Hide selected province
-	if(state.ui_state.province_window) {
-		state.ui_state.province_window->set_visible(state, false);
-		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
-	}
+
+bool select_land_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	bool selected_anything = false;
 	if((int32_t(sys::key_modifiers::modifiers_ctrl) & int32_t(mod)) == 0) {
 		for(auto a : state.world.in_army) {
 			if(a.is_valid() && !a.get_navy_from_army_transport() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
 				if(army_is_in_selection(state, x, y, a)) {
 					state.select(a);
+					selected_anything = true;
 				}
 			}
 		}
 	}
+	return selected_anything;
+}
+bool select_naval_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	bool selected_anything = false;
 	for(auto a : state.world.in_navy) {
 		if(a.is_valid() && military::get_effective_unit_commander(state, a) == state.local_player_nation) {
 			if(navy_is_in_selection(state, x, y, a)) {
 				state.select(a);
+				selected_anything = true;
 			}
+		}
+	}
+	return selected_anything;
+}
+
+void select_units(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
+	// Hide selected province
+	if(state.ui_state.province_window) {
+		state.ui_state.province_window->set_visible(state, false);
+		state.set_selected_province(dcon::province_id{}); //ensure we deselect from map too
+	}
+	bool selected_army = false;
+	bool selected_navy = false;
+	if((int32_t(sys::key_modifiers::modifiers_shift) & int32_t(mod)) != 0) {
+		// If shift is held down, select either land or naval units depending on which ones are currently selected. If nothing is selected, try select land units then naval units if that fails
+		if(!state.selected_armies.empty()) {
+			selected_army = select_land_units(state, x, y, mod);
+		}
+		else if(!state.selected_navies.empty()) {
+			selected_navy = select_naval_units(state, x, y, mod);
+		}
+		else {
+			selected_army = select_land_units(state, x, y, mod);
+			if(!selected_army) {
+				selected_navy = select_naval_units(state, x, y, mod);
+			}
+		}
+	}
+	else {
+		// otherwise, delect units first, and then try first land units, then naval units
+		deselect_units(state);
+		selected_army = select_land_units(state, x, y, mod);
+		if(!selected_army) {
+			selected_navy = select_naval_units(state, x, y, mod);
 		}
 	}
 	if(!state.selected_armies.empty() && !state.selected_navies.empty()) {
 		state.selected_navies.clear();
 	}
 	// Play selection sound effect
-	if(!state.selected_armies.empty()) {
+	if(selected_army) {
 		sound::play_effect(state, sound::get_army_select_sound(state), get_effects_volume(state));
-	} else {
+	} else if(selected_navy) {
 		sound::play_effect(state, sound::get_navy_select_sound(state), get_effects_volume(state));
 	}
 	state.game_state_updated.store(true, std::memory_order_release);

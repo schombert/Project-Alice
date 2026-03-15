@@ -2,12 +2,13 @@
 
 #define ALICE_NO_ENTRY_POINT 1
 
+#include <limits.h>
 #include "common_types.cpp"
 #include "lua_alice_api.cpp"
 #include "system_state.cpp"
 #include "dcon_oos_reporter_generated.cpp"
-#include "stateless_render.cpp"
 #ifndef INCREMENTAL
+#include "stateless_render.cpp"
 #include "ui_state.cpp"
 #include "create_windows.cpp"
 #include "user_interactions.cpp"
@@ -1026,7 +1027,7 @@ void load_playername() {
 		}
 	}
 	else {
-		srand(time(NULL));
+		srand((unsigned int)time(NULL));
 		launcher::player_name = launcher::player_name.from_string_view(std::to_string(int32_t(rand())));
 	}
 }
@@ -1041,7 +1042,7 @@ void load_playerpassw() {
 		}
 	}
 	else {
-		srand(time(NULL));
+		srand((unsigned int)time(NULL));
 		launcher::player_password = launcher::player_password.from_string_view(std::to_string(int32_t(rand())));
 	}
 }
@@ -1248,7 +1249,7 @@ void internal_text_render(std::string_view str, color_modification enabled, floa
 	std::vector<text::stored_glyph> glyphs;
 
 	for(unsigned int i = 0; i < glyph_count; i++) {
-		font_instance.make_glyph(glyph_info[i].codepoint, 0);
+		font_instance.make_glyph((uint16_t)glyph_info[i].codepoint, 0);
 		glyphs.emplace_back(glyph_info[i], glyph_pos[i]);
 	}
 

@@ -831,6 +831,7 @@ public:
 
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<dcon::province_id>(state, parent);
+		// US101AC1
 		command::begin_province_building_construction(state, state.local_player_nation, content, Value);
 	}
 	virtual void button_shift_action(sys::state& state) noexcept override {

@@ -16,6 +16,8 @@ bool has_named_function(sys::state& state, const char function_name[]);
 void call_named_function(sys::state& state, const char function_name[]);
 void call_named_function(sys::state& state, const char function_name[], dcon::province_id prov);
 void call_named_function_safe(sys::state& state, const char function_name[], dcon::province_id prov);
+
+
 }
 
 namespace ui {

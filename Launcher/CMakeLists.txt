@@ -14,79 +14,19 @@ foreach(file ${TESTING})
 endforeach()
 
 if (WIN32)
-	add_executable(launch_alice WIN32
-		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
+	add_executable(launch_alice WIN32	
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_win.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/projections.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svggeometryelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svglayoutstate.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgpaintelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgparser.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgproperty.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgrenderstate.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgtextelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-font.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-math.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-raster.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-stroker.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-matrix.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-paint.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
-		"${PROJECT_SOURCE_DIR}/src/graphics/asvg.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gamestate/uitemplate_serialization.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
-		"${PROJECT_SOURCE_DIR}/src/alice.rc"
+		${ALICE_INCREMENTAL_SOURCES_LIST}
 		${LAUNCHER_ASSET_FILES})
 else()
-	add_executable(launch_alice
-		"${PROJECT_SOURCE_DIR}/src/gamerule/gamerule.cpp"
+	add_executable(launch_alice		
 		"${PROJECT_SOURCE_DIR}/src/launcher/launcher_main_nix.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gui/alice_ui.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/projections.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_state.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_data_loading.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map_borders.cpp"
-		"${PROJECT_SOURCE_DIR}/src/map/map.cpp"
-		"${PROJECT_SOURCE_DIR}/src/graphics/xac.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/graphics.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/lunasvg.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svggeometryelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svglayoutstate.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgpaintelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgparser.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgproperty.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgrenderstate.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/svgtextelement.cpp"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-font.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-math.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-raster.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-ft-stroker.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-matrix.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-paint.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
-		"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
-		"${PROJECT_SOURCE_DIR}/src/graphics/asvg.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gamestate/uitemplate_serialization.cpp"
-		"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
+		${ALICE_INCREMENTAL_SOURCES_LIST}
 		${LAUNCHER_ASSET_FILES})
 endif()
+
+target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT=1)
+target_compile_definitions(launch_alice PUBLIC INCREMENTAL=1)
 
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
@@ -100,7 +40,45 @@ set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-path.c PRO
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 
-#target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT)
+# System headers
+target_precompile_headers(launch_alice
+	PRIVATE <stddef.h>
+	PRIVATE <stdint.h>
+	PRIVATE <assert.h>
+	PRIVATE <stdarg.h>
+	PRIVATE <stdlib.h>
+	PRIVATE <math.h>
+	PRIVATE <signal.h>
+	PRIVATE <ctype.h>
+	PRIVATE <vector>
+	PRIVATE <queue>		
+	PRIVATE <array>
+	PRIVATE <optional>
+	PRIVATE <memory>
+	PRIVATE <variant>
+	PRIVATE <string>
+	PRIVATE <string_view>
+	PRIVATE <charconv>
+	PRIVATE <algorithm>
+	PRIVATE <iterator>
+	PRIVATE <functional>
+	PRIVATE <atomic>
+	PRIVATE <chrono>
+	PRIVATE <tuple>
+	PRIVATE <type_traits>
+	PRIVATE <new>
+	PRIVATE <limits>
+	PRIVATE <iterator>
+	PRIVATE <utility>
+	PRIVATE <shared_mutex>
+	PRIVATE <cstdlib>
+	PRIVATE <cstddef>
+	PRIVATE <cstdint>
+	PRIVATE <cassert>
+	PRIVATE <cstdarg>
+	PRIVATE <cmath>
+	PRIVATE <limits>
+)
 
 if (WIN32)
 	target_link_libraries(launch_alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
@@ -116,5 +94,3 @@ target_link_libraries(launch_alice INTERFACE libglew_static)
 target_link_libraries(launch_alice INTERFACE stb_image)
 target_link_libraries(launch_alice INTERFACE freetype)
 target_link_libraries(launch_alice INTERFACE harfbuzz)
-
-target_precompile_headers(launch_alice REUSE_FROM Alice)

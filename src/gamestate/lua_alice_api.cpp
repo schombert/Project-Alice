@@ -32,6 +32,11 @@ extern "C" {
 	DCON_LUADLL_API void command_move_army(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void command_move_navy(int32_t unit, int32_t target, bool reset);
 	DCON_LUADLL_API void console_log(const char message[]);
+	DCON_LUADLL_API int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]);
+	DCON_LUADLL_API uint8_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]);
+	DCON_LUADLL_API bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id);
+	DCON_LUADLL_API int32_t lua_get_active_gamerule_option(int32_t gamerule_id);
+
 }
 
 void console_log(const char message[]) {
@@ -47,6 +52,23 @@ void command_move_army(int32_t unit, int32_t target, bool reset) {
 }
 void command_move_navy(int32_t unit, int32_t target, bool reset) {
 	command::move_navy(*alice_state_ptr, alice_state_ptr->local_player_nation, dcon::navy_id{ uint16_t(unit) }, dcon::province_id{ uint16_t(target) }, reset);
+}
+
+
+int32_t lua_get_gamerule_id_by_name(const char gamerule_name[]) {
+	return gamerule::get_gamerule_id_by_name(*alice_state_ptr, std::string_view(gamerule_name)).index();
+}
+
+uint8_t lua_get_gamerule_option_id_by_name(const char gamerule_option_name[]) {
+	return gamerule::get_gamerule_option_id_by_name(*alice_state_ptr, std::string_view(gamerule_option_name));
+}
+
+bool lua_check_gamerule(int32_t gamerule_id, uint8_t opt_id) {
+	return gamerule::check_gamerule(*alice_state_ptr, dcon::gamerule_id{ dcon::gamerule_id::value_base_t(gamerule_id) }, opt_id);
+}
+
+int32_t lua_get_active_gamerule_option(int32_t gamerule_id) {
+	return static_cast<int32_t>(gamerule::get_active_gamerule_option(*alice_state_ptr, dcon::gamerule_id{ dcon::gamerule_id::value_base_t(gamerule_id) }));
 }
 
 namespace ui {

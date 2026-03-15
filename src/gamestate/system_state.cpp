@@ -200,7 +200,7 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 	ogl::deinitialize_framebuffer_for_province_indices(*this);
 	ogl::initialize_framebuffer_for_province_indices(*this, x, y);
 
-	
+
 
 	if(win_state != window::window_state::minimized) {
 		ui_state.for_each_root([&](ui::element_base& elm) {
@@ -210,13 +210,12 @@ void state::on_resize(int32_t x, int32_t y, window::window_state win_state) {
 		if(ui_state.outliner_window) {
 			ui_state.outliner_window->impl_on_update(*this);
 		}
-		if(current_scene.game_in_progress) {
+		if(current_scene.id == game_scene::scene_id::in_game_production_view) {
 			alice_ui::display_at_front<alice_ui::make_production_main>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 			alice_ui::display_at_front<alice_ui::make_production_rh_view>(*this, alice_ui::display_closure_command::return_pointer)->base_data.size.y = int16_t(y / user_settings.ui_scale);
 		}
 	}
 }
-
 
 void state::on_key_down(virtual_key keycode, key_modifiers mod) {
 	if(keycode == virtual_key::CONTROL)
@@ -305,9 +304,9 @@ int state::get_edit_y(){
 }
 
 
-bool commodity_per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size()) return true;
-	if(!commodity) return true;
+cache_response commodity_per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size()) return cache_response::ready;
+	if(!commodity) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
@@ -316,7 +315,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::nation_id current_nation{ progress };
@@ -335,7 +334,7 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -346,16 +345,16 @@ bool commodity_per_nation_cache_slot::update(sys::state& state) {
 	consumption_volume.set(progress, consumption_temp);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool nation_per_nation_cache_slot::update(sys::state& state) {
-	if(!nation) return true;
+cache_response nation_per_nation_cache_slot::update(sys::state& state) {
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 	if(counter_start_before != counter_end_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// ACTUAL CALCULATIONS BEGIN
@@ -368,7 +367,7 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -376,19 +375,19 @@ bool nation_per_nation_cache_slot::update(sys::state& state) {
 	export_value.assign_data(export_temp);
 	import_value.assign_data(import_temp);
 
-	return true;
+	return cache_response::ready;
 }
 
-bool nation_per_commodity_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.commodity_size()) return true;
-	if(!nation) return true;
+cache_response nation_per_commodity_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.commodity_size()) return cache_response::ready;
+	if(!nation) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::commodity_id current_item{ progress };
@@ -403,7 +402,7 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	int64_t counter_start_after = state.tick_start_counter.load();
 	if(counter_start_after != counter_start_before) {
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -412,10 +411,10 @@ bool nation_per_commodity_cache_slot::update(sys::state& state) {
 	import_volume.set(progress, import_temp);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_province_cache_slot::update(sys::state& state) {
+cache_response per_province_cache_slot::update(sys::state& state) {
 	// we can't create provinces thankfully
 	if(progress >= state.world.province_size()) {
 		// update sorting
@@ -434,11 +433,11 @@ bool per_province_cache_slot::update(sys::state& state) {
 				return gdp.unsafe_data[a.index()].total_non_negative > gdp.unsafe_data[b.index()].total_non_negative;
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 
 	// validate size
-	if(gdp.unsafe_data.size() < state.world.province_size()) {
+	if(sorted_by_gdp.unsafe_data.size() < state.world.province_size()) {
 		sorted_by_gdp.clear();
 		sorted_by_gdp_per_capita.clear();
 		state.world.for_each_province([&](auto pid) {
@@ -456,7 +455,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -473,7 +472,7 @@ bool per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -482,18 +481,18 @@ bool per_province_cache_slot::update(sys::state& state) {
 	population.set(progress, population_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
-bool per_nation_cache_slot::update(sys::state& state) {
-	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return true;
+cache_response per_nation_cache_slot::update(sys::state& state) {
+	if(progress >= state.world.nation_size() && progress_sphere >= state.world.nation_size()) return cache_response::ready;
 
 	int64_t counter_start_before = state.tick_start_counter.load();
 	int64_t counter_end_before = state.tick_end_counter.load();
 
 	if(counter_start_before != counter_end_before) {
 		reset_progress();
-		return false;
+		return cache_response::busy;
 	}
 
 	if(progress < state.world.nation_size()) {
@@ -529,7 +528,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -538,7 +537,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_parent.set(progress, parent_of_current);
 
 		progress++;
-		return false;
+		return cache_response::in_progress;
 	} else {
 		dcon::nation_id current_item{ progress_sphere };
 
@@ -557,7 +556,7 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		int64_t counter_start_after = state.tick_start_counter.load();
 		if(counter_start_after != counter_start_before) {
 			reset_progress();
-			return false;
+			return cache_response::busy;
 		}
 
 		// SAFE PLACE TO STORE RESULTS
@@ -565,11 +564,11 @@ bool per_nation_cache_slot::update(sys::state& state) {
 		sphere_gdp.set(progress_sphere, total);
 
 		progress_sphere++;
-		return false;
+		return cache_response::in_progress;
 	}
 }
 
-bool commodity_per_province_cache_slot::update(sys::state& state) {
+cache_response commodity_per_province_cache_slot::update(sys::state& state) {
 	if(progress >= state.world.province_size()) {
 		// update sorting
 		std::sort(sorted_by_production.unsafe_data.begin(), sorted_by_production.unsafe_data.end(), [&](auto a, auto b) {
@@ -587,7 +586,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 				return consumption_volume.unsafe_data[a.index()] > consumption_volume.unsafe_data[b.index()];
 			}
 		});
-		return true;
+		return cache_response::ready;
 	}
 	// validate size
 	if(sorted_by_production.unsafe_data.size() < state.world.province_size()) {
@@ -608,7 +607,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that we are not in the update
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	dcon::province_id current_item{ progress };
@@ -625,7 +624,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 		// check that new update haven't started yet
 		// otherwise redo the work later
 		progress = 0;
-		return false;
+		return cache_response::busy;
 	}
 
 	// SAFE PLACE TO STORE RESULTS
@@ -634,7 +633,7 @@ bool commodity_per_province_cache_slot::update(sys::state& state) {
 	consumption_volume.set(progress, consumption_value);
 
 	progress++;
-	return false;
+	return cache_response::in_progress;
 }
 
 void ui_cache::update_ui(sys::state& state) {
@@ -652,9 +651,15 @@ void ui_cache::update_slot(sys::state& state, SLOT& slot, bool& updates_running)
 		std::shared_lock lock(state.game_state_resetting_lock);
 		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
 		updates_running = true;
-		if(slot.update(state)) {
+		auto res = slot.update(state);
+		if(res == cache_response::ready) {
 			slot.update_completed = true;
 			update_ui(state);
+			delay = std::max(0.1f, delay * 0.95f);
+		} else if (res == cache_response::busy) {
+			delay = std::min(100.f, delay * 1.05f);
+		} else if(res == cache_response::in_progress) {
+			delay = std::max(0.1f, delay * 0.95f);
 		}
 	}
 }
@@ -674,6 +679,10 @@ void ui_cache::process_update(sys::state& state) {
 			sleep_iterations = std::min(1000, (sleep_iterations + 1));
 		} else {
 			sleep_iterations = 0;
+		}
+
+		if(delay > 1.f) {
+			std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
 		}
 	}
 };
@@ -1296,7 +1305,7 @@ dcon::trigger_key state::commit_trigger_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(trigger_data.data() + 1, trigger_data.data() + trigger_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != trigger_data.data() + trigger_data.size()) {
 		auto const start = search_result - trigger_data.data();
 		auto it = std::find(trigger_data_indices.begin(), trigger_data_indices.end(), int32_t(start));
@@ -1330,7 +1339,7 @@ dcon::effect_key state::commit_effect_data(std::vector<uint16_t> data) {
 	}
 
 	auto search_result = std::search(effect_data.data() + 1, effect_data.data() + effect_data.size(),
-			std::boyer_moore_horspool_searcher(data.data(), data.data() + data.size()));
+			std::default_searcher(data.data(), data.data() + data.size()));
 	if(search_result != effect_data.data() + effect_data.size()) {
 		auto const start = search_result - effect_data.data();
 		auto it = std::find(effect_data_indices.begin(), effect_data_indices.end(), int32_t(start));
@@ -1589,7 +1598,7 @@ void state::load_gamerule_settings() {
 			uint8_t setting = data_ptr[i];
 			dcon::gamerule_id gamerule{ dcon::gamerule_id::value_base_t{ uint8_t(i) } };
 			if(world.gamerule_is_valid(gamerule) && world.gamerule_get_settings_count(gamerule) > setting) {
-				gamerule::set_gamerule(*this, gamerule, setting);
+				gamerule::set_gamerule_no_lua_exec(*this, gamerule, setting);
 			}
 		}
 	}
@@ -1675,6 +1684,106 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	auto common = open_directory(root, NATIVE("common"));
 
 	parsers::scenario_building_context context(*this);
+
+	lua_alice_api::set_state(this);
+	lua_alice_api::setup_gameloop_environment(*this);
+
+	// read lua scripts
+	lua_combined_script.clear();
+	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
+	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
+	{
+		// read dcon wrappers
+		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
+		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
+			auto opened_file = open_file(province_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
+		if(hand_written_wrappers) {
+			auto content = view_contents(*hand_written_wrappers);
+			lua_combined_script += content.data;
+			simple_fs::standardize_newlines(lua_combined_script);
+			lua_combined_script += "\n";
+		}
+
+		// read loader for game thread
+		lua_game_loop_script.clear();
+		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
+		if(game_loop) {
+			auto content = view_contents(*game_loop);
+			lua_game_loop_script += content.data;
+			simple_fs::standardize_newlines(lua_game_loop_script);
+			lua_game_loop_script += "\n";
+		}
+
+		// read loader for ui thread
+		lua_ui_script.clear();
+		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
+		if(ui_script) {
+			auto content = view_contents(*ui_script);
+			lua_ui_script += content.data;
+			simple_fs::standardize_newlines(lua_ui_script);
+			lua_ui_script += "\n";
+		}
+
+		// game scripts
+		auto game_scripts_dir = open_directory(assets_lua, NATIVE("game_scripts"));
+		for(auto lua_file : list_files(game_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+
+		// custom scripts
+		auto custom_scripts_dir = open_directory(assets_lua, NATIVE("custom_scripts"));
+		for(auto lua_file : list_files(custom_scripts_dir, NATIVE(".lua"))) {
+			auto opened_file = open_file(lua_file);
+			if(opened_file) {
+				auto content = view_contents(*opened_file);
+				lua_combined_script += content.data;
+				simple_fs::standardize_newlines(lua_combined_script);
+				lua_combined_script += "\n";
+			}
+		}
+	}
+
+	{
+		int status;
+		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
+		if(status) {
+#ifdef _WIN32
+			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
+#endif
+			lua_settop(lua_game_loop_environment, 0);
+			std::abort();
+		}
+	}
+
+	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
+		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
+	}
+
+
+
 
 	//text::name_into_font_id(*this, "garamond_14");
 	ui::load_text_gui_definitions(*this, context.gfx_context, err);
@@ -2003,7 +2112,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 	// create the hardcoded gamerules
-	gamerule::load_hardcoded_gamerules(context);
+	gamerule::load_hardcoded_gamerules(context, err);
 	// pre parse scripted gamerules
 	{
 
@@ -2330,6 +2439,15 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.province_set_rgo(p, economy::money);
 		}
 	});
+	// check that all provinces are assigned to a state
+	// it's required to avoid issues with functions which assume that every land province is in a state
+	for(int32_t i = 0; i < province_definitions.first_sea_province.index(); i++) {
+		auto pid = dcon::province_id{ dcon::province_id::value_base_t(i) };
+		auto v2id = world.province_get_provid(pid);
+		if(world.province_get_nation_from_province_ownership(pid)) {
+			assert(world.abstract_state_membership_get_state(world.province_get_abstract_state_membership(pid)));
+		}
+	}
 
 	culture::set_default_issue_and_reform_options(*this);
 	// load pop history files
@@ -3275,13 +3393,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			err.accumulated_warnings += "Province" + std::to_string(context.prov_id_to_original_id_map[p].id) + " has state_building of size exceeding its factory_max_size\n";
 		}
 	}
-	// apply effects from gamerule options which are on by default
-	for(auto gamerule : context.state.world.in_gamerule) {
-		if(gamerule.get_settings_count() > 0) {
-			auto default_selection_effect = gamerule.get_options()[gamerule.get_default_setting()].on_select;
-			effect::execute(*this, default_selection_effect, 0, 0, 0, uint32_t(current_date.value), uint32_t(gamerule.id.index() << 4 ^ gamerule.get_default_setting()));
-		}
-	}
 
 	// run pending triggers and effects
 	for(auto pending_decision : pending_decisions) {
@@ -3291,79 +3402,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
 	}
 
-
-	lua_alice_api::set_state(this);
-	lua_alice_api::setup_gameloop_environment(*this);
-
-	// read lua scripts
-	lua_combined_script.clear();
-	auto assets = simple_fs::open_directory(root, NATIVE("assets"));
-	auto assets_lua = simple_fs::open_directory(assets, NATIVE("lua"));
-	{
-		// read dcon wrappers
-		auto engine_lua = open_directory(assets_lua, NATIVE("engine"));
-		for(auto province_file : list_files(engine_lua, NATIVE(".lua"))) {
-			auto opened_file = open_file(province_file);
-			if(opened_file) {
-				auto content = view_contents(*opened_file);
-				lua_combined_script += content.data;
-				simple_fs::standardize_newlines(lua_combined_script);
-				lua_combined_script += "\n";
-			}
-		}
-
-		auto hand_written_wrappers = open_file(assets_lua, NATIVE("custom_ffi.lua"));
-		if(hand_written_wrappers) {
-			auto content = view_contents(*hand_written_wrappers);
-			lua_combined_script += content.data;
-			simple_fs::standardize_newlines(lua_combined_script);
-			lua_combined_script += "\n";
-		}
-
-		// read loader for game thread
-		lua_game_loop_script.clear();
-		auto game_loop = open_file(assets_lua, NATIVE("loader_game_loop.lua"));
-		if(game_loop) {
-			auto content = view_contents(*game_loop);
-			lua_game_loop_script += content.data;
-			simple_fs::standardize_newlines(lua_game_loop_script);
-			lua_game_loop_script += "\n";
-		}
-
-		// read loader for ui thread
-		lua_ui_script.clear();
-		auto ui_script = open_file(assets_lua, NATIVE("loader_ui.lua"));
-		if(ui_script) {
-			auto content = view_contents(*ui_script);
-			lua_ui_script += content.data;
-			simple_fs::standardize_newlines(lua_ui_script);
-			lua_ui_script += "\n";
-		}
-	}
-
-	{
-		int status;
-		status = luaL_dostring(lua_game_loop_environment, lua_combined_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-		status = luaL_dostring(lua_game_loop_environment, lua_game_loop_script.c_str());
-		if(status) {
-#ifdef _WIN32
-			OutputDebugStringA(lua_tostring(lua_game_loop_environment, -1));
-#endif
-			lua_settop(lua_game_loop_environment, 0);
-			std::abort();
-		}
-	}
-
-	if(lua_alice_api::has_named_function(*this, "update_administrative_efficiency")) {
-		err.accumulated_warnings += "update_administrative_efficiency function was overidden from LUA\n";
-	}
 
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
@@ -3567,6 +3605,20 @@ void state::preload() {
 }
 
 void state::on_scenario_load() {
+
+	// update map of gamerules. No gamerules or gamerule options should be added after scenario load, as they themselves are scenario data. The only thing that may change is the active gamerule option
+	for(auto gamerule : world.in_gamerule) {
+		if(gamerule.is_valid()) {
+			gamerules_map.insert_or_assign(text::produce_simple_string(*this, gamerule.get_name()), gamerule.id);
+			const auto& gamerule_options = world.gamerule_get_options(gamerule);
+			auto gamerule_option_count = world.gamerule_get_settings_count(gamerule);
+			for(uint8_t option_id = 0; option_id < gamerule_option_count; option_id++) {
+				gamerule_options_map.insert_or_assign(text::produce_simple_string(*this, gamerule_options[option_id].name), option_id);
+
+			}
+		}
+	}
+
 	world.pop_type_resize_issues_fns(world.issue_option_size());
 	world.pop_type_resize_ideology_fns(world.ideology_size());
 	world.pop_type_resize_promotion_fns(world.pop_type_size());
