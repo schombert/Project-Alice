@@ -1,5 +1,6 @@
 #pragma once
 #include "system_state.hpp"
+#include "province.hpp"
 
 namespace province {
 
