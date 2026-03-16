@@ -1303,12 +1303,41 @@ dcon::nation_id get_top_overlord(sys::state& state, dcon::nation_id n) {
 	return ol_temp;
 }
 
+void load_map_text_glyphs(sys::state& state) {
+	for(auto& item: state.map_state.map_data.text_data) {		
+		unsigned int glyph_count = static_cast<unsigned int>(item.text.glyph_info.size());
+		for(unsigned int i = 0; i < glyph_count; i++) {
+			hb_codepoint_t glyphid = item.text.glyph_info[i].codepoint;
+			state.font_collection.mfont.make_glyph(glyphid);
+		}
+	}
+}
+
+void commit_text_lines(sys::state& state, display_data& map_data) {
+	if(map_data.text_line_vertices.size() > 0) {
+		glBindBuffer(
+			GL_ARRAY_BUFFER, 
+			map_data.vbo_array[map_data.vo_text_line]
+		);
+		glBufferData(
+			GL_ARRAY_BUFFER, 
+			sizeof(text_line_vertex) 
+			* map_data.text_line_vertices.size(), 
+			&map_data.text_line_vertices[0], 
+			GL_STATIC_DRAW
+		);
+		map_data.last_size_of_text_line_vertices = (GLsizei)map_data.text_line_vertices.size();
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+}
+
 void update_text_lines(sys::state& state, display_data& map_data) {
 
 	//clear_drawing(state, state.map_state.map_data);
 
 	// retroscipt
-	std::vector<text_line_generator_data> text_data;
+	std::vector<text_line_generator_data>& text_data = map_data.text_data;
+	text_data.clear();
 	std::vector<bool> visited(65536, false);
 	std::vector<bool> visited_sea_provinces(65536, false);
 	std::vector<bool> friendly_sea_provinces(65536, false);
@@ -2218,8 +2247,6 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 	}
 
-	map_data.set_text_lines(state, text_data);
-
 	if(state.cheat_data.province_names) {
 		std::vector<text_line_generator_data> p_text_data;
 		for(auto p : state.world.in_province) {
@@ -2232,6 +2259,101 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 		}
 		map_data.set_province_text_lines(state, p_text_data);
 	}
+}
+
+void map_state::update_map_labels(sys::state& state) {
+	float delay = 200.f;
+
+	while (state.quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
+
+		if (state.map_state.map_labels_current_state == map::map_labels_state::generate_text) {
+			map::update_text_lines(state, state.map_state.map_data);
+			state.map_state.map_labels_current_state = map::map_labels_state::load_glyphs;
+		}
+		if (state.map_state.map_labels_current_state == map::map_labels_state::update) {
+			map_data.set_text_lines(state);
+			state.map_state.map_labels_current_state = map::map_labels_state::commit;
+		}
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
+	}
+}
+
+void map_state::update_cache(sys::state& state) {	
+	float delay = 50;
+
+	while (state.quit_signaled.load(std::memory_order::acquire) == false) {
+
+		std::shared_lock lock(state.game_state_resetting_lock);
+		state.game_state_resetting_cv.wait(lock, [&] { return !state.yield_game_state_resetting_lock; });
+
+		auto screen_size  = glm::vec2(state.x_size, state.y_size);
+		if (update_cache_on_map_movement) {
+			for (auto& b : map_data.borders) {
+				if (b.count == 0) {
+					b.skip = true;
+					continue;
+				}
+				if (b.count > 2000) {
+					b.skip = false;
+					continue;
+				}
+
+				auto center_pos = map_data.border_vertices[b.start_index + b.count / 4].position;
+				center_pos.y = 1.f - center_pos.y;
+
+				glm::vec2 center;
+				if (!state.map_state.map_to_screen(state, center_pos, screen_size, center, { 200.0f, 200.0f }) && b.count < 2000) {
+					b.skip = true;
+				}
+				else {
+					b.skip = false;
+				}
+			}
+
+			update_cache_on_map_movement = false;
+			request_fresh_border_index = true;
+		}
+
+		if (request_fresh_border_index) {
+			uint8_t updated_index = 1 - smoothing_borders_index_current;
+
+			if (smoothing_borders_index[0].size() == 0) {
+				smoothing_borders_index[0].resize(map_data.borders.size());
+				smoothing_borders_index[1].resize(map_data.borders.size());
+			}
+
+			size_t actual_index = 0;
+			for(size_t i = 0; i < map_data.borders.size(); i++) {
+				auto& b = map_data.borders[i];
+				if(b.count == 0) continue;
+				if(b.skip) continue;
+
+				bool national = false;
+				if(
+					!b.adj 
+					|| (
+						state.world.province_adjacency_get_type(b.adj) 
+						& (
+							province::border::coastal_bit
+							| province::border::national_bit
+						)
+					)
+				) {
+					smoothing_borders_index[updated_index][actual_index] = i;
+					actual_index++;
+				}
+			}
+			smoothing_borders_count = actual_index;
+			smoothing_borders_index_current = updated_index;
+			request_fresh_border_index = false;
+		}
+
+		std::this_thread::sleep_for(std::chrono::milliseconds((int)delay));
+	}
+
 }
 
 void map_state::update(sys::state& state) {
@@ -2519,6 +2641,8 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 		glm::vec2 map_pos;
 		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
 
+		last_map_movement = std::chrono::steady_clock::now();
+		last_map_movement_handled = false;
 		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
 	}
 	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos);
