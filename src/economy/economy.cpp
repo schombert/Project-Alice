@@ -3317,7 +3317,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				Pops needed B package of goods
 				Pop have attempted to purchase W * B package of goods.
 				Pop have managed to purchase S * W * B package of goods.
-				It means that sum(S * W * B) / sum(W*B) provides us
+				It means that sum(S * W * B) / sum(B) provides us
 				with a crude but usable metric of satisfaction ratio.
 
 				Sum over W * B * P provides us with cost of 1 package of required goods
