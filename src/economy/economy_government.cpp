@@ -267,7 +267,9 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 
 		auto owner = state.world.province_get_nation_from_province_ownership(pid);
 		auto tax_multiplier = tax_collection_rate(state, owner, pid);
-
+		if(!owner) {
+			return;
+		}
 		if(owner != state.world.province_get_nation_from_province_control(pid)) {
 			return;
 		}
@@ -285,6 +287,7 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 			auto income = pop_income.get(pop);
 			auto savings = state.world.pop_get_savings(pop);
 			auto strata = culture::pop_strata(pop.get_poptype().get_strata());
+
 			if(strata == culture::pop_strata::poor) {
 				potential_tax_poor += income;
 				pop.set_savings(savings - income * poor_effect);
@@ -319,6 +322,14 @@ void collect_taxes(sys::state& state, ve::vectorizable_buffer<float, dcon::pop_i
 
 		for(auto po : state.world.nation_get_province_ownership(nid)) {
 			auto province = po.get_province();
+
+			if(nid != state.world.province_get_nation_from_province_control(province)) {
+				return;
+			}
+			if(province.id.index() >= state.province_definitions.first_sea_province.index()) {
+				return;
+			}
+
 			auto tax_multiplier = tax_collection_rate(state, nid, province);
 
 			auto potential_tax_poor = state.world.province_get_tax_base_poor(province);

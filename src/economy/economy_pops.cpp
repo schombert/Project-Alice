@@ -410,6 +410,7 @@ void update_consumption(
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_life,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_luxury,
+	ve::vectorizable_buffer<float, dcon::pop_id>& demand_paid_education,
 	ve::vectorizable_buffer<float, dcon::pop_id>& subsistence_ratio
 ) {
 	uint32_t total_commodities = state.world.commodity_size();
@@ -427,7 +428,6 @@ void update_consumption(
 	ve::fp_vector total_spendings{};
 
 	// temporary buffers for actual pop demand
-	auto demand_education_public_forbidden = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_education_public_allowed = state.world.pop_make_vectorizable_float_buffer();
 
 	auto to_bank = state.world.pop_make_vectorizable_float_buffer();
@@ -456,17 +456,13 @@ void update_consumption(
 		demand_life.set(ids, multiplier * data.life_needs.demand_scale * data.life_needs.satisfied_with_money_ratio);
 		demand_everyday.set(ids, multiplier * data.everyday_needs.demand_scale * data.everyday_needs.satisfied_with_money_ratio);
 		demand_luxury.set(ids, multiplier * data.luxury_needs.demand_scale * data.luxury_needs.satisfied_with_money_ratio);
-		demand_education_public_forbidden.set(
-			ids,
-			pop_size
-			* data.education.demand_scale * data.education.satisfied_with_money_ratio
-		);
 		demand_education_public_allowed.set(
 			ids,
 			pop_size
 			* data.can_use_free_services
 			* data.education.demand_scale * data.education.satisfied_for_free_ratio
 		);
+		demand_paid_education.set(ids, pop_size * data.education.demand_scale * data.education.satisfied_with_money_ratio);
 
 		to_bank.set(ids, data.bank_savings.spent);
 		to_investments.set(ids, data.investments.spent);
@@ -484,7 +480,7 @@ void update_consumption(
 			auto pop = state.world.pop_location_get_pop(location);
 
 			auto demand_allow_public = demand_education_public_allowed.get(pop);
-			auto demand_forbid_public = demand_education_public_forbidden.get(pop);
+			auto demand_forbid_public = demand_paid_education.get(pop);
 
 			auto old_allow = state.world.province_get_service_demand_allowed_public_supply(pid, services::list::education);
 			auto old_forbid = state.world.province_get_service_demand_forbidden_public_supply(pid, services::list::education);

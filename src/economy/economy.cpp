@@ -23,6 +23,7 @@
 #include "events.hpp"
 #include "commands.hpp"
 #include <vector>
+#include <algorithm>
 
 namespace economy {
 
@@ -1994,14 +1995,45 @@ void run_private_investment(sys::state& state) {
 // 	}
 // 	return ticks.QuadPart;
 // }
-static void set_profile_point(std::string name) {
+
+static float total_history;
+static void set_profile_point(sys::state& state, std::string name) {
+
+	/*
+	Funnily enough, this place is great to put logging into because of the passed name.
+	*/
+
+	/*
+	ve::fp_vector total_nations {};
+	ve::fp_vector total_markets {};
+	ve::fp_vector total_pops{};
+	state.world.execute_serial_over_pop([&](auto ids) {
+		total_pops = total_pops + state.world.pop_get_savings(ids);
+	});
+	state.world.execute_serial_over_market([&](auto ids) {
+		total_markets = total_markets + state.world.market_get_stockpile(ids, money);
+	});
+	state.world.execute_serial_over_nation([&](auto ids) {
+		total_nations = total_nations + state.world.nation_get_stockpiles(ids, money);
+	});
+	auto total = total_nations + total_markets + total_pops;
+	auto diff = total.reduce() - total_history;
+	total_history = total.reduce();
+	
+	std::string logged_data = name + "\n" + std::to_string(total.reduce()) + "," + std::to_string(total_pops.reduce()) + ","  + std::to_string(total_markets.reduce()) + "," + std::to_string(total_nations.reduce())  + "\n" + std::to_string(int(diff / 1000.f)) + "\n";
+	state.console_log(logged_data);
+	*/
+
+
+	//printf("%f,%f,%f\n", total_pops.reduce(), total_markets.reduce(), total_nations.reduce());
+
 	// fprintf(pf, (name + ",%llu\n").c_str(), GetTicks());
 }
 
 void daily_update(sys::state& state, bool presimulation, float presimulation_stage) {
 	sanity_check(state);
 
-	set_profile_point("start");
+	set_profile_point(state, "start");
 
 	/* initialization parallel block */
 
@@ -2051,7 +2083,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	});
 
-	set_profile_point("init1");
+	set_profile_point(state, "init1");
 
 	auto export_tariff_buffer = state.world.market_make_vectorizable_float_buffer();
 	auto import_tariff_buffer = state.world.market_make_vectorizable_float_buffer();
@@ -2059,7 +2091,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto state_naval_trade_is_blockaded = ve::vectorizable_buffer<float, dcon::state_instance_id>(state.world.state_instance_size());
 	auto market_leader = ve::vectorizable_buffer<dcon::nation_id, dcon::nation_id>(state.world.nation_size());
 
-	set_profile_point("create_buffers");
+	set_profile_point(state, "create_buffers");
 
 	// This must run serial
 	populate_army_consumption(state);
@@ -2278,7 +2310,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	};
 
-	set_profile_point("update trade cache and buffers");
+	set_profile_point(state, "update trade cache and buffers");
 
 	state.world.execute_serial_over_state_instance([&](auto sids) {
 		// US3AC17. if market capital controller is at war with market coastal controller is different
@@ -2298,7 +2330,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state_naval_trade_is_blockaded.set(sids, ve::select(port == dcon::province_id{} || occupied || state.world.province_get_is_blockaded(port), ve::fp_vector{ 1.f }, ve::fp_vector{ 0.f }));
 	});
 
-	set_profile_point("blockade_check");
+	set_profile_point(state, "blockade_check");
 
 	sanity_check(state);
 
@@ -2335,7 +2367,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	);
 
 	// PROFILE
-	set_profile_point("land stats and inventions count");
+	set_profile_point(state, "land stats and inventions count");
 
 	// store available port capacity ratio per market
 
@@ -2372,7 +2404,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		price_port_capacity
 	);
 
-	set_profile_point("trade volume");
+	set_profile_point(state, "trade volume");
 
 	sanity_check(state);
 
@@ -2633,7 +2665,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	});
 
 	// PROFILE
-	set_profile_point("needs_costs");
+	set_profile_point(state, "needs_costs");
 
 	concurrency::parallel_for(0, 4, [&](int32_t index) {
 		switch(index) {
@@ -2676,7 +2708,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// rgo/factories/artisans consumption
 	update_production_consumption(state);
 
-	set_profile_point("production_consumption");
+	set_profile_point(state, "production_consumption");
 
 	state.world.for_each_commodity([&](auto cid) {
 		bool is_potential_rgo = state.world.commodity_get_rgo_amount(cid) > 0.f;
@@ -2704,6 +2736,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto demand_life = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_everyday = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_luxury = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_paid_education = state.world.pop_make_vectorizable_float_buffer();
 	auto satisfaction_from_subsistence = state.world.pop_make_vectorizable_float_buffer();
 
 	pops::update_consumption(
@@ -2714,10 +2747,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		potential_ratio_luxury,
 		potential_ratio_education_public,
 		potential_ratio_education_private,
-		demand_life, demand_everyday, demand_luxury, satisfaction_from_subsistence
+		demand_life, demand_everyday, demand_luxury, demand_paid_education,
+		satisfaction_from_subsistence
 	);
 
-	set_profile_point("pops_consumption");
+	set_profile_point(state, "pops_consumption");
 
 	sanity_check(state);
 
@@ -2876,7 +2910,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	sanity_check(state);
 
-	set_profile_point("national_consumption");
+	set_profile_point(state, "national_consumption");
 
 	concurrency::parallel_invoke(
 		[&]() {
@@ -2889,13 +2923,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	advanced_province_buildings::update_consumption(state);
 
-	set_profile_point("apb_consumption");
+	set_profile_point(state, "apb_consumption");
 
 	sanity_check(state);
 
 	update_trade_routes_consumption(state);
 
-	set_profile_point("routes_consumption");
+	set_profile_point(state, "routes_consumption");
 
 	sanity_check(state);
 
@@ -3071,7 +3105,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		);
 	});
 
-	set_profile_point("clear_market");
+	set_profile_point(state, "clear_market");
 
 #ifndef NDEBUG
 	state.world.execute_serial_over_market([&](auto markets) {
@@ -3244,20 +3278,20 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.nation_set_stockpiles(n, money, state.world.nation_get_stockpiles(n, money) + refund);
 	});
 
-	set_profile_point("refund_nations");
+	set_profile_point(state, "refund_nations");
 
 	sanity_check(state);
 
 	advanced_province_buildings::update_profit_and_refund(state);
 
-	set_profile_point("refund and profit of advanced province buildings");
+	set_profile_point(state, "refund and profit of advanced province buildings");
 
 	sanity_check(state);
 
 	/* now we know demand satisfaction and can set actual satifaction of pops and pay profit to producers */
 
 	update_rgo_profit(state);
-	set_profile_point("rgo profit");
+	set_profile_point(state, "rgo profit");
 
 	/* prepare needs satisfaction caps */
 	state.world.execute_parallel_over_pop_type([&](auto pts) {
@@ -3266,69 +3300,111 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(ids);
 				auto nations = state.world.state_instance_get_nation_from_state_ownership(states);
 
-				ve::fp_vector ln_total = 0.0f;
-				ve::fp_vector en_total = 0.0f;
-				ve::fp_vector lx_total = 0.0f;
+				
 
-				ve::fp_vector ln_demanded = 0.0f;
-				ve::fp_vector en_demanded = 0.0f;
-				ve::fp_vector lx_demanded = 0.0f;
+				/*
 
-				ve::fp_vector ln_max = 0.0f;
-				ve::fp_vector en_max = 0.0f;
-				ve::fp_vector lx_max = 0.0f;
+				Pops have spent money on needs assuming that they have managed to buy everything
+				Now we have to adjust their savings to account for the fact that not everything is possible to buy.
+				And calculate how well they actually fulfill their needs.
+
+				The logic is fairly simple:
+				W - weights
+				B - base
+				P - price
+				S - probability to buy
+
+				Pops needed B package of goods
+				Pop have attempted to purchase W * B package of goods.
+				Pop have managed to purchase S * W * B package of goods.
+				It means that sum(S * W * B) / sum(W*B) provides us
+				with a crude but usable metric of satisfaction ratio.
+
+				Sum over W * B * P provides us with cost of 1 package of required goods
+				It's precisely the price of package the pop was trying to pay.
+				But only sum(S * W * B * P) was actually paid.
+				So to calculate refund we have to calculate
+				sum(S * W * B * P) / sum(W * B * P) ratio.
+
+				*/
+
+				ve::fp_vector ln_b_summed = 0.0f;
+				ve::fp_vector en_b_summed = 0.0f;
+				ve::fp_vector lx_b_summed = 0.0f;
+
+				ve::fp_vector ln_swb = 0.0f;
+				ve::fp_vector en_swb = 0.0f;
+				ve::fp_vector lx_swb = 0.0f;
+
+				ve::fp_vector ln_wbp = 0.0f;
+				ve::fp_vector en_wbp = 0.0f;
+				ve::fp_vector lx_wbp = 0.0f;
+
+				ve::fp_vector ln_swbp = 0.0f;
+				ve::fp_vector en_swbp = 0.0f;
+				ve::fp_vector lx_swbp = 0.0f;
 
 				for(uint32_t i = 1; i < total_commodities; ++i) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
-					auto sat = state.world.market_get_actual_probability_to_buy(ids, c);
 
-					auto ln_val = state.world.pop_type_get_life_needs(pt, c) ;
-					auto en_val = state.world.pop_type_get_everyday_needs(pt, c) ;
-					auto lx_val = state.world.pop_type_get_luxury_needs(pt, c);
+					auto s = state.world.market_get_actual_probability_to_buy(ids, c);
+					auto p = state.world.market_get_price(ids, c);
 
-					ln_total = ln_total + ln_val;
-					ln_demanded = ln_demanded + ln_val * state.world.market_get_life_needs_weights(ids, c);
-					ln_max = ln_max + ln_val * sat * state.world.market_get_life_needs_weights(ids, c);
+					auto ln_b = state.world.pop_type_get_life_needs(pt, c) ;
+					auto en_b = state.world.pop_type_get_everyday_needs(pt, c) ;
+					auto lx_b = state.world.pop_type_get_luxury_needs(pt, c);
 
-					en_total = en_total + en_val;
-					en_demanded = en_demanded + en_val * state.world.market_get_everyday_needs_weights(ids, c);
-					en_max = en_max + en_val * sat * state.world.market_get_everyday_needs_weights(ids, c);
+					auto ln_w = state.world.market_get_life_needs_weights(ids, c);
+					auto en_w = state.world.market_get_everyday_needs_weights(ids, c);
+					auto lx_w = state.world.market_get_luxury_needs_weights(ids, c);
 
-					lx_total = lx_total + lx_val;
-					lx_demanded = lx_demanded + lx_val * state.world.market_get_luxury_needs_weights(ids, c);
-					lx_max = lx_max + lx_val * sat * state.world.market_get_luxury_needs_weights(ids, c);
+					ln_b_summed = ln_b_summed + ln_b;
+					en_b_summed = en_b_summed + en_b;
+					lx_b_summed = lx_b_summed + lx_b;
+
+					ln_swb = ln_swb + s *  ln_w * ln_b;
+					en_swb = en_swb + s * en_w * en_b;
+					lx_swb = lx_swb + s * lx_w * lx_b;
+
+					ln_wbp = ln_wbp + ln_w * ln_b * p;
+					en_wbp = en_wbp + en_w * en_b * p;
+					lx_wbp = lx_wbp + lx_w * lx_b * p;
+
+					ln_swbp = ln_swbp + s * ln_w * ln_b * p;
+					en_swbp = en_swbp + s * en_w * en_b * p;
+					lx_swbp = lx_swbp + s * lx_w * lx_b * p;
 				}
 
-				ln_demanded = ve::select(ln_demanded > 0.f, ln_max / ln_demanded, 1.f);
-				en_demanded = ve::select(en_demanded > 0.f, en_max / en_demanded, 1.f);
-				lx_demanded = ve::select(lx_demanded > 0.f, lx_max / lx_demanded, 1.f);
+				ln_swbp = ve::select(ln_wbp > 0.f, ln_swbp / ln_wbp, 1.f);
+				en_swbp = ve::select(en_wbp > 0.f, en_swbp / en_wbp, 1.f);
+				lx_swbp = ve::select(lx_wbp > 0.f, lx_swbp / lx_wbp, 1.f);
 
-				ln_max = ve::select(ln_total > 0.f, ln_max / ln_total, 1.f);
-				en_max = ve::select(en_total > 0.f, en_max / en_total, 1.f);
-				lx_max = ve::select(lx_total > 0.f, lx_max / lx_total, 1.f);
+				ln_swb = ve::select(ln_b_summed > 0.f, ln_swb / ln_b_summed, 1.f);
+				en_swb = ve::select(en_b_summed > 0.f, en_swb / en_b_summed, 1.f);
+				lx_swb = ve::select(lx_b_summed > 0.f, lx_swb / lx_b_summed, 1.f);
 
 #ifndef NDEBUG
 				ve::apply([](float life, float everyday, float luxury) {
 					assert(life >= 0.f && life <= 1.f);
 					assert(everyday >= 0.f && everyday <= 1.f);
 					assert(luxury >= 0.f && luxury <= 1.f);
-				}, ln_max, en_max, lx_max);
+				}, ln_swbp, en_swbp, lx_swbp);
 				ve::apply([](float life, float everyday, float luxury) {
 					assert(life >= 0.f && life <= 1.f);
 					assert(everyday >= 0.f && everyday <= 1.f);
 					assert(luxury >= 0.f && luxury <= 1.f);
-				}, ln_demanded, en_demanded, lx_demanded);
+				}, ln_swb, en_swb, lx_swb);
 #endif // !NDEBUG
 
 				// probability to increase corresponding satisfaction
-				state.world.market_set_satisfied_ratio_of_max_life_needs(ids, pt, ln_max);
-				state.world.market_set_satisfied_ratio_of_max_everyday_needs(ids, pt, en_max);
-				state.world.market_set_satisfied_ratio_of_max_luxury_needs(ids, pt, lx_max);
+				state.world.market_set_satisfied_ratio_of_max_life_needs(ids, pt, ln_swb);
+				state.world.market_set_satisfied_ratio_of_max_everyday_needs(ids, pt, en_swb);
+				state.world.market_set_satisfied_ratio_of_max_luxury_needs(ids, pt, lx_swb);
 
 				// ratio of actually spent money to calculate cashback
-				state.world.market_set_satisfied_ratio_of_demanded_life_needs(ids, pt, ln_demanded);
-				state.world.market_set_satisfied_ratio_of_demanded_everyday_needs(ids, pt, en_demanded);
-				state.world.market_set_satisfied_ratio_of_demanded_luxury_needs(ids, pt, lx_demanded);
+				state.world.market_set_satisfied_ratio_of_demanded_life_needs(ids, pt, ln_swbp);
+				state.world.market_set_satisfied_ratio_of_demanded_everyday_needs(ids, pt, en_swbp);
+				state.world.market_set_satisfied_ratio_of_demanded_luxury_needs(ids, pt, lx_swbp);
 			});
 		}, pts);
 	});
@@ -3417,10 +3493,22 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				)
 				* pop_demographics::pop_u16_scaling;
 			pop_demographics::set_literacy(state, ids, ve::min(1.f, ve::max(0.f, literacy)));
+
+			/*
+
+			Return back money:
+			Calculate desired
+
+			*/
+
+			auto paid_back = demand_paid_education.get(ids) * (1.f - literacy_sat_paid) * state.world.province_get_service_price(province, services::list::education);
+
+			auto savings = state.world.pop_get_savings(ids);
+			state.world.pop_set_savings(ids, savings + paid_back);
 		}
 	});
 
-	set_profile_point("satisfaction_update");
+	set_profile_point(state, "satisfaction_update");
 
 	sanity_check(state);
 
@@ -3488,7 +3576,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		per_commodity_export_1.push_back(state.world.trade_route_make_vectorizable_float_buffer());
 	}
 
-	set_profile_point("create trade buffers");
+	set_profile_point(state, "create trade buffers");
 
 	fill_trade_buffers(state,
 		export_tariff_buffer,
@@ -3503,7 +3591,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		per_commodity_import_1
 	);
 
-	set_profile_point("set trade buffers");
+	set_profile_point(state, "set trade buffers");
 
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
@@ -3576,7 +3664,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	});
 
-	set_profile_point("sum up data from trade buffers");
+	set_profile_point(state, "sum up data from trade buffers");
 
 	// we bought something: register supply from stockpiles:
 
@@ -3595,7 +3683,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	set_profile_point("stockpile trade");
+	set_profile_point(state, "stockpile trade");
 
 	sanity_check(state);
 
@@ -3781,11 +3869,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	}
 
-	set_profile_point("labor supply");
+	set_profile_point(state, "labor supply");
 
 	update_pops_employment(state);
 
-	set_profile_point("employment");
+	set_profile_point(state, "employment");
 
 	sanity_check(state);
 
@@ -3793,25 +3881,25 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	update_artisan_production(state);
 
-	set_profile_point("artisans production");
+	set_profile_point(state, "artisans production");
 
 	advanced_province_buildings::update_production(state);
 
-	set_profile_point("apb production");
+	set_profile_point(state, "apb production");
 
 	update_factories_production(state);
 
-	set_profile_point("factories production");
+	set_profile_point(state, "factories production");
 
 	update_rgo_production(state);
 
-	set_profile_point("rgo production");
+	set_profile_point(state, "rgo production");
 
 	for(auto n : state.world.in_nation) {
 		update_production_administration(state, n);
 	}
 
-	set_profile_point("admin production");
+	set_profile_point(state, "admin production");
 
 	// ####################
 	// # PAYMENTS TO POPS #
@@ -3839,7 +3927,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		income_buffer.set(p, ve::max(state.world.pop_get_savings(p) + income_buffer.get(p), 0.f));
 	});
 
-	set_profile_point("pops payment");
+	set_profile_point(state, "pops payment");
 
 	// #####################
 	// # TAXES AND TARIFFS #
@@ -3855,7 +3943,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	collect_taxes(state, income_buffer);
 
-	set_profile_point("taxes");
+	set_profile_point(state, "taxes");
 
 	auto collected_tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
 	for(auto mid : state.world.in_market) {
@@ -3870,7 +3958,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.nation_set_stockpiles(nid, economy::money, old + collected_tariff_buffer.get(nid));
 	});
 
-	set_profile_point("tariffs");
+	set_profile_point(state, "tariffs");
 
 	// todo: vectorize
 	concurrency::parallel_for(uint32_t(0), state.world.market_size(), [&](auto raw_market_id) {
@@ -3882,7 +3970,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 
 
-	set_profile_point("need weights");
+	set_profile_point(state, "need weights");
 
 	sanity_check(state);
 
@@ -3905,7 +3993,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	set_profile_point("reset prices");
+	set_profile_point(state, "reset prices");
 
 	// price of labor
 
@@ -3950,7 +4038,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	set_profile_point("update labor prices");
+	set_profile_point(state, "update labor prices");
 
 	concurrency::parallel_for(uint32_t(1), total_commodities, [&](uint32_t k) {
 		dcon::commodity_id cid{ dcon::commodity_id::value_base_t(k) };
@@ -3971,11 +4059,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	set_profile_point("update commodity prices");
+	set_profile_point(state, "update commodity prices");
 
 	services::update_price(state);
 
-	set_profile_point("update services prices");
+	set_profile_point(state, "update services prices");
 
 	// update median prices
 
@@ -3984,7 +4072,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state.world.commodity_set_median_price(cid, median_price(state, cid));
 	});
 
-	set_profile_point("update median prices");
+	set_profile_point(state, "update median prices");
 
 	sanity_check(state);
 
@@ -4064,7 +4152,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	}
 
 	// essentially upper bound on wealth in the system
-	state.inflation = 0.99999f;
+	state.inflation = 1.f;
 
 	sanity_check(state);
 
@@ -4118,7 +4206,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	}
 
-	set_profile_point("random data");
+	set_profile_point(state, "random data");
 
 	sanity_check(state);
 }
