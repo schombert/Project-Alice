@@ -3394,13 +3394,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
-	// run pending triggers and effects
-	for(auto pending_decision : pending_decisions) {
-		dcon::nation_id n = pending_decision.first;
-		dcon::decision_id d = pending_decision.second;
-		if(auto e = world.decision_get_effect(d); e)
-			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
-	}
 
 
 	demographics::regenerate_from_pop_data_full(*this);
@@ -3467,6 +3460,16 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	military::recover_org(*this);
 
 	military::set_initial_leaders(*this);
+
+
+	// run pending triggers and effects
+	for(auto pending_decision : pending_decisions) {
+		dcon::nation_id n = pending_decision.first;
+		dcon::decision_id d = pending_decision.second;
+		if(auto e = world.decision_get_effect(d); e)
+			effect::execute(*this, e, trigger::to_generic(n), trigger::to_generic(n), 0, uint32_t(current_date.value), uint32_t(n.index() << 4 ^ d.index()));
+	}
+
 	current_scene.game_in_progress = old_game_in_prog;
 }
 
