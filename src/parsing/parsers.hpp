@@ -143,6 +143,7 @@ struct separator_scan_result {
 char const* csv_advance(char const* start, char const* end, char seperator);
 char const* csv_advance_n(uint32_t n, char const* start, char const* end, char seperator);
 char const* csv_advance_to_next_line(char const* start, char const* end);
+char const* csv_advance_to_next_line(char const* start, char const* end, uint32_t& line_num);
 separator_scan_result csv_find_separator_token(char const* start, char const* end, char seperator);
 
 template<size_t count_values, typename T>
@@ -156,6 +157,20 @@ char const* parse_fixed_amount_csv_values(char const* start, char const* end, ch
 	function(values);
 
 	return csv_advance_to_next_line(start, end);
+}
+
+// increments the line_num variable each time a newline is encountered
+template<size_t count_values, typename T>
+char const* parse_fixed_amount_csv_values(char const* start, char const* end, char separator,uint32_t& line_num, T&& function) {
+	std::string_view values[count_values];
+	for(uint32_t i = 0; i < count_values; ++i) {
+		auto r = csv_find_separator_token(start, end, separator);
+		values[i] = std::string_view(start, r.new_position - start);
+		start = r.new_position + int32_t(r.found);
+	}
+	function(values);
+
+	return csv_advance_to_next_line(start, end, line_num);
 }
 
 template<typename T>

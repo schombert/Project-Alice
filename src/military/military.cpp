@@ -8529,6 +8529,19 @@ uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
 	return uint8_t((high_roll << 4) | low_roll);
 }
 
+crossing_type get_crossing_type(const sys::state& state, dcon::province_adjacency_id adj) {
+	auto bits = state.world.province_adjacency_get_type(adj);
+	if((bits & (province::border::sea_strait_crossing_bit | province::border::coastal_bit)) != 0) {
+		return crossing_type::sea;
+	}
+	else if((bits & province::border::river_crossing_bit) != 0) {
+		return crossing_type::river;
+	}
+	else {
+		return crossing_type::none;
+	}
+}
+
 void navy_arrives_in_province(sys::state& state, dcon::navy_id n, dcon::province_id p, dcon::naval_battle_id from) {
 	assert(state.world.navy_is_valid(n));
 	assert(!state.world.navy_get_battle_from_navy_battle_participation(n));
@@ -8661,7 +8674,8 @@ void update_movement(sys::state& state) {
 			path.pop_back();
 
 			state.world.army_set_is_retreating(a, false); // can only be in the retreating state for max 1 province arrivial
-
+			auto adj = state.world.get_province_adjacency_by_province_pair(dest, from);
+			crossing_type crossing = get_crossing_type(state, adj);
 			// Can the army reach the target
 			if(dest.index() >= state.province_definitions.first_sea_province.index()) { // sea province
 				// check for embarkation possibility, then embark
@@ -8674,7 +8688,7 @@ void update_movement(sys::state& state) {
 					// if there are not enough transports by the time the movement happens, eject them back to land and check for enemy armies to collide with
 					stop_army_movement(state, a);
 					a.set_is_retreating(false);
-					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
+					army_arrives_in_province(state, a, from, crossing, dcon::land_battle_id{});
 				}
 			} else { // land province
 				if(a.get_black_flag()) {
@@ -8684,43 +8698,32 @@ void update_movement(sys::state& state) {
 					if(n == a.get_controller_from_army_control().id) {
 						a.set_black_flag(false);
 					}
-					army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest,
-							(state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from)) &
-								province::border::river_crossing_bit) != 0
-									? military::crossing_type::river
-									: military::crossing_type::none, dcon::land_battle_id{});
+					army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, crossing, dcon::land_battle_id{});
 					a.set_navy_from_army_transport(dcon::navy_id{});
 				} else if(province::has_access_to_province(state, a.get_controller_from_army_control(), dest)) {
 					if(auto n = a.get_navy_from_army_transport()) {
 						if(!n.get_battle_from_navy_battle_participation()) {
-							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
+							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, crossing, dcon::land_battle_id{});
 							a.set_navy_from_army_transport(dcon::navy_id{});
 						} else {
 							stop_army_movement(state, a);
 						}
 					} else {
-						auto path_bits = state.world.province_adjacency_get_type(state.world.get_province_adjacency_by_province_pair(dest, from));
-						if((path_bits & province::border::non_adjacent_bit) != 0) { // strait crossing
-							if(province::is_crossing_blocked(state, a.get_controller_from_army_control(), from, dest)) {
-								// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
-								stop_army_movement(state, a);
-								a.set_is_retreating(false);
-								army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
-							} else {
-								army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, military::crossing_type::sea, dcon::land_battle_id{});
-							}
+						auto path_bits = state.world.province_adjacency_get_type(adj);
+						if((path_bits & province::border::non_adjacent_bit) != 0 && province::is_crossing_blocked(state, a.get_controller_from_army_control(), from, dest)) { // strait crossing which is blocked
+							// if the strait is blocked by the time the movement happens, stop the unit and check for enemy armies to collide with
+							stop_army_movement(state, a);
+							a.set_is_retreating(false);
+							army_arrives_in_province<apply_attrition_on_arrival::no>(state, a, from, crossing, dcon::land_battle_id{});
 						} else {
-							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest,
-									(path_bits & province::border::river_crossing_bit) != 0
-											? military::crossing_type::river
-											: military::crossing_type::none, dcon::land_battle_id{});
+							army_arrives_in_province<apply_attrition_on_arrival::yes>(state, a, dest, crossing, dcon::land_battle_id{});
 						}
 					}
 				} else {
 					// if the dest prov is inaccesible when the movement happens, stop movement and check for collision with enemy armies
 					stop_army_movement(state, a);
 					a.set_is_retreating(false);
-					army_arrives_in_province(state, a, from, military::crossing_type::sea, dcon::land_battle_id{});
+					army_arrives_in_province(state, a, from, crossing, dcon::land_battle_id{});
 				}
 			}
 
@@ -8803,7 +8806,7 @@ void update_movement(sys::state& state) {
 			if(dest.index() < state.province_definitions.first_sea_province.index()) { // land province
 				if(province::has_naval_access_to_province(state, n.get_controller_from_navy_control(), dest)) {
 
-					n.set_location_from_navy_location(dest);
+					navy_arrives_in_province(state, n, dest, dcon::naval_battle_id{ });
 
 					// check for whether there are troops to disembark
 					auto attached = state.world.navy_get_army_transport(n);

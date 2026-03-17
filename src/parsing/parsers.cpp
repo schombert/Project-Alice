@@ -424,6 +424,22 @@ char const* csv_advance_to_next_line(char const* start, char const* end) {
 	else
 		return csv_advance_to_next_line(start, end);
 }
+// increments the line_num variable each time a newline is encountered
+char const* csv_advance_to_next_line(char const* start, char const* end, uint32_t& line_num) {
+
+	while(start != end && !line_termination(*start)) {
+		++start;
+	}
+	while(start != end && line_termination(*start)) {
+		++start;
+		++line_num;
+	}
+		
+	if(start == end || *start != '#')
+		return start;
+	else
+		return csv_advance_to_next_line(start, end, line_num);
+}
 
 std::string_view remove_surrounding_whitespace(std::string_view txt) {
 	char const* start = txt.data();
