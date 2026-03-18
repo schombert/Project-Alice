@@ -1867,6 +1867,10 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			auto m = state.world.state_instance_get_market_from_local_market(state_instance);
 			auto n = state.world.province_get_nation_from_province_ownership(pids);
 
+			auto priority = state.world.nation_get_production_directive(n, production_directives::to_key(state, c));
+			auto priority_local = state.world.state_instance_get_production_directive(state_instance, production_directives::to_key(state, c));
+			auto subsidy = ve::select(priority_local || priority, state.world.nation_get_subsidy_token_price(n), 0.f); 
+
 			auto wage_per_worker = state.world.province_get_labor_price(pids, labor::no_education);
 
 			auto current_size = state.world.province_get_rgo_size(pids, c);
@@ -1878,7 +1882,7 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			
 			auto supply = state.world.market_get_aggregated_supply_history(m, c);
 			auto demand = state.world.market_get_aggregated_demand_history(m, c);
-			auto current_price = ve_price(state, m, c);
+			auto current_price = ve_price(state, m, c) + subsidy;
 			auto price_speed_change =
 				state.world.commodity_get_money_rgo(c)
 				? 0.f
@@ -1941,9 +1945,13 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 		auto output = state.world.factory_type_get_output(factory_type);
 
-		auto price_output = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
-			return state.world.market_get_price(market, cid);
-		}, mid, output);
+
+		auto price_output = ve::apply([&](dcon::nation_id n, dcon::state_instance_id state_instance, dcon::market_id market, dcon::commodity_id cid) {
+			auto priority = state.world.nation_get_production_directive(n, production_directives::to_key(state, cid));
+			auto priority_local = state.world.state_instance_get_production_directive(state_instance, production_directives::to_key(state, cid));
+			auto subsidy = priority_local || priority ? state.world.nation_get_subsidy_token_price(n) : 0.f;
+			return state.world.market_get_price(market, cid) + subsidy;
+		}, state.world.province_get_nation_from_province_ownership(pid), sid, mid, output);
 
 		auto supply = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
 			return state.world.market_get_supply(market, cid);
@@ -2102,7 +2110,11 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 				//auto actual_wage = state.world.province_get_labor_price(ids, labor::guild_education);
 				auto mask = ve_valid_artisan_good(state, nations, cid);
 
-				auto price_today = ve_price(state, markets, cid);
+				auto priority = state.world.nation_get_production_directive(nations, production_directives::to_key(state, cid));
+				auto priority_local = state.world.state_instance_get_production_directive(local_states, production_directives::to_key(state, cid));
+				auto subsidy = ve::select(priority_local || priority, state.world.nation_get_subsidy_token_price(nations), 0.f);
+
+				auto price_today = ve_price(state, markets, cid) + subsidy;
 				auto supply = state.world.market_get_supply(markets, cid);
 				auto demand = state.world.market_get_demand(markets, cid);
 				auto predicted_price = price_today + price_properties::change(price_today, supply, demand) * 2.f;
@@ -2262,7 +2274,11 @@ float factory_type_output_cost(
 	float output_multiplier = nation_factory_output_multiplier(state, factory_type, n);
 	float total_production = fac_type.get_output_amount() * output_multiplier;
 
-	return total_production * price(state, m, fac_type.get_output());
+	auto priority = state.world.nation_get_production_directive(n, production_directives::to_key(state, fac_type.get_output()));
+	auto priority_local = state.world.state_instance_get_production_directive(state.world.market_get_zone_from_local_market(m), production_directives::to_key(state, fac_type.get_output()));
+	auto subsidy = priority_local || priority ? state.world.nation_get_subsidy_token_price(n) : 0.f;
+
+	return total_production * (price(state, m, fac_type.get_output()) + subsidy);
 }
 
 float factory_type_input_cost(

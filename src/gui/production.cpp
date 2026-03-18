@@ -6796,6 +6796,14 @@ void  production_rh_state_item_active_directives_t::update(sys::state& state, la
 	std::vector<dcon::commodity_id> ctemp;
 	for(auto c : state.world.in_commodity) {
 		if(!c.get_money_rgo() && state.world.state_instance_get_production_directive(rh_state_item.for_state, production_directives::to_key(state, c))) {
+			if (state.world.commodity_get_rgo_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
+			if (state.world.commodity_get_artisan_output_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
 			for(auto t : state.world.in_factory_type) {
 				if(t.get_output() == c) {
 					ctemp.push_back(c.id);
@@ -8546,6 +8554,14 @@ void  production_directives_window_all_directives_t::on_create(sys::state& state
 	std::vector<dcon::commodity_id> ctemp;
 	for(auto c : state.world.in_commodity) {
 		if(!c.get_money_rgo() ) {
+			if (state.world.commodity_get_rgo_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
+			if (state.world.commodity_get_artisan_output_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
 			for(auto t : state.world.in_factory_type) {
 				if(t.get_output() == c) {
 					ctemp.push_back(c.id);
@@ -8631,6 +8647,14 @@ void  production_directives_window_active_directives_t::update(sys::state& state
 	std::vector<dcon::commodity_id> ctemp;
 	for(auto c : state.world.in_commodity) {
 		if(!c.get_money_rgo() && state.world.nation_get_production_directive(state.local_player_nation, production_directives::to_key(state, c))) {
+			if (state.world.commodity_get_rgo_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
+			if (state.world.commodity_get_artisan_output_amount(c) > 0.f) {
+				ctemp.push_back(c.id);
+				continue;
+			}
 			for(auto t : state.world.in_factory_type) {
 				if(t.get_output() == c) {
 					ctemp.push_back(c.id);
