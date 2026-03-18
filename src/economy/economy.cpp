@@ -1228,6 +1228,7 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 
 	float total = 0.0f;
 
+
 	auto const admin_spending = full_spendings_administration(state, n, base_budget);
 	costs.administration = admin_spending;
 	total += admin_spending;
@@ -1363,6 +1364,8 @@ spending_cost full_spending_cost(sys::state& state, dcon::nation_id n, float bas
 			assert(std::isfinite(total) && total >= 0.0f);
 		});
 	});
+
+	total += base_budget * float(state.world.nation_get_subsidies_spending(n)) / 100.f;
 
 	assert(std::isfinite(total) && total >= 0.0f);
 
@@ -2070,8 +2073,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			});
 			break;
 		case 6:
-			state.world.execute_serial_over_nation([&](auto ids) {
-				state.world.nation_set_subsidies_spending(ids, 0.0f);
+			state.world.execute_serial_over_nation([&](auto id) {
+				state.world.nation_set_subsidy_token_total(id, 0.f);
 			});
 			break;
 		case 7:
@@ -2096,7 +2099,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// This must run serial
 	populate_army_consumption(state);
 
-	concurrency::parallel_for(0, 5, [&](int32_t index) {
+	concurrency::parallel_for(0, 6, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -2131,6 +2134,95 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			break;
 		case 4:
 			populate_construction_consumption(state);
+			break;
+		case 5:
+			/*
+
+			Subsidy tokens are  granted per effective produced unit to encourage actual production rather than raw employment or size.
+			Here we calculate their amount and pay them out immediately.
+			It might generate or delete a certain amount of money as production volume
+			changes all the time but it would be the most efficient way to start and introduced leaks are not that bad.
+
+			*/
+			state.world.for_each_factory([&](auto id) {
+				auto location = state.world.factory_get_province_from_factory_location(id);
+				auto zone = state.world.province_get_state_membership(location);
+				auto nation = state.world.province_get_nation_from_province_ownership(location);
+				auto building_type = state.world.factory_get_building_type(id);
+				auto output_type =state.world.factory_type_get_output(building_type);
+
+				auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, output_type));
+				auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, output_type));
+
+				if (priority || priority_local) {
+					auto base_output = state.world.factory_type_get_output_amount(building_type);
+					auto factory_output = state.world.factory_get_output(id);
+					auto effective_output = factory_output / base_output;
+					auto tokens = state.world.nation_get_subsidy_token_total(nation);
+					state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+					auto market = state.world.state_instance_get_market_from_local_market(zone);
+					auto current_money = state.world.market_get_stockpile(market, economy::money);
+					auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+					state.world.market_set_stockpile(market, economy::money, current_money + last_token_price * effective_output);
+				}
+			});
+			state.world.for_each_commodity([&](auto cid){
+				auto base_output = state.world.commodity_get_rgo_amount(cid);
+				if (base_output == 0.f) return;
+
+				state.world.for_each_province([&](auto id) {				
+					auto nation = state.world.province_get_nation_from_province_ownership(id);
+					if(!nation) {
+						return;
+					}
+
+					auto zone = state.world.province_get_state_membership(id);
+					auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
+					auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, cid));
+
+					if (priority || priority_local) {
+						auto rgo_output = state.world.province_get_rgo_output(id, cid);
+						auto effective_output = rgo_output / base_output;
+						auto tokens = state.world.nation_get_subsidy_token_total(nation);
+						state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+						auto market = state.world.state_instance_get_market_from_local_market(zone);
+						auto current_money = state.world.market_get_stockpile(market, economy::money);
+						auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+						state.world.market_set_stockpile(market, economy::money, current_money + last_token_price * effective_output);
+					}
+				});
+			});
+
+			state.world.for_each_commodity([&](auto cid){
+				auto base_output = state.world.commodity_get_artisan_output_amount(cid);
+				if (base_output == 0.f) return;
+
+				state.world.for_each_province([&](auto id) {				
+					auto nation = state.world.province_get_nation_from_province_ownership(id);
+					if(!nation) {
+						return;
+					}
+
+					auto zone = state.world.province_get_state_membership(id);
+					auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
+					auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, cid));
+
+					if (priority || priority_local) {
+						auto output = state.world.province_get_artisan_actual_production(id, cid);
+						auto effective_output = output / base_output;
+						auto tokens = state.world.nation_get_subsidy_token_total(nation);
+						state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+						auto current_money = state.world.province_get_artisan_bank(id);
+						auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+						state.world.province_set_artisan_bank(id, current_money + last_token_price * effective_output);
+					}
+				});
+			});
+
+
 			break;
 		}
 	});
@@ -2872,6 +2964,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			state.world.nation_set_spending_level(n, spending_scale);
 			state.world.nation_set_last_base_budget(n, base_budget);
 
+			
+
 			if (additional_funding > 0.f) {
 				// take the loan
 				state.world.nation_set_local_loan(n, current_loan + additional_funding);
@@ -2892,6 +2986,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			spent_on_construction_buffer.set(n, spending_scale * costs.construction);
 
 			// use calculated values to perform actual consumption
+
+			auto total_tokens = state.world.nation_get_subsidy_token_total(n);
+			auto total_token_budget = base_budget * spending_scale * float(state.world.nation_get_subsidies_spending(n)) / 100.f;
+			state.world.nation_set_subsidy_token_price(n, total_token_budget / std::max(1.f, total_tokens));
 			update_national_consumption(state, n, spending_scale, base_budget);
 			update_consumption_administration(state, n, base_budget);
 		}
@@ -3308,6 +3406,35 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				Pop have managed to purchase S * W * B package of goods.
 				It means that sum(S * W * B) / sum(B) provides us
 				with a crude but usable metric of satisfaction ratio.
+				The shortcoming of this metric is that sometimes certain goods
+				could be required in high amount.
+				For example, in vanilla content, pops require 4 units of tea.
+				This volume overshadows all other needs and makes available range of satisfaction
+				much less expressive among the nations with low access to tea.
+				It means that sometimes we want to ignore the actual amount of  needed goods
+				when calculating satisfaction.
+				For these cases sum(S * W) / N might be more appropriate.
+				Another, more subtle, issue with summing up weights is that
+				if we want to allow pops to prioritise certain goods over other by setting the weights to be higher than 1
+				then simple sum would allow to consume only one kind of goods and be fully satisfied.
+				So we need a way to adjust the sum which would promote consumption of diverse goods.
+				One of opportunities to do it is to divide the result by sum of squares of weights (after normalisation by the sum).
+				It could work because if we consider a simplex of weights, the norm is minimal
+				at the cetral point of this simplex which would correspond to all weights being equal
+				which represents the situtation we want to encourage
+
+				In the result we arrive to the following calculation of "satisfaction":
+				sum(S * W) / N / sum(N * W / sum(W) * W / sum(W))
+				where N is the amount of types of goods in the basket.
+
+				Or, alternatively:
+				sum(W) * sum(W) * sum(S * W) / sum(W * W) / N / N
+
+				But as W could be shifting around, it's possible for them to become equal to zero.
+				It means that we have to resolve the singularity in some way.
+
+				As zero weights represent the situation when pop purchases nothing, it's meaningful to just set the value to zero.
+				(Also it makes sense from limit W->0 viewpoint)
 
 				Sum over W * B * P provides us with cost of 1 package of required goods
 				It's precisely the price of package the pop was trying to pay.
@@ -3317,13 +3444,17 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 				*/
 
-				ve::fp_vector ln_b_summed = 0.0f;
-				ve::fp_vector en_b_summed = 0.0f;
-				ve::fp_vector lx_b_summed = 0.0f;
+				ve::fp_vector ln_w_summed = 0.0f;
+				ve::fp_vector en_w_summed = 0.0f;
+				ve::fp_vector lx_w_summed = 0.0f;
 
-				ve::fp_vector ln_swb = 0.0f;
-				ve::fp_vector en_swb = 0.0f;
-				ve::fp_vector lx_swb = 0.0f;
+				ve::fp_vector ln_ww_summed = 0.0f;
+				ve::fp_vector en_ww_summed = 0.0f;
+				ve::fp_vector lx_ww_summed = 0.0f;
+
+				ve::fp_vector ln_sw = 0.0f;
+				ve::fp_vector en_sw = 0.0f;
+				ve::fp_vector lx_sw = 0.0f;
 
 				ve::fp_vector ln_wbp = 0.0f;
 				ve::fp_vector en_wbp = 0.0f;
@@ -3333,27 +3464,40 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				ve::fp_vector en_swbp = 0.0f;
 				ve::fp_vector lx_swbp = 0.0f;
 
+				ve::fp_vector ln_N = 0.00f;
+				ve::fp_vector en_N = 0.00f;
+				ve::fp_vector lx_N = 0.00f;
+
 				for(uint32_t i = 1; i < total_commodities; ++i) {
 					dcon::commodity_id c{ dcon::commodity_id::value_base_t(i) };
 
 					auto s = state.world.market_get_actual_probability_to_buy(ids, c);
 					auto p = state.world.market_get_price(ids, c);
 
+
 					auto ln_b = state.world.pop_type_get_life_needs(pt, c) ;
 					auto en_b = state.world.pop_type_get_everyday_needs(pt, c) ;
 					auto lx_b = state.world.pop_type_get_luxury_needs(pt, c);
 
-					auto ln_w = state.world.market_get_life_needs_weights(ids, c);
-					auto en_w = state.world.market_get_everyday_needs_weights(ids, c);
-					auto lx_w = state.world.market_get_luxury_needs_weights(ids, c);
+					ln_N = ln_N + ve::select(ln_b > 0.f, 1.f, 0.f);
+					en_N = en_N + ve::select(en_b > 0.f, 1.f, 0.f);
+					lx_N = lx_N + ve::select(lx_b > 0.f, 1.f, 0.f);
 
-					ln_b_summed = ln_b_summed + ln_b;
-					en_b_summed = en_b_summed + en_b;
-					lx_b_summed = lx_b_summed + lx_b;
+					auto ln_w = ve::select(ln_b > 0.f, state.world.market_get_life_needs_weights(ids, c), 0.f);
+					auto en_w = ve::select(en_b > 0.f, state.world.market_get_everyday_needs_weights(ids, c), 0.f);
+					auto lx_w = ve::select(lx_b > 0.f, state.world.market_get_luxury_needs_weights(ids, c), 0.f);
 
-					ln_swb = ln_swb + s *  ln_w * ln_b;
-					en_swb = en_swb + s * en_w * en_b;
-					lx_swb = lx_swb + s * lx_w * lx_b;
+					ln_w_summed = ln_w_summed + ln_w;
+					en_w_summed = en_w_summed + en_w;
+					lx_w_summed = lx_w_summed + lx_w;
+
+					ln_ww_summed = ln_ww_summed + ln_w * ln_w;
+					en_ww_summed = en_ww_summed + en_w * en_w;
+					lx_ww_summed = lx_ww_summed + lx_w * lx_w;
+
+					ln_sw = ln_sw + s *  ln_w;
+					en_sw = en_sw + s * en_w;
+					lx_sw = lx_sw + s * lx_w;
 
 					ln_wbp = ln_wbp + ln_w * ln_b * p;
 					en_wbp = en_wbp + en_w * en_b * p;
@@ -3368,9 +3512,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				en_swbp = ve::select(en_wbp > 0.f, en_swbp / en_wbp, 1.f);
 				lx_swbp = ve::select(lx_wbp > 0.f, lx_swbp / lx_wbp, 1.f);
 
-				ln_swb = ve::select(ln_b_summed > 0.f, ln_swb / ln_b_summed, 1.f);
-				en_swb = ve::select(en_b_summed > 0.f, en_swb / en_b_summed, 1.f);
-				lx_swb = ve::select(lx_b_summed > 0.f, lx_swb / lx_b_summed, 1.f);
+				auto ln_q = ve::select(ln_N == 0.f, 1.f, ve::select(ln_ww_summed > 0.f, ln_w_summed * ln_w_summed * ln_sw / ln_ww_summed / ln_N / ln_N, 0.f));
+				auto en_q = ve::select(en_N == 0.f, 1.f, ve::select(en_ww_summed > 0.f, en_w_summed * en_w_summed *  en_sw / en_ww_summed / en_N / en_N, 0.f));
+				auto lx_q = ve::select(lx_N == 0.f, 1.f, ve::select(lx_ww_summed > 0.f, lx_w_summed * lx_w_summed *  lx_sw / lx_ww_summed / lx_N / lx_N, 0.f));
 
 #ifndef NDEBUG
 				ve::apply([](float life, float everyday, float luxury) {
@@ -3382,13 +3526,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					assert(life >= 0.f && life <= 1.f);
 					assert(everyday >= 0.f && everyday <= 1.f);
 					assert(luxury >= 0.f && luxury <= 1.f);
-				}, ln_swb, en_swb, lx_swb);
+				}, ln_q, en_q, lx_q);
 #endif // !NDEBUG
 
 				// probability to increase corresponding satisfaction
-				state.world.market_set_satisfied_ratio_of_max_life_needs(ids, pt, ln_swb);
-				state.world.market_set_satisfied_ratio_of_max_everyday_needs(ids, pt, en_swb);
-				state.world.market_set_satisfied_ratio_of_max_luxury_needs(ids, pt, lx_swb);
+				state.world.market_set_satisfied_ratio_of_max_life_needs(ids, pt, ln_q);
+				state.world.market_set_satisfied_ratio_of_max_everyday_needs(ids, pt, en_q);
+				state.world.market_set_satisfied_ratio_of_max_luxury_needs(ids, pt, lx_q);
 
 				// ratio of actually spent money to calculate cashback
 				state.world.market_set_satisfied_ratio_of_demanded_life_needs(ids, pt, ln_swbp);
@@ -5067,6 +5211,7 @@ command::budget_settings_data budget_maximums(sys::state& state, dcon::nation_id
 	result.tariffs_export = 100;
 	result.domestic_investment = 100;
 	result.overseas = 100;
+	result.subsidies = 100;
 
 	{
 		auto min_tariff = int32_t(100.0f * state.world.nation_get_modifier_values(n, sys::national_mod_offsets::min_tariff));

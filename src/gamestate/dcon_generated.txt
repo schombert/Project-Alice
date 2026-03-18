@@ -4101,8 +4101,18 @@ object {
 		tag{ save }
 	}
 	property {
-		name{ subsidies_spending }
+		name{ subsidy_token_price }
 		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ subsidy_token_total }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ subsidies_spending }
+		type{ int8_t }
 		tag{ save }
 	}
 	property {

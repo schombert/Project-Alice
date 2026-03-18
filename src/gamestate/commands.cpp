@@ -1189,6 +1189,9 @@ void execute_change_budget_settings(sys::state& state, dcon::nation_id source, b
 	if(values.overseas != int8_t(-127)) {
 		state.world.nation_set_overseas_spending(source, std::clamp(values.overseas, int8_t(0), int8_t(100)));
 	}
+	if(values.subsidies != int8_t(-127)) {
+		state.world.nation_set_subsidies_spending(source, std::clamp(values.subsidies, int8_t(0), int8_t(100)));
+	}
 	economy::bound_budget_settings(state, source);
 }
 
