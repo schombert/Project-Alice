@@ -5,6 +5,10 @@
 #include "economy_constants.hpp"
 #include "money.hpp"
 #include "economy_templates_pure.hpp"
+#include "economy_pops_constants.hpp"
+#include "economy_pops.hpp"
+#include "province_templates.hpp"
+#include "economy_production.hpp"
 
 namespace economy {
 
@@ -568,89 +572,14 @@ float average_capitalists_luxury_cost(
 	return total / count;
 }
 
-float inline market_speculation_budget(
-	sys::state const& state,
-	dcon::market_id m,
-	dcon::commodity_id c
-) {
-	return 0.f;
-}
-template<typename M>
-ve::fp_vector market_speculation_budget(
-	sys::state const& state,
-	M m,
-	dcon::commodity_id c
-) {
-	return 0.f;
-}
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return market_speculation_budget<ve::contiguous_tags<dcon::market_id>>(state, m, c);
-}
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::partial_contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return market_speculation_budget<ve::partial_contiguous_tags<dcon::market_id>>(state, m, c);
-}
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::tagged_vector<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return market_speculation_budget<ve::tagged_vector<dcon::market_id>>(state, m, c);
-}
-
-float stockpile_target_speculation(
-	sys::state const& state,
-	dcon::market_id m,
-	dcon::commodity_id c
-) {
-	return std::max(0.f, market_speculation_budget(state, m, c) / (price(state, m, c) + 0.001f) - 0.5f);
-}
-template<typename M>
-ve::fp_vector stockpile_target_speculation(
-	sys::state const& state,
-	M m,
-	dcon::commodity_id c
-) {
-	return ve::max(0.f, market_speculation_budget(state, m, c) / (ve_price(state, m, c) + 0.001f) - 0.5f);
-}
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return stockpile_target_speculation<ve::contiguous_tags<dcon::market_id>>(state, m, c);
-}
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::partial_contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return stockpile_target_speculation<ve::partial_contiguous_tags<dcon::market_id>>(state, m, c);
-}
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::tagged_vector<dcon::market_id> m,
-	dcon::commodity_id c
-) {
-	return stockpile_target_speculation<ve::tagged_vector<dcon::market_id>>(state, m, c);
-}
-
-float trade_supply(sys::state& state,
+float trade_supply(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
-	auto result = std::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
+	auto result = std::max(0.f, stockpiles) * stockpile_to_supply;
 	return result;
 }
 
@@ -672,11 +601,10 @@ float trade_demand(sys::state& state,
 	dcon::commodity_id c
 ) {
 	auto stockpiles = state.world.market_get_stockpile(m, c);
-	auto stockpile_target_merchants = stockpile_target_speculation(state, m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
 	auto wage = state.world.province_get_labor_price(capital, labor::no_education);
-	auto result = std::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
+	auto result = 0.f;
 
 	state.world.market_for_each_trade_route(m, [&](auto trade_route) {
 		auto current_volume = state.world.trade_route_get_volume(trade_route, c);
@@ -1348,6 +1276,130 @@ float estimate_next_budget(sys::state& state, dcon::nation_id n) {
 	// so there is no need to account for income as it's already there
 	auto treasury = state.world.nation_get_stockpiles(n, economy::money);
 	return treasury;
+}
+
+
+/*
+
+Market:
+
+Buys out supply of locals as long as they are in demand.
+Sells to locals demanded items as long as they are supplied
+
+Exports are accounted as part of demand.
+Imports are going directly into the stockpiles, so they are not a part of local supply.
+
+*/
+market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id m) {
+	const sys::state& state = unsafe_state;
+
+	market_budget result {};
+
+	unsafe_state.world.for_each_commodity([&](auto cid) {
+		auto p = price(state, m, cid);
+		result.bought += (supply(unsafe_state, m, cid) - trade_supply(state, m, cid)) * p * state.world.market_get_actual_probability_to_sell(m, cid);
+		result.sold += demand(unsafe_state, m, cid) * p * state.world.market_get_actual_probability_to_buy(m, cid);
+	});
+
+
+	auto treasury = state.world.market_get_stockpile(m, economy::money);
+
+	result.dividents = treasury > 0 ? treasury * economy::pops::trade_dividents_rate : 0.f;
+
+	auto sid = state.world.market_get_zone_from_local_market(m);
+	province::for_each_province_in_state_instance(unsafe_state, sid, [&](auto pid) {
+		state.world.province_for_each_pop_location(pid, [&](auto poploc){
+			auto pop = state.world.pop_location_get_pop(poploc);
+			result.investments += economy::pops::estimate_trade_spending(state, pop);
+		});
+
+		float rgo_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
+			* state.world.province_get_labor_price(pid, labor::no_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+
+		float aristocrats_share = state.world.province_get_landowners_share(pid);
+		float others_share = (1.f - aristocrats_share);
+
+		// FACTORIES
+		// all profits go to market stockpiles and then they are distributed to capitalists
+		for(auto f : state.world.province_get_factory_location(pid)) {
+			auto fac = f.get_factory();
+			auto profit = explain_last_factory_profit(state, fac);
+			result.factories += profit.profit;
+		}
+
+		auto total_rgo_profit = 0.f;
+		total_rgo_profit += state.world.province_get_rgo_profit(pid);
+		for(auto pl : state.world.province_get_pop_location(pid)) {
+			if(pl.get_pop().get_poptype() == state.culture_definitions.slaves) {
+				total_rgo_profit += pl.get_pop().get_size() * rgo_workers_wage;
+			}
+		}
+
+		auto local_market_cut = economy::pops::market_cut(state, m, state.world.province_get_labor_price(pid, labor::no_education));
+
+		result.rgo = total_rgo_profit * local_market_cut;
+		total_rgo_profit -= result.rgo;
+
+		float num_aristocrat = state.world.province_get_demographics(
+			pid,
+			demographics::to_key(state, state.culture_definitions.aristocrat)
+		);
+
+		if(total_rgo_profit >= 0.f && num_aristocrat > 0.f) {
+			result.rgo += total_rgo_profit * others_share;
+		} else {
+			result.rgo += total_rgo_profit;
+		}
+
+		for(int32_t i = 0; i < advanced_province_buildings::list::total; i++) {
+			auto& def = advanced_province_buildings::definitions[i];
+			auto private_size = state.world.province_get_advanced_province_building_private_size(pid, i);
+			auto cost_of_input = state.world.province_get_labor_price(pid, def.throughput_labour_type);
+			auto cost_of_output = state.world.province_get_service_price(pid, def.output);
+			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
+
+			auto output = state.world.province_get_advanced_province_building_private_output(pid, i);
+			auto actually_sold = state.world.province_get_service_sold(pid, def.output);
+
+			auto profit = output * actually_sold * cost_of_output - private_size * cost_of_input * actually_bought;
+
+			result.services += profit;
+		}
+	});
+
+	unsafe_state.world.for_each_commodity([&](auto cid) {
+		state.world.market_for_each_trade_route(m, [&](auto route){
+			trade_and_tariff<dcon::trade_route_id> details = explain_trade_route_commodity(unsafe_state, route, cid);
+			if(m == details.origin) {
+				result.exports += details.payment_received_per_unit * details.amount_origin;
+			} else {
+				result.imports += details.payment_per_unit * details.amount_origin;
+			}
+		});
+	});
+
+	result.estimated_change = -result.bought + result.sold + result.investments - result.dividents +result.rgo + result.factories - result.imports + result.exports;
+
+	return result;
+}
+
+void make_trade_center_tooltip(sys::state& state, text::columnar_layout& contents, dcon::market_id market) {
+	auto budget = breakdown_market_budget(state, market);
+	auto current = state.world.market_get_stockpile(market, money);
+	text::add_line(state, contents, "trade_centre_money", text::variable_type::val, text::fp_currency{ current });
+	text::add_line(state, contents, "trade_centre_estimated_money", text::variable_type::val, text::fp_currency{ current + budget.estimated_change });
+	text::add_line(state, contents, "trade_centre_estimated_change", text::variable_type::val, text::fp_currency{ budget.estimated_change });
+	text::add_line(state, contents, "trade_centre_bought", text::variable_type::val, text::fp_currency{ -budget.bought }, 15);
+	text::add_line(state, contents, "trade_centre_import", text::variable_type::val, text::fp_currency{ -budget.imports }, 15);
+	text::add_line(state, contents, "trade_centre_export", text::variable_type::val, text::fp_currency{ budget.exports }, 15);
+	text::add_line(state, contents, "trade_centre_sold", text::variable_type::val, text::fp_currency{ budget.sold }, 15);
+	text::add_line(state, contents, "trade_centre_investments", text::variable_type::val, text::fp_currency{ budget.investments }, 15);
+	text::add_line(state, contents, "trade_centre_dividents", text::variable_type::val, text::fp_currency{ -budget.dividents }, 15);
+	text::add_line(state, contents, "trade_centre_factories", text::variable_type::val, text::fp_currency{ budget.factories }, 15);
+	text::add_line(state, contents, "trade_centre_rgo", text::variable_type::val, text::fp_currency{ budget.rgo }, 15);
+	text::add_line(state, contents, "trade_centre_services", text::variable_type::val, text::fp_currency{ budget.services }, 15);
 }
 
 }

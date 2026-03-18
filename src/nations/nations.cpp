@@ -2347,7 +2347,7 @@ bool destroy_vassal_relationships(sys::state& state, dcon::nation_id n) {
 	return false;
 }
 
-dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation) {
+dcon::nation_id get_market_leader(const sys::state& state, dcon::nation_id nation) {
 	auto overlord = state.world.nation_get_overlord_as_subject(nation);
 	if(state.world.overlord_get_ruler(overlord)) {
 		return state.world.overlord_get_ruler(overlord);
@@ -2359,7 +2359,7 @@ dcon::nation_id get_market_leader(sys::state& state, dcon::nation_id nation) {
 	return nation;
 }
 
-ve::tagged_vector<dcon::nation_id> get_market_leader(sys::state& state, ve::tagged_vector<dcon::nation_id> nations) {
+ve::tagged_vector<dcon::nation_id> get_market_leader(const sys::state& state, ve::tagged_vector<dcon::nation_id> nations) {
 	auto sphere = state.world.nation_get_in_sphere_of(nations);
 
 	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(nations));

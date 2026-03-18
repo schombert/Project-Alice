@@ -2223,6 +2223,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				direct_no_tariffs[index_pair] = true;
 			}
 		});
+		// Reflexivity of free trade
+		state.world.for_each_nation([&](auto nid) {
+			auto index_pair = nid.index() * state.world.nation_size() + nid.index();
+			direct_no_tariffs[index_pair] = true;
+		});
 		state.world.for_each_nation([&](auto nid) {
 			dcon::nation_id sphere = state.world.nation_get_in_sphere_of(nid);
 			if(sphere) {
@@ -2989,20 +2994,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto draw_from_stockpile = state.world.nation_get_drawing_on_stockpiles(nations, c) == true;
 
-			// thankfully with local economies
-			// there is no multiple layers of pools nonsense and
-			// we can update markets in a really simple way:
+			/*
 
-			// local merchants buy something too
-			// they have to account for spoilage
-			// so they don't want spoiled goods to cost too much
-			// so naturally, they don't stockpile expensive goods as much:
+			Currently, merhants don't want to stockpile goods.
+			Instead, they purchase goods elsewhere or store unsold items to sold them locally.
+			At certain point incoming items are balanced with sold items.
+
+			*/
+
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
-			auto stockpile_target_merchants = ve_stockpile_target_speculation(state, ids, c);
-
-			auto merchants_demand = ve::max(0.f, stockpile_target_merchants - stockpiles) * stockpile_to_supply;
-			auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
-
+			auto merchants_supply = ve::max(0.f, stockpiles) * stockpile_to_supply;
 			auto production = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
 			auto national_stockpile = ve::select(
@@ -3012,7 +3013,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			);
 			auto total_supply = national_stockpile + production;
 			auto supply_from_nation_ratio = ve::select(total_supply == 0.f, 0.f, national_stockpile / total_supply);
-			auto total_demand = state.world.market_get_demand(ids, c) + merchants_demand;
+			auto total_demand = state.world.market_get_demand(ids, c);
 			auto supply_unsold = ve::select(total_supply > total_demand, total_supply - total_demand, 0.f);
 			auto supply_sold = total_supply - supply_unsold;
 
@@ -3057,27 +3058,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				))
 			);
 
-			if(presimulation) {
-				state.world.market_set_stockpile(
-					ids, c,	stockpile_target_merchants
-				);
-			}
-
 			state.world.market_set_stockpile(
 				ids, economy::money,
 				state.world.market_get_stockpile(ids, economy::money)
 				+ (
-					merchants_supply * new_actual_probability_to_sell
-					- merchants_demand * new_actual_probability_to_buy
+					merchants_supply
+					* new_actual_probability_to_sell
 				) * ve_price(state, ids, c)
 			);
 
-			// record the transaction
-			total_demand = total_demand - new_actual_probability_to_buy * total_demand;
-			total_supply = total_supply - new_actual_probability_to_buy * total_demand;
-
-			// register demand from stockpiles to use in pricing
-			state.world.market_set_demand(ids, c, merchants_demand + state.world.market_get_demand(ids, c));
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(std::isfinite(value)); }, state.world.market_get_stockpile(ids, c));
 #endif
@@ -3579,6 +3568,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	set_profile_point(state, "create trade buffers");
 
 	fill_trade_buffers(state,
+		available_port_capacity,
+		price_port_capacity,
 		export_tariff_buffer,
 		import_tariff_buffer,
 		buffer_payment_0,
@@ -3676,8 +3667,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(markets);
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
-				auto stockpile_target_merchants = ve_stockpile_target_speculation(state, markets, c);
-				auto merchants_supply = ve::max(0.f, stockpiles - stockpile_target_merchants) * stockpile_to_supply;
+				auto merchants_supply = ve::max(0.f, stockpiles) * stockpile_to_supply;
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
 			}
 		});

@@ -1576,6 +1576,17 @@ trade_centre_exports_volume;Exports volume: ?Y$val$
 trade_centre_exports_value;Exports value: ?Y$val$
 trade_centre_trade_routes_profit;Profit from trade routes: ?Y$val$
 trade_centre_money;Money stockpile: ?Y$val$
+trade_centre_estimated_money;Estimated next balance: ?Y$val$
+trade_centre_estimated_change;Estimated change: ?Y$val$
+trade_centre_import;Import purchases: ?Y$val$
+trade_centre_export;Export margin: ?Y$val$
+trade_centre_sold;Sales: ?Y$val$
+trade_centre_bought;Local purchases: ?Y$val$
+trade_centre_investments;Pops investment in trade: ?Y$val$
+trade_centre_dividents;Dividents to investors: ?Y$val$
+trade_centre_factories;Factories balance: ?Y$val$
+trade_centre_rgo;RGO balance: ?Y$val$
+trade_centre_services;Services: ?Y$val$
 investment_pool;Investment pool: ?Y$x$?W
 investment_pool_income_1;Population reinvestment: ?G$x$?W
 investment_pool_income_2;Transfer from subject $country$: ?G$x$?W

@@ -7,6 +7,7 @@
 #include "money.hpp"
 #include "economy_constants.hpp"
 #include "economy_templates_pure.hpp"
+#include "economy_pops_constants.hpp"
 
 namespace economy {
 namespace pops {
@@ -688,7 +689,6 @@ void update_income_artisans(sys::state& state) {
 	});
 }
 
-inline constexpr float trade_dividents_rate = 0.05f;
 
 float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::pop_type_id ptid, float size) {
 	auto const artisan_def = state.culture_definitions.artisans;
@@ -1162,12 +1162,12 @@ float estimate_rgo_income(sys::state const& state, dcon::pop_id pop) {
 }
 
 
+//local merchants take a cut from most local monetary operations
+inline constexpr float local_market_cut_baseline = 0.01f;
 float market_cut(sys::state const& state, dcon::market_id market, float no_education_wage) {
 	auto modified = local_market_cut_baseline - state.world.market_get_stockpile(market, economy::money) / (no_education_wage + 0.000001f) / 100'000.f;
 	return std::clamp(modified, 0.f, 0.1f);
 }
-
-constexpr inline float market_tax = 0.05f;
 
 void update_income_wages(sys::state& state){
 	// TODO: rewrite in vectorized way
@@ -1263,7 +1263,7 @@ void update_income_wages(sys::state& state){
 				}
 			}
 
-			auto local_market_cut = market_cut(state, market, no_education_wage);
+			auto local_market_cut = market_cut(state, market, state.world.province_get_labor_price(pid, labor::no_education));
 
 			auto market_rgo_activity_cut = total_rgo_profit * local_market_cut;
 			total_rgo_profit -= market_rgo_activity_cut;

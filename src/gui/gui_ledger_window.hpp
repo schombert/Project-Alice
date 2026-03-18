@@ -10,6 +10,7 @@
 #include "economy_production.hpp"
 #include "economy_constants.hpp"
 #include "economy.hpp"
+#include "price.hpp"
 
 namespace ui {
 
@@ -2306,7 +2307,7 @@ public:
 			if((*ptr).data[commodity.index()]) {
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					auto price = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
-					auto log_price = log(price + 0.0001f);
+					auto log_price = price + economy::price_properties::commodity::epsilon;
 					if(log_price > max) {
 						max = log_price;
 					}
@@ -2327,7 +2328,7 @@ public:
 
 				for(uint32_t i = 0; i < graph_length; ++i) {
 					datapoints[i] = state.world.commodity_get_price_record(commodity, (newest_index + economy::price_history_length - graph_length + i + 1) % economy::price_history_length);
-					datapoints[i] = log(datapoints[i] + 0.0001f);
+					datapoints[i] = log(datapoints[i] + economy::price_properties::commodity::epsilon);
 				}
 				graph_per_price[commodity.index()]->set_data_points(state, datapoints, min, max);
 			}
