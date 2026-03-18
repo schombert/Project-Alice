@@ -44,6 +44,8 @@ struct money_from_nation {
 	float investment;
 };
 
+float market_cut(sys::state const& state, dcon::market_id market, float no_education_wage);
+
 std::vector<labor_ratio_wage> estimate_wage(sys::state const& state, dcon::province_id pid, dcon::pop_type_id ptid, bool accepted, float size);
 std::vector<labor_ratio_wage> estimate_wage(sys::state const& state, dcon::pop_id pop);
 float estimate_rgo_income(sys::state const& state, dcon::pop_id pop);

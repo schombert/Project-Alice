@@ -12,6 +12,7 @@
 #include "province.hpp"
 #include "immediate_mode.hpp"
 #include "commands.hpp"
+#include "economy_constants.hpp"
 
 
 namespace economy_viewer {
@@ -187,7 +188,7 @@ void update(sys::state& state) {
 				switch(state.iui_state.selected_labor_info) {
 				case iui::labor_info_mode::price:
 					state.iui_state.per_nation_data[n.index()] =
-						total_price * 10'000.f / (total_demand + 0.0001f);
+						total_price * 10'000.f / (total_demand + economy::numerical::employment_unit::epsilon);
 					break;
 				case iui::labor_info_mode::demand:
 					state.iui_state.per_nation_data[n.index()] =
@@ -200,8 +201,8 @@ void update(sys::state& state) {
 				case iui::labor_info_mode::supply_demand_ratio:
 					balance_color = true;
 					state.iui_state.per_nation_data[n.index()] =
-						(total_supply + 0.0001f)
-						/ (total_demand + 0.0001f);
+						(total_supply + economy::numerical::employment_unit::epsilon)
+						/ (total_demand + economy::numerical::employment_unit::epsilon);
 					break;
 				default:
 					break;
@@ -225,8 +226,8 @@ void update(sys::state& state) {
 				case iui::labor_info_mode::supply_demand_ratio:
 					balance_color = true;
 					state.iui_state.per_province_data[pid.index()] =
-						(state.world.province_get_labor_supply(pid, state.iui_state.selected_labor_type) + 0.0001f)
-						/ (state.world.province_get_labor_demand(pid, state.iui_state.selected_labor_type) + 0.0001f);
+						(state.world.province_get_labor_supply(pid, state.iui_state.selected_labor_type) + economy::numerical::employment_unit::epsilon)
+						/ (state.world.province_get_labor_demand(pid, state.iui_state.selected_labor_type) + economy::numerical::employment_unit::epsilon);
 					break;
 				default:
 					break;

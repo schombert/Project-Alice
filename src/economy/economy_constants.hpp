@@ -2,6 +2,15 @@
 
 namespace economy {
 
+namespace numerical {
+namespace commodity_unit {
+inline constexpr float epsilon = 0.0001f;
+}
+namespace employment_unit {
+inline constexpr float epsilon = 0.1f;
+}
+}
+
 inline constexpr float factory_closed_threshold = 0.0001f;
 inline constexpr uint32_t price_history_length = 256;
 inline constexpr uint32_t gdp_history_length = 128;
@@ -9,8 +18,6 @@ inline constexpr uint32_t gdp_history_length = 128;
 // descides the divisor for the army demand from reinforcements. It is set to 28 to spread out the reinforcement demand over 28 days, as reinforce ticks only happen once a month
 constexpr inline float unit_reinforcement_demand_divisor = 28.0f;
 
-//local merchants take a cut from most local monetary operations
-inline constexpr float local_market_cut_baseline = 0.01f;
 
 inline constexpr float merchant_cut_foreign = 0.05f;
 inline constexpr float merchant_cut_domestic = 0.001f;

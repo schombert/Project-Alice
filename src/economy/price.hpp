@@ -13,14 +13,17 @@ inline constexpr float additive_smoothing = 0.01f;
 namespace commodity {
 inline constexpr float min = 0.0001f;
 inline constexpr float max = 1'000'000'000'000.f;
+inline constexpr float epsilon = min * 0.1f;
 }
 namespace labor {
 inline constexpr float min = 0.0000001f;
 inline constexpr float max = 1'000'000'000'000.f;
+inline constexpr float epsilon = min * 0.1f;
 }
 namespace service {
 inline constexpr float min = 0.0000001f;
 inline constexpr float max = 1'000'000'000'000.f;
+inline constexpr float epsilon = min * 0.1f;
 }
 
 template<typename VALUE>

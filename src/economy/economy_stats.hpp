@@ -40,60 +40,6 @@ enum class economy_reason {
 	pop, factory, rgo, artisan, construction, nation, stockpile, overseas_penalty, trade
 };
 
-float inline market_speculation_budget(
-	sys::state const& state,
-	dcon::market_id m,
-	dcon::commodity_id c
-);
-template<typename M>
-ve::fp_vector market_speculation_budget(
-	sys::state const& state,
-	M m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::partial_contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_market_speculation_budget(
-	sys::state const& state,
-	ve::tagged_vector<dcon::market_id> m,
-	dcon::commodity_id c
-);
-
-float stockpile_target_speculation(
-	sys::state const& state,
-	dcon::market_id m,
-	dcon::commodity_id c
-);
-template<typename M>
-ve::fp_vector stockpile_target_speculation(
-	sys::state const& state,
-	M m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::partial_contiguous_tags<dcon::market_id> m,
-	dcon::commodity_id c
-);
-ve::fp_vector ve_stockpile_target_speculation(
-	sys::state const& state,
-	ve::tagged_vector<dcon::market_id> m,
-	dcon::commodity_id c
-);
-
 ve::fp_vector ve_price(
 	sys::state const& state,
 	ve::contiguous_tags<dcon::market_id> s,
@@ -224,7 +170,7 @@ float trade_outflux(sys::state& state,
 	dcon::commodity_id c
 );
 
-float trade_supply(sys::state& state,
+float trade_supply(sys::state const& state,
 	dcon::market_id m,
 	dcon::commodity_id c
 );
@@ -462,5 +408,22 @@ float estimate_probability_to_buy_after_demand_increase(sys::state& state, dcon:
 float estimate_probability_to_sell_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
 float estimate_probability_to_buy_after_supply_increase(sys::state& state, dcon::market_id m, dcon::commodity_id c, float additional_supply);
 float estimate_next_budget(sys::state& state, dcon::nation_id n);
+
+struct market_budget {
+	float sold;
+	float bought;
+	float imports;
+	float exports;
+	float dividents;
+	float investments;
+	float rgo;
+	float factories;
+	float wages_cut;
+	float services;
+
+	float estimated_change;
+};
+
+market_budget breakdown_market_budget(sys::state& state, dcon::market_id m);
 
 }

@@ -11,6 +11,7 @@ struct state;
 }
 
 namespace economy {
+float estimate_port_service_price(sys::state& state, dcon::state_instance_id s);
 
 void update_trade_routes_volume(
 	sys::state& state,
@@ -80,13 +81,13 @@ std::vector<trade_breakdown_item> explain_national_tariff(sys::state& state, dco
 
 trade_and_tariff<dcon::trade_route_id> explain_trade_route_commodity(sys::state& state, dcon::trade_route_id trade_route, dcon::commodity_id cid);
 trade_and_tariff<ve::contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
-	sys::state& state,
+	sys::state const& state,
 	ve::contiguous_tags<dcon::trade_route_id> trade_route,
 	tariff_data<ve::contiguous_tags<dcon::trade_route_id>>& additional_data,
 	dcon::commodity_id cid
 );
 trade_and_tariff<ve::partial_contiguous_tags<dcon::trade_route_id>> explain_trade_route_commodity(
-	sys::state& state,
+	sys::state const& state,
 	ve::partial_contiguous_tags<dcon::trade_route_id> trade_route,
 	tariff_data<ve::partial_contiguous_tags<dcon::trade_route_id>>& additional_data,
 	dcon::commodity_id cid
@@ -94,6 +95,9 @@ trade_and_tariff<ve::partial_contiguous_tags<dcon::trade_route_id>> explain_trad
 
 void fill_trade_buffers(
 	sys::state& state,
+
+	ve::vectorizable_buffer<float, dcon::market_id>& available_port_capacity,
+	ve::vectorizable_buffer<float, dcon::market_id>& price_port_capacity,
 
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,

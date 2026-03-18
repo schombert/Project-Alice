@@ -1199,7 +1199,7 @@ float factory_throughput_additional_multiplier(sys::state const& state, dcon::fa
 	return (occupied ? 0.1f : 1.0f) * std::max(0.0f, mobilization_impact);
 }
 
-float get_total_wage(sys::state& state, dcon::factory_id f) {
+float get_total_wage(const sys::state& state, dcon::factory_id f) {
 	auto labor_market = state.world.factory_get_province_from_factory_location(f);
 	return state.world.province_get_labor_price(labor_market, labor::no_education)
 		* state.world.province_get_labor_demand_satisfaction(labor_market, labor::no_education)
@@ -1215,7 +1215,7 @@ float get_total_wage(sys::state& state, dcon::factory_id f) {
 }
 
 
-profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_id f) {
+profit_explanation explain_last_factory_profit(sys::state const& state, dcon::factory_id f) {
 	auto location = state.world.factory_get_province_from_factory_location(f);
 	auto zone = state.world.province_get_state_membership(location);
 	auto market = state.world.state_instance_get_market_from_local_market(zone);
