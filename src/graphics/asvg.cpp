@@ -148,7 +148,7 @@ void svg::release_renders() {
 
 uint32_t svg::get_render(sys::state& state, float size_x, float size_y, int32_t grid_size, float scale, float r, float g, float b) {
 	uint64_t colorid = uint64_t(r * 255.0f) | (uint64_t(g * 255.0f) << uint64_t(8)) | (uint64_t(b * 255.0f) << uint64_t(16));
-	uint64_t idx = uint64_t(uint32_t(size_x * grid_size)) | (uint64_t(uint32_t(size_y * grid_size)) << uint64_t(20)) | (colorid << 40);
+	uint64_t idx = uint64_t(uint32_t(size_x * grid_size * scale)) | (uint64_t(uint32_t(size_y * grid_size * scale)) << uint64_t(20)) | (colorid << 40);
 
 	if(auto it = renders.find(idx); it != renders.end()) {
 		return it->second.texture_handle;
@@ -239,7 +239,7 @@ uint32_t svg::make_new_render(sys::state& state, float size_x, float size_y, int
 	auto h = new_inst.texture_handle;
 
 	uint64_t colorid = uint64_t(r * 255.0f) | (uint64_t(g * 255.0f) << uint64_t(8)) | (uint64_t(b * 255.0f) << uint64_t(16));
-	uint64_t idx = uint64_t(uint32_t(size_x * grid_size)) | (uint64_t(uint32_t(size_y * grid_size)) << uint64_t(20)) | (colorid << 40);
+	uint64_t idx = uint64_t(uint32_t(size_x * grid_size * scale)) | (uint64_t(uint32_t(size_y * grid_size * scale)) << uint64_t(20)) | (colorid << 40);
 	renders[idx] = std::move(new_inst);
 
 	return h;
@@ -256,7 +256,7 @@ void simple_svg::release_renders() {
 
 uint32_t simple_svg::get_render(sys::state& state, int32_t size_x, int32_t size_y, float scale, float r, float g, float b) {
 	uint64_t colorid = uint64_t(r * 255.0f) | (uint64_t(g * 255.0f) << uint64_t(8)) | (uint64_t(b * 255.0f) << uint64_t(16));
-	uint64_t idx = uint64_t(uint32_t(size_x)) | (uint64_t(uint32_t(size_y)) << uint64_t(20)) | (colorid << 40);
+	uint64_t idx = uint64_t(uint32_t(size_x * scale)) | (uint64_t(uint32_t(size_y * scale)) << uint64_t(20)) | (colorid << 40);
 
 	if(auto it = renders.find(idx); it != renders.end()) {
 		return it->second.texture_handle;
@@ -314,7 +314,7 @@ uint32_t simple_svg::make_new_render(sys::state& state, int32_t size_x, int32_t 
 	auto h = new_inst.texture_handle;
 
 	uint64_t colorid = uint64_t(r * 255.0f) | (uint64_t(g * 255.0f) << uint64_t(8)) | (uint64_t(b * 255.0f) << uint64_t(16));
-	uint64_t idx = uint64_t(uint32_t(size_x)) | (uint64_t(uint32_t(size_y)) << uint64_t(20)) | (colorid << 40);
+	uint64_t idx = uint64_t(uint32_t(size_x * scale)) | (uint64_t(uint32_t(size_y * scale)) << uint64_t(20)) | (colorid << 40);
 	renders[idx] = std::move(new_inst);
 
 	return h;
