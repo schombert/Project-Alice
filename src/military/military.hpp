@@ -467,7 +467,7 @@ uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, b
 float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
-void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves);
+void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves);
 uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);

@@ -400,7 +400,7 @@ static_assert(sizeof(mobilization_order) ==
 	sizeof(mobilization_order::where)
 	+ sizeof(mobilization_order::when));
 
-struct reserve_regiment {
+struct battle_regiment {
 	static constexpr uint16_t is_attacking = 0x0001;
 
 	// Crossing works as an enum with only one state being allowed.
@@ -443,12 +443,12 @@ struct reserve_regiment {
 
 	}
 
-	bool operator==(const reserve_regiment& other) const = default;
-	bool operator!=(const reserve_regiment& other) const = default;
+	bool operator==(const battle_regiment& other) const = default;
+	bool operator!=(const battle_regiment& other) const = default;
 };
-static_assert(sizeof(reserve_regiment) ==
-	sizeof(reserve_regiment::regiment)
-	+ sizeof(reserve_regiment::flags));
+static_assert(sizeof(battle_regiment) ==
+	sizeof(battle_regiment::regiment)
+	+ sizeof(battle_regiment::flags));
 
 
 struct available_cb {

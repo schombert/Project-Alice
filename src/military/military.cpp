@@ -4961,7 +4961,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			case unit_type::infantry:
 			{
 				reserves.push_back(
-						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_infantry });
+						battle_regiment{ reg.get_regiment().id, battle_regiment::is_attacking | battle_regiment::type_infantry });
 				auto& atk_infantry = state.world.land_battle_get_attacker_infantry(b);
 				state.world.land_battle_set_attacker_infantry(b, atk_infantry + reg.get_regiment().get_strength());
 				break;
@@ -4969,7 +4969,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			case unit_type::cavalry:
 			{
 				reserves.push_back(
-						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_cavalry });
+						battle_regiment{ reg.get_regiment().id, battle_regiment::is_attacking | battle_regiment::type_cavalry });
 				auto& atk_cav = state.world.land_battle_get_attacker_cav(b);
 				state.world.land_battle_set_attacker_cav(b, atk_cav + reg.get_regiment().get_strength());
 				break;
@@ -4978,7 +4978,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			case unit_type::support:
 			{
 				reserves.push_back(
-						reserve_regiment{ reg.get_regiment().id, reserve_regiment::is_attacking | reserve_regiment::type_support });
+						battle_regiment{ reg.get_regiment().id, battle_regiment::is_attacking | battle_regiment::type_support });
 				auto& atk_sup = state.world.land_battle_get_attacker_support(b);
 				state.world.land_battle_set_attacker_support(b, atk_sup + reg.get_regiment().get_strength());
 				break;
@@ -5004,7 +5004,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			switch(type) {
 			case unit_type::infantry:
 			{
-				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_infantry });
+				reserves.push_back(battle_regiment{ reg.get_regiment().id, battle_regiment::type_infantry });
 
 				auto& def_infantry = state.world.land_battle_get_defender_infantry(b);
 				state.world.land_battle_set_defender_infantry(b, def_infantry + reg.get_regiment().get_strength());
@@ -5013,7 +5013,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			}			
 			case unit_type::cavalry:
 			{
-				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_cavalry });
+				reserves.push_back(battle_regiment{ reg.get_regiment().id, battle_regiment::type_cavalry });
 
 				auto& def_cav = state.world.land_battle_get_defender_cav(b);
 				state.world.land_battle_set_defender_cav(b, def_cav + reg.get_regiment().get_strength());
@@ -5022,7 +5022,7 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 			case unit_type::special:
 			case unit_type::support:
 			{
-				reserves.push_back(reserve_regiment{ reg.get_regiment().id, reserve_regiment::type_support });
+				reserves.push_back(battle_regiment{ reg.get_regiment().id, battle_regiment::type_support });
 
 				auto& def_sup = state.world.land_battle_get_defender_support(b);
 				state.world.land_battle_set_defender_support(b, def_sup + reg.get_regiment().get_strength());
@@ -6697,23 +6697,23 @@ void apply_regiment_damage(sys::state& state) {
 uint16_t unit_type_to_reserve_regiment_type(unit_type utype) {
 	switch(utype) {
 	case unit_type::infantry:
-		return reserve_regiment::type_infantry;
+		return battle_regiment::type_infantry;
 	case unit_type::support:
 	case unit_type::special:
-		return reserve_regiment::type_support;
+		return battle_regiment::type_support;
 	case unit_type::cavalry:
-		return reserve_regiment::type_cavalry;
+		return battle_regiment::type_cavalry;
 	default:
 		assert(false);
 	}
-	return reserve_regiment::type_infantry;
+	return battle_regiment::type_infantry;
 }
 
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker) {
 	uint32_t count = 0;
 	auto reserves = state.world.land_battle_get_reserves(b);
 	for(uint32_t i = 0; i < reserves.size(); i++) {
-		bool battle_attacker = (reserves[i].flags & reserve_regiment::is_attacking) != 0;
+		bool battle_attacker = (reserves[i].flags & battle_regiment::is_attacking) != 0;
 		if((battle_attacker && attacker) || (!battle_attacker && !attacker)) {
 			count++;
 		}
@@ -6727,9 +6727,9 @@ void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon:
 	uint16_t reserve_type = unit_type_to_reserve_regiment_type(type);
 	uint16_t bitmask = reserve_type;
 	if(is_attacking) {
-		bitmask = bitmask | reserve_regiment::is_attacking;
+		bitmask = bitmask | battle_regiment::is_attacking;
 	}
-	reserves.push_back(reserve_regiment{ reg,  bitmask });
+	reserves.push_back(battle_regiment{ reg,  bitmask });
 
 }
 
@@ -6771,9 +6771,9 @@ float unit_get_effective_default_org(sys::state& state, dcon::ship_id ship) {
 }
 
 // implementation of what it sorts by can change, for now it sorts by strength and puts the highest str brigades in front of the queue
-void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<reserve_regiment> reserves) {
+void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves) {
 	// We must use stable_sort here or the sorting of identical values may not be deterministic
-	std::stable_sort(reserves.begin(), reserves.end(), [&state](reserve_regiment a, reserve_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
+	std::stable_sort(reserves.begin(), reserves.end(), [&state](battle_regiment a, battle_regiment b) { return state.world.regiment_get_strength(b.regiment) > state.world.regiment_get_strength(a.regiment); });
 }
 // gets the recon efficiency of an army, for display in ui mostly
 float get_army_recon_eff(sys::state& state, dcon::army_id army) {
@@ -7637,7 +7637,7 @@ void update_land_battles(sys::state& state) {
 		for(int32_t i = 0; i < combat_width; ++i) {
 			if(!att_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support) &&
+					if(reserves[j].flags == (battle_regiment::is_attacking | battle_regiment::type_support) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 						att_back[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -7649,7 +7649,7 @@ void update_land_battles(sys::state& state) {
 			// if the attacker backline support brigade is not full, see if a higher str replacement can be found
 			else if(state.world.regiment_get_strength(att_back[i]) < 1.0f) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_support) &&
+					if(reserves[j].flags == (battle_regiment::is_attacking | battle_regiment::type_support) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.world.regiment_get_strength(att_back[i]) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str &&
 					state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
@@ -7663,7 +7663,7 @@ void update_land_battles(sys::state& state) {
 
 			if(!def_back[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_support) &&
+					if(reserves[j].flags == (battle_regiment::type_support) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 						def_back[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -7675,7 +7675,7 @@ void update_land_battles(sys::state& state) {
 			// if the defender backline support brigade is not full, see if a higher str replacement can be found
 			else if(state.world.regiment_get_strength(def_back[i]) < 1.0f) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_support) &&
+					if(reserves[j].flags == (battle_regiment::type_support) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.world.regiment_get_strength(def_back[i]) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str &&
 					state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
@@ -7693,7 +7693,7 @@ void update_land_battles(sys::state& state) {
 			if(!att_front[i]) {
 
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_infantry) &&
+					if(reserves[j].flags == (battle_regiment::is_attacking | battle_regiment::type_infantry) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 						att_front[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -7704,7 +7704,7 @@ void update_land_battles(sys::state& state) {
 
 				if(!att_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::is_attacking | reserve_regiment::type_cavalry) &&
+						if(reserves[j].flags == (battle_regiment::is_attacking | battle_regiment::type_cavalry) &&
 						state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 							att_front[i] = reserves[j].regiment;
 							std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -7720,7 +7720,7 @@ void update_land_battles(sys::state& state) {
 
 			if(!def_front[i]) {
 				for(uint32_t j = reserves.size(); j-- > 0;) {
-					if(reserves[j].flags == (reserve_regiment::type_infantry) &&
+					if(reserves[j].flags == (battle_regiment::type_infantry) &&
 					state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 						def_front[i] = reserves[j].regiment;
 						std::swap(reserves[j], reserves[reserves.size() - 1]);
@@ -7731,7 +7731,7 @@ void update_land_battles(sys::state& state) {
 
 				if(!def_front[i]) {
 					for(uint32_t j = reserves.size(); j-- > 0;) {
-						if(reserves[j].flags == (reserve_regiment::type_cavalry) &&
+						if(reserves[j].flags == (battle_regiment::type_cavalry) &&
 						state.world.regiment_get_strength(reserves[j].regiment) > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reserves[j].regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
 							def_front[i] = reserves[j].regiment;
 							std::swap(reserves[j], reserves[reserves.size() - 1]);

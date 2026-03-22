@@ -2760,28 +2760,28 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,30> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,30> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,30> }
 		tag{ save }
 	}
 
 	property{
 		name{ reserves }
-		type{vector_pool{5000}{military::reserve_regiment}}
+		type{vector_pool{5000}{military::battle_regiment}}
 		tag{ save }
 	}
 	
