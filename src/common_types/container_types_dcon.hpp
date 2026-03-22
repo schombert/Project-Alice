@@ -403,6 +403,12 @@ static_assert(sizeof(mobilization_order) ==
 struct reserve_regiment {
 	static constexpr uint16_t is_attacking = 0x0001;
 
+	// Crossing works as an enum with only one state being allowed.
+	static constexpr uint16_t crossing_mask = 0x0018;
+	static constexpr uint16_t crossing_strait = 0x0018;
+	static constexpr uint16_t crossing_river = 0x0010;
+	static constexpr uint16_t crossing_none = 0x0008;
+
 	static constexpr uint16_t type_mask = 0x0006;
 	static constexpr uint16_t type_infantry = 0x0000;
 	static constexpr uint16_t type_cavalry = 0x0002;
@@ -410,6 +416,32 @@ struct reserve_regiment {
 
 	dcon::regiment_id regiment;
 	uint16_t flags = 0;
+
+	constexpr bool get_is_attacking() const {
+		return flags & is_attacking;
+	}
+	constexpr void set_is_attacking(bool attacking) {
+		flags &= ~is_attacking;
+		flags |= (is_attacking & attacking);
+	}
+
+	constexpr uint16_t get_type() const {
+		return flags & type_mask;
+	}
+	constexpr void set_type(uint16_t type) {
+		flags &= ~type_mask;
+		flags |= (type_mask & type);
+
+	}
+
+	constexpr uint16_t get_crossing() const {
+		return flags & crossing_mask;
+	}
+	constexpr void set_crossing(uint16_t crossing) {
+		flags &= ~crossing_mask;
+		flags |= (crossing_mask & crossing);
+
+	}
 
 	bool operator==(const reserve_regiment& other) const = default;
 	bool operator!=(const reserve_regiment& other) const = default;

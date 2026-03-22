@@ -6231,6 +6231,8 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		state.yield_game_state_resetting_lock = false;
 		lock.unlock();
 		state.game_state_resetting_cv.notify_all();
+		// update up any events which were queued, so that they appear for players as soon as the game has started
+		event::update_future_events(state);
 	}
 }
 void notify_start_game(sys::state& state) {
