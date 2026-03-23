@@ -560,10 +560,24 @@ void update(sys::state& state) {
 					total_port += state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
 				});
 
+				float total_city = 0.f;
+				state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+					auto pid = state.world.province_ownership_get_province(poid);
+					total_city += state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::local_cities_and_towns);
+				});
+
 				switch(state.iui_state.selected_infrastructure_mode) {
 				case iui::infrastructure_mode::civilian_ports:
 					magma = false;
+					scaling = scaling_mode::log;
+					do_not_cut_away_values = true;
 					state.iui_state.per_nation_data[n.index()] = total_port;
+					break;
+				case iui::infrastructure_mode::housing:
+					magma = false;
+					scaling = scaling_mode::linear;
+					do_not_cut_away_values = true;
+					state.iui_state.per_nation_data[n.index()] = total_city;
 					break;
 				default:
 					break;
@@ -575,8 +589,16 @@ void update(sys::state& state) {
 				case iui::infrastructure_mode::civilian_ports:
 					magma = false;
 					scaling = scaling_mode::log;
+					do_not_cut_away_values = true;
 					state.iui_state.per_province_data[pid.index()] =
 						state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+					break;				
+				case iui::infrastructure_mode::housing:
+					magma = false;
+					scaling = scaling_mode::linear;
+					do_not_cut_away_values = true;
+					state.iui_state.per_province_data[pid.index()] =
+						state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::local_cities_and_towns);
 					break;
 				default:
 					break;
@@ -872,8 +894,11 @@ void render(sys::state& state) {
 			}
 
 			if(state.iui_state.tab == iui::iui_tab::infrastructure) {
-				if(!state.world.province_get_is_coast(pid) && !state.iui_state.national_data)
+				if (pid.index() >= state.province_definitions.first_sea_province.index())
 					draw_panel = false;
+				if (state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports)
+					if(!state.world.province_get_is_coast(pid) && !state.iui_state.national_data)
+						draw_panel = false;
 			}
 
 			if (draw_panel) {
@@ -917,7 +942,20 @@ void render(sys::state& state) {
 					);
 				}
 			} else if(state.iui_state.tab == iui::iui_tab::infrastructure) {
-				if(state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports && draw_panel) {
+				if(
+					state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports
+					&& draw_panel
+				) {
+					state.iui_state.float_2(
+						state, pid.index(),
+						market_label_rect_text,
+						value
+					);
+				}
+				if(
+					state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::housing
+					&& draw_panel
+				) {
 					state.iui_state.float_2(
 						state, pid.index(),
 						market_label_rect_text,

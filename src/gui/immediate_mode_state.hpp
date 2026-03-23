@@ -27,6 +27,7 @@ enum class labor_info_mode : uint8_t {
 
 enum class infrastructure_mode : uint8_t {
 	civilian_ports,
+	housing,
 	total
 };
 

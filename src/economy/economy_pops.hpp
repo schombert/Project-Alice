@@ -16,11 +16,13 @@ void update_consumption(
 	sys::state& state,
 	ve::vectorizable_buffer<float, dcon::nation_id>& invention_count,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_life,
+	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_housing,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_luxury,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_private,
 	ve::vectorizable_buffer<float, dcon::pop_id>& buffer_education_public,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_life,
+	ve::vectorizable_buffer<float, dcon::pop_id>& demand_housing,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_everyday,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_luxury,
 	ve::vectorizable_buffer<float, dcon::pop_id>& demand_paid_education,
@@ -29,7 +31,7 @@ void update_consumption(
 void update_income_artisans(sys::state& state);
 void update_income_national_subsidy(sys::state& state);
 void update_income_wages(sys::state& state);
-void update_income_trade(sys::state& state);
+void update_income_non_labor(sys::state& state);
 
 struct labor_ratio_wage {
 	int32_t labor_type;
@@ -48,7 +50,7 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 
 std::vector<labor_ratio_wage> estimate_wage(sys::state const& state, dcon::province_id pid, dcon::pop_type_id ptid, bool accepted, float size);
 std::vector<labor_ratio_wage> estimate_wage(sys::state const& state, dcon::pop_id pop);
-float estimate_rgo_income(sys::state const& state, dcon::pop_id pop);
+float estimate_slave_income(sys::state const& state, dcon::pop_id pop);
 float estimate_trade_income(sys::state const& state, dcon::pop_id pop);
 float estimate_artisan_income(sys::state const& state, dcon::pop_id pop);
 money_from_nation estimate_income_from_nation(sys::state const& state, dcon::pop_id pop);

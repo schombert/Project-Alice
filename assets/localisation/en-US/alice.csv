@@ -1859,8 +1859,12 @@ alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
 ports_size;Size of ports
-civilian_port;Сivilian port
+urban_size;Urban size
+civilian_port;Civilian port
 civilian_port_size;Size: ?Y$val$?!
+private_education_owners;Private educators ?Y$val$?!
+port_owners;Local port ?Y$val$?!
+construction_companies;Landlords ?Y$val$?!
 alice_infrastructure_tab;Infrastructure
 economy_overview_header;Economy overview
 alice_extra_armies_tooltip;+ ?Y$x$?W more armies

@@ -1696,6 +1696,16 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property {
+		name{ rgo_bank }
+		type{ float }
+		tag{ save }
+	}
+	property {
+		name{ factory_bank }
+		type{ float }
+		tag{ save }
+	}
 
 	property{
 		name{ subsistence_score }
@@ -1777,6 +1787,11 @@ object {
 	}
 	property {
 		name{ advanced_province_building_private_size }
+		type{ array{int32_t}{float} }
+		tag{ save }
+	}
+	property {
+		name{ advanced_province_building_private_savings }
 		type{ array{int32_t}{float} }
 		tag{ save }
 	}

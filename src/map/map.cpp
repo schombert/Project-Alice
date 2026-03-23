@@ -17,6 +17,7 @@
 #include "demographics.hpp"
 #include "projections.hpp"
 #include "gamerule_templates.hpp"
+#include "advanced_province_buildings.hpp"
 
 #include "xac.hpp"
 namespace duplicates {
@@ -2647,14 +2648,23 @@ bool get_provinces_part_of_rr_path(sys::state& state, std::vector<bool>& visited
 	return true;
 }
 
+
+/*
+Node is of "perfect pixel" size.
+Perfect pixel is specified in the code of the function.
+TODO: calculate size of the node depending on the location on the globe
+*/
+constexpr inline float perfect_map_width = 5600.f;
+constexpr inline float perfect_map_height = 2160.f;
+constexpr inline float rough_node_size_km2 = 20.f;
 glm::vec2 get_node(sys::state& state, glm::vec2 center, int i, int j, int size_x, int size_y) {
 	const auto rpx = rng::get_random(state, j ^ i ^ (uint32_t)center.x, i);
 	const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f)) - 0.5f;
 	const auto rpy = rng::get_random(state, j ^ i ^ (uint32_t)center.y ^ 5653, j);
 	const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f)) - 0.5f;
 
-	auto scale_x = (float)size_x / 5600.f;
-	auto scale_y = (float)size_y / 2160.f;
+	auto scale_x = (float)size_x / perfect_map_width;
+	auto scale_y = (float)size_y / perfect_map_height;
 
 	auto base_shift = glm::vec2{ ((float)i + rx) * scale_x, ((float)j + ry) * scale_y} * 0.4f / sqrt(sqrt((float) (i * i) + (float) (j * j) + 1));
 	return center + base_shift;
@@ -2670,25 +2680,17 @@ void display_data::update_sprawl(sys::state& state) {
 	std::vector<std::vector<glm::vec2>> connectors{};
 	connectors.resize(state.world.province_size());
 
-	auto minimal_population_per_visible_settlement = 2500.f;
+	//auto minimal_population_per_visible_settlement = 2500.f;
+	auto population_per_km2 = 20000.f;
+	auto minimal_size_per_visible_settlement_km2 = rough_node_size_km2;
 
 	// Populate paths with railroads - only account provinces that have been visited
 	// but not the adjacencies
 	for(const auto p : state.world.in_province) {
+		auto city_size_people = p.get_advanced_province_building_max_private_size(advanced_province_buildings::list::local_cities_and_towns);
+		auto city_size_km2 = city_size_people / population_per_km2;
 
-		auto rural_population = 0.f;
-		for(auto pt : state.world.in_pop_type) {
-			if(pt.get_is_paid_rgo_worker())
-				rural_population += state.world.province_get_demographics(p, demographics::to_key(state, pt));
-		}
-		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.slaves));
-		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.clergy));
-		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.artisans)) * 0.9f;
-		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.soldiers));
-		rural_population += state.world.province_get_demographics(p, demographics::to_key(state, state.culture_definitions.aristocrat));
-		auto urban_pop = p.get_demographics(demographics::total) - rural_population;
-
-		if(urban_pop < minimal_population_per_visible_settlement) {
+		if(city_size_km2 < minimal_size_per_visible_settlement_km2) {
 			continue;
 		}
 
@@ -2698,13 +2700,13 @@ void display_data::update_sprawl(sys::state& state) {
 			continue;
 		}
 
-		auto population_level = int(sqrt(urban_pop / 100'000.f) * 5.f) + 1.f;
+		//auto population_level = int(sqrt(urban_pop / 100'000.f) * 5.f) + 1.f;
 
-		if(population_level < 3.f) {
-			population_level = 1.f;
-			continue;
+		//if(population_level < 3.f) {
+			//population_level = 1.f;
+			//continue;
 			//ignore for now
-		}
+		//}
 
 		auto central_settlement = p.get_mid_point();
 
@@ -2720,11 +2722,10 @@ void display_data::update_sprawl(sys::state& state) {
 
 		auto km2_per_potential_settlement = 2000.f;
 
-
 		int potential_settlement_slots = std::min(
 			(int)7, std::min(
 				(int)(province_size / km2_per_potential_settlement),
-				(int)(urban_pop / minimal_population_per_visible_settlement)
+				(int)(city_size_km2 / minimal_size_per_visible_settlement_km2)
 			)
 		);
 		potential_settlement_slots = std::max(1, potential_settlement_slots);
@@ -2776,16 +2777,18 @@ void display_data::update_sprawl(sys::state& state) {
 					}
 				}
 			}
+			weighted_settlements.push_back({ central_settlement, 0.5f });
+		} else {
+			weighted_settlements.push_back({ central_settlement, 1.f });
 		}
 
-		weighted_settlements.push_back({ central_settlement, 0.5f });
 
 
 
 		for(size_t center = 0; center < weighted_settlements.size(); center++) {
 			//std::vector<glm::vec2> key_points{ };
 			//std::vector<char> used{ };
-			int N = 10;
+			//int N = 10;
 
 			const auto rp1 = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index());
 			float r1 = (float(rng::reduce(uint32_t(rp1), 8192)) / (8192.f)) - 0.5f;
@@ -2815,39 +2818,24 @@ void display_data::update_sprawl(sys::state& state) {
 
 			auto settlement = weighted_settlements[center];
 
-			auto layers = int(population_level * settlement.second + 1);
+			//auto layers = int(population_level * settlement.second + 1);
 
-			if(layers == 1) {
-				N = 5;
-			}
+			//if(layers == 1) {
+				//N = 5;
+			//}
 
-			/*
-			for(int i = 0; i < (layers) * N; i++) {
-				const auto rpx = rng::get_random(state, p.id.index() ^ (uint32_t)center, p.id.index() ^ (uint32_t)i);
-				const float rx = (float(rng::reduce(uint32_t(rpx), 8192)) / (8192.f) - 0.5f) * 0.25f;
-				const auto rpy = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 5653, p.id.index() ^ (uint32_t)i ^ 435427);
-				const float ry = (float(rng::reduce(uint32_t(rpy), 8192)) / (8192.f) - 0.5f) * 0.25f;
-				auto angle = ((float)(i % N)) * std::numbers::pi_v<float> / float(N) * 2.f + initial_rotation;
-				float scale = float(1 + i / N) * 0.2f;
-				glm::vec2 shift{ (cos(angle) + rx), (sin(angle) + ry) };
-				key_points.push_back(settlement.first + shift * scale);
-				//used.push_back(0);
-			}
-			*/
+			auto city_pixel_radius = int(sqrt(city_size_km2 / rough_node_size_km2 * settlement.second));
 
-			// connect key points into loops
+			for(int i = -city_pixel_radius; i < city_pixel_radius; i++) {
+				for(int k = -city_pixel_radius; k < city_pixel_radius; k++) {
 
-
-			for(int i = -layers; i < layers; i++) {
-				for(int k = -layers; k < layers; k++) {
-
-					if(layers > 3) {
-						if(i / (2 * layers / 3) != 0 && k / (2 * layers / 3) != 0) {
+					if(city_pixel_radius > 3) {
+						if(i / (2 * city_pixel_radius / 3) != 0 && k / (2 * city_pixel_radius / 3) != 0) {
 							continue;
 						}
 					}
 
-					if(abs(i * r1 + k * r2) > layers * 0.5f && abs(i * a + k * b + c) > layers * 0.2f) {
+					if(abs(i * r1 + k * r2) > city_pixel_radius * 0.5f && abs(i * a + k * b + c) > city_pixel_radius * 0.2f) {
 						continue;
 					}
 
@@ -2894,7 +2882,7 @@ void display_data::update_sprawl(sys::state& state) {
 					transform /= sqrt(rm1 * rm1 + rm2 * rm2);
 					transform *= 3.f;
 
-					const auto rh = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 9572456, 432864 ^ p.id.index() ^ (uint32_t)(i * N + k));
+					const auto rh = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 9572456, 432864 ^ p.id.index() ^ (uint32_t)(i * city_pixel_radius * 2 + k));
 					const float rhf = (float(rng::reduce(uint32_t(rh), 8192)) / (8192.f));
 					{
 						city_vertices.push_back(
@@ -2934,10 +2922,10 @@ void display_data::update_sprawl(sys::state& state) {
 								node_3* transform
 							}
 						);
-						const auto r = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 43542, 4634 ^ p.id.index() ^ (uint32_t)(i * N + k));
+						const auto r = rng::get_random(state, p.id.index() ^ (uint32_t)center ^ 43542, 4634 ^ p.id.index() ^ (uint32_t)(i * city_pixel_radius * 2 + k));
 						const float rf = (float(rng::reduce(uint32_t(r), 8192)) / (8192.f));
 
-						if(rf > 0.25f && (i == -layers || i + 1 == layers || k == -layers || k + 1 == layers)) {
+						if(rf > 0.25f && (i == -city_pixel_radius || i + 1 == city_pixel_radius || k == -city_pixel_radius || k + 1 == city_pixel_radius)) {
 							connectors[p.id.index()].push_back((node_1 + node_2 + node_3 + node_4) / 4.f);
 						}
 					}
