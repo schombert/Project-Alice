@@ -670,6 +670,7 @@ pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
 pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
 pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
+pop_prom_housing_multiplier;Lack of urban housing hinders pop promotion and multiplies chance by $val$
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:
 pop_con_3;From luxury needs satisfaction: ?G+$x$

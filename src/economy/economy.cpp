@@ -3880,8 +3880,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
 
-			// make distribution sharper with squares:
-
 			target_wage = target_wage * target_wage;
 			no_education = no_education * no_education;
 			basic_education = basic_education * basic_education;
@@ -4821,6 +4819,12 @@ float unit_construction_progress(sys::state& state, dcon::province_naval_constru
 }
 
 void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon::factory_type_id t) {
+	float base_size = float(state.world.factory_type_get_base_workforce(t));
+
+	// addition of factory level also represents construction of a small factory town or factory-adjacent housing
+
+	auto town_size = state.world.province_get_advanced_province_building_max_private_size(p, advanced_province_buildings::list::local_cities_and_towns);
+	state.world.province_set_advanced_province_building_max_private_size(p, advanced_province_buildings::list::local_cities_and_towns, town_size + base_size * 0.1f);
 
 	// Since construction may be queued together with refit, check if there is factory to add level to
 	for(auto f : state.world.province_get_factory_location(p)) {
@@ -4835,7 +4839,6 @@ void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon:
 	// Only then create new factory
 	auto new_fac = fatten(state.world, state.world.create_factory());
 	new_fac.set_building_type(t);
-	float base_size = float(state.world.factory_type_get_base_workforce(t));
 	new_fac.set_size(base_size);
 	new_fac.set_unqualified_employment(base_size * 0.04f);
 	new_fac.set_primary_employment(0.f);
@@ -5023,6 +5026,9 @@ void resolve_constructions(sys::state& state) {
 					auto civilian = (uint8_t)(advanced_province_buildings::list::civilian_ports);
 					auto local_civilian_port = state.world.province_get_advanced_province_building_max_private_size(for_province, civilian);
 					state.world.province_set_advanced_province_building_max_private_size(for_province, civilian, local_civilian_port + 5000.f);
+
+					auto town_size = state.world.province_get_advanced_province_building_max_private_size(for_province, advanced_province_buildings::list::local_cities_and_towns);
+					state.world.province_set_advanced_province_building_max_private_size(for_province, advanced_province_buildings::list::local_cities_and_towns, town_size + 500.f);
 				}
 
 				if(t == province_building_type::railroad) {

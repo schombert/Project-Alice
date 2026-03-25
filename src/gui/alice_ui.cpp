@@ -3200,6 +3200,10 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 	auto ptype = state.world.pop_get_poptype(ids);
 	auto strata = state.world.pop_type_get_strata(ptype);
 
+	auto urban_size = state.world.province_get_advanced_province_building_max_private_size(loc, advanced_province_buildings::list::local_cities_and_towns);
+	auto population = state.world.province_get_demographics(loc, demographics::total);
+	auto chance_multiplier = std::min(1.f, urban_size / (population + economy::numerical::employment_unit::epsilon));
+
 	text::add_line(state, contents, "pop_prom_1");
 	if(promoted_type) {
 		if(promoted_type == ptype) {
@@ -3223,8 +3227,11 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 		text::add_line(state, contents, "pop_prom_7");
 		return;
 	}
+
+	text::add_line(state, contents, "pop_prom_housing_multiplier", text::variable_type::val, text::fp_two_places{ chance_multiplier });
+
 	text::add_line(state, contents, "pop_prom_8", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
-				text::variable_type::val, text::fp_two_places{ promotion_chance });
+				text::variable_type::val, text::fp_two_places{ promotion_chance * chance_multiplier });
 	
 }
 
