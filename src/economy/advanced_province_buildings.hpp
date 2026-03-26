@@ -41,7 +41,6 @@ inline constexpr int32_t total = 3;
 
 struct advanced_building_definition {
 	int32_t throughput_labour_type;
-	bool requires_labor = true;
 	int32_t output;
 	float output_amount;
 	/*
@@ -50,6 +49,7 @@ struct advanced_building_definition {
 	*/
 	float maintenance_rate = 0.f;
 	economy::province_building_type associated_building = economy::province_building_type::last; // to inherit costs
+	bool requires_labor = true;
 };
 
 const extern advanced_building_definition definitions[services::list::total];
