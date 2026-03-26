@@ -126,11 +126,11 @@ const advanced_building_definition definitions[services::list::total] = {
 },
 //cities
 {
-	.requires_labor = false,
 	.output = services::list::urban_housing,
 	.output_amount = 1.f,
 	.maintenance_rate = 0.00001f,
 	.associated_building = economy::province_building_type::railroad
+	.requires_labor = false,
 }
 };
 
