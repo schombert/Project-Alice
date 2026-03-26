@@ -854,6 +854,15 @@ void initialize(sys::state& state) {
 			);
 		}
 	});
+
+	state.world.for_each_province([&](auto pid) {
+		auto starting_urban_population_proxy = state.world.province_get_demographics(pid, demographics::literacy);
+		state.world.province_set_advanced_province_building_max_private_size(
+			pid,
+			advanced_province_buildings::list::local_cities_and_towns,
+			starting_urban_population_proxy
+		);
+	});
 }
 
 float sphere_leader_share_factor(sys::state& state, dcon::nation_id sphere_leader, dcon::nation_id sphere_member) {
@@ -2025,6 +2034,7 @@ static void set_profile_point(sys::state& state, std::string name) {
 	
 	std::string logged_data = name + "\n" + std::to_string(total.reduce()) + "," + std::to_string(total_pops.reduce()) + ","  + std::to_string(total_markets.reduce()) + "," + std::to_string(total_nations.reduce())  + "\n" + std::to_string(int(diff / 1000.f)) + "\n";
 	state.console_log(logged_data);
+	/*
 	*/
 
 
@@ -2826,11 +2836,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// STEP 3 update pops consumption:
 
 	auto potential_ratio_life = state.world.pop_make_vectorizable_float_buffer();
+	auto potential_ratio_housing= state.world.pop_make_vectorizable_float_buffer();
 	auto potential_ratio_everyday = state.world.pop_make_vectorizable_float_buffer();
 	auto potential_ratio_luxury = state.world.pop_make_vectorizable_float_buffer();
 	auto potential_ratio_education_public = state.world.pop_make_vectorizable_float_buffer();
 	auto potential_ratio_education_private = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_life = state.world.pop_make_vectorizable_float_buffer();
+	auto demand_housing = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_everyday = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_luxury = state.world.pop_make_vectorizable_float_buffer();
 	auto demand_paid_education = state.world.pop_make_vectorizable_float_buffer();
@@ -2840,11 +2852,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		state,
 		invention_count,
 		potential_ratio_life,
+		potential_ratio_housing,
 		potential_ratio_everyday,
 		potential_ratio_luxury,
 		potential_ratio_education_public,
 		potential_ratio_education_private,
-		demand_life, demand_everyday, demand_luxury, demand_paid_education,
+		demand_life,
+		demand_housing,
+		demand_everyday,
+		demand_luxury,
+		demand_paid_education,
 		satisfaction_from_subsistence
 	);
 
@@ -3614,14 +3631,28 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto literacy_sat_paid = state.world.province_get_service_satisfaction(province, services::list::education);
 			auto literacy_sat_public = state.world.province_get_service_satisfaction_for_free(province, services::list::education);
+			auto housing_sat = state.world.province_get_service_satisfaction(province, services::list::urban_housing);
+
+			/*
+
+			Urbanisation influences access to education facilities:
+			If the pop is living in the wilderness (0 urbanisation), it lacks access to proper education.
+			Meanwhile, pops which earn enough money to live in the city/town/settlement/villa
+			and overpay for their personal space have higher education efficiency.
+
+			*/
+
+			auto pop_demanded_urbanisation = potential_ratio_housing.get(ids);
+			auto pop_urbanisation = pop_demanded_urbanisation * housing_sat;
+			auto pop_education_efficiency = 0.5f + pop_urbanisation;
 
 			literacy =
 				literacy
 				+ (
 					potential_ratio_education_public.get(ids)
-					* literacy_sat_public
+					* literacy_sat_public * pop_education_efficiency
 					+ potential_ratio_education_private.get(ids)
-					* literacy_sat_paid
+					* literacy_sat_paid * pop_education_efficiency
 					- 0.9f
 				)
 				* pop_demographics::pop_u16_scaling;
@@ -3634,10 +3665,19 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			*/
 
-			auto paid_back = demand_paid_education.get(ids) * (1.f - literacy_sat_paid) * state.world.province_get_service_price(province, services::list::education);
+			{
+				// education
+				auto paid_back = demand_paid_education.get(ids) * (1.f - literacy_sat_paid) * state.world.province_get_service_price(province, services::list::education);
+				auto savings = state.world.pop_get_savings(ids);
+				state.world.pop_set_savings(ids, savings + paid_back);
+			}
 
-			auto savings = state.world.pop_get_savings(ids);
-			state.world.pop_set_savings(ids, savings + paid_back);
+			{
+				// housing
+				auto paid_back = demand_housing.get(ids) * (1.f - housing_sat) * state.world.province_get_service_price(province, services::list::urban_housing);
+				auto savings = state.world.pop_get_savings(ids);
+				state.world.pop_set_savings(ids, savings + paid_back);
+			}
 		}
 	});
 
@@ -3839,8 +3879,6 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
-
-			// make distribution sharper with squares:
 
 			target_wage = target_wage * target_wage;
 			no_education = no_education * no_education;
@@ -4048,14 +4086,19 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			old_count = new_count;
 		}
 	}
+	
+
 	state.world.execute_serial_over_pop([&](auto p) {
 		income_buffer.set(p, -state.world.pop_get_savings(p));
 	});
 
 	pops::update_income_national_subsidy(state);
-	pops::update_income_trade(state);
+	pops::update_income_non_labor(state);
 	pops::update_income_artisans(state);
 	pops::update_income_wages(state);
+
+
+
 
 	state.world.execute_serial_over_pop([&](auto p) {
 		income_buffer.set(p, ve::max(state.world.pop_get_savings(p) + income_buffer.get(p), 0.f));
@@ -4776,6 +4819,12 @@ float unit_construction_progress(sys::state& state, dcon::province_naval_constru
 }
 
 void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon::factory_type_id t) {
+	float base_size = float(state.world.factory_type_get_base_workforce(t));
+
+	// addition of factory level also represents construction of a small factory town or factory-adjacent housing
+
+	auto town_size = state.world.province_get_advanced_province_building_max_private_size(p, advanced_province_buildings::list::local_cities_and_towns);
+	state.world.province_set_advanced_province_building_max_private_size(p, advanced_province_buildings::list::local_cities_and_towns, town_size + base_size * 0.1f);
 
 	// Since construction may be queued together with refit, check if there is factory to add level to
 	for(auto f : state.world.province_get_factory_location(p)) {
@@ -4790,7 +4839,6 @@ void add_factory_level_to_province(sys::state& state, dcon::province_id p, dcon:
 	// Only then create new factory
 	auto new_fac = fatten(state.world, state.world.create_factory());
 	new_fac.set_building_type(t);
-	float base_size = float(state.world.factory_type_get_base_workforce(t));
 	new_fac.set_size(base_size);
 	new_fac.set_unqualified_employment(base_size * 0.04f);
 	new_fac.set_primary_employment(0.f);
@@ -4978,6 +5026,9 @@ void resolve_constructions(sys::state& state) {
 					auto civilian = (uint8_t)(advanced_province_buildings::list::civilian_ports);
 					auto local_civilian_port = state.world.province_get_advanced_province_building_max_private_size(for_province, civilian);
 					state.world.province_set_advanced_province_building_max_private_size(for_province, civilian, local_civilian_port + 5000.f);
+
+					auto town_size = state.world.province_get_advanced_province_building_max_private_size(for_province, advanced_province_buildings::list::local_cities_and_towns);
+					state.world.province_set_advanced_province_building_max_private_size(for_province, advanced_province_buildings::list::local_cities_and_towns, town_size + 500.f);
 				}
 
 				if(t == province_building_type::railroad) {

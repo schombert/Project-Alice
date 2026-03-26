@@ -18,7 +18,8 @@ namespace services {
 namespace list {
 inline constexpr int32_t education = 0;
 inline constexpr int32_t port_capacity = 1;
-inline constexpr int32_t total = 2;
+inline constexpr int32_t urban_housing = 2;
+inline constexpr int32_t total = 3;
 }
 
 void initialize_size_of_dcon_arrays(sys::state& state);
@@ -34,14 +35,21 @@ namespace advanced_province_buildings {
 namespace list {
 inline constexpr int32_t schools_and_universities = 0;
 inline constexpr int32_t civilian_ports = 1;
-inline constexpr int32_t total = 2;
+inline constexpr int32_t local_cities_and_towns= 2;
+inline constexpr int32_t total = 3;
 }
 
 struct advanced_building_definition {
 	int32_t throughput_labour_type;
 	int32_t output;
 	float output_amount;
+	/*
+	Some of APB require maintenance.
+	The cost of maintenance is expressed in terms of construction cost.
+	*/
+	float maintenance_rate = 0.f;
 	economy::province_building_type associated_building = economy::province_building_type::last; // to inherit costs
+	bool requires_labor = true;
 };
 
 const extern advanced_building_definition definitions[services::list::total];

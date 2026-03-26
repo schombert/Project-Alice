@@ -756,7 +756,7 @@ public:
 		text::add_line(state, contents, "trade_center_desc");
 
 		text::add_line_break_to_layout(state, contents);
-		economy::make_trade_center_tooltip(state, contents, target.market);
+		economy::make_trade_center_tooltip(state, contents, target.market, target.province);
 		text::add_line_break_to_layout(state, contents);
 
 		// TODO: Organize abstract "explain market labour demand" for the two

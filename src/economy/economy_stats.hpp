@@ -18,6 +18,12 @@ inline constexpr int32_t high_education_and_accepted = 4; // clerks, clergy and 
 inline constexpr int32_t total = 5;
 }
 
+namespace labor_constants {
+inline constexpr int32_t construction_labor = labor::basic_education;
+inline constexpr float labor_per_construction_unit = 10.f;
+inline constexpr float construction_units_per_build_time_day = 1.f;
+}
+
 namespace pop_labor {
 inline constexpr int32_t rgo_worker_no_education = 0;
 inline constexpr int32_t primary_no_education = 1;

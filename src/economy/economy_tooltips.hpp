@@ -22,7 +22,8 @@ void build_naval_unit_construction_tooltip(
 void make_trade_center_tooltip(
 	sys::state& state,
 	text::columnar_layout& contents,
-	dcon::market_id market
+	dcon::market_id market,
+	dcon::province_id province
 );
 void make_trade_volume_tooltip(
 	sys::state& state,

@@ -1385,7 +1385,7 @@ market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id 
 	return result;
 }
 
-void make_trade_center_tooltip(sys::state& state, text::columnar_layout& contents, dcon::market_id market) {
+void make_trade_center_tooltip(sys::state& state, text::columnar_layout& contents, dcon::market_id market, dcon::province_id province) {
 	auto budget = breakdown_market_budget(state, market);
 	auto current = state.world.market_get_stockpile(market, money);
 	text::add_line(state, contents, "trade_centre_money", text::variable_type::val, text::fp_currency{ current });
@@ -1399,7 +1399,45 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(state, contents, "trade_centre_dividents", text::variable_type::val, text::fp_currency{ -budget.dividents }, 15);
 	text::add_line(state, contents, "trade_centre_factories", text::variable_type::val, text::fp_currency{ budget.factories }, 15);
 	text::add_line(state, contents, "trade_centre_rgo", text::variable_type::val, text::fp_currency{ budget.rgo }, 15);
-	text::add_line(state, contents, "trade_centre_services", text::variable_type::val, text::fp_currency{ budget.services }, 15);
+	//text::add_line(state, contents, "trade_centre_services", text::variable_type::val, text::fp_currency{ budget.services }, 15);
+
+	text::add_line(
+		state,
+		contents,
+		"private_education_owners",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::schools_and_universities)
+		},
+		0
+	);
+
+	text::add_line(
+		state,
+		contents,
+		"port_owners",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::civilian_ports)
+		},
+		0
+	);
+
+	text::add_line(
+		state,
+		contents,
+		"construction_companies",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::local_cities_and_towns)
+		},
+		0
+	);
+
+
+	for (int i = 0; i < advanced_province_buildings::list::total; i++) {
+		
+	}
 }
 
 }

@@ -8,6 +8,7 @@
 #include "container_types.hpp"
 #include "economy_stats.hpp"
 #include "economy_pops.hpp"
+#include "economy_constants.hpp"
 #include "demographics_templates.hpp"
 #include "province.hpp"
 
@@ -2784,8 +2785,16 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 		if(state.culture_definitions.demotion_chance_fn == 0)
 			demotion_chances = trigger::evaluate_additive_modifier(state, state.culture_definitions.demotion_chance, trigger::to_generic(ids), trigger::to_generic(ids), 0);
 #endif
+		/*
+		Until we have our own content, we have to hardcode some stuff like this
+		*/
+		auto province = state.world.pop_get_province_from_pop_location(ids);
+		auto urban_size = state.world.province_get_advanced_province_building_max_private_size(province, advanced_province_buildings::list::local_cities_and_towns);
+		auto population = state.world.province_get_demographics(province, demographics::total);
+		auto chance_multiplier = ve::min(1.f, urban_size / (population + economy::numerical::employment_unit::epsilon));
+
 		ve::apply(
-				[&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance, float demotion_chance) {
+				[&](dcon::pop_id p, dcon::nation_id owner, float promotion_chance,  float promotion_mult, float demotion_chance) {
 					/*
 					Promotion amount:
 					Compute the promotion modifier *additively*. If it it non-positive, there is no promotion for the day. Otherwise,
@@ -2850,7 +2859,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 
 					// get promotion data
 					if(promotion_chance > 0.0f) {
-						auto promotion_data = get_promotion_demotion_data<promotion_type::promotion>(state, p, promotion_chance);
+						auto promotion_data = get_promotion_demotion_data<promotion_type::promotion>(state, p, promotion_chance * promotion_mult);
 						promotion_buf.types.set(p, promotion_data.target);
 						promotion_buf.amounts.set(p, promotion_data.amount);
 
@@ -2864,7 +2873,7 @@ void update_type_changes(sys::state& state, uint32_t offset, uint32_t divisions,
 					}
 
 				},
-				ids, owners, promotion_chances, demotion_chances);
+				ids, owners, promotion_chances, chance_multiplier, demotion_chances);
 	});
 }
 
@@ -2899,7 +2908,11 @@ float get_estimated_promotion(sys::state& state, dcon::pop_id ids) {
 
 	float current_size = state.world.pop_get_size(ids);
 
-	return std::min(current_size, std::ceil(promotion_chance * state.defines.promotion_scale * current_size));
+	auto urban_size = state.world.province_get_advanced_province_building_max_private_size(loc, advanced_province_buildings::list::local_cities_and_towns);
+	auto population = state.world.province_get_demographics(loc, demographics::total);
+	auto chance_multiplier = std::min(1.f, urban_size / (population + economy::numerical::employment_unit::epsilon));
+
+	return std::min(current_size, std::ceil(promotion_chance * chance_multiplier * state.defines.promotion_scale * current_size));
 }
 float get_estimated_demotion(sys::state& state, dcon::pop_id ids) {
 	auto owner = nations::owner_of_pop(state, ids);

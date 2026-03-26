@@ -437,7 +437,7 @@ void pop_budget_details_main_pension_value_t::on_update(sys::state& state) noexc
 void pop_budget_details_main_rgo_value_t::on_update(sys::state& state) noexcept {
 	pop_budget_details_main_t& main = *((pop_budget_details_main_t*)(parent)); 
 // BEGIN main::rgo_value::update
-	set_text(state, text::format_money(economy::pops::estimate_rgo_income(state, main.for_pop)));
+	set_text(state, text::format_money(economy::pops::estimate_slave_income(state, main.for_pop)));
 // END
 }
 void pop_budget_details_main_nation_value_t::on_update(sys::state& state) noexcept {

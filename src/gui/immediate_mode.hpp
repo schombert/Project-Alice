@@ -118,7 +118,9 @@ std::string inline localize_trade_volume_info_mode(trade_volume_info_mode mode) 
 std::string inline localize_infrastructure_mode(infrastructure_mode mode) {
 	switch(mode) {
 	case infrastructure_mode::civilian_ports:
-		return "ports_size";
+		return "ports_size";	
+	case infrastructure_mode::housing:
+		return "urban_size";
 	default:
 		return "alice_invalid_value";
 	}

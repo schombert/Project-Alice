@@ -96,6 +96,8 @@ namespace advanced_province_buildings {
 
 // could be expanded by 1000 per 1 years
 constexpr float max_port_expansion_speed = 1000.f / 365.f;
+constexpr float max_city_expansion_rate= 0.1f / 365.f;
+constexpr float max_city_expansion_speed = 1000.f / 365.f;
 constexpr float ports_decay_speed = 0.99999f;
 
 // it uses speed and other stuff because currently we don't have merchant fleets and transportation is done by port workers instead of sailors
@@ -121,12 +123,23 @@ const advanced_building_definition definitions[services::list::total] = {
 	.output = services::list::port_capacity,
 	.output_amount = 1.f,
 	.associated_building = economy::province_building_type::naval_base
+},
+//cities
+{
+	.output = services::list::urban_housing,
+	.output_amount = 1.f,
+	.maintenance_rate = 0.00001f,
+	.associated_building = economy::province_building_type::railroad,
+	.requires_labor = false
 }
 };
+
+constexpr inline float a_few_months = 120.f;
 
 void initialize_size_of_dcon_arrays(sys::state& state) {
 	state.world.province_resize_advanced_province_building_national_size(list::total);
 	state.world.province_resize_advanced_province_building_private_size(list::total);
+	state.world.province_resize_advanced_province_building_private_savings(list::total);
 	state.world.province_resize_advanced_province_building_private_output(list::total);
 	state.world.province_resize_advanced_province_building_max_national_size(list::total);
 	state.world.province_resize_advanced_province_building_max_private_size(list::total);
@@ -135,6 +148,7 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 void update_consumption(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
 		auto& def = definitions[i];
+		if (!def.requires_labor) continue;
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto private_size = state.world.province_get_advanced_province_building_private_size(pids, i);
 			auto national_size = state.world.province_get_advanced_province_building_national_size(pids, i);
@@ -142,6 +156,90 @@ void update_consumption(sys::state& state) {
 
 			auto current_demand = state.world.province_get_labor_demand(pids, def.throughput_labour_type);
 			state.world.province_set_labor_demand(pids, def.throughput_labour_type, current_demand + total);
+		});
+	}
+
+	// construction of cities
+	/*
+
+	Cities are special as instead of using labor to produce services, they require labor for construction and maintenance.
+	Construction requires skilled labor.
+	Used property requires maintenance and would decay if unmaintained.
+	But construction of new housing is quite expensive and takes time.
+	So construction of a city will happen only when it will pay off in a few years
+	We should also add subsidies to construction of housing, so players could interact with the system
+
+	*/
+
+	{
+		auto id = list::local_cities_and_towns;
+		auto& def = definitions[id];
+		auto& costs = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].cost;
+		auto build_time = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].time;
+
+		province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+			auto output_cost = state.world.province_get_service_price(pid, def.output);
+
+			auto labor_cost_per_constructed_unit =
+				state.world.province_get_labor_price(pid, economy::labor_constants::construction_labor)
+				* economy::labor_constants::labor_per_construction_unit;
+
+			auto material_cost_per_constructed_unit = 0.f;
+			for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+				auto cid = costs.commodity_type[i];
+				if(!cid) {
+					break;
+				}
+				auto amount = costs.commodity_amounts[i] / build_time;
+				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+			}
+			
+			auto expected_profit_per_size = output_cost * def.output_amount;
+			auto expected_maintenance = def.maintenance_rate * (material_cost_per_constructed_unit + labor_cost_per_constructed_unit);
+
+			auto expected_days_to_payoff = (material_cost_per_constructed_unit + labor_cost_per_constructed_unit) / (expected_profit_per_size - expected_maintenance);
+
+			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
+			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
+			auto max_expansion_speed = max_size * max_city_expansion_rate + max_city_expansion_speed;
+
+			auto lots_of_empty_housing = size < max_size * 0.8f;
+
+			auto demand_scale = 0.f;
+
+			if((expected_profit_per_size - expected_maintenance > 0) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
+				/*
+				If new housing could pay off in a few months, we construct it as fast as possible.
+				If new housing could pay off only in 5 years, we stop construction
+				Also used property requires maintenance
+				*/
+				demand_scale = max_expansion_speed * a_few_months / (a_few_months + expected_days_to_payoff);
+			}
+
+			/*
+			We don't want to expand faster than local labor allows us
+			*/
+			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
+			demand_scale = demand_scale * sat;
+
+			/*
+			Register demand both on construction materials and construction labor
+			*/
+			for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+				auto cid = costs.commodity_type[i];
+				if(!cid) {
+					break;
+				}
+				auto amount =  costs.commodity_amounts[i] / build_time;
+				economy::register_demand(state, mid, cid, amount * demand_scale);
+			}
+			auto labor_demand = state.world.province_get_labor_demand(pid, economy::labor_constants::construction_labor);
+			state.world.province_set_labor_demand(
+				pid,
+				economy::labor_constants::construction_labor,
+				labor_demand
+				+ demand_scale * economy::labor_constants::labor_per_construction_unit
+			);
 		});
 	}
 
@@ -216,6 +314,9 @@ void update_profit_and_refund(sys::state& state) {
 			auto& def = definitions[i];
 			auto private_size = state.world.province_get_advanced_province_building_private_size(pid, i);
 			auto cost_of_input = state.world.province_get_labor_price(pid, def.throughput_labour_type);
+			if(!def.requires_labor) {
+				cost_of_input = 0.f;
+			}
 			auto cost_of_output = state.world.province_get_service_price(pid, def.output);
 			auto actually_bought = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
 
@@ -224,8 +325,8 @@ void update_profit_and_refund(sys::state& state) {
 
 			auto profit = output * actually_sold * cost_of_output - private_size * cost_of_input * actually_bought;
 
-			auto current_money = state.world.market_get_stockpile(mid, economy::money);
-			state.world.market_set_stockpile(mid, economy::money, current_money + profit);
+			auto current_money = state.world.province_get_advanced_province_building_private_savings(pid, i);
+			state.world.province_set_advanced_province_building_private_savings(pid, i, current_money + profit);
 		}
 
 		// expand ports
@@ -256,7 +357,7 @@ void update_profit_and_refund(sys::state& state) {
 
 				auto expansion_scale = 1.f;
 				auto cost = 0.f;
-				// if ports are profitable and size is close to max size, register demand on commodities
+				// figure out how much we were able to buy
 				for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
 					auto cid = costs.commodity_type[i];
 					if(!cid) {
@@ -271,8 +372,8 @@ void update_profit_and_refund(sys::state& state) {
 					}
 				}
 
-				auto current_money = state.world.market_get_stockpile(mid, economy::money);
-				state.world.market_set_stockpile(mid, economy::money, current_money - cost);
+				auto current_money = state.world.province_get_advanced_province_building_private_savings(pid, id);
+				state.world.province_set_advanced_province_building_private_savings(pid, id, current_money - cost);
 
 				auto current_max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
 				state.world.province_set_advanced_province_building_max_private_size(
@@ -284,6 +385,89 @@ void update_profit_and_refund(sys::state& state) {
 					pid, id, std::max(500.f, current_max_size * ports_decay_speed)
 				);
 			}
+		}
+
+		// expand or shrink cities
+		{
+			auto id = list::local_cities_and_towns;
+			auto& def = definitions[id];
+			auto& costs = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].cost;
+			auto build_time = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].time;
+
+			auto output_cost = state.world.province_get_service_price(pid, def.output);
+
+			auto labor_cost_per_constructed_unit =
+				state.world.province_get_labor_price(pid, economy::labor_constants::construction_labor)
+				* economy::labor_constants::labor_per_construction_unit;
+
+			auto material_cost_per_constructed_unit = 0.f;
+			for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+				auto cid = costs.commodity_type[i];
+				if(!cid) {
+					break;
+				}
+				auto amount = costs.commodity_amounts[i] / build_time;
+				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+			}
+			
+			auto expected_profit_per_size = output_cost * def.output_amount;
+			auto expected_maintenance = def.maintenance_rate * (material_cost_per_constructed_unit + labor_cost_per_constructed_unit);
+
+			auto expected_days_to_payoff = (material_cost_per_constructed_unit + labor_cost_per_constructed_unit) / (expected_profit_per_size - expected_maintenance);
+
+			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, id);
+			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
+			auto max_expansion_speed = max_size * max_city_expansion_rate + max_city_expansion_speed;
+
+			auto lots_of_empty_housing = size < max_size * 0.8f;
+
+			auto construction_scale = 0.f;
+
+			if((expected_profit_per_size - expected_maintenance > 0.f) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
+				/*
+				If new housing could pay off in a few months, we construct it as fast as possible.
+				If new housing could pay off only in 5 years, we stop construction.
+				*/
+				construction_scale = max_expansion_speed * a_few_months / (a_few_months + expected_days_to_payoff);
+			}
+
+			/*
+			Used property requires maintenance
+			*/
+
+			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
+			auto demand_scale = construction_scale * labor_sat;
+
+			/*
+			Find out how much we were able to buy.
+			*/
+			float actually_bought = labor_sat;
+			float spendings = 0.f;
+			for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+				auto cid = costs.commodity_type[i];
+				if(!cid) {
+					break;
+				}
+				auto sat = state.world.market_get_actual_probability_to_buy(mid, cid);
+				actually_bought = std::min(actually_bought, sat);
+				auto amount =  costs.commodity_amounts[i] / build_time;
+				spendings += amount * economy::price(state, mid, cid) * demand_scale * sat;
+			}
+			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
+			actually_bought = std::min(actually_bought, sat);
+			spendings += economy::labor_constants::labor_per_construction_unit * state.world.province_get_labor_price(pid, economy::labor_constants::construction_labor) * demand_scale * sat;
+
+			/*
+			Finally, we can advance construction and decay 
+			*/
+
+			float size_increase = actually_bought * construction_scale - def.maintenance_rate * size;
+			state.world.province_set_advanced_province_building_max_private_size(
+				pid, id, max_size + size_increase
+			);
+
+			auto current_money = state.world.province_get_advanced_province_building_private_savings(pid, id);
+			state.world.province_set_advanced_province_building_private_savings(pid, id, current_money - spendings);
 		}
 	});
 }
@@ -326,6 +510,48 @@ void update_private_size(sys::state& state) {
 			auto margin = (cost_of_output - cost_of_input) / cost_of_input;
 			auto probability_to_hire = state.world.province_get_labor_demand_satisfaction(pid, def.throughput_labour_type);
 			margin = margin > 0.f ? std::max(0.f, (probability_to_hire - 0.4f)) * margin : margin;
+			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
+			new_private_size = ve::min(max_size, new_private_size);
+			state.world.province_set_advanced_province_building_private_size(pid, bid, ve::max(0.f, new_private_size));
+		});
+	}
+
+	/*
+	
+	Here local landlords decide on how much of the land they plan to rent out.
+	If cost of maintenance of living space is high relatively to rent prices, they decrease rent area
+	Otherwise, they rent out more living space.
+
+	*/
+
+	{
+		auto bid = list::local_cities_and_towns;
+		auto& def = definitions[bid];
+		auto& costs = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].cost;
+		auto build_time = state.economy_definitions.building_definitions[(size_t)(def.associated_building)].time;
+
+		province::for_each_market_province_parallel_over_market(state, [&](dcon::market_id mid, dcon::state_instance_id sid, dcon::province_id pid) {
+			auto owner = state.world.province_get_nation_from_province_ownership(pid);
+			auto cost_of_labor = state.world.province_get_labor_price(pid, def.throughput_labour_type);
+			auto material_cost_per_constructed_unit = 0.f;
+			for(size_t i = 0; i < economy::commodity_set::set_size; i++) {
+				auto cid = costs.commodity_type[i];
+				if(!cid) {
+					break;
+				}
+				auto amount = costs.commodity_amounts[i] / build_time;
+				material_cost_per_constructed_unit += amount * economy::price(state, mid, cid);
+			}
+			auto maintenance_cost_per_unit = def.maintenance_rate * (
+				cost_of_labor
+				* economy::labor_constants::labor_per_construction_unit
+				+ material_cost_per_constructed_unit
+			);
+
+			auto income_per_unit = state.world.province_get_service_price(pid, def.output) * def.output_amount;
+			auto max_size = state.world.province_get_advanced_province_building_max_private_size(pid, bid);
+			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pid, bid);
+			auto margin = (income_per_unit - maintenance_cost_per_unit) / maintenance_cost_per_unit;
 			auto new_private_size = current_private_size + ve::min(margin, 100.f) + ve::min(ve::max(margin, -0.01f), 0.01f) * current_private_size;
 			new_private_size = ve::min(max_size, new_private_size);
 			state.world.province_set_advanced_province_building_private_size(pid, bid, ve::max(0.f, new_private_size));
@@ -403,6 +629,23 @@ void update_production(sys::state& state) {
 			);
 			//assume that low trade volume doesn't require any additional infrastructure or workers
 			auto output = 100.f + current_private_size * input_satisfaction * def.output_amount * efficiency;
+			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
+			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
+			state.world.province_set_advanced_province_building_private_output(pids, bid, output);
+		});
+	}
+
+	// housing
+	/*
+	Doesn't require any inputs, so it's much more simple
+	*/
+	{
+		auto bid = list::local_cities_and_towns;
+		auto& def = definitions[bid];
+
+		state.world.execute_serial_over_province([&](auto pids) {
+			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
+			auto output = current_private_size * def.output_amount;
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);
 			state.world.province_set_service_supply_private(pids, def.output, current_private_supply + output);
 			state.world.province_set_advanced_province_building_private_output(pids, bid, output);

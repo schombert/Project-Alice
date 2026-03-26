@@ -670,6 +670,7 @@ pop_prom_5;As the demotion factor is negative, the pop is currently not demoting
 pop_prom_7;As the promotion factor is negative, the pop is currently not promoting
 pop_prom_8;The number of people that will promote is equal to the size of the pop times the promotion scale ($x$) times the promotion factor ($val$)
 pop_prom_9;The number of people that will demote is equal to the size of the pop times the promotion scale ($x$) times the demotion factor ($val$)
+pop_prom_housing_multiplier;Lack of urban housing hinders pop promotion and multiplies chance by $val$
 pop_con_1;Monthly consciousness change: 
 pop_con_2;Is the sum of:
 pop_con_3;From luxury needs satisfaction: ?G+$x$
@@ -1859,8 +1860,12 @@ alice_show_all_saves_text;Show all saves
 alice_show_all_saves_tooltip;Toggle showing all saves (even potentially incompatible ones) in the save list
 alice_save_input_filename_label;Saved game filename (empty is default name):
 ports_size;Size of ports
-civilian_port;Сivilian port
+urban_size;Urban size
+civilian_port;Civilian port
 civilian_port_size;Size: ?Y$val$?!
+private_education_owners;Private educators ?Y$val$?!
+port_owners;Local port ?Y$val$?!
+construction_companies;Landlords ?Y$val$?!
 alice_infrastructure_tab;Infrastructure
 economy_overview_header;Economy overview
 alice_extra_armies_tooltip;+ ?Y$x$?W more armies

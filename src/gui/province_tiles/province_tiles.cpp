@@ -64,14 +64,15 @@ std::vector<province_tile> retrieve_province_tiles(sys::state& state, dcon::prov
 		}
 
 		// Market is located in the capital of the state instabce
-		if(state.world.state_instance_get_capital(si) == p) {
+		// It's bothersome to click every province in the state to find the market center
+		//if(state.world.state_instance_get_capital(si) == p) {
 			auto market = state.world.state_instance_get_market_from_local_market(si);
 			auto tile = province_tile{};
 			tile.market = market;
 			tile.empty = false;
 			tile.province = p;
 			push_tile(tiles, tile, curind);
-		}
+		//}
 	}
 
 	// Display factories and factories under construction for provinces with owner (colonized)
