@@ -455,6 +455,43 @@ public:
 	}
 };
 
+struct crossing_penalty_count {
+	uint32_t river_penalized_units = 0;
+	uint32_t strait_penalized_units = 0;
+};
+
+crossing_penalty_count count_battle_regiments_with_crossing_penalty(const sys::state& state, dcon::land_battle_id battle) {
+
+	crossing_penalty_count count{ };
+	for(auto battle_reg : state.world.land_battle_get_defender_front_line(battle)) {
+		auto crossing = battle_reg.get_crossing();
+		count.river_penalized_units += 1 * (crossing == military::battle_regiment::crossing_river);
+		count.strait_penalized_units += 1 * (crossing == military::battle_regiment::crossing_strait);
+	}
+	for(auto battle_reg : state.world.land_battle_get_defender_back_line(battle)) {
+		auto crossing = battle_reg.get_crossing();
+		count.river_penalized_units += 1 * (crossing == military::battle_regiment::crossing_river);
+		count.strait_penalized_units += 1 * (crossing == military::battle_regiment::crossing_strait);
+	}
+	for(auto battle_reg : state.world.land_battle_get_attacker_front_line(battle)) {
+		auto crossing = battle_reg.get_crossing();
+		count.river_penalized_units += 1 * (crossing == military::battle_regiment::crossing_river);
+		count.strait_penalized_units += 1 * (crossing == military::battle_regiment::crossing_strait);
+	}
+	for(auto battle_reg : state.world.land_battle_get_attacker_back_line(battle)) {
+		auto crossing = battle_reg.get_crossing();
+		count.river_penalized_units += 1 * (crossing == military::battle_regiment::crossing_river);
+		count.strait_penalized_units += 1 * (crossing == military::battle_regiment::crossing_strait);
+	}
+	for(auto battle_reg : state.world.land_battle_get_reserves(battle)) {
+		auto crossing = battle_reg.get_crossing();
+		count.river_penalized_units += 1 * (crossing == military::battle_regiment::crossing_river);
+		count.strait_penalized_units += 1 * (crossing == military::battle_regiment::crossing_strait);
+	}
+	return count;
+}
+
+
 enum class lc_mod_type {
 	terrain, river, dice, digin, leader, gas
 };
@@ -496,25 +533,51 @@ public:
 
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
 		lc_modifier_data dat = retrieve< lc_modifier_data>(state, parent);
+		dcon::land_battle_id battle = retrieve<dcon::land_battle_id>(state, parent);
 		switch(dat.type) {
 		case lc_mod_type::terrain:
+		{
+			text::add_line(state, contents, "alice_battle_wide_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_terrain");
 			break;
+		}
 		case lc_mod_type::river:
+		{
+			text::add_line(state, contents, "alice_unit_specific_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_crossing");
+			auto crossing_penalty_counts = count_battle_regiments_with_crossing_penalty(state, battle);
+			if(crossing_penalty_counts.river_penalized_units != 0) {
+				text::add_line(state, contents, "alice_river_penalty_mod_tooltip", text::variable_type::count, crossing_penalty_counts.river_penalized_units, text::variable_type::num, military::river_crossing_modifier);
+			}
+			if(crossing_penalty_counts.strait_penalized_units != 0) {
+				text::add_line(state, contents, "alice_strait_penalty_mod_tooltip", text::variable_type::count, crossing_penalty_counts.strait_penalized_units, text::variable_type::num, military::strait_crossing_modifier);
+			}
 			break;
+		}	
 		case lc_mod_type::dice:
+		{
+			text::add_line(state, contents, "alice_battle_wide_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_dice");
 			break;
+		}
 		case lc_mod_type::digin:
+		{
+			text::add_line(state, contents, "alice_unit_specific_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_digin");
 			break;
+		}
 		case lc_mod_type::leader:
+		{
+			text::add_line(state, contents, "alice_battle_wide_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_leader_mod");
 			break;
+		}
 		case lc_mod_type::gas:
+		{
+			text::add_line(state, contents, "alice_battle_wide_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_gas");
 			break;
+		}
 		default:
 			break;
 		}
@@ -524,9 +587,9 @@ public:
 class lc_modifier_value : public color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		lc_modifier_data dat = retrieve< lc_modifier_data>(state, parent);
-		// if river crossing which only affects some units, set orange color to illuminate it
+		// since river crossing which only affects some units, set brown color to illuminate it
 		if(dat.type == lc_mod_type::river) {
-			color = text::text_color::orange;
+			color = text::text_color::brown;
 		}
 		set_text(state, std::to_string(dat.value));
 	}
@@ -600,73 +663,7 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 	}
 };
 
-uint32_t count_battle_regiments_with_river_penalty(const sys::state& state,dcon::land_battle_id battle) {
-	auto has_river_penalty = [](military::battle_regiment battle_reg) {
-		return bool(battle_reg.regiment) && battle_reg.get_crossing() == military::battle_regiment::crossing_river;
-	};
 
-	uint32_t count = 0;
-	for(auto battle_reg : state.world.land_battle_get_defender_front_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_defender_back_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_attacker_front_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_attacker_back_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_reserves(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	return count;
-}
-
-uint32_t count_battle_regiments_with_strait_penalty(const sys::state& state, dcon::land_battle_id battle) {
-	auto has_river_penalty = [](military::battle_regiment battle_reg) {
-		return bool(battle_reg.regiment) && battle_reg.get_crossing() == military::battle_regiment::crossing_strait;
-		};
-
-	uint32_t count = 0;
-	for(auto battle_reg : state.world.land_battle_get_defender_front_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_defender_back_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_attacker_front_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_attacker_back_line(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	for(auto battle_reg : state.world.land_battle_get_reserves(battle)) {
-		if(has_river_penalty(battle_reg)) {
-			count++;
-		}
-	}
-	return count;
-}
 
 
 class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_modifier, lc_modifier_data> {
@@ -699,14 +696,16 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		auto attack_bonus =
 			int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
 
-		uint32_t river_penalized_unit_count = count_battle_regiments_with_river_penalty(state, b);
-		uint32_t strait_penalized_unit_count = count_battle_regiments_with_strait_penalty(state, b);
+		auto crossing_penalty_counts = count_battle_regiments_with_crossing_penalty(state, b);
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, attacker_dice });
-		if(river_penalized_unit_count != 0)
-			row_contents.push_back(lc_modifier_data{ lc_mod_type::river, military::river_crossing_modifier });
-		if(strait_penalized_unit_count != 0)
+		if(crossing_penalty_counts.strait_penalized_units != 0) {
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::river, military::strait_crossing_modifier });
+		}
+		else if(crossing_penalty_counts.river_penalized_units != 0) {
+			row_contents.push_back(lc_modifier_data{ lc_mod_type::river, military::river_crossing_modifier });
+		}
+		
 		if(attack_bonus != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::leader, attack_bonus });
 		if(attacker_gas)

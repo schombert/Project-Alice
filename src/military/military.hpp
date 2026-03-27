@@ -5,6 +5,7 @@
 #include "container_types.hpp"
 #include "modifiers.hpp"
 #include "military_constants.hpp"
+#include "constants_dcon.hpp"
 
 namespace military {
 namespace cb_flag {

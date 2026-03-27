@@ -424,8 +424,8 @@ struct battle_regiment {
 
 	}
 
-	constexpr battle_regiment(dcon::regiment_id _regiment, bool is_attacking, uint16_t type, uint16_t crossing) : regiment(_regiment) {
-		flags = uint16_t(is_attacking | type | crossing);
+	constexpr battle_regiment(dcon::regiment_id _regiment, bool attacking, uint16_t type, uint16_t crossing) : regiment(_regiment) {
+		flags = uint16_t(attacking | type | crossing);
 	}
 
 	constexpr bool get_is_attacking() const {

@@ -5861,9 +5861,6 @@ struct trigger_body {
 	void any_value(std::string_view label, association_type a, std::string_view value, error_handler& err, int32_t line,
 			trigger_building_context& context) {
 		std::string str_label{label};
-		if(label == "absolutism") {
-			int i = 5;
-		}
 
 		// first check the reform and issue options which has a custom string value which refers to the issue option or reform option within said category
 		if(auto itf = context.outer_context.map_of_iissues.find(str_label); itf != context.outer_context.map_of_iissues.end()) {
@@ -6025,8 +6022,17 @@ struct trigger_body {
 			}
 
 		}
-		err.accumulated_errors +=
-			"unknown key: " + str_label + " found in trigger(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		// In base Vic2 there exists triggers to inventions/technologies which has a value other than 0 or 1. They will never evaluate to true ingame and thus don't work, but check for it here and issue a warning intead of the usual error if it is the case.
+		auto tech_it = context.outer_context.map_of_technologies.find(str_label);
+		auto invention_it = context.outer_context.map_of_inventions.find(str_label);
+		if(tech_it != context.outer_context.map_of_technologies.end() || invention_it != context.outer_context.map_of_inventions.end()) {
+			err.accumulated_warnings += "Invention or technology " + str_label + " in trigger has invalid value " + std::string(value) + " (" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+		else {
+			err.accumulated_errors +=
+				"unknown key: " + str_label + " found in trigger(" + err.file_name + ", line " + std::to_string(line) + ")\n";
+		}
+		
 	}
 };
 

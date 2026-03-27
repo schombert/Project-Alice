@@ -5826,7 +5826,6 @@ void adjust_ship_experience(sys::state& state, dcon::nation_id n, dcon::ship_id 
 
 bool nation_participating_in_battle(sys::state& state, dcon::land_battle_id battle, dcon::nation_id nation) {
 	assert(state.world.land_battle_is_valid(battle));
-	std::vector<dcon::nation_id> participants{};
 	for(auto army : state.world.land_battle_get_army_battle_participation(battle)) {
 		auto army_controller = state.world.army_get_controller_from_army_control(army.get_army().id);
 		if(nation == army_controller) {
