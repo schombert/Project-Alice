@@ -401,21 +401,32 @@ static_assert(sizeof(mobilization_order) ==
 	+ sizeof(mobilization_order::when));
 
 struct battle_regiment {
-	static constexpr uint16_t is_attacking = 0x0001;
+	
 
 	// Crossing works as an enum with only one state being allowed.
 	static constexpr uint16_t crossing_mask = 0x0018;
-	static constexpr uint16_t crossing_strait = 0x0018;
-	static constexpr uint16_t crossing_river = 0x0010;
-	static constexpr uint16_t crossing_none = 0x0008;
+	static constexpr uint16_t crossing_strait = 0x0010;
+	static constexpr uint16_t crossing_river = 0x008;
+	static constexpr uint16_t crossing_none = 0x0000;
 
+	// unit type works as an enum with only one state being allowed.
 	static constexpr uint16_t type_mask = 0x0006;
 	static constexpr uint16_t type_infantry = 0x0000;
 	static constexpr uint16_t type_cavalry = 0x0002;
 	static constexpr uint16_t type_support = 0x0004;
 
-	dcon::regiment_id regiment;
+	static constexpr uint16_t is_attacking = 0x0001;
+
+	dcon::regiment_id regiment = dcon::regiment_id{};
 	uint16_t flags = 0;
+
+	constexpr battle_regiment() : regiment(dcon::regiment_id{ }), flags(0) {
+
+	}
+
+	constexpr battle_regiment(dcon::regiment_id _regiment, bool is_attacking, uint16_t type, uint16_t crossing) : regiment(_regiment) {
+		flags = uint16_t(is_attacking | type | crossing);
+	}
 
 	constexpr bool get_is_attacking() const {
 		return flags & is_attacking;

@@ -2760,22 +2760,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<military::battle_regiment,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<military::battle_regiment,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<military::battle_regiment,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<military::battle_regiment,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 

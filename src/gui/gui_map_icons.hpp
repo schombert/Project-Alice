@@ -1464,7 +1464,7 @@ public:
 			for(auto reg : state.world.land_battle_get_reserves(lbattle)) {
 				auto reg_str = state.world.regiment_get_strength(reg.regiment);
 				if(reg_str > state.defines.alice_reg_deploy_from_reserve_str && state.world.regiment_get_org(reg.regiment) >= state.defines.alice_reg_deploy_from_reserve_org) {
-					if((reg.flags & military::reserve_regiment::is_attacking) != 0)
+					if((reg.flags & military::battle_regiment::is_attacking) != 0)
 						a_str += reg_str;
 					else
 						d_str += reg_str;
@@ -1476,20 +1476,20 @@ public:
 			auto& att_front = state.world.land_battle_get_attacker_front_line(lbattle);
 			auto& def_front = state.world.land_battle_get_defender_front_line(lbattle);
 			for(auto r : att_back) {
-				if(r)
-					a_str += state.world.regiment_get_strength(r);
+				if(r.regiment)
+					a_str += state.world.regiment_get_strength(r.regiment);
 			}
 			for(auto r : att_front) {
-				if(r)
-					a_str += state.world.regiment_get_strength(r);
+				if(r.regiment)
+					a_str += state.world.regiment_get_strength(r.regiment);
 			}
 			for(auto r : def_back) {
-				if(r)
-					d_str += state.world.regiment_get_strength(r);
+				if(r.regiment)
+					d_str += state.world.regiment_get_strength(r.regiment);
 			}
 			for(auto r : def_front) {
-				if(r)
-					d_str += state.world.regiment_get_strength(r);
+				if(r.regiment)
+					d_str += state.world.regiment_get_strength(r.regiment);
 			}
 			if(state.world.land_battle_get_war_attacker_is_attacker(lbattle) == player_is_attacker) {
 				display.battle_progress = a_str / (a_str + d_str);

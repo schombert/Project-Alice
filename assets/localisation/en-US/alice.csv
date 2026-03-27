@@ -1951,3 +1951,4 @@ private_message_button_tooltip;Click to toggle whether this player will receive 
 player_loaded_status;Ready
 player_loading_status;Loading
 player_oos_status;OOS
+alice_unit_crossing_modifier;Unit receives a ?Y$x$?W modifier to its combat roll from adjacency modifiers

@@ -46,6 +46,10 @@ enum class province_building_type : uint8_t {
 };
 constexpr inline int32_t max_building_types = 5;
 }
+
+namespace military {
+	constexpr uint8_t MAX_COMBAT_WIDTH = 30;
+}
 // global namespace
 
 // Boolean primitive which is guarrenteed to be 1 byte, whereas normal bool can theoretically wary

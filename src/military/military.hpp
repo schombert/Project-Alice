@@ -59,6 +59,9 @@ constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
 constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
 constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
 
+constexpr inline int32_t river_crossing_modifier = -1;
+constexpr inline int32_t strait_crossing_modifier = -2;
+
 
 struct wg_summary {
 	dcon::nation_id secondary_nation;
@@ -398,12 +401,13 @@ enum class reinforcement_estimation_type {
 
 template<reinforcement_estimation_type reinf_est_type>
 float calculate_army_combined_reinforce(sys::state& state, dcon::army_id a);
+// reduces strength of regiment by value and handles if value is greater than the total strength. Returns the actual reduction performed
+float reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
+float reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
 
-void reduce_regiment_strength_safe(sys::state& state, dcon::regiment_id reg, float value);
-void reduce_ship_strength_safe(sys::state& state, dcon::ship_id reg, float value);
-
+// Applies damage to a regiment. Returns the actual amount of strength subtracted from it
 template<regiment_dmg_source damage_source>
-void regiment_take_damage(sys::state& state, dcon::regiment_id reg, float value);
+float regiment_take_str_damage(sys::state& state, dcon::regiment_id reg, float value);
 
 float movement_time_from_to(sys::state& state, dcon::army_id a, dcon::province_id from, dcon::province_id to);
 float movement_time_from_to(sys::state& state, dcon::navy_id n, dcon::province_id from, dcon::province_id to);
@@ -457,15 +461,16 @@ void single_ship_start_retreat(sys::state& state, ship_in_battle& ship, dcon::na
 // stackwipes the given navy, sinks all of the ships currently in a battle, and removes all ships from the navy. The empty navy will still exist in a retreating state, but will be cleaned up by GC later
 void stackwipe_navy(sys::state& state, dcon::navy_id navy);
 float required_avg_dist_to_center_for_retreat(sys::state& state);
+int32_t get_regiment_crossing_modifier(battle_regiment battle_reg);
 void update_naval_battles(sys::state& state);
 void update_land_battles(sys::state& state);
 void apply_regiment_damage(sys::state& state);
-uint16_t unit_type_to_reserve_regiment_type(unit_type utype);
+uint16_t unit_type_to_battle_regiment_type(unit_type utype);
 float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
 float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
-void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, dcon::regiment_id reg, bool is_attacking);
+void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, battle_regiment reg);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves);
 uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
@@ -477,7 +482,9 @@ dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
 void delete_ship_safe(sys::state& state, dcon::ship_id ship);
 // Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
 void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
-dcon::regiment_id get_land_combat_target(sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<dcon::regiment_id, 30>& opposing_line);
+// Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
+dcon::regiment_id get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots);
+dcon::regiment_id get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
@@ -522,8 +529,8 @@ dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_ba
 float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
 bool is_attacker_in_battle(sys::state& state, dcon::army_id a);
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
-dcon::leader_trait_id get_leader_background_wrapper(sys::state& state, dcon::leader_id id);
-dcon::leader_trait_id get_leader_personality_wrapper(sys::state& state, dcon::leader_id id);
+dcon::leader_trait_id get_leader_background_wrapper(const sys::state& state, dcon::leader_id id);
+dcon::leader_trait_id get_leader_personality_wrapper(const sys::state& state, dcon::leader_id id);
 void update_battle_leaders(sys::state& state, dcon::land_battle_id b);
 void update_battle_leaders(sys::state& state, dcon::naval_battle_id b);
 
