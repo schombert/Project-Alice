@@ -454,6 +454,71 @@ public:
 		text::close_layout_box(contents, box);
 	}
 };
+struct digin_info {
+	uint32_t regiments_dug_in_count; // num of regiments which are dug in
+	uint32_t regiments_targeting_dug_in_count; // num of regiments which are targeting dug in regiments
+};
+
+
+std::vector<digin_info> count_battle_regiments_with_digin(const sys::state& state, dcon::land_battle_id battle) {
+
+	std::vector<digin_info> dig_in_info; // each index is equivalent to the dig in value. Eg a dig in of 2 will have its accociated data at index 2
+
+	auto attacker_recon = military::get_effective_battle_attacker_recon(state, battle);
+
+	auto count_slot = [&]<military::battle_role Role>(int32_t position, const std::array<military::battle_regiment, military::MAX_COMBAT_WIDTH>& combat_slots, const std::array<military::battle_regiment, military::MAX_COMBAT_WIDTH>& opposing_combat_slots) {
+		auto battle_reg = combat_slots[position];
+		if(battle_reg.regiment) {
+			if constexpr(Role == military::battle_role::defender) {
+				auto dig_in = military::get_effective_regiment_dig_in(state, battle_reg, attacker_recon);
+				if(dig_in >= dig_in_info.size()) {
+					dig_in_info.resize(size_t(dig_in + 1));
+				}
+				dig_in_info[dig_in].regiments_dug_in_count += 1;
+			}
+			else {
+				auto target = military::get_land_combat_target(state, battle_reg.regiment, position, opposing_combat_slots);
+				if(target.regiment) {
+					auto target_dig_in = military::get_effective_regiment_dig_in(state, target, attacker_recon);
+					if(target_dig_in >= dig_in_info.size()) {
+						dig_in_info.resize(size_t(target_dig_in + 1));
+					}
+					dig_in_info[target_dig_in].regiments_targeting_dug_in_count += 1;
+				}
+			}
+		}
+
+	};
+
+
+	auto combat_width = state.world.land_battle_get_combat_width(battle);
+	const auto& def_front = state.world.land_battle_get_defender_front_line(battle);
+	const auto& def_back = state.world.land_battle_get_defender_back_line(battle);
+	const auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
+	const auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
+	for(uint8_t i = 0; i < combat_width; ++i) {
+		count_slot.template operator()<military::battle_role::attacker>(i, att_back, def_front);
+		count_slot.template operator()<military::battle_role::attacker>(i, att_front, def_front);
+		count_slot.template operator() < military::battle_role::defender > (i, def_back, att_front);
+		count_slot.template operator() < military::battle_role::defender > (i, def_front, att_front);
+	}
+	auto reserves = state.world.land_battle_get_reserves(battle);
+	for(auto battle_reg : reserves) {
+		if(!battle_reg.get_is_attacking()) {
+			auto dig_in = military::get_effective_regiment_dig_in(state, battle_reg, attacker_recon);
+			if(dig_in >= dig_in_info.size()) {
+				dig_in_info.resize(size_t(dig_in + 1));
+			}
+			dig_in_info[dig_in].regiments_dug_in_count += 1;
+		}
+	}
+
+	return dig_in_info;
+}
+
+
+
+
 
 struct crossing_penalty_count {
 	uint32_t river_penalized_units = 0;
@@ -564,6 +629,15 @@ public:
 		{
 			text::add_line(state, contents, "alice_unit_specific_roll_mod_tooltip");
 			text::add_line(state, contents, "combat_digin");
+			auto dig_in_info = count_battle_regiments_with_digin(state, battle);
+			for(uint32_t i = 1; i < dig_in_info.size(); ++i) {
+				if(dig_in_info[i].regiments_dug_in_count != 0) {
+					text::add_line(state, contents, "alice_num_units_dug_in_tooltip", text::variable_type::count, dig_in_info[i].regiments_dug_in_count, text::variable_type::num, i);
+				}
+				if(dig_in_info[i].regiments_targeting_dug_in_count != 0) {
+					text::add_line(state, contents, "alice_num_units_targeting_dug_in_tooltip", text::variable_type::count, dig_in_info[i].regiments_targeting_dug_in_count, text::variable_type::num, -int32_t(i));
+				}
+			}
 			break;
 		}
 		case lc_mod_type::leader:
@@ -587,8 +661,8 @@ public:
 class lc_modifier_value : public color_text_element {
 	void on_update(sys::state& state) noexcept override {
 		lc_modifier_data dat = retrieve< lc_modifier_data>(state, parent);
-		// since river crossing which only affects some units, set brown color to illuminate it
-		if(dat.type == lc_mod_type::river) {
+		// set brown color to illuminate unit-specific roll modifiers
+		if(dat.type == lc_mod_type::river || dat.type == lc_mod_type::digin) {
 			color = text::text_color::brown;
 		}
 		set_text(state, std::to_string(dat.value));
@@ -630,7 +704,6 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		auto both_dice = state.world.land_battle_get_dice_rolls(b);
-		auto dig_in_value = military::get_effective_battle_dig_in(state, b);
 
 		auto attacking_nation = military::get_land_battle_lead_attacker(state, b);
 		auto defending_nation = military::get_land_battle_lead_defender(state, b);
@@ -650,8 +723,6 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 			int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, defender_dice });
-		if(dig_in_value != 0)
-			row_contents.push_back(lc_modifier_data{ lc_mod_type::digin, dig_in_value });
 		if(terrain_bonus != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::terrain, int32_t(terrain_bonus) });
 		if(defence_bonus != 0)
@@ -697,6 +768,7 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 			int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
 
 		auto crossing_penalty_counts = count_battle_regiments_with_crossing_penalty(state, b);
+		auto max_digin_value = std::max<int32_t>(count_battle_regiments_with_digin(state, b).size() - 1, 0); // max digin value of any unit in battle, as each index is equivalent to the dig in value
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, attacker_dice });
 		if(crossing_penalty_counts.strait_penalized_units != 0) {
@@ -705,6 +777,8 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		else if(crossing_penalty_counts.river_penalized_units != 0) {
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::river, military::river_crossing_modifier });
 		}
+		if(max_digin_value != 0)
+			row_contents.push_back(lc_modifier_data{ lc_mod_type::digin, -max_digin_value });
 		
 		if(attack_bonus != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::leader, attack_bonus });
@@ -1122,7 +1196,7 @@ public:
 		return tooltip_behavior::variable_tooltip;
 	}
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override {
-		dcon::regiment_id target;
+		military::battle_regiment target;
 		auto b = retrieve<dcon::land_battle_id>(state, parent);
 		military::battle_regiment reg{};
 		switch(rank) {
@@ -1146,11 +1220,11 @@ public:
 			break;
 		}
 		std::string_view target_display = "";
-		if(target) {
-			dcon::unit_type_id target_type = state.world.regiment_get_type(target);
+		if(target.regiment) {
+			dcon::unit_type_id target_type = state.world.regiment_get_type(target.regiment);
 			target_display = state.to_string_view(state.military_definitions.unit_base_definitions[target_type].name);
 		}
-		auto target_type = state.world.regiment_get_type(target);
+		auto target_type = state.world.regiment_get_type(target.regiment);
 		auto utid = state.world.regiment_get_type(reg.regiment);
 		if(reg.regiment && utid) {
 			auto p = state.world.land_battle_get_location_from_land_battle_location(b);
@@ -1183,6 +1257,21 @@ public:
 
 			ui::display_unit_stats(state, contents, n, utid);
 			text::add_line(state, contents, "alice_unit_target", text::variable_type::x, target_display);
+			auto attacker_recon = military::get_effective_battle_attacker_recon(state, b);
+			// If defending, display the dig-in
+			if(!reg.get_is_attacking()) {
+				auto reg_dig_in = military::get_effective_regiment_dig_in(state, reg, attacker_recon);
+				if(reg_dig_in != 0) {
+					text::add_line(state, contents, "alice_unit_dug_in", text::variable_type::num, reg_dig_in);
+				}
+			}
+			// else, display the dig-in penalty from targeting the target
+			else {
+				auto target_dig_in = military::get_effective_regiment_dig_in(state, target, attacker_recon);
+				if(target_dig_in != 0) {
+					text::add_line(state, contents, "alice_unit_targeting_dug_in_modifier", text::variable_type::num, -target_dig_in);
+				}
+			}
 			auto crossing_mod =  military::get_regiment_crossing_modifier(reg);
 			if(crossing_mod != 0) {
 				text::add_line(state, contents, "alice_unit_crossing_modifier", text::variable_type::x, std::to_string(crossing_mod));

@@ -402,6 +402,7 @@ static_assert(sizeof(mobilization_order) ==
 
 struct battle_regiment {
 	
+	static constexpr uint16_t dig_in_mask = 0x3e0;
 
 	// Crossing works as an enum with only one state being allowed.
 	static constexpr uint16_t crossing_mask = 0x0018;
@@ -424,8 +425,10 @@ struct battle_regiment {
 
 	}
 
-	constexpr battle_regiment(dcon::regiment_id _regiment, bool attacking, uint16_t type, uint16_t crossing) : regiment(_regiment) {
+	constexpr battle_regiment(dcon::regiment_id _regiment, bool attacking, uint16_t type, uint16_t crossing, uint8_t dig_in) : regiment(_regiment) {
+		assert(type <= type_mask);
 		flags = uint16_t(attacking | type | crossing);
+		flags |= (dig_in << 5) & dig_in_mask;
 	}
 
 	constexpr bool get_is_attacking() const {
@@ -451,6 +454,14 @@ struct battle_regiment {
 	constexpr void set_crossing(uint16_t crossing) {
 		flags &= ~crossing_mask;
 		flags |= (crossing_mask & crossing);
+	}
+
+	constexpr uint8_t get_dig_in() const {
+		return (flags & dig_in_mask) >> 5;
+	}
+	constexpr void set_dig_in(uint8_t dig_in) {
+		flags &= ~dig_in_mask;
+		flags |= (dig_in_mask & (dig_in << 5));
 
 	}
 

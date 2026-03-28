@@ -160,6 +160,16 @@ enum class regiment_dmg_source {
 	combat, attrition
 };
 
+enum class battle_role : uint8_t {
+	attacker = 0,
+	defender = 1
+};
+
+enum class battle_line : uint8_t {
+	frontline = 0,
+	backline = 1
+};
+
 struct ai_path_length {
 	uint32_t length = 0;
 	bool operator==(const ai_path_length& other) const = default;
@@ -471,21 +481,23 @@ float naval_battle_get_coordination_penalty(sys::state& state, uint32_t friendly
 float naval_battle_get_coordination_bonus(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
 uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, bool attacker);
 float get_damage_reduction_stacking_penalty(sys::state& state, uint32_t friendly_ships, uint32_t enemy_ships);
-void add_regiment_to_reserves(sys::state& state, dcon::land_battle_id bat, battle_regiment reg);
 bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg);
 void sort_reserves_by_deployment_order(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves);
-uint8_t get_effective_battle_dig_in(sys::state& state, dcon::land_battle_id battle);
+// calculates the effective dig-in of a battle regiment with the given amount of recon being opposed to it
+uint8_t get_effective_regiment_dig_in(const sys::state& state, battle_regiment bat_regiment, float recon);
+// calculates the effective recon value of the attacking side in a battle
+float get_effective_battle_attacker_recon(const sys::state& state, dcon::land_battle_id battle);
 float get_army_recon_eff(sys::state& state, dcon::army_id army);
 float get_army_siege_eff(sys::state& state, dcon::army_id army);
-dcon::nation_id tech_nation_for_army(sys::state& state, dcon::army_id army);
+dcon::nation_id tech_nation_for_army(const sys::state& state, dcon::army_id army);
 
 // Deletes the ship and removes it from any battle it may be in
 void delete_ship_safe(sys::state& state, dcon::ship_id ship);
 // Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
 void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 // Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
-dcon::regiment_id get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots);
-dcon::regiment_id get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line);
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots);
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
@@ -528,7 +540,7 @@ dcon::nation_id get_naval_battle_lead_defender(sys::state& state, dcon::naval_ba
 dcon::nation_id get_naval_battle_lead_attacker(sys::state& state, dcon::naval_battle_id b);
 
 float get_leader_select_score(sys::state& state, dcon::leader_id l, bool is_attacking);
-bool is_attacker_in_battle(sys::state& state, dcon::army_id a);
+bool is_attacker_in_battle(const sys::state& state, dcon::army_id a);
 bool is_attacker_in_battle(sys::state& state, dcon::navy_id a);
 dcon::leader_trait_id get_leader_background_wrapper(const sys::state& state, dcon::leader_id id);
 dcon::leader_trait_id get_leader_personality_wrapper(const sys::state& state, dcon::leader_id id);
