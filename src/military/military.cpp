@@ -61,8 +61,10 @@ template auto province_is_blockaded<ve::tagged_vector<dcon::province_id>>(sys::s
 template auto province_is_under_siege<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 template auto battle_is_ongoing_in_province<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 
-constexpr inline float org_dam_mul = 0.18f;
-constexpr inline float str_dam_mul = 0.14f;
+// magic number to scale org damage to match that of Vic2
+constexpr inline float land_org_dam_scaler = 5.986796f; // 5.986796f will match same org damage as base vic2
+// magic number to scale str damage to match that of Vic2
+constexpr inline float land_str_dam_scaler = 0.2f; // 0.2f will match same str damage as base vic2
 
 int32_t total_regiments(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_active_regiments(n);
@@ -6754,13 +6756,17 @@ bool is_regiment_in_reserve(sys::state& state, dcon::regiment_id reg) {
 // gets the effective default organization of a regiment (ie max org, based on techs and leading general)
 float unit_get_effective_default_org(const sys::state& state, dcon::regiment_id reg) {
 	auto army = state.world.regiment_get_army_from_army_membership(reg);
+	auto tech_nation = tech_nation_for_army(state, army);
 	auto type = state.world.regiment_get_type(reg);
-	auto base_org = state.world.nation_get_unit_stats(tech_nation_for_regiment(state, reg), type).default_organisation;
 	auto leader = state.world.army_get_general_from_army_leadership(army);
 	auto leader_bg = get_leader_background_wrapper(state, leader);
 	auto leader_per = get_leader_personality_wrapper(state, leader);
-	return base_org * ((1.0f + state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per)) *
-		   (1.0f + state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor));
+
+	auto base_org = state.world.nation_get_unit_stats(tech_nation, type).default_organisation;
+	auto leader_org_mod = state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per);
+	auto leader_prestige_org_mod = state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor;
+	auto national_org_mod = 1.0f + state.world.nation_get_modifier_values(tech_nation, sys::national_mod_offsets::land_organisation);
+	return base_org * (1.0f + leader_org_mod + leader_prestige_org_mod) * national_org_mod;
 }
 
 // gets the effective default organization of a ship (ie max org, based on techs and leading admiral)
@@ -6768,12 +6774,15 @@ float unit_get_effective_default_org(const sys::state& state, dcon::ship_id ship
 	auto navy = state.world.ship_get_navy_from_navy_membership(ship);
 	auto owner = state.world.navy_get_controller_from_navy_control(navy);
 	auto type = state.world.ship_get_type(ship);
-	auto base_org = state.world.nation_get_unit_stats(state.world.navy_get_controller_from_navy_control(navy), type).default_organisation;
 	auto leader = state.world.navy_get_admiral_from_navy_leadership(navy);
 	auto leader_bg = get_leader_background_wrapper(state, leader);
 	auto leader_per = get_leader_personality_wrapper(state, leader);
-	return base_org * ((1.0f + state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per)) *
-		   (1.0f + state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor) * (1.0f + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::naval_organisation)));
+
+	auto base_org = state.world.nation_get_unit_stats(owner, type).default_organisation;
+	auto leader_org_mod = state.world.leader_trait_get_organisation(leader_bg) + state.world.leader_trait_get_organisation(leader_per);
+	auto leader_prestige_org_mod = state.world.leader_get_prestige(leader) * state.defines.leader_prestige_to_max_org_factor;
+	auto national_org_mod = 1.0f + state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::naval_organisation);
+	return base_org * (1.0f + leader_org_mod + leader_prestige_org_mod) * national_org_mod;
 }
 
 // implementation of what it sorts by can change, for now it sorts by strength and puts the highest str brigades in front of the queue
@@ -6891,7 +6900,7 @@ float get_reg_str_damage(const sys::state& state, dcon::regiment_id damage_deale
 		unit_dmg_support = 1.f;
 	}
 
-	return dmg_dealer_str * str_dam_mul * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers / (fort_mod * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::military_tactics)) * (1 + receiver_exp));
+	return dmg_dealer_str * land_str_dam_scaler * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * ( 1.f / (fort_mod * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::military_tactics)))) * (1.f / (1.f + receiver_exp));
 }
 // caluclates expected org damage, has no side effects
 float get_reg_org_damage(const sys::state& state, dcon::regiment_id damage_dealer, dcon::regiment_id damage_receiver, float battle_modifiers, bool backline, bool attacker, float fort_mod = 1.0f) {
@@ -6902,7 +6911,7 @@ float get_reg_org_damage(const sys::state& state, dcon::regiment_id damage_deale
 	const auto& dmg_dealer_stats = state.world.nation_get_unit_stats(dmg_dealer_tech_nation, state.world.regiment_get_type(damage_dealer));
 	const auto& dmg_receiver_stats = state.world.nation_get_unit_stats(dmg_receiver_tech_nation, state.world.regiment_get_type(damage_receiver));
 
-	auto receiver_max_org_divisor = unit_get_effective_default_org(state, damage_receiver) / 30;
+	auto max_org = unit_get_effective_default_org(state, damage_receiver);
 
 	float unit_dmg_stat;
 	float unit_dmg_support;
@@ -6924,7 +6933,7 @@ float get_reg_org_damage(const sys::state& state, dcon::regiment_id damage_deale
 	else {
 		unit_dmg_support = 1.f;
 	}
-	return dmg_dealer_str * (org_dam_mul / receiver_max_org_divisor) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers / (fort_mod * dmg_receiver_stats.discipline_or_evasion * (1.0f + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::land_organisation)) * (1.0f + receiver_exp));
+	return dmg_dealer_str * (land_org_dam_scaler / max_org) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * (1.f / (fort_mod * dmg_receiver_stats.discipline_or_evasion)) * (1.0f / (1.0f + receiver_exp));
 }
 
 
