@@ -713,8 +713,6 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 
 		auto defender_dice = (both_dice >> 4) & 0x0F;
 
-		auto location = state.world.land_battle_get_location_from_land_battle_location(b);
-		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
 
 		auto defender_per = military::get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
 		auto defender_bg = military::get_leader_background_wrapper(state, state.world.land_battle_get_general_from_defending_general(b));
@@ -723,8 +721,6 @@ class defender_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 			int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, defender_dice });
-		if(terrain_bonus != 0)
-			row_contents.push_back(lc_modifier_data{ lc_mod_type::terrain, int32_t(terrain_bonus) });
 		if(defence_bonus != 0)
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::leader, defence_bonus });
 		if(defender_gas)
@@ -764,6 +760,9 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		auto attacker_per = military::get_leader_personality_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b));
 		auto attacker_bg = military::get_leader_background_wrapper(state, state.world.land_battle_get_general_from_attacking_general(b));
 
+		auto location = state.world.land_battle_get_location_from_land_battle_location(b);
+		auto terrain_bonus = state.world.province_get_modifier_values(location, sys::provincial_mod_offsets::defense);
+
 		auto attack_bonus =
 			int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
 
@@ -771,6 +770,8 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 		auto max_digin_value = std::max<int32_t>(count_battle_regiments_with_digin(state, b).size() - 1, 0); // max digin value of any unit in battle, as each index is equivalent to the dig in value
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, attacker_dice });
+		if(terrain_bonus != 0)
+			row_contents.push_back(lc_modifier_data{ lc_mod_type::terrain, int32_t(-terrain_bonus) });
 		if(crossing_penalty_counts.strait_penalized_units != 0) {
 			row_contents.push_back(lc_modifier_data{ lc_mod_type::river, military::strait_crossing_modifier });
 		}

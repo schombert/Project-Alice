@@ -5107,7 +5107,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						2, 30)));
+						2, int32_t(MAX_COMBAT_WIDTH))));
 
 				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender, crossing_type::none);
@@ -5132,7 +5132,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						2, 30)));
+						2, int32_t(MAX_COMBAT_WIDTH))));
 
 				add_army_to_battle(state, a, new_battle, par.role, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker, crossing_type::none);
@@ -7129,8 +7129,8 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 		int32_t(state.world.leader_trait_get_defense(defender_per) + state.world.leader_trait_get_defense(defender_bg));
 	// Battle-wide roll modifiers
 
-	int32_t attacker_battle_mod = attacker_dice + attack_bonus + int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f);
-	int32_t defender_battle_mod = defender_dice + defence_bonus + int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(terrain_bonus);
+	int32_t attacker_battle_mod = attacker_dice + attack_bonus + int32_t(attacker_gas ? state.defines.gas_attack_modifier : 0.0f) + int32_t(-terrain_bonus);
+	int32_t defender_battle_mod = defender_dice + defence_bonus + int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f);
 
 	// Fort modifier
 	float defender_fort = 1.0f;
