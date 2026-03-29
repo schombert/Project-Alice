@@ -62,9 +62,11 @@ template auto province_is_under_siege<ve::tagged_vector<dcon::province_id>>(sys:
 template auto battle_is_ongoing_in_province<ve::tagged_vector<dcon::province_id>>(sys::state const&, ve::tagged_vector<dcon::province_id>);
 
 // magic number to scale org damage to match that of Vic2
-constexpr inline float land_org_dam_scaler = 5.986796f; // 5.986796f will match same org damage as base vic2
+constexpr inline float land_org_dam_scaler = 6.0f; // 6.0 will match same org damage as base vic2
 // magic number to scale str damage to match that of Vic2
-constexpr inline float land_str_dam_scaler = 0.2f; // 0.2f will match same str damage as base vic2
+constexpr inline float land_str_dam_scaler = 600.0f; // 600.0 will match same str damage as base vic2
+// magic number to scale org damage to match that of Vic2
+constexpr inline float naval_org_dam_scaler = 100.0f;// 100.0 will match same org damage as base vic2
 
 int32_t total_regiments(sys::state& state, dcon::nation_id n) {
 	return state.world.nation_get_active_regiments(n);
@@ -6900,7 +6902,9 @@ float get_reg_str_damage(const sys::state& state, dcon::regiment_id damage_deale
 		unit_dmg_support = 1.f;
 	}
 
-	return dmg_dealer_str * land_str_dam_scaler * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * ( 1.f / (fort_mod * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::military_tactics)))) * (1.f / (1.f + receiver_exp));
+	float raw_casualties = dmg_dealer_str * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * land_str_dam_scaler * ( 1.f / (fort_mod * (state.defines.base_military_tactics + state.world.nation_get_modifier_values(dmg_receiver_tech_nation, sys::national_mod_offsets::military_tactics)))) * (1.f / (1.f + receiver_exp));
+	// scale casualties to the strength per unit in the mod, so it is returned as a percentage of max strength
+	return raw_casualties / state.defines.pop_size_per_regiment;
 }
 // caluclates expected org damage, has no side effects
 float get_reg_org_damage(const sys::state& state, dcon::regiment_id damage_dealer, dcon::regiment_id damage_receiver, float battle_modifiers, bool backline, bool attacker, float fort_mod = 1.0f) {
@@ -6933,13 +6937,15 @@ float get_reg_org_damage(const sys::state& state, dcon::regiment_id damage_deale
 	else {
 		unit_dmg_support = 1.f;
 	}
-	return dmg_dealer_str * (land_org_dam_scaler / max_org) * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * (1.f / (fort_mod * dmg_receiver_stats.discipline_or_evasion)) * (1.0f / (1.0f + receiver_exp));
+	float raw_org_damage = dmg_dealer_str  * (unit_dmg_stat * 0.1f + 1.0f) * unit_dmg_support * battle_modifiers * land_org_dam_scaler * (1.f / (fort_mod * dmg_receiver_stats.discipline_or_evasion)) * (1.0f / (1.0f + receiver_exp));
+	// scale org damage to max org of the unit, so it is returned as a percentage of its max org
+	return raw_org_damage / max_org;
 }
 
 
 
-
-float get_land_combat_roll_modifier(int32_t roll) {
+// Gets the combat modifier for the given roll value
+float get_combat_roll_modifier(int32_t roll) {
 	return combat_modifier_table[std::clamp(roll + 3, 0, 18)]; // add three to roll as the minimum modifier is a -3 roll, and we need to index into an array.
 }
 
@@ -7145,7 +7151,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 			if(target_regiment.regiment) {
 				auto battle_modifiers = (DmgDealerRole == battle_role::attacker ? attacker_battle_mod : defender_battle_mod);
 				auto target_dig_in = get_effective_regiment_dig_in(state, target_regiment, attacker_eff_recon);
-				float unit_modifiers = get_land_combat_roll_modifier(battle_modifiers + (-target_dig_in) + get_regiment_crossing_modifier(damage_dealer));
+				float unit_modifiers = get_combat_roll_modifier(battle_modifiers + (-target_dig_in) + get_regiment_crossing_modifier(damage_dealer));
 				float actual_fort_mod = (DmgDealerRole == battle_role::attacker ? defender_fort : 1.0f);
 
 				bool backline = (DmgDealerLine == battle_line::backline ? true : false);
@@ -7963,7 +7969,7 @@ float get_ship_org_damage(sys::state& state, const ship_in_battle& damage_dealer
 	auto stacking_dmg_penalty = get_damage_reduction_stacking_penalty(state, friendly_ships, enemy_ships);
 
 	// this is the org damage in raw numbers instead of percentages, ie what needs to be effectively subtacted from the "default org" member of a given unit
-	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_org_mult * 100;
+	float raw_org_dmg = (dmg_dealer_stats.attack_or_gun_power + (target_is_big ? dmg_dealer_stats.siege_or_torpedo_attack : 0.0f)) * (1 / target_stats.defence_or_hull) * (1 / (1 + targ_ship_exp)) * dmg_dealer_str * battle_modifiers * naval_org_dam_scaler * (1.0f - target_stats.discipline_or_evasion) * stacking_dmg_penalty * state.defines.naval_combat_damage_org_mult;
 	// this calculates the percentages to be returned, and possibly subtracted from the percentage "org" dcon member later
 	float percentage_org_dmg = raw_org_dmg / unit_get_effective_default_org(state, target.ship);
 	return percentage_org_dmg;
