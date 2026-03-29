@@ -32,22 +32,25 @@ void map_state::load_map(sys::state& state) {
 	map_data.load_map(state);
 }
 
-map_view map_state::current_view(sys::state& state) {
-	auto current_view = map::map_view::globe;
-	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
-		current_view = map::map_view::flat;
-	} else if(state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
-		current_view = map::map_view::globe_perspect;
-	}
-	return current_view;
+sys::projection_mode map_state::current_view(const sys::state& state) {
+	return state.user_settings.map_is_globe;
 }
 
 
 void map_state::render(sys::state& state, uint32_t screen_x, uint32_t screen_y) {
 	update(state);
-	glm::vec2 offset = glm::vec2(glm::mod(pos.x, 1.f) - 0.5f, pos.y - 0.5f);
-	map_data.render(state, glm::vec2(screen_x, screen_y), offset, zoom,
-			current_view(state), active_map_mode, globe_rotation, time_counter);
+	glm::vec2 inverted_map_shift = { glm::mod(pos.data.x, 1.f), pos.data.y};
+	map_space::point_normalized offset = map_space::normalized_from_inverted({ inverted_map_shift });
+	map_data.render(
+		state,
+		glm::vec2(screen_x, screen_y),
+		offset,
+		zoom,
+		current_view(state),
+		active_map_mode,
+		globe_rotation,
+		time_counter
+	);
 }
 
 glm::vec2 get_port_location(sys::state& state, dcon::province_id p) {
@@ -2301,11 +2304,11 @@ void map_state::update_cache(sys::state& state) {
 					continue;
 				}
 
-				auto center_pos = map_data.border_vertices[b.start_index + b.count / 4].position;
-				center_pos.y = 1.f - center_pos.y;
+				map_space::point_normalized center_pos = {map_data.border_vertices[b.start_index + b.count / 4].position};
+				auto center_pos_adjusted = map_space::inverted_from_normalized(center_pos);
 
-				glm::vec2 center;
-				if (!state.map_state.map_to_screen(state, center_pos, screen_size, center, { 200.0f, 200.0f }) && b.count < 2000) {
+				screen_space::point_ui center;
+				if (!state.map_state.map_to_screen(center_pos_adjusted, screen_size, state.user_settings.map_is_globe, center, { 400.0f, 400.0f }) && b.count < 2000) {
 					b.skip = true;
 				}
 				else {
@@ -2446,16 +2449,16 @@ void map_state::update(sys::state& state) {
 		last_map_movement = now;
 		last_map_movement_handled = false;
 	}
-	pos += velocity;
+	pos.data += velocity;
 
-	pos.x = glm::mod(pos.x, 1.f);
-	pos.y = glm::clamp(pos.y, 0.f, 1.f);
+	pos.data.x = glm::mod(pos.data.x, 1.f);
+	pos.data.y = glm::clamp(pos.data.y, 0.f, 1.f);
 
-	glm::vec2 mouse_pos{ state.mouse_x_position, state.mouse_y_position };
+	screen_space::point_ui mouse_pos{ {(float)(state.mouse_x_position), (float)(state.mouse_y_position)} };
 	glm::vec2 screen_size{ state.x_size, state.y_size };
-	glm::vec2 screen_center = screen_size / 2.f;
+	screen_space::point_ui screen_center = {{screen_size / 2.f}};
 	auto view_mode = current_view(state);
-	glm::vec2 pos_before_zoom;
+	map_space::point_normalized_inverted_y pos_before_zoom;
 	bool valid_pos = screen_to_map(mouse_pos, screen_size, view_mode, pos_before_zoom);
 
 	auto zoom_diff = (zoom_change * seconds_since_last_update) / (1 / zoom);
@@ -2467,27 +2470,27 @@ void map_state::update(sys::state& state) {
 	zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
-	glm::vec2 pos_after_zoom;
+	map_space::point_normalized_inverted_y pos_after_zoom;
 	if(valid_pos && screen_to_map(mouse_pos, screen_size, view_mode, pos_after_zoom)) {
 		switch(state.user_settings.zoom_mode) {
 		case sys::map_zoom_mode::panning:
-			pos += pos_before_zoom - pos_after_zoom;
+			pos.data += pos_before_zoom.data - pos_after_zoom.data;
 			break;
 		case sys::map_zoom_mode::inverted:
-			pos -= pos_before_zoom - pos_after_zoom;
+			pos.data -= pos_before_zoom.data - pos_after_zoom.data;
 			break;
 		case sys::map_zoom_mode::to_cursor:
 			if(zoom_change < 0.f) {
-				pos -= pos_before_zoom - pos_after_zoom;
+				pos.data -= pos_before_zoom.data - pos_after_zoom.data;
 			} else {
-				pos += pos_before_zoom - pos_after_zoom;
+				pos.data += pos_before_zoom.data - pos_after_zoom.data;
 			}
 			break;
 		case sys::map_zoom_mode::away_from_cursor:
 			if(zoom_change < 0.f) {
-				pos += pos_before_zoom - pos_after_zoom;
+				pos.data += pos_before_zoom.data - pos_after_zoom.data;
 			} else {
-				pos -= pos_before_zoom - pos_after_zoom;
+				pos.data -= pos_before_zoom.data - pos_after_zoom.data;
 			}
 			break;
 		case sys::map_zoom_mode::centered:
@@ -2506,7 +2509,7 @@ void map_state::update(sys::state& state) {
 		keyboard_zoom_change -= 0.1f;
 	}
 
-	glm::vec2 pos_before_keyboard_zoom;
+	map_space::point_normalized_inverted_y pos_before_keyboard_zoom;
 	valid_pos = screen_to_map(screen_center, screen_size, view_mode, pos_before_keyboard_zoom);
 
 	auto keyboard_zoom_diff = (keyboard_zoom_change * seconds_since_last_update) / (1 / zoom);
@@ -2518,19 +2521,23 @@ void map_state::update(sys::state& state) {
 	keyboard_zoom_change *= std::exp(-seconds_since_last_update * state.user_settings.zoom_speed);
 	zoom = glm::clamp(zoom, min_zoom, max_zoom);
 
-	glm::vec2 pos_after_keyboard_zoom;
+	map_space::point_normalized_inverted_y pos_after_keyboard_zoom;
 	if(valid_pos && screen_to_map(screen_center, screen_size, view_mode, pos_after_keyboard_zoom)) {
-		pos += pos_before_keyboard_zoom - pos_after_keyboard_zoom;
+		pos.data += pos_before_keyboard_zoom.data - pos_after_keyboard_zoom.data;
 	}
 
-
-	globe_rotation = glm::rotate(glm::mat4(1.f), (0.25f - pos.x) * 2 * glm::pi<float>(), glm::vec3(0, 0, 1));
+	glm::mat4 base_rotation(
+		{ 1.f, 0.f, 0.f,0.f },
+		{ 0.f, -1.f, 0.f,0.f },
+		{ 0.f, 0.f, 1.f,0.f },
+		{ 0.f,0.f,0.f,1.f }
+	);
+	globe_rotation = glm::rotate(base_rotation, (0.25f + pos.data.x) * 2 * glm::pi<float>(), glm::vec3(0, 1, 0));
 	// Rotation axis
-	glm::vec3 axis = glm::vec3(globe_rotation * glm::vec4(1, 0, 0, 0));
-	axis.z = 0;
+	glm::vec3 axis = glm::vec3(glm::vec4(1, 0, 0, 0) * globe_rotation);
+	axis.y = 0;
 	axis = glm::normalize(axis);
-	axis.y *= -1;
-	globe_rotation = glm::rotate(globe_rotation, (-pos.y + 0.5f) * glm::pi<float>(), axis);
+	globe_rotation = glm::rotate(globe_rotation, (0.5f + pos.data.y) * glm::pi<float>(), axis);
 
 
 	if(unhandled_province_selection) {
@@ -2608,9 +2615,18 @@ void map_state::on_key_up(sys::virtual_key keycode, sys::key_modifiers mod) {
 	}
 }
 
-void map_state::set_pos(glm::vec2 new_pos) {
-	pos.x = glm::mod(new_pos.x, 1.f);
-	pos.y = glm::clamp(new_pos.y, 0.f, 1.0f);
+void map_state::set_pos(map_space::point_normalized_inverted_y new_pos) {
+	pos.data.x = glm::mod(new_pos.data.x, 1.f);
+	pos.data.y = glm::clamp(new_pos.data.y, 0.f, 1.0f);
+	assert(std::isfinite(pos.data.x));
+	assert(std::isfinite(pos.data.y));
+}
+
+void map_state::shift_pos(map_space::point_normalized_inverted_y shift, float multiplier) {
+	pos.data.x = glm::mod(pos.data.x + shift.data.x * multiplier, 1.f);
+	pos.data.y = glm::clamp(pos.data.y + shift.data.y * multiplier, 0.f, 1.0f);
+	assert(std::isfinite(pos.data.x));
+	assert(std::isfinite(pos.data.y));
 }
 
 void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
@@ -2620,11 +2636,8 @@ void map_state::center_map_on_province(sys::state& state, dcon::province_id p) {
 	last_map_movement = std::chrono::steady_clock::now();
 	last_map_movement_handled = false;
 
-	auto map_pos = state.world.province_get_mid_point(p);
-	map_pos.x /= float(map_data.size_x);
-	map_pos.y /= float(map_data.size_y);
-	map_pos.y = 1.0f - map_pos.y;
-	set_pos(map_pos);
+	map_space::point map_pos = {state.world.province_get_mid_point(p)};
+	set_pos(map_space::inverted_from_point(map_pos, float(map_data.size_x), float(map_data.size_y)));
 }
 
 void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod,
@@ -2635,22 +2648,22 @@ void map_state::on_mouse_wheel(int32_t x, int32_t y, int32_t screen_size_x, int3
 }
 
 void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	auto mouse_pos = glm::vec2(x, y);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 	if(is_dragging) { // Drag the map with middlemouse
-		glm::vec2 map_pos;
-		screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
+		map_space::point_normalized_inverted_y map_pos;
+		screen_to_map(mouse_pos, screen_size, sys::projection_mode::rectangle, map_pos);
 
 		last_map_movement = std::chrono::steady_clock::now();
 		last_map_movement_handled = false;
-		set_pos(pos + last_camera_drag_pos - glm::vec2(map_pos));
+		shift_pos({last_camera_drag_pos.data - map_pos.data}, 1.f);
 	}
-	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos);
+	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos.data);
 	if((mouse_diff.x > std::ceil(screen_size_x * 0.0025f) || mouse_diff.y > std::ceil(screen_size_y * 0.0025f))
 		&& left_mouse_down)
 	{
 		auto pos1 = last_unit_box_drag_pos / screen_size;
-		auto pos2 = mouse_pos / screen_size;
+		auto pos2 = mouse_pos.data / screen_size;
 		auto pixel_size = glm::vec2(1) / screen_size;
 		map_data.set_drag_box(true, pos1, pos2, pixel_size);
 	} else {
@@ -2658,93 +2671,128 @@ void map_state::on_mouse_move(int32_t x, int32_t y, int32_t screen_size_x, int32
 	}
 }
 
-bool map_state::screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos) {
-	if(view_mode == map_view::globe) {
-		screen_pos -= screen_size * 0.5f;
-		screen_pos /= screen_size;
-		screen_pos.x *= screen_size.x / screen_size.y;
+bool map_state::screen_to_map(
+	const screen_space::point_ui screen_pos,
+	glm::vec2 screen_size,
+	sys::projection_mode view_mode,
+	map_space::point_normalized_inverted_y& map_pos
+) {
+	auto original_screen_pos = screen_pos;
+	auto screen_clip = screen_space::clip_space_from_ui(screen_pos, screen_size.x, screen_size.y);
+	auto aspect_ratio = screen_size.x / screen_size.y;
+	constexpr float pi = glm::pi<float>();
 
-		float cursor_radius = glm::length(screen_pos);
-		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, -10 * zoom, -screen_pos.y);
-		glm::vec3 cursor_direction = glm::vec3(0, 1, 0);
-		glm::vec3 sphere_center = glm::vec3(0, 0, 0);
-		float sphere_radius = zoom / glm::pi<float>();
+	if(view_mode == sys::projection_mode::globe_orthographic) {
+		glm::vec3 camera = glm::vec3(screen_clip.data.x * aspect_ratio / 2.f / zoom, screen_clip.data.y / 2.f / zoom, 1.f);
+		glm::vec3 cursor_direction = glm::vec3(0, 0, -1.f);
+		glm::vec3 sphere_center = glm::vec3(0, 0, -pi);
+
+		float sphere_radius = 1.f / glm::pi<float>();
 
 		glm::vec3 intersection_pos;
 		glm::vec3 intersection_normal;
 
-		if(glm::intersectRaySphere(cursor_pos, cursor_direction, sphere_center, sphere_radius, intersection_pos,
-			intersection_normal)) {
-			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
-			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
-			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
-			float pi = glm::pi<float>();
-			map_pos = glm::vec2((phi / (2 * pi)) + 0.5f, theta / pi);
-			return true;
+		if(glm::intersectRaySphere(
+			camera,
+			cursor_direction,
+			sphere_center,
+			sphere_radius,
+			intersection_pos,
+			intersection_normal
+		)) {
+			intersection_pos -= sphere_center;
+			intersection_pos = intersection_pos * glm::mat3(globe_rotation);
+			intersection_pos = glm::normalize(intersection_pos);
+			sphere_R3::point sphere_point = { { intersection_pos.y, intersection_pos.x, intersection_pos.z } };
+			auto square_point = sphere_R3::to_square(sphere_point);
+			auto back_to_sphere = sphere_R3::from_square(square_point);
+			map_pos = map_space::inverted_from_normalized(square_point);
+			return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 		}
 		return false;
-	} else if (view_mode == map_view::globe_perspect) {
-		float aspect_ratio = screen_size.x / screen_size.y;
-		float pi = glm::pi<float>();
-
-		//normalize screen
-		screen_pos -= screen_size * 0.5f;
-		screen_pos /= -screen_size;
-
+	} else if (view_mode == sys::projection_mode::globe_perspective) {
 		//perspective values
 		float near_plane = 0.1f;
 		float far_plane = 1.2f;
-		float right = near_plane * tan(pi / 6.f) / zoom * aspect_ratio * 2.f;
-		float top = near_plane * tan(pi / 6.f) / zoom * 2.f;
-
-		//transform screen plane to near plane
-		screen_pos.x *= right;
-		screen_pos.y *= top;
+		float right = near_plane * tan(pi / 6.f) / zoom * aspect_ratio;
+		float top = near_plane * tan(pi / 6.f) / zoom;
 
 		//set up data for glm::intersectRaySphere
-		float cursor_radius = glm::length(screen_pos);
 		glm::vec3 camera = glm::vec3(0.f, 0.f, 0.f);
-		glm::vec3 cursor_pos = glm::vec3(screen_pos.x, screen_pos.y, -near_plane);
+		glm::vec3 cursor_pos = glm::vec3(screen_clip.data.x * right, screen_clip.data.y * top, -near_plane);
 		glm::vec3 cursor_direction = glm::normalize(cursor_pos);
 		glm::vec3 sphere_center = glm::vec3(0.f, 0.f, -1.2f);
 		float sphere_radius = 1.f / pi;
 
 
-		glm::vec3 intersection_pos;
+		glm::vec3 intersection_pos_after_rotation;
 		glm::vec3 intersection_normal;
 
-		if(glm::intersectRaySphere(camera, cursor_direction, sphere_center, sphere_radius, intersection_pos,
-			intersection_normal)) {
-			intersection_pos -= sphere_center;
+		if(glm::intersectRaySphere(
+			camera,
+			cursor_direction,
+			sphere_center,
+			sphere_radius,
+			intersection_pos_after_rotation,
+			intersection_normal
+		)) {
+			intersection_pos_after_rotation -= sphere_center;
+			intersection_pos_after_rotation = glm::normalize(intersection_pos_after_rotation);
 
-			intersection_pos = glm::vec3(-intersection_pos.x, -intersection_pos.z, intersection_pos.y);
+			/*
+			Inverse of rotation matrix is transpose, so we multiply it in the opposite direction
+			*/
 
-			intersection_pos = glm::mat3(glm::inverse(globe_rotation)) * intersection_pos;
-			float theta = std::acos(std::clamp(intersection_pos.z / glm::length(intersection_pos), -1.f, 1.f));
-			float phi = std::atan2(intersection_pos.y, intersection_pos.x);
-			map_pos = glm::vec2((phi / (2.f * pi)) + 0.5f, theta / pi);
-			return true;
+			auto intersection_pos_before_rotation = intersection_pos_after_rotation * glm::mat3(globe_rotation);
+
+			/*
+			Now we want to get back to the "Calculation sphere" from the "Display shpere".
+			The only remaining difference between them is that two axis should be swapped
+			*/
+
+			sphere_R3::point sphere_point = { { intersection_pos_before_rotation.y, intersection_pos_before_rotation.x, intersection_pos_before_rotation.z } };
+			auto square_point = sphere_R3::to_square(sphere_point);
+			auto back_to_sphere = sphere_R3::from_square(square_point);
+
+			map_pos = map_space::inverted_from_normalized(square_point);
+
+			//screen_space::point_ui back_to_screen;
+			//map_to_screen(map_pos, screen_size, view_mode, back_to_screen, { 0.f, 0.f });
+			//assert(glm::distance(back_to_screen.data, original_screen_pos.data) < 20.f);
+			//map_to_screen(map_pos, screen_size, view_mode, back_to_screen, { 0.f, 0.f });
+			return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 		}
 		return false;
-	} else {
-		screen_pos -= screen_size * 0.5f;
-		screen_pos /= screen_size;
-		screen_pos.x *= screen_size.x / screen_size.y;
-		screen_pos.x *= float(map_data.size_y) / float(map_data.size_x);
+	} else if (view_mode == sys::projection_mode::rectangle) {
 
-		screen_pos /= zoom;
-		screen_pos += pos;
-		map_pos = screen_pos;
-		return (map_pos.x >= 0 && map_pos.y >= 0 && map_pos.x <= map_data.size_x && map_pos.y <= map_data.size_y);
+		auto map_ratio = float(map_data.size_x) / float(map_data.size_y);
+		map_space::point_normalized camera_center = map_space::normalized_from_inverted(pos);
+		auto rectangle_camera_center = equirectangular::from_square(camera_center, map_ratio, 1.f);
+		auto mouse_shift_relative_to_center = screen_clip.data / 2.f / zoom * glm::vec2(aspect_ratio, 1.f);
+		equirectangular::point shifted_center = {rectangle_camera_center.data + mouse_shift_relative_to_center};
+		auto square_point = equirectangular::to_square(shifted_center, map_ratio, 1.f);
+		map_pos = map_space::inverted_from_normalized(square_point);
+
+		return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
+	} else if (view_mode == sys::projection_mode::square) {
+
+		map_space::point_normalized camera_center = map_space::normalized_from_inverted(pos);
+		auto mouse_shift_relative_to_center = screen_clip.data / 2.f / zoom * glm::vec2(aspect_ratio, 1.f);
+		square::point shifted_center = { camera_center.data + mouse_shift_relative_to_center};
+		map_pos = map_space::inverted_from_normalized(shifted_center);
+
+		return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 	}
+
+	return false;
 }
 
 void map_state::on_mbuttom_down(int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod) {
-	auto mouse_pos = glm::vec2(x, y);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
 
-	glm::vec2 map_pos;
-	screen_to_map(mouse_pos, screen_size, map_view::flat, map_pos);
+	map_space::point_normalized_inverted_y map_pos;
+	screen_to_map(mouse_pos, screen_size, sys::projection_mode::rectangle, map_pos);
 
 	last_camera_drag_pos = map_pos;
 	is_dragging = true;
@@ -2766,16 +2814,16 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 		sys::key_modifiers mod) {
 	left_mouse_down = false;
 	map_data.set_drag_box(false, {}, {}, {});
-	auto mouse_pos = glm::vec2(x, y);
-	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
+	glm::vec2 mouse_diff = glm::abs(last_unit_box_drag_pos - mouse_pos.data);
 	if(mouse_diff.x <= std::ceil(screen_size_x * 0.0025f) && mouse_diff.y <= std::ceil(screen_size_y * 0.0025f)) {
 		auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-		glm::vec2 map_pos;
+		map_space::point_normalized_inverted_y map_pos;
 		if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 			return;
 		}
-		map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
-		auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+		auto idx = map_space::to_idx(map_pos, (float)map_data.size_x, (float)map_data.size_y);
+
 		if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 			sound::play_interface_sound(state, sound::get_random_province_select_sound(state),
 				state.user_settings.interface_volume * state.user_settings.master_volume);
@@ -2795,14 +2843,13 @@ void map_state::on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t s
 
 void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y,
 		sys::key_modifiers mod) {
-	auto mouse_pos = glm::vec2(x, y);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	glm::vec2 map_pos;
+	map_space::point_normalized_inverted_y map_pos;
 	if(!screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 		return;
 	}
-	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
-	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+	auto idx = map_space::to_idx(map_pos, (float)map_data.size_x, (float)map_data.size_y);
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 
 	} else {
@@ -2810,15 +2857,15 @@ void map_state::on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t
 	}
 }
 
-dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y) {
-	auto mouse_pos = glm::vec2(x, y);
+dcon::province_id map_state::get_province_under_mouse(const sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y) {
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(screen_size_x, screen_size_y);
-	glm::vec2 map_pos;
+	map_space::point_normalized_inverted_y map_pos;
 	if(!map_state::screen_to_map(mouse_pos, screen_size, current_view(state), map_pos)) {
 		return dcon::province_id{};
 	}
-	map_pos *= glm::vec2(float(map_data.size_x), float(map_data.size_y));
-	auto idx = int32_t(map_data.size_y - map_pos.y) * int32_t(map_data.size_x) + int32_t(map_pos.x);
+	auto idx = map_space::to_idx(map_pos, float(map_data.size_x), float(map_data.size_y));
+
 	if(0 <= idx && size_t(idx) < map_data.province_id_map.size()) {
 		auto fat_id = dcon::fatten(state.world, province::from_map_id(map_data.province_id_map[idx]));
 		//if(map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
@@ -2831,171 +2878,134 @@ dcon::province_id map_state::get_province_under_mouse(sys::state& state, int32_t
 	}
 }
 
-bool validate_screen_position(glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
-	if(screen_pos.x < -tolerance.x) {
+bool validate_screen_position(const glm::vec2 screen_size, const screen_space::point_ui& screen_pos, const glm::vec2 tolerance) {
+	if(screen_pos.data.x < -tolerance.x) {
 		return false;
 	}
-	if(screen_pos.y < -tolerance.y) {
+	if(screen_pos.data.y < -tolerance.y) {
 		return false;
 	}
-	if(screen_pos.x > screen_size.x + tolerance.x) {
+	if(screen_pos.data.x > screen_size.x + tolerance.x) {
 		return false;
 	}
-	if(screen_pos.y > screen_size.y + tolerance.y) {
+	if(screen_pos.data.y > screen_size.y + tolerance.y) {
 		return false;
 	}
 	return true;
 }
 
-bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance) {
-	switch(state.user_settings.map_is_globe) {
-	case sys::projection_mode::globe_ortho:
-		{
-			glm::vec3 cartesian_coords;
-			float section = 200;
-			float pi = glm::pi<float>();
-			float angle_x1 = 2 * pi * std::floor(map_pos.x * section) / section;
-			float angle_x2 = 2 * pi * std::floor(map_pos.x * section + 1) / section;
-			if(!std::isfinite(angle_x1)) {
-				assert(false);
-				angle_x1 = 0.0f;
-			}
-			if(!std::isfinite(angle_x2)) {
-				assert(false);
-				angle_x2 = 0.0f;
-			}
-			if(!std::isfinite(map_pos.x)) {
-				assert(false);
-				map_pos.x = 0.0f;
-			}
-			if(!std::isfinite(map_pos.y)) {
-				assert(false);
-				map_pos.y = 0.0f;
-			}
-			cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
-			cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
+bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, glm::vec2 screen_size, sys::projection_mode projection_kind, screen_space::point_ui& screen_pos, glm::vec2 tolerance) {
 
-			float angle_y = (1.f - map_pos.y) * pi;
-			cartesian_coords.x *= std::sin(angle_y);
-			cartesian_coords.y *= std::sin(angle_y);
-			cartesian_coords.z = std::cos(angle_y);
-			cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
-			cartesian_coords /= glm::pi<float>();
-			cartesian_coords.x *= -1;
-			cartesian_coords.y *= -1;
-			if(cartesian_coords.y > 0) {
+	float aspect_ratio = screen_size.x / screen_size.y;
+	square::point square_point = map_space::to_square(map_pos);
+
+	switch(projection_kind) {
+	case sys::projection_mode::globe_orthographic:
+		{
+			auto sphere_point = sphere_R3::from_square(square_point).data;
+			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
+
+			auto x = 2. * visible_point.x / aspect_ratio * zoom;
+			auto y = 2. * visible_point.y * zoom;
+			auto z = visible_point.z - 1.f;
+
+			if(z < -1.f) {
 				return false;
 			}
-			cartesian_coords += glm::vec3(0.5f);
 
-			screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.z);
-			screen_pos = (2.f * screen_pos - glm::vec2(1.f));
-			screen_pos *= zoom;
-			screen_pos.x *= screen_size.y / screen_size.x;
-			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
-			screen_pos *= screen_size;
+			screen_space::point_clip_space after_projection { { x, y } };
+			screen_pos = screen_space::ui_from_clip_space(after_projection, screen_size.x, screen_size.y);
 			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
-	case sys::projection_mode::globe_perpect:
+	case sys::projection_mode::globe_perspective:
 		{
-			float aspect_ratio = screen_size.x / screen_size.y;
-
-			glm::vec3 cartesian_coords;
-			float section = 200;
-			float angle_x1 = 2.f * glm::pi<float>() * std::floor(map_pos.x * section) / section;
-			float angle_x2 = 2.f * glm::pi<float>() * std::floor(map_pos.x * section + 1) / section;
-			if(!std::isfinite(angle_x1)) {
-				assert(false);
-				angle_x1 = 0.0f;
-			}
-			if(!std::isfinite(angle_x2)) {
-				assert(false);
-				angle_x2 = 0.0f;
-			}
-			if(!std::isfinite(map_pos.x)) {
-				assert(false);
-				map_pos.x = 0.0f;
-			}
-			if(!std::isfinite(map_pos.y)) {
-				assert(false);
-				map_pos.y = 0.0f;
-			}
-			cartesian_coords.x = std::lerp(std::cos(angle_x1), std::cos(angle_x2), std::fmod(map_pos.x * section, 1.f));
-			cartesian_coords.y = std::lerp(std::sin(angle_x1), std::sin(angle_x2), std::fmod(map_pos.x * section, 1.f));
-
-			float angle_y = (map_pos.y) * glm::pi<float>();
-			cartesian_coords.x *= std::sin(angle_y);
-			cartesian_coords.y *= std::sin(angle_y);
-			cartesian_coords.z = std::cos(angle_y);
-
-			glm::vec3 temp_vector = cartesian_coords;
-
-			// Apply rotation
-			cartesian_coords.z *= -1;
-			cartesian_coords = glm::mat3(globe_rotation) * cartesian_coords;
-			cartesian_coords.z *= -1;
-
-			cartesian_coords /= glm::pi<float>(); // Will make the zoom be the same for the globe and flat map
-			cartesian_coords.x *= -1;
-			cartesian_coords.z *= -1;
-
-			float temp = cartesian_coords.z;
-			cartesian_coords.z = cartesian_coords.y;
-			cartesian_coords.y = temp;
+			auto sphere_point = sphere_R3::from_square(square_point).data;
+			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted / glm::pi<float>();
 
 			// shift the globe away from camera
-			cartesian_coords.z -= 1.2f;
-			float near_plane = 0.1f;
+			visible_point.z -= 1.2f;
 
+			float near_plane = 0.1f;
 			// optimal far plane for culling out invisible part of a planet
-			constexpr float tangent_length_square = 1.2f * 1.2f - 1 / glm::pi<float>() / glm::pi<float>();
+			constexpr float tangent_length_square = 1.2f * 1.2f - 1.f / glm::pi<float>() / glm::pi<float>();
 			float far_plane = tangent_length_square / 1.2f;
 
-			float right = near_plane * tan(glm::pi<float>() / 6.f) / zoom;
+			float right = near_plane * tan(glm::pi<float>() / 6.f) / zoom * aspect_ratio;
 			float top = near_plane * tan(glm::pi<float>() / 6.f) / zoom;
 
-			cartesian_coords.x *= near_plane / right;
-			cartesian_coords.y *= near_plane / top;
+			visible_point.x *= near_plane / right;
+			visible_point.y *= near_plane / top;
 
 			// depth calculations just for reference
-			float w = -cartesian_coords.z;
-			cartesian_coords.z = -(far_plane + near_plane) / (far_plane - near_plane) * cartesian_coords.z - 2 * far_plane * near_plane / (far_plane - near_plane);
+			float w = -visible_point.z;
+			visible_point.z = -(far_plane + near_plane) / (far_plane - near_plane) * visible_point.z - 2 * far_plane * near_plane / (far_plane - near_plane);
 
-			if(cartesian_coords.z > far_plane) {
+			if(visible_point.z > far_plane) {
 				return false;
 			}
 
-			screen_pos = glm::vec2(cartesian_coords.x, cartesian_coords.y) / w;
-			//screen_pos = (2.f * screen_pos - glm::vec2(1.f));
-			//screen_pos *= zoom;
-			screen_pos.x *= screen_size.y / screen_size.x;
-			screen_pos = ((screen_pos + glm::vec2(1.f)) * 0.5f);
-			screen_pos *= screen_size;
+			screen_space::point_clip_space after_projection { { visible_point.x / w, visible_point.y / w } };
+			screen_pos = screen_space::ui_from_clip_space(after_projection, screen_size.x, screen_size.y);
 			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
-	case sys::projection_mode::flat:
+	case sys::projection_mode::rectangle:
 		{
-			map_pos -= pos;
+			float map_w = (float)map_data.size_x;
+			float map_h = (float)map_data.size_y;
+			float map_size_ratio = map_w / map_h;
 
-			if(map_pos.x >= 0.5f)
-				map_pos.x -= 1.0f;
-			if(map_pos.x < -0.5f)
-				map_pos.x += 1.0f;
+			auto rectangle_point = equirectangular::from_square(square_point, map_size_ratio, 1.f);
+			map_space::point_normalized offset = map_space::normalized_from_inverted(pos);
+			equirectangular::point offset_adjusted = equirectangular::from_square(offset, map_size_ratio, 1.f);
 
-			map_pos *= zoom;
+			auto shifted = rectangle_point.data - offset_adjusted.data;
 
-			map_pos.x *= float(map_data.size_x) / float(map_data.size_y);
-			map_pos.x *= screen_size.y / screen_size.x;
-			map_pos *= screen_size;
-			map_pos += screen_size * 0.5f;
-			screen_pos = map_pos;
-			if(screen_pos.x >= float(std::numeric_limits<int16_t>::max() / 2))
+			float cut_away = 1.05f;
+
+			shifted.x = glm::mod(shifted.x + map_size_ratio * 0.5f, map_size_ratio) - map_size_ratio * 0.5f;
+
+			auto x = 2.f * shifted.x * zoom / aspect_ratio;
+			auto y = 2.f * shifted.y * zoom;
+			auto z = abs(2.f * shifted.x) / map_size_ratio * cut_away;
+			auto w = 1.0f;
+
+			screen_pos = screen_space::ui_from_clip_space({ { x, y } }, screen_size.x, screen_size.y);
+
+			if(screen_pos.data.x >= float(std::numeric_limits<int16_t>::max() / 2))
 				return false;
-			if(screen_pos.x <= float(std::numeric_limits<int16_t>::min() / 2))
+			if(screen_pos.data.x <= float(std::numeric_limits<int16_t>::min() / 2))
 				return false;
-			if(screen_pos.y >= float(std::numeric_limits<int16_t>::max() / 2))
+			if(screen_pos.data.y >= float(std::numeric_limits<int16_t>::max() / 2))
 				return false;
-			if(screen_pos.y <= float(std::numeric_limits<int16_t>::min() / 2))
+			if(screen_pos.data.y <= float(std::numeric_limits<int16_t>::min() / 2))
+				return false;
+
+			return validate_screen_position(screen_size, screen_pos, tolerance);
+		}
+	case sys::projection_mode::square:
+		{
+			map_space::point_normalized offset = map_space::normalized_from_inverted(pos);
+			auto shifted = square_point.data - offset.data;
+			float cut_away = 1.05f;
+
+			shifted.x = glm::mod(shifted.x + 0.5f, 1.f) - 0.5f;
+
+			auto x = 2.f * shifted.x * zoom / aspect_ratio;
+			auto y = 2.f * shifted.y * zoom;
+			auto z = abs(2.f * shifted.x) * cut_away;
+			auto w = 1.0f;
+
+			screen_pos = screen_space::ui_from_clip_space({ { x, y } }, screen_size.x, screen_size.y);
+
+			if(screen_pos.data.x >= float(std::numeric_limits<int16_t>::max() / 2))
+				return false;
+			if(screen_pos.data.x <= float(std::numeric_limits<int16_t>::min() / 2))
+				return false;
+			if(screen_pos.data.y >= float(std::numeric_limits<int16_t>::max() / 2))
+				return false;
+			if(screen_pos.data.y <= float(std::numeric_limits<int16_t>::min() / 2))
 				return false;
 			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
@@ -3006,10 +3016,10 @@ bool map_state::map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 sc
 	}
 }
 
-glm::vec2 map_state::normalize_map_coord(glm::vec2 p) {
+map_space::point_normalized_inverted_y map_state::normalize_map_coord(glm::vec2 p) {
 	auto new_pos = p / glm::vec2{ float(map_data.size_x), float(map_data.size_y) };
 	new_pos.y = 1.f - new_pos.y;
-	return new_pos;
+	return {new_pos};
 }
 
 } // namespace map

@@ -223,11 +223,11 @@ public:
 
 	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
 		if(populated) {
-			glm::vec2 map_pos(map_x, 1.0f - map_y);
+			map_space::point_normalized_inverted_y map_pos {{map_x, 1.0f - map_y}};
 			auto screen_size =
 				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+			screen_space::point_ui screen_pos;
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -237,7 +237,7 @@ public:
 			}
 			visible = true;
 
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+			auto new_position = xy_pair{ int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) };
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
 		}
@@ -1136,8 +1136,8 @@ public:
 			auto mid_point = state.world.province_get_mid_point(prov);
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
 			auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+			screen_space::point_ui screen_pos;
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -1147,7 +1147,7 @@ public:
 			}
 			visible = true;
 
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+			auto new_position = xy_pair{ int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) };
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
 		}
@@ -1859,8 +1859,8 @@ public:
 			auto mid_point = state.world.province_get_mid_point(prov);
 			auto map_pos = state.map_state.normalize_map_coord(mid_point);
 			auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-			glm::vec2 screen_pos;
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+			screen_space::point_ui screen_pos;
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 				visible = false;
 				return;
 			}
@@ -1870,7 +1870,7 @@ public:
 			}
 			visible = true;
 		
-			auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+			auto new_position = xy_pair{ int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) };
 			window_element_base::base_data.position = new_position;
 			window_element_base::impl_render(state, new_position.x, new_position.y);
 		}
@@ -2168,14 +2168,14 @@ public:
 		auto mid_point = state.world.province_get_mid_point(prov);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-		glm::vec2 screen_pos;
+		screen_space::point_ui screen_pos;
 
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+		if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 			visible = false;
 			return;
 		}
 
-		if(screen_pos.x < -32 || screen_pos.y < -32 || screen_pos.x > state.ui_state.root->base_data.size.x + 32 || screen_pos.y > state.ui_state.root->base_data.size.y + 32) {
+		if(screen_pos.data.x < -32 || screen_pos.data.y < -32 || screen_pos.data.x > state.ui_state.root->base_data.size.x + 32 || screen_pos.data.y > state.ui_state.root->base_data.size.y + 32) {
 			visible = false;
 			return;
 		}
@@ -2185,7 +2185,7 @@ public:
 		}
 			
 
-		auto new_position = xy_pair{ int16_t(screen_pos.x), int16_t(screen_pos.y) };
+		auto new_position = xy_pair{ int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) };
 		window_element_base::base_data.position = new_position;
 
 		window_element_base::impl_render(state, new_position.x, new_position.y);
@@ -2211,11 +2211,11 @@ public:
 		auto mid_point = state.world.province_get_mid_point(content);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size =
-				glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
-		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f }))
+			glm::vec2{float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale)};
+		screen_space::point_ui  screen_pos;
+		if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f }))
 			return;
-		auto new_position = xy_pair{int16_t(screen_pos.x - base_data.size.x / 2), int16_t(screen_pos.y - base_data.size.y / 2)};
+		auto new_position = xy_pair{int16_t(screen_pos.data.x - base_data.size.x / 2), int16_t(screen_pos.data.y - base_data.size.y / 2)};
 		image_element_base::base_data.position = new_position;
 		image_element_base::impl_render(state, new_position.x, new_position.y);
 	}

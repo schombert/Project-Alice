@@ -16,7 +16,6 @@ struct scenario_building_context;
 
 namespace map {
 
-enum class map_view { globe, globe_perspect, flat };
 enum class map_labels_state { idle, generate_text, load_glyphs, update, commit };
 class map_state {
 public:
@@ -27,18 +26,18 @@ public:
 	// Called to load the map. Will load the texture and shaders from disk
 	void load_map(sys::state& state);
 
-	map_view current_view(sys::state& state);
+	sys::projection_mode current_view(const sys::state& state);
 
 	void render(sys::state& state, uint32_t screen_x, uint32_t screen_y);
 	void set_province_color(std::vector<uint32_t> const& prov_color, map_mode::mode map_mode);
 	void set_terrain_map_mode();
-	void update_borders(sys::state& state);
 
-	glm::vec2 normalize_map_coord(glm::vec2 pos);
-	bool map_to_screen(sys::state& state, glm::vec2 map_pos, glm::vec2 screen_size, glm::vec2& screen_pos, glm::vec2 tolerance);
+	map_space::point_normalized_inverted_y normalize_map_coord(glm::vec2 pos);
+	bool map_to_screen(map_space::point_normalized_inverted_y map_pos, glm::vec2 screen_size, sys::projection_mode projection_kind, screen_space::point_ui& screen_pos, glm::vec2 tolerance);
 
 	// Set the position of camera. Position relative from 0-1
-	void set_pos(glm::vec2 pos);
+	void set_pos(map_space::point_normalized_inverted_y pos);
+	void shift_pos(map_space::point_normalized_inverted_y shift, float multiplier);
 
 	void center_map_on_province(sys::state& state, dcon::province_id);
 
@@ -52,7 +51,7 @@ public:
 	void on_lbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_lbutton_up(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
 	void on_rbutton_down(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y, sys::key_modifiers mod);
-	dcon::province_id get_province_under_mouse(sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
+	dcon::province_id get_province_under_mouse(const sys::state& state, int32_t x, int32_t y, int32_t screen_size_x, int32_t screen_size_y);
 
 	dcon::province_id get_selected_province();
 
@@ -73,9 +72,10 @@ public:
 	bool unhandled_province_selection = false;
 
 	// Position and movement
-	glm::vec2 pos = glm::vec2(0.5f, 0.5f);
+	// MAP POINT NORMALIZED WITH INVERTED Y
+	map_space::point_normalized_inverted_y pos = {glm::vec2(0.5f, 0.5f)};
 	glm::vec2 pos_velocity = glm::vec2(0.f);
-	glm::vec2 last_camera_drag_pos = glm::vec2(0.5f, 0.5f);
+	map_space::point_normalized_inverted_y last_camera_drag_pos = {glm::vec2(0.5f, 0.5f)};
 	glm::mat4 globe_rotation = glm::mat4(1.0f);
 	glm::vec2 last_unit_box_drag_pos = glm::vec2(0, 0);
 	std::chrono::steady_clock::time_point last_map_movement = std::chrono::steady_clock::now();
@@ -118,7 +118,7 @@ public:
 	void update_cache(sys::state& state);
 	void update_map_labels(sys::state& state);
 
-	bool screen_to_map(glm::vec2 screen_pos, glm::vec2 screen_size, map_view view_mode, glm::vec2& map_pos);
+	bool screen_to_map(const screen_space::point_ui screen_pos, glm::vec2 screen_size, sys::projection_mode view_mode, map_space::point_normalized_inverted_y& map_pos);
 
 	float get_zoom() {
 		return zoom;

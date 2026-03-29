@@ -42,6 +42,11 @@ void notify_user_of_fatal_opengl_error(std::string message) {
 	window::emit_error_message("OpenGL error:" + full_message, true);
 }
 
+static std::string shader_prefix = "";
+
+void set_shader_prefix(std::string_view source) {
+	shader_prefix = std::string(source);
+}
 
 GLint compile_shader(std::string_view source, GLenum type) {
 	GLuint return_value = glCreateShader(type);
@@ -52,16 +57,10 @@ GLint compile_shader(std::string_view source, GLenum type) {
 
 	std::string s_source(source);
 	GLchar const* texts[] = {
-		"#version 330 core\r\n",
-		"#extension GL_ARB_explicit_uniform_location : enable\r\n",
-		"#extension GL_ARB_explicit_attrib_location : enable\r\n",
-		"#extension GL_ARB_shader_subroutine : enable\r\n",
-		"#extension GL_ARB_vertex_array_object : enable\r\n"
-		"#define M_PI 3.1415926535897932384626433832795\r\n",
-		"#define PI 3.1415926535897932384626433832795\r\n",
+		shader_prefix.c_str(),
 		s_source.c_str()
 	};
-	glShaderSource(return_value, 7, texts, nullptr);
+	glShaderSource(return_value, 2, texts, nullptr);
 	glCompileShader(return_value);
 
 	GLint result;
@@ -450,6 +449,12 @@ static const GLfloat global_rtl_square_left_flipped_data[] = {
 
 void load_shaders(sys::state& state) {
 	auto root = get_root(state.common_fs);
+
+	auto prefix_shader = simple_fs::open_file(root, NATIVE("assets/shaders/glsl/_geometry.glsl"));
+	auto prefix_content = simple_fs::view_contents(prefix_shader.value());
+	auto prefix_view = std::string_view(prefix_content.data, prefix_content.file_size);
+	ogl::set_shader_prefix(prefix_view);
+
 	auto ui_fshader = open_file(root, NATIVE("assets/shaders/glsl/ui_f_shader.glsl"));
 	auto ui_vshader = open_file(root, NATIVE("assets/shaders/glsl/ui_v_shader.glsl"));
 	if(bool(ui_fshader) && bool(ui_vshader)) {

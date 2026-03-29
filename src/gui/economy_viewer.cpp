@@ -853,19 +853,19 @@ void render(sys::state& state) {
 				}
 			}
 
-			glm::vec2 screen_pos{};
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+			screen_space::point_ui screen_pos{};
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 				return;
 			}
 
 			iui::move_to(
 				market_label_rect,
-				screen_pos.x - market_label_rect.w / 2.f, screen_pos.y - market_label_rect.h / 2.f
+				screen_pos.data.x - market_label_rect.w / 2.f, screen_pos.data.y - market_label_rect.h / 2.f
 			);
 
 			iui::move_to(
 				market_label_rect_text,
-				screen_pos.x - market_label_rect.w / 2.f + 5.f, screen_pos.y - market_label_rect.h / 2.f + 2.f
+				screen_pos.data.x - market_label_rect.w / 2.f + 5.f, screen_pos.data.y - market_label_rect.h / 2.f + 2.f
 			);
 
 			

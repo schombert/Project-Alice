@@ -307,12 +307,12 @@ void state::handle_map_tooltip(sys::state& state, int16_t max_height) {
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size =
 			glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-		glm::vec2 screen_pos;
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+		screen_space::point_ui screen_pos;
+		if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 			tooltip->set_visible(state, false);
 		} else {
 			tooltip->base_data.position =
-				ui::xy_pair{ int16_t(screen_pos.x - container.used_width / 2 - 8), int16_t(screen_pos.y + 3.5f * state.map_state.get_zoom()) };
+				ui::xy_pair{ int16_t(screen_pos.data.x - container.used_width / 2 - 8), int16_t(screen_pos.data.y + 3.5f * state.map_state.get_zoom()) };
 			tooltip->set_visible(state, true);
 		}
 		// Alternatively: just make it visible

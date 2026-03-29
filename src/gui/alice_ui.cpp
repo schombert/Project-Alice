@@ -1311,15 +1311,15 @@ void rh_map_items::on_update(sys::state& state) noexcept {
 		auto mid_point = state.world.province_get_mid_point(p);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-		glm::vec2 screen_pos;
+		screen_space::point_ui screen_pos;
 
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 0.0f, 0.0f }))
+		if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 0.0f, 0.0f }))
 			continue;
 
-		if(int16_t(screen_pos.x) < viewport.top_left.x || int16_t(screen_pos.y) < viewport.top_left.y || int32_t(screen_pos.x) > (viewport.top_left.x + viewport.size.x) || int32_t(screen_pos.y) > (viewport.top_left.y + viewport.size.y))
+		if(int16_t(screen_pos.data.x) < viewport.top_left.x || int16_t(screen_pos.data.y) < viewport.top_left.y || int32_t(screen_pos.data.x) > (viewport.top_left.x + viewport.size.x) || int32_t(screen_pos.data.y) > (viewport.top_left.y + viewport.size.y))
 			continue;
 
-		item_provinces.push_back(prov_and_location{p.id, int16_t(screen_pos.x), int16_t(screen_pos.y) });
+		item_provinces.push_back(prov_and_location{p.id, int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) });
 	}
 
 	// sort into pages

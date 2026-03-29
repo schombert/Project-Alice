@@ -715,14 +715,26 @@ void display_data::load_shaders(simple_fs::directory& root) {
 		shader_uniforms[i][uniform_color] = glGetUniformLocation(shaders[i], "color");
 		shader_uniforms[i][uniform_glyphs] = glGetUniformLocation(shaders[i], "glyphs");
 		shader_uniforms[i][uniform_curves] = glGetUniformLocation(shaders[i], "curves");
+		shader_uniforms[i][uniform_printbrush] = glGetUniformLocation(shaders[i], "printbrush");
+		shader_uniforms[i][uniform_hatching] = glGetUniformLocation(shaders[i], "hatching");
+		shader_uniforms[i][uniform_watercolor] = glGetUniformLocation(shaders[i], "watercolor");
 	}
 }
 
 // assume the fixed position on the orbit
 constexpr float axial_tilt_angle = 0.409f;
-const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { -1.f, 0.f, 0.f });
+const glm::mat3 axial_rotation = glm::rotate(axial_tilt_angle, glm::vec3 { 0.f, -1.f, 0.f });
 
-void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode, glm::mat3 globe_rotation, float time_counter) {
+void display_data::render(
+	sys::state& state,
+	glm::vec2 screen_size,
+	map_space::point_normalized offset,
+	float zoom,
+	sys::projection_mode map_view_mode,
+	map_mode::mode active_map_mode,
+	glm::mat3 globe_rotation,
+	float time_counter
+) {
 	if(screen_size.x == 0.f || screen_size.y == 0.f) {
 		return;
 	}
@@ -731,7 +743,7 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	auto load_shader = [&](GLuint program) {
 		glUseProgram(shaders[program]);
 		if(shader_uniforms[program][uniform_offset] != -1)
-			glUniform2f(shader_uniforms[program][uniform_offset], offset.x + 0.f, offset.y);
+			glUniform2f(shader_uniforms[program][uniform_offset], offset.data.x, offset.data.y);
 		if(shader_uniforms[program][uniform_aspect_ratio] != -1)
 			glUniform1f(shader_uniforms[program][uniform_aspect_ratio], screen_size.x / screen_size.y);
 		if(shader_uniforms[program][uniform_screen_size] != -1)
@@ -764,9 +776,9 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	};
 
 	if(state.map_state.light_rotate) {
-		state.map_state.light_direction.x = cos(-time_counter);
+		state.map_state.light_direction.x = 0.f ;
 		state.map_state.light_direction.y = sin(-time_counter);
-		state.map_state.light_direction.z = 0.f;
+		state.map_state.light_direction.z = cos(-time_counter);
 		state.map_state.light_direction = state.map_state.light_direction * axial_rotation;
 	}
 
@@ -861,6 +873,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glBindTexture(GL_TEXTURE_2D, textures[texture_river_body]);
 	glActiveTexture(GL_TEXTURE15);
 	glBindTexture(GL_TEXTURE_2D, textures[texture_diag_border_identifier]);
+	glActiveTexture(GL_TEXTURE16);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_hatching]);
+	glActiveTexture(GL_TEXTURE17);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_watercolor]);
 
 	load_shader(shader_terrain);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_provinces_texture_sampler], 0);
@@ -894,6 +910,8 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_terrain][uniform_province_fow], 13);
 	//glUniform1i(shader_uniforms[shader_terrain][uniform_unused_texture_14], 14);
 	glUniform1i(shader_uniforms[shader_terrain][uniform_diag_border_identifier], 15);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_hatching], 16);
+	glUniform1i(shader_uniforms[shader_terrain][uniform_watercolor], 17);
 	{ // Land specific shader uniform
 		// get_land()
 		GLuint fragment_subroutines = 0;
@@ -1007,11 +1025,13 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 	glUniform1i(shader_uniforms[shader_borders][uniform_provinces_texture_sampler], 0);
 	glUniform1i(shader_uniforms[shader_borders][uniform_province_fow], 1);
 	glUniform1i(shader_uniforms[shader_borders][uniform_line_texture], 2);
+	glUniform1i(shader_uniforms[shader_borders][uniform_printbrush], 3);
 
 	glBindVertexArray(vao_array[vo_border]);
 	glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 
-
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textures[texture_printbrush]);
 
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 		glActiveTexture(GL_TEXTURE0);
@@ -1179,10 +1199,18 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 		}
 	}
 	dcon::province_id prov{};
-	glm::vec2 map_pos;
-	if(!state.ui_state.under_mouse && state.map_state.screen_to_map(glm::vec2(state.mouse_x_position, state.mouse_y_position), screen_size, state.map_state.current_view(state), map_pos)) {
-		map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
-		auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
+	map_space::point_normalized_inverted_y raw_map_pos;
+	if(
+		!state.ui_state.under_mouse
+		&& state.map_state.screen_to_map(
+			{glm::vec2(state.mouse_x_position, state.mouse_y_position)},
+			screen_size,
+			state.map_state.current_view(state),
+			raw_map_pos
+		)
+	) {		
+		auto idx = map_space::to_idx(raw_map_pos, (float)state.map_state.map_data.size_x, (float)state.map_state.map_data.size_y);
+
 		if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size() && state.map_state.map_data.province_id_map[idx] < province::to_map_id(state.province_definitions.first_sea_province)) {
 			auto fat_id = dcon::fatten(state.world, province::from_map_id(state.map_state.map_data.province_id_map[idx]));
 			prov = province::from_map_id(state.map_state.map_data.province_id_map[idx]);
@@ -1238,8 +1266,10 @@ void display_data::render(sys::state& state, glm::vec2 screen_size, glm::vec2 of
 
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly) {
 		glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
+
 		glActiveTexture(GL_TEXTURE2);
 		glBindTexture(GL_TEXTURE_2D, textures[texture_coastal_border]);
+
 		glBindVertexArray(vao_array[vo_border]);
 		glBindBuffer(GL_ARRAY_BUFFER, vbo_array[vo_border]);
 		{
@@ -3861,6 +3891,15 @@ void display_data::load_map(sys::state& state) {
 
 	textures[texture_city] = ogl::make_gl_texture(assets_dir, NATIVE("city.png"));
 	ogl::set_gltex_parameters(textures[texture_city], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_printbrush] = ogl::make_gl_texture(assets_dir, NATIVE("svg/printbrush.png"));
+	ogl::set_gltex_parameters(textures[texture_printbrush], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_hatching] = ogl::make_gl_texture(assets_dir, NATIVE("svg/stripes1.png"));
+	ogl::set_gltex_parameters(textures[texture_hatching], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
+
+	textures[texture_watercolor] = ogl::make_gl_texture(assets_dir, NATIVE("svg/blue_watercolor.png"));
+	ogl::set_gltex_parameters(textures[texture_watercolor], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_REPEAT);
 
 	textures[texture_unit_arrow] = ogl::make_gl_texture(map_items_dir, NATIVE("movearrow.tga"));
 	ogl::set_gltex_parameters(textures[texture_unit_arrow], GL_TEXTURE_2D, GL_LINEAR_MIPMAP_LINEAR, GL_CLAMP_TO_EDGE);
