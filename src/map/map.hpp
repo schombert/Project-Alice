@@ -12,6 +12,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "projections.hpp"
+#include "constants_state.hpp"
 
 namespace sys {
 struct state;
@@ -145,8 +146,12 @@ public:
 
 	bool texturesheet_is_dds = false;
 
-	void render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
-			glm::mat3 globe_rotation, float time_counter);
+	void render(
+		sys::state& state,
+		glm::vec2 screen_size, map_space::point_normalized offset, float zoom,
+		sys::projection_mode map_view_mode, map_mode::mode active_map_mode,
+		glm::mat3 globe_rotation, float time_counter
+	);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
 	void update_highlight(sys::state& state);
@@ -293,7 +298,10 @@ public:
 	static constexpr uint32_t texture_sea_mask = 25;
 	static constexpr uint32_t texture_arrow = 26;
 	static constexpr uint32_t texture_city = 27;
-	static constexpr uint32_t texture_count = 28;
+	static constexpr uint32_t texture_printbrush = 28;
+	static constexpr uint32_t texture_hatching = 29;
+	static constexpr uint32_t texture_watercolor = 30;
+	static constexpr uint32_t texture_count = 31;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -370,7 +378,10 @@ public:
 	static constexpr uint32_t uniform_color = 46;
 	static constexpr uint32_t uniform_glyphs = 47;
 	static constexpr uint32_t uniform_curves = 48;
-	static constexpr uint32_t uniform_count = 49;
+	static constexpr uint32_t uniform_printbrush = 49;
+	static constexpr uint32_t uniform_hatching = 50;
+	static constexpr uint32_t uniform_watercolor = 51;
+	static constexpr uint32_t uniform_count = 52;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

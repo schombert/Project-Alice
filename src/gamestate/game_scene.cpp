@@ -144,15 +144,8 @@ bool belongs_on_map(sys::state& state, ui::element_base* checked_element) {
 	return false;
 }
 
-map::map_view get_view(sys::state& state) {
-	auto current_view = map::map_view::globe;
-	if(state.user_settings.map_is_globe == sys::projection_mode::flat) {
-		current_view = map::map_view::flat;
-	} else if(state.user_settings.map_is_globe == sys::projection_mode::globe_perpect) {
-		current_view = map::map_view::globe_perspect;
-	}
-
-	return current_view;
+sys::projection_mode get_view(sys::state& state) {
+	return state.user_settings.map_is_globe;
 }
 
 float get_effects_volume(sys::state& state) {
@@ -328,14 +321,13 @@ void on_lbutton_up_map(sys::state& state, int32_t x, int32_t y, sys::key_modifie
 
 void handle_rbutton_down_map_interaction(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mod) {
 	auto current_view = get_view(state);
-	auto mouse_pos = glm::vec2(x, y);
+	screen_space::point_ui mouse_pos = {glm::vec2(x, y)};
 	auto screen_size = glm::vec2(state.x_size, state.y_size);
-	glm::vec2 map_pos;
-	if(!state.map_state.screen_to_map(mouse_pos, screen_size, current_view, map_pos)) {
+	map_space::point_normalized_inverted_y raw_map_pos;
+	if(!state.map_state.screen_to_map(mouse_pos, screen_size, current_view, raw_map_pos)) {
 		return;
 	}
-	map_pos *= glm::vec2(float(state.map_state.map_data.size_x), float(state.map_state.map_data.size_y));
-	auto idx = int32_t(state.map_state.map_data.size_y - map_pos.y) * int32_t(state.map_state.map_data.size_x) + int32_t(map_pos.x);
+	auto idx = map_space::to_idx(raw_map_pos, (float)state.map_state.map_data.size_x, (float)state.map_state.map_data.size_y);
 
 	if(0 <= idx && size_t(idx) < state.map_state.map_data.province_id_map.size()) {
 		sound::play_interface_sound(state, sound::get_random_province_select_sound(state), get_effects_volume(state));
@@ -430,10 +422,10 @@ bool province_mid_point_is_in_selection(sys::state& state, int32_t x, int32_t y,
 	auto mid_point = state.world.province_get_mid_point(province);
 	auto map_pos = state.map_state.normalize_map_coord(mid_point);
 	auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
-	glm::vec2 screen_pos;
-	if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
-		if(state.x_drag_start <= int32_t(screen_pos.x) && int32_t(screen_pos.x) <= x
-			&& state.y_drag_start <= int32_t(screen_pos.y) && int32_t(screen_pos.y) <= y) {
+	screen_space::point_ui screen_pos;
+	if(state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 5.f, 5.f })) {
+		if(state.x_drag_start <= int32_t(screen_pos.data.x) && int32_t(screen_pos.data.x) <= x
+			&& state.y_drag_start <= int32_t(screen_pos.data.y) && int32_t(screen_pos.data.y) <= y) {
 			return true;
 		}
 	}
@@ -450,15 +442,14 @@ bool province_port_is_in_selection(sys::state& state, int32_t x, int32_t y, dcon
 
 		auto map_x = vertex.position.x;
 		auto map_y = vertex.position.y;
-
-		glm::vec2 map_pos(map_x, 1.0f - map_y);
+		map_space::point_normalized map_pos { vertex.position };
 		auto screen_size = glm::vec2{ float(state.x_size), float(state.y_size) };
-		glm::vec2 screen_pos;
-		if(state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 5.f, 5.f })) {
-			if(state.x_drag_start <= int32_t(screen_pos.x)
-				&& int32_t(screen_pos.x) <= x
-				&& state.y_drag_start <= int32_t(screen_pos.y)
-				&& int32_t(screen_pos.y) <= y
+		screen_space::point_ui screen_pos;
+		if(state.map_state.map_to_screen(map_space::inverted_from_normalized(map_pos), screen_size, state.user_settings.map_is_globe, screen_pos, { 5.f, 5.f })) {
+			if(state.x_drag_start <= int32_t(screen_pos.data.x)
+				&& int32_t(screen_pos.data.x) <= x
+				&& state.y_drag_start <= int32_t(screen_pos.data.y)
+				&& int32_t(screen_pos.data.y) <= y
 			) {
 				return true;
 			}
@@ -928,18 +919,18 @@ void render_ui_ingame(sys::state& state) {
 				auto capital = state.world.nation_get_capital(nid);
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
-				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+				screen_space::point_ui screen_pos{};
+				if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
-				screen_pos.y += 40.f;
+				screen_pos.data.y += 40.f;
 				iui::move_to(
 					label_rect,
-					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+					screen_pos.data.x - label_rect.w / 2.f, screen_pos.data.y - label_rect.h / 2.f
 				);
 				iui::move_to(
 					label_text_rect,
-					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+					screen_pos.data.x - label_text_rect.w / 2.f, screen_pos.data.y - label_text_rect.h / 2.f + 2.f
 				);
 				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
 				state.iui_state.localized_string(
@@ -953,18 +944,18 @@ void render_ui_ingame(sys::state& state) {
 				auto capital = state.world.administration_get_capital(aid);
 				auto& midpoint = state.world.province_get_mid_point(capital);
 				auto map_pos = state.map_state.normalize_map_coord(midpoint);
-				glm::vec2 screen_pos{};
-				if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+				screen_space::point_ui screen_pos{};
+				if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 					return;
 				}
-				screen_pos.y += 40.f;
+				screen_pos.data.y += 40.f;
 				iui::move_to(
 					label_rect,
-					screen_pos.x - label_rect.w / 2.f, screen_pos.y - label_rect.h / 2.f
+					screen_pos.data.x - label_rect.w / 2.f, screen_pos.data.y - label_rect.h / 2.f
 				);
 				iui::move_to(
 					label_text_rect,
-					screen_pos.x - label_text_rect.w / 2.f, screen_pos.y - label_text_rect.h / 2.f + 2.f
+					screen_pos.data.x - label_text_rect.w / 2.f, screen_pos.data.y - label_text_rect.h / 2.f + 2.f
 				);
 				state.iui_state.panel_textured(state, label_rect, state.iui_state.map_label.texture_handle);
 				state.iui_state.localized_string(

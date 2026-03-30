@@ -51,7 +51,7 @@ struct user_settings_s {
 	float effects_volume = 1.0f;
 	float interface_volume = 1.0f;
 	bool prefer_fullscreen = false;
-	projection_mode map_is_globe = projection_mode::globe_ortho;
+	projection_mode map_is_globe = projection_mode::globe_perspective;
 	autosave_frequency autosaves = autosave_frequency::yearly;
 	bool bind_tooltip_mouse = true;
 	bool unit_disband_confirmation = false;
