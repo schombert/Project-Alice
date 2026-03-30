@@ -4961,6 +4961,50 @@ uint16_t crossing_type_to_battle_regiment_type(crossing_type crossing_type) {
 	}
 }
 
+void add_regiment_to_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves, battle_regiment reg) {
+	reserves.push_back(reg);
+
+}
+
+void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id battle) {
+	int32_t current_combat_width = state.world.land_battle_get_combat_width(battle);
+	int32_t new_combat_width = current_combat_width;
+	for(auto a : state.world.land_battle_get_army_battle_participation(battle)) {
+		auto army_owner = state.world.army_get_controller_from_army_control(a.get_army());
+		auto army_owner_combat_width = int32_t(state.world.nation_get_modifier_values(army_owner, sys::national_mod_offsets::combat_width) + state.defines.base_combat_width);
+		new_combat_width = std::min(army_owner_combat_width, new_combat_width);
+	}
+	// if the new combat width is smaller, remove the ones on the slots which are about to be shrunk away, and move them to reserves
+	if(new_combat_width < current_combat_width) {
+		auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
+		auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
+		auto& def_front = state.world.land_battle_get_defender_front_line(battle);
+		auto& def_back = state.world.land_battle_get_defender_back_line(battle);
+		auto reserves = state.world.land_battle_get_reserves(battle);
+		for(uint8_t i = new_combat_width; i < current_combat_width; ++i) {
+			if(att_front[i].regiment) {
+				add_regiment_to_reserves(state, reserves, att_front[i]);
+				att_front[i] = battle_regiment{ };
+			}
+			if(att_back[i].regiment) {
+				add_regiment_to_reserves(state, reserves, att_back[i]);
+				att_back[i] = battle_regiment{ };
+			}
+			if(def_front[i].regiment) {
+				add_regiment_to_reserves(state, reserves, def_front[i]);
+				def_front[i] = battle_regiment{ };
+			}
+			if(def_back[i].regiment) {
+				add_regiment_to_reserves(state, reserves, def_back[i]);
+				def_back[i] = battle_regiment{ };
+			}
+		}
+	}
+	auto battle_location = state.world.land_battle_get_location_from_land_battle_location(battle);
+	auto prov_width_modifier = state.world.province_get_modifier_values(battle_location, sys::provincial_mod_offsets::combat_width) + 1.0f;
+	state.world.land_battle_set_combat_width(battle, uint8_t(std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+}
+
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r, crossing_type crossing) {
 	assert(state.world.army_is_valid(a));
 	assert(state.world.land_battle_is_valid(b));
@@ -5049,6 +5093,8 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 	}
 	state.world.army_set_battle_from_army_battle_participation(a, b);
 	update_battle_leaders(state, b);
+	// update combat width incase it may change
+	update_land_battle_combat_width(state, b);
 }
 template <apply_attrition_on_arrival attrition_tick>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
@@ -5107,7 +5153,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						2, int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
 
 				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender, crossing_type::none);
@@ -5132,7 +5178,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						2, int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
 
 				add_army_to_battle(state, a, new_battle, par.role, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker, crossing_type::none);
@@ -5379,6 +5425,8 @@ void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::provinc
 		}
 		//update leaders
 		military::update_battle_leaders(state, battle);
+		// update combat width incase it may change
+		update_land_battle_combat_width(state, battle);
 		if(end_finished_battle) {
 			// if there is still an army in the battle which is in OUR side, then the battle shouldnt end.
 			bool battle_end = [&]() {
@@ -5388,7 +5436,7 @@ void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::provinc
 					}
 				}
 				return true;
-				}();
+			}();
 			// If we were the attacker and the battle ends as a result of us retreating, that means the defender won and vice-verca
 			if(battle_end) {
 				military::battle_result result = (battle_attacker ? military::battle_result::defender_won : military::battle_result::attacker_won);
@@ -6731,10 +6779,6 @@ uint32_t get_reserves_count_by_side(sys::state& state, dcon::land_battle_id b, b
 	return count;
 }
 
-void add_regiment_to_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves, battle_regiment reg) {
-	reserves.push_back(reg);
-
-}
 battle_regiment pop_regiment_from_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_regiment> reserves, uint32_t idx_to_grab) {
 	assert(idx_to_grab < reserves.size());
 	battle_regiment reg =  reserves[idx_to_grab];
@@ -7657,7 +7701,7 @@ int32_t get_regiment_crossing_modifier(battle_regiment battle_reg)  {
 		return 0;
 	}
 }
-		
+
 
 
 void update_land_battles(sys::state& state) {
@@ -7673,6 +7717,9 @@ void update_land_battles(sys::state& state) {
 
 		if(state.world.land_battle_get_start_date(b) == state.current_date) {
 			notify_on_new_land_battle(state, b, state.local_player_nation);
+		}
+		if(state.all_battles_combat_width_out_of_date) {
+			update_land_battle_combat_width(state, b);
 		}
 
 		// New roll
@@ -7781,7 +7828,7 @@ void update_land_battles(sys::state& state) {
 			return;
 		}
 	});
-
+	state.all_battles_combat_width_out_of_date = false;
 	for(auto i = isize; i-- > 0;) {
 		dcon::land_battle_id b{ dcon::land_battle_id::value_base_t(i) };
 		if(state.world.land_battle_is_valid(b) && to_delete.get(b) != 0) {
