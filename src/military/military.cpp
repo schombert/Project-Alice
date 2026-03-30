@@ -7177,11 +7177,11 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	int32_t defender_battle_mod = defender_dice + defence_bonus + int32_t(defender_gas ? state.defines.gas_attack_modifier : 0.0f);
 
 	// Fort modifier
-	float defender_fort = 1.0f;
+	float defender_fort_mod = 1.0f;
 	auto local_control = state.world.province_get_nation_from_province_control(location);
 	if((!attacking_nation && local_control) ||
 			(attacking_nation && (!bool(local_control) || military::are_at_war(state, attacking_nation, local_control)))) {
-		defender_fort = 1.0f + 0.1f * get_combat_fort_level(state, location);
+		defender_fort_mod = 1.0f + state.defines.alice_fort_mil_tactics_discipline_per_level * get_combat_fort_level(state, location);
 	}
 
 
@@ -7196,7 +7196,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 				auto battle_modifiers = (DmgDealerRole == battle_role::attacker ? attacker_battle_mod : defender_battle_mod);
 				auto target_dig_in = get_effective_regiment_dig_in(state, target_regiment, attacker_eff_recon);
 				float unit_modifiers = get_combat_roll_modifier(battle_modifiers + (-target_dig_in) + get_regiment_crossing_modifier(damage_dealer));
-				float actual_fort_mod = (DmgDealerRole == battle_role::attacker ? defender_fort : 1.0f);
+				float actual_fort_mod = (DmgDealerRole == battle_role::attacker ? defender_fort_mod : 1.0f);
 
 				bool backline = (DmgDealerLine == battle_line::backline ? true : false);
 				bool attacker = (DmgDealerRole == battle_role::attacker ? true : false);
@@ -8597,9 +8597,11 @@ void update_naval_battles(sys::state& state) {
 }
 
 uint8_t make_dice_rolls(sys::state& state, uint32_t seed) {
+	int32_t roll_range = int32_t(state.defines.alice_combat_max_dice_roll - state.defines.alice_combat_min_dice_roll) + 1;
+	int32_t roll_add = int32_t(state.defines.alice_combat_min_dice_roll);
 	auto rvals = rng::get_random_pair(state, seed);
-	auto low_roll = rvals.low % 10;
-	auto high_roll = rvals.high % 10;
+	auto low_roll = (rvals.low % roll_range) + roll_add;
+	auto high_roll = (rvals.high % roll_range) + roll_add;
 	return uint8_t((high_roll << 4) | low_roll);
 }
 

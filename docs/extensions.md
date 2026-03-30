@@ -547,10 +547,12 @@ These relate to the added ability for reserve regiments to reinforce while in ba
 - `alice_reg_deploy_from_reserve_str = 0.0f`: if a reserve regiments strength is greater than this decimal, it can be deployed to the front, if alice_reg_deploy_from_reserve_org is also fufilled. Default 0.0
 
 
-These relate to naval battles:
+These relate to battles:
 - `alice_naval_combat_enemy_stacking_target_select_bonus = 0.5f`: The target-picking bonus a ship gets if they are outnumbered in a battle. This is added to the base, which by default is 0.5. It makes outnumbered navies find a target faster
 - `alice_naval_combat_stacking_damage_penalty = 0.5f`: The max damage reduction to org and str applied to a fleet which outnumbers the enemy by define:NAVAL_COMBAT_MAX_TARGETS or more. The penalty will scale up starting when a side is outnumbered, and will max out at the given value when outnumbered by NAVAL_COMBAT_MAX_TARGETS times.
-
+- `alice_fort_mil_tactics_discipline_per_level = 0.1f`: Modifier to military tactics and discipline to units per fort level while defending.
+- `alice_combat_min_dice_roll = 0.0f`: Minimum dice roll which can be rolled in combat (inclusive)
+- `alice_combat_max_dice_roll = 9.0f`: Maxmimum dice roll which can be rolled in combat (inclusive)
 
 These relate to army attrition
 - `alice_army_sea_transport_attrition = 2.5f`: The monthly attrition (in percent) for armies on the sea in transports to take. Can be reduced by national "land_attrition" modifiers
@@ -574,8 +576,7 @@ These relate to occupations
 These relate to gamerules
 
 - `alice_can_goto_war_against_spherelord_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a sphereling can goto war against its spherelord. Can be either 1 (which means they can declare war against spherelord), or 0 (which means they cannot). Default is 1
-- `alice_allow_partial_retreat_default_setting = 0.0f` - Sets the default setting for the hardcoded gamerule deciding whether armies can partial-retreat from battles. 1.0 means it is enabled, 0 means it is disabled, and 2.0 it is disabled only for the observer tag
-- `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, where 0.0 means it is off.
+- `alice_fog_of_war_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether fog og war is on or off. 1.0 means fog of war is on, 0.0 means it is off, and at 2.0 it is disabled only for the observer tag
 - `alice_auto_concession_peace_default_setting = 1.0f` - Sets the default setting for the hardcoded gamerule deciding whether a peacedeal will be force-accepted if it is conceding all wargoals (or if the peacedeal concedes 100 warscore or higher). 1.0 means forced-peaces are disabled, where 0.0 means they are enabled.
 - `alice_command_units_default_setting = 0.0f` - Decides whether AI puppets' units can be commanded by players while at war. A value of 0.0f means it is disabled, while a value of 1.0f means it is enabled
 
