@@ -14,6 +14,7 @@ Functions in this file are shader versions of functions from projections.cpp
 struct square_tangent {vec2 base; vec2 tangent;};
 struct rectangle_tangent {vec2 base; vec2 tangent;};
 struct sphere_tangent { vec3 base; vec3 tangent; };
+struct stereographic_tangent { vec2 base; vec2 tangent; };
 
 vec2 rotate_left(vec2 input_vec) { return vec2( -input_vec.y, input_vec.x ); }
 vec2 rotate_right(vec2 input_vec) { return vec2( input_vec.y, -input_vec.x ); }
@@ -95,10 +96,10 @@ vec2 rotate_left(int mode, vec2 point, vec2 tangent_vector, vec2 map_size) {
 	square_tangent tangent = square_tangent(point, tangent_vector);
 
 	switch(mode) {
-		case 3: return rotate_left(tangent).tangent;
+		case 0: return rotate_left_sphere(tangent).tangent;
 		case 1: return tangent_from_equirectangular(rotate_left(tangent_to_equirectangular(tangent, map_size)), map_size).tangent;
 		case 2: return rotate_left_sphere(tangent).tangent;
-		case 0: return rotate_left_sphere(tangent).tangent;
+		case 3: return rotate_left_sphere(tangent).tangent;
 		default: break;
 	}
 
@@ -118,10 +119,10 @@ Camera is perspective if we do perspective transformation.
 
 Currently implemented projections are:
 
-0) Square. Shifting flat camera.
+0) Sphere 2. Rotating flat camera.
 1) Rectangle. Shifting flat camera.
 2) Sphere 1. Rotating perspective camera.
-3) Sphere 2. Rotating flat camera.
+3) Sphere 3. Rotating stereographic camera.
 
 */
 
@@ -178,21 +179,34 @@ vec4 sphere_to_ogl_parallel(vec3 p, mat3 rotation, float aspect_ratio, float zoo
 	);
 }
 
+vec4 sphere_to_ogl_stereographic(vec3 p, mat3 rotation, float aspect_ratio, float zoom) {
+	p.xy = p.yx;
+	vec3 new_world_pos = p;
+	new_world_pos = rotation * new_world_pos;
+	new_world_pos.z += 1.f;
+	return vec4(
+		0.5f * new_world_pos.x / new_world_pos.z / aspect_ratio * zoom,
+		0.5f * new_world_pos.y / new_world_pos.z * zoom,
+		1.01f - new_world_pos.z,
+		1.0
+	);
+}
+
 vec4 point_to_ogl_space(int mode, vec2 p, vec2 map_size, mat3 rotation, vec2 offset, float aspect_ratio, float zoom) {
 	vec3 sphere_point = point_to_sphere(p);
 	
 	switch(mode) {
-		case 3:
-		return rectangle_to_ogl(p, offset, map_size, aspect_ratio, zoom);
+		case 0:
+		return sphere_to_ogl_parallel(sphere_point, rotation, aspect_ratio, zoom);
 
 		case 1:
 		return rectangle_to_ogl(point_to_equirectangular(p, map_size), point_to_equirectangular(offset, map_size), map_size, aspect_ratio, zoom);
 
 		case 2:
 		return sphere_to_ogl_perspective(sphere_point, rotation, aspect_ratio, zoom);
-		
-		case 0:
-		return sphere_to_ogl_parallel(sphere_point, rotation, aspect_ratio, zoom);
+
+		case 3:
+		return sphere_to_ogl_stereographic(sphere_point, rotation, aspect_ratio, zoom);
 
 		default:
 		break;

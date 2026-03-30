@@ -2705,7 +2705,6 @@ bool map_state::screen_to_map(
 			intersection_pos = glm::normalize(intersection_pos);
 			sphere_R3::point sphere_point = { { intersection_pos.y, intersection_pos.x, intersection_pos.z } };
 			auto square_point = sphere_R3::to_square(sphere_point);
-			auto back_to_sphere = sphere_R3::from_square(square_point);
 			map_pos = map_space::inverted_from_normalized(square_point);
 			return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 		}
@@ -2752,14 +2751,8 @@ bool map_state::screen_to_map(
 
 			sphere_R3::point sphere_point = { { intersection_pos_before_rotation.y, intersection_pos_before_rotation.x, intersection_pos_before_rotation.z } };
 			auto square_point = sphere_R3::to_square(sphere_point);
-			auto back_to_sphere = sphere_R3::from_square(square_point);
-
 			map_pos = map_space::inverted_from_normalized(square_point);
 
-			//screen_space::point_ui back_to_screen;
-			//map_to_screen(map_pos, screen_size, view_mode, back_to_screen, { 0.f, 0.f });
-			//assert(glm::distance(back_to_screen.data, original_screen_pos.data) < 20.f);
-			//map_to_screen(map_pos, screen_size, view_mode, back_to_screen, { 0.f, 0.f });
 			return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 		}
 		return false;
@@ -2774,12 +2767,30 @@ bool map_state::screen_to_map(
 		map_pos = map_space::inverted_from_normalized(square_point);
 
 		return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
-	} else if (view_mode == sys::projection_mode::square) {
+	} else if (view_mode == sys::projection_mode::globe_stereographic) {
 
-		map_space::point_normalized camera_center = map_space::normalized_from_inverted(pos);
-		auto mouse_shift_relative_to_center = screen_clip.data / 2.f / zoom * glm::vec2(aspect_ratio, 1.f);
-		square::point shifted_center = { camera_center.data + mouse_shift_relative_to_center};
-		map_pos = map_space::inverted_from_normalized(shifted_center);
+		/*
+		auto x = 0.5f * visible_point.x / visible_point.z / aspect_ratio * zoom;
+		auto y = 0.5f * visible_point.y / visible_point.z * zoom;
+		*/
+
+		// clip space
+		auto x = screen_clip.data.x * 2.f * aspect_ratio / zoom;
+		auto y = screen_clip.data.y * 2.f / zoom;
+
+		auto r = glm::length(glm::vec2(x, y));
+		auto scale = 2.f / (1.f + r * r);
+		auto true_x = x * scale;
+		auto true_y = y * scale;
+		auto true_z = scale - 1.f;
+
+		glm::vec3 after_rotation{ true_x, true_y, true_z };
+
+		auto before_rotation = after_rotation * glm::mat3(globe_rotation);
+
+		sphere_R3::point sphere_point { { before_rotation.y, before_rotation.x, before_rotation.z } };
+		auto square_point = sphere_R3::to_square(sphere_point);
+		map_pos = map_space::inverted_from_normalized(square_point);
 
 		return (map_pos.data.x >= 0 && map_pos.data.y >= 0 && map_pos.data.x <= 1.f && map_pos.data.y <= 1.f);
 	}
@@ -2984,29 +2995,29 @@ bool map_state::map_to_screen(map_space::point_normalized_inverted_y map_pos, gl
 
 			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
-	case sys::projection_mode::square:
+	case sys::projection_mode::globe_stereographic:
 		{
-			map_space::point_normalized offset = map_space::normalized_from_inverted(pos);
-			auto shifted = square_point.data - offset.data;
-			float cut_away = 1.05f;
+			auto sphere_point = sphere_R3::from_square(square_point).data;
+			auto sphere_adjusted = glm::vec3 { sphere_point.y, sphere_point.x, sphere_point.z };
+			auto visible_point = glm::mat3(globe_rotation) * sphere_adjusted;
+			visible_point.z += 1.f;
 
-			shifted.x = glm::mod(shifted.x + 0.5f, 1.f) - 0.5f;
+			auto stereo_x = visible_point.x / visible_point.z;
+			auto stereo_y = visible_point.y / visible_point.z;
 
-			auto x = 2.f * shifted.x * zoom / aspect_ratio;
-			auto y = 2.f * shifted.y * zoom;
-			auto z = abs(2.f * shifted.x) * cut_away;
-			auto w = 1.0f;
+			auto r_stereo = glm::length(glm::vec2(stereo_x, stereo_y));
+			auto r = glm::length(glm::vec2(visible_point.x, visible_point.y));
 
-			screen_pos = screen_space::ui_from_clip_space({ { x, y } }, screen_size.x, screen_size.y);
+			auto x = 0.5f * stereo_x / aspect_ratio * zoom;
+			auto y = 0.5f * stereo_y * zoom;
+			auto z = 1.01f - visible_point.z;
 
-			if(screen_pos.data.x >= float(std::numeric_limits<int16_t>::max() / 2))
+			if(z < -1.f || z > 1.f) {
 				return false;
-			if(screen_pos.data.x <= float(std::numeric_limits<int16_t>::min() / 2))
-				return false;
-			if(screen_pos.data.y >= float(std::numeric_limits<int16_t>::max() / 2))
-				return false;
-			if(screen_pos.data.y <= float(std::numeric_limits<int16_t>::min() / 2))
-				return false;
+			}
+
+			screen_space::point_clip_space after_projection { { x, y } };
+			screen_pos = screen_space::ui_from_clip_space(after_projection, screen_size.x, screen_size.y);
 			return validate_screen_position(screen_size, screen_pos, tolerance);
 		}
 	case sys::projection_mode::num_of_modes:

@@ -3833,7 +3833,7 @@ void main_menu_graphics_projection_dropdown_t::on_update(sys::state& state) noex
 	add_item(int32_t(sys::projection_mode::globe_orthographic), text::produce_simple_string(state, "map_projection_globe"));
 	add_item(int32_t(sys::projection_mode::rectangle), text::produce_simple_string(state, "map_projection_flat"));
 	add_item(int32_t(sys::projection_mode::globe_perspective), text::produce_simple_string(state, "map_projection_globe_perspective"));
-	add_item(int32_t(sys::projection_mode::square), text::produce_simple_string(state, "map_projection_square"));
+	add_item(int32_t(sys::projection_mode::globe_stereographic), text::produce_simple_string(state, "map_projection_globe_stereographic"));
 	quiet_on_selection(state, int32_t(state.user_settings.map_is_globe));
 // END
 }

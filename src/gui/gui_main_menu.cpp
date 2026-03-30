@@ -631,8 +631,8 @@ void projection_mode_display::on_update(sys::state& state) noexcept {
 		it = std::string_view("map_projection_flat");
 	} else if (state.user_settings.map_is_globe == sys::projection_mode::globe_perspective) {
 		it = std::string_view("map_projection_globe_perspective");
-	} else if (state.user_settings.map_is_globe == sys::projection_mode::square) {
-		it = std::string_view("map_projection_square");
+	} else if (state.user_settings.map_is_globe == sys::projection_mode::globe_stereographic) {
+		it = std::string_view("map_projection_globe_stereographic");
 	}
 
 	set_text(state, text::produce_simple_string(state, it));

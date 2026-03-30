@@ -64,7 +64,7 @@ void main() {
 
 	gl_Position = central_pos + vec4(corner_shift.x, corner_shift.y, 0.001f * abs(texture_coord), 0.0f);
 
-	if(int(subroutines_index) == 1) {
+	if(int(subroutines_index) == 1 || int(subroutines_index) == 3) {
 		gl_Position.z = 0.001f * abs(texture_coord);
 		if(central_pos.z < -1.f) {
 			gl_Position.z = -1.05f;
