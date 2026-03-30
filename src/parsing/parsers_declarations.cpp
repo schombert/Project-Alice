@@ -2943,6 +2943,20 @@ void country_history_file::schools(association_type, std::string_view value, err
 	}
 }
 
+void country_history_file::oob(association_type, std::string_view value, error_handler& err, int32_t line,
+		country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	std::string val = std::string(value);
+	// If the nation owns no provinces and it is not the rebel tag, then we dont want to process it's oob
+	auto prov_ownership = context.outer_context.state.world.nation_get_province_ownership(context.holder_id);
+	auto rebel_nation =  context.outer_context.state.world.national_identity_get_nation_from_identity_holder( context.outer_context.state.national_definitions.rebel_id);
+	if(prov_ownership.begin() == prov_ownership.end() && context.holder_id != rebel_nation) {;
+		return;
+	}
+	context.outer_context.map_of_oob_files_to_read.insert_or_assign(val, context.holder_id);
+}
+
 void country_history_file::civilized(association_type, bool value, error_handler& err, int32_t line,
 		country_history_context& context) {
 	if(!context.holder_id)
