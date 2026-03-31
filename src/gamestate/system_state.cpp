@@ -2815,65 +2815,61 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 
 	// load oob
 	{
+
+		auto get_dirs_and_file_name = [&](std::string_view str) {
+			auto last = str.data() + str.length();
+			auto first = str.data();
+			const char* current;
+			const char* last_dir;
+			if(*first == '/' && str.length() != 0) {
+				last_dir = first + 1;
+				current = first + 1;
+			}
+			else {
+				last_dir = first;
+				current = first;
+			}
+			std::vector<std::string_view> directories;
+			std::string_view file_name;
+			while(current < last) {
+				if(*current == '/') {
+					directories.push_back(std::string_view(last_dir, current - last_dir));
+					last_dir = current + 1;
+				}
+				current++;
+			}
+			if(last_dir > last) {
+				file_name = std::string_view{};
+			} else {
+				file_name = std::string_view(last_dir, last - last_dir);
+			}
+			return std::pair<std::vector<std::string_view>, std::string_view>(directories, file_name);
+		};
 		auto oob_dir = open_directory(history, NATIVE("units"));
-
-		auto startdate = current_date.to_ymd(start_date);
-		auto start_dir_name = std::to_string(startdate.year);
-		auto date_directory = open_directory(oob_dir, simple_fs::utf8_to_native(start_dir_name));
-		auto files = list_files(date_directory, NATIVE(".txt"));
-		// if it cant find a bookmark specific dir, read files directly from the "unit" directory
-		if(files.empty()) {
-			files = list_files(oob_dir, NATIVE(".txt"));
-		}
-		for(auto oob_file : files) {
-			auto file_name = get_full_name(oob_file);
-			auto last = file_name.c_str() + file_name.length();
-			auto first = file_name.c_str();
-			auto start_of_name = last;
-			for(; start_of_name >= first; --start_of_name) {
-				if(*start_of_name == NATIVE('\\') || *start_of_name == NATIVE('/')) {
-					++start_of_name;
-					break;
-				}
+		for(auto& oob_file : context.oob_files_to_read) {
+			if(!oob_file.for_whom) {
+				continue;
 			}
-			auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-			auto iterator = context.map_of_oob_files_to_read.find(utf8name);
-			if(iterator != context.map_of_oob_files_to_read.end()) {
-				parsers::oob_file_context new_context{ context, iterator->second };
-				auto opened_file = open_file(oob_file);
-				if(opened_file) {
-					err.file_name = utf8name;
-					auto content = view_contents(*opened_file);
-					parsers::token_generator gen(content.data, content.data + content.file_size);
-					parsers::parse_oob_file(gen, err, new_context);
-				}
+			auto dirs_and_filename = get_dirs_and_file_name(oob_file.path);
+			auto utf8_filename = dirs_and_filename.second;
+			// walk subdirs to the dir which the file resides in
+			auto subdir = oob_dir;
+			for(auto dir_name : dirs_and_filename.first) {
+				subdir = open_directory(subdir, simple_fs::utf8_to_native(dir_name));
 			}
-			//if(last - start_of_name >= 3) {
-			//	auto utf8name = simple_fs::native_to_utf8(native_string_view(start_of_name, last - start_of_name));
-			//	if(auto it = context.map_of_ident_names.find(nations::tag_to_int(utf8name[0], utf8name[1], utf8name[2])); it != context.map_of_ident_names.end()) {
-			//		auto holder = context.state.world.national_identity_get_nation_from_identity_holder(it->second);
-			//		if(holder) {
-			//			// if the nation has no owned provinces, and it isnt rebels, don't spawn their oob and write warning
-			//			if(context.state.world.nation_get_province_ownership(holder).begin() != context.state.world.nation_get_province_ownership(holder).end() || it->second == context.state.national_definitions.rebel_id) {
-			//				parsers::oob_file_context new_context{ context, holder };
-			//				auto opened_file = open_file(oob_file);
-			//				if(opened_file) {
-			//					err.file_name = utf8name;
-			//					auto content = view_contents(*opened_file);
-			//					parsers::token_generator gen(content.data, content.data + content.file_size);
-			//					parsers::parse_oob_file(gen, err, new_context);
-			//				}
-			//			} else {
-			//				err.accumulated_warnings += "tag with no owned provinces " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-			//			}
-
-			//		} else {
-			//			err.accumulated_warnings += "dead tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-			//		}
-			//	} else {
-			//		err.accumulated_warnings += "invalid tag " + utf8name.substr(0, 3) + " encountered while scanning oob files\n";
-			//	}
-			//}
+			auto native_filename = simple_fs::utf8_to_native(utf8_filename);
+			auto opened_file = open_file(subdir, native_filename);
+			parsers::oob_file_context new_context{ context, oob_file.for_whom};
+			if(opened_file) {
+				err.file_name = utf8_filename;
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_oob_file(gen, err, new_context);
+			}
+			else {
+				err.accumulated_warnings += "oob file " + oob_file.path + " could not be read or was not found. Referenced in file ( " + oob_file.referenced_in + " )\n";
+			}
+		
 		}
 	}
 

@@ -2412,6 +2412,9 @@ void oob_army::name(association_type, std::string_view value, error_handler& err
 }
 
 void oob_army::location(association_type, int32_t value, error_handler& err, int32_t line, oob_file_army_context& context) {
+	if(value == 718) {
+		int i = 5;
+	}
 	if(size_t(value) >= context.outer_context.original_id_to_prov_id_map.size()) {
 		err.accumulated_errors +=
 				"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
@@ -2947,14 +2950,17 @@ void country_history_file::oob(association_type, std::string_view value, error_h
 		country_history_context& context) {
 	if(!context.holder_id)
 		return;
-	std::string val = std::string(value);
+	std::string file_name = std::string(value);
 	// If the nation owns no provinces and it is not the rebel tag, then we dont want to process it's oob
 	auto prov_ownership = context.outer_context.state.world.nation_get_province_ownership(context.holder_id);
 	auto rebel_nation =  context.outer_context.state.world.national_identity_get_nation_from_identity_holder( context.outer_context.state.national_definitions.rebel_id);
 	if(prov_ownership.begin() == prov_ownership.end() && context.holder_id != rebel_nation) {;
 		return;
 	}
-	context.outer_context.map_of_oob_files_to_read.insert_or_assign(val, context.holder_id);
+	if(context.holder_id.index() >= int32_t(context.outer_context.oob_files_to_read.size())) {
+		context.outer_context.oob_files_to_read.resize(static_cast<size_t>(context.holder_id.index() + 1));
+	}
+	context.outer_context.oob_files_to_read[context.holder_id] = pending_oob_file{ file_name, err.file_name, context.holder_id };
 }
 
 void country_history_file::civilized(association_type, bool value, error_handler& err, int32_t line,

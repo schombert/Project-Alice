@@ -336,6 +336,12 @@ struct rebel_regiment_parse_data {
 	std::string file_name;
 };
 
+struct pending_oob_file {
+	std::string path;
+	std::string referenced_in;
+	dcon::nation_id for_whom;
+};
+
 
 struct pending_nat_event {
 	std::string original_file;
@@ -437,7 +443,7 @@ struct scenario_building_context {
 	ankerl::unordered_dense::map<std::string, dcon::national_focus_id> map_of_national_focuses;
 	ankerl::unordered_dense::map<std::string, dcon::gamerule_id> map_of_gamerules;
 	ankerl::unordered_dense::map<std::string, scanned_gamerule_option> map_of_gamerule_options;
-	ankerl::unordered_dense::map<std::string, dcon::nation_id> map_of_oob_files_to_read;
+	tagged_vector<pending_oob_file, dcon::nation_id> oob_files_to_read;
 
 	tagged_vector<province_data, dcon::province_id> prov_id_to_original_id_map;
 	std::vector<dcon::province_id> original_id_to_prov_id_map;
