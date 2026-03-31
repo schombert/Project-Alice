@@ -4967,21 +4967,24 @@ void add_regiment_to_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_reg
 }
 
 void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id battle) {
-	int32_t current_combat_width = state.world.land_battle_get_combat_width(battle);
-	int32_t new_combat_width = current_combat_width;
+	int32_t previous_combat_width = state.world.land_battle_get_combat_width(battle);
+	int32_t new_combat_width = int32_t(MAX_COMBAT_WIDTH);
 	for(auto a : state.world.land_battle_get_army_battle_participation(battle)) {
 		auto army_owner = state.world.army_get_controller_from_army_control(a.get_army());
 		auto army_owner_combat_width = int32_t(state.world.nation_get_modifier_values(army_owner, sys::national_mod_offsets::combat_width) + state.defines.base_combat_width);
 		new_combat_width = std::min(army_owner_combat_width, new_combat_width);
 	}
+	auto battle_location = state.world.land_battle_get_location_from_land_battle_location(battle);
+	auto prov_width_modifier = state.world.province_get_modifier_values(battle_location, sys::provincial_mod_offsets::combat_width) + 1.0f;
+	new_combat_width = std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH));
 	// if the new combat width is smaller, remove the ones on the slots which are about to be shrunk away, and move them to reserves
-	if(new_combat_width < current_combat_width) {
+	if(new_combat_width < previous_combat_width) {
 		auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
 		auto& att_back = state.world.land_battle_get_attacker_back_line(battle);
 		auto& def_front = state.world.land_battle_get_defender_front_line(battle);
 		auto& def_back = state.world.land_battle_get_defender_back_line(battle);
 		auto reserves = state.world.land_battle_get_reserves(battle);
-		for(uint8_t i = new_combat_width; i < current_combat_width; ++i) {
+		for(uint8_t i = new_combat_width; i < previous_combat_width; ++i) {
 			if(att_front[i].regiment) {
 				add_regiment_to_reserves(state, reserves, att_front[i]);
 				att_front[i] = battle_regiment{ };
@@ -5000,9 +5003,7 @@ void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id bat
 			}
 		}
 	}
-	auto battle_location = state.world.land_battle_get_location_from_land_battle_location(battle);
-	auto prov_width_modifier = state.world.province_get_modifier_values(battle_location, sys::provincial_mod_offsets::combat_width) + 1.0f;
-	state.world.land_battle_set_combat_width(battle, uint8_t(std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+	state.world.land_battle_set_combat_width(battle, uint8_t(new_combat_width));
 }
 
 void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id b, war_role r, crossing_type crossing) {
