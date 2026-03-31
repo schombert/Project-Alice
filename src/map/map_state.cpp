@@ -2308,7 +2308,7 @@ void map_state::update_cache(sys::state& state) {
 				auto center_pos_adjusted = map_space::inverted_from_normalized(center_pos);
 
 				screen_space::point_ui center;
-				if (!state.map_state.map_to_screen(center_pos_adjusted, screen_size, state.user_settings.map_is_globe, center, { 400.0f, 400.0f }) && b.count < 2000) {
+				if (!state.map_state.map_to_screen(center_pos_adjusted, screen_size, state.user_settings.map_is_globe, center, { 600.0f, 600.0f }) && b.count < 2000) {
 					b.skip = true;
 				}
 				else {
@@ -2317,7 +2317,7 @@ void map_state::update_cache(sys::state& state) {
 			}
 
 			update_cache_on_map_movement = false;
-			request_fresh_border_index = true;
+			//request_fresh_border_index = true;
 		}
 
 		if (request_fresh_border_index) {
@@ -2332,7 +2332,7 @@ void map_state::update_cache(sys::state& state) {
 			for(size_t i = 0; i < map_data.borders.size(); i++) {
 				auto& b = map_data.borders[i];
 				if(b.count == 0) continue;
-				if(b.skip) continue;
+				//if(b.skip) continue;
 
 				bool national = false;
 				if(
