@@ -133,6 +133,7 @@ list(APPEND ALICE_INCREMENTAL_SOURCES_LIST
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_population_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_production_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/gui_technology_window.cpp"
+  "${PROJECT_SOURCE_DIR}/src/gui/topbar_subwindows/production_subwindows/gui_build_factory_window.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/immediate_mode.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/economy_viewer.cpp"
 	"${PROJECT_SOURCE_DIR}/src/gui/unit_tooltip.cpp"
