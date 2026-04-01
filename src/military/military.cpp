@@ -5144,9 +5144,6 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_location_from_land_battle_location(p);
 				new_battle.set_dice_rolls(make_dice_rolls(state, uint32_t(new_battle.id.value)));
 
-				uint8_t flags = defender_bonus_dig_in_mask;
-				new_battle.set_defender_bonus(flags);
-
 				auto cw_a = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::combat_width);
 				auto cw_b = state.defines.base_combat_width +
@@ -5168,9 +5165,6 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_war_from_land_battle_in_war(par.w);
 				new_battle.set_location_from_land_battle_location(p);
 				new_battle.set_dice_rolls(make_dice_rolls(state, uint32_t(new_battle.id.value)));
-
-				uint8_t flags = defender_bonus_dig_in_mask;
-				new_battle.set_defender_bonus(flags);
 
 				auto cw_a = state.defines.base_combat_width +
 					state.world.nation_get_modifier_values(owner_nation, sys::national_mod_offsets::combat_width);
@@ -7141,7 +7135,6 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	auto combat_width = state.world.land_battle_get_combat_width(battle);
 
 	auto both_dice = state.world.land_battle_get_dice_rolls(battle);
-	auto defender_mods = state.world.land_battle_get_defender_bonus(battle);
 	auto attacker_eff_recon = get_effective_battle_attacker_recon(state, battle);
 
 	auto attacking_nation = get_land_battle_lead_attacker(state, battle);

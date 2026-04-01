@@ -2687,11 +2687,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ defender_bonus }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
 		name{ combat_width }
 		type{ uint8_t }
 		tag{ save }

@@ -54,12 +54,6 @@ constexpr uint16_t naval_battle_center_line = 0; // The "center line" of a naval
 constexpr uint16_t naval_battle_speed_mult = 1000; // mult for casting unit speed to battle speed
 
 
-constexpr inline uint8_t defender_bonus_crossing_mask = 0xC0;
-constexpr inline uint8_t defender_bonus_crossing_none = 0x00;
-constexpr inline uint8_t defender_bonus_crossing_river = 0x40;
-constexpr inline uint8_t defender_bonus_crossing_sea = 0x80;
-constexpr inline uint8_t defender_bonus_dig_in_mask = 0x3F;
-
 constexpr inline int32_t river_crossing_modifier = -1;
 constexpr inline int32_t strait_crossing_modifier = -2;
 
