@@ -2812,67 +2812,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 		}
 	}
 
-
-	// load oob
-	{
-
-		auto get_dirs_and_file_name = [&](std::string_view str) {
-			auto last = str.data() + str.length();
-			auto first = str.data();
-			const char* current;
-			const char* last_dir;
-			if(*first == '/' && str.length() != 0) {
-				last_dir = first + 1;
-				current = first + 1;
-			}
-			else {
-				last_dir = first;
-				current = first;
-			}
-			std::vector<std::string_view> directories;
-			std::string_view file_name;
-			while(current < last) {
-				if(*current == '/') {
-					directories.push_back(std::string_view(last_dir, current - last_dir));
-					last_dir = current + 1;
-				}
-				current++;
-			}
-			if(last_dir > last) {
-				file_name = std::string_view{};
-			} else {
-				file_name = std::string_view(last_dir, last - last_dir);
-			}
-			return std::pair<std::vector<std::string_view>, std::string_view>(directories, file_name);
-		};
-		auto oob_dir = open_directory(history, NATIVE("units"));
-		for(auto& oob_file : context.oob_files_to_read) {
-			if(!oob_file.for_whom) {
-				continue;
-			}
-			auto dirs_and_filename = get_dirs_and_file_name(oob_file.path);
-			auto utf8_filename = dirs_and_filename.second;
-			// walk subdirs to the dir which the file resides in
-			auto subdir = oob_dir;
-			for(auto dir_name : dirs_and_filename.first) {
-				subdir = open_directory(subdir, simple_fs::utf8_to_native(dir_name));
-			}
-			auto native_filename = simple_fs::utf8_to_native(utf8_filename);
-			auto opened_file = open_file(subdir, native_filename);
-			parsers::oob_file_context new_context{ context, oob_file.for_whom};
-			if(opened_file) {
-				err.file_name = utf8_filename;
-				auto content = view_contents(*opened_file);
-				parsers::token_generator gen(content.data, content.data + content.file_size);
-				parsers::parse_oob_file(gen, err, new_context);
-			}
-			else {
-				err.accumulated_warnings += "oob file " + oob_file.path + " could not be read or was not found. Referenced in file ( " + oob_file.referenced_in + " )\n";
-			}
-		
-		}
-	}
-
 	// load war history
 	{
 		auto country_dir = open_directory(history, NATIVE("wars"));
@@ -2903,7 +2842,64 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 			world.try_create_identity_holder(new_nation, id);
 		}
 	});
+	
+	// load oob files which are referenced in country history files
+	{
 
+		auto get_dirs_and_file_name = [&](std::string_view str) {
+			auto last = str.data() + str.length();
+			auto first = str.data();
+			const char* current;
+			const char* last_dir;
+			if(*first == '/' && str.length() != 0) {
+				last_dir = first + 1;
+				current = first + 1;
+			} else {
+				last_dir = first;
+				current = first;
+			}
+			std::vector<std::string_view> directories;
+			std::string_view file_name;
+			while(current < last) {
+				if(*current == '/') {
+					directories.push_back(std::string_view(last_dir, current - last_dir));
+					last_dir = current + 1;
+				}
+				current++;
+			}
+			if(last_dir > last) {
+				file_name = std::string_view{};
+			} else {
+				file_name = std::string_view(last_dir, last - last_dir);
+			}
+			return std::pair<std::vector<std::string_view>, std::string_view>(directories, file_name);
+			};
+		auto oob_dir = open_directory(history, NATIVE("units"));
+		for(auto& oob_file : context.oob_files_to_read) {
+			if(!oob_file.for_whom) {
+				continue;
+			}
+			auto dirs_and_filename = get_dirs_and_file_name(oob_file.path);
+			auto utf8_filename = dirs_and_filename.second;
+			// walk subdirs to the dir which the file resides in
+			auto subdir = oob_dir;
+			for(auto dir_name : dirs_and_filename.first) {
+				subdir = open_directory(subdir, simple_fs::utf8_to_native(dir_name));
+			}
+			auto native_filename = simple_fs::utf8_to_native(utf8_filename);
+			auto opened_file = open_file(subdir, native_filename);
+			parsers::oob_file_context new_context{ context, oob_file.for_whom };
+			if(opened_file) {
+				err.file_name = utf8_filename;
+				auto content = view_contents(*opened_file);
+				parsers::token_generator gen(content.data, content.data + content.file_size);
+				parsers::parse_oob_file(gen, err, new_context);
+			} else {
+				err.accumulated_warnings += "oob file " + oob_file.path + " could not be read or was not found. Referenced in file ( " + oob_file.referenced_in + " )\n";
+			}
+
+		}
+	}
 	// load scripted gamerules
 	{
 
@@ -3413,6 +3409,9 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	demographics::regenerate_from_pop_data_full(*this);
 
 	economy::sanity_check(*this);
+
+	demographics::fixup_state_only_pops<true>(*this);
+
 
 	military::reinforce_regiments(*this);
 	military::repair_ships(*this);
@@ -4354,7 +4353,7 @@ void state::single_game_tick() {
 		demographics::apply_immigration(*this, o, days_in_month, imbuf);
 	}
 
-	demographics::fixup_state_only_pops(*this);
+	demographics::fixup_state_only_pops<false>(*this);
 
 	demographics::remove_size_zero_pops(*this);
 

@@ -4032,7 +4032,7 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 				ids);
 	});
 }
-
+template<bool DeletePops>
 void fixup_state_only_pops(sys::state& state) {
 
 	for(auto last = state.world.pop_size(); last-- > 0;) {
@@ -4052,12 +4052,28 @@ void fixup_state_only_pops(sys::state& state) {
 				float new_pop_size = state.world.pop_get_size(new_pop);
 				float old_pop_size = state.world.pop_get_size(pop);
 				state.world.pop_set_size(new_pop, new_pop_size + old_pop_size);
-				state.world.pop_set_size(pop, 0.0f);
+				// Move any regiments or land constructions connected to previous pop, over to the new pop
+				while(state.world.pop_get_regiment_source(pop).begin() != state.world.pop_get_regiment_source(pop).end()) {
+					auto regiment_src = *state.world.pop_get_regiment_source(pop).begin();
+					regiment_src.set_pop(new_pop);
+				}
+				while(state.world.pop_get_province_land_construction(pop).begin() != state.world.pop_get_province_land_construction(pop).end()) {
+					auto construction_src = *state.world.pop_get_province_land_construction(pop).begin();
+					construction_src.set_pop(new_pop);
+				}
+				if constexpr(DeletePops) {
+					state.world.delete_pop(pop);
+				}
+				else {
+					state.world.pop_set_size(pop, 0.0f);
+				}
 			}
 
 		}
 	}
 }
+template void fixup_state_only_pops<true>(sys::state& state);
+template void fixup_state_only_pops<false>(sys::state& state);
 
 void remove_size_zero_pops(sys::state& state) {
 	// IMPORTANT: we count down here so that we can delete as we go, compacting from the end
