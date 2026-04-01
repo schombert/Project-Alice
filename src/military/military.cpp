@@ -4984,7 +4984,7 @@ void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id bat
 		auto& def_front = state.world.land_battle_get_defender_front_line(battle);
 		auto& def_back = state.world.land_battle_get_defender_back_line(battle);
 		auto reserves = state.world.land_battle_get_reserves(battle);
-		for(uint8_t i = new_combat_width; i < previous_combat_width; ++i) {
+		for(int32_t i = new_combat_width; i < previous_combat_width; ++i) {
 			if(att_front[i].regiment) {
 				add_regiment_to_reserves(state, reserves, att_front[i]);
 				att_front[i] = battle_regiment{ };
@@ -7354,7 +7354,7 @@ struct battle_regiment_fetch_result {
 template<battle_role Role, battle_line Line>
 battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::state& state, int32_t position, std::span<const battle_regiment> regiment_span, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_frontline_slots) {
 	battle_regiment_fetch_result best_result = {-1, 0 };
-	for(uint32_t reg_idx = regiment_span.size(); reg_idx-- > 0;) {
+	for(size_t reg_idx = regiment_span.size(); reg_idx-- > 0;) {
 		battle_regiment current_regiment = regiment_span[reg_idx];
 		bool correct_side (Role == battle_role::attacker ? current_regiment.get_is_attacking() : !current_regiment.get_is_attacking());
 		if(correct_side && is_reserve_regiment_deployable(state, current_regiment.regiment)) {
@@ -7370,7 +7370,7 @@ battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::s
 			}
 			if(unit_score > best_result.unit_score) {
 				best_result.unit_score = unit_score;
-				best_result.index = reg_idx;
+				best_result.index = int32_t(reg_idx);
 
 			}
 		}

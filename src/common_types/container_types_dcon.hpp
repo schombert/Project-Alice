@@ -427,7 +427,7 @@ struct battle_regiment {
 
 	constexpr battle_regiment(dcon::regiment_id _regiment, bool attacking, uint16_t type, uint16_t crossing, uint8_t dig_in) : regiment(_regiment) {
 		assert(type <= type_mask);
-		flags = uint16_t(attacking | type | crossing);
+		flags = uint16_t(uint16_t(attacking) | type | crossing);
 		flags |= (dig_in << 5) & dig_in_mask;
 	}
 
@@ -457,7 +457,7 @@ struct battle_regiment {
 	}
 
 	constexpr uint8_t get_dig_in() const {
-		return (flags & dig_in_mask) >> 5;
+		return uint8_t((flags & dig_in_mask) >> 5);
 	}
 	constexpr void set_dig_in(uint8_t dig_in) {
 		flags &= ~dig_in_mask;

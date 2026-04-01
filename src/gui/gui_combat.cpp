@@ -767,7 +767,7 @@ class attacker_combat_modifiers : public overlapping_listbox_element_base<lc_mod
 			int32_t(state.world.leader_trait_get_attack(attacker_per) + state.world.leader_trait_get_attack(attacker_bg));
 
 		auto crossing_penalty_counts = count_battle_regiments_with_crossing_penalty(state, b);
-		auto max_digin_value = std::max<int32_t>(count_battle_regiments_with_digin(state, b).size() - 1, 0); // max digin value of any unit in battle, as each index is equivalent to the dig in value
+		auto max_digin_value = std::max(int32_t(count_battle_regiments_with_digin(state, b).size() - 1), 0); // max digin value of any unit in battle, as each index is equivalent to the dig in value
 
 		row_contents.push_back(lc_modifier_data{ lc_mod_type::dice, attacker_dice });
 		if(terrain_bonus != 0)
