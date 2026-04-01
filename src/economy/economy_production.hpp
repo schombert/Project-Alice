@@ -88,7 +88,7 @@ struct profit_explanation {
 	float profit;
 };
 
-profit_explanation explain_last_factory_profit(sys::state& state, dcon::factory_id f);
+profit_explanation explain_last_factory_profit(sys::state const& state, dcon::factory_id f);
 
 float factory_type_output_cost(
 	sys::state& state,

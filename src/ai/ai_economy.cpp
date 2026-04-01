@@ -76,6 +76,7 @@ void update_factory_types_priority(sys::state& state) {
 
 		state.world.for_each_commodity([&](dcon::commodity_id cid) {
 			supply[cid.index()] = economy::supply(state, n, cid);
+			state.world.nation_set_production_directive(n, production_directives::to_key(state, cid), false);
 		});
 
 		state.world.for_each_factory_type([&](dcon::factory_type_id factory_type_id) {
@@ -102,11 +103,12 @@ void update_factory_types_priority(sys::state& state) {
 			}
 
 			//check if there are "rivals" which would push you away from the industry
-			auto local_price = economy::price(state, n, state.world.factory_type_get_output(factory_type_id));
+			auto output_c = state.world.factory_type_get_output(factory_type_id);
+			auto local_price = economy::price(state, n, output_c);
 			auto rival_price = local_price * 2.f;
 			for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 				auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
-				rival_price = std::min(rival_price, economy::price(state, other, state.world.factory_type_get_output(factory_type_id)));
+				rival_price = std::min(rival_price, economy::price(state, other, output_c));
 			}
 
 			auto rival_modifier = (rival_price + 0.01f) / (local_price + 0.01f);
@@ -115,6 +117,9 @@ void update_factory_types_priority(sys::state& state) {
 			rival_modifier = (rival_modifier * rival_modifier) * (rival_modifier * rival_modifier) * rival_modifier;
 
 			state.world.nation_set_factory_type_experience_priority_national(n, factory_type_id, min_effective_supply * rival_modifier);
+			if(economy::priority_multiplier(state, factory_type_id, n) < 0.9f) {
+				state.world.nation_set_production_directive(n, production_directives::to_key(state, output_c), true);
+			}
 		});
 	});
 }
@@ -755,6 +760,7 @@ void update_budget(sys::state& state, bool presim) {
 		n.set_naval_spending(int8_t(ratio_naval));
 	
 		n.set_administrative_spending(15);
+		n.set_subsidies_spending(3);
 
 		float max_soldiers_budget = 1.f + economy::national_budget::estimate_pop_payouts_by_income_type(state, n, culture::income_type::military);
 		float max_overseas_budget = 1.f + economy::estimate_overseas_penalty_spending(state, n);

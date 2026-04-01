@@ -17,6 +17,8 @@ uniform sampler2D stripes_texture;
 uniform sampler2D province_fow;
 uniform sampler2D provinces_sea_mask;
 uniform usampler2D diag_border_identifier;
+uniform sampler2D hatching;
+uniform sampler2D watercolor;
 uniform uint subroutines_index_2;
 uniform uint graphics_mode;
 // location 0 : offset
@@ -135,8 +137,8 @@ vec4 get_water_political() {
 
 // The terrain color from the current texture coordinate offset with one pixel in the "corner" direction
 vec4 get_terrain(vec2 corner, vec2 offset) {
-	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-	vec2 prov_id = sample.xy;
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;
 	float index = texture(terrain_texture_sampler, floor(tex_coord * map_size + vec2(0.5, 0.5)) / map_size + 0.5 * pix * corner).r;
 	index = floor(index * 256);
 
@@ -203,9 +205,9 @@ vec4 get_land_political_close() {
 
 	rounded_tex_coords.y += ((int(test >> shift) & 1) != 0) && (abs(rel_coord.x) + abs(rel_coord.y) > 0.5) ? sign(rel_coord.y) / map_size.y : 0;
 
-	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-	vec2 prov_id = sample.xy;
-	float to_national_border = sample.z;
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;
+	float to_national_border = province_sample.z;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
@@ -269,9 +271,9 @@ vec4 get_land_political_far() {
 
 	float is_land = terrain.a;
 
-	vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-	vec2 prov_id = sample.xy;
-	float to_national_border = sample.z;
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;
+	float to_national_border = province_sample.z;
 
 	// The primary and secondary map mode province colors
 	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
@@ -324,20 +326,55 @@ vec4 get_land_political_far() {
 }
 
 vec4 get_land() {
-	switch(int(subroutines_index_2)) {
-case 0: return get_land_terrain();
-case 1: return get_land_political_close();
-case 2: return get_land_political_far();
-default: break;
+	/*
+
+	vec2 uv = tex_coord * 300.f;
+
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;	
+	float to_national_border = province_sample.z;
+	vec4 hatching = texture(hatching, uv / 2.f);
+
+	vec4 prov_highlight = vec4(1.f, 1.f, 1.f, 1.f);
+	float highlight = texture(province_highlight, prov_id).r;
+
+	if (highlight > 0.f) {
+		prov_highlight = vec4(hatching.rgb * 0.2f * (hatching.a) + 0.5f * (1.f - hatching.a), 1.f);
 	}
-	return vec4(1.f);
+
+	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
+
+	vec4 base_color = vec4(1.f, 247.f / 255.f, 240.f / 255.f, 1.f);
+	float wc_base = texture(watercolor, uv).b;
+	float gradient = (0.7f + sqrt(to_national_border) * 0.3f);
+	float wc_texture = max(0.f, wc_base * wc_base * wc_base) * gradient;
+	vec4 mixed_color = prov_color * (1.f - wc_texture) + base_color * wc_texture;
+
+	vec4 terrain = get_terrain_mix();
+	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+	float grey = dot( terrain.rgb, GREYIFY ) * 2.f;
+	float is_land = terrain.a;
+	return mixed_color * prov_highlight * is_land + texture(watercolor, uv) * gradient * (1 - is_land);
+
+	*/
+
+	if (int(graphics_mode) == 0) {
+		return get_land_political_far();
+	}
+
+	switch(int(subroutines_index_2)) {
+	case 0: return get_land_terrain();
+	case 1: return get_land_political_close();
+	case 2: return get_land_political_far();
+	default: break;
+	}
 }
 vec4 get_water() {
 	switch(int(subroutines_index_2)) {
-case 0: return get_water_terrain();
-case 1: return get_water_terrain();
-case 2: return get_water_political();
-default: break;
+	case 0: return get_water_terrain();
+	case 1: return get_water_terrain();
+	case 2: return get_water_political();
+	default: break;
 	}
 	return vec4(1.f);
 }
@@ -356,13 +393,23 @@ void main() {
 	float darkness = max(0.f, -dot(light_direction, space_coords));
 
 	if (int(graphics_mode) == 2) {
-		vec4 sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-		float to_national_border = sample.z;
+		vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+		float to_national_border = province_sample.z;
 		//light += (1.f - to_national_border) * 1.5f * darkness;
 		water.rgb = mix(water.rgb, vec3(0.0f, 0.0f, 0.0f), (1.f - to_national_border) * 0.5f);
 	}
+	
+	vec2 uv = tex_coord * 300.f;
+	vec4 hatching = texture(hatching, uv / 2.f);
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;	
+	vec4 prov_highlight = vec4(1.f, 1.f, 1.f, 1.f);
+	float highlight = texture(province_highlight, prov_id).r;
+	if (highlight > 0.f) {
+		prov_highlight = vec4(hatching.rgb * 0.2f * (hatching.a) + 0.5f * (1.f - hatching.a), 1.f);
+	}
 
-	frag_color.rgb = mix(water.rgb, terrain.rgb, terrain.a);
+	frag_color.rgb = mix(water.rgb, terrain.rgb, terrain.a) * prov_highlight.rgb;
 	if (ignore_light == 0.f) {
 		float darkness = max(0.f, -dot(light_direction, space_coords));
 		frag_color *= light;

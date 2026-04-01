@@ -2862,10 +2862,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 			state.open_diplomacy(std::get<dcon::nation_id>(chunk->source));
 			auto cap = state.world.nation_get_capital(std::get<dcon::nation_id>(chunk->source));
 			if(cap) {
-				auto map_pos = state.world.province_get_mid_point(cap);
-				map_pos.x /= float(state.map_state.map_data.size_x);
-				map_pos.y /= float(state.map_state.map_data.size_y);
-				map_pos.y = 1.0f - map_pos.y;
+				auto map_pos =  state.map_state.normalize_map_coord(state.world.province_get_mid_point(cap));
 				state.map_state.set_pos(map_pos);
 			}
 		} else if(std::holds_alternative<dcon::province_id>(chunk->source)) {
@@ -2897,10 +2894,7 @@ message_result multiline_text_element_base::on_lbutton_down(sys::state& state, i
 				state.open_diplomacy(nat);
 				auto cap = state.world.nation_get_capital(nat);
 				if(cap) {
-					auto map_pos = state.world.province_get_mid_point(cap);
-					map_pos.x /= float(state.map_state.map_data.size_x);
-					map_pos.y /= float(state.map_state.map_data.size_y);
-					map_pos.y = 1.0f - map_pos.y;
+					auto map_pos = state.map_state.normalize_map_coord(state.world.province_get_mid_point(cap));
 					state.map_state.set_pos(map_pos);
 				}
 			}

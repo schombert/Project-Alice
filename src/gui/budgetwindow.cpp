@@ -927,6 +927,13 @@ void  budgetwindow_main_espenses_table_t::update(sys::state& state, layout_windo
 	} else {
 		add_neutral_spacer();
 	}
+
+	add_section_header(budget_categories::subsidies);
+	if(budget_categories::expanded[budget_categories::subsidies]) {
+	} else {
+		add_neutral_spacer();
+	}
+
 	add_section_header(budget_categories::army_upkeep);
 	if(budget_categories::expanded[budget_categories::army_upkeep]) {
 		add_bottom_spacer();
@@ -2727,7 +2734,7 @@ void budgetwindow_section_header_llbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::admin: set_visible(state, true); break;
 	case budget_categories::domestic_investment: set_visible(state, true); break;
 	case budget_categories::overseas_spending: set_visible(state, true); break;
-	case budget_categories::subsidies: set_visible(state, false); break;
+	case budget_categories::subsidies: set_visible(state, true); break;
 	case budget_categories::construction: set_visible(state, true); break;
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
@@ -2757,7 +2764,7 @@ bool budgetwindow_section_header_llbutton_t::button_action(sys::state& state) no
 	case budget_categories::admin: vals.administrative_spending = economy::budget_minimums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: vals.domestic_investment = economy::budget_minimums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: vals.overseas = economy::budget_minimums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: vals.subsidies = economy::budget_minimums(state, state.local_player_nation).subsidies; break;
 	case budget_categories::construction: vals.construction_spending = economy::budget_minimums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: vals.land_spending = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
@@ -2788,7 +2795,7 @@ void budgetwindow_section_header_lbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::admin: set_visible(state, true); break;
 	case budget_categories::domestic_investment: set_visible(state, true); break;
 	case budget_categories::overseas_spending: set_visible(state, true); break;
-	case budget_categories::subsidies: set_visible(state, false); break;
+	case budget_categories::subsidies: set_visible(state, true); break;
 	case budget_categories::construction: set_visible(state, true); break;
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
@@ -2818,7 +2825,7 @@ bool budgetwindow_section_header_lbutton_t::button_action(sys::state& state) noe
 	case budget_categories::admin: vals.administrative_spending = int8_t(std::clamp(state.world.nation_get_administrative_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::domestic_investment: vals.domestic_investment = int8_t(std::clamp(state.world.nation_get_domestic_investment_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::overseas_spending: vals.overseas = int8_t(std::clamp(state.world.nation_get_overseas_spending(state.local_player_nation) - 10, 0, 100)); break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: vals.subsidies = int8_t(std::clamp(state.world.nation_get_subsidies_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::construction: vals.construction_spending = int8_t(std::clamp(state.world.nation_get_construction_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) - 10, 0, 100)); break;
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 10, 0, 100)); break;
@@ -2850,7 +2857,7 @@ bool budgetwindow_section_header_lbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::admin: vals.administrative_spending = int8_t(std::clamp(state.world.nation_get_administrative_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::domestic_investment: vals.domestic_investment = int8_t(std::clamp(state.world.nation_get_domestic_investment_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::overseas_spending: vals.overseas = int8_t(std::clamp(state.world.nation_get_overseas_spending(state.local_player_nation) - 1, 0, 100)); break;
-		case budget_categories::subsidies: break;
+		case budget_categories::subsidies: vals.subsidies = int8_t(std::clamp(state.world.nation_get_subsidies_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::construction: vals.construction_spending = int8_t(std::clamp(state.world.nation_get_construction_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) - 1, 0, 100)); break;
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) - 1, 0, 100)); break;
@@ -2881,7 +2888,7 @@ void budgetwindow_section_header_rbutton_t::on_update(sys::state& state) noexcep
 	case budget_categories::admin: set_visible(state, true); break;
 	case budget_categories::domestic_investment: set_visible(state, true); break;
 	case budget_categories::overseas_spending: set_visible(state, true); break;
-	case budget_categories::subsidies: set_visible(state, false); break;
+	case budget_categories::subsidies: set_visible(state, true); break;
 	case budget_categories::construction: set_visible(state, true); break;
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
@@ -2911,7 +2918,7 @@ bool budgetwindow_section_header_rbutton_t::button_action(sys::state& state) noe
 	case budget_categories::admin: vals.administrative_spending = int8_t(std::clamp(state.world.nation_get_administrative_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::domestic_investment: vals.domestic_investment = int8_t(std::clamp(state.world.nation_get_domestic_investment_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::overseas_spending: vals.overseas = int8_t(std::clamp(state.world.nation_get_overseas_spending(state.local_player_nation) + 10, 0, 100)); break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: vals.subsidies = int8_t(std::clamp(state.world.nation_get_subsidies_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::construction: vals.construction_spending = int8_t(std::clamp(state.world.nation_get_construction_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) + 10, 0, 100)); break;
 	case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 10, 0, 100)); break;
@@ -2943,7 +2950,7 @@ bool budgetwindow_section_header_rbutton_t::button_shift_action(sys::state& stat
 		case budget_categories::admin: vals.administrative_spending = int8_t(std::clamp(state.world.nation_get_administrative_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::domestic_investment: vals.domestic_investment = int8_t(std::clamp(state.world.nation_get_domestic_investment_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::overseas_spending: vals.overseas = int8_t(std::clamp(state.world.nation_get_overseas_spending(state.local_player_nation) + 1, 0, 100)); break;
-		case budget_categories::subsidies: break;
+		case budget_categories::subsidies: vals.subsidies = int8_t(std::clamp(state.world.nation_get_subsidies_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::construction: vals.construction_spending = int8_t(std::clamp(state.world.nation_get_construction_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::army_upkeep: vals.land_spending = int8_t(std::clamp(state.world.nation_get_land_spending(state.local_player_nation) + 1, 0, 100)); break;
 		case budget_categories::navy_upkeep: vals.naval_spending = int8_t(std::clamp(state.world.nation_get_naval_spending(state.local_player_nation) + 1, 0, 100)); break;
@@ -2974,7 +2981,7 @@ void budgetwindow_section_header_rrbutton_t::on_update(sys::state& state) noexce
 	case budget_categories::admin: set_visible(state, true); break;
 	case budget_categories::domestic_investment: set_visible(state, true); break;
 	case budget_categories::overseas_spending: set_visible(state, true); break;
-	case budget_categories::subsidies: set_visible(state, false); break;
+	case budget_categories::subsidies: set_visible(state, true); break;
 	case budget_categories::construction: set_visible(state, true); break;
 	case budget_categories::army_upkeep: set_visible(state, true); break;
 	case budget_categories::navy_upkeep: set_visible(state, true); break;
@@ -3004,7 +3011,7 @@ bool budgetwindow_section_header_rrbutton_t::button_action(sys::state& state) no
 	case budget_categories::admin: vals.administrative_spending = economy::budget_maximums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: vals.domestic_investment = economy::budget_maximums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: vals.overseas = economy::budget_maximums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: vals.subsidies = economy::budget_maximums(state, state.local_player_nation).subsidies; break;
 	case budget_categories::construction: vals.construction_spending = economy::budget_maximums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: vals.land_spending = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: vals.naval_spending = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
@@ -3035,7 +3042,7 @@ void budgetwindow_section_header_setting_amount_t::on_update(sys::state& state) 
 	case budget_categories::admin: set_text(state, std::to_string(state.world.nation_get_administrative_spending(state.local_player_nation))); break;
 	case budget_categories::domestic_investment: set_text(state, std::to_string(state.world.nation_get_domestic_investment_spending(state.local_player_nation))); break;
 	case budget_categories::overseas_spending: set_text(state, std::to_string(state.world.nation_get_overseas_spending(state.local_player_nation))); break;
-	case budget_categories::subsidies: set_text(state, ""); break;
+	case budget_categories::subsidies: set_text(state, std::to_string(state.world.nation_get_subsidies_spending(state.local_player_nation))); break;
 	case budget_categories::construction: set_text(state, std::to_string(state.world.nation_get_construction_spending(state.local_player_nation))); break;
 	case budget_categories::army_upkeep: set_text(state, std::to_string(state.world.nation_get_land_spending(state.local_player_nation))); break;
 	case budget_categories::navy_upkeep: set_text(state, std::to_string(state.world.nation_get_naval_spending(state.local_player_nation))); break;
@@ -3162,7 +3169,7 @@ void budgetwindow_section_header_min_setting_t::update_tooltip(sys::state& state
 	case budget_categories::admin: value = economy::budget_minimums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: value = economy::budget_minimums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: value = economy::budget_minimums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: value = economy::budget_minimums(state, state.local_player_nation).subsidies; break;
 	case budget_categories::construction: value = economy::budget_minimums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: value = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
@@ -3219,7 +3226,7 @@ void budgetwindow_section_header_min_setting_t::on_update(sys::state& state) noe
 	case budget_categories::admin: value = economy::budget_minimums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: value = economy::budget_minimums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: value = economy::budget_minimums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: value = economy::budget_minimums(state, state.local_player_nation).subsidies; break;
 	case budget_categories::construction: value = economy::budget_minimums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: value = economy::budget_minimums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_minimums(state, state.local_player_nation).naval_spending; break;
@@ -3256,7 +3263,7 @@ void budgetwindow_section_header_max_setting_t::update_tooltip(sys::state& state
 	case budget_categories::admin: value = economy::budget_maximums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: value = economy::budget_maximums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: value = economy::budget_maximums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: value = economy::budget_maximums(state, state.local_player_nation).subsidies; break;
 	case budget_categories::construction: value = economy::budget_maximums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: value = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;
@@ -3313,7 +3320,7 @@ void budgetwindow_section_header_max_setting_t::on_update(sys::state& state) noe
 	case budget_categories::admin: value = economy::budget_maximums(state, state.local_player_nation).administrative_spending; break;
 	case budget_categories::domestic_investment: value = economy::budget_maximums(state, state.local_player_nation).domestic_investment; break;
 	case budget_categories::overseas_spending: value = economy::budget_maximums(state, state.local_player_nation).overseas; break;
-	case budget_categories::subsidies: break;
+	case budget_categories::subsidies: value = economy::budget_maximums(state, state.local_player_nation).subsidies;  break;
 	case budget_categories::construction: value = economy::budget_maximums(state, state.local_player_nation).construction_spending; break;
 	case budget_categories::army_upkeep: value = economy::budget_maximums(state, state.local_player_nation).land_spending; break;
 	case budget_categories::navy_upkeep: value = economy::budget_maximums(state, state.local_player_nation).naval_spending; break;

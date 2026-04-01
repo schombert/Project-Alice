@@ -165,7 +165,7 @@ void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexc
 			auto r = state.ui_templates.iconic_button_t[template_id].disabled.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 			auto b = state.ui_templates.iconic_button_t[template_id].disabled.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+				state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 		}
 	} else if(ms_after.count() < mouse_over_animation_ms && state.ui_templates.iconic_button_t[template_id].animate_active_transition) {
 		float percentage = float(ms_after.count()) / float(mouse_over_animation_ms);
@@ -189,7 +189,7 @@ void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexc
 				auto r = state.ui_templates.iconic_button_t[template_id].active.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 				auto b = state.ui_templates.iconic_button_t[template_id].active.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		} else {
 			auto active_id = state.ui_templates.iconic_button_t[template_id].active.bg;
@@ -212,7 +212,7 @@ void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexc
 				auto r = state.ui_templates.iconic_button_t[template_id].primary.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 				auto b = state.ui_templates.iconic_button_t[template_id].primary.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		}
 	} else if(this == state.ui_state.under_mouse) {
@@ -228,7 +228,7 @@ void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexc
 			auto r = state.ui_templates.iconic_button_t[template_id].active.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 			auto b = state.ui_templates.iconic_button_t[template_id].active.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+				state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 		}
 	} else {
 		auto bg_id = state.ui_templates.iconic_button_t[template_id].primary.bg;
@@ -243,7 +243,7 @@ void template_icon_button::render(sys::state& state, int32_t x, int32_t y) noexc
 			auto r = state.ui_templates.iconic_button_t[template_id].primary.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 			auto b = state.ui_templates.iconic_button_t[template_id].primary.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+				state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 		}
 	}
 }
@@ -483,7 +483,7 @@ void template_mixed_button::render(sys::state& state, int32_t x, int32_t y) noex
 			auto r = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 			auto b = region.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon_id].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, color.r, color.g, color.b));
+				state.ui_templates.icons[icon_id].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, color.r, color.g, color.b));
 		}
 	}
 	{ // text
@@ -588,7 +588,7 @@ void template_mixed_button_ci::render(sys::state& state, int32_t x, int32_t y) n
 			auto r = region.icon_right.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + x;
 			auto b = region.icon_bottom.resolve(float(base_data.size.x), float(base_data.size.y), float(par->grid_size)) + y;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon_id].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, icon_color.r, icon_color.g, icon_color.b));
+				state.ui_templates.icons[icon_id].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, icon_color.r, icon_color.g, icon_color.b));
 		}
 	}
 	{ // text
@@ -975,7 +975,7 @@ void page_buttons::render(sys::state& state, int32_t x, int32_t y) noexcept {
 				auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
 				auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		}
 		if(auto button_template = state.ui_templates.layout_region_t[for_layout->template_id].right_button; button_template != -1) { // right button
@@ -1002,7 +1002,7 @@ void page_buttons::render(sys::state& state, int32_t x, int32_t y) noexcept {
 				auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
 				auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		}
 		{ // text
@@ -1171,7 +1171,7 @@ void rh_map_items::render(sys::state& state, int32_t x, int32_t y) noexcept {
 				auto r = region.icon_right.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
 				auto b = region.icon_bottom.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		}
 		//item_provinces
@@ -1199,7 +1199,7 @@ void rh_map_items::render(sys::state& state, int32_t x, int32_t y) noexcept {
 				auto r = region.icon_right.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + x_pos;
 				auto b = region.icon_bottom.resolve(float(grid_size * 2), float(grid_size * 2), float(grid_size)) + y_pos;
 				ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-					state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+					state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 			}
 		}
 		{ // text
@@ -1311,15 +1311,15 @@ void rh_map_items::on_update(sys::state& state) noexcept {
 		auto mid_point = state.world.province_get_mid_point(p);
 		auto map_pos = state.map_state.normalize_map_coord(mid_point);
 		auto screen_size = glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
-		glm::vec2 screen_pos;
+		screen_space::point_ui screen_pos;
 
-		if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 0.0f, 0.0f }))
+		if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 0.0f, 0.0f }))
 			continue;
 
-		if(int16_t(screen_pos.x) < viewport.top_left.x || int16_t(screen_pos.y) < viewport.top_left.y || int32_t(screen_pos.x) > (viewport.top_left.x + viewport.size.x) || int32_t(screen_pos.y) > (viewport.top_left.y + viewport.size.y))
+		if(int16_t(screen_pos.data.x) < viewport.top_left.x || int16_t(screen_pos.data.y) < viewport.top_left.y || int32_t(screen_pos.data.x) > (viewport.top_left.x + viewport.size.x) || int32_t(screen_pos.data.y) > (viewport.top_left.y + viewport.size.y))
 			continue;
 
-		item_provinces.push_back(prov_and_location{p.id, int16_t(screen_pos.x), int16_t(screen_pos.y) });
+		item_provinces.push_back(prov_and_location{p.id, int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) });
 	}
 
 	// sort into pages
@@ -1495,7 +1495,7 @@ void drop_down_list_page_buttons::render(sys::state& state, int32_t x, int32_t y
 			auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
 			auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+				state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 		}
 	}
 	if(auto button_template = state.ui_templates.layout_region_t[lt].right_button; button_template != -1) { // right button
@@ -1522,7 +1522,7 @@ void drop_down_list_page_buttons::render(sys::state& state, int32_t x, int32_t y
 			auto r = region.icon_right.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + x_pos;
 			auto b = region.icon_bottom.resolve(float(base_data.size.y), float(base_data.size.y), float(par->grid_size)) + y_pos;
 			ogl::render_textured_rect_direct(state, l, t, r - l, b - t,
-				state.ui_templates.icons[icon].renders.get_render(state, int32_t(r - l), int32_t(b - t), state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
+				state.ui_templates.icons[icon].renders.get_render(state, base_data.size.x, base_data.size.y, state.user_settings.ui_scale, state.ui_templates.colors[ico_color].r, state.ui_templates.colors[ico_color].g, state.ui_templates.colors[ico_color].b));
 		}
 	}
 	{ // text
@@ -3200,6 +3200,10 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 	auto ptype = state.world.pop_get_poptype(ids);
 	auto strata = state.world.pop_type_get_strata(ptype);
 
+	auto urban_size = state.world.province_get_advanced_province_building_max_private_size(loc, advanced_province_buildings::list::local_cities_and_towns);
+	auto population = state.world.province_get_demographics(loc, demographics::total);
+	auto chance_multiplier = std::min(1.f, urban_size / (population + economy::numerical::employment_unit::epsilon));
+
 	text::add_line(state, contents, "pop_prom_1");
 	if(promoted_type) {
 		if(promoted_type == ptype) {
@@ -3219,8 +3223,11 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 		text::add_line(state, contents, "pop_prom_7");
 		return;
 	}
+
+	text::add_line(state, contents, "pop_prom_housing_multiplier", text::variable_type::val, text::fp_two_places{ chance_multiplier });
+
 	text::add_line(state, contents, "pop_prom_8", text::variable_type::x, text::fp_three_places{ state.defines.promotion_scale },
-				text::variable_type::val, text::fp_two_places{ promotion_chance });
+				text::variable_type::val, text::fp_two_places{ promotion_chance * chance_multiplier });
 	
 }
 

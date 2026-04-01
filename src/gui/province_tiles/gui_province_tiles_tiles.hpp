@@ -756,7 +756,7 @@ public:
 		text::add_line(state, contents, "trade_center_desc");
 
 		text::add_line_break_to_layout(state, contents);
-		economy::make_trade_center_tooltip(state, contents, target.market);
+		economy::make_trade_center_tooltip(state, contents, target.market, target.province);
 		text::add_line_break_to_layout(state, contents);
 
 		// TODO: Organize abstract "explain market labour demand" for the two
@@ -774,7 +774,7 @@ public:
 		text::add_line(state, contents, "target_employment", text::variable_type::value, text::fp_one_place{ target_employment }, 15);
 		text::add_line(state, contents, "employment_satisfaction", text::variable_type::value, text::fp_percentage{ satisfaction }, 15);
 
-		auto wage = (state.world.province_get_labor_price(target.province, economy::labor::no_education) + 0.00001f);
+		auto wage = state.world.province_get_labor_price(target.province, economy::labor::no_education);
 		text::add_line(state, contents, "wage", text::variable_type::value, text::fp_one_place{ wage }, 15);
 	}
 };

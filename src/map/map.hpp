@@ -12,6 +12,7 @@
 #include <glm/mat4x4.hpp>
 
 #include "projections.hpp"
+#include "constants_state.hpp"
 
 namespace sys {
 struct state;
@@ -128,6 +129,7 @@ struct border {
 	int count = 0;
 	dcon::province_adjacency_id adj;
 	uint16_t padding = 0;
+	bool skip;
 	bool operator==(const border&) const = default;
 };
 
@@ -144,15 +146,22 @@ public:
 
 	bool texturesheet_is_dds = false;
 
-	void render(sys::state& state, glm::vec2 screen_size, glm::vec2 offset, float zoom, map_view map_view_mode, map_mode::mode active_map_mode,
-			glm::mat3 globe_rotation, float time_counter);
+	void render(
+		sys::state& state,
+		glm::vec2 screen_size, map_space::point_normalized offset, float zoom,
+		sys::projection_mode map_view_mode, map_mode::mode active_map_mode,
+		glm::mat3 globe_rotation, float time_counter
+	);
 	void update_borders(sys::state& state);
 	void update_fog_of_war(sys::state& state);
 	void update_highlight(sys::state& state);
 	void set_province_color(std::vector<uint32_t> const& prov_color);
 	void set_drag_box(bool draw_box, glm::vec2 pos1, glm::vec2 pos2, glm::vec2 pixel_size);
 	void update_sprawl(sys::state& state);
-	void set_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
+
+	// MAP TEXT
+	std::vector<text_line_generator_data> text_data;
+	void set_text_lines(sys::state& state);
 	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
 	std::vector<border> borders;
@@ -216,6 +225,7 @@ public:
 	std::vector<GLsizei> arbitrary_map_triangles_counts;
 	//
 	std::vector<text_line_vertex> text_line_vertices;
+	GLsizei last_size_of_text_line_vertices = 0;
 	std::vector<text_line_vertex> province_text_line_vertices;
 	std::vector<screen_vertex> drag_box_vertices;
 	std::vector<uint8_t> terrain_id_map;
@@ -288,7 +298,10 @@ public:
 	static constexpr uint32_t texture_sea_mask = 25;
 	static constexpr uint32_t texture_arrow = 26;
 	static constexpr uint32_t texture_city = 27;
-	static constexpr uint32_t texture_count = 28;
+	static constexpr uint32_t texture_printbrush = 28;
+	static constexpr uint32_t texture_hatching = 29;
+	static constexpr uint32_t texture_watercolor = 30;
+	static constexpr uint32_t texture_count = 31;
 	GLuint textures[texture_count] = { 0 };
 	// Texture Array
 	static constexpr uint32_t texture_array_terrainsheet = 0;
@@ -365,7 +378,10 @@ public:
 	static constexpr uint32_t uniform_color = 46;
 	static constexpr uint32_t uniform_glyphs = 47;
 	static constexpr uint32_t uniform_curves = 48;
-	static constexpr uint32_t uniform_count = 49;
+	static constexpr uint32_t uniform_printbrush = 49;
+	static constexpr uint32_t uniform_hatching = 50;
+	static constexpr uint32_t uniform_watercolor = 51;
+	static constexpr uint32_t uniform_count = 52;
 	GLint shader_uniforms[shader_count][uniform_count] = { };
 
 	// models: Textures for static meshes

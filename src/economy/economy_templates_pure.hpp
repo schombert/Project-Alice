@@ -77,6 +77,7 @@ struct vectorized_budget_position {
 template<typename VALUE>
 struct vectorized_pops_budget {
 	vectorized_budget_position<VALUE> life_needs{};
+	vectorized_budget_position<VALUE> housing{ };
 	vectorized_budget_position<VALUE> everyday_needs{};
 	vectorized_budget_position<VALUE> luxury_needs{};
 	vectorized_budget_position<VALUE> investments{};

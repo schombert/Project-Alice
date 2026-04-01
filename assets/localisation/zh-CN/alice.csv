@@ -1699,7 +1699,7 @@ rgo_details_name;名称
 rgo_efficiency_super_header;效率
 rgo_efficiency_value;%
 rgo_efficiency_cost;成本
-local_price;本地
+local_price;当地
 median_price;全球均价
 ratio_to_median;%
 change_price;变化
@@ -1852,17 +1852,17 @@ province_market_trade_balance;贸易结余：?Y$val$?!
 civilian_port;民用港
 civilian_port_size;规模：?Y$val$?!
 production_window_title;生产
-production_combine_types_toggle;汇总显示
+production_combine_types_toggle;折叠类型
 production_table_name_header;名称
 production_table_size_header;规模
 production_table_amount_header;数量
 economy_data_toggle_tooltip;经济概览显示了该省的经济数据汇总。
 province_tiles_toggle_tooltip;省份图块显示该省的所有建筑，包括行政机构、港口、工厂、RGOs、要塞、铁路、军营等。
-province_market_toggle_tooltip;本地市场标签显示省级市场的数据，包括价格、供需、生产和消费、库存、进出口等。
+province_market_toggle_tooltip;当地市场标签显示省级市场的数据，包括价格、供需、生产和消费、库存、进出口等。
 production_category_production;生产
 production_category_consumption;消费
 production_category_employment;雇佣
-production_category_details;信息
+production_category_details;技术
 production_location_national;所有省份
 production_filter_all;所有商品
 production_about_combined;汇总
@@ -1876,7 +1876,7 @@ production_sub_item_inputs;投入
 production_sub_item_uses;使用
 production_sub_item_labor;劳动力
 production_sub_item_consumption;投入
-production_explain_view;生产——显示生产及其投入使用量。\n\n消费——显示消费数、使用该商品的工艺和任何投入不足的情况。\n\n雇佣——显示各行业劳动力和劳动力不足情况。\n\n信息——显示基本工艺和工厂专业化情况。
+production_explain_view;生产——显示生产及其投入使用量。\n\n消费——显示消费数、使用该商品的工艺和任何投入不足的情况。\n\n雇佣——显示各行业劳动力和劳动力不足情况。\n\n技术——显示基本工艺和工厂专业化情况。
 production_explain_location;显示全国或一省信息。
 production_explain_combine;汇总或分别显示工厂、工匠和RGO活动的同一商品数据。
 production_explain_filter;显示所有或特定的商品信息。
@@ -1944,3 +1944,20 @@ alice_gamerule_command_units;战时指挥AI附庸单位
 alice_gamerule_command_units_opt_disabled;禁用
 alice_gamerule_command_units_opt_enabled;启用
 alice_gamerule_command_units_desc;玩家战时是否可指挥AI附庸单位
+trade_centre_estimated_money;下次采购预计：?Y$val$
+trade_centre_estimated_change;变化预计：?Y$val$
+trade_centre_import;进口商品采购：?Y$val$
+trade_centre_export;出口盈亏：?Y$val$
+trade_centre_sold;销售收入：?Y$val$
+trade_centre_bought;当地商品采购：?Y$val$
+trade_centre_investments;人群贸易预算：?Y$val$
+trade_centre_dividents;投资者分红：?Y$val$
+trade_centre_factories;工厂采购：?Y$val$
+trade_centre_rgo;RGO采购：?Y$val$
+trade_centre_services;私营公共服务工资：?Y$val$
+pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 $val$
+urban_size;城市规模
+private_education_owners;私营教师 ?Y$val$?!
+port_owners;当地港口 ?Y$val$?!
+construction_companies;房东 ?Y$val$?!
+map_projection_globe_stereographic;球极投影

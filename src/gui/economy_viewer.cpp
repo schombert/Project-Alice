@@ -12,6 +12,7 @@
 #include "province.hpp"
 #include "immediate_mode.hpp"
 #include "commands.hpp"
+#include "economy_constants.hpp"
 
 
 namespace economy_viewer {
@@ -187,7 +188,7 @@ void update(sys::state& state) {
 				switch(state.iui_state.selected_labor_info) {
 				case iui::labor_info_mode::price:
 					state.iui_state.per_nation_data[n.index()] =
-						total_price * 10'000.f / (total_demand + 0.0001f);
+						total_price * 10'000.f / (total_demand + economy::numerical::employment_unit::epsilon);
 					break;
 				case iui::labor_info_mode::demand:
 					state.iui_state.per_nation_data[n.index()] =
@@ -200,8 +201,8 @@ void update(sys::state& state) {
 				case iui::labor_info_mode::supply_demand_ratio:
 					balance_color = true;
 					state.iui_state.per_nation_data[n.index()] =
-						(total_supply + 0.0001f)
-						/ (total_demand + 0.0001f);
+						(total_supply + economy::numerical::employment_unit::epsilon)
+						/ (total_demand + economy::numerical::employment_unit::epsilon);
 					break;
 				default:
 					break;
@@ -225,8 +226,8 @@ void update(sys::state& state) {
 				case iui::labor_info_mode::supply_demand_ratio:
 					balance_color = true;
 					state.iui_state.per_province_data[pid.index()] =
-						(state.world.province_get_labor_supply(pid, state.iui_state.selected_labor_type) + 0.0001f)
-						/ (state.world.province_get_labor_demand(pid, state.iui_state.selected_labor_type) + 0.0001f);
+						(state.world.province_get_labor_supply(pid, state.iui_state.selected_labor_type) + economy::numerical::employment_unit::epsilon)
+						/ (state.world.province_get_labor_demand(pid, state.iui_state.selected_labor_type) + economy::numerical::employment_unit::epsilon);
 					break;
 				default:
 					break;
@@ -559,10 +560,24 @@ void update(sys::state& state) {
 					total_port += state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
 				});
 
+				float total_city = 0.f;
+				state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+					auto pid = state.world.province_ownership_get_province(poid);
+					total_city += state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::local_cities_and_towns);
+				});
+
 				switch(state.iui_state.selected_infrastructure_mode) {
 				case iui::infrastructure_mode::civilian_ports:
 					magma = false;
+					scaling = scaling_mode::log;
+					do_not_cut_away_values = true;
 					state.iui_state.per_nation_data[n.index()] = total_port;
+					break;
+				case iui::infrastructure_mode::housing:
+					magma = false;
+					scaling = scaling_mode::linear;
+					do_not_cut_away_values = true;
+					state.iui_state.per_nation_data[n.index()] = total_city;
 					break;
 				default:
 					break;
@@ -574,8 +589,16 @@ void update(sys::state& state) {
 				case iui::infrastructure_mode::civilian_ports:
 					magma = false;
 					scaling = scaling_mode::log;
+					do_not_cut_away_values = true;
 					state.iui_state.per_province_data[pid.index()] =
 						state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::civilian_ports);
+					break;				
+				case iui::infrastructure_mode::housing:
+					magma = false;
+					scaling = scaling_mode::linear;
+					do_not_cut_away_values = true;
+					state.iui_state.per_province_data[pid.index()] =
+						state.world.province_get_advanced_province_building_max_private_size(pid, advanced_province_buildings::list::local_cities_and_towns);
 					break;
 				default:
 					break;
@@ -830,19 +853,19 @@ void render(sys::state& state) {
 				}
 			}
 
-			glm::vec2 screen_pos{};
-			if(!state.map_state.map_to_screen(state, map_pos, screen_size, screen_pos, { 200.f, 200.f })) {
+			screen_space::point_ui screen_pos{};
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
 				return;
 			}
 
 			iui::move_to(
 				market_label_rect,
-				screen_pos.x - market_label_rect.w / 2.f, screen_pos.y - market_label_rect.h / 2.f
+				screen_pos.data.x - market_label_rect.w / 2.f, screen_pos.data.y - market_label_rect.h / 2.f
 			);
 
 			iui::move_to(
 				market_label_rect_text,
-				screen_pos.x - market_label_rect.w / 2.f + 5.f, screen_pos.y - market_label_rect.h / 2.f + 2.f
+				screen_pos.data.x - market_label_rect.w / 2.f + 5.f, screen_pos.data.y - market_label_rect.h / 2.f + 2.f
 			);
 
 			
@@ -871,8 +894,11 @@ void render(sys::state& state) {
 			}
 
 			if(state.iui_state.tab == iui::iui_tab::infrastructure) {
-				if(!state.world.province_get_is_coast(pid) && !state.iui_state.national_data)
+				if (pid.index() >= state.province_definitions.first_sea_province.index())
 					draw_panel = false;
+				if (state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports)
+					if(!state.world.province_get_is_coast(pid) && !state.iui_state.national_data)
+						draw_panel = false;
 			}
 
 			if (draw_panel) {
@@ -916,7 +942,20 @@ void render(sys::state& state) {
 					);
 				}
 			} else if(state.iui_state.tab == iui::iui_tab::infrastructure) {
-				if(state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports && draw_panel) {
+				if(
+					state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::civilian_ports
+					&& draw_panel
+				) {
+					state.iui_state.float_2(
+						state, pid.index(),
+						market_label_rect_text,
+						value
+					);
+				}
+				if(
+					state.iui_state.selected_infrastructure_mode == iui::infrastructure_mode::housing
+					&& draw_panel
+				) {
 					state.iui_state.float_2(
 						state, pid.index(),
 						market_label_rect_text,
