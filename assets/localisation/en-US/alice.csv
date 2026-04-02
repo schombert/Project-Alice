@@ -708,6 +708,7 @@ pop_lit_6;The modifier to the national education-efficiency modifier: $x$
 pop_lit_7;The base literacy change rate: $x$
 pop_lit_8;And 0.01
 pop_literacy_spending;Pop is planning to spend ?Y$val$?W on education.
+pop_literacy_spending_actually_spent;Local education demand satisfaction: ?Y$val$?W.
 pop_literacy_spending_required;Max education spendings: ?Y$val$?W.
 pop_literacy_spending_public;?Y$val$?W of expenses will be covered by public education budget.
 pop_literacy_spending_ratio;Satisfied ratio: ?Y$x$?W.
@@ -1967,3 +1968,9 @@ private_message_button_tooltip;Click to toggle whether this player will receive 
 player_loaded_status;Ready
 player_loading_status;Loading
 player_oos_status;OOS
+rgo_bank;RGO balance ?Y$val$?W
+rgo_bank_in;RGOs from production ?Y$val$?W
+rgo_bank_out;RGOs to pops ?Y$val$?W
+factory_bank;Factories balance ?Y$val$?W
+factory_bank_in;Factories from production ?Y$val$?W
+factory_bank_out;Factories to pops ?Y$val$?W
