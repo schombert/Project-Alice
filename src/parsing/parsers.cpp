@@ -204,43 +204,39 @@ bool parse_bool(std::string_view content, int32_t, error_handler&) {
 	else
 		return (content[0] == 'Y') || (content[0] == 'y') || (content[0] == '1');
 }
-bool try_parse_bool_strict(std::string_view content, int32_t, error_handler&, bool& val_out) {
+std::optional<bool> try_parse_bool_strict(std::string_view content, int32_t, error_handler&) {
 	switch(content.length()) {
 	case 0:
 		return false;
 	
 	case 1:
 		if(content[0] == '0') {
-			val_out = false;
-			return true;
+			return std::optional<bool>{false};
 		}
 		else if(content[0] == '1') {
-			val_out = true;
-			return true;
+			return std::optional<bool>{true};
 
 		}
 		else {
-			return false;
+			return std::optional<bool>{};
 		}
 	case 2:
 		
-		if((content[0] == 'n' || content[0] == 'N') && (content[0] == 'o' || content[0] == 'O')) {
-			val_out = false;
-			return true;
+		if((content[0] == 'n' || content[0] == 'N') && (content[1] == 'o' || content[1] == 'O')) {
+			return std::optional<bool>{false};
 		}
 		else {
-			return false;
+			return std::optional<bool>{};
 		}
 	case 3:
-		if((content[0] == 'y' || content[0] == 'Y') && (content[0] == 'e' || content[0] == 'E') && (content[0] == 's' || content[0] == 'S')) {
-			val_out = true;
-			return true;
+		if((content[0] == 'y' || content[0] == 'Y') && (content[1] == 'e' || content[1] == 'E') && (content[2] == 's' || content[2] == 'S')) {
+			return std::optional<bool>{true};
 		}
 		else {
-			return false;
+			return std::optional<bool>{};
 		};
 	default:
-		return false;
+		return std::optional<bool>{};
 	}
 }
 
@@ -254,12 +250,13 @@ float parse_float(std::string_view content, int32_t line, error_handler& err) {
 	return rvalue;
 }
 
-bool try_parse_float(std::string_view content, int32_t line, error_handler& err, float& val_out) {
-	if(!float_from_chars(content.data(), content.data() + content.length(), val_out)) {
-		return false;
+std::optional<float> try_parse_float(std::string_view content, int32_t line, error_handler& err) {
+	float rvalue = 0.0f;
+	if(!float_from_chars(content.data(), content.data() + content.length(), rvalue)) {
+		return std::optional<float>{};
 	}
 
-	return true;
+	return std::optional<float>{rvalue};
 }
 
 double parse_double(std::string_view content, int32_t line, error_handler& err) {

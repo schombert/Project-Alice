@@ -5907,8 +5907,9 @@ struct trigger_body {
 		}
 
 		// Then check triggers expecting a boolean
-		bool bvalue;
-		if(try_parse_bool_strict(value, line, err, bvalue)) {
+		std::optional<bool> bool_result = try_parse_bool_strict(value, line, err);
+		if(bool_result) {
+			bool bvalue = *bool_result;
 			if(auto it = context.outer_context.map_of_technologies.find(str_label);
 				it != context.outer_context.map_of_technologies.end()) {
 				if(context.main_slot == trigger::slot_contents::nation) {
@@ -5947,8 +5948,9 @@ struct trigger_body {
 
 		}
 		// then check triggers expecting a float
-		float val;
-		if(try_parse_float(value, line, err, val)) {
+		std::optional<float> float_result = try_parse_float(value, line, err);
+		if(float_result) {
+			float val = *float_result;
 			if(auto itc = context.outer_context.map_of_ideologies.find(str_label);
 							itc != context.outer_context.map_of_ideologies.end()) {
 				if(context.main_slot == trigger::slot_contents::nation)

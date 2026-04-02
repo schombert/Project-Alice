@@ -767,7 +767,6 @@ struct alignas(64) state {
 	bool national_cached_values_out_of_date = false;
 	bool diplomatic_cached_values_out_of_date = false;
 	bool trade_route_cached_values_out_of_date = true;
-	bool all_battles_combat_width_out_of_date = false;
 
 	std::vector<dcon::nation_id> nations_by_rank;
 	std::vector<dcon::nation_id> nations_by_industrial_score;

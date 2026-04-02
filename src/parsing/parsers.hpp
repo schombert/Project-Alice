@@ -115,10 +115,10 @@ bool float_from_chars(char const* start, char const* end, float& float_out); // 
 bool double_from_chars(char const* start, char const* end, double& dbl_out); // returns true on success
 
 std::string_view remove_surrounding_whitespace(std::string_view txt);
-bool try_parse_float(std::string_view content, int32_t line, error_handler& err, float& val_out);
+std::optional<float> try_parse_float(std::string_view content, int32_t line, error_handler& err);
 float parse_float(std::string_view content, int32_t line, error_handler& err);
 double parse_double(std::string_view content, int32_t line, error_handler& err);
-bool try_parse_bool_strict(std::string_view content, int32_t, error_handler&, bool& val_out);
+std::optional<bool> try_parse_bool_strict(std::string_view content, int32_t, error_handler&);
 bool parse_bool(std::string_view content, int32_t line, error_handler& err);
 int32_t parse_int(std::string_view content, int32_t line, error_handler& err);
 uint32_t parse_uint(std::string_view content, int32_t line, error_handler& err);

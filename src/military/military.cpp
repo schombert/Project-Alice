@@ -5094,8 +5094,6 @@ void add_army_to_battle(sys::state& state, dcon::army_id a, dcon::land_battle_id
 	}
 	state.world.army_set_battle_from_army_battle_participation(a, b);
 	update_battle_leaders(state, b);
-	// update combat width incase it may change
-	update_land_battle_combat_width(state, b);
 }
 template <apply_attrition_on_arrival attrition_tick>
 void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province_id p, crossing_type crossing, dcon::land_battle_id from) {
@@ -5420,8 +5418,6 @@ void retreat(sys::state& state, dcon::army_id n, const std::vector<dcon::provinc
 		}
 		//update leaders
 		military::update_battle_leaders(state, battle);
-		// update combat width incase it may change
-		update_land_battle_combat_width(state, battle);
 		if(end_finished_battle) {
 			// if there is still an army in the battle which is in OUR side, then the battle shouldnt end.
 			bool battle_end = [&]() {
@@ -7712,9 +7708,9 @@ void update_land_battles(sys::state& state) {
 		if(state.world.land_battle_get_start_date(b) == state.current_date) {
 			notify_on_new_land_battle(state, b, state.local_player_nation);
 		}
-		if(state.all_battles_combat_width_out_of_date) {
-			update_land_battle_combat_width(state, b);
-		}
+
+		update_land_battle_combat_width(state, b);
+		
 
 		// New roll
 		if((state.current_date.value - state.world.land_battle_get_start_date(b).value) % 5 == 4) {
@@ -7822,7 +7818,7 @@ void update_land_battles(sys::state& state) {
 			return;
 		}
 	});
-	state.all_battles_combat_width_out_of_date = false;
+
 	for(auto i = isize; i-- > 0;) {
 		dcon::land_battle_id b{ dcon::land_battle_id::value_base_t(i) };
 		if(state.world.land_battle_is_valid(b) && to_delete.get(b) != 0) {
