@@ -652,6 +652,12 @@ if(WIN32)
 endif()
 add_subdirectory(Launcher)
 
+add_dependencies(launch_alice GENERATE_CONTAINER ParserGenerator)
+add_dependencies(launch_alice GENERATE_CONTAINERIFACE)
+add_dependencies(launch_alice GENERATE_CONTAINER_LUA)
+add_dependencies(launch_alice GENERATE_CONTAINER_OOS)
+add_dependencies(launch_alice GENERATE_PARSERS)
+
 # Installation
 if(NOT WIN32)
 	install(TARGETS Alice launch_alice
