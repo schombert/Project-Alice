@@ -1243,7 +1243,7 @@ country_history_file
 	consciousness                   value      float                             member_fn
 	nonstate_consciousness          value      float                             member_fn
 	last_election                   value      date                              discard
-	oob                             value      text                              discard
+	oob                             value      text                              member_fn
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               member_fn
 	set_country_flag                value      text                              member_fn

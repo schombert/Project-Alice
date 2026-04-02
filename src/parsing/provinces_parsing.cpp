@@ -58,16 +58,17 @@ void read_map_colors(char const* start, char const* end, error_handler& err, sce
 }
 
 void read_map_adjacency(char const* start, char const* end, error_handler& err, scenario_building_context& context) {
-	char const* cpos = parsers::csv_advance_to_next_line(start, end); // first line is always useless
+	uint32_t line = 1;
+	char const* cpos = parsers::csv_advance_to_next_line(start, end, line); // first line is always useless
 	while(cpos < end) {
 		// 2711;2721;canal;369;1
-		cpos = parsers::parse_fixed_amount_csv_values<5>(cpos, end, ';', [&](std::string_view const* values) {
+		cpos = parsers::parse_fixed_amount_csv_values<5>(cpos, end, ';', line, [&](std::string_view const* values) {
 			auto first_text = parsers::remove_surrounding_whitespace(values[0]);
 			auto second_text = parsers::remove_surrounding_whitespace(values[1]);
 			if(first_text.length() > 0) {
 				// 2204;2206;sea;3001;0;Panama strait
-				auto first_value = parsers::parse_int(first_text, 0, err);
-				auto second_value = parsers::parse_int(second_text, 0, err);
+				auto first_value = parsers::parse_int(first_text, line, err);
+				auto second_value = parsers::parse_int(second_text, line, err);
 				if(first_value <= 0) {
 					// dead line
 				} else if(second_value <= 0) {
@@ -79,9 +80,9 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						// dead line
 					}
 				} else if(size_t(first_value) >= context.original_id_to_prov_id_map.size()) {
-					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large (" + err.file_name + ")\n";
+					err.accumulated_errors += "Province id " + std::to_string(first_value) + " is too large on line " + std::to_string(line) + " in file " + "(" + err.file_name + ")\n";
 				} else if(size_t(second_value) >= context.original_id_to_prov_id_map.size()) {
-					err.accumulated_errors += "Province id " + std::to_string(second_value) + " is too large (" + err.file_name + ")\n";
+					err.accumulated_errors += "Province id " + std::to_string(second_value) + " is too large on line " + std::to_string(line) + " in file " + "(" + err.file_name + ")\n";
 				} else {
 					auto province_id_a = context.original_id_to_prov_id_map[first_value];
 					auto province_id_b = context.original_id_to_prov_id_map[second_value];
@@ -91,7 +92,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 						if((province_id_a.index() < context.state.province_definitions.first_sea_province.index() && province_id_b.index() >= context.state.province_definitions.first_sea_province.index()) ||
 							(province_id_a.index() >= context.state.province_definitions.first_sea_province.index() && province_id_b.index() < context.state.province_definitions.first_sea_province.index())) {
 
-							err.accumulated_warnings += "mod attempts to create a connection between non-adjacent land and sea provinces " + std::to_string(first_value) + " and " + std::to_string(second_value) + " which is ignored because displaying docked ships would be impossible (" + err.file_name + ")\n";
+							err.accumulated_warnings += "mod attempts to create a connection between non-adjacent land and sea provinces " + std::to_string(first_value) + " and " + std::to_string(second_value) + " which is ignored because displaying docked ships would be impossible on line " + std::to_string(line) + " in file (" + err.file_name + ")\n";
 
 							// stop processing this entry, except in case it is a canal, in which case we need to add a dummy canal entry
 							auto ttex = parsers::remove_surrounding_whitespace(values[2]);
@@ -112,25 +113,33 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 					if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "sea")) {
 						if(!existing_rel) {
 							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
-							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit);
-
+							auto& cur_type = context.state.world.province_adjacency_get_type(new_rel);
+							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::non_adjacent_bit); // The two provinces may be adjacent, but the non_adjacent flag will be cleared later if it ends up being adjacent
+							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::sea_strait_crossing_bit); 
 							// parse prov id of sea province to be blockaded to block adjacency
 							auto blockade_prov_text = parsers::remove_surrounding_whitespace(values[3]);
-							auto blockade_prov_value = parsers::parse_int(blockade_prov_text, 0, err);
+							auto blockade_prov_value = parsers::parse_int(blockade_prov_text, line, err);
 							if(blockade_prov_value > 0) {
 								auto blockadeable_prov = context.original_id_to_prov_id_map[blockade_prov_value];
 								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, blockadeable_prov);
 							}
 						}
+						// Land strait is a non-blockadable strait which does not give a sea strait crossing penalty (some mods use these for "shortcuts" around the map for land units)
+					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "land")) {
+						if(!existing_rel) {
+							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
+							auto& cur_type = context.state.world.province_adjacency_get_type(new_rel);
+							context.state.world.province_adjacency_set_type(new_rel, cur_type | province::border::non_adjacent_bit);
+						}
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "impassable")) {
 						auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
 						context.state.world.province_adjacency_set_type(new_rel, province::border::impassible_bit);
 					} else if(is_fixed_token_ci(ttex.data(), ttex.data() + ttex.length(), "canal")) {
-						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), 0, err);
-						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), 0, err);
+						auto canal_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[4]), line, err);
+						auto canal_province_id = parsers::parse_uint(parsers::remove_surrounding_whitespace(values[3]), line, err);
 
 						if(canal_id <= 0) {
-							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid (" + err.file_name + ")\n";
+							err.accumulated_errors += "Canal in " + std::to_string(first_value) + " is invalid on line " + std::to_string(line) + " in file (" + err.file_name + ")\n";
 							return;
 						}
 
@@ -138,7 +147,7 @@ void read_map_adjacency(char const* start, char const* end, error_handler& err, 
 							auto new_rel = context.state.world.force_create_province_adjacency(province_id_a, province_id_b);
 							context.state.world.province_adjacency_set_type(new_rel, province::border::non_adjacent_bit | province::border::impassible_bit);
 							if(context.original_id_to_prov_id_map[canal_province_id].index() >= context.state.province_definitions.first_sea_province.index()) {
-								err.accumulated_warnings += "Canal control province ID " + std::to_string(canal_province_id) + " in Canal ID " + std::to_string(canal_id) + " is a sea province, setting control province to ID 0 (" + err.file_name + ")\n";
+								err.accumulated_warnings += "Canal control province ID " + std::to_string(canal_province_id) + " in Canal ID " + std::to_string(canal_id) + " is a sea province, setting control province to ID 0. On line " + std::to_string(line) + " in file (" + err.file_name + ")\n";
 								context.state.world.province_adjacency_set_canal_or_blockade_province(new_rel, dcon::province_id{ });
 							}
 							else {

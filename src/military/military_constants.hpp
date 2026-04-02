@@ -13,7 +13,7 @@ enum class unit_type : uint8_t {
 	support, big_ship, cavalry, transport, light_ship, special, infantry
 };
 
-enum class crossing_type {
+enum class crossing_type : uint8_t {
 	none, river, sea
 };
 
@@ -29,5 +29,7 @@ enum class retreat_type : bool {
 	automatic = 0,
 	manual = 1,
 };
+
+constexpr uint8_t MIN_COMBAT_WIDTH = 2;
 
 }

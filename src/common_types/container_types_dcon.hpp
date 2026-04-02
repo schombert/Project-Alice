@@ -400,23 +400,77 @@ static_assert(sizeof(mobilization_order) ==
 	sizeof(mobilization_order::where)
 	+ sizeof(mobilization_order::when));
 
-struct reserve_regiment {
-	static constexpr uint16_t is_attacking = 0x0001;
+struct battle_regiment {
+	
+	static constexpr uint16_t dig_in_mask = 0x3e0;
 
+	// Crossing works as an enum with only one state being allowed.
+	static constexpr uint16_t crossing_mask = 0x0018;
+	static constexpr uint16_t crossing_strait = 0x0010;
+	static constexpr uint16_t crossing_river = 0x008;
+	static constexpr uint16_t crossing_none = 0x0000;
+
+	// unit type works as an enum with only one state being allowed.
 	static constexpr uint16_t type_mask = 0x0006;
 	static constexpr uint16_t type_infantry = 0x0000;
 	static constexpr uint16_t type_cavalry = 0x0002;
 	static constexpr uint16_t type_support = 0x0004;
 
-	dcon::regiment_id regiment;
+	static constexpr uint16_t is_attacking = 0x0001;
+
+	dcon::regiment_id regiment = dcon::regiment_id{};
 	uint16_t flags = 0;
 
-	bool operator==(const reserve_regiment& other) const = default;
-	bool operator!=(const reserve_regiment& other) const = default;
+	constexpr battle_regiment() : regiment(dcon::regiment_id{ }), flags(0) {
+
+	}
+
+	constexpr battle_regiment(dcon::regiment_id _regiment, bool attacking, uint16_t type, uint16_t crossing, uint8_t dig_in) : regiment(_regiment) {
+		assert(type <= type_mask);
+		flags = uint16_t(uint16_t(attacking) | type | crossing);
+		flags |= (dig_in << 5) & dig_in_mask;
+	}
+
+	constexpr bool get_is_attacking() const {
+		return flags & is_attacking;
+	}
+	constexpr void set_is_attacking(bool attacking) {
+		flags &= ~is_attacking;
+		flags |= (is_attacking & attacking);
+	}
+
+	constexpr uint16_t get_type() const {
+		return flags & type_mask;
+	}
+	constexpr void set_type(uint16_t type) {
+		flags &= ~type_mask;
+		flags |= (type_mask & type);
+
+	}
+
+	constexpr uint16_t get_crossing() const {
+		return flags & crossing_mask;
+	}
+	constexpr void set_crossing(uint16_t crossing) {
+		flags &= ~crossing_mask;
+		flags |= (crossing_mask & crossing);
+	}
+
+	constexpr uint8_t get_dig_in() const {
+		return uint8_t((flags & dig_in_mask) >> 5);
+	}
+	constexpr void set_dig_in(uint8_t dig_in) {
+		flags &= ~dig_in_mask;
+		flags |= (dig_in_mask & (dig_in << 5));
+
+	}
+
+	bool operator==(const battle_regiment& other) const = default;
+	bool operator!=(const battle_regiment& other) const = default;
 };
-static_assert(sizeof(reserve_regiment) ==
-	sizeof(reserve_regiment::regiment)
-	+ sizeof(reserve_regiment::flags));
+static_assert(sizeof(battle_regiment) ==
+	sizeof(battle_regiment::regiment)
+	+ sizeof(battle_regiment::flags));
 
 
 struct available_cb {

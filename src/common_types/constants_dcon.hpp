@@ -3,7 +3,7 @@
 // CONSTANTS WHICH ARE USED IN DCON DIRECTLY
 
 namespace culture {
-inline constexpr int32_t max_issue_options = 6;
+inline constexpr int32_t max_issue_options = 8;
 }
 
 namespace network {
@@ -45,6 +45,10 @@ enum class province_building_type : uint8_t {
 	railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator
 };
 constexpr inline int32_t max_building_types = 5;
+}
+
+namespace military {
+	constexpr uint8_t MAX_COMBAT_WIDTH = 30;
 }
 // global namespace
 

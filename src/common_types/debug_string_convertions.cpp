@@ -72,7 +72,7 @@ std::string to_debug_string(const military::mobilization_order& obj) {
 	return "(when;where) => " + std::to_string(obj.when.value) + ";" + std::to_string(obj.where.value);
 }
 
-std::string to_debug_string(const military::reserve_regiment& obj) {
+std::string to_debug_string(const military::battle_regiment& obj) {
 	return "(regiment;flags) => " + std::to_string(obj.regiment.value) + ";" + std::to_string(obj.flags);
 }
 
