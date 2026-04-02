@@ -3036,7 +3036,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			auto total_tokens = state.world.nation_get_subsidy_token_total(n);
 			auto total_token_budget = base_budget * spending_scale * float(state.world.nation_get_subsidies_spending(n)) / 100.f;
-			auto token_price = total_token_budget / (total_tokens + economy::numerical::commodity_unit::epsilon);
+			auto token_price = total_tokens == 0.f ? 0.f : total_token_budget / (total_tokens + economy::numerical::commodity_unit::epsilon);
 			assert(std::isfinite(token_price));
 			state.world.nation_set_subsidy_token_price(n, token_price);
 			update_national_consumption(state, n, spending_scale, base_budget);
