@@ -2201,10 +2201,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto tokens = state.world.nation_get_subsidy_token_total(nation);
 					state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
 
-					auto market = state.world.state_instance_get_market_from_local_market(zone);
-					auto current_money = state.world.market_get_stockpile(market, economy::money);
+					auto current_money = state.world.province_get_factory_bank(location);
 					auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
-					state.world.market_set_stockpile(market, economy::money, current_money + last_token_price * effective_output);
+					state.world.province_set_factory_bank(location, current_money + last_token_price * effective_output);
 				}
 			});
 			state.world.for_each_commodity([&](auto cid){
@@ -2227,10 +2226,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 						auto tokens = state.world.nation_get_subsidy_token_total(nation);
 						state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
 
-						auto market = state.world.state_instance_get_market_from_local_market(zone);
-						auto current_money = state.world.market_get_stockpile(market, economy::money);
+						auto current_money = state.world.province_get_rgo_bank(id);
 						auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
-						state.world.market_set_stockpile(market, economy::money, current_money + last_token_price * effective_output);
+						state.world.province_set_rgo_bank(id, current_money + last_token_price * effective_output);
 					}
 				});
 			});
@@ -3705,26 +3703,13 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto literacy_sat_public = state.world.province_get_service_satisfaction_for_free(province, services::list::education);
 			auto housing_sat = state.world.province_get_service_satisfaction(province, services::list::urban_housing);
 
-			/*
-
-			Urbanisation influences access to education facilities:
-			If the pop is living in the wilderness (0 urbanisation), it lacks access to proper education.
-			Meanwhile, pops which earn enough money to live in the city/town/settlement/villa
-			and overpay for their personal space have higher education efficiency.
-
-			*/
-
-			auto pop_demanded_urbanisation = potential_ratio_housing.get(ids);
-			auto pop_urbanisation = pop_demanded_urbanisation * housing_sat;
-			auto pop_education_efficiency = 0.5f + pop_urbanisation;
-
 			literacy =
 				literacy
 				+ (
 					potential_ratio_education_public.get(ids)
-					* literacy_sat_public * pop_education_efficiency
+					* literacy_sat_public
 					+ potential_ratio_education_private.get(ids)
-					* literacy_sat_paid * pop_education_efficiency
+					* literacy_sat_paid
 					- 0.9f
 				)
 				* pop_demographics::pop_u16_scaling;

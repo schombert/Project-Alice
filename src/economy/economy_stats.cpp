@@ -1447,6 +1447,16 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		},
 		0
 	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::education)
+		},
+		15
+	);
 
 	text::add_line(
 		state,
@@ -1458,16 +1468,56 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		},
 		0
 	);
+	text::add_line(
+		state,
+		contents,
+		"port_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::port_capacity)
+		},
+		15
+	);
 
 	text::add_line(
 		state,
 		contents,
-		"construction_companies",
+		"housing_owners",
 		text::variable_type::val,
 		text::fp_currency{
 			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::local_cities_and_towns)
 		},
 		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::urban_housing)
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_supply",
+		text::variable_type::val,
+		text::int_wholenum{
+			(int)state.world.province_get_service_supply_private(province, services::list::urban_housing)
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_demand",
+		text::variable_type::val,
+		text::int_wholenum{
+			(int)state.world.province_get_service_demand_forbidden_public_supply(province, services::list::urban_housing)
+		},
+		15
 	);
 
 

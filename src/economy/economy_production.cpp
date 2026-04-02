@@ -1799,7 +1799,7 @@ VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_em
 			: 1.f
 		;
 		return std::min(0.01f * (current_employment + 100.f),
-			std::max(-0.04f * (current_employment + 100.f),
+			std::max(-0.05f * (current_employment + 100.f),
 				gradient / wage
 			)
 		) * mult;
@@ -1813,7 +1813,7 @@ VALUE gradient_to_employment_change(VALUE gradient, VALUE wage, VALUE current_em
 			1.f
 		);
 		return ve::min(0.01f * (current_employment + 100.f),
-			ve::max(-0.04f * (current_employment + 100.f),
+			ve::max(-0.05f * (current_employment + 100.f),
 				gradient / wage
 			)
 		) * mult;
@@ -1970,7 +1970,11 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 		auto price_prediction = (price_output + price_speed);
 		auto size = state.world.factory_get_size(facids);
 
-		auto profit_per_worker = output_per_worker * min_expected_input * price_prediction - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
+		auto sold_expectation = ve::apply([&](dcon::market_id market, dcon::commodity_id cid) {
+			return state.world.market_get_expected_probability_to_sell(market, cid);
+		}, mid, output);
+
+		auto profit_per_worker = output_per_worker * min_expected_input * price_prediction * sold_expectation - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,
