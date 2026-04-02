@@ -2702,11 +2702,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ defender_bonus }
-		type{ uint8_t }
-		tag{ save }
-	}
-	property{
 		name{ combat_width }
 		type{ uint8_t }
 		tag{ save }
@@ -2775,28 +2770,28 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<dcon::regiment_id,30> }
+		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
 		tag{ save }
 	}
 
 	property{
 		name{ reserves }
-		type{vector_pool{5000}{military::reserve_regiment}}
+		type{vector_pool{5000}{military::battle_regiment}}
 		tag{ save }
 	}
 	

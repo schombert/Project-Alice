@@ -253,6 +253,8 @@ void apply_immigration(sys::state& state, uint32_t offset, uint32_t divisions, m
 
 void remove_size_zero_pops(sys::state& state);
 void remove_small_pops(sys::state& state);
+
+template<bool DeletePops>
 void fixup_state_only_pops(sys::state& state);
 
 float get_pop_starvation_penalty_scale(sys::state& state, dcon::pop_id pop, float growth_modifiers);

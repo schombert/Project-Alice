@@ -2502,27 +2502,16 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 			"Province id " + std::to_string(value) + " is too large (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	} else {
 		auto army = fatten(context.outer_context.state.world, context.outer_context.state.world.regiment_get_army_from_army_membership(context.id));
-		auto controller = context.outer_context.state.world.army_get_controller_from_army_control(army);
+		auto army_owner = context.outer_context.state.world.army_get_controller_from_army_control(army);
 		auto province_id = context.outer_context.original_id_to_prov_id_map[value];
+		auto province_owner = context.outer_context.state.world.province_get_nation_from_province_ownership(province_id);
 		// if not a rebel brigade
-		if(bool(controller)) {
-			auto pop = military::find_available_soldier_parsing(context.outer_context.state, province_id, [](sys::state& state, dcon::pop_id pop) {
-				return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
-			});
-			// dont spawn the brigade if home province is not owned by the army controller
-			if(context.outer_context.state.world.province_get_nation_from_province_ownership(province_id) != controller) {
+		if(bool(army_owner)) {
+			// Fallback to finding a pop from an owned province if the regiment home province is not owned by the army controller (this is how vic2 works apparently)
+			if(province_owner != army_owner) {
 				err.accumulated_warnings += "Regiment home province is owned by someone else other than the army controller (" + err.file_name + " line " + std::to_string(line) + ")\n";
-			}
-			else if(bool(pop)) {
-				context.outer_context.state.world.force_create_regiment_source(context.id, pop);
-			}
-			// try to find a pop in a diffrent province if none are available in home, and log warning that this is the case
-			else {
-				err.accumulated_warnings +=
-					"Not enough soldiers in province to form a regiment, picking a pop from a diffrent province (" + err.file_name + " line " + std::to_string(line) + ")\n";
-				
-				for(auto prov : context.outer_context.state.world.nation_get_province_ownership(controller)) {
-					pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
+				for(auto prov : context.outer_context.state.world.nation_get_province_ownership(army_owner)) {
+					auto pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
 						return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
 					});
 					if(pop) {
@@ -2530,9 +2519,33 @@ void oob_regiment::home(association_type, int32_t value, error_handler& err, int
 						return;
 					}
 				}
-				err.accumulated_errors +=
+				err.accumulated_warnings +=
 					"No fitting soldier pop in any owned province to form a regiment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+			}
+			// try to find a pop in the same province. If that fails, try to find one in any owned province
+			else {
+				auto pop = military::find_available_soldier_parsing(context.outer_context.state, province_id, [](sys::state& state, dcon::pop_id pop) {
+					return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+				});
+				if(pop) {
+					context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+				}
+				else {
 
+					for(auto prov : context.outer_context.state.world.nation_get_province_ownership(army_owner)) {
+						pop = military::find_available_soldier_parsing(context.outer_context.state, prov.get_province(), [](sys::state& state, dcon::pop_id pop) {
+							return state.world.pop_get_poptype(pop) == state.culture_definitions.soldiers;
+						});
+						if(pop) {
+							context.outer_context.state.world.force_create_regiment_source(context.id, pop);
+							err.accumulated_warnings +=
+								"Not enough soldiers in province to form a regiment, picking a pop from a diffrent province (" + err.file_name + " line " + std::to_string(line) + ")\n";
+							return;
+						}
+					}
+					err.accumulated_warnings +=
+						"No fitting soldier pop in any owned province to form a regiment (" + err.file_name + " line " + std::to_string(line) + ")\n";
+				}
 				
 			}
 		}
@@ -2941,6 +2954,23 @@ void country_history_file::schools(association_type, std::string_view value, err
 		err.accumulated_errors +=
 				"invalid modifier " + std::string(value) + " encountered  (" + err.file_name + " line " + std::to_string(line) + ")\n";
 	}
+}
+
+void country_history_file::oob(association_type, std::string_view value, error_handler& err, int32_t line,
+		country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	std::string file_name = std::string(value);
+	// If the nation owns no provinces and it is not the rebel tag, then we dont want to process it's oob
+	auto prov_ownership = context.outer_context.state.world.nation_get_province_ownership(context.holder_id);
+	auto rebel_nation =  context.outer_context.state.world.national_identity_get_nation_from_identity_holder( context.outer_context.state.national_definitions.rebel_id);
+	if(prov_ownership.begin() == prov_ownership.end() && context.holder_id != rebel_nation) {;
+		return;
+	}
+	if(context.holder_id.index() >= int32_t(context.outer_context.oob_files_to_read.size())) {
+		context.outer_context.oob_files_to_read.resize(static_cast<size_t>(context.holder_id.index() + 1));
+	}
+	context.outer_context.oob_files_to_read[context.holder_id] = pending_oob_file{ file_name, err.file_name, context.holder_id };
 }
 
 void country_history_file::civilized(association_type, bool value, error_handler& err, int32_t line,

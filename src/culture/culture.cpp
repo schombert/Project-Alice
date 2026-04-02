@@ -600,6 +600,7 @@ void apply_invention(sys::state& state, dcon::nation_id target_nation, dcon::inv
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
 
+
 			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
 			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals + modifier_amount);
 		}
@@ -719,6 +720,7 @@ void remove_invention(sys::state& state, dcon::nation_id target_nation,
 
 			auto fixed_offset = inv_nat_values.offsets[i];
 			auto modifier_amount = inv_nat_values.values[i];
+
 
 			auto& current_modifier_vals = state.world.nation_get_modifier_values(target_nation, fixed_offset);
 			state.world.nation_set_modifier_values(target_nation, fixed_offset, current_modifier_vals - modifier_amount);

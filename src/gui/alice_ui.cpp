@@ -3218,10 +3218,6 @@ void describe_promotion(sys::state& state, text::columnar_layout& contents, dcon
 
 	text::add_line_break_to_layout(state, contents);
 
-	ui::additive_value_modifier_description(state, contents, state.culture_definitions.demotion_chance, trigger::to_generic(ids),
-			trigger::to_generic(ids), 0);
-
-	text::add_line_break_to_layout(state, contents);
 
 	if(promotion_chance <= 0.0f) {
 		text::add_line(state, contents, "pop_prom_7");
@@ -3258,10 +3254,6 @@ void describe_demotion(sys::state& state, text::columnar_layout& contents, dcon:
 			demotion_chance += promotion_bonus;
 		}
 	}
-	ui::additive_value_modifier_description(state, contents, state.culture_definitions.promotion_chance, trigger::to_generic(ids),
-			trigger::to_generic(ids), 0);
-
-	text::add_line_break_to_layout(state, contents);
 
 	ui::additive_value_modifier_description(state, contents, state.culture_definitions.demotion_chance, trigger::to_generic(ids),
 			trigger::to_generic(ids), 0);
