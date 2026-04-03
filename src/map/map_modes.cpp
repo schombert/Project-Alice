@@ -10,6 +10,7 @@
 #include "economy_stats.hpp"
 #include "economy_production.hpp"
 #include "economy_viewer.hpp"
+#include "money.hpp"
 
 #include <unordered_map>
 
@@ -331,20 +332,29 @@ std::vector<uint32_t> growth_map_from(sys::state& state) {
 	return prov_color;
 }
 std::vector<uint32_t> income_map_from(sys::state& state) {
-	std::vector<float> prov_population(state.world.province_size() + 1);
-	std::unordered_map<int32_t, float> continent_max_pop = {};
+	std::vector<float> prov_money(state.world.province_size() + 1);
+	//std::unordered_map<int32_t, float> continent_max_pop = {};
+	float max_value = 0.f;
+	float min_value = 0.f;
 	auto sel_nation = state.world.province_get_nation_from_province_ownership(state.map_state.get_selected_province());
 	state.world.for_each_province([&](dcon::province_id prov_id) {
 		auto nation = state.world.province_get_nation_from_province_ownership(prov_id);
 		if((sel_nation && nation == sel_nation) || !sel_nation) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
-			float population = 0.f;
+			float savings = 0.f;
 			for(const auto pl : state.world.province_get_pop_location_as_province(prov_id))
-				population += pl.get_pop().get_savings();
+				savings += pl.get_pop().get_savings();
+			auto sid = state.world.province_get_state_membership(prov_id);
+			//if(state.world.state_instance_get_capital(sid) == prov_id) {
+			//	savings += state.world.market_get_stockpile(state.world.state_instance_get_market_from_local_market(sid), economy::money);
+			//}
+			auto population = state.world.province_get_demographics(prov_id, demographics::total) + 1.f;
+			savings = savings / population;
 			auto cid = fat_id.get_continent().id.index();
-			continent_max_pop[cid] = std::max(continent_max_pop[cid], population);
+			max_value = std::max(max_value, savings);
+			min_value = std::min(min_value, savings);
 			auto i = province::to_map_id(prov_id);
-			prov_population[i] = population;
+			prov_money[i] = savings;
 		}
 	});
 	uint32_t province_size = state.world.province_size() + 1;
@@ -356,7 +366,7 @@ std::vector<uint32_t> income_map_from(sys::state& state) {
 			auto fat_id = dcon::fatten(state.world, prov_id);
 			auto cid = fat_id.get_continent().id.index();
 			auto i = province::to_map_id(prov_id);
-			float gradient_index = 1.f - (prov_population[i] / continent_max_pop[cid]);
+			float gradient_index = 1.f - ((prov_money[i] - min_value) / (max_value - min_value));
 			auto color = ogl::color_gradient(gradient_index, 210, 100 << 8);
 			prov_color[i] = color;
 			prov_color[i + texture_size] = color;

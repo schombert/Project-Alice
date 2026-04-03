@@ -1959,7 +1959,7 @@ pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 
 urban_size;城市规模
 private_education_owners;私营教师 ?Y$val$?!
 port_owners;当地港口 ?Y$val$?!
-construction_companies;房东 ?Y$val$?!
+housing_owners;房东 ?Y$val$?!
 map_projection_globe_stereographic;球极投影
 alice_unit_crossing_modifier;单位因邻近单位修正获得 ?Y$x$?W 战斗骰子修正
 alice_river_penalty_mod_tooltip;?Y$COUNT$?W 个单位因渡河获得 ?Y$NUM$?W 修正

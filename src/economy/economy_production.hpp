@@ -42,11 +42,13 @@ struct ve_inputs_data {
 	ve::fp_vector min_expected = 0.f;
 	ve::fp_vector min_available = 0.f;
 	ve::fp_vector total_cost = 0.f;
+	ve::fp_vector total_cost_availability_adjusted = 0.f;
 };
 struct inputs_data {
 	float min_expected = 0.f;
 	float min_available = 0.f;
 	float total_cost = 0.f;
+	float total_cost_availability_adjusted = 0.f;
 };
 
 void set_initial_factory_values(sys::state& state, dcon::factory_id f);
@@ -58,7 +60,7 @@ void update_factories_production(sys::state& state);
 void update_rgo_production(sys::state& state);
 
 float base_artisan_profit(
-	sys::state& state,
+	const sys::state& state,
 	dcon::market_id market,
 	dcon::commodity_id c
 );

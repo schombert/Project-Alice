@@ -31,14 +31,14 @@ inline constexpr float trade_base_additive_decay = 0.075f;
 inline constexpr float min_trade_expansion_multiplier = 0.01f;
 inline constexpr float trade_demand_satisfaction_cutoff = 0.7f;
 
-float constexpr inline base_qol = 0.6f;
+float constexpr inline base_qol = 0.75f;
 constexpr inline uint32_t build_factory = issue_rule::pop_build_factory;
 constexpr inline uint32_t expand_factory = issue_rule::pop_expand_factory;
 constexpr inline uint32_t can_invest = expand_factory | build_factory;
 
 // stockpile related things:
 inline constexpr float stockpile_to_supply = 0.1f;
-inline constexpr float stockpile_spoilage = 0.01f;
+inline constexpr float stockpile_spoilage = 0.0001f;
 inline constexpr float stockpile_expected_spending_per_commodity = 1'000.f;
 inline constexpr float market_savings_target = 1'000'000.f;
 inline constexpr float trade_transaction_soft_limit = 1'000.f;

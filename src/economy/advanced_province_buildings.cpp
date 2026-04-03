@@ -126,6 +126,7 @@ const advanced_building_definition definitions[services::list::total] = {
 },
 //cities
 {
+	.throughput_labour_type = economy::labor::basic_education,
 	.output = services::list::urban_housing,
 	.output_amount = 1.f,
 	.maintenance_rate = 0.00001f,
@@ -419,7 +420,7 @@ void update_profit_and_refund(sys::state& state) {
 			auto size = state.world.province_get_advanced_province_building_private_size(pid, id);
 			auto max_expansion_speed = max_size * max_city_expansion_rate + max_city_expansion_speed;
 
-			auto lots_of_empty_housing = size < max_size * 0.8f;
+			auto lots_of_empty_housing = size < max_size * 0.8f || state.world.province_get_service_sold(pid, id) < 0.8f;
 
 			auto construction_scale = 0.f;
 
@@ -483,8 +484,20 @@ void update_private_size(sys::state& state) {
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
+			/*
+			Urbanisation influences access to education facilities:
+			If the pop is living in the wilderness (0 urbanisation), it lacks access to proper education.
+			Meanwhile, pops living in urbanised locations would have better access to education.
+			*/
+
+			auto local_education_efficiency = ve::min(
+				1.f,
+				(state.world.province_get_advanced_province_building_private_size(pids, list::local_cities_and_towns))
+				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
+			);
+
 			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
-			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * tmod * nmod * def.output_amount;
+			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
 
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto margin = (cost_of_output - cost_of_input) / cost_of_input;
@@ -569,8 +582,14 @@ void update_national_size(sys::state& state) {
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
+			auto local_education_efficiency = ve::min(
+				1.f,
+				(state.world.province_get_advanced_province_building_private_size(pids, list::local_cities_and_towns))
+				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
+			);
+
 			auto cost_of_input = state.world.province_get_labor_price(pids, def.throughput_labour_type);
-			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * tmod * nmod * def.output_amount;
+			auto cost_of_output = state.world.province_get_service_price(pids, def.output) * local_education_efficiency * tmod * nmod * def.output_amount;
 
 			auto spending_scale = state.world.nation_get_spending_level(owner);
 			auto national_budget = state.world.nation_get_last_base_budget(owner);
@@ -596,8 +615,14 @@ void update_production(sys::state& state) {
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
+			auto local_education_efficiency = ve::min(
+				1.f,
+				(state.world.province_get_advanced_province_building_private_size(pids, list::local_cities_and_towns))
+				/ (state.world.province_get_demographics(pids, demographics::total) + 1.f)
+			);
+
 			auto input_satisfaction = state.world.province_get_labor_demand_satisfaction(pids, def.throughput_labour_type);
-			auto output = tmod * nmod * input_satisfaction * def.output_amount;
+			auto output = local_education_efficiency * tmod * nmod * input_satisfaction * def.output_amount;
 
 			auto current_private_size = state.world.province_get_advanced_province_building_private_size(pids, bid);
 			auto current_private_supply = state.world.province_get_service_supply_private(pids, def.output);

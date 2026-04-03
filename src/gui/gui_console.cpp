@@ -1288,6 +1288,59 @@ int32_t* f_nation_name(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	return p + 2;
 }
 
+int32_t* f_nation_money_pools(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	auto state_global = fif::get_global_var(*e, "state-ptr");
+	sys::state* state = (sys::state*)(state_global->data);
+
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.push_back_main(state->type_text_key, 0, nullptr);
+		return p + 2;
+	}
+
+
+
+	dcon::nation_id to_nation_b;
+	to_nation_b.value = dcon::nation_id::value_base_t(s.main_data_back(0));
+	s.pop_main();
+
+	//auto name = text::get_name(*state, to_nation_b);
+
+	auto values = economy::breakdown_nation_monetary_structure(*state, to_nation_b);
+	float container;
+
+	int64_t data = 0;
+	memcpy(&data, &values.total, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.nation, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.market, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.pops, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.rgo, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	memcpy(&data, &values.factory, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	container = values.educators + values.ports + values.landlords + values.artisans;
+	memcpy(&data, &container, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	container = values.bank + values.investment_pool;
+	memcpy(&data, &container, 4);
+	s.push_back_main(fif::fif_f32, data, nullptr);
+
+	return p + 2;
+}
+
 
 inline int32_t* compile_modifier(fif::state_stack& s, int32_t* p, fif::environment* e) {
 	if(fif::typechecking_mode(e->mode)) {
@@ -1535,6 +1588,7 @@ void ui::initialize_console_fif_environment(sys::state& state) {
 	fif::add_import("fire-event", nullptr, f_fire_event, { nation_id_type, fif::fif_i32 }, {}, * state.fif_environment);
 	fif::add_import("nation-name", nullptr, f_nation_name, { nation_id_type }, { state.type_text_key }, *state.fif_environment);
 	fif::add_import("load-file", nullptr, load_file, {}, {}, * state.fif_environment);
+	fif::add_import("nation-monetary-pools", nullptr, f_nation_money_pools, {nation_id_type}, { fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32, fif::fif_f32 }, * state.fif_environment);
 
 	fif::add_import("compile-mod", nullptr, compile_modifier, { fif::fif_i32 }, { }, * state.fif_environment);
 
