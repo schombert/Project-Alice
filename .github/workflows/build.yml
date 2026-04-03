@@ -9,8 +9,13 @@ jobs:
     strategy:
       matrix:
         config: [Debug]
+        llvm-version: [20]
         compiler: [clang]
         os: [ubuntu-latest]
+
+    env:
+      CC: clang-${{ matrix.llvm-version }}
+      CXX: clang++-${{ matrix.llvm-version }}
 
     name: Ubuntu with ${{ matrix.compiler }} (${{ matrix.config }})
     runs-on: ${{ matrix.os }}
@@ -19,16 +24,21 @@ jobs:
       with:
         fetch-depth: 0
 
+    - name: Apt LLVM
+      run: |
+          wget https://apt.llvm.org/llvm.sh
+          chmod +x llvm.sh
+          sudo ./llvm.sh ${{ matrix.llvm-version }}
+          sudo apt-get update
+
+    - name: install Clang
+      run: sudo apt install --no-install-recommends clang-${{ matrix.llvm-version }}
+
     - name: "Install"
       uses: awalsh128/cache-apt-pkgs-action@latest
       with:
-        packages: git build-essential clang cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
+        packages: git build-essential cmake libgl1-mesa-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libicu-dev
         version: 1.0
-
-    - name: Set compiler
-      run: |
-        echo "CC=${{ matrix.compiler == 'gcc' && 'gcc' || 'clang-16'   }}" >> $GITHUB_ENV
-        echo "CXX=${{ matrix.compiler == 'gcc' && 'g++' || 'clang++-16' }}" >> $GITHUB_ENV
 
     - name: Configure Build Files
       run: |
