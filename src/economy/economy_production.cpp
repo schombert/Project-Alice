@@ -1974,7 +1974,7 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 			return state.world.market_get_expected_probability_to_sell(market, cid);
 		}, mid, output);
 
-		auto profit_per_worker = output_per_worker * min_expected_input * price_prediction * sold_expectation - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
+		auto profit_per_worker = output_per_worker * price_prediction * sold_expectation - state.world.factory_get_input_cost_per_worker(facids) * (1.f + capitalists_greed);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,
@@ -1987,15 +1987,15 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 
 		auto unqualified_now = unqualified * state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
 		auto unqualified_next = unqualified
-			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education) * min_expected_input);
+			+ gradient_to_employment_change(gradient.primary[0] * presim_employment_mult, wage_no_education, unqualified_now, state.world.province_get_labor_demand_satisfaction(pid, labor::no_education));
 
 		auto primary_now = primary * state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education);
 		auto primary_next = primary
-			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education) * min_expected_input);
+			+ gradient_to_employment_change(gradient.primary[1] * presim_employment_mult, wage_basic_education, primary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::basic_education));
 
 		auto secondary_now = secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 		auto secondary_next = secondary
-			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) * min_expected_input);
+			+ gradient_to_employment_change(gradient.secondary * presim_employment_mult, wage_high_education, secondary_now, state.world.province_get_labor_demand_satisfaction(pid, labor::high_education));
 
 		// do not hire too expensive workers:
 		// ideally decided by factory budget but it is what it is
@@ -2104,6 +2104,8 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 				auto demand = state.world.market_get_demand(markets, cid);
 				auto predicted_price = price_today + price_properties::change(price_today, supply, demand) * 2.f;
 
+				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
+
 				auto base_profit = base_artisan_profit(state, markets, nations, cid, predicted_price / (1.f + artisans_greed));
 				auto base_profit_per_worker = base_profit / artisans_per_employment_unit;
 				auto current_employment_target = state.world.province_get_artisan_score(ids, cid);
@@ -2120,11 +2122,7 @@ void update_employment(sys::state& state, float presim_employment_mult) {
 					0.f
 				);
 
-				// prevent artisans from expanding demand on missing goods too fast
-				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
-				gradient = ve::select(gradient > 0.f, gradient * inputs_data.min_expected, gradient);
 				gradient = 100.f * gradient / (inputs_data.total_cost + price_properties::commodity::epsilon);
-
 				ve::fp_vector decay_profit = ve::select(base_profit < 0.f, ve::fp_vector{ 0.95f }, ve::fp_vector{ 1.f });
 				ve::fp_vector decay_lack = 0.9999f + inputs_data.min_expected * 0.0001f;
 
