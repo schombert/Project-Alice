@@ -2981,10 +2981,12 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto required_additional_funding = std::max(0.f, costs.total - base_budget);
 			auto current_loan = state.world.nation_get_local_loan(n);
 
+			assert(costs.total >= 0.f);
+
 			// if loan is required, then take as much as you can
 
 			if(can_take_loans(state, n)) {
-				auto available_loan = max_loan(state, n) - current_loan;
+				auto available_loan = std::max(0.f, max_loan(state, n) - current_loan);
 				additional_funding = std::min(required_additional_funding, available_loan);
 			}
 
@@ -3175,6 +3177,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto expected_probability_to_sell =
 				old_expected_probability_to_sell * state.defines.alice_sat_delay_factor
 				+ new_expected_probability_to_sell * (1.f - state.defines.alice_sat_delay_factor);
+#ifndef NDEBUG
+			ve::apply([&](auto value) { assert(value >= 0.f && value <= 1.f); }, expected_probability_to_buy);
+			ve::apply([&](auto value) { assert(value >= 0.f && value <= 1.f); }, new_expected_probability_to_sell);
+#endif
 
 			state.world.market_set_expected_probability_to_buy(ids, c, expected_probability_to_buy);
 			state.world.market_set_expected_probability_to_sell(ids, c, expected_probability_to_sell);
