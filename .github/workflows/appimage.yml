@@ -61,9 +61,9 @@ jobs:
       run: |
         cmake --build build --parallel --target Alice
 
-    - name: Build Launcher
-      run: |
-        cmake --build build --parallel --target launch_alice
+    # - name: Build Launcher
+    #   run: |
+    #     cmake --build build --parallel --target launch_alice
 
     - name: Create AppDir
       run: |
@@ -144,9 +144,9 @@ jobs:
       run: |
         cmake --build build --parallel --target Alice
 
-    - name: Build Launcher
-      run: |
-        cmake --build build --parallel --target launch_alice
+    # - name: Build Launcher
+    #   run: |
+    #     cmake --build build --parallel --target launch_alice
 
     - name: Create AppDir
       run: |

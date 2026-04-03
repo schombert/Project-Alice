@@ -48,9 +48,9 @@ jobs:
       run: |
         cmake --build build --parallel --target Alice
 
-    - name: Build Project Alice Incremental
-      run: |
-        cmake --build build --parallel --target AliceIncremental
+    # - name: Build Project Alice Incremental
+    #   run: |
+    #     cmake --build build --parallel --target AliceIncremental
 
   windows-build:
     strategy:
