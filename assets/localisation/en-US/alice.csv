@@ -1979,3 +1979,12 @@ rgo_bank_out;RGOs to pops ?Y$val$?W
 factory_bank;Factories balance ?Y$val$?W
 factory_bank_in;Factories from production ?Y$val$?W
 factory_bank_out;Factories to pops ?Y$val$?W
+alice_unit_crossing_modifier;Unit receives a ?Y$x$?W modifier to its combat roll from adjacency modifiers
+alice_river_penalty_mod_tooltip;?Y$COUNT$?W units receives a modifier of ?Y$NUM$?W from river crossing
+alice_strait_penalty_mod_tooltip;?Y$COUNT$?W units receives a modifier of ?Y$NUM$?W from strait crossing or landing penalty
+alice_battle_wide_roll_mod_tooltip;?YBattle-wide roll modifier?W
+alice_unit_specific_roll_mod_tooltip;?YUnit-specific roll modifier?W
+alice_num_units_dug_in_tooltip;?Y$COUNT$?W units are dug in at lvl ?Y$NUM$?W
+alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W units are targeting dug in units, giving them ?Y$NUM$?W roll modifier
+alice_unit_dug_in;Unit has a dig-in lvl of ?Y$NUM$?W
+alice_unit_targeting_dug_in_modifier;Unit receives a ?Y$NUM$?W modifier to its combat roll targeting a dug-in unit

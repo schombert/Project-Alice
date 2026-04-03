@@ -205,7 +205,7 @@ void make_oob_regiment(token_generator& gen, error_handler& err, oob_file_army_c
 	oob_file_regiment_context new_context{context.outer_context, id};
 	parse_oob_regiment(gen, err, new_context);
 	// clean up regiments with invalid unit type
-	if(!context.outer_context.state.world.regiment_get_type(id)) {
+	if(!bool(context.outer_context.state.world.regiment_get_type(id))) {
 		context.outer_context.state.world.delete_regiment(id);
 	}
 }

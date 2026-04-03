@@ -2111,7 +2111,7 @@ void update_colonization(sys::state& state) {
 dcon::province_id state_get_coastal_capital(sys::state& state, dcon::state_instance_id s) {
 	auto d = state.world.state_instance_get_definition(s);
 	auto o = state.world.state_instance_get_nation_from_state_ownership(s);
-	auto max_pop = 0.f;
+	auto max_pop = -100.0f; // start as negative number so that states w/ only 0 pops can pick a coastal capital
 	dcon::province_id result = { };
 	for(auto p : state.world.state_definition_get_abstract_state_membership(d)) {
 		if(p.get_province().get_nation_from_province_ownership() != o)

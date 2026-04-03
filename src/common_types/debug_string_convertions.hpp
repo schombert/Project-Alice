@@ -11,7 +11,7 @@ struct small_commodity_set;
 namespace military {
 struct ship_in_battle;
 struct mobilization_order;
-struct reserve_regiment;
+struct battle_regiment;
 struct available_cb;
 }
 
@@ -51,7 +51,7 @@ std::string to_debug_string(const military::ship_in_battle& obj);
 
 std::string to_debug_string(const military::mobilization_order& obj);
 
-std::string to_debug_string(const military::reserve_regiment& obj);
+std::string to_debug_string(const military::battle_regiment& obj);
 
 std::string to_debug_string(const military::available_cb& obj);
 

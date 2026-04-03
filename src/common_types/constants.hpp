@@ -614,7 +614,7 @@ constexpr inline uint8_t coastal_bit = 0x04;
 constexpr inline uint8_t impassible_bit = 0x08;
 constexpr inline uint8_t non_adjacent_bit = 0x10;
 constexpr inline uint8_t river_crossing_bit = 0x20;
-constexpr inline uint8_t test_bit = 0x40;
+constexpr inline uint8_t sea_strait_crossing_bit = 0x40; // Denotes a sea strait crossing which will give a -2 penalty in combat for attacking. A sea strait crossing may be between adjacent provinces
 constexpr inline uint8_t river_connection_bit = 0x80;
 } // namespace border
 } // namespace province

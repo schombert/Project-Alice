@@ -414,7 +414,7 @@ std::vector<dcon::province_id> make_path_to_expression(sys::state& state, dcon::
 				// check if province check passes (aka province isnt impassable from all directions). If not, add to closed list as this will stay impassable
 				if(prov_func(other_prov)) {
 					float new_dist = movementcost_func(other_prov, current_prov, adj, distance); // to and from province
-					float distance_to_neighbor = current_node.distance_covered + distance; // computes net distance to neighbor from the start province
+					float distance_to_neighbor = current_node.distance_covered + new_dist; // computes net distance to neighbor from the start province
 					// if not present in the open queue add it to the open queue for processing later
 
 					if(!neighbor_node.is_in_open_list) {

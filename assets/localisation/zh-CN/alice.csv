@@ -1955,3 +1955,9 @@ trade_centre_dividents;投资者分红：?Y$val$
 trade_centre_factories;工厂采购：?Y$val$
 trade_centre_rgo;RGO采购：?Y$val$
 trade_centre_services;私营公共服务工资：?Y$val$
+pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 $val$
+urban_size;城市规模
+private_education_owners;私营教师 ?Y$val$?!
+port_owners;当地港口 ?Y$val$?!
+construction_companies;房东 ?Y$val$?!
+map_projection_globe_stereographic;球极投影
