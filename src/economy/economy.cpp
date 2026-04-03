@@ -2042,7 +2042,6 @@ static void set_profile_point(sys::state& state, std::string name) {
 	}
 
 	total_history = data.total;
-	/*
 	*/
 
 	/*
@@ -2064,7 +2063,6 @@ static void set_profile_point(sys::state& state, std::string name) {
 	
 	std::string logged_data = name + "\n" + std::to_string(total.reduce()) + "," + std::to_string(total_pops.reduce()) + ","  + std::to_string(total_markets.reduce()) + "," + std::to_string(total_nations.reduce())  + "\n" + std::to_string(int(diff / 1000.f)) + "\n";
 	state.console_log(logged_data);
-	/*
 	*/
 
 
@@ -3562,9 +3560,9 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 					auto en_b = state.world.pop_type_get_everyday_needs(pt, c) * invention_factor * everyday_mul[strata];
 					auto lx_b = state.world.pop_type_get_luxury_needs(pt, c) * invention_factor * luxury_mul[strata];
 
-					ln_N = ln_N + ve::select(ln_b > 0.f, 1.f, 0.f);
-					en_N = en_N + ve::select(en_b > 0.f, 1.f, 0.f);
-					lx_N = lx_N + ve::select(lx_b > 0.f, 1.f, 0.f);
+					ln_N = ln_N + ve::select(ln_b > 0.f, ve::fp_vector(1.f), ve::fp_vector(0.f));
+					en_N = en_N + ve::select(en_b > 0.f, ve::fp_vector(1.f), ve::fp_vector(0.f));
+					lx_N = lx_N + ve::select(lx_b > 0.f, ve::fp_vector(1.f), ve::fp_vector(0.f));
 
 					auto ln_w = ve::select(ln_b > 0.f, state.world.market_get_life_needs_weights(ids, c), 0.f);
 					auto en_w = ve::select(en_b > 0.f, state.world.market_get_everyday_needs_weights(ids, c), 0.f);

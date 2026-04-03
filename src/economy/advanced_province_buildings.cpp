@@ -126,6 +126,7 @@ const advanced_building_definition definitions[services::list::total] = {
 },
 //cities
 {
+	.throughput_labour_type = economy::labor::basic_education,
 	.output = services::list::urban_housing,
 	.output_amount = 1.f,
 	.maintenance_rate = 0.00001f,
