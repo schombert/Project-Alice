@@ -665,6 +665,9 @@ class lc_modifier_value : public color_text_element {
 		if(dat.type == lc_mod_type::river || dat.type == lc_mod_type::digin) {
 			color = text::text_color::brown;
 		}
+		else {
+			color = text::text_color::black;
+		}
 		set_text(state, std::to_string(dat.value));
 	}
 };
