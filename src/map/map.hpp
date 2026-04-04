@@ -164,6 +164,7 @@ public:
 	void set_text_lines(sys::state& state);
 	void set_province_text_lines(sys::state& state, std::vector<text_line_generator_data> const& data);
 
+	ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<std::pair<size_t, size_t>>> province_to_borders;
 	std::vector<border> borders;
 	std::vector<textured_line_vertex_b_enriched_with_province_index> border_vertices;
 	//

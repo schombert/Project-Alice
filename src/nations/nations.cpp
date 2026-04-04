@@ -2049,8 +2049,12 @@ void switch_all_players(sys::state& state, dcon::nation_id new_n, dcon::nation_i
 		state.world.force_create_player_nation(new_n, player);
 	}
 	if(!p.empty()) {
-		state.world.nation_set_is_player_controlled(new_n, true);
-		state.world.nation_set_is_player_controlled(old_n, false);
+		if(new_n) {
+			state.world.nation_set_is_player_controlled(new_n, true);
+		}
+		if(old_n) {
+			state.world.nation_set_is_player_controlled(old_n, false);
+		}
 	}
 
 	if(state.network_mode == sys::network_mode_type::host) {

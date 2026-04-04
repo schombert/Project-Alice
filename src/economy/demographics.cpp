@@ -542,7 +542,13 @@ void regenerate_from_pop_data(sys::state& state) {
 	concurrency::parallel_for(uint32_t(0), uint32_t(17), [&](uint32_t index) {
 		switch(index) {
 		case 0: {
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -603,7 +609,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 		case 3: {
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -664,7 +676,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 		case 6: {
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -725,7 +743,13 @@ void regenerate_from_pop_data(sys::state& state) {
 			break;
 		}
 		case 9: {
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -859,7 +883,13 @@ void regenerate_from_pop_data(sys::state& state) {
 		}
 		case 16:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
@@ -1156,7 +1186,13 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 		switch(index) {
 		case 0:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1220,7 +1256,13 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 3:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1284,7 +1326,13 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 6:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1348,7 +1396,13 @@ void alt_mt_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 9:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1698,7 +1752,13 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 		switch(index) {
 		case 0:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1762,7 +1822,13 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 3:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1826,7 +1892,13 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 6:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -1890,7 +1962,13 @@ void alt_st_regenerate_from_pop_data(sys::state& state) {
 		}
 		case 9:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { max_buffer.set(p, ve::fp_vector()); });
@@ -2001,7 +2079,13 @@ void alt_demographics_update_extras(sys::state& state) {
 		}
 		case 2:
 		{
-			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = state.world.province_make_vectorizable_float_buffer();
+			static ve::vectorizable_buffer<float, dcon::province_id> max_buffer = ve::vectorizable_buffer<float, dcon::province_id>(uint32_t(1));
+			static uint32_t old_count = 1;
+			auto new_count = state.world.province_size();
+			if(new_count > old_count) {
+				max_buffer = state.world.province_make_vectorizable_float_buffer();
+				old_count = new_count;
+			}
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
 					[&](auto p) { state.world.province_set_dominant_accepted_culture(p, dcon::culture_id{}); });
 			ve::execute_serial<dcon::province_id>(uint32_t(state.province_definitions.first_sea_province.index()),
@@ -3849,7 +3933,13 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 
 	{ // initial ideology
 		float totals = 0.0f;
-		static auto buf = state.world.ideology_make_vectorizable_float_buffer();
+		static auto buf = ve::vectorizable_buffer<float, dcon::ideology_id>(uint32_t(1));
+		static uint32_t old_count = 1;
+		auto new_count = state.world.ideology_size();
+		if(new_count > old_count) {
+			buf = state.world.ideology_make_vectorizable_float_buffer();
+			old_count = new_count;
+		}
 
 		state.world.for_each_ideology([&](dcon::ideology_id i) {
 			buf.set(i, 0.0f);
@@ -3881,9 +3971,16 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 	}
 	{ // initial issues
 		float totals = 0.0f;
-		static auto buf = state.world.issue_option_make_vectorizable_float_buffer();
+		static auto buf = ve::vectorizable_buffer<float, dcon::issue_option_id>(uint32_t(1));
+		static uint32_t old_count = 1;
+		auto new_count = state.world.issue_option_size();
+		if(new_count > old_count) {
+			buf = state.world.issue_option_make_vectorizable_float_buffer();
+			old_count = new_count;
+		}
 
 		state.world.for_each_issue_option([&](dcon::issue_option_id iid) {
+			buf.set(iid, 0.0f);
 			auto opt = fatten(state.world, iid);
 			auto allow = opt.get_allow();
 			auto parent_issue = opt.get_parent_issue();
@@ -3901,7 +3998,6 @@ dcon::pop_id find_or_make_pop(sys::state& state, dcon::province_id loc, dcon::cu
 					(state.world.nation_get_is_civilized(owner) || is_party_issue) &&
 					(!state.world.issue_get_is_next_step_only(parent_issue) || (current_issue_setting.id.index() == iid.index()) || (current_issue_setting.id.index() == iid.index() - 1) || (current_issue_setting.id.index() == iid.index() + 1));
 			auto owner_modifier = has_modifier ? (state.world.nation_get_modifier_values(owner, modifier_key) + 1.0f) : 1.0f;
-			buf.set(iid, 0.0f);
 			if(allowed_by_owner) {
 				if(auto mtrigger = state.world.pop_type_get_issues(ptid, iid); mtrigger) {
 					auto amount = std::max(0.0f, owner_modifier * trigger::evaluate_multiplicative_modifier(state, mtrigger, trigger::to_generic(np.id), trigger::to_generic(owner), 0));

@@ -6453,7 +6453,7 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 		if(state.world.nation_get_is_player_controlled(n))
 			no_ai_nations.push_back(n);
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
-	state.reset_state();
+	state.clear_unsaved_data();
 	bool loaded_save = [&]() {
 		if(is_new_game) {
 			if(!sys::try_read_scenario_as_save_file(state, state.loaded_scenario_file)) {

@@ -736,9 +736,20 @@ void populate_state_construction_demand(
 void populate_construction_consumption(sys::state& state) {
 	reset_construction_demand(state);
 
-	static auto total_budget = state.world.nation_make_vectorizable_float_buffer();
-	static auto current_budget = state.world.nation_make_vectorizable_float_buffer();
-	static auto going_constructions = state.world.nation_make_vectorizable_int_buffer();
+	static auto total_budget = ve::vectorizable_buffer<float, dcon::nation_id>(uint32_t(1));
+	static auto current_budget = ve::vectorizable_buffer<float, dcon::nation_id>(uint32_t(1));
+	static auto going_constructions = ve::vectorizable_buffer<int32_t, dcon::nation_id>(uint32_t(1));
+	{
+		static uint32_t old_count = 1;
+		auto new_count = state.world.nation_size();
+		if(new_count > old_count) {
+			total_budget = state.world.nation_make_vectorizable_float_buffer();
+			current_budget = state.world.nation_make_vectorizable_float_buffer();
+			going_constructions = state.world.nation_make_vectorizable_int_buffer();
+			old_count = new_count;
+		}
+	}
+	
 
 	//reset static data
 

@@ -2475,7 +2475,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		update scoring for provinces
 	*/
 
-	static ve::vectorizable_buffer<float, dcon::nation_id> invention_count = state.world.nation_make_vectorizable_float_buffer();
+	static ve::vectorizable_buffer<float, dcon::nation_id> invention_count = ve::vectorizable_buffer<float, dcon::nation_id>(uint32_t(1));
+	{
+		static uint32_t old_count = 1;
+		auto new_count = state.world.nation_size();
+		if(new_count > old_count) {
+			invention_count = state.world.nation_make_vectorizable_float_buffer();
+			old_count = new_count;
+		}
+	}
 
 	concurrency::parallel_invoke(
 		[&]() {
@@ -2920,8 +2928,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 	// we have to recalculate loan related variables every new round, because they depend on themselves
 
-	static auto spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
-
+	static auto spent_on_construction_buffer = ve::vectorizable_buffer<float,dcon::nation_id>(uint32_t(1));
+	{
+		static uint32_t old_count = 1;
+		auto new_count = state.world.nation_size();
+		if(new_count > old_count) {
+			spent_on_construction_buffer = state.world.nation_make_vectorizable_float_buffer();
+			old_count = new_count;
+		}
+	}
 	for(auto n : state.nations_by_rank) {
 		if(!n) {
 			continue;
@@ -4247,6 +4262,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	auto collected_tariff_buffer = state.world.nation_make_vectorizable_float_buffer();
 	for(auto mid : state.world.in_market) {
 		auto controller = mid.get_zone_from_local_market().get_capital().get_nation_from_province_control();
+		// skip if rebel controlled
+		if(!controller) {
+			continue;
+		}
 		auto old_value = collected_tariff_buffer.get(controller);
 		auto collected = mid.get_tariff_collected();
 		collected_tariff_buffer.set(controller, old_value + collected);
