@@ -1125,6 +1125,12 @@ LRESULT CALLBACK WndProc(HWND hwnd, UINT message, WPARAM wParam, LPARAM lParam) 
 		// Find all mods
 		auto mod_dir = simple_fs::open_directory(root, NATIVE("mod"));
 		auto mod_files = simple_fs::list_files(mod_dir, NATIVE(".mod"));
+		auto subdirs = simple_fs::list_subdirectories(mod_dir);
+		for(auto& subdir : subdirs) {
+			for(auto& item : simple_fs::list_files(subdir, NATIVE(".mod"))) {
+				mod_files.push_back(item);
+			}
+		}
 
 		parsers::error_handler err("");
 		for(auto& f : mod_files) {
