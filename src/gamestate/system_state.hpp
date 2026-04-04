@@ -1092,7 +1092,7 @@ struct alignas(64) state {
 	void fill_unsaved_data();    // reconstructs derived values that are not directly saved after a save has been loaded
 	void on_scenario_load(); // called when the scenario file is loaded (not when saves are loaded)
 	void preload(); // clears data that will be later reconstructed from saved values
-	void reset_state();
+	void clear_unsaved_data();
 
 	void console_log(std::string_view message);
 	void lua_notification(std::string message);

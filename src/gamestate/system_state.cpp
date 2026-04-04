@@ -36,6 +36,7 @@
 #include "economy_constants.hpp"
 #include "alice_ui.hpp"
 #include "commands.hpp"
+#include "dcon_oos_reporter_generated.hpp"
 
 namespace sys {
 
@@ -3429,7 +3430,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	}
 
 
-
 	demographics::regenerate_from_pop_data_full(*this);
 	economy::initialize(*this);
 	economy::sanity_check(*this);
@@ -3440,7 +3440,6 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	economy::sanity_check(*this);
 
 	demographics::fixup_state_only_pops<true>(*this);
-
 
 	military::reinforce_regiments(*this);
 	military::repair_ships(*this);
@@ -3510,7 +3509,7 @@ void state::load_scenario_data(parsers::error_handler& err, sys::year_month_day 
 	current_scene.game_in_progress = old_game_in_prog;
 }
 
-void state::reset_state() {
+void state::clear_unsaved_data() {
 
 	/*unit_names.clear();
 	unit_names_indices.clear();
@@ -3539,35 +3538,19 @@ void state::reset_state() {
 	future_n_event
 	future_p_event*/
 
+
+	// Set flags to update stuff as we are about to flush most of the cached data
 	adjacency_data_out_of_date = true;
-	/*national_cached_values_out_of_date = true;
+	national_cached_values_out_of_date = true;
 	diplomatic_cached_values_out_of_date = true;
-	trade_route_cached_values_out_of_date = true;*/
+	trade_route_cached_values_out_of_date = true;
 
-	dcon::load_record loaded;
-	scenario_size scenario_sz = sizeof_scenario_section(*this);
-
-	auto scenario_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[scenario_sz.total_size]);
-
-	write_scenario_section(scenario_buffer.get(), *this);
-
-
-	dcon::load_record protected_loadmask = world.make_serialize_record_store_reload_protected_state();
-	size_t protected_size = world.serialize_size(protected_loadmask);
-	auto protected_buffer = std::unique_ptr<uint8_t[]>(new uint8_t[protected_size]);
-	std::byte* start = reinterpret_cast<std::byte*>(protected_buffer.get());
-	world.serialize(start, protected_loadmask);
-	std::byte const* const_start = reinterpret_cast<std::byte const*>(protected_buffer.get());
-
-	world.reset();
-	//deserialize scenario state
-	read_scenario_section(scenario_buffer.get(), scenario_buffer.get() + scenario_sz.total_size, *this);
-
-	/*try_read_scenario_file(*this, loaded_scenario_file);*/
-
-
-	//deserialize protected state
-	world.deserialize(const_start, reinterpret_cast<std::byte const*>(protected_buffer.get() + protected_size), loaded);
+	auto reload_protected_record = world.make_serialize_record_store_reload_protected_state();
+	auto save_record = world.make_serialize_record_store_save();
+	auto final_record = world.make_serialize_record_store_scenario();
+	combine_load_records(final_record, save_record);
+	combine_load_records(final_record, reload_protected_record);
+	dcon::reset_data(world, final_record);
 
 }
 

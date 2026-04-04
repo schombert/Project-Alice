@@ -1383,7 +1383,7 @@ std::string add_collection_compare_to_oos_report(const std::span<const T> collec
 
 std::string generate_full_oos_report(const sys::state& state_1, const sys::state& state_2) {
 	dcon::load_record record = state_1.world.make_serialize_record_store_mp_checksum_excluded();
-	std::string report = generate_oos_report(state_1.world, state_2.world, record);
+	std::string report = dcon::generate_oos_report(state_1.world, state_2.world, record);
 	// Only non-local scenario & save fields which CAN contribute to changing the gamestate should be included here (so eg. skip text data and local_player_nation)
 	report += "SAVE_HANDWRITTEN_CONTRIBUTION\n";
 	report += add_collection_compare_to_oos_report<char>(state_1.unit_names, state_1.unit_names, "unit_names") +
@@ -1426,7 +1426,7 @@ std::string generate_full_oos_report(const sys::state& state_1, const sys::state
 		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
 		add_compare_to_oos_report(state_1.map_state.map_data.world_circumference, state_2.map_state.map_data.world_circumference, "world_circumference") +
 		//add_collection_compare_to_oos_report<map::textured_line_vertex_b_enriched_with_province_index>(state_1.map_state.map_data.border_vertices, state_2.map_state.map_data.border_vertices, "border_vertices") + // this is local actually!
-		add_collection_compare_to_oos_report<map::border>(state_1.map_state.map_data.borders, state_2.map_state.map_data.borders, "borders") +
+		//add_collection_compare_to_oos_report<map::border>(state_1.map_state.map_data.borders, state_2.map_state.map_data.borders, "borders") + // this is local because it is modified by the cache thread (the .skip member)
 		add_collection_compare_to_oos_report<uint8_t>(state_1.map_state.map_data.terrain_id_map, state_1.map_state.map_data.terrain_id_map, "terrain_id_map") +
 		add_collection_compare_to_oos_report<uint16_t>(state_1.map_state.map_data.province_id_map, state_1.map_state.map_data.province_id_map, "province_id_map") +
 		add_collection_compare_to_oos_report<uint32_t>(state_1.map_state.map_data.province_area, state_1.map_state.map_data.province_area, "province_area") +
@@ -1591,7 +1591,7 @@ void load_network_save(sys::state& state, const uint8_t* save_buffer) {
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
-	state.reset_state();
+	state.clear_unsaved_data();
 	with_network_decompressed_section(save_buffer, [&state](uint8_t const* ptr_in, uint32_t length) {
 		read_save_section(ptr_in, ptr_in + length, state);
 	});
@@ -2047,7 +2047,7 @@ void reload_save_locally(sys::state& state) {
 	sys::write_save_section(save_buffer.get(), state);
 	state.local_player_nation = dcon::nation_id{ };
 	/* Then reload as if we loaded the save data */
-	state.reset_state();
+	state.clear_unsaved_data();
 	sys::read_save_section(save_buffer.get(), save_buffer.get() + length, state);
 	network::set_no_ai_nations_after_reload(state, no_ai_nations);
 	state.local_player_nation = old_local_player_nation;
@@ -2398,9 +2398,13 @@ void switch_one_player(sys::state& state, dcon::nation_id new_n, dcon::nation_id
 	assert(old_n == state.world.mp_player_get_nation_from_player_nation(player));
 	assert(player);
 	state.world.force_create_player_nation(new_n, player);
-	state.world.nation_set_is_player_controlled(new_n, true);
-	if(!nation_has_any_players_on_it(state, old_n)) {
-		state.world.nation_set_is_player_controlled(old_n, false);
+	if(new_n) {
+		state.world.nation_set_is_player_controlled(new_n, true);
+	}
+	if(old_n) {
+		if(!nation_has_any_players_on_it(state, old_n)) {
+			state.world.nation_set_is_player_controlled(old_n, false);
+		}
 	}
 
 	if(state.network_mode == sys::network_mode_type::host) {

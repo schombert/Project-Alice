@@ -172,7 +172,7 @@ void update_connected_regions(sys::state& state) {
 	}
 
 
-	static ankerl::unordered_dense::map<dcon::province_id::value_base_t, std::vector<std::pair<size_t, size_t>>> province_to_borders{ };
+	auto& province_to_borders = state.map_state.map_data.province_to_borders;
 	if(province_to_borders.empty()) {
 		for(size_t i = 0; i < state.map_state.map_data.borders.size(); i++) {
 			auto& border = state.map_state.map_data.borders[i];
@@ -498,13 +498,15 @@ dcon::province_id pick_capital(sys::state& state, dcon::nation_id n) {
 		return trad_cap;
 	}
 	dcon::province_id best_choice;
+	float best_demographics = -999.0f; // start as negative number incase there are 0 pops in all owned provinces
 	for(auto prov : state.world.nation_get_province_ownership(n)) {
-		if(prov.get_province().get_demographics(demographics::total) >
-						state.world.province_get_demographics(best_choice, demographics::total) &&
-				prov.get_province().get_is_owner_core() == state.world.province_get_is_owner_core(best_choice)) {
+		auto prov_demographics = prov.get_province().get_demographics(demographics::total);
+		if(!prov.get_province().get_is_owner_core()) {
+			prov_demographics *= 0.0000001f; // de-prio non-owner-score provinces as capital candinates
+		}
+		if(prov_demographics > best_demographics) {
 			best_choice = prov.get_province().id;
-		} else if(prov.get_province().get_is_owner_core() && !state.world.province_get_is_owner_core(best_choice)) {
-			best_choice = prov.get_province().id;
+			best_demographics = prov_demographics;
 		}
 	}
 	return best_choice;

@@ -119,7 +119,7 @@ void test_load_save(sys::state& state, uint8_t* ptr_in, uint32_t length) {
 	dcon::nation_id old_local_player_nation = state.local_player_nation;
 	state.local_player_nation = dcon::nation_id{ };
 	// Then reload from network
-	state.reset_state();
+	state.clear_unsaved_data();
 	read_save_section(ptr_in, ptr_in + length, state);
 	network::set_no_ai_nations_after_reload(state, players);
 	state.local_player_nation = old_local_player_nation;
