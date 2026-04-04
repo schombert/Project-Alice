@@ -130,20 +130,24 @@ constexpr uint32_t test_game_seed = 808080;
 
 
 
-// Compares and tests cross-platform scenarios to see if they are equal after loading. Requires the scenarios to be created and put in the scenario folder before running this
-TEST_CASE("compare_crossplatform_scenarios", "[determinism]") {
+// Compares and tests scenarios to see if they are equal after loading. Requires the scenarios to be created and put in the scenario folder before running this
+TEST_CASE("compare_scenarios", "[determinism]") {
 	std::unique_ptr<sys::state> game_state_1 = std::make_unique<sys::state>();
+	game_state_1->network_mode = sys::network_mode_type::host;
 	std::unique_ptr<sys::state> game_state_2 = std::make_unique<sys::state>();
-	if(!sys::try_read_scenario_and_save_file(*game_state_1, NATIVE("windows_scenario.bin"))) {
+	game_state_2->network_mode = sys::network_mode_type::host;
+	if(!sys::try_read_scenario_and_save_file(*game_state_1, NATIVE("scenario_1.bin"))) {
 		std::abort();
 	}
 	else {
+		game_state_1->game_seed = test_game_seed;
 		game_state_1->fill_unsaved_data();
 	}
-	if(!sys::try_read_scenario_and_save_file(*game_state_2, NATIVE("linux_scenario.bin"))) {
+	if(!sys::try_read_scenario_and_save_file(*game_state_2, NATIVE("scenario_2.bin"))) {
 		std::abort();
 	}
 	else {
+		game_state_2->game_seed = test_game_seed;
 		game_state_2->fill_unsaved_data();
 	}
 
