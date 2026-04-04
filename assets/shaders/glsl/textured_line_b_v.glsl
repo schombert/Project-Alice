@@ -66,7 +66,7 @@ void main() {
 
 	if(int(subroutines_index) == 1 || int(subroutines_index) == 3) {
 		gl_Position.z = 0.001f * abs(texture_coord);
-		if(central_pos.z < -1.f) {
+		if(abs(central_pos.z) > 1.f) {
 			gl_Position.z = -1.05f;
 		}
 		//gl_Position.z += abs(gl_Position.x - 0.5) * 2.1f;

@@ -1959,5 +1959,14 @@ pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 
 urban_size;城市规模
 private_education_owners;私营教师 ?Y$val$?!
 port_owners;当地港口 ?Y$val$?!
-construction_companies;房东 ?Y$val$?!
+housing_owners;房东 ?Y$val$?!
 map_projection_globe_stereographic;球极投影
+alice_unit_crossing_modifier;单位因邻近单位修正获得 ?Y$x$?W 战斗骰子修正
+alice_river_penalty_mod_tooltip;?Y$COUNT$?W 个单位因渡河获得 ?Y$NUM$?W 修正
+alice_strait_penalty_mod_tooltip;?Y$COUNT$?W 个单位因跨海峡或登陆受到 ?Y$NUM$?W 修正
+alice_battle_wide_roll_mod_tooltip;?Y整场战斗骰子修正?W
+alice_unit_specific_roll_mod_tooltip;?Y单位特定骰子修正?W
+alice_num_units_dug_in_tooltip;?Y$COUNT$?W 个单位在 ?Y$NUM$?W 堑壕级别设防
+alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W 个单位攻击已设防单位，获得 ?Y$NUM$?W 骰子修正
+alice_unit_dug_in;单位设防级别 ?Y$NUM$?W
+alice_unit_targeting_dug_in_modifier;单位在攻击设防单位时获得 ?Y$NUM$?W 战斗骰子修正

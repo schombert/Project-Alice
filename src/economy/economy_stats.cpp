@@ -1313,46 +1313,6 @@ market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id 
 			result.investments += economy::pops::estimate_trade_spending(state, pop);
 		});
 
-		float rgo_workers_wage =
-			state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
-			* state.world.province_get_labor_price(pid, labor::no_education)
-			* state.world.province_get_labor_supply_sold(pid, labor::no_education);
-
-		float aristocrats_share = state.world.province_get_landowners_share(pid);
-		float others_share = (1.f - aristocrats_share);
-
-		// FACTORIES
-		// all profits go to market stockpiles and then they are distributed to capitalists
-		for(auto f : state.world.province_get_factory_location(pid)) {
-			auto fac = f.get_factory();
-			auto profit = explain_last_factory_profit(state, fac);
-			result.factories += profit.profit;
-		}
-
-		auto total_rgo_profit = 0.f;
-		total_rgo_profit += state.world.province_get_rgo_profit(pid);
-		for(auto pl : state.world.province_get_pop_location(pid)) {
-			if(pl.get_pop().get_poptype() == state.culture_definitions.slaves) {
-				total_rgo_profit += pl.get_pop().get_size() * rgo_workers_wage;
-			}
-		}
-
-		auto local_market_cut = economy::pops::market_cut(state, m, state.world.province_get_labor_price(pid, labor::no_education));
-
-		result.rgo = total_rgo_profit * local_market_cut;
-		total_rgo_profit -= result.rgo;
-
-		float num_aristocrat = state.world.province_get_demographics(
-			pid,
-			demographics::to_key(state, state.culture_definitions.aristocrat)
-		);
-
-		if(total_rgo_profit >= 0.f && num_aristocrat > 0.f) {
-			result.rgo += total_rgo_profit * others_share;
-		} else {
-			result.rgo += total_rgo_profit;
-		}
-
 		for(int32_t i = 0; i < advanced_province_buildings::list::total; i++) {
 			auto& def = advanced_province_buildings::definitions[i];
 			auto private_size = state.world.province_get_advanced_province_building_private_size(pid, i);
@@ -1380,7 +1340,7 @@ market_budget breakdown_market_budget(sys::state& unsafe_state, dcon::market_id 
 		});
 	});
 
-	result.estimated_change = -result.bought + result.sold + result.investments - result.dividents +result.rgo + result.factories - result.imports + result.exports;
+	result.estimated_change = -result.bought + result.sold + result.investments - result.dividents - result.imports + result.exports;
 
 	return result;
 }
@@ -1397,10 +1357,86 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(state, contents, "trade_centre_sold", text::variable_type::val, text::fp_currency{ budget.sold }, 15);
 	text::add_line(state, contents, "trade_centre_investments", text::variable_type::val, text::fp_currency{ budget.investments }, 15);
 	text::add_line(state, contents, "trade_centre_dividents", text::variable_type::val, text::fp_currency{ -budget.dividents }, 15);
-	text::add_line(state, contents, "trade_centre_factories", text::variable_type::val, text::fp_currency{ budget.factories }, 15);
-	text::add_line(state, contents, "trade_centre_rgo", text::variable_type::val, text::fp_currency{ budget.rgo }, 15);
+	//text::add_line(state, contents, "trade_centre_factories", text::variable_type::val, text::fp_currency{ budget.factories }, 15);
+	//text::add_line(state, contents, "trade_centre_rgo", text::variable_type::val, text::fp_currency{ budget.rgo }, 15);
 	//text::add_line(state, contents, "trade_centre_services", text::variable_type::val, text::fp_currency{ budget.services }, 15);
 
+	text::add_line_break_to_layout(state, contents);
+
+		
+	text::add_line(
+		state,
+		contents,
+		"factory_bank",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_factory_bank(province)
+		},
+		0
+	);
+	auto factory_bank_balance = 0.f;
+	// FACTORIES
+	// all profits go to factory banks and then they are distributed to capitalists
+	for(auto f : state.world.province_get_factory_location(province)) {
+		auto fac = f.get_factory();
+		auto profit = explain_last_factory_profit(state, fac);
+		factory_bank_balance += profit.profit;
+	}
+	text::add_line(
+		state,
+		contents,
+		"factory_bank_in",
+		text::variable_type::val,
+		text::fp_currency{
+			factory_bank_balance
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"factory_bank_out",
+		text::variable_type::val,
+		text::fp_currency{
+			std::max(0.f, state.world.province_get_factory_bank(province) * economy::pops::trade_dividents_rate)
+		},
+		15
+	);
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(
+		state,
+		contents,
+		"rgo_bank",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_rgo_bank(province)
+		},
+		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"rgo_bank_in",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_rgo_profit(province)
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"rgo_bank_out",
+		text::variable_type::val,
+		text::fp_currency{
+			std::max(0.f, state.world.province_get_rgo_bank(province) * economy::pops::trade_dividents_rate)
+		},
+		15
+	);
+
+
+	text::add_line_break_to_layout(state, contents);
 	text::add_line(
 		state,
 		contents,
@@ -1410,6 +1446,16 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::schools_and_universities)
 		},
 		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"private_education_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::education)
+		},
+		15
 	);
 
 	text::add_line(
@@ -1422,16 +1468,56 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 		},
 		0
 	);
+	text::add_line(
+		state,
+		contents,
+		"port_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::port_capacity)
+		},
+		15
+	);
 
 	text::add_line(
 		state,
 		contents,
-		"construction_companies",
+		"housing_owners",
 		text::variable_type::val,
 		text::fp_currency{
 			state.world.province_get_advanced_province_building_private_savings(province, advanced_province_buildings::list::local_cities_and_towns)
 		},
 		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_price",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_service_price(province, services::list::urban_housing)
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_supply",
+		text::variable_type::val,
+		text::int_wholenum{
+			(int)state.world.province_get_service_supply_private(province, services::list::urban_housing)
+		},
+		15
+	);
+	text::add_line(
+		state,
+		contents,
+		"housing_demand",
+		text::variable_type::val,
+		text::int_wholenum{
+			(int)state.world.province_get_service_demand_forbidden_public_supply(province, services::list::urban_housing)
+		},
+		15
 	);
 
 
@@ -1440,4 +1526,78 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	}
 }
 
+nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state, dcon::nation_id n) {
+	nation_monetary_breakdown result { };
+	result.nation = state.world.nation_get_stockpiles(n, economy::money);
+	result.bank = state.world.nation_get_national_bank(n);
+	result.investment_pool = state.world.nation_get_private_investment(n);
+	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+		auto pid = state.world.province_ownership_get_province(poid);
+		auto sid = state.world.province_get_state_membership(pid);
+		auto mid = state.world.state_instance_get_market_from_local_market(sid);
+		result.rgo += state.world.province_get_rgo_bank(pid);
+		state.world.for_each_commodity([&](dcon::commodity_id c) {
+			auto size = state.world.province_get_rgo_size(pid, c);
+			auto actual_amount_of_workers =
+				state.world.province_get_rgo_target_employment(pid, c)
+				* state.world.province_get_labor_demand_satisfaction(pid, labor::no_education);
+			auto per_worker = state.world.province_get_rgo_output_per_worker(pid, c);
+			auto amount = actual_amount_of_workers * per_worker;
+			result.rgo_sales += state.world.commodity_get_money_rgo(c)
+				? amount * state.world.market_get_price(mid, c)
+				: amount * state.world.market_get_price(mid, c) * state.world.market_get_actual_probability_to_sell(mid, c);
+
+			result.rgo_wages +=
+				actual_amount_of_workers
+				* state.world.province_get_labor_price(pid, labor::no_education);
+		});
+	});
+	state.world.nation_for_each_state_ownership(n, [&](auto soid){
+		auto local_state = state.world.state_ownership_get_state(soid);
+		auto mid = state.world.state_instance_get_market_from_local_market(local_state);
+		result.market += state.world.market_get_stockpile(mid, economy::money);
+	});
+	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+		auto pid = state.world.province_ownership_get_province(poid);
+		result.factory += state.world.province_get_factory_bank(pid);
+
+		result.educators += state.world.province_get_advanced_province_building_private_savings(pid, advanced_province_buildings::list::schools_and_universities);
+		result.landlords += state.world.province_get_advanced_province_building_private_savings(pid, advanced_province_buildings::list::local_cities_and_towns);
+		result.ports += state.world.province_get_advanced_province_building_private_savings(pid, advanced_province_buildings::list::civilian_ports);
+		result.artisans += state.world.province_get_artisan_bank(pid);
+	});
+	state.world.nation_for_each_province_ownership(n, [&](auto poid) {
+		auto pid = state.world.province_ownership_get_province(poid);
+		state.world.province_for_each_pop_location(pid, [&](auto location) {
+			auto pop = state.world.pop_location_get_pop(location);
+			result.pops += state.world.pop_get_savings(pop);
+			auto wages = pops::estimate_wage(state, pop);
+			auto slaves = pops::estimate_slave_income(state, pop);
+			result.pops_wages += slaves;
+			for(auto& item : wages) {
+				result.pops_wages += item.wage;
+			}
+
+			state.world.for_each_commodity([&](dcon::commodity_id c) {
+				result.pops_spending_life += pops::estimate_pop_spending_life(state, pop, c);
+				result.pops_spending_everyday += pops::estimate_pop_spending_everyday(state, pop, c);
+				result.pops_spending_luxury += pops::estimate_pop_spending_luxury(state, pop, c);
+			});
+
+			auto budget = pops::prepare_pop_budget(state, pop);
+			result.pops_spending_housing += budget.housing.spent;
+			result.pops_spending_education += budget.education.spent;
+
+			auto literacy_sat_paid = state.world.province_get_service_satisfaction(pid, services::list::education);
+			auto housing_sat = state.world.province_get_service_satisfaction(pid, services::list::urban_housing);
+
+			result.pops_cashback_housing += budget.housing.spent * (1.f - housing_sat);
+			result.pops_cashback_education += budget.education.spent * (1.f - literacy_sat_paid);
+		});
+	});
+
+	result.total = result.nation + result.bank + result.investment_pool + result.rgo + result.market + result.factory + result.pops + result.educators + result.ports + result.landlords + result.artisans;
+
+	return result;
+}
 }

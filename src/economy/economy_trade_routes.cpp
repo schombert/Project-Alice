@@ -620,8 +620,8 @@ void update_trade_routes_volume(
 			// volume reduces transport costs
 
 			auto sold_boundary = stockpile_to_supply / (stockpile_spoilage + stockpile_to_supply);
-			auto current_profit_A_to_B = ve::max(0.f, price_B_import * sold_boundary - (price_A_export * merchant_cut + transport_cost * effect_of_scale));
-			auto current_profit_B_to_A = ve::max(0.f, price_A_import * sold_boundary - (price_B_export * merchant_cut + transport_cost * effect_of_scale));
+			auto current_profit_A_to_B = ve::max(0.f, price_B_import * sold_boundary * state.world.market_get_expected_probability_to_sell(B, c) - (price_A_export * merchant_cut + transport_cost * effect_of_scale));
+			auto current_profit_B_to_A = ve::max(0.f, price_A_import * sold_boundary * state.world.market_get_expected_probability_to_sell(A, c) - (price_B_export * merchant_cut + transport_cost * effect_of_scale));
 
 			auto change = current_profit_A_to_B / price_A_export - current_profit_B_to_A / price_B_export;
 
@@ -635,7 +635,12 @@ void update_trade_routes_volume(
 			) * transport_availability;
 			change = ve::select(
 				change * (current_volume + change) >= 0.f, // change and volume are collinear
-				change * ve::max(ve::max(0.f, min_trade_expansion_multiplier / (1.f + ve::abs(change))), (expected_to_buy_inputs - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
+				change
+				* ve::max(
+					ve::max(
+						0.f,
+						min_trade_expansion_multiplier / (1.f + ve::abs(change))
+					), (expected_to_buy_inputs - trade_demand_satisfaction_cutoff) * 2.f * volume_soft_sign * volume_sign),
 				change
 			);
 

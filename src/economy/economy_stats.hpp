@@ -422,8 +422,6 @@ struct market_budget {
 	float exports;
 	float dividents;
 	float investments;
-	float rgo;
-	float factories;
 	float wages_cut;
 	float services;
 
@@ -431,5 +429,39 @@ struct market_budget {
 };
 
 market_budget breakdown_market_budget(sys::state& state, dcon::market_id m);
+
+struct nation_monetary_breakdown {
+	float total = 0.f;
+	float nation = 0.f;
+	float bank = 0.f;
+	float investment_pool = 0.f;
+	float rgo = 0.f;
+	float market = 0.f;
+	float factory = 0.f;
+	float pops = 0.f;
+
+	float educators = 0.f;
+	float ports = 0.f;
+	float landlords = 0.f;
+	float artisans = 0.f;
+
+	float rgo_wages = 0.f;
+	float rgo_sales = 0.f;
+
+	float factories_to_pops_wages = 0.f;
+
+	float pops_wages = 0.f;
+
+	float pops_spending_life = 0.f;
+	float pops_spending_everyday = 0.f;
+	float pops_spending_luxury = 0.f;
+	float pops_spending_housing = 0.f;
+	float pops_spending_education = 0.f;
+
+	float pops_cashback_housing = 0.f;
+	float pops_cashback_education = 0.f;
+};
+
+nation_monetary_breakdown breakdown_nation_monetary_structure(sys::state& state, dcon::nation_id n);
 
 }

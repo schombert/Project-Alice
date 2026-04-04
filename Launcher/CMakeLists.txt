@@ -80,6 +80,18 @@ target_precompile_headers(launch_alice
 	PRIVATE <limits>
 )
 
+target_precompile_headers(launch_alice
+	PRIVATE [["simple_fs.hpp"]]
+	PRIVATE [["constants.hpp"]]
+	PRIVATE [["unordered_dense.h"]]
+	PRIVATE [["dcon_generated.hpp"]]
+	PRIVATE [["container_types.hpp"]]
+	PRIVATE [["parsers_declarations.hpp"]]
+	PRIVATE [["cyto_any.hpp"]]
+	PRIVATE [["date_interface.hpp"]]
+	PRIVATE [["stb_image.h"]]
+)
+
 if (WIN32)
 	target_link_libraries(launch_alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 endif()
