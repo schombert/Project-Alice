@@ -1230,7 +1230,7 @@ trade_good_name_header;贸易品
 price;价格
 supply;供应
 demand;需求
-balance;结余
+balance;资金池
 market_stockpiles;市场库存
 national_stockpile;政府库存
 government_need;政府采购
@@ -1566,9 +1566,9 @@ employment_type_basic_education;雇佣类型：?Y基本教育?W
 employment_type_high_education_and_accepted;雇佣类型：?Y公认高等教育?W
 employment_type_high_education;雇佣类型：?Y高等教育?W
 alice_trade_attractiveness;贸易路线吸引
-trade_center;贸易中心
-trade_center_desc;贸易中心管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
-trade_center_employment;贸易中心雇员：?Y$value$?W
+trade_center;市场
+trade_center_desc;市场管理市场内部和国际市场之间的贸易，购买所需库存并向邻居出售多余商品。
+trade_center_employment;市场雇员：?Y$value$?W
 trade_centre_max_throughput;最大量：?Y$value$?W
 local_admin;当地行政
 capital_admin;首都行政
@@ -1599,7 +1599,7 @@ trade_centre_imports_value;进口价值：?Y$val$
 trade_centre_exports_volume;出口量：?Y$val$
 trade_centre_exports_value;出口价值：?Y$val$
 trade_centre_trade_routes_profit;从贸易路线中获利：?Y$val$
-trade_centre_money;资金：?Y$val$
+trade_centre_money;资金池：?Y$val$
 administration_tile;当地行政
 market_tile;当地市场
 alice_sort_pops;种族
@@ -1694,7 +1694,7 @@ gdp_rest;国内其他省份GDP
 market_report;?Y$province$?W 当地市场出口贸易
 market_prices_report;?Y$province$?W 市场价格
 rgo_report;?Y$province$?W 资源运营
-trade_balance;结余
+trade_balance;资金池
 rgo_details_name;名称
 rgo_efficiency_super_header;效率
 rgo_efficiency_value;%
@@ -1845,10 +1845,10 @@ province_market_demand;需求：?R$val$?!
 province_market_production;生产：?G$val$?!
 province_market_consumption;消费：?R$val$?!
 province_market_stockpiles;库存：?Y$val$?!
-province_market_balance;结余：?Y$val$?!
+province_market_balance;资金池：?Y$val$?!
 province_market_trade_in;进口：?G$val$?!
 province_market_trade_out;出口：?R$val$?!
-province_market_trade_balance;贸易结余：?Y$val$?!
+province_market_trade_balance;贸易资金池：?Y$val$?!
 civilian_port;民用港
 civilian_port_size;规模：?Y$val$?!
 production_window_title;生产
@@ -1957,7 +1957,7 @@ trade_centre_rgo;RGO采购：?Y$val$
 trade_centre_services;私营公共服务工资：?Y$val$
 pop_prom_housing_multiplier;城市住房不足阻碍人群升职和乘数变化 $val$
 urban_size;城市规模
-private_education_owners;私营教师 ?Y$val$?!
+private_education_owners;教师工资 ?Y$val$?!
 port_owners;当地港口 ?Y$val$?!
 housing_owners;房东 ?Y$val$?!
 map_projection_globe_stereographic;球极投影
@@ -1976,9 +1976,9 @@ port_price;当地港口价 ?Y$val$?!
 housing_price;住房价 ?Y$val$?!
 housing_supply;住房供应 ?Y$val$?!
 housing_demand;住房需求 ?Y$val$?!
-rgo_bank;RGO 结余 ?Y$val$?W
-rgo_bank_in;RGOs 来自生产 ?Y$val$?W
-rgo_bank_out;RGOs 到人群 ?Y$val$?W
-factory_bank;工厂结余 ?Y$val$?W
-factory_bank_in;工厂来自生产 ?Y$val$?W
-factory_bank_out;工厂到人群 ?Y$val$?W
+rgo_bank;RGO 资金池 ?Y$val$?W
+rgo_bank_in;RGOs 生产盈利 ?Y$val$?W
+rgo_bank_out;RGOs 人群分红 ?Y$val$?W
+factory_bank;工厂资金池 ?Y$val$?W
+factory_bank_in;工厂生产盈利 ?Y$val$?W
+factory_bank_out;工厂人群分红 ?Y$val$?W
