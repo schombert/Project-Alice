@@ -2786,6 +2786,7 @@ struct country_history_file {
 	upper_house_block upper_house;
 	void finish(country_history_context&) { }
 	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void clr_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);

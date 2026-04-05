@@ -12,7 +12,7 @@ constexpr size_t RECV_BUFFER_SIZE = 262144;
 
 namespace sys {
 
-constexpr int32_t max_event_options = 8;
+constexpr int32_t max_event_options = 12;
 constexpr uint32_t max_gamerule_settings = 15;
 
 enum class army_group_regiment_status : uint8_t {

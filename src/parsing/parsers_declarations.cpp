@@ -2783,6 +2783,17 @@ void country_history_file::set_country_flag(association_type, std::string_view v
 	}
 }
 
+
+void country_history_file::clr_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
+	if(!context.holder_id)
+		return;
+	if(auto it = context.outer_context.map_of_national_flags.find(std::string(value)); it != context.outer_context.map_of_national_flags.end()) {
+		context.outer_context.state.world.nation_set_flag_variables(context.holder_id, it->second, false);
+	} else {
+		// unused flag variable: ignore
+	}
+}
+
 void country_history_file::set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context) {
 	if(!context.holder_id)
 		return;

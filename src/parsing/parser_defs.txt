@@ -1247,6 +1247,7 @@ country_history_file
 	capital                         value      int                               member_fn
 	colonial_points                 value      int                               member_fn
 	set_country_flag                value      text                              member_fn
+	clr_country_flag                value      text                              member_fn
 	set_global_flag               value      text                              member_fn
 	decision                        value      text                              member_fn
 

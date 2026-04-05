@@ -162,11 +162,10 @@ static_assert(sizeof(provincial_modifier_definition) ==
 
 
 struct national_modifier_definition {
-	static constexpr uint32_t modifier_definition_size = 22;
+	static constexpr uint32_t modifier_definition_size = 24;
 
 	float values[modifier_definition_size] = { 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f };
 	dcon::national_modifier_value offsets[modifier_definition_size] = { dcon::national_modifier_value{} };
-	uint16_t padding = 0;
 
 	bool operator==(const national_modifier_definition& other) const {
 		return std::memcmp(this->values, other.values, sizeof(values)) == 0 && std::memcmp(this->offsets, other.offsets, sizeof(offsets)) == 0;
@@ -177,8 +176,7 @@ struct national_modifier_definition {
 };
 static_assert(sizeof(national_modifier_definition) ==
 	sizeof(national_modifier_definition::values)
-	+ sizeof(national_modifier_definition::offsets)
-	+ sizeof(national_modifier_definition::padding));
+	+ sizeof(national_modifier_definition::offsets));
 
 struct unit_modifier : public unit_variable_stats {
 	dcon::unit_type_id type;
