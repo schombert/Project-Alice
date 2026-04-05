@@ -342,6 +342,16 @@ static_assert(sizeof(small_commodity_set) ==
 	+ sizeof(small_commodity_set::commodity_type)
 	+ sizeof(small_commodity_set::padding));
 
+struct production_type_bonus {
+	float amount = 0.0f;
+	dcon::trigger_key trigger = dcon::trigger_key{};
+	uint8_t padding[2] = { 0 };
+};
+static_assert(sizeof(production_type_bonus) ==
+	sizeof(production_type_bonus::amount)
+	+ sizeof(production_type_bonus::trigger)
+	+ sizeof(production_type_bonus::padding));
+
 } // namespace economy
 
 

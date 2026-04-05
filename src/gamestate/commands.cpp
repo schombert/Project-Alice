@@ -4667,8 +4667,8 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 
 	static std::vector<dcon::regiment_id> to_transfer;
 	to_transfer.clear();
-
-	for(auto t : state.world.army_get_army_membership(a)) {
+	auto army_membership = state.world.army_get_army_membership(a);
+	for(auto t : army_membership) {
 		auto type = state.military_definitions.unit_base_definitions[t.get_regiment().get_type()].type;
 		if(type == military::unit_type::infantry) {
 			if(inf_split) {
@@ -4686,6 +4686,11 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 			}
 			art_split = !art_split;
 		}
+	}
+	// If the army could not be split properly (because there are only 1 of each unit type) and the army has more than 1 regiment, then split out the first regiment as a new army
+	if(to_transfer.size() == 0 && army_membership.end() - army_membership.begin() > 1) {
+		auto first_reg = (*army_membership.begin()).get_regiment();
+		to_transfer.push_back(first_reg);
 	}
 
 	if(to_transfer.size() > 0) {
@@ -4730,7 +4735,8 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 	bool sm_split = false;
 	bool tra_split = false;
 
-	for(auto t : state.world.navy_get_navy_membership(a)) {
+	auto navy_membership = state.world.navy_get_navy_membership(a);
+	for(auto t : navy_membership) {
 		auto type = state.military_definitions.unit_base_definitions[t.get_ship().get_type()].type;
 		if(type == military::unit_type::big_ship) {
 			if(big_split) {
@@ -4748,6 +4754,12 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 			}
 			tra_split = !tra_split;
 		}
+	}
+
+	// If the navy could not be split properly (because there are only 1 of each unit type) and the navy has more than 1 shio, then split out the first ship as a new navy
+	if(to_transfer.size() == 0 && navy_membership.end() - navy_membership.begin() > 1) {
+		auto first_ship = (*navy_membership.begin()).get_ship();
+		to_transfer.push_back(first_ship);
 	}
 
 	if(to_transfer.size() > 0) {

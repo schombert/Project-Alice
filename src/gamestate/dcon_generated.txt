@@ -536,33 +536,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ bonus_1_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_1_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_amount }
-		type{ float }
+		name{ factory_bonuses }
+		type{ std::array<economy::production_type_bonus,economy::MAX_PRODUCTION_TYPE_BONUSES> }
 		tag{ scenario }
 	}
 	property{
