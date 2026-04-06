@@ -92,8 +92,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		// Only show at max 10 armies to avoid wall of text
 		uint32_t army_count = 0;
 		for(const auto a : state.selected_armies) {
-			army_count++;
-			if(army_count > max_units_in_province_tooltip) {
+			if(army_count >= max_units_in_province_tooltip) {
 				break;
 			}
 			auto controller = dcon::fatten(state.world, state.local_player_nation);
@@ -166,6 +165,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			}
 
 			text::close_layout_box(contents, box);
+			army_count++;
 		}
 		uint32_t extra_armies = uint32_t(state.selected_armies.size()) - army_count;
 		if(extra_armies > 0) {
@@ -179,8 +179,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 		for(const auto n : state.selected_navies) {
 
-			navy_count++;
-			if(navy_count > max_units_in_province_tooltip) {
+			if(navy_count >= max_units_in_province_tooltip) {
 				break;
 			}
 
@@ -257,6 +256,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 				text::close_layout_box(contents, box);
 			}
+			navy_count++;
 		}
 		uint32_t extra_navies = uint32_t(state.selected_navies.size()) - navy_count;
 		if(extra_navies > 0) {

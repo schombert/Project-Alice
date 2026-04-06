@@ -146,7 +146,7 @@ void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::p
 	auto armies_on_prov = fat.get_army_location();
 	for(auto armyloc : armies_on_prov) {
 		// display a maximum of 10 units in tooltip to avoid wall of text
-		if(army_count >= 10) {
+		if(army_count >= ui::max_units_in_province_tooltip) {
 			text::substitution_map sub;
 			uint32_t total_prov_army_count  = armies_on_prov.end() - armies_on_prov.begin();
 			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_army_count - army_count);
@@ -168,7 +168,7 @@ void populate_navies(sys::state& state, text::columnar_layout& contents, dcon::p
 	auto navies_on_prov = fat.get_navy_location();
 	for(auto navyloc : navies_on_prov) {
 		// display a maximum of 10 units in tooltip to avoid wall of text
-		if(navy_count >= 10) {
+		if(navy_count >= ui::max_units_in_province_tooltip) {
 			text::substitution_map sub;
 			uint32_t total_prov_navy_count = navies_on_prov.end() - navies_on_prov.begin();
 			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_navy_count - navy_count);
