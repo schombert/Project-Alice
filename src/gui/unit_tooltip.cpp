@@ -141,18 +141,46 @@ void single_unit_tooltip(sys::state& state, text::columnar_layout& contents, dco
 }
 
 void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	uint32_t army_count = 0;
 	auto fat = dcon::fatten(state.world, prov);
-	for(auto armyloc : fat.get_army_location()) {
+	auto armies_on_prov = fat.get_army_location();
+	for(auto armyloc : armies_on_prov) {
+		// display a maximum of 10 units in tooltip to avoid wall of text
+		if(army_count >= 10) {
+			text::substitution_map sub;
+			uint32_t total_prov_army_count  = armies_on_prov.end() - armies_on_prov.begin();
+			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_army_count - army_count);
+			auto box = text::open_layout_box(contents);
+			auto resolved = text::resolve_string_substitution(state, "alice_extra_armies_tooltip", sub);
+			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
+			text::close_layout_box(contents, box);
+			break; 
+		}
 		auto army = armyloc.get_army();
 		single_unit_tooltip(state, contents, army);
+		army_count++;
 	}
 }
 
 void populate_navies(sys::state& state, text::columnar_layout& contents, dcon::province_id prov) {
+	uint32_t navy_count = 0;
 	auto fat = dcon::fatten(state.world, prov);
-	for(auto navyloc : fat.get_navy_location()) {
+	auto navies_on_prov = fat.get_navy_location();
+	for(auto navyloc : navies_on_prov) {
+		// display a maximum of 10 units in tooltip to avoid wall of text
+		if(navy_count >= 10) {
+			text::substitution_map sub;
+			uint32_t total_prov_navy_count = navies_on_prov.end() - navies_on_prov.begin();
+			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_navy_count - navy_count);
+			auto box = text::open_layout_box(contents);
+			auto resolved = text::resolve_string_substitution(state, "alice_extra_navies_tooltip", sub);
+			text::add_unparsed_text_to_layout_box(state, contents, box, resolved);
+			text::close_layout_box(contents, box);
+			break;
+		}
 		auto navy = navyloc.get_navy();
 		single_unit_tooltip(state, contents, navy);
+		navy_count++;
 	}
 }
 
