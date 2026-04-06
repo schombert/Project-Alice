@@ -4840,6 +4840,10 @@ TRIGGER_FUNCTION(tf_is_liberation_crisis) {
 	auto first_wg = ws.crisis_attacker_wargoals.at(0);
 	return compare_to_true(tval[0], first_wg.cb == ws.military_definitions.crisis_liberate);
 }
+TRIGGER_FUNCTION(tf_is_colonial_crisis) {
+	auto first_wg = ws.crisis_attacker_wargoals.at(0); // both attacker and defender will have the crisis_colony wargoal added as the first
+	return compare_to_true(tval[0], first_wg.cb == ws.military_definitions.crisis_colony);
+}
 TRIGGER_FUNCTION(tf_is_claim_crisis) {
 	// What exactly is a claim crisis?
 	// assert(false && "Claim crisis is not part of PA");

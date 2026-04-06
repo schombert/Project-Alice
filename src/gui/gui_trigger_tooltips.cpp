@@ -6512,6 +6512,13 @@ void tf_is_liberation_crisis(TRIGGER_DISPLAY_PARAMS) {
 			text::produce_simple_string(ws, "liberation_crisis"), ws, layout, box);
 	text::close_layout_box(layout, box);
 }
+void tf_is_colonial_crisis(TRIGGER_DISPLAY_PARAMS) {
+	auto box = text::open_layout_box(layout, indentation);
+	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
+	display_with_comparison(tval[0], text::produce_simple_string(ws, "current_crisis"),
+			text::produce_simple_string(ws, "colonial_crisis"), ws, layout, box);
+	text::close_layout_box(layout, box);
+}
 void tf_is_claim_crisis(TRIGGER_DISPLAY_PARAMS) {
 	auto box = text::open_layout_box(layout, indentation);
 	make_condition(tval, ws, layout, primary_slot, this_slot, from_slot, indentation, show_condition, desaturate, box);
@@ -8493,6 +8500,7 @@ constexpr inline void (*trigger_functions[])(TRIGGER_DISPLAY_PARAMS) = {
 		tf_diplo_points, //TRIGGER_BYTECODE_ELEMENT(0x02E4, tf_diplo_points, 2)
 		tf_suppression_points, //TRIGGER_BYTECODE_ELEMENT(0x02E5, tf_suppression_points, 2)
 		tf_check_gamerule, //TRIGGER_BYTECODE_ELEMENT(0x02E6, check_gamerule, 2)
+		tf_is_colonial_crisis, //TRIGGER_BYTECODE_ELEMENT(0x02E7, is_colonial_crisis, 0)
 
 		//
 		// scopes

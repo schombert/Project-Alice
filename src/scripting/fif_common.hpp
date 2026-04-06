@@ -1379,6 +1379,24 @@ inline int32_t* f_is_liberation_crisis_b(fif::state_stack& s, int32_t* p, fif::e
 	return p + 2;
 }
 
+inline bool f_is_colonial_crisis(sys::state* state) {
+	auto first_wg = state->crisis_attacker_wargoals.at(0);
+	return first_wg.cb == state->military_definitions.crisis_colony;
+}
+inline int32_t* f_is_colonial_crisis_b(fif::state_stack& s, int32_t* p, fif::environment* e) {
+	if(fif::typechecking_mode(e->mode)) {
+		if(fif::typechecking_failed(e->mode))
+			return p + 2;
+		s.pop_main();
+		s.push_back_main(fif::fif_bool, 0, nullptr);
+		return p + 2;
+	}
+
+	sys::state* state = (sys::state*)(s.main_data_back(0)); s.pop_main();
+	s.push_back_main(fif::fif_bool, f_is_colonial_crisis(state), nullptr);
+	return p + 2;
+}
+
 inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	fif::initialize_standard_vocab(env);
 
@@ -1454,6 +1472,7 @@ inline void common_fif_environment(sys::state& state, fif::environment& env) {
 	fif::add_import("has-positioned-party?", (void*)f_party_pos, f_party_pos_b, { fif::fif_i32, fif::fif_i32, fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 	fif::add_import("avg-warscore", (void*)f_avg_warscore, f_avg_warscore_b, { fif::fif_i32, fif::fif_opaque_ptr }, { fif::fif_f32 }, env);
 	fif::add_import("liberation-crisis?", (void*)f_is_liberation_crisis, f_is_liberation_crisis_b, { fif::fif_opaque_ptr }, { fif::fif_bool }, env);
+	fif::add_import("colonial-crisis?", (void*)f_is_colonial_crisis, f_is_colonial_crisis_b, { fif::fif_opaque_ptr }, { fif::fif_bool }, env);
 
 	fif::run_fif_interpreter(env,
 		" : first-sea-province " + std::to_string(offsetof(sys::state, province_definitions) + offsetof(province::global_provincial_state, first_sea_province)) + " state-ptr @ buf-add ptr-cast ptr(province_id) ; "

@@ -404,6 +404,10 @@ struct trigger_body {
 		context.compiled_trigger.push_back(
 				uint16_t(trigger::is_liberation_crisis | trigger::no_payload | association_to_bool_code(a, value)));
 	}
+	void is_colonial_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
+		context.compiled_trigger.push_back(
+				uint16_t(trigger::is_colonial_crisis | trigger::no_payload | association_to_bool_code(a, value)));
+	}
 	void is_claim_crisis(association_type a, bool value, error_handler& err, int32_t line, trigger_building_context& context) {
 		context.compiled_trigger.push_back(
 				uint16_t(trigger::is_claim_crisis | trigger::no_payload | association_to_bool_code(a, value)));
