@@ -575,5 +575,10 @@ bool can_attack(sys::state& state, dcon::nation_id n);
 bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
+bool can_change_land_unit_type_ai(const sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type);
+bool can_change_land_unit_type_player(const sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type);
+bool can_change_naval_unit_type_ai(const sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type);
+bool can_change_naval_unit_type_player(const sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type);
+
 
 } // namespace military

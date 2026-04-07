@@ -115,7 +115,7 @@ enum class command_type : uint8_t {
 		nbutton_script = 99,
 		set_factory_type_priority = 100,
 		crisis_add_wargoal = 101,
-		change_unit_type = 102,
+		change_land_unit_type = 102,
 		take_province = 103,
 		grant_province = 104,
 		ask_for_free_trade_agreement = 105,
@@ -129,6 +129,7 @@ enum class command_type : uint8_t {
 		change_game_rule_setting = 113,
 		toggle_production_directive = 114,
 		load_saved_game = 115,
+		change_naval_unit_type = 116,
 
 
 		// network
@@ -431,10 +432,22 @@ struct split_ships_data {
 	dcon::ship_id ships[num_packed_units];
 };
 
-struct change_unit_type_data {
-	dcon::regiment_id regs[num_packed_units];
-	dcon::ship_id ships[num_packed_units];
+struct change_land_unit_type_data {
 	dcon::unit_type_id new_type;
+	uint16_t unit_count;
+	const dcon::regiment_id* regiments() const {
+		return reinterpret_cast<const dcon::regiment_id*>(this + 1);
+	}
+
+};
+
+struct change_naval_unit_type_data {
+	dcon::unit_type_id new_type;
+	uint16_t unit_count;
+	const dcon::ship_id* ships() const {
+		return reinterpret_cast<const dcon::ship_id*>(this + 1);
+	}
+
 };
 
 struct cheat_data {
@@ -595,6 +608,8 @@ constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire M
 constexpr uint32_t MAX_SAVE_SIZE = 32000000; // max 32 MB for entire save
 constexpr uint32_t MAX_MP_DATA_SIZE = 5000000; // max 5 MB for mp data
 constexpr uint32_t MAX_CHAT_MESSAGE_TARGETS = network::MAX_PLAYER_COUNT;
+constexpr uint32_t MAX_REGIMENT_COUNT = 1000; // theoretical max regiments to be able to be sent in a single command
+constexpr uint32_t MAX_SHIP_COUNT = 1000; // theoretical max ships to be able to be sent in a single commnad
 
 // Defines max and min sizes for each command, aswell as handlers for certain functions
 constexpr enum_array<command_type, command_handler> command_type_handlers = {
@@ -698,7 +713,8 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{command_type::nbutton_script, command_handler{ sizeof(command::nbutton_data), sizeof(command::nbutton_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::set_factory_type_priority, command_handler{ sizeof(command::set_factory_priority_data), sizeof(command::set_factory_priority_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::crisis_add_wargoal, command_handler{ sizeof(command::new_war_goal_data), sizeof(command::new_war_goal_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::change_unit_type, command_handler{ sizeof(command::change_unit_type_data), sizeof(command::change_unit_type_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::change_land_unit_type, command_handler{ sizeof(command::change_land_unit_type_data), sizeof(command::change_land_unit_type_data) + (MAX_REGIMENT_COUNT * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::change_naval_unit_type, command_handler{ sizeof(command::change_naval_unit_type_data), sizeof(command::change_naval_unit_type_data) + (MAX_SHIP_COUNT * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::take_province, command_handler{ sizeof(command::generic_location_data), sizeof(command::generic_location_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::grant_province, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::ask_for_free_trade_agreement, command_handler{ sizeof(command::diplo_action_data), sizeof(command::diplo_action_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -1039,9 +1055,11 @@ bool can_disband_undermanned_regiments(sys::state& state, dcon::nation_id source
 void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a);
 
-void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
-bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
-void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type);
+void change_land_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type);
+bool can_change_land_unit_type(sys::state& state, dcon::nation_id source, command_data& command);
+void execute_change_land_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type);
+
+void change_naval_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type);
 
 void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);
 bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a);

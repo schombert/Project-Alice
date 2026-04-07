@@ -4416,110 +4416,75 @@ void execute_toggle_mobilized_is_ai_controlled(sys::state& state, dcon::nation_i
 	state.world.nation_set_mobilized_is_ai_controlled(source, !state.world.nation_get_mobilized_is_ai_controlled(source));
 }
 
-void change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
+void change_land_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type) {
 
 
-	command_data p{ command_type::change_unit_type, state.local_player_id };
-	auto data = change_unit_type_data{};
+	command_data p{ command_type::change_land_unit_type, state.local_player_id, sizeof(change_land_unit_type_data) + regiments.size() };
+	auto data = change_land_unit_type_data{};
 	data.new_type = new_type;
-	for(unsigned i = 0; i < num_packed_units; i++) {
-		if(regiments[i]) {
-			data.regs[i] = regiments[i];
-		}
-		if(ships[i]) {
-			data.ships[i] = ships[i];
-		}
-	}
+	data.unit_count = uint16_t(regiments.size());
 	p << data;
+	p.push_span(regiments);
 	add_to_command_queue(state, p);
 }
-bool can_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
-	if(!state.current_scene.game_in_progress) {
+bool can_change_land_unit_type(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<change_land_unit_type_data>();
+	size_t expected_variable_bytes_data = payload.unit_count * sizeof(dcon::regiment_id);
+
+	// check that the message length is correct before reading from it
+	if(!command.check_variable_size_payload<change_land_unit_type_data>(expected_variable_bytes_data)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	if(regiments[0] && ships[0]) {
-		// One type can't suit both land and sea units
-		return false;
-	}
+	return military::can_change_land_unit_type_player(state, source, std::span<const dcon::regiment_id>(payload.regiments(), payload.unit_count), payload.new_type);
 
-	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
-
-	if(ut.is_land && ships[0]) {
-		return false; // Land unit used for ships
-	}
-	else if(!ut.is_land && regiments[0]) {
-		return false; // Sea unit used for land
-	}
-
-	if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, new_type)) {
-		return false; // Unit is not yet unlocked
-	}
-
-	if(!ut.is_land && ut.type == military::unit_type::big_ship) {
-		for(unsigned i = 0; i < num_packed_units; i++) {
-			if(!ships[i]) {
-				break;
-			}
-			auto shiptype = state.world.ship_get_type(ships[i]);
-			auto st = state.military_definitions.unit_base_definitions[shiptype];
-			if(st.type != military::unit_type::big_ship) {
-				return false; // Small ships can't become big ships
-			}
-		}
-	}
-
-	// Army-level checks
-	for(unsigned i = 0; i < num_packed_units; i++) {
-		if(!regiments[i]) {
-			break;
-		}
-		auto a = state.world.regiment_get_army_from_army_membership(regiments[i]);
-
-		if(state.world.army_get_controller_from_army_control(a) != source || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
-		bool(state.world.army_get_battle_from_army_battle_participation(a))) {
-			return false;
-		}
-	}
-	// Navy-level checks
-	for(unsigned i = 0; i < num_packed_units; i++) {
-		if(!ships[i]) {
-			break;
-		}
-		auto n = state.world.ship_get_navy_from_navy_membership(ships[i]);
-		auto embarked = state.world.navy_get_army_transport(n);
-		if(state.world.navy_get_controller_from_navy_control(n) != source || state.world.navy_get_is_retreating(n) ||
-			bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
-			return false;
-		}
-
-		if(ut.min_port_level) {
-			auto fnid = dcon::fatten(state.world, n);
-
-			auto loc = fnid.get_location_from_navy_location();
-
-			// Ship requires naval base level for construction but province location doesn't have one
-			if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
-				return false;
-			}
-		}
-	}
-
-	return true;
 }
-void execute_change_unit_type(sys::state& state, dcon::nation_id source, dcon::regiment_id regiments[num_packed_units], dcon::ship_id ships[num_packed_units], dcon::unit_type_id new_type) {
-	for(unsigned i = 0; i < num_packed_units; i++) {
-		if(regiments[i]) {
-			if(state.world.regiment_get_type(regiments[i]) != new_type) {
-				military::upgrade_regiment(state, regiments[i], new_type);
-			}
-		}
-		if(ships[i]) {
-			if(state.world.ship_get_type(ships[i]) != new_type) {
-				military::upgrade_ship(state, ships[i], new_type);
+void execute_change_land_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type) {
+	for(auto regiment : regiments) {
+		if(regiment) {
+			if(state.world.regiment_get_type(regiment) != new_type) {
+				military::upgrade_regiment(state, regiment, new_type);
 			}
 		}
 	}
 }
+
+
+void change_naval_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type) {
+
+
+	command_data p{ command_type::change_naval_unit_type, state.local_player_id, sizeof(change_naval_unit_type_data) + ships.size() };
+	auto data = change_naval_unit_type_data{};
+	data.new_type = new_type;
+	data.unit_count = uint16_t(ships.size());
+	p << data;
+	p.push_span(ships);
+	add_to_command_queue(state, p);
+}
+bool can_change_naval_unit_type(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload<change_naval_unit_type_data>();
+	size_t expected_variable_bytes_data = payload.unit_count * sizeof(dcon::ship_id);
+
+	// check that the message length is correct before reading from it
+	if(!command.check_variable_size_payload<change_naval_unit_type_data>(expected_variable_bytes_data)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
+		return false;
+	}
+	return military::can_change_naval_unit_type_player(state, source, std::span<const dcon::ship_id>(payload.ships(), payload.unit_count), payload.new_type);
+
+}
+void execute_change_naval_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type) {
+	for(auto ship : ships) {
+		if(ship) {
+			if(state.world.ship_get_type(ship) != new_type) {
+				military::upgrade_ship(state, ship, new_type);
+			}
+		}
+	}
+}
+
+
+
 
 void toggle_select_province(sys::state& state, dcon::nation_id source, dcon::province_id prov) {
 
@@ -6985,10 +6950,9 @@ bool can_perform_command(sys::state& state, command_data& c) {
 		return can_split_navy(state, source, data.n);
 	}
 
-	case command_type::change_unit_type:
+	case command_type::change_land_unit_type:
 	{
-		auto& data = c.get_payload<command::change_unit_type_data>();
-		return can_change_unit_type(state, source, data.regs, data.ships, data.new_type);
+		return can_change_land_unit_type(state, source, c);
 	}
 
 	case command_type::delete_army:
@@ -7332,6 +7296,10 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::load_saved_game:
 	{
 		return can_load_save_game(state, c);
+	}
+	case command_type::change_naval_unit_type:
+	{
+		return can_change_naval_unit_type(state, source, c);
 	}
 
 	}
@@ -7774,10 +7742,10 @@ void execute_command(sys::state& state, command_data& c) {
 		execute_split_navy(state, source_nation, data.n);
 		break;
 	}
-	case command_type::change_unit_type:
+	case command_type::change_land_unit_type:
 	{
-		auto& data = c.get_payload<change_unit_type_data>();
-		execute_change_unit_type(state, source_nation, data.regs, data.ships, data.new_type);
+		auto& data = c.get_payload<change_land_unit_type_data>();
+		execute_change_land_unit_type(state, source_nation, std::span<const dcon::regiment_id>(data.regiments(), data.unit_count), data.new_type);
 		break;
 	}
 	case command_type::delete_army:
@@ -8155,6 +8123,12 @@ void execute_command(sys::state& state, command_data& c) {
 	{
 		const auto& data = c.get_payload<load_save_game_data>();
 		execute_load_save_game(state, std::string_view(data.filename(), data.filename_length), data.is_new_game);
+		break;
+	}
+	case command_type::change_naval_unit_type:
+	{
+		auto& data = c.get_payload<change_naval_unit_type_data>();
+		execute_change_naval_unit_type(state, source_nation, std::span<const dcon::ship_id>(data.ships(), data.unit_count), data.new_type);
 		break;
 	}
 	}

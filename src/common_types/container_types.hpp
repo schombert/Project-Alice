@@ -306,6 +306,121 @@ public:
 	}
 };
 
+// A fixed-size array wrapper which implements a vector-like interface for keeping track of size.
+template<typename data_type, size_t capacity>
+class fixed_size_vector {
+private:
+	size_t storage_size;
+	std::array<data_type, capacity> _storage{};
+public:
+
+	constexpr fixed_size_vector() {
+		storage_size = 0;
+	}
+
+	constexpr fixed_size_vector(const std::initializer_list<data_type> initializer) {
+		assert(initializer.size() <= capacity);
+		storage_size = initializer.size();
+		std::copy(initializer.begin(), initializer.end(), data());
+	}
+
+	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity> const& other) noexcept {
+		_storage = other._storage;
+		return *this;
+	}
+	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity>&& other) noexcept {
+		_storage = std::move(other._storage);
+		return *this;
+	}
+
+
+	const data_type* data() const {
+		return _storage.data();
+	}
+	data_type* data() {
+		return _storage.data();
+	}
+
+
+	constexpr data_type const& operator[](size_t index) const {
+		assert(index < size());
+		return _storage[index];
+	}
+	constexpr data_type& operator[](size_t index) {
+		assert(index < size());
+		return _storage[index];
+	}
+	void clear() {
+		_storage.fill(data_type{});
+		storage_size = 0;
+	}
+
+	auto begin() const {
+		return _storage.begin();
+	}
+	auto begin() {
+		return _storage.begin();
+	}
+	auto end() const {
+		return typename std::array<data_type, capacity>::const_iterator(data(), size());
+	}
+	auto end() {
+		return typename std::array<data_type, capacity>::iterator(data(), size());
+	}
+	auto rbegin() {
+		return std::array<data_type, capacity>::iterator(end());
+	}
+	auto rbegin() const {
+		return std::array<data_type, capacity>::iterator(end());
+	}
+	auto rend() const {
+		return std::array<data_type, capacity>::iterator(begin());
+	}
+	auto rend() {
+		return std::array<data_type, capacity>::iterator(begin());
+	}
+	auto size() const {
+		return storage_size;
+	}
+	void resize(size_t new_size) {
+		if(new_size < size()) {
+			std::fill_n(_storage[new_size - 1], size() - new_size, data_type{ });
+		}
+		storage_size = new_size;
+	}
+	void pop_back() {
+		assert(size() != 0);
+		_storage[size() - 1] = data_type{ };
+		storage_size--;
+	}
+	bool push_back(data_type&& v) {
+		if(size() != capacity) {
+			_storage[size()] = std::move(v);
+			storage_size++;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	bool push_back(const data_type& v) {
+		if(size() != capacity) {
+			_storage[size()] = v;
+			storage_size++;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	data_type& back() {
+		return _storage.back();
+	}
+	data_type const& back() const {
+		return _storage.back();
+	}
+
+};
+
 
 namespace sys {
 
