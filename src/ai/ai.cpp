@@ -2018,22 +2018,56 @@ void update_land_constructions(sys::state& state) {
 						auto pc_adj_art_type = military::get_best_artillery(state, n, primary_culture);
 						auto pc_adj_cav_type = military::get_best_cavalry(state, n, primary_culture);
 
-						if(etype == military::unit_type::infantry && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_inf_type) && military::is_infantry_better(state, n, type, pc_adj_inf_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), pc_adj_inf_type);
-						} else if(etype == military::unit_type::support && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_art_type) && military::is_artillery_better(state, n, type, pc_adj_art_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), pc_adj_art_type);
-						} else if(etype == military::unit_type::cavalry && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_cav_type) && military::is_cavalry_better(state, n, type, pc_adj_cav_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), pc_adj_cav_type);
+						switch(etype) {
+						case military::unit_type::infantry:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_inf_type) && military::is_infantry_better(state, n, type, pc_adj_inf_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_inf_type);
+							}
+							break;
+						}
+						case military::unit_type::support:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_art_type) && military::is_artillery_better(state, n, type, pc_adj_art_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_art_type);
+							}
+							break;
+						}
+						// cavalry
+						default:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), pc_adj_cav_type) && military::is_cavalry_better(state, n, type, pc_adj_cav_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), pc_adj_cav_type);
+							}
+							break;
+						}
 						}
 					}
 					// Keep non-primary-culture units as nation-wide best units
 					else {
-						if(etype == military::unit_type::infantry && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), inf_type) && military::is_infantry_better(state, n, type, inf_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), inf_type);
-						} else if(etype == military::unit_type::support && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), art_type) && military::is_artillery_better(state, n, type, art_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), art_type);
-						} else if(etype == military::unit_type::cavalry && military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), cav_type) && military::is_cavalry_better(state, n, type, cav_type)) {
-							military::upgrade_regiment(state, r.get_regiment(), cav_type);
+						switch(etype) {
+						case military::unit_type::infantry:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), inf_type) && military::is_infantry_better(state, n, type, inf_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), inf_type);
+							}
+							break;
+						}
+						case military::unit_type::support:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), art_type) && military::is_artillery_better(state, n, type, art_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), art_type);
+							}
+							break;
+						}
+						// cavalry
+						default:
+						{
+							if(military::can_change_land_unit_type<command::actor::ai>(state, n, r.get_regiment(), cav_type) && military::is_cavalry_better(state, n, type, cav_type)) {
+								military::upgrade_regiment(state, r.get_regiment(), cav_type);
+							}
+							break;
+						}
 						}
 					}
 
