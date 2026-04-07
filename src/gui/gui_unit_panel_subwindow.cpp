@@ -720,7 +720,12 @@ public:
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
 					sys::selected_ships_clear(state);
-					sys::selected_regiments_add(state, reg);
+					if(auto it = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg); it != state.selected_regiments.end()) {
+						sys::selected_regiments_remove(state, reg);
+					}
+					else {
+						sys::selected_regiments_add(state, reg);
+					}
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_regiments_clear(state);
@@ -733,16 +738,20 @@ public:
 			if(parent) {
 				Cyto::Any payload = dcon::ship_id{};
 				parent->impl_get(state, payload);
-				dcon::ship_id reg = any_cast<dcon::ship_id>(payload);
+				dcon::ship_id ship = any_cast<dcon::ship_id>(payload);
 
 				if(mods == sys::key_modifiers::modifiers_shift) {
 					sys::selected_regiments_clear(state);
-					sys::selected_ships_add(state, reg);
+					if(auto it = std::find(state.selected_ships.begin(), state.selected_ships.end(), ship); it != state.selected_ships.end()) {
+						sys::selected_ships_remove(state, ship);
+					} else {
+						sys::selected_ships_add(state, ship);
+					}
 					parent->impl_on_update(state);
 				} else {
 					sys::selected_ships_clear(state);
 					sys::selected_regiments_clear(state);
-					sys::selected_ships_add(state, reg);
+					sys::selected_ships_add(state, ship);
 					parent->impl_on_update(state);
 				}
 			}

@@ -18,6 +18,7 @@
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
 #include "commands.hpp"
+#include "commands_constants.hpp"
 
 namespace military {
 
@@ -10589,53 +10590,120 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
 	military::delete_regiment_safe_wrapper(state, reg_id);
 }
-bool can_change_land_unit_type_ai(const sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type) {
 
+template<command::actor Actor>
+bool can_change_land_unit_type_army_checks(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type) {
+
+
+	if constexpr(Actor == command::actor::ai) {
+		if(!ai::unit_on_ai_control(state, army)) {
+			return false;
+		}
+	}
+
+	if(state.world.army_get_controller_from_army_control(army) != source || state.world.army_get_is_retreating(army) || state.world.army_get_navy_from_army_transport(army) ||
+	bool(state.world.army_get_battle_from_army_battle_participation(army))) {
+		return false;
+	}
+
+
+	return true;
+}
+template bool can_change_land_unit_type_army_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type_army_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_land_unit_type_regiment_checks(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type) {
 	if(!new_type || size_t(new_type.index()) >= state.military_definitions.unit_base_definitions.size()) {
 		return false;
 	}
 
 	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+
+	auto cur_unit_type = state.world.regiment_get_type(regiment);
+	if(cur_unit_type == new_type) {
+		return false;
+	}
 
 	if(!ut.is_land) {
 		return false; // Sea unit used for land
 	}
 
+
 	if(!ut.active && !state.world.nation_get_active_unit(source, new_type)) {
 		return false; // Unit is not yet unlocked
 	}
 
-	// Army-level checks
-	for(auto regiment : regiments) {
-		if(!regiment) {
-			continue;
-		}
-		auto a = state.world.regiment_get_army_from_army_membership(regiment);
+	if(!state.world.regiment_is_valid(regiment)) {
+		return false;
+	}
+	return true;
+}
+template bool can_change_land_unit_type_regiment_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type_regiment_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
 
-		if(state.world.army_get_controller_from_army_control(a) != source || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
-		bool(state.world.army_get_battle_from_army_battle_participation(a))) {
+template<command::actor Actor>
+bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
 			return false;
 		}
 	}
-
-	return true;
-}
-
-bool can_change_land_unit_type_player(const sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type) {
-	if(!state.current_scene.game_in_progress) {
+	if(!can_change_land_unit_type_regiment_checks<Actor>(state, source, regiment, new_type)) {
 		return false;
 	}
-	return can_change_land_unit_type_ai(state, source, regiments, new_type);
+	auto army = state.world.regiment_get_army_from_army_membership(regiment);
+	if(!can_change_land_unit_type_army_checks<Actor>(state, source, army, new_type)) {
+		return false;
+	}
+	return true;
+	
 }
 
-bool can_change_naval_unit_type_ai(const sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type) {
+template bool can_change_land_unit_type<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
 
+template<command::actor Actor>
+bool can_change_naval_unit_type_navy_checks(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type) {
+	if constexpr(Actor == command::actor::ai) {
+		if(!ai::unit_on_ai_control(state, navy)) {
+			return false;
+		}
+	}
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+	auto embarked = state.world.navy_get_army_transport(navy);
+
+	if(state.world.navy_get_controller_from_navy_control(navy) != source || state.world.navy_get_is_retreating(navy) || embarked.begin() != embarked.end() ||
+	bool(state.world.navy_get_battle_from_navy_battle_participation(navy))) {
+		return false;
+	}
+	if(ut.min_port_level) {
+		auto fnid = dcon::fatten(state.world, navy);
+
+		auto loc = fnid.get_location_from_navy_location();
+		//Ship requires naval base level for construction but province location doesn't have one
+		if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
+			return false;
+		}
+	}
+	return true;
+}
+template bool can_change_naval_unit_type_navy_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type_navy_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_naval_unit_type_ship_checks(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type) {
 	if(!new_type || size_t(new_type.index()) >= state.military_definitions.unit_base_definitions.size()) {
 		return false;
 	}
 
 	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
-
+	auto cur_unit_type = state.world.ship_get_type(ship);
+	if(cur_unit_type == new_type) {
+		return false;
+	}
 	if(ut.is_land) {
 		return false; // Land unit used for sea
 	}
@@ -10644,56 +10712,47 @@ bool can_change_naval_unit_type_ai(const sys::state& state, dcon::nation_id sour
 		return false; // Unit is not yet unlocked
 	}
 
-	// Navy-level checks
-	for(auto ship : ships) {
-		if(!ship) {
-			continue;
-		}
-		auto navy = state.world.ship_get_navy_from_navy_membership(ship);
 
-		auto embarked = state.world.navy_get_army_transport(navy);
-
-		if(state.world.navy_get_controller_from_navy_control(navy) != source || state.world.navy_get_is_retreating(navy) || embarked.begin() != embarked.end() ||
-		bool(state.world.navy_get_battle_from_navy_battle_participation(navy))) {
-			return false;
-		}
-		if(ut.min_port_level) {
-			auto fnid = dcon::fatten(state.world, navy);
-
-			auto loc = fnid.get_location_from_navy_location();
-			//Ship requires naval base level for construction but province location doesn't have one
-			if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
-				return false;
-			}
-		}
-
+	if(!state.world.ship_is_valid(ship)) {
+		return false;
 	}
+
+
+
 	if(ut.type == military::unit_type::big_ship) {
-		for(auto ship : ships) {
-			if(!ship) {
-				continue;
-			}
-			auto shiptype = state.world.ship_get_type(ship);
-			auto st = state.military_definitions.unit_base_definitions[shiptype];
-			if(st.type != military::unit_type::big_ship) {
-				return false; // Small ships can't become big ships
-			}
+		auto shiptype = state.world.ship_get_type(ship);
+		auto st = state.military_definitions.unit_base_definitions[shiptype];
+		if(st.type != military::unit_type::big_ship) {
+			return false; // Small ships can't become big ships
 		}
+
 	}
 
 	return true;
 }
+template bool can_change_naval_unit_type_ship_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type_ship_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 
-bool can_change_naval_unit_type_player(const sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> regiments, dcon::unit_type_id new_type) {
-	if(!state.current_scene.game_in_progress) {
+template<command::actor Actor>
+bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type) {
+
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+	}
+	if(!can_change_naval_unit_type_ship_checks<Actor>(state, source, ship, new_type)) {
 		return false;
 	}
-	return can_change_naval_unit_type_ai(state, source, regiments, new_type);
+	auto navy = state.world.ship_get_navy_from_navy_membership(ship);
+	if(!can_change_naval_unit_type_navy_checks<Actor>(state, source, navy, new_type)) {
+		return false;
+	}
+
+	return true;
 }
-
-
-
-
+template bool can_change_naval_unit_type<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 
 bool can_attack(sys::state& state, dcon::nation_id n) {
 	// nations without land are not supported yet

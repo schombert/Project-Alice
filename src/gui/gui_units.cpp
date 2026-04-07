@@ -749,18 +749,15 @@ class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		// No selected Regiments or Ships
-		if(!state.selected_regiments[0] && !state.selected_ships[0]) {
+		if(state.selected_regiments.size() == 0 && state.selected_ships.size() == 0) {
 			send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 		} else {
 			auto content = retrieve<T>(state, parent);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
 				for(size_t i = 0; i < state.selected_regiments.size(); i++) {
-					if(state.selected_regiments[i]) {
-						tosplit[i % command::num_packed_units] = state.selected_regiments[i];
-					} else {
-						break;
-					}
+					tosplit[i % command::num_packed_units] = state.selected_regiments[i];
+					
 					if(i % command::num_packed_units == command::num_packed_units - 1) {
 						command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
 						tosplit = {};
@@ -773,11 +770,8 @@ public:
 			} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
 				std::array<dcon::ship_id, command::num_packed_units> tosplit{};
 				for(size_t i = 0; i < state.selected_ships.size(); i++) {
-					if(state.selected_ships[i]) {
-						tosplit[i % command::num_packed_units] = state.selected_ships[i];
-					} else {
-						break;
-					}
+					tosplit[i % command::num_packed_units] = state.selected_ships[i];
+					
 					if(i % command::num_packed_units == command::num_packed_units - 1) {
 						command::mark_ships_to_split(state, state.local_player_nation, tosplit);
 						tosplit = {};
@@ -1044,7 +1038,7 @@ public:
 class unit_selection_unit_upgrade_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = !(state.selected_regiments[0] || state.selected_ships[0]);
+		disabled = (state.selected_regiments.size() == 0 && state.selected_ships.size() == 0);
 	}
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::upgrade }});
@@ -2563,13 +2557,27 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 		auto const& unit_type_def = state.military_definitions.unit_base_definitions[unit_type];
 		if(unit_type_def.is_land) {
-			bool allowed_transition = military::can_change_land_unit_type_player(state, state.local_player_nation, state.selected_regiments, unit_type);
+			bool allowed_transition = [&]() {
+				for(auto regiment : state.selected_regiments) {
+					if(!military::can_change_land_unit_type<command::actor::player>(state, state.local_player_nation, regiment, unit_type)) {
+						return false;
+					}
+				}
+				return true;
+			}();
 			if(!allowed_transition) {
 				disabled = true; return;
 			}
 		}
 		else {
-			bool allowed_transition = military::can_change_naval_unit_type_player(state, state.local_player_nation, state.selected_ships, unit_type);
+			bool allowed_transition = [&]() {
+				for(auto ship : state.selected_ships) {
+					if(!military::can_change_naval_unit_type<command::actor::player>(state, state.local_player_nation, ship, unit_type)) {
+						return false;
+					}
+				}
+				return true;
+				}();
 			if(!allowed_transition) {
 				disabled = true; return;
 			}
@@ -2609,15 +2617,12 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", !state.selected_regiments[0] || !state.selected_ships[0]);
+		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", state.selected_regiments.size() > 0 || state.selected_ships.size() > 0);
 		text::add_line_with_condition(state, contents, "unit_upgrade_explain_2", ut.active || state.world.nation_get_active_unit(state.local_player_nation, new_type));
 
 		if(!ut.is_land && ut.type == military::unit_type::big_ship) {
 			auto any_non_big_ship = false;
 			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-				if(!state.selected_ships[i]) {
-					break;
-				}
 				auto shiptype = state.world.ship_get_type(state.selected_ships[i]);
 				auto st = state.military_definitions.unit_base_definitions[shiptype];
 				if(st.type != military::unit_type::big_ship) {
@@ -2630,11 +2635,8 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 		if(ut.is_land) {
 			auto any_breaking_army_check = false;
-			for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-				if(!state.selected_regiments[i]) {
-					break;
-				}
-				auto a = state.world.regiment_get_army_from_army_membership(state.selected_regiments[i]);
+			for(auto regiment : state.selected_regiments) {
+				auto a = state.world.regiment_get_army_from_army_membership(regiment);
 
 				if(state.world.army_get_controller_from_army_control(a) != state.local_player_nation || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
 				bool(state.world.army_get_battle_from_army_battle_participation(a))) {
@@ -2649,11 +2651,8 @@ class unit_type_listbox_entry_label : public button_element_base {
 			auto any_breaking_navy_check = false;
 			auto any_breaking_navy_base_check = false;
 			// Navy-level checks
-			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-				if(!state.selected_ships[i]) {
-					break;
-				}
-				auto n = state.world.ship_get_navy_from_navy_membership(state.selected_ships[i]);
+			for(auto ship : state.selected_ships) {
+				auto n = state.world.ship_get_navy_from_navy_membership(ship);
 				auto embarked = state.world.navy_get_army_transport(n);
 				if(state.world.navy_get_controller_from_navy_control(n) != state.local_player_nation || state.world.navy_get_is_retreating(n) ||
 					bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
@@ -2737,7 +2736,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(!state.selected_regiments.at(0) && !state.selected_ships.at(0)) {
+		if(state.selected_regiments.size() == 0 && state.selected_ships.size() == 0) {
 			set_visible(state, false);
 			return;
 		}

@@ -4436,16 +4436,18 @@ bool can_change_land_unit_type(sys::state& state, dcon::nation_id source, comman
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return military::can_change_land_unit_type_player(state, source, std::span<const dcon::regiment_id>(payload.regiments(), payload.unit_count), payload.new_type);
+	std::span<const dcon::regiment_id> regiments(payload.regiments(), payload.unit_count);
+	for(auto regiment : regiments) {
+		if(!military::can_change_land_unit_type<command::actor::player>(state, source, regiment, payload.new_type)) {
+			return false;
+		}
+	}
+	return true;
 
 }
 void execute_change_land_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::regiment_id> regiments, dcon::unit_type_id new_type) {
 	for(auto regiment : regiments) {
-		if(regiment) {
-			if(state.world.regiment_get_type(regiment) != new_type) {
-				military::upgrade_regiment(state, regiment, new_type);
-			}
-		}
+		military::upgrade_regiment(state, regiment, new_type);
 	}
 }
 
@@ -4470,16 +4472,18 @@ bool can_change_naval_unit_type(sys::state& state, dcon::nation_id source, comma
 		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return military::can_change_naval_unit_type_player(state, source, std::span<const dcon::ship_id>(payload.ships(), payload.unit_count), payload.new_type);
+	std::span<const dcon::ship_id> ships(payload.ships(), payload.unit_count);
+	for(auto ship : ships) {
+		if(!military::can_change_naval_unit_type<command::actor::player>(state, source, ship, payload.new_type)) {
+			return false;
+		}
+	}
+	return true;
 
 }
 void execute_change_naval_unit_type(sys::state& state, dcon::nation_id source, std::span<const dcon::ship_id> ships, dcon::unit_type_id new_type) {
 	for(auto ship : ships) {
-		if(ship) {
-			if(state.world.ship_get_type(ship) != new_type) {
-				military::upgrade_ship(state, ship, new_type);
-			}
-		}
+		military::upgrade_ship(state, ship, new_type);
 	}
 }
 

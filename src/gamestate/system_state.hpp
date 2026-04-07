@@ -883,11 +883,11 @@ struct alignas(64) state {
 	}
 	std::vector<dcon::army_id> selected_armies;
 	// selected regiments inside the army.
-	std::vector<dcon::regiment_id> selected_regiments;
+	fixed_size_vector<dcon::regiment_id, ui::const_max_selected_units> selected_regiments;
 
 	std::vector<dcon::navy_id> selected_navies;
 	// selected ships inside the navy. Has fixed size - to clear use sys::selected_ships_clear
-	std::vector<dcon::ship_id> selected_ships;
+	fixed_size_vector<dcon::ship_id, ui::const_max_selected_units> selected_ships;
 
 	dcon::commodity_id selected_trade_good;
 	dcon::factory_type_id selected_factory_type;
@@ -1205,12 +1205,11 @@ struct alignas(64) state {
 		std::array<uint8_t, sys::macro_builder_template::max_types>& current_distribution
 	);
 };
-
-constexpr inline size_t const_max_selected_units = 128;
-
+void selected_regiments_remove(sys::state& state, dcon::regiment_id reg);
 void selected_regiments_add(sys::state& state, dcon::regiment_id reg);
 void selected_regiments_clear(sys::state& state);
 
+void selected_ships_remove(sys::state& state, dcon::ship_id ship);
 void selected_ships_add(sys::state& state, dcon::ship_id sh);
 void selected_ships_clear(sys::state& state);
 

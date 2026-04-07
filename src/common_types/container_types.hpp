@@ -314,6 +314,9 @@ private:
 	std::array<data_type, capacity> _storage{};
 public:
 
+	using iterator = std::array<data_type, capacity>::iterator;
+	using const_iterator = std::array<data_type, capacity>::const_iterator;
+
 	constexpr fixed_size_vector() {
 		storage_size = 0;
 	}
@@ -350,6 +353,18 @@ public:
 		assert(index < size());
 		return _storage[index];
 	}
+	// This will remove the element at the given index by moving it to the end of the collection and then popping it
+	constexpr void remove_at(size_t index) {
+		assert(index < size());
+		std::swap(_storage[index], _storage[size() - 1]);
+		pop_back();
+	}
+	// This will remove the given iterator element by moving it to the end of the collection and then popping it
+	constexpr void remove_at(const_iterator iterator) {
+		size_t index = iterator - begin();
+		remove_at(index);
+	}
+
 	void clear() {
 		_storage.fill(data_type{});
 		storage_size = 0;
@@ -362,22 +377,22 @@ public:
 		return _storage.begin();
 	}
 	auto end() const {
-		return typename std::array<data_type, capacity>::const_iterator(data(), size());
+		return const_iterator(data(), size());
 	}
 	auto end() {
-		return typename std::array<data_type, capacity>::iterator(data(), size());
+		return iterator(data(), size());
 	}
 	auto rbegin() {
-		return std::array<data_type, capacity>::iterator(end());
+		return iterator(end());
 	}
 	auto rbegin() const {
-		return std::array<data_type, capacity>::iterator(end());
+		return const_iterator(end());
 	}
 	auto rend() const {
-		return std::array<data_type, capacity>::iterator(begin());
+		return const_iterator(begin());
 	}
 	auto rend() {
-		return std::array<data_type, capacity>::iterator(begin());
+		return iterator(begin());
 	}
 	auto size() const {
 		return storage_size;
