@@ -4685,7 +4685,7 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 					state.deselect(a);
 					state.select(new_u);
 				}
-			}, ui::ui_function_argument{ .army_pair = {a, new_u } });
+			}, ui::ui_function_argument{ .army_pair = {a, new_u.id } });
 		}
 	}
 }
@@ -4759,7 +4759,7 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 					state.deselect(a);
 					state.select(new_u);
 				}
-			}, ui::ui_function_argument{ .navy_pair = {a, new_u } });
+			}, ui::ui_function_argument{ .navy_pair = {a, new_u.id } });
 		}
 	}
 }
@@ -4808,7 +4808,7 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 				if(state.is_selected(a)) {
 					state.select(new_u);
 				}
-			}, ui::ui_function_argument{ .army_pair = { a, new_u } });
+			}, ui::ui_function_argument{ .army_pair = { a, new_u.id } });
 		}
 
 		auto old_regs = state.world.army_get_army_membership(a);
@@ -4870,7 +4870,7 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 				if(state.is_selected(a)) {
 					state.select(new_u);
 				}
-			}, ui::ui_function_argument{ .navy_pair = { a, new_u } });
+			}, ui::ui_function_argument{ .navy_pair = { a, new_u.id } });
 		}
 			
 			

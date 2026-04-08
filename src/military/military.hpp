@@ -578,18 +578,10 @@ bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id targe
 
 template<command::actor Actor>
 bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
-template<command::actor Actor>
-bool can_change_land_unit_type_army_checks(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type);
-template<command::actor Actor>
-bool can_change_land_unit_type_regiment_checks(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
 
 
 template<command::actor Actor>
 bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
-template<command::actor Actor>
-bool can_change_naval_unit_type_navy_checks(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type);
-template<command::actor Actor>
-bool can_change_naval_unit_type_ship_checks(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 
 
 } // namespace military
