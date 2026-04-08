@@ -1192,8 +1192,10 @@ int client_process_handshake(sys::state& state) {
 
 			state.network_state.handshake = false;
 
-			//update map
-			state.set_selected_province(dcon::province_id{});
+			//update map on UI thread
+			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
+				state.set_selected_province(dcon::province_id{});
+			});
 
 			break;
 		}

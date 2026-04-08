@@ -6330,8 +6330,9 @@ void execute_notify_stop_game(sys::state& state, dcon::nation_id source) {
 		std::unique_lock lock(state.game_state_resetting_lock);
 
 		game_scene::switch_scene(state, game_scene::scene_id::pick_nation);
-		state.set_selected_province(dcon::province_id{});
-		state.map_state.unhandled_province_selection = true;
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
+			state.set_selected_province(dcon::province_id{});
+		});
 
 		state.yield_game_state_resetting_lock = false;
 		lock.unlock();
@@ -6523,9 +6524,9 @@ void execute_load_save_game(sys::state& state, std::string_view filename, bool i
 		state.fill_unsaved_data();
 	}
 	
-
-	state.set_selected_province(dcon::province_id{});
-	state.map_state.unhandled_province_selection = true;
+	state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
+		state.set_selected_province(dcon::province_id{});
+	});
 	state.railroad_built.store(true, std::memory_order::release);
 	state.sprawl_update_requested.store(true, std::memory_order::release);
 
