@@ -9,10 +9,10 @@
 namespace ui {
 
 union ui_function_argument {
-	uint32_t placeholder;
-
-	ui_function_argument() { };
-
+	dcon::army_id army;
+	dcon::navy_id navy;
+	std::array<dcon::navy_id, 2> navy_pair;
+	std::array<dcon::army_id, 2> army_pair;
 };
 
 typedef void(*ui_function)(sys::state& state, ui_function_argument arg);

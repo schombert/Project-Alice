@@ -149,7 +149,7 @@ void populate_armies(sys::state& state, text::columnar_layout& contents, dcon::p
 		// display a maximum of 10 units in tooltip to avoid wall of text
 		if(army_count >= ui::max_units_in_province_tooltip) {
 			text::substitution_map sub;
-			uint32_t total_prov_army_count  = armies_on_prov.end() - armies_on_prov.begin();
+			uint32_t total_prov_army_count  = uint32_t(armies_on_prov.end() - armies_on_prov.begin());
 			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_army_count - army_count);
 			auto box = text::open_layout_box(contents);
 			auto resolved = text::resolve_string_substitution(state, "alice_extra_armies_tooltip", sub);
@@ -171,7 +171,7 @@ void populate_navies(sys::state& state, text::columnar_layout& contents, dcon::p
 		// display a maximum of 10 units in tooltip to avoid wall of text
 		if(navy_count >= ui::max_units_in_province_tooltip) {
 			text::substitution_map sub;
-			uint32_t total_prov_navy_count = navies_on_prov.end() - navies_on_prov.begin();
+			uint32_t total_prov_navy_count = uint32_t(navies_on_prov.end() - navies_on_prov.begin());
 			text::add_to_substitution_map(sub, text::variable_type::x, total_prov_navy_count - navy_count);
 			auto box = text::open_layout_box(contents);
 			auto resolved = text::resolve_string_substitution(state, "alice_extra_navies_tooltip", sub);

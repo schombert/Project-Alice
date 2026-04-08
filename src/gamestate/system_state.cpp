@@ -4455,8 +4455,6 @@ void state::single_game_tick() {
 		province::update_colonization(*this);
 		military::update_cbs(*this); // may add/remove cbs to a nation
 
-		event::update_events(*this);
-
 		culture::update_research(*this, uint32_t(ymd_date.year));
 
 		nations::update_industrial_scores(*this);
@@ -4479,6 +4477,8 @@ void state::single_game_tick() {
 		}
 
 		ai::take_ai_decisions(*this);
+
+		event::update_events(*this);
 
 		// Once per month updates, spread out over the month
 		switch(ymd_date.day) {

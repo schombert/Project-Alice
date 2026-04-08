@@ -4262,7 +4262,9 @@ void execute_merge_armies(sys::state& state, dcon::nation_id source, dcon::army_
 	}
 
 	if(source == state.local_player_nation) {
-		state.deselect(b);
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+			state.deselect(arg.army);
+		}, ui::ui_function_argument{ .army = b });
 	}
 	military::cleanup_army(state, b);
 }
@@ -4307,7 +4309,9 @@ void execute_merge_navies(sys::state& state, dcon::nation_id source, dcon::navy_
 	military::merge_navies_impl(state, a, b);
 
 	if(source == state.local_player_nation) {
-		state.deselect(b);
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+			state.deselect(arg.navy);
+		}, ui::ui_function_argument{ .navy = b });
 	}
 	military::cleanup_navy(state, b);
 
@@ -4674,8 +4678,14 @@ void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::
 		}
 
 		if(source == state.local_player_nation && state.is_selected(a)) {
-			state.deselect(a);
-			state.select(new_u);
+			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+				auto a = arg.army_pair[0];
+				auto new_u = arg.army_pair[1];
+				if(state.is_selected(a)) {
+					state.deselect(a);
+					state.select(new_u);
+				}
+			}, ui::ui_function_argument{ .army_pair = {a, new_u } });
 		}
 	}
 }
@@ -4725,7 +4735,7 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 		}
 	}
 
-	// If the navy could not be split properly (because there are only 1 of each unit type) and the navy has more than 1 shio, then split out the first ship as a new navy
+	// If the navy could not be split properly (because there are only 1 of each unit type) and the navy has more than 1 ship, then split out the first ship as a new navy
 	if(to_transfer.size() == 0 && navy_membership.end() - navy_membership.begin() > 1) {
 		auto first_ship = (*navy_membership.begin()).get_ship();
 		to_transfer.push_back(first_ship);
@@ -4741,9 +4751,15 @@ void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a)) {
-			state.deselect(a);
-			state.select(new_u);
+		if(source == state.local_player_nation) {
+			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+				auto a = arg.navy_pair[0];
+				auto new_u = arg.navy_pair[1];
+				if(state.is_selected(a)) {
+					state.deselect(a);
+					state.select(new_u);
+				}
+			}, ui::ui_function_argument{ .navy_pair = {a, new_u } });
 		}
 	}
 }
@@ -4785,15 +4801,24 @@ void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id
 			state.world.regiment_set_army_from_army_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
-			state.select(new_u);
+		if(source == state.local_player_nation) {
+			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+				auto a = arg.army_pair[0];
+				auto new_u = arg.army_pair[1];
+				if(state.is_selected(a)) {
+					state.select(new_u);
+				}
+			}, ui::ui_function_argument{ .army_pair = { a, new_u } });
+		}
 
 		auto old_regs = state.world.army_get_army_membership(a);
 		if(old_regs.begin() == old_regs.end()) {
 			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(a), new_u);
 
 			if(source == state.local_player_nation) {
-				state.deselect(a);
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					state.deselect(arg.army);
+				}, ui::ui_function_argument{ .army = a });
 			}
 			military::cleanup_army(state, a);
 		}
@@ -4838,14 +4863,26 @@ void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id
 			state.world.ship_set_navy_from_navy_membership(t, new_u);
 		}
 
-		if(source == state.local_player_nation && state.is_selected(a))
-			state.select(new_u);
+		if(source == state.local_player_nation) {
+			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+				auto a = arg.navy_pair[0];
+				auto new_u = arg.navy_pair[1];
+				if(state.is_selected(a)) {
+					state.select(new_u);
+				}
+			}, ui::ui_function_argument{ .navy_pair = { a, new_u } });
+		}
+			
+			
 
 		auto old_regs = state.world.navy_get_navy_membership(a);
 		if(old_regs.begin() == old_regs.end()) {
 			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(a), new_u);
 			if(source == state.local_player_nation) {
-				state.deselect(a);
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					state.deselect(arg.navy);
+				}, ui::ui_function_argument{.navy = a });
+				
 			}
 			military::cleanup_navy(state, a);
 		}
@@ -4878,7 +4915,10 @@ bool can_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a)
 }
 void execute_delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 	if(source == state.local_player_nation) {
-		state.deselect(a);
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+			state.deselect(arg.army);
+		}, ui::ui_function_argument{ .army = a });
+
 	}
 	military::cleanup_army(state, a);
 }
@@ -4904,7 +4944,9 @@ bool can_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a)
 }
 void execute_delete_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
 	if(source == state.local_player_nation) {
-		state.deselect(a);
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+			state.deselect(arg.navy);
+		}, ui::ui_function_argument{ .navy = a });
 	}
 	military::cleanup_navy(state, a);
 }
@@ -6175,10 +6217,7 @@ bool can_notify_start_game(sys::state& state, dcon::nation_id source) {
 
 void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 	assert(state.world.nation_get_is_player_controlled(state.local_player_nation));
-	state.selected_armies.clear();
-	state.selected_navies.clear();
-	for(auto& v : state.ctrl_armies) v.clear();
-	for(auto& v : state.ctrl_navies) v.clear();
+	
 	/* And clear the save stuff */
 	state.network_state.current_save_buffer.reset();
 	state.network_state.current_save_length = 0;
@@ -6205,8 +6244,6 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		std::unique_lock lock(state.game_state_resetting_lock);
 
 		game_scene::switch_scene(state, game_scene::scene_id::in_game_basic);
-		state.set_selected_province(dcon::province_id{});
-		state.map_state.unhandled_province_selection = true;
 
 		auto cache = sys::player_data{};
 		cache.nation = state.local_player_nation;
@@ -6215,7 +6252,18 @@ void execute_notify_start_game(sys::state& state, dcon::nation_id source) {
 		state.yield_game_state_resetting_lock = false;
 		lock.unlock();
 		state.game_state_resetting_cv.notify_all();
-		// update up any events which were queued, so that they appear for players as soon as the game has started
+
+		state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument) {
+			state.selected_armies.clear();
+			state.selected_navies.clear();
+			state.set_selected_province(dcon::province_id{});
+			for(auto& v : state.ctrl_armies) v.clear();
+			for(auto& v : state.ctrl_navies) v.clear();
+		});
+
+		// take ai decisions on start incase important ai decisions need to fire exactly at the start, and not later
+		ai::take_ai_decisions(state);
+		// update any events which were queued, so that they appear for players as soon as the game has started
 		event::update_future_events(state);
 	}
 }
