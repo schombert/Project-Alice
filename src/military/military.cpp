@@ -2673,7 +2673,7 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	return shp.id;
 }
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit) {
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::army_id unit) {
 	auto army_controller = state.world.army_get_controller_from_army_control(unit);
 	auto potential_overlord = state.world.nation_get_overlord_as_subject(army_controller);
 	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(army_controller)) {
@@ -2682,7 +2682,7 @@ dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id un
 	return army_controller;
 }
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit) {
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::navy_id unit) {
 	auto navy_controller = state.world.navy_get_controller_from_navy_control(unit);
 	auto potential_overlord = state.world.nation_get_overlord_as_subject(navy_controller);
 	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(navy_controller)) {
@@ -10590,6 +10590,153 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	demographics::reduce_pop_size_safe(state, base_pop, int32_t(state.world.regiment_get_strength(reg_id) * state.defines.pop_size_per_regiment * state.defines.soldier_to_pop_damage));
 	military::delete_regiment_safe_wrapper(state, reg_id);
 }
+
+
+
+template<command::actor Actor>
+bool can_split_navy(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+		if(!state.world.navy_is_valid(navy)) {
+			return false;
+		}
+		// AI does not need to do this check as the ai won't pass invalid ships or ones which arent part of the navy
+		for(auto ship_to_split : ships_to_split) {
+			if(!state.world.ship_is_valid(ship_to_split) || state.world.ship_get_navy_from_navy_membership(ship_to_split) != navy) {
+				return false;
+			}
+		}
+	}
+	auto embarked = state.world.navy_get_army_transport(navy);
+	return military::get_effective_unit_commander(state, navy) == source && !state.world.navy_get_is_retreating(navy) &&
+		!bool(state.world.navy_get_battle_from_navy_battle_participation(navy)) && embarked.begin() == embarked.end();
+}
+template bool can_split_navy<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+template bool can_split_navy<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+
+
+template<command::actor Actor>
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies) {
+
+	if(ships_to_split.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_navy());
+		new_u.set_controller_from_navy_control(state.world.navy_get_controller_from_navy_control(navy));
+		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(navy));
+		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(navy));
+
+		for(auto t : ships_to_split) {
+			state.world.ship_set_navy_from_navy_membership(t, new_u);
+		}
+		if constexpr(Actor == command::actor::player) {
+			if(source == state.local_player_nation) {
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					auto navy = arg.navy_pair_w_bool.navy_1;
+					auto new_u = arg.navy_pair_w_bool.navy_2;
+					auto select_both_navies = arg.navy_pair_w_bool.boolean;
+					if(state.is_selected(navy)) {
+						// deselect old army if parameter requires
+						if(!select_both_navies) {
+							state.deselect(navy);
+						}
+						state.select(new_u);
+					}
+				}, ui::ui_function_argument{ .navy_pair_w_bool = {navy, new_u.id, select_both_navies  } });
+
+			}
+		}
+
+		auto old_regs = state.world.navy_get_navy_membership(navy);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(navy), new_u);
+			if constexpr(Actor == command::actor::player) {
+				if(source == state.local_player_nation) {
+					state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+						state.deselect(arg.navy);
+					}, ui::ui_function_argument{ .navy = navy });
+
+				}
+			}
+			military::cleanup_navy(state, navy);
+			
+		}
+	}
+}
+template void split_navy<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies);
+template void split_navy<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies);
+
+
+template<command::actor Actor>
+bool can_split_army(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+		if(!state.world.army_is_valid(army)) {
+			return false;
+		}
+		// AI does not need to do this check as the ai won't pass invalid regiments or ones which arent part of the army
+		for(auto regiment_to_split : regiments_to_split) {
+			if(!state.world.regiment_is_valid(regiment_to_split) || state.world.regiment_get_army_from_army_membership(regiment_to_split) != army) {
+				return false;
+			}
+		}
+	}
+	return military::get_effective_unit_commander(state, army) == source && !state.world.army_get_is_retreating(army) && !state.world.army_get_navy_from_army_transport(army) &&
+		!bool(state.world.army_get_battle_from_army_battle_participation(army));
+}
+
+template bool can_split_army<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+template bool can_split_army<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+
+template<command::actor Actor>
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies) {
+
+	if(regiments_to_split.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_army());
+		new_u.set_controller_from_army_control(state.world.army_get_controller_from_army_control(army));
+		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(army));
+		new_u.set_black_flag(state.world.army_get_black_flag(army));
+		new_u.set_dig_in(state.world.army_get_dig_in(army));
+
+		for(auto t : regiments_to_split) {
+			state.world.regiment_set_army_from_army_membership(t, new_u);
+		}
+		if constexpr(Actor == command::actor::player) {
+			if(source == state.local_player_nation) {
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					auto army = arg.army_pair_w_bool.army_1;
+					auto new_u = arg.army_pair_w_bool.army_2;
+					auto select_both_armies = arg.army_pair_w_bool.boolean;
+					if(state.is_selected(army)) {
+						// deselect old army if parameter requires
+						if(!select_both_armies) {
+							state.deselect(army);
+						}
+						state.select(new_u);
+					}
+				}, ui::ui_function_argument{ .army_pair_w_bool = { army, new_u.id, select_both_armies } });
+			}
+		}
+		
+
+		auto old_regs = state.world.army_get_army_membership(army);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(army), new_u);
+			if constexpr(Actor == command::actor::player) {
+				if(source == state.local_player_nation) {
+					state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+						state.deselect(arg.army);
+					}, ui::ui_function_argument{ .army = army });
+				}
+			}
+			military::cleanup_army(state, army);
+		}
+	}
+}
+template void split_army<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies);
+template void split_army<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies);
 
 template<command::actor Actor>
 bool can_change_land_unit_type_army_checks(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type) {

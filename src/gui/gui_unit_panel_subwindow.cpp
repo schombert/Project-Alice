@@ -601,57 +601,20 @@ public:
 			auto content = any_cast<element_selection_wrapper<reorg_win_action>>(payload).data;
 			switch(content) {
 				case reorg_win_action::close:
-					if(selectedsubunits.size() <= command::num_packed_units && !selectedsubunits.empty()) {
+					if(!selectedsubunits.empty()) {
 						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
-								tosplit[i] = selectedsubunits[i];
-							}
-							command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-							command::split_army(state, state.local_player_nation, unitToReorg);
+							command::split_army(state, state.local_player_nation, unitToReorg, selectedsubunits, true);
+							selectedsubunits.clear();
 						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							for(size_t i = 0; i < selectedsubunits.size(); i++) {
-								tosplit[i] = selectedsubunits[i];
-							}
-							command::mark_ships_to_split( state, state.local_player_nation, tosplit);
-							command::split_navy(state, state.local_player_nation, unitToReorg);
-						}
-					} else if(selectedsubunits.size() > command::num_packed_units){
-						if constexpr(std::is_same_v<T2, dcon::regiment_id>) {
-							std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::regiment_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_army(state, state.local_player_nation, unitToReorg);
-						} else {
-							std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-							//while(selectedsubunits.size() > command::num_packed_units) {
-							while(selectedsubunits.size() > 0) {
-								tosplit.fill(dcon::ship_id{});
-								for(size_t i = 0; i < command::num_packed_units && i < selectedsubunits.size(); i++) {
-									tosplit[i] = selectedsubunits[i];
-								}
-								command::mark_ships_to_split(state, state.local_player_nation, tosplit);
-								(selectedsubunits.size() > command::num_packed_units) ? selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.begin() + command::num_packed_units)
-																						: selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
-							}
-							command::split_navy(state, state.local_player_nation, unitToReorg);
+							command::split_navy(state, state.local_player_nation, unitToReorg, selectedsubunits, true);
+							selectedsubunits.clear();
 						}
 					}
-					if(selectedsubunits.empty()) { selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end()); }
 					set_visible(state, false);
 					break;
 				case reorg_win_action::balance:
 					// Disregard any of the units the player already selected, because its our way or the hi(fi)-way
-					selectedsubunits.erase(selectedsubunits.begin(), selectedsubunits.end());
+					selectedsubunits.clear();
 					if constexpr(std::is_same_v<T, dcon::army_id>) {
 						for(auto reg : dcon::fatten(state.world, unitToReorg).get_army_membership()) {
 							selectedsubunits.push_back(reg.get_regiment().id);

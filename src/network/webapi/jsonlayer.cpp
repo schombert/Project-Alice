@@ -474,7 +474,6 @@ json format_ship(sys::state& state, dcon::ship_id id) {
 	j["type"] = state.world.ship_get_type(id).value;
 	j["strength"] = state.world.ship_get_strength(id);
 	j["org"] = state.world.ship_get_org(id);
-	j["pending_split"] = state.world.ship_get_pending_split(id);
 	j["experience"] = state.world.ship_get_experience(id);
 	return j;
 
@@ -555,7 +554,6 @@ json format_regiment(sys::state& state, dcon::regiment_id id) {
 	j["pending_combat_damage"] = state.world.regiment_get_pending_combat_damage(id);
 	j["pending_attrition_damage"] = state.world.regiment_get_pending_attrition_damage(id);
 	j["org"] = state.world.regiment_get_org(id);
-	j["pending_split"] = state.world.regiment_get_pending_split(id);
 	j["experience"] = state.world.regiment_get_experience(id);
 	return j;
 }

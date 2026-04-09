@@ -310,8 +310,8 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit);
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::army_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::navy_id unit);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
@@ -582,6 +582,16 @@ bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, 
 
 template<command::actor Actor>
 bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_split_army(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+template<command::actor Actor>
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies = false);
+
+template<command::actor Actor>
+bool can_split_navy(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+template<command::actor Actor>
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies = false);
 
 
 } // namespace military

@@ -4618,275 +4618,61 @@ void execute_console_command(sys::state& state) {
 	}
 }
 
-void evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
 
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies) {
 
-	command_data p{ command_type::even_split_army, state.local_player_id };
-	auto data = army_movement_data{ };
-	data.a = a;
+	command_data p{ command_type::split_army, state.local_player_id, sizeof(split_army_data) + regiments_to_split.size_bytes() };
+	auto data = split_army_data{ };
+	data.army = a;
+	data.select_both_armies = select_both_armies;
+	data.regiment_count = uint16_t(regiments_to_split.size());
+
 	p << data;
+	p.push_span(regiments_to_split);
 	add_to_command_queue(state, p);
 }
-bool can_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	if(!state.current_scene.game_in_progress) {
+bool can_split_army(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload< split_army_data>();
+
+	size_t expected_variable_payload_bytes = payload.regiment_count * sizeof(dcon::regiment_id);
+	// check that the message length is correct before reading from it
+	if(!command.check_variable_size_payload<split_army_data>(expected_variable_payload_bytes)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return can_split_army(state, source, a);
+	return military::can_split_army<command::actor::player>(state, source, payload.army, std::span<const dcon::regiment_id>(payload.regiments(), payload.regiment_count));
 }
-void execute_evenly_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	bool inf_split = false;
-	bool cav_split = false;
-	bool art_split = false;
-
-	static std::vector<dcon::regiment_id> to_transfer;
-	to_transfer.clear();
-	auto army_membership = state.world.army_get_army_membership(a);
-	for(auto t : army_membership) {
-		auto type = state.military_definitions.unit_base_definitions[t.get_regiment().get_type()].type;
-		if(type == military::unit_type::infantry) {
-			if(inf_split) {
-				to_transfer.push_back(t.get_regiment());
-			}
-			inf_split = !inf_split;
-		} else if(type == military::unit_type::cavalry) {
-			if(cav_split) {
-				to_transfer.push_back(t.get_regiment());
-			}
-			cav_split = !cav_split;
-		} else if(type == military::unit_type::support || type == military::unit_type::special) {
-			if(art_split) {
-				to_transfer.push_back(t.get_regiment());
-			}
-			art_split = !art_split;
-		}
-	}
-	// If the army could not be split properly (because there are only 1 of each unit type) and the army has more than 1 regiment, then split out the first regiment as a new army
-	if(to_transfer.size() == 0 && army_membership.end() - army_membership.begin() > 1) {
-		auto first_reg = (*army_membership.begin()).get_regiment();
-		to_transfer.push_back(first_reg);
-	}
-
-	if(to_transfer.size() > 0) {
-		auto new_u = fatten(state.world, state.world.create_army());
-		new_u.set_controller_from_army_control(state.world.army_get_controller_from_army_control(a));
-		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
-		new_u.set_black_flag(state.world.army_get_black_flag(a));
-		new_u.set_dig_in(state.world.army_get_dig_in(a));
-
-		for(auto t : to_transfer) {
-			state.world.regiment_set_army_from_army_membership(t, new_u);
-		}
-
-		if(source == state.local_player_nation && state.is_selected(a)) {
-			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-				auto a = arg.army_pair[0];
-				auto new_u = arg.army_pair[1];
-				if(state.is_selected(a)) {
-					state.deselect(a);
-					state.select(new_u);
-				}
-			}, ui::ui_function_argument{ .army_pair = {a, new_u.id } });
-		}
-	}
+void execute_split_army(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload< split_army_data>();
+	military::split_army<command::actor::player>(state, source, payload.army, std::span<const dcon::regiment_id>(payload.regiments(), payload.regiment_count), payload.select_both_armies);
 }
 
-void evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_armies) {
 
-
-	command_data p{ command_type::even_split_navy, state.local_player_id };
-	auto data = navy_movement_data{ };
-	data.n = a;
+	command_data p{ command_type::split_navy, state.local_player_id, sizeof(split_army_data) + ships_to_split.size_bytes() };
+	auto data = split_navy_data{};
+	data.navy = a;
+	data.select_both_navies = select_both_armies;
+	data.ship_count = uint16_t(ships_to_split.size());
 	p << data;
+	p.push_span(ships_to_split);
 	add_to_command_queue(state, p);
 
 }
-bool can_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	if(!state.current_scene.game_in_progress) {
+bool can_split_navy(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload< split_navy_data>();
+
+	size_t expected_variable_payload_bytes = payload.ship_count * sizeof(dcon::ship_id);
+	// check that the message length is correct before reading from it
+	if(!command.check_variable_size_payload<split_navy_data>(expected_variable_payload_bytes)) {
+		assert(false && "Variable command with a inconsistent size recieved!");
 		return false;
 	}
-	return can_split_navy(state, source, a);
+	return military::can_split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count));
 }
-void execute_evenly_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	static std::vector<dcon::ship_id> to_transfer;
-	to_transfer.clear();
-
-	bool big_split = false;
-	bool sm_split = false;
-	bool tra_split = false;
-
-	auto navy_membership = state.world.navy_get_navy_membership(a);
-	for(auto t : navy_membership) {
-		auto type = state.military_definitions.unit_base_definitions[t.get_ship().get_type()].type;
-		if(type == military::unit_type::big_ship) {
-			if(big_split) {
-				to_transfer.push_back(t.get_ship());
-			}
-			big_split = !big_split;
-		} else if(type == military::unit_type::light_ship) {
-			if(sm_split) {
-				to_transfer.push_back(t.get_ship());
-			}
-			sm_split = !sm_split;
-		} else if(type == military::unit_type::transport) {
-			if(tra_split) {
-				to_transfer.push_back(t.get_ship());
-			}
-			tra_split = !tra_split;
-		}
-	}
-
-	// If the navy could not be split properly (because there are only 1 of each unit type) and the navy has more than 1 ship, then split out the first ship as a new navy
-	if(to_transfer.size() == 0 && navy_membership.end() - navy_membership.begin() > 1) {
-		auto first_ship = (*navy_membership.begin()).get_ship();
-		to_transfer.push_back(first_ship);
-	}
-
-	if(to_transfer.size() > 0) {
-		auto new_u = fatten(state.world, state.world.create_navy());
-		new_u.set_controller_from_navy_control(state.world.navy_get_controller_from_navy_control(a));
-		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
-		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(a));
-
-		for(auto t : to_transfer) {
-			state.world.ship_set_navy_from_navy_membership(t, new_u);
-		}
-
-		if(source == state.local_player_nation) {
-			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-				auto a = arg.navy_pair[0];
-				auto new_u = arg.navy_pair[1];
-				if(state.is_selected(a)) {
-					state.deselect(a);
-					state.select(new_u);
-				}
-			}, ui::ui_function_argument{ .navy_pair = {a, new_u.id } });
-		}
-	}
-}
-
-void split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-
-	command_data p{ command_type::split_army, state.local_player_id };
-	auto data = army_movement_data{ };
-	data.a = a;
-	p << data;
-	add_to_command_queue(state, p);
-}
-bool can_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	if(!state.current_scene.game_in_progress) {
-		return false;
-	}
-	return military::get_effective_unit_commander(state, a) == source && !state.world.army_get_is_retreating(a) && !state.world.army_get_navy_from_army_transport(a) &&
-		!bool(state.world.army_get_battle_from_army_battle_participation(a));
-}
-void execute_split_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
-	static std::vector<dcon::regiment_id> to_transfer;
-	to_transfer.clear();
-
-	for(auto t : state.world.army_get_army_membership(a)) {
-		if(t.get_regiment().get_pending_split()) {
-			t.get_regiment().set_pending_split(false);
-			to_transfer.push_back(t.get_regiment().id);
-		}
-	}
-
-	if(to_transfer.size() > 0) {
-		auto new_u = fatten(state.world, state.world.create_army());
-		new_u.set_controller_from_army_control(state.world.army_get_controller_from_army_control(a));
-		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(a));
-		new_u.set_black_flag(state.world.army_get_black_flag(a));
-		new_u.set_dig_in(state.world.army_get_dig_in(a));
-
-		for(auto t : to_transfer) {
-			state.world.regiment_set_army_from_army_membership(t, new_u);
-		}
-
-		if(source == state.local_player_nation) {
-			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-				auto a = arg.army_pair[0];
-				auto new_u = arg.army_pair[1];
-				if(state.is_selected(a)) {
-					state.select(new_u);
-				}
-			}, ui::ui_function_argument{ .army_pair = { a, new_u.id } });
-		}
-
-		auto old_regs = state.world.army_get_army_membership(a);
-		if(old_regs.begin() == old_regs.end()) {
-			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(a), new_u);
-
-			if(source == state.local_player_nation) {
-				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-					state.deselect(arg.army);
-				}, ui::ui_function_argument{ .army = a });
-			}
-			military::cleanup_army(state, a);
-		}
-	}
-}
-
-void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-
-	command_data p{ command_type::split_navy, state.local_player_id };
-	auto data = navy_movement_data{ };
-	data.n = a;
-	p << data;
-	add_to_command_queue(state, p);
-
-}
-bool can_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	if(!state.current_scene.game_in_progress) {
-		return false;
-	}
-	auto embarked = state.world.navy_get_army_transport(a);
-	return military::get_effective_unit_commander(state, a) == source && !state.world.navy_get_is_retreating(a) &&
-		!bool(state.world.navy_get_battle_from_navy_battle_participation(a)) && embarked.begin() == embarked.end();
-}
-void execute_split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id a) {
-	static std::vector<dcon::ship_id> to_transfer;
-	to_transfer.clear();
-
-	for(auto t : state.world.navy_get_navy_membership(a)) {
-		if(t.get_ship().get_pending_split()) {
-			t.get_ship().set_pending_split(false);
-			to_transfer.push_back(t.get_ship().id);
-		}
-	}
-
-	if(to_transfer.size() > 0) {
-		auto new_u = fatten(state.world, state.world.create_navy());
-		new_u.set_controller_from_navy_control(state.world.navy_get_controller_from_navy_control(a));
-		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(a));
-		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(a));
-
-		for(auto t : to_transfer) {
-			state.world.ship_set_navy_from_navy_membership(t, new_u);
-		}
-
-		if(source == state.local_player_nation) {
-			state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-				auto a = arg.navy_pair[0];
-				auto new_u = arg.navy_pair[1];
-				if(state.is_selected(a)) {
-					state.select(new_u);
-				}
-			}, ui::ui_function_argument{ .navy_pair = { a, new_u.id } });
-		}
-			
-			
-
-		auto old_regs = state.world.navy_get_navy_membership(a);
-		if(old_regs.begin() == old_regs.end()) {
-			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(a), new_u);
-			if(source == state.local_player_nation) {
-				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
-					state.deselect(arg.navy);
-				}, ui::ui_function_argument{.navy = a });
-				
-			}
-			military::cleanup_navy(state, a);
-		}
-	}
+void execute_split_navy(sys::state& state, dcon::nation_id source, command_data& command) {
+	const auto& payload = command.get_payload< split_navy_data>();
+	return military::split_navy<command::actor::player>(state, source, payload.navy, std::span<const dcon::ship_id>(payload.ships(), payload.ship_count), payload.select_both_navies);
 }
 
 void delete_army(sys::state& state, dcon::nation_id source, dcon::army_id a) {
@@ -4993,45 +4779,6 @@ void execute_change_admiral(sys::state& state, dcon::nation_id source, dcon::nav
 	state.world.navy_set_admiral_from_navy_leadership(a, l);
 }
 
-void mark_regiments_to_split(sys::state& state, dcon::nation_id source,
-		std::array<dcon::regiment_id, num_packed_units> const& list) {
-
-	command_data p{ command_type::designate_split_regiments, state.local_player_id };
-	auto data = split_regiments_data{ };
-	std::copy_n(list.data(), num_packed_units, data.regs);
-	p << data;
-	add_to_command_queue(state, p);
-}
-void execute_mark_regiments_to_split(sys::state& state, dcon::nation_id source, dcon::regiment_id const* regs) {
-	for(uint32_t i = 0; i < num_packed_units; ++i) {
-		if(regs[i]) {
-			if(source ==
-					military::get_effective_unit_commander(state ,state.world.regiment_get_army_from_army_membership(regs[i]))) {
-				state.world.regiment_set_pending_split(regs[i], !state.world.regiment_get_pending_split(regs[i]));
-			}
-		}
-	}
-}
-
-void mark_ships_to_split(sys::state& state, dcon::nation_id source, std::array<dcon::ship_id, num_packed_units> const& list) {
-
-	command_data p{ command_type::designate_split_ships, state.local_player_id };
-	auto data = split_ships_data{ };
-	std::copy_n(list.data(), num_packed_units, data.ships);
-	p << data;
-	add_to_command_queue(state, p);
-
-
-}
-void execute_mark_ships_to_split(sys::state& state, dcon::nation_id source, dcon::ship_id const* regs) {
-	for(uint32_t i = 0; i < num_packed_units; ++i) {
-		if(regs[i]) {
-			if(source == military::get_effective_unit_commander(state,state.world.ship_get_navy_from_navy_membership(regs[i]))) {
-				state.world.ship_set_pending_split(regs[i], !state.world.ship_get_pending_split(regs[i]));
-			}
-		}
-	}
-}
 
 void retreat_from_naval_battle(sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::province_id dest) {
 	command_data p{ command_type::naval_retreat, state.local_player_id };
@@ -6993,14 +6740,12 @@ bool can_perform_command(sys::state& state, command_data& c) {
 
 	case command_type::split_army:
 	{
-		auto& data = c.get_payload<command::army_movement_data>();
-		return can_split_army(state, source, data.a);
+		return can_split_army(state, source, c);
 	}
 
 	case command_type::split_navy:
 	{
-		auto& data = c.get_payload<command::navy_movement_data>();
-		return can_split_navy(state, source, data.n);
+		return can_split_navy(state, source, c);
 	}
 
 	case command_type::change_land_unit_type:
@@ -7018,16 +6763,6 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<command::navy_movement_data>();
 		return can_delete_navy(state, source, data.n);
-	}
-
-	case command_type::designate_split_regiments:
-	{
-		return true; //can_mark_regiments_to_split(state, c.source, c.data.split_regiments.regs);
-	}
-
-	case command_type::designate_split_ships:
-	{
-		return true; //can_mark_ships_to_split(state, c.source, c.data.split_ships.ships);
 	}
 
 	case command_type::naval_retreat:
@@ -7120,18 +6855,6 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<command::army_movement_data>();
 		return can_disband_undermanned_regiments(state, source, data.a);
-	}
-
-	case command_type::even_split_army:
-	{
-		auto& data = c.get_payload<command::army_movement_data>();
-		return can_evenly_split_army(state, source, data.a);
-	}
-
-	case command_type::even_split_navy:
-	{
-		auto& data = c.get_payload<command::navy_movement_data>();
-		return can_evenly_split_navy(state, source, data.n);
 	}
 
 	case command_type::toggle_hunt_rebels:
@@ -7785,14 +7508,12 @@ void execute_command(sys::state& state, command_data& c) {
 	}
 	case command_type::split_army:
 	{
-		auto& data = c.get_payload<army_movement_data>();
-		execute_split_army(state, source_nation, data.a);
+		execute_split_army(state, source_nation, c);
 		break;
 	}
 	case command_type::split_navy:
 	{
-		auto& data = c.get_payload<navy_movement_data>();
-		execute_split_navy(state, source_nation, data.n);
+		execute_split_navy(state, source_nation, c);
 		break;
 	}
 	case command_type::change_land_unit_type:
@@ -7811,18 +7532,6 @@ void execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload<navy_movement_data>();
 		execute_delete_navy(state, source_nation, data.n);
-		break;
-	}
-	case command_type::designate_split_regiments:
-	{
-		auto& data = c.get_payload<split_regiments_data>();
-		execute_mark_regiments_to_split(state, source_nation, data.regs);
-		break;
-	}
-	case command_type::designate_split_ships:
-	{
-		auto& data = c.get_payload<split_ships_data>();
-		execute_mark_ships_to_split(state, source_nation, data.ships);
 		break;
 	}
 	case command_type::naval_retreat:
@@ -7912,18 +7621,6 @@ void execute_command(sys::state& state, command_data& c) {
 	{
 		auto& data = c.get_payload < army_movement_data>();
 		execute_disband_undermanned_regiments(state, source_nation, data.a);
-		break;
-	}
-	case command_type::even_split_army:
-	{
-		auto& data = c.get_payload<army_movement_data>();
-		execute_evenly_split_army(state, source_nation, data.a);
-		break;
-	}
-	case command_type::even_split_navy:
-	{
-		auto& data = c.get_payload<navy_movement_data>();
-		execute_evenly_split_navy(state, source_nation, data.n);
 		break;
 	}
 	case command_type::toggle_hunt_rebels:

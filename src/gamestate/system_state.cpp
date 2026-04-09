@@ -3616,12 +3616,6 @@ void state::preload() {
 		m.set_pop_support(0.0f);
 		m.set_radicalism(0.0f);
 	}
-	for(auto s : world.in_ship) {
-		s.set_pending_split(false);
-	}
-	for(auto r : world.in_regiment) {
-		r.set_pending_split(false);
-	}
 
 }
 
@@ -5044,12 +5038,7 @@ void state::army_group_add_regiment(dcon::automated_army_group_id group, dcon::r
 	fat_automation.set_await_command_execution_flag(false);
 
 	// split it right away
-	std::array<dcon::regiment_id, command::num_packed_units> data;
-	int32_t i = 0;
-	data.fill(dcon::regiment_id{});
-	data[0] = id;
-	command::mark_regiments_to_split(*this, local_player_nation, data);
-	command::split_army(*this, local_player_nation, army);
+	command::split_army(*this, local_player_nation, army, std::span<const dcon::regiment_id>(&id, 1));
 
 	game_state_updated.store(true, std::memory_order_release);
 }
