@@ -1,0 +1,19 @@
+compose_dynamic_adj_state;$adj$ $state$
+map_remove_prefix;A ;
+map_expand_acronym;USA
+map_expand_acronym_to;United States
+map_label_country;$country$
+map_label_adj_continent;$adj$ $continentname$
+map_label_adj_state;$adj$ $state$
+map_label_adj_province;$adj$ $province$
+map_label_west_country;서부 $country$
+map_label_east_country;동부 $country$
+map_label_north_country;남부 $country$
+map_label_south_country;북부 $country$
+map_label_adj_tag;$adj$ $tag$
+africa;아프리카
+europe;유럽
+south_america;남미
+north_america;북미
+oceania;오세아니아
+asia;아시아
