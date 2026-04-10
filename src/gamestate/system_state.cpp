@@ -6089,7 +6089,7 @@ void sys::state::set_local_player_nation(dcon::nation_id value) {
 void selected_regiments_remove(sys::state& state, dcon::regiment_id reg) {
 	auto iterator = std::find(state.selected_regiments.begin(), state.selected_regiments.end(), reg);
 	if(iterator != state.selected_regiments.end()) {
-		state.selected_regiments.remove_at(iterator);
+		state.selected_regiments.erase(iterator);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
@@ -6110,7 +6110,7 @@ void selected_regiments_clear(sys::state& state) {
 void selected_ships_remove(sys::state& state, dcon::ship_id ship) {
 	auto iterator = std::find(state.selected_ships.begin(), state.selected_ships.end(), ship);
 	if(iterator != state.selected_ships.end()) {
-		state.selected_ships.remove_at(iterator);
+		state.selected_ships.erase(iterator);
 	}
 	state.game_state_updated.store(true, std::memory_order_release);
 }
