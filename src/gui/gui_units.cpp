@@ -2115,7 +2115,6 @@ public:
 		}
 
 
-		uint32_t total_commodities = state.world.commodity_size();
 
 		float max_supply = 0.0f;
 		float actual_supply = 0.0f;
@@ -2123,15 +2122,12 @@ public:
 
 		auto nations_commodity_spending = state.world.nation_get_spending_level(owner);
 
-		for(uint32_t i = 0; i < total_commodities; ++i) {
-			if(!commodities.commodity_type[i]) {
-				break;
-			}
+		for(uint32_t i = 0; i < commodities.set_size; ++i) {
 
 			dcon::commodity_id c = commodities.commodity_type[i];
 
 			auto satisfaction = state.world.market_get_actual_probability_to_buy(m, c);
-			auto val = commodities.commodity_type[i];
+
 
 			max_supply += commodities.commodity_amounts[i];
 			actual_supply += commodities.commodity_amounts[i] * satisfaction * nations_commodity_spending * spending_level;
