@@ -6013,8 +6013,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 
 				rep.attacker_won = (result == battle_result::attacker_won);
 
-				rep.attacking_nation = get_land_battle_lead_attacker(state, b);
-				rep.defending_nation = get_land_battle_lead_defender(state, b);
+				rep.attacking_nation = a_nation;
+				rep.defending_nation = d_nation;
 				rep.attacking_general = state.world.land_battle_get_general_from_attacking_general(b);
 				rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
@@ -6082,8 +6082,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 
 				rep.attacker_won = (result == battle_result::attacker_won);
 
-				rep.attacking_nation = get_land_battle_lead_attacker(state, b);
-				rep.defending_nation = get_land_battle_lead_defender(state, b);
+				rep.attacking_nation = a_nation;
+				rep.defending_nation = d_nation;
 				rep.attacking_general = state.world.land_battle_get_general_from_attacking_general(b);
 				rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
@@ -6102,6 +6102,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 					}
 				}
 				auto discard = state.land_battle_reports.try_push(rep);
+				assert(discard);
 			}
 		}
 	}
@@ -7729,6 +7730,7 @@ void update_land_battles(sys::state& state) {
 				}
 				auto& def_front = state.world.land_battle_get_defender_front_line(b);
 				auto& def_back = state.world.land_battle_get_defender_back_line(b);
+				auto reserves = state.world.land_battle_get_reserves(b);
 				auto combat_width = state.world.land_battle_get_combat_width(b);
 
 				for(uint8_t i = 0; i < combat_width; ++i) {
@@ -7739,6 +7741,12 @@ void update_land_battles(sys::state& state) {
 					}
 					if(def_back[i].regiment && def_back_dig_in > 0) {
 						def_back[i].set_dig_in(def_back_dig_in - 1);
+					}
+				}
+				for(auto& bat_reg : reserves) {
+					auto dig_in = bat_reg.get_dig_in();
+					if(!bat_reg.get_is_attacking() && dig_in > 0) {
+						bat_reg.set_dig_in(dig_in - 1);
 					}
 				}
 			}
