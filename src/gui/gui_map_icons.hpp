@@ -1969,6 +1969,122 @@ public:
 	}
 };
 
+class map_colonization_flag : public flag_button {
+	dcon::national_identity_id get_current_nation(sys::state& state) noexcept override {
+		auto colonization = retrieve<dcon::colonization_id>(state, parent);
+		auto national_ident = state.world.nation_get_identity_from_identity_holder( state.world.colonization_get_colonizer( colonization));
+		return national_ident;
+	}
+};
+
+class map_colonization_progress : public simple_text_element_base {
+	void on_update(sys::state& state) noexcept override {
+		auto colonization = retrieve<dcon::colonization_id>(state, parent);
+		if (colonization) {
+			auto state_def = retrieve<dcon::state_definition_id>(state, parent);
+			auto col_range = state.world.state_definition_get_colonization(state_def);
+			uint8_t level;
+			// If can instantly protectorate it with no competition, displayed colonization level shall be atleast 5
+			if (col_range.end() - col_range.begin() == 1 && state.world.state_definition_get_colonization_stage(state_def) >= uint8_t(3)) { // no competition and atleast stage 3
+				level = std::max(state.world.colonization_get_level(colonization), uint8_t(5));
+			}
+			else {
+				level = state.world.colonization_get_level(colonization);
+			}
+			set_text(state, std::to_string(level));
+		}
+	
+	}
+};
+
+
+class map_colonization_icon : public window_element_base {
+
+	dcon::colonization_id get_colonization(sys::state& state) {
+		auto state_colonization = state.world.state_definition_get_colonization(state_def);
+		if(colonization_index >= state_colonization.end() - state_colonization.begin()) {
+			return dcon::colonization_id{ };
+		} else {
+			auto colonization_iterator = state_colonization.begin() + colonization_index;
+			return *colonization_iterator;
+		}
+	}
+
+public:
+	dcon::state_definition_id state_def;
+	uint32_t colonization_index;
+	bool visible = false;
+
+	std::unique_ptr<element_base> make_child(sys::state& state, std::string_view name, dcon::gui_def_id id) noexcept override {
+		if(name == "colonization_panel_bg") {
+			return make_element_by_type<image_element_base>(state, id);
+		} else if(name == "colonization_progress") {
+			return make_element_by_type<map_colonization_progress>(state, id);
+		} else if(name == "colonization_country_flag") {
+			return make_element_by_type<map_colonization_flag>(state, id);
+		} else {
+			return nullptr;
+		}
+	}
+	void set_state_def(sys::state& state, dcon::state_definition_id def) {
+		state_def = def;
+
+	}
+
+	void impl_render(sys::state& state, int32_t x, int32_t y) noexcept override {
+		auto colonization = get_colonization(state);
+		dcon::province_id render_prov;
+		int32_t highest_prio = -1;
+		if(colonization) {
+			for (auto prov : state.world.state_definition_get_abstract_state_membership(state_def)) {
+				// grab first uncolonized province
+				if (!prov.get_province().get_province_ownership().get_nation()) {
+					render_prov = prov.get_province();
+					break;
+				}
+			}
+			auto midpoint = state.world.province_get_mid_point(render_prov);
+			map_space::point_normalized_inverted_y map_pos = state.map_state.normalize_map_coord(midpoint);
+			auto screen_size =
+				glm::vec2{ float(state.x_size / state.user_settings.ui_scale), float(state.y_size / state.user_settings.ui_scale) };
+			screen_space::point_ui screen_pos;
+			if(!state.map_state.map_to_screen(map_pos, screen_size, state.user_settings.map_is_globe, screen_pos, { 200.f, 200.f })) {
+				visible = false;
+				return;
+			}
+			visible = true;
+			// reduce coordinates by half the element's size so that they are centered on province
+			screen_pos.data.x -= float(base_data.size.x / 2.0f);
+			screen_pos.data.y -= float(base_data.size.y / 2.0f);
+			screen_pos.data.y += float(colonization_index * base_data.size.y); // Nudge the next element downwards so they don't overlap
+			auto new_position = xy_pair{ int16_t(screen_pos.data.x), int16_t(screen_pos.data.y) };
+			window_element_base::base_data.position = new_position;
+			window_element_base::impl_render(state, new_position.x, new_position.y);
+		}
+	}
+
+
+	message_result get(sys::state& state, Cyto::Any& payload) noexcept override {
+		if(payload.holds_type<dcon::state_definition_id>()) {
+			payload.emplace<dcon::state_definition_id>(state_def);
+			return message_result::consumed;
+		}
+		else if(payload.holds_type<dcon::colonization_id>()) {
+			auto colonization = get_colonization(state);
+			if(colonization) {
+				payload.emplace<dcon::colonization_id>(colonization);
+				return message_result::consumed;
+			}
+			else {
+				payload.emplace< dcon::colonization_id>(dcon::colonization_id{ });
+				return message_result::consumed;
+			}
+			
+		}
+		return message_result::unseen;
+	}
+};
+
 class map_pv_rail_dots : public image_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
