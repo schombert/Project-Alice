@@ -192,11 +192,16 @@ void initialize_needs_weights(sys::state& state, dcon::market_id n) {
 }
 
 // todo: make priority different per commodity
+/*
+Need weight allows pops to not promise buying "hopeless" items and avoid generating demand on them
+There is base growth to avoid being stuck at 0
+It's modified by local availability and price
+*/
 float need_weight_change(sys::state& state, dcon::market_id n, dcon::commodity_id c, float base_wage, float priority, float base_amount) {
 	auto budget = economy::price_properties::labor::min + base_wage;
 	auto cost_per_person = base_amount * price(state, n, c) / state.defines.alice_needs_scaling_factor;
-	auto score_availability = state.world.market_get_expected_probability_to_buy(n, c) - state.world.market_get_expected_probability_to_sell(n, c);
-	auto score_price = (1.f - cost_per_person / priority / budget);
+	auto score_price = -cost_per_person / priority / budget;
+	auto score_availability = 0.1f + state.world.market_get_expected_probability_to_buy(n, c);
 	return score_availability + score_price;
 }
 
@@ -4324,8 +4329,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			// labor price control
 
 			ve::fp_vector price_control = ve::fp_vector{ 0.f };
-			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
-			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.5f;
+			price_control = price_control + state.world.market_get_life_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.0f;
+			price_control = price_control + state.world.market_get_everyday_needs_costs(mids, state.culture_definitions.secondary_factory_worker) * 1.0f;
 
 			// we reduce min wage if unemployment is too high
 			// base min wage is decided by national multipliers
@@ -4338,10 +4343,16 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				/ state.defines.alice_needs_scaling_factor
 				* min_wage_factor;
 
+			/*
+			Rapid price changes are bad for simulation, instead we will slowly shift toward state mandated price
+			*/
+
+			price_control = ve::max(current_price, ve::max(price_properties::labor::min, price_control));
+
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(std::isfinite(value)); }, current_price);
 #endif
-			current_price = ve::min(ve::max(current_price, ve::max(price_properties::labor::min, price_control)), price_properties::labor::max);
+			current_price = ve::min(price_control * 0.0001f + current_price * 0.9999f, price_properties::labor::max);
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(value > 0.f); }, current_price);
 #endif

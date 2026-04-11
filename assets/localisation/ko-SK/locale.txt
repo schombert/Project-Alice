@@ -1,0 +1,15 @@
+display_name = 한국어
+script = kore
+
+body_font = NanumGothic.ttf
+
+header_font = NanumGothic.ttf
+header_feature = smcp
+
+map_font = NanumGothic.ttf
+map_feature = smcp
+
+fallback = en-US
+
+prevent_map_letterspacing = yes
+rtl = no
