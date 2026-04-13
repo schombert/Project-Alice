@@ -241,7 +241,7 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 
 			auto& bonuses = factory_handle.get_factory_bonuses();
 			for(uint32_t i = 0;i < pt.bonuses.size();i++) {
-				if(i >= economy::MAX_PRODUCTION_TYPE_BONUSES) {
+				if(i >= economy::max_production_type_bonuses) {
 					err.accumulated_errors += "Too many factory bonuses (" + std::to_string(pt.bonuses.size()) + ") for " + std::string(name) + " (" + err.file_name + ")\n";
 					break; // no more space for production bonuses
 				}

@@ -4969,7 +4969,7 @@ void add_regiment_to_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_reg
 
 void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id battle) {
 	int32_t previous_combat_width = state.world.land_battle_get_combat_width(battle);
-	int32_t new_combat_width = int32_t(MAX_COMBAT_WIDTH);
+	int32_t new_combat_width = int32_t(max_combat_width);
 	for(auto a : state.world.land_battle_get_army_battle_participation(battle)) {
 		auto army_owner = state.world.army_get_controller_from_army_control(a.get_army());
 		auto army_owner_combat_width = int32_t(state.world.nation_get_modifier_values(army_owner, sys::national_mod_offsets::combat_width) + state.defines.base_combat_width);
@@ -4977,7 +4977,7 @@ void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id bat
 	}
 	auto battle_location = state.world.land_battle_get_location_from_land_battle_location(battle);
 	auto prov_width_modifier = state.world.province_get_modifier_values(battle_location, sys::provincial_mod_offsets::combat_width) + 1.0f;
-	new_combat_width = std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH));
+	new_combat_width = std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(min_combat_width), int32_t(max_combat_width));
 	// if the new combat width is smaller, remove the ones on the slots which are about to be shrunk away, and move them to reserves
 	if(new_combat_width < previous_combat_width) {
 		auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
@@ -5150,7 +5150,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(min_combat_width), int32_t(max_combat_width))));
 
 				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender, crossing_type::none);
@@ -5172,7 +5172,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(min_combat_width), int32_t(max_combat_width))));
 
 				add_army_to_battle(state, a, new_battle, par.role, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker, crossing_type::none);
@@ -7041,8 +7041,8 @@ struct regiment_damage_taken {
 	float org_damage = 0.0f;
 };
 struct regiment_damage_buffer {
-	std::array<regiment_damage_taken, MAX_COMBAT_WIDTH> att_front_damage{};
-	std::array<regiment_damage_taken, MAX_COMBAT_WIDTH> def_front_damage{};
+	std::array<regiment_damage_taken, max_combat_width> att_front_damage{};
+	std::array<regiment_damage_taken, max_combat_width> def_front_damage{};
 };
 
 
@@ -7057,7 +7057,7 @@ void land_battle_apply_damage(sys::state& state, dcon::land_battle_id battle, co
 	float defender_casualties = 0;
 	float attacker_casualties = 0;
 
-	auto apply_damage = [&]<battle_role DmgReceiverRole>(uint8_t slot_idx, std::array<battle_regiment,MAX_COMBAT_WIDTH>& combat_slots, const std::array<regiment_damage_taken, MAX_COMBAT_WIDTH>& dmg_to_apply) {
+	auto apply_damage = [&]<battle_role DmgReceiverRole>(uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots, const std::array<regiment_damage_taken, max_combat_width>& dmg_to_apply) {
 		auto bat_regiment = combat_slots[slot_idx];
 		if(bat_regiment.regiment) {
 			float actual_str_dmg = regiment_take_str_damage<regiment_dmg_source::combat>(state, bat_regiment.regiment, dmg_to_apply[slot_idx].strength_damage);
@@ -7111,7 +7111,7 @@ void land_battle_apply_damage(sys::state& state, dcon::land_battle_id battle, co
 
 	};
 
-	assert(combat_width <= MAX_COMBAT_WIDTH);
+	assert(combat_width <= max_combat_width);
 	for(uint8_t i = 0; i < combat_width; ++i) {
 		apply_damage.template operator()<battle_role::attacker>(i, att_front, dmg_buffer.att_front_damage);
 		apply_damage.template operator()<battle_role::defender>(i, def_front, dmg_buffer.def_front_damage);
@@ -7177,7 +7177,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	}
 
 
-	auto accumulate_line_damage = [&]<battle_role DmgDealerRole, battle_line DmgDealerLine>(uint8_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& dmg_dealer_line, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& dmg_receiver_line, std::array<regiment_damage_taken, MAX_COMBAT_WIDTH>& dmg_buffer) {
+	auto accumulate_line_damage = [&]<battle_role DmgDealerRole, battle_line DmgDealerLine>(uint8_t position, const std::array<battle_regiment, max_combat_width>& dmg_dealer_line, const std::array<battle_regiment, max_combat_width>& dmg_receiver_line, std::array<regiment_damage_taken, max_combat_width>& dmg_buffer) {
 		auto damage_dealer = dmg_dealer_line[position];
 		if(damage_dealer.regiment) {
 			assert(state.world.regiment_is_valid(damage_dealer.regiment));
@@ -7209,7 +7209,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	};
 	// accumulate the damage
 	regiment_damage_buffer dmg_buffer{ };
-	assert(combat_width <= MAX_COMBAT_WIDTH);
+	assert(combat_width <= max_combat_width);
 	for(uint8_t i = 0; i < combat_width; ++i) {
 		accumulate_line_damage.template operator()<battle_role::attacker, battle_line::backline>(i, att_back, def_front, dmg_buffer.def_front_damage);
 		accumulate_line_damage.template operator()<battle_role::defender, battle_line::backline>(i, def_back, att_front, dmg_buffer.att_front_damage);
@@ -7231,7 +7231,7 @@ void land_battle_compact_battle_slots(sys::state& state, dcon::land_battle_id ba
 	auto& def_front = state.world.land_battle_get_defender_front_line(battle);
 	auto& def_back = state.world.land_battle_get_defender_back_line(battle);
 
-	auto compact = [](std::array<battle_regiment, MAX_COMBAT_WIDTH>& a) {
+	auto compact = [](std::array<battle_regiment, max_combat_width>& a) {
 		int32_t low = 0;
 		while(low < 30 && a[low].regiment) {
 			low += 2;
@@ -7303,7 +7303,7 @@ void land_battle_clear_dead_regiments_from_battle_slots(sys::state& state, dcon:
 
 	// clear dead / retreated regiments out
 	// puts them back into the reserve
-	auto try_clear_regiment = [&](uint8_t slot_idx, std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots) {
+	auto try_clear_regiment = [&](uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots) {
 		auto current_regiment = combat_slots[slot_idx];
 		if(current_regiment.regiment && should_regiment_be_moved_to_reserves(state, current_regiment.regiment)) {
 			current_regiment.set_dig_in(0);
@@ -7350,7 +7350,7 @@ struct battle_regiment_fetch_result {
 };
 // Fetches the most effective regiment from a collection in accordance with its job (attacker or defender, backline or frontline) and its current position in the combat slots relative to the enemy combat slots
 template<battle_role Role, battle_line Line>
-battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::state& state, int32_t position, std::span<const battle_regiment> regiment_span, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_frontline_slots) {
+battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::state& state, int32_t position, std::span<const battle_regiment> regiment_span, const std::array<battle_regiment, max_combat_width>& opposing_frontline_slots) {
 	battle_regiment_fetch_result best_result = {-1, 0 };
 	for(size_t reg_idx = regiment_span.size(); reg_idx-- > 0;) {
 		battle_regiment current_regiment = regiment_span[reg_idx];
@@ -7385,7 +7385,7 @@ void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_b
 
 
 	// return false if there were no suitable units to deploy in reserves
-	auto try_deploy_regiment = [&]<battle_role Role, battle_line Line>(uint8_t slot_idx, std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots, std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_frontline_combat_slots) {
+	auto try_deploy_regiment = [&]<battle_role Role, battle_line Line>(uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots, std::array<battle_regiment, max_combat_width>& opposing_frontline_combat_slots) {
 		const auto current_regiment = combat_slots[slot_idx];
 		if(!current_regiment.regiment) {
 			battle_regiment_fetch_result result = fetch_best_battle_unit_from_collection<Role, Line>(state, slot_idx, reserves, opposing_frontline_combat_slots);
@@ -7453,7 +7453,7 @@ void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_b
 }
 
 
-battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots) {
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots) {
 	// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
 	if(combat_slots[position].regiment) {
 		return combat_slots[position];
@@ -7471,7 +7471,7 @@ battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_
 }
 
 // gets the land combat target of a regiment in a battle, given its combat width position and the opposing frontline. Will return a regiment id 0 if it is unable to taget any regiment
-battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line)
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line)
 {
 	auto tech_nation = tech_nation_for_regiment(state, damage_dealer);
 	const auto& stats = state.world.nation_get_unit_stats(tech_nation, state.world.regiment_get_type(damage_dealer));

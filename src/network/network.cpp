@@ -2457,8 +2457,8 @@ state.host_settings.y = data[x]
 		HS_LOAD("oos_debug_mode", oos_debug_mode);
 		HS_LOAD("max_players", max_players);
 
-		if(state.host_settings.max_players > MAX_PLAYER_COUNT) {
-			state.host_settings.max_players = MAX_PLAYER_COUNT;
+		if(state.host_settings.max_players > max_player_count) {
+			state.host_settings.max_players = max_player_count;
 		}
 	}
 }

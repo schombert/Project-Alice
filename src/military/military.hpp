@@ -491,8 +491,8 @@ void delete_ship_safe(sys::state& state, dcon::ship_id ship);
 // Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
 void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 // Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
-battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots);
-battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line);
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots);
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);

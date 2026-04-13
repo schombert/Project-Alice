@@ -45,11 +45,11 @@ enum class province_building_type : uint8_t {
 	railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator
 };
 constexpr inline int32_t max_building_types = 5;
-constexpr inline size_t MAX_PRODUCTION_TYPE_BONUSES = 6;
+constexpr inline size_t max_production_type_bonuses = 6;
 }
 
 namespace military {
-	constexpr uint8_t MAX_COMBAT_WIDTH = 30;
+	constexpr uint8_t max_combat_width = 30;
 }
 // global namespace
 

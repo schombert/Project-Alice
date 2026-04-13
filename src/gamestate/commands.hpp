@@ -488,7 +488,7 @@ struct chat_message_data {
 	network::chat_message_targets targets;
 	uint16_t msg_len = 0;
 	const char* body() const {
-		return reinterpret_cast<const char*>(&msg_len + 1);
+		return reinterpret_cast<const char*>(this + 1);
 	}
 };
 
@@ -618,12 +618,11 @@ struct command_handler {
 
 };
 
-constexpr uint32_t MAX_MP_STATE_SIZE = 500000000; // max 500 MB for the entire MP state
-constexpr uint32_t MAX_SAVE_SIZE = 32000000; // max 32 MB for entire save
-constexpr uint32_t MAX_MP_DATA_SIZE = 5000000; // max 5 MB for mp data
-constexpr uint32_t MAX_CHAT_MESSAGE_TARGETS = network::MAX_PLAYER_COUNT;
-constexpr uint32_t MAX_REGIMENT_COUNT = 1000; // theoretical max regiments to be able to be sent in a single command
-constexpr uint32_t MAX_SHIP_COUNT = 1000; // theoretical max ships to be able to be sent in a single commnad
+constexpr uint32_t max_mp_state_size = 500000000; // max 500 MB for the entire MP state
+constexpr uint32_t max_save_size = 32000000; // max 32 MB for entire save
+constexpr uint32_t max_mp_data_size = 5000000; // max 5 MB for mp data
+constexpr uint32_t max_regiment_count = 1000; // theoretical max regiments to be able to be sent in a single command
+constexpr uint32_t max_ship_count = 1000; // theoretical max ships to be able to be sent in a single commnad
 
 // Defines max and min sizes for each command, aswell as handlers for certain functions
 constexpr enum_array<command_type, command_handler> command_type_handlers = {
@@ -691,8 +690,8 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{command_type::embark_army, command_handler{ sizeof(command::army_movement_data), sizeof(command::army_movement_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::merge_armies, command_handler{ sizeof(command::merge_army_data), sizeof(command::merge_army_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::merge_navies, command_handler{ sizeof(command::merge_navy_data), sizeof(command::merge_navy_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{command_type::split_army, command_handler{ sizeof(command::split_army_data), sizeof(command::split_army_data) + (MAX_REGIMENT_COUNT * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{command_type::split_navy, command_handler{ sizeof(command::split_navy_data), sizeof(command::split_navy_data) + (MAX_SHIP_COUNT * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{command_type::split_army, command_handler{ sizeof(command::split_army_data), sizeof(command::split_army_data) + (max_regiment_count * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{command_type::split_navy, command_handler{ sizeof(command::split_navy_data), sizeof(command::split_navy_data) + (max_ship_count * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::delete_army, command_handler{ sizeof(command::army_movement_data), sizeof(command::army_movement_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::delete_navy, command_handler{ sizeof(command::navy_movement_data), sizeof(command::navy_movement_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::naval_retreat, command_handler{ sizeof(command::retreat_from_naval_battle_data), sizeof(command::retreat_from_naval_battle_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -723,8 +722,8 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{command_type::nbutton_script, command_handler{ sizeof(command::nbutton_data), sizeof(command::nbutton_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{command_type::set_factory_type_priority, command_handler{ sizeof(command::set_factory_priority_data), sizeof(command::set_factory_priority_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::crisis_add_wargoal, command_handler{ sizeof(command::new_war_goal_data), sizeof(command::new_war_goal_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::change_land_unit_type, command_handler{ sizeof(command::change_land_unit_type_data), sizeof(command::change_land_unit_type_data) + (MAX_REGIMENT_COUNT * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::change_naval_unit_type, command_handler{ sizeof(command::change_naval_unit_type_data), sizeof(command::change_naval_unit_type_data) + (MAX_SHIP_COUNT * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::change_land_unit_type, command_handler{ sizeof(command::change_land_unit_type_data), sizeof(command::change_land_unit_type_data) + (max_regiment_count * sizeof(dcon::regiment_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::change_naval_unit_type, command_handler{ sizeof(command::change_naval_unit_type_data), sizeof(command::change_naval_unit_type_data) + (max_ship_count * sizeof(dcon::ship_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::take_province, command_handler{ sizeof(command::generic_location_data), sizeof(command::generic_location_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::grant_province, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::ask_for_free_trade_agreement, command_handler{ sizeof(command::diplo_action_data), sizeof(command::diplo_action_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -739,20 +738,20 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::toggle_production_directive, command_handler{ sizeof(command::production_directive_data), sizeof(command::production_directive_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::load_saved_game, command_handler{sizeof(command::load_save_game_data), sizeof(command::load_save_game_data) + FILENAME_MAX, &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	// network
-	{ command_type::notify_oos_gamestate, command_handler{ sizeof(command::notify_oos_gamestate_data), sizeof(command::notify_oos_gamestate_data) + MAX_MP_STATE_SIZE, &notify_oos_gamestate_is_host_receive_command, &command_handler::false_is_host_broadcast_command   } },
+	{ command_type::notify_oos_gamestate, command_handler{ sizeof(command::notify_oos_gamestate_data), sizeof(command::notify_oos_gamestate_data) + max_mp_state_size, &notify_oos_gamestate_is_host_receive_command, &command_handler::false_is_host_broadcast_command   } },
 	{ command_type::notify_player_ban, command_handler{ sizeof(command::notify_player_ban_data), sizeof(command::notify_player_ban_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_kick, command_handler{ sizeof(command::notify_player_kick_data), sizeof(command::notify_player_kick_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_picks_nation, command_handler{ sizeof(command::nation_pick_data), sizeof(command::nation_pick_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_joins, command_handler{ sizeof(command::notify_joins_data), sizeof(command::notify_joins_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_leaves, command_handler{ sizeof(command::notify_leaves_data), sizeof(command::notify_leaves_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_oos, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) + MAX_SAVE_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_save_loaded } },
+	{ command_type::notify_save_loaded, command_handler{ sizeof(command::notify_save_loaded_data), sizeof(command::notify_save_loaded_data) + max_save_size, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_save_loaded } },
 	{ command_type::notify_start_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_stop_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_pause_game, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_reload, command_handler{ sizeof(command::notify_reload_data), sizeof(command::notify_reload_data), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::advance_tick, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
-	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len + (MAX_CHAT_MESSAGE_TARGETS * sizeof(dcon::mp_player_id)), &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
+	{ command_type::chat_message, command_handler{ sizeof(command::chat_message_data), sizeof(command::chat_message_data) + ui::max_chat_message_len, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::network_inactivity_ping, command_handler{ sizeof(command::advance_tick_data), sizeof(command::advance_tick_data), &command_handler::true_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::notify_player_fully_loaded, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::notify_player_is_loading, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
@@ -760,7 +759,7 @@ constexpr enum_array<command_type, command_handler> command_type_handlers = {
 	{ command_type::network_populate, command_handler{ 0, 0, &command_handler::true_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 	{ command_type::console_command, command_handler{ 0, 0, &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
 	{ command_type::resync_lobby, command_handler{ 0, 0 , &command_handler::false_is_host_receive_command, &command_handler::false_is_host_broadcast_command } },
-	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + MAX_MP_DATA_SIZE, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_mp_data } },
+	{ command_type::notify_mp_data, command_handler{ sizeof(notify_mp_data_data), sizeof(notify_mp_data_data) + max_mp_data_size, &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command, &pre_execution_broadcast_modifications_notify_mp_data } },
 	{ command_type::notify_player_timeout, command_handler{ sizeof(notify_player_timeout_data), sizeof(notify_player_timeout_data), &command_handler::false_is_host_receive_command, &command_handler::true_is_host_broadcast_command } },
 };
 

@@ -316,6 +316,8 @@ public:
 
 	using iterator = std::array<data_type, capacity>::iterator;
 	using const_iterator = std::array<data_type, capacity>::const_iterator;
+	using reverse_iterator = std::array<data_type, capacity>::reverse_iterator;
+	using const_reverse_iterator = std::array<data_type, capacity>::const_reverse_iterator;
 
 	constexpr fixed_size_vector() {
 		storage_size = 0;
@@ -326,14 +328,29 @@ public:
 		storage_size = initializer.size();
 		std::copy(initializer.begin(), initializer.end(), data());
 	}
+	constexpr fixed_size_vector(const fixed_size_vector& obj) {
+		_storage(obj._storage);
+		storage_size = obj.storage_size;
+	}
+
+	constexpr fixed_size_vector(fixed_size_vector&& obj) {
+		_storage(std::move(obj._storage));
+		storage_size = obj.storage_size;
+	}
 
 	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity> const& other) noexcept {
 		_storage = other._storage;
+		storage_size = other.storage_size;
 		return *this;
 	}
 	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity>&& other) noexcept {
 		_storage = std::move(other._storage);
+		storage_size = other.storage_size;
 		return *this;
+	}
+
+	constexpr size_t total_capacity() const {
+		return capacity;
 	}
 
 
@@ -365,50 +382,51 @@ public:
 		remove_at(index);
 	}
 
-	void clear() {
+	constexpr void clear() {
 		_storage.fill(data_type{});
 		storage_size = 0;
 	}
 
-	auto begin() const {
+	constexpr auto begin() const {
 		return _storage.begin();
 	}
-	auto begin() {
+	constexpr auto begin() {
 		return _storage.begin();
 	}
-	auto end() const {
+	constexpr auto end() const {
 		return const_iterator(data(), size());
 	}
-	auto end() {
+	constexpr auto end() {
 		return iterator(data(), size());
 	}
-	auto rbegin() {
-		return iterator(end());
+	constexpr auto rbegin() {
+		return reverse_iterator(end());
 	}
-	auto rbegin() const {
-		return const_iterator(end());
+	constexpr auto rbegin() const {
+		return const_reverse_iterator(end());
 	}
-	auto rend() const {
-		return const_iterator(begin());
+	constexpr auto rend() const {
+		return const_reverse_iterator(begin());
 	}
-	auto rend() {
-		return iterator(begin());
+	constexpr auto rend() {
+		return reverse_iterator(begin());
 	}
-	auto size() const {
+	constexpr size_t size() const {
 		return storage_size;
 	}
-	void resize(size_t new_size) {
+	constexpr void resize(size_t new_size) {
 		if(new_size < size()) {
-			std::fill_n(_storage[new_size - 1], size() - new_size, data_type{ });
+			std::fill_n(&_storage[new_size], size() - new_size, data_type{ });
 		}
 		storage_size = new_size;
 	}
-	void pop_back() {
+	constexpr void pop_back() {
 		assert(size() != 0);
 		_storage[size() - 1] = data_type{ };
 		storage_size--;
 	}
-	bool push_back(data_type&& v) {
+	// Returns true if there were enough capacity to add the item, false if not
+	constexpr bool push_back(data_type&& v) {
 		if(size() != capacity) {
 			_storage[size()] = std::move(v);
 			storage_size++;
@@ -418,7 +436,8 @@ public:
 			return false;
 		}
 	}
-	bool push_back(const data_type& v) {
+	// Returns true if there were enough capacity to add the item, false if not
+	constexpr bool push_back(const data_type& v) {
 		if(size() != capacity) {
 			_storage[size()] = v;
 			storage_size++;
@@ -427,11 +446,17 @@ public:
 			return false;
 		}
 	}
-	data_type& back() {
-		return _storage.back();
+	constexpr data_type& back() {
+		return _storage[size() -1];
 	}
-	data_type const& back() const {
-		return _storage.back();
+	constexpr data_type const& back() const {
+		return _storage[size() - 1];
+	}
+	constexpr data_type& front() {
+		return _storage.front();
+	}
+	constexpr data_type const& front() const {
+		return _storage.front();
 	}
 
 };

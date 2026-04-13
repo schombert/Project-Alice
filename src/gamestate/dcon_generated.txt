@@ -537,7 +537,7 @@ object {
 	}
 	property{
 		name{ factory_bonuses }
-		type{ std::array<economy::production_type_bonus,economy::MAX_PRODUCTION_TYPE_BONUSES> }
+		type{ std::array<economy::production_type_bonus,economy::max_production_type_bonuses> }
 		tag{ scenario }
 	}
 	property{
@@ -2733,22 +2733,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 
