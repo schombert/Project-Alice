@@ -12,7 +12,7 @@ constexpr size_t RECV_BUFFER_SIZE = 262144;
 
 namespace sys {
 
-constexpr int32_t max_event_options = 8;
+constexpr int32_t max_event_options = 12;
 constexpr uint32_t max_gamerule_settings = 15;
 
 enum class army_group_regiment_status : uint8_t {
@@ -45,10 +45,11 @@ enum class province_building_type : uint8_t {
 	railroad, fort, naval_base, bank, university, last, factory, province_selector, province_immigrator
 };
 constexpr inline int32_t max_building_types = 5;
+constexpr inline size_t max_production_type_bonuses = 6;
 }
 
 namespace military {
-	constexpr uint8_t MAX_COMBAT_WIDTH = 30;
+	constexpr uint8_t max_combat_width = 30;
 }
 // global namespace
 

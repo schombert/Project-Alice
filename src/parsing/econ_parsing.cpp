@@ -239,20 +239,13 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 			factory_handle.set_is_coastal(pt.is_coastal);
 			factory_handle.set_base_workforce(pt.workforce);
 
-			if(pt.bonuses.size() >= 1) {
-				factory_handle.set_bonus_1_amount(pt.bonuses[0].value);
-				factory_handle.set_bonus_1_trigger(pt.bonuses[0].trigger);
-			}
-			if(pt.bonuses.size() >= 2) {
-				factory_handle.set_bonus_2_amount(pt.bonuses[1].value);
-				factory_handle.set_bonus_2_trigger(pt.bonuses[1].trigger);
-			}
-			if(pt.bonuses.size() >= 3) {
-				factory_handle.set_bonus_3_amount(pt.bonuses[2].value);
-				factory_handle.set_bonus_3_trigger(pt.bonuses[2].trigger);
-			}
-			if(pt.bonuses.size() >= 4) {
-				err.accumulated_errors += "Too many factory bonuses (" + std::to_string(pt.bonuses.size()) + ") for " + std::string(name) + " (" + err.file_name + ")\n";
+			auto& bonuses = factory_handle.get_factory_bonuses();
+			for(uint32_t i = 0;i < pt.bonuses.size();i++) {
+				if(i >= economy::max_production_type_bonuses) {
+					err.accumulated_errors += "Too many factory bonuses (" + std::to_string(pt.bonuses.size()) + ") for " + std::string(name) + " (" + err.file_name + ")\n";
+					break; // no more space for production bonuses
+				}
+				bonuses[i] = economy::production_type_bonus{ pt.bonuses[i].value, pt.bonuses[i].trigger };
 			}
 		} else {
 			err.accumulated_warnings += "Unused factory production type: " + std::string(name) + "\n";

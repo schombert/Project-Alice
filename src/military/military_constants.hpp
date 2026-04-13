@@ -30,6 +30,6 @@ enum class retreat_type : bool {
 	manual = 1,
 };
 
-constexpr uint8_t MIN_COMBAT_WIDTH = 2;
+constexpr uint8_t min_combat_width = 2;
 
 }

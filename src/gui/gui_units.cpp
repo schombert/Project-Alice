@@ -23,6 +23,77 @@
 
 namespace ui {
 
+std::vector<dcon::ship_id> get_ships_to_split_half(sys::state& state, dcon::navy_id navy_to_split) {
+	std::vector<dcon::ship_id> ships_to_split;
+
+	bool big_split = false;
+	bool sm_split = false;
+	bool tra_split = false;
+
+	auto navy_membership = state.world.navy_get_navy_membership(navy_to_split);
+	for(auto t : navy_membership) {
+		auto type = state.military_definitions.unit_base_definitions[t.get_ship().get_type()].type;
+		if(type == military::unit_type::big_ship) {
+			if(big_split) {
+				ships_to_split.push_back(t.get_ship());
+			}
+			big_split = !big_split;
+		} else if(type == military::unit_type::light_ship) {
+			if(sm_split) {
+				ships_to_split.push_back(t.get_ship());
+			}
+			sm_split = !sm_split;
+		} else if(type == military::unit_type::transport) {
+			if(tra_split) {
+				ships_to_split.push_back(t.get_ship());
+			}
+			tra_split = !tra_split;
+		}
+	}
+
+	// If the navy could not be split properly (because there are only 1 of each unit type) and the navy has more than 1 ship, then split out the first ship as a new navy
+	if(ships_to_split.size() == 0 && navy_membership.end() - navy_membership.begin() > 1) {
+		auto first_ship = (*navy_membership.begin()).get_ship();
+		ships_to_split.push_back(first_ship);
+	}
+
+	return ships_to_split;
+}
+
+std::vector<dcon::regiment_id> get_regiments_to_split_half(sys::state& state, dcon::army_id army_to_split) {
+	bool inf_split = false;
+	bool cav_split = false;
+	bool art_split = false;
+
+	std::vector<dcon::regiment_id> regiments_to_split;
+	auto army_membership = state.world.army_get_army_membership(army_to_split);
+	for(auto t : army_membership) {
+		auto type = state.military_definitions.unit_base_definitions[t.get_regiment().get_type()].type;
+		if(type == military::unit_type::infantry) {
+			if(inf_split) {
+				regiments_to_split.push_back(t.get_regiment());
+			}
+			inf_split = !inf_split;
+		} else if(type == military::unit_type::cavalry) {
+			if(cav_split) {
+				regiments_to_split.push_back(t.get_regiment());
+			}
+			cav_split = !cav_split;
+		} else if(type == military::unit_type::support || type == military::unit_type::special) {
+			if(art_split) {
+				regiments_to_split.push_back(t.get_regiment());
+			}
+			art_split = !art_split;
+		}
+	}
+	// If the army could not be split properly (because there are only 1 of each unit type) and the army has more than 1 regiment, then split out the first regiment as a new army
+	if(regiments_to_split.size() == 0 && army_membership.end() - army_membership.begin() > 1) {
+		auto first_reg = (*army_membership.begin()).get_regiment();
+		regiments_to_split.push_back(first_reg);
+	}
+	return regiments_to_split;
+}
+
 
 class unit_frame_bg : public button_element_base {
 public:
@@ -749,43 +820,16 @@ class unit_selection_new_unit_button : public button_element_base {
 public:
 	void button_action(sys::state& state) noexcept override {
 		// No selected Regiments or Ships
-		if(!state.selected_regiments[0] && !state.selected_ships[0]) {
+		if(state.selected_regiments.size() == 0 && state.selected_ships.size() == 0) {
 			send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action::reorg});
 		} else {
 			auto content = retrieve<T>(state, parent);
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
-				std::array<dcon::regiment_id, command::num_packed_units> tosplit{};
-				for(size_t i = 0; i < state.selected_regiments.size(); i++) {
-					if(state.selected_regiments[i]) {
-						tosplit[i % command::num_packed_units] = state.selected_regiments[i];
-					} else {
-						break;
-					}
-					if(i % command::num_packed_units == command::num_packed_units - 1) {
-						command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-						tosplit = {};
-					}
-				}
-
-				command::mark_regiments_to_split(state, state.local_player_nation, tosplit);
-				command::split_army(state, state.local_player_nation, content);
+			
+				command::split_army(state, state.local_player_nation, content, state.selected_regiments, true);
 				sys::selected_regiments_clear(state);
 			} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-				std::array<dcon::ship_id, command::num_packed_units> tosplit{};
-				for(size_t i = 0; i < state.selected_ships.size(); i++) {
-					if(state.selected_ships[i]) {
-						tosplit[i % command::num_packed_units] = state.selected_ships[i];
-					} else {
-						break;
-					}
-					if(i % command::num_packed_units == command::num_packed_units - 1) {
-						command::mark_ships_to_split(state, state.local_player_nation, tosplit);
-						tosplit = {};
-					}
-				}
-
-				command::mark_ships_to_split(state, state.local_player_nation, tosplit);
-				command::split_navy(state, state.local_player_nation, content);
+				command::split_navy(state, state.local_player_nation, content, state.selected_ships, true);
 				sys::selected_ships_clear(state);
 			}
 		}
@@ -797,10 +841,15 @@ public:
 
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
+		// Check if the first regiment/ship would be allowed to be split off
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			disabled = !command::can_split_army(state, state.local_player_nation, content);
+			auto army_membership = state.world.army_get_army_membership(content);
+			auto first_reg = (*army_membership.begin()).get_regiment().id;
+			disabled = !military::can_split_army<command::actor::player>(state, state.local_player_nation, content, std::span<const dcon::regiment_id>{&first_reg, size_t(1)} );
 		} else if constexpr(std::is_same_v<T, dcon::navy_id>) {
-			disabled = !command::can_split_navy(state, state.local_player_nation, content);
+			auto navy_membership = state.world.navy_get_navy_membership(content);
+			auto first_ship = (*navy_membership.begin()).get_ship().id;
+			disabled = !military::can_split_navy<command::actor::player>(state, state.local_player_nation, content, std::span<const dcon::ship_id>{ &first_ship, size_t(1)});
 		}
 	}
 
@@ -815,9 +864,11 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			command::evenly_split_army(state, state.local_player_nation, content);
+			auto to_split = get_regiments_to_split_half(state, content);
+			command::split_army(state, state.local_player_nation, content, to_split, false);
 		} else {
-			command::evenly_split_navy(state, state.local_player_nation, content);
+			auto to_split = get_ships_to_split_half(state, content);
+			command::split_navy(state, state.local_player_nation, content, to_split, false);
 		}
 		state.select(content); //deselect original
 	}
@@ -825,9 +876,11 @@ public:
 	void on_update(sys::state& state) noexcept override {
 		auto content = retrieve<T>(state, parent);
 		if constexpr(std::is_same_v<T, dcon::army_id>) {
-			disabled = !command::can_evenly_split_army(state, state.local_player_nation, content);
+			auto to_split = get_regiments_to_split_half(state, content);
+			disabled = !military::can_split_army<command::actor::player>(state, state.local_player_nation, content, to_split);
 		} else {
-			disabled = !command::can_evenly_split_navy(state, state.local_player_nation, content);
+			auto to_split = get_ships_to_split_half(state, content);
+			disabled = !military::can_split_navy<command::actor::player>(state, state.local_player_nation, content, to_split);
 		}
 	}
 
@@ -1044,7 +1097,7 @@ public:
 class unit_selection_unit_upgrade_button : public button_element_base {
 public:
 	void on_update(sys::state& state) noexcept override {
-		disabled = !(state.selected_regiments[0] || state.selected_ships[0]);
+		disabled = (state.selected_regiments.size() == 0 && state.selected_ships.size() == 0);
 	}
 	void button_action(sys::state& state) noexcept override {
 		send(state, parent, element_selection_wrapper<unitpanel_action>{unitpanel_action{ unitpanel_action::upgrade }});
@@ -1833,28 +1886,16 @@ public:
 			auto regs = state.world.army_get_army_membership(a);
 			int32_t army_cap = int32_t(regs.end() - regs.begin());
 			int32_t to_split = army_cap - max_cap;
-			//can mark 10 regiments to be split at a time
-			std::array<dcon::regiment_id, command::num_packed_units> data;
-			int32_t i = 0;
-			data.fill(dcon::regiment_id{});
+			// split extra regiments out first
+			std::vector<dcon::regiment_id> regiments_to_split;
 			for(auto reg : state.world.army_get_army_membership(a)) {
 				if(to_split == 0)
 					break;
-				//
-				data[i] = reg.get_regiment();
-				++i;
-				if(i >= int32_t(command::num_packed_units)) { //reached max allowed
-					command::mark_regiments_to_split(state, state.local_player_nation, data);
-					data.fill(dcon::regiment_id{});
-					i = 0;
-				}
-				//
+
+				regiments_to_split.push_back(reg.get_regiment());
 				--to_split;
 			}
-			if(i > 0) { //leftovers
-				command::mark_regiments_to_split(state, state.local_player_nation, data);
-			}
-			command::split_army(state, state.local_player_nation, a);
+			command::split_army(state, state.local_player_nation, a, regiments_to_split);
 			command::embark_army(state, state.local_player_nation, a);
 		} else { //no split
 			command::embark_army(state, state.local_player_nation, a);
@@ -2550,75 +2591,56 @@ class unit_type_listbox_entry_image : public image_element_base {
 
 class unit_type_listbox_entry_label : public button_element_base {
 	void on_update(sys::state& state) noexcept override {
-		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
+		auto unit_type = retrieve<dcon::unit_type_id>(state, parent);
 
-		if(regiment_type) {
-			auto name_string_def = state.military_definitions.unit_base_definitions[regiment_type].name;
+		if(unit_type) {
+			auto name_string_def = state.military_definitions.unit_base_definitions[unit_type].name;
 			set_button_text(state, text::produce_simple_string(state, name_string_def));
 		}
 
-		auto const& ut = state.military_definitions.unit_base_definitions[regiment_type];
-		if(!ut.active && !state.world.nation_get_active_unit(state.local_player_nation, regiment_type)) {
-			disabled = true;
-			return;
-		}
-
-		dcon::regiment_id regs[command::num_packed_units];
-		dcon::ship_id ships[command::num_packed_units];
-		auto allowed_transition = true;
-
-		for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-			if(state.selected_regiments[i]) {
-				regs[i % command::num_packed_units] = state.selected_regiments[i];
-			}
-			if(state.selected_ships[i]) {
-				ships[i % command::num_packed_units] = state.selected_ships[i];
-			}
-
-			if(i % command::num_packed_units == 0) {
-				allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
-				if(!allowed_transition) {
-					disabled = true; return;
+		auto const& unit_type_def = state.military_definitions.unit_base_definitions[unit_type];
+		if(unit_type_def.is_land) {
+			bool allowed_transition = [&]() {
+				for(auto regiment : state.selected_regiments) {
+					if(!military::can_change_land_unit_type<command::actor::player>(state, state.local_player_nation, regiment, unit_type)) {
+						return false;
+					}
 				}
-			}
-
-			if(!state.selected_regiments[i] && !state.selected_ships[i]) {
-				break;
+				return true;
+			}();
+			if(!allowed_transition) {
+				disabled = true; return;
 			}
 		}
-
-		allowed_transition = command::can_change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
-		if(!allowed_transition) {
-			disabled = true;
-			return;
+		else {
+			bool allowed_transition = [&]() {
+				for(auto ship : state.selected_ships) {
+					if(!military::can_change_naval_unit_type<command::actor::player>(state, state.local_player_nation, ship, unit_type)) {
+						return false;
+					}
+				}
+				return true;
+				}();
+			if(!allowed_transition) {
+				disabled = true; return;
+			}
+			
 		}
 
 		disabled = false;
 	}
 
 	void button_action(sys::state& state) noexcept override {
-		auto regiment_type = retrieve<dcon::unit_type_id>(state, parent);
-		dcon::regiment_id regs[command::num_packed_units];
-		dcon::ship_id ships[command::num_packed_units];
+		auto unit_type = retrieve<dcon::unit_type_id>(state, parent);
 
-		for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-			if(state.selected_regiments[i]) {
-				regs[i % command::num_packed_units] = state.selected_regiments[i];
-			}
-			if(state.selected_ships[i]) {
-				ships[i % command::num_packed_units] = state.selected_ships[i];
-			}
+		auto const& unit_type_def = state.military_definitions.unit_base_definitions[unit_type];
 
-			if(i % command::num_packed_units == 0) {
-				command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
-			}
-
-			if(!state.selected_regiments[i] && !state.selected_ships[i]) {
-				break;
-			}
+		if(unit_type_def.is_land) {
+			command::change_land_unit_type(state, state.local_player_nation, state.selected_regiments, unit_type);
 		}
-
-		command::change_unit_type(state, state.local_player_nation, regs, ships, regiment_type);
+		else {
+			command::change_naval_unit_type(state, state.local_player_nation, state.selected_ships, unit_type);
+		}
 		sys::selected_regiments_clear(state);
 		sys::selected_ships_clear(state);
 	}
@@ -2638,15 +2660,12 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 		text::add_line_break_to_layout(state, contents);
 
-		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", !state.selected_regiments[0] || !state.selected_ships[0]);
+		text::add_line_with_condition(state, contents, "unit_upgrade_explain_1", state.selected_regiments.size() > 0 || state.selected_ships.size() > 0);
 		text::add_line_with_condition(state, contents, "unit_upgrade_explain_2", ut.active || state.world.nation_get_active_unit(state.local_player_nation, new_type));
 
 		if(!ut.is_land && ut.type == military::unit_type::big_ship) {
 			auto any_non_big_ship = false;
 			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-				if(!state.selected_ships[i]) {
-					break;
-				}
 				auto shiptype = state.world.ship_get_type(state.selected_ships[i]);
 				auto st = state.military_definitions.unit_base_definitions[shiptype];
 				if(st.type != military::unit_type::big_ship) {
@@ -2659,11 +2678,8 @@ class unit_type_listbox_entry_label : public button_element_base {
 
 		if(ut.is_land) {
 			auto any_breaking_army_check = false;
-			for(unsigned i = 0; i < state.selected_regiments.size(); i++) {
-				if(!state.selected_regiments[i]) {
-					break;
-				}
-				auto a = state.world.regiment_get_army_from_army_membership(state.selected_regiments[i]);
+			for(auto regiment : state.selected_regiments) {
+				auto a = state.world.regiment_get_army_from_army_membership(regiment);
 
 				if(state.world.army_get_controller_from_army_control(a) != state.local_player_nation || state.world.army_get_is_retreating(a) || state.world.army_get_navy_from_army_transport(a) ||
 				bool(state.world.army_get_battle_from_army_battle_participation(a))) {
@@ -2678,11 +2694,8 @@ class unit_type_listbox_entry_label : public button_element_base {
 			auto any_breaking_navy_check = false;
 			auto any_breaking_navy_base_check = false;
 			// Navy-level checks
-			for(unsigned i = 0; i < state.selected_ships.size(); i++) {
-				if(!state.selected_ships[i]) {
-					break;
-				}
-				auto n = state.world.ship_get_navy_from_navy_membership(state.selected_ships[i]);
+			for(auto ship : state.selected_ships) {
+				auto n = state.world.ship_get_navy_from_navy_membership(ship);
 				auto embarked = state.world.navy_get_army_transport(n);
 				if(state.world.navy_get_controller_from_navy_control(n) != state.local_player_nation || state.world.navy_get_is_retreating(n) ||
 					bool(state.world.navy_get_battle_from_navy_battle_participation(n)) || embarked.begin() != embarked.end()) {
@@ -2766,7 +2779,7 @@ public:
 	}
 
 	void on_update(sys::state& state) noexcept override {
-		if(!state.selected_regiments.at(0) && !state.selected_ships.at(0)) {
+		if(state.selected_regiments.size() == 0 && state.selected_ships.size() == 0) {
 			set_visible(state, false);
 			return;
 		}
@@ -3277,18 +3290,26 @@ public:
 	void button_action(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
-			command::evenly_split_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+			auto army = std::get<dcon::army_id>(foru);
+			auto to_split = get_regiments_to_split_half(state, army);
+			military::split_army<command::actor::player>(state, state.local_player_nation, army, to_split);
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			command::evenly_split_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+			auto navy = std::get<dcon::navy_id>(foru);
+			auto to_split = get_ships_to_split_half(state, navy);
+			military::split_navy<command::actor::player>(state, state.local_player_nation, navy, to_split);
 		}
 	}
 
 	void on_update(sys::state& state) noexcept override {
 		auto foru = retrieve<unit_var>(state, parent);
 		if(std::holds_alternative<dcon::army_id>(foru)) {
-			disabled = !command::can_evenly_split_army(state, state.local_player_nation, std::get<dcon::army_id>(foru));
+			auto army = std::get<dcon::army_id>(foru);
+			auto to_split = get_regiments_to_split_half(state, army);
+			disabled = !military::can_split_army<command::actor::player>(state, state.local_player_nation, army, to_split);
 		} else if(std::holds_alternative<dcon::navy_id>(foru)) {
-			disabled = !command::can_evenly_split_navy(state, state.local_player_nation, std::get<dcon::navy_id>(foru));
+			auto navy = std::get<dcon::navy_id>(foru);
+			auto to_split = get_ships_to_split_half(state, navy);
+			disabled = !military::can_split_navy<command::actor::player>(state, state.local_player_nation, navy, to_split);
 		}
 	}
 

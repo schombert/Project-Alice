@@ -196,6 +196,10 @@ void recalculate_markets_distance(sys::state& state) {
 		state.world.market_set_max_throughput(markets, throughput);
 	});
 
+	static tagged_vector<fixed_bool_t, dcon::trade_route_id> to_delete;
+	to_delete.resize(state.world.trade_route_size());
+	std::fill(to_delete.begin(), to_delete.end(), false);
+
 	state.world.execute_parallel_over_trade_route([&](auto routes) {
 		// recalculate effective distance
 		auto markets_0 = ve::apply([&](auto route) { return state.world.trade_route_get_connected_markets(route, 0); }, routes);
@@ -211,6 +215,11 @@ void recalculate_markets_distance(sys::state& state) {
 
 				auto coast_0 = province::state_get_coastal_capital(state, sid_0);
 				auto coast_1 = province::state_get_coastal_capital(state, sid_1);
+				// if no coastal caapital on either one of them, then delete the sea trade route as it dosent make sense to keep
+				if(!coast_1 || !coast_0) {
+					to_delete[route] = true;
+					return;
+				}
 				auto owner_0 = state.world.province_get_nation_from_province_ownership(coast_0);
 				auto owner_1 = state.world.province_get_nation_from_province_ownership( coast_1);
 				auto transport_0 = military::get_best_transport(state, owner_0, false, false);
@@ -318,6 +327,13 @@ void recalculate_markets_distance(sys::state& state) {
 			}
 		}, sids_0, sids_1, routes);
 	});
+	// delete marked trade routes
+	for(auto i = state.world.trade_route_size(); i-- > 0;) {
+		dcon::trade_route_id trade_route{ dcon::trade_route_id::value_base_t(i) };
+		if(to_delete[trade_route]) {
+			state.world.delete_trade_route(trade_route);
+		}
+	}
 }
 
 struct parent_link {

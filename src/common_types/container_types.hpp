@@ -306,6 +306,161 @@ public:
 	}
 };
 
+// A fixed-size array wrapper which implements a vector-like interface for keeping track of size.
+template<typename data_type, size_t capacity>
+class fixed_size_vector {
+private:
+	size_t storage_size;
+	std::array<data_type, capacity> _storage{};
+public:
+
+	using iterator = std::array<data_type, capacity>::iterator;
+	using const_iterator = std::array<data_type, capacity>::const_iterator;
+	using reverse_iterator = std::array<data_type, capacity>::reverse_iterator;
+	using const_reverse_iterator = std::array<data_type, capacity>::const_reverse_iterator;
+
+	constexpr fixed_size_vector() {
+		storage_size = 0;
+	}
+
+	constexpr fixed_size_vector(const std::initializer_list<data_type> initializer) {
+		assert(initializer.size() <= capacity);
+		storage_size = initializer.size();
+		std::copy(initializer.begin(), initializer.end(), data());
+	}
+	constexpr fixed_size_vector(const fixed_size_vector& obj) {
+		_storage(obj._storage);
+		storage_size = obj.storage_size;
+	}
+
+	constexpr fixed_size_vector(fixed_size_vector&& obj) {
+		_storage(std::move(obj._storage));
+		storage_size = obj.storage_size;
+	}
+
+	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity> const& other) noexcept {
+		_storage = other._storage;
+		storage_size = other.storage_size;
+		return *this;
+	}
+	fixed_size_vector& operator=(fixed_size_vector<data_type, capacity>&& other) noexcept {
+		_storage = std::move(other._storage);
+		storage_size = other.storage_size;
+		return *this;
+	}
+
+	constexpr size_t total_capacity() const {
+		return capacity;
+	}
+
+
+	const data_type* data() const {
+		return _storage.data();
+	}
+	data_type* data() {
+		return _storage.data();
+	}
+
+
+	constexpr data_type const& operator[](size_t index) const {
+		assert(index < size());
+		return _storage[index];
+	}
+	constexpr data_type& operator[](size_t index) {
+		assert(index < size());
+		return _storage[index];
+	}
+	// This will remove the element at the given index by moving it to the end of the collection and then popping it
+	constexpr void remove_at(size_t index) {
+		assert(index < size());
+		std::swap(_storage[index], _storage[size() - 1]);
+		pop_back();
+	}
+	// This will remove the given iterator element by moving it to the end of the collection and then popping it
+	constexpr void remove_at(const_iterator iterator) {
+		size_t index = iterator - begin();
+		remove_at(index);
+	}
+
+	constexpr void clear() {
+		_storage.fill(data_type{});
+		storage_size = 0;
+	}
+
+	constexpr auto begin() const {
+		return _storage.begin();
+	}
+	constexpr auto begin() {
+		return _storage.begin();
+	}
+	constexpr auto end() const {
+		return const_iterator(data(), size());
+	}
+	constexpr auto end() {
+		return iterator(data(), size());
+	}
+	constexpr auto rbegin() {
+		return reverse_iterator(end());
+	}
+	constexpr auto rbegin() const {
+		return const_reverse_iterator(end());
+	}
+	constexpr auto rend() const {
+		return const_reverse_iterator(begin());
+	}
+	constexpr auto rend() {
+		return reverse_iterator(begin());
+	}
+	constexpr size_t size() const {
+		return storage_size;
+	}
+	constexpr void resize(size_t new_size) {
+		if(new_size < size()) {
+			std::fill_n(&_storage[new_size], size() - new_size, data_type{ });
+		}
+		storage_size = new_size;
+	}
+	constexpr void pop_back() {
+		assert(size() != 0);
+		_storage[size() - 1] = data_type{ };
+		storage_size--;
+	}
+	// Returns true if there were enough capacity to add the item, false if not
+	constexpr bool push_back(data_type&& v) {
+		if(size() != capacity) {
+			_storage[size()] = std::move(v);
+			storage_size++;
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	// Returns true if there were enough capacity to add the item, false if not
+	constexpr bool push_back(const data_type& v) {
+		if(size() != capacity) {
+			_storage[size()] = v;
+			storage_size++;
+			return true;
+		} else {
+			return false;
+		}
+	}
+	constexpr data_type& back() {
+		return _storage[size() -1];
+	}
+	constexpr data_type const& back() const {
+		return _storage[size() - 1];
+	}
+	constexpr data_type& front() {
+		return _storage.front();
+	}
+	constexpr data_type const& front() const {
+		return _storage.front();
+	}
+
+};
+
 
 namespace sys {
 

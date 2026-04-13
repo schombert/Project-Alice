@@ -18,6 +18,7 @@
 #include "diplomatic_messages.hpp"
 #include "economy_constants.hpp"
 #include "commands.hpp"
+#include "commands_constants.hpp"
 
 namespace military {
 
@@ -2672,7 +2673,7 @@ dcon::ship_id create_new_ship(sys::state& state, dcon::nation_id n, dcon::unit_t
 	return shp.id;
 }
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit) {
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::army_id unit) {
 	auto army_controller = state.world.army_get_controller_from_army_control(unit);
 	auto potential_overlord = state.world.nation_get_overlord_as_subject(army_controller);
 	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(army_controller)) {
@@ -2681,7 +2682,7 @@ dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id un
 	return army_controller;
 }
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit) {
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::navy_id unit) {
 	auto navy_controller = state.world.navy_get_controller_from_navy_control(unit);
 	auto potential_overlord = state.world.nation_get_overlord_as_subject(navy_controller);
 	if(bool(potential_overlord) && state.world.nation_get_overlord_commanding_units(navy_controller)) {
@@ -4968,7 +4969,7 @@ void add_regiment_to_reserves(sys::state& state, dcon::dcon_vv_fat_id<battle_reg
 
 void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id battle) {
 	int32_t previous_combat_width = state.world.land_battle_get_combat_width(battle);
-	int32_t new_combat_width = int32_t(MAX_COMBAT_WIDTH);
+	int32_t new_combat_width = int32_t(max_combat_width);
 	for(auto a : state.world.land_battle_get_army_battle_participation(battle)) {
 		auto army_owner = state.world.army_get_controller_from_army_control(a.get_army());
 		auto army_owner_combat_width = int32_t(state.world.nation_get_modifier_values(army_owner, sys::national_mod_offsets::combat_width) + state.defines.base_combat_width);
@@ -4976,7 +4977,7 @@ void update_land_battle_combat_width(sys::state& state, dcon::land_battle_id bat
 	}
 	auto battle_location = state.world.land_battle_get_location_from_land_battle_location(battle);
 	auto prov_width_modifier = state.world.province_get_modifier_values(battle_location, sys::provincial_mod_offsets::combat_width) + 1.0f;
-	new_combat_width = std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH));
+	new_combat_width = std::clamp(int32_t(new_combat_width * prov_width_modifier), int32_t(min_combat_width), int32_t(max_combat_width));
 	// if the new combat width is smaller, remove the ones on the slots which are about to be shrunk away, and move them to reserves
 	if(new_combat_width < previous_combat_width) {
 		auto& att_front = state.world.land_battle_get_attacker_front_line(battle);
@@ -5149,7 +5150,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(min_combat_width), int32_t(max_combat_width))));
 
 				add_army_to_battle(state, a, new_battle, !bool(owner_nation) ? war_role::attacker : war_role::defender, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, bool(owner_nation) ? war_role::attacker : war_role::defender, crossing_type::none);
@@ -5171,7 +5172,7 @@ void army_arrives_in_province(sys::state& state, dcon::army_id a, dcon::province
 				new_battle.set_combat_width(uint8_t(
 					std::clamp(int32_t(std::min(cw_a, cw_b) *
 						(state.world.province_get_modifier_values(p, sys::provincial_mod_offsets::combat_width) + 1.0f)),
-						int32_t(MIN_COMBAT_WIDTH), int32_t(MAX_COMBAT_WIDTH))));
+						int32_t(min_combat_width), int32_t(max_combat_width))));
 
 				add_army_to_battle(state, a, new_battle, par.role, crossing);
 				add_army_to_battle(state, o.get_army(), new_battle, par.role == war_role::attacker ? war_role::defender : war_role::attacker, crossing_type::none);
@@ -6012,8 +6013,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 
 				rep.attacker_won = (result == battle_result::attacker_won);
 
-				rep.attacking_nation = get_land_battle_lead_attacker(state, b);
-				rep.defending_nation = get_land_battle_lead_defender(state, b);
+				rep.attacking_nation = a_nation;
+				rep.defending_nation = d_nation;
 				rep.attacking_general = state.world.land_battle_get_general_from_attacking_general(b);
 				rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
@@ -6081,8 +6082,8 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 
 				rep.attacker_won = (result == battle_result::attacker_won);
 
-				rep.attacking_nation = get_land_battle_lead_attacker(state, b);
-				rep.defending_nation = get_land_battle_lead_defender(state, b);
+				rep.attacking_nation = a_nation;
+				rep.defending_nation = d_nation;
 				rep.attacking_general = state.world.land_battle_get_general_from_attacking_general(b);
 				rep.defending_general = state.world.land_battle_get_general_from_defending_general(b);
 
@@ -6101,6 +6102,7 @@ void end_battle(sys::state& state, dcon::land_battle_id b, battle_result result,
 					}
 				}
 				auto discard = state.land_battle_reports.try_push(rep);
+				assert(discard);
 			}
 		}
 	}
@@ -7039,8 +7041,8 @@ struct regiment_damage_taken {
 	float org_damage = 0.0f;
 };
 struct regiment_damage_buffer {
-	std::array<regiment_damage_taken, MAX_COMBAT_WIDTH> att_front_damage{};
-	std::array<regiment_damage_taken, MAX_COMBAT_WIDTH> def_front_damage{};
+	std::array<regiment_damage_taken, max_combat_width> att_front_damage{};
+	std::array<regiment_damage_taken, max_combat_width> def_front_damage{};
 };
 
 
@@ -7055,7 +7057,7 @@ void land_battle_apply_damage(sys::state& state, dcon::land_battle_id battle, co
 	float defender_casualties = 0;
 	float attacker_casualties = 0;
 
-	auto apply_damage = [&]<battle_role DmgReceiverRole>(uint8_t slot_idx, std::array<battle_regiment,MAX_COMBAT_WIDTH>& combat_slots, const std::array<regiment_damage_taken, MAX_COMBAT_WIDTH>& dmg_to_apply) {
+	auto apply_damage = [&]<battle_role DmgReceiverRole>(uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots, const std::array<regiment_damage_taken, max_combat_width>& dmg_to_apply) {
 		auto bat_regiment = combat_slots[slot_idx];
 		if(bat_regiment.regiment) {
 			float actual_str_dmg = regiment_take_str_damage<regiment_dmg_source::combat>(state, bat_regiment.regiment, dmg_to_apply[slot_idx].strength_damage);
@@ -7109,7 +7111,7 @@ void land_battle_apply_damage(sys::state& state, dcon::land_battle_id battle, co
 
 	};
 
-	assert(combat_width <= MAX_COMBAT_WIDTH);
+	assert(combat_width <= max_combat_width);
 	for(uint8_t i = 0; i < combat_width; ++i) {
 		apply_damage.template operator()<battle_role::attacker>(i, att_front, dmg_buffer.att_front_damage);
 		apply_damage.template operator()<battle_role::defender>(i, def_front, dmg_buffer.def_front_damage);
@@ -7175,7 +7177,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	}
 
 
-	auto accumulate_line_damage = [&]<battle_role DmgDealerRole, battle_line DmgDealerLine>(uint8_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& dmg_dealer_line, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& dmg_receiver_line, std::array<regiment_damage_taken, MAX_COMBAT_WIDTH>& dmg_buffer) {
+	auto accumulate_line_damage = [&]<battle_role DmgDealerRole, battle_line DmgDealerLine>(uint8_t position, const std::array<battle_regiment, max_combat_width>& dmg_dealer_line, const std::array<battle_regiment, max_combat_width>& dmg_receiver_line, std::array<regiment_damage_taken, max_combat_width>& dmg_buffer) {
 		auto damage_dealer = dmg_dealer_line[position];
 		if(damage_dealer.regiment) {
 			assert(state.world.regiment_is_valid(damage_dealer.regiment));
@@ -7207,7 +7209,7 @@ void land_battle_process_line_damage(sys::state& state, dcon::land_battle_id bat
 	};
 	// accumulate the damage
 	regiment_damage_buffer dmg_buffer{ };
-	assert(combat_width <= MAX_COMBAT_WIDTH);
+	assert(combat_width <= max_combat_width);
 	for(uint8_t i = 0; i < combat_width; ++i) {
 		accumulate_line_damage.template operator()<battle_role::attacker, battle_line::backline>(i, att_back, def_front, dmg_buffer.def_front_damage);
 		accumulate_line_damage.template operator()<battle_role::defender, battle_line::backline>(i, def_back, att_front, dmg_buffer.att_front_damage);
@@ -7229,7 +7231,7 @@ void land_battle_compact_battle_slots(sys::state& state, dcon::land_battle_id ba
 	auto& def_front = state.world.land_battle_get_defender_front_line(battle);
 	auto& def_back = state.world.land_battle_get_defender_back_line(battle);
 
-	auto compact = [](std::array<battle_regiment, MAX_COMBAT_WIDTH>& a) {
+	auto compact = [](std::array<battle_regiment, max_combat_width>& a) {
 		int32_t low = 0;
 		while(low < 30 && a[low].regiment) {
 			low += 2;
@@ -7301,7 +7303,7 @@ void land_battle_clear_dead_regiments_from_battle_slots(sys::state& state, dcon:
 
 	// clear dead / retreated regiments out
 	// puts them back into the reserve
-	auto try_clear_regiment = [&](uint8_t slot_idx, std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots) {
+	auto try_clear_regiment = [&](uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots) {
 		auto current_regiment = combat_slots[slot_idx];
 		if(current_regiment.regiment && should_regiment_be_moved_to_reserves(state, current_regiment.regiment)) {
 			current_regiment.set_dig_in(0);
@@ -7348,7 +7350,7 @@ struct battle_regiment_fetch_result {
 };
 // Fetches the most effective regiment from a collection in accordance with its job (attacker or defender, backline or frontline) and its current position in the combat slots relative to the enemy combat slots
 template<battle_role Role, battle_line Line>
-battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::state& state, int32_t position, std::span<const battle_regiment> regiment_span, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_frontline_slots) {
+battle_regiment_fetch_result fetch_best_battle_unit_from_collection(const sys::state& state, int32_t position, std::span<const battle_regiment> regiment_span, const std::array<battle_regiment, max_combat_width>& opposing_frontline_slots) {
 	battle_regiment_fetch_result best_result = {-1, 0 };
 	for(size_t reg_idx = regiment_span.size(); reg_idx-- > 0;) {
 		battle_regiment current_regiment = regiment_span[reg_idx];
@@ -7383,7 +7385,7 @@ void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_b
 
 
 	// return false if there were no suitable units to deploy in reserves
-	auto try_deploy_regiment = [&]<battle_role Role, battle_line Line>(uint8_t slot_idx, std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots, std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_frontline_combat_slots) {
+	auto try_deploy_regiment = [&]<battle_role Role, battle_line Line>(uint8_t slot_idx, std::array<battle_regiment, max_combat_width>& combat_slots, std::array<battle_regiment, max_combat_width>& opposing_frontline_combat_slots) {
 		const auto current_regiment = combat_slots[slot_idx];
 		if(!current_regiment.regiment) {
 			battle_regiment_fetch_result result = fetch_best_battle_unit_from_collection<Role, Line>(state, slot_idx, reserves, opposing_frontline_combat_slots);
@@ -7451,7 +7453,7 @@ void land_battle_deploy_reserves_to_battle_slots(sys::state& state, dcon::land_b
 }
 
 
-battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots) {
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots) {
 	// special case if combat witdh positon (i) is 1 and maneuve is 1 or higher, if that is the case i - cnt * 2 = -1 which would be negative instead of targeting position 0
 	if(combat_slots[position].regiment) {
 		return combat_slots[position];
@@ -7469,7 +7471,7 @@ battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_
 }
 
 // gets the land combat target of a regiment in a battle, given its combat width position and the opposing frontline. Will return a regiment id 0 if it is unable to taget any regiment
-battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line)
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line)
 {
 	auto tech_nation = tech_nation_for_regiment(state, damage_dealer);
 	const auto& stats = state.world.nation_get_unit_stats(tech_nation, state.world.regiment_get_type(damage_dealer));
@@ -7728,6 +7730,7 @@ void update_land_battles(sys::state& state) {
 				}
 				auto& def_front = state.world.land_battle_get_defender_front_line(b);
 				auto& def_back = state.world.land_battle_get_defender_back_line(b);
+				auto reserves = state.world.land_battle_get_reserves(b);
 				auto combat_width = state.world.land_battle_get_combat_width(b);
 
 				for(uint8_t i = 0; i < combat_width; ++i) {
@@ -7738,6 +7741,12 @@ void update_land_battles(sys::state& state) {
 					}
 					if(def_back[i].regiment && def_back_dig_in > 0) {
 						def_back[i].set_dig_in(def_back_dig_in - 1);
+					}
+				}
+				for(auto& bat_reg : reserves) {
+					auto dig_in = bat_reg.get_dig_in();
+					if(!bat_reg.get_is_attacking() && dig_in > 0) {
+						bat_reg.set_dig_in(dig_in - 1);
 					}
 				}
 			}
@@ -10590,6 +10599,315 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id) {
 	military::delete_regiment_safe_wrapper(state, reg_id);
 }
 
+
+
+template<command::actor Actor>
+bool can_split_navy(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+		if(!state.world.navy_is_valid(navy)) {
+			return false;
+		}
+		// AI does not need to do this check as the ai won't pass invalid ships or ones which arent part of the navy
+		for(auto ship_to_split : ships_to_split) {
+			if(!state.world.ship_is_valid(ship_to_split) || state.world.ship_get_navy_from_navy_membership(ship_to_split) != navy) {
+				return false;
+			}
+		}
+	}
+	auto embarked = state.world.navy_get_army_transport(navy);
+	return military::get_effective_unit_commander(state, navy) == source && !state.world.navy_get_is_retreating(navy) &&
+		!bool(state.world.navy_get_battle_from_navy_battle_participation(navy)) && embarked.begin() == embarked.end();
+}
+template bool can_split_navy<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+template bool can_split_navy<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+
+
+template<command::actor Actor>
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies) {
+
+	if(ships_to_split.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_navy());
+		new_u.set_controller_from_navy_control(state.world.navy_get_controller_from_navy_control(navy));
+		new_u.set_location_from_navy_location(state.world.navy_get_location_from_navy_location(navy));
+		new_u.set_months_outside_naval_range(state.world.navy_get_months_outside_naval_range(navy));
+
+		for(auto t : ships_to_split) {
+			state.world.ship_set_navy_from_navy_membership(t, new_u);
+		}
+		if constexpr(Actor == command::actor::player) {
+			if(source == state.local_player_nation) {
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					auto navy = arg.navy_pair_w_bool.navy_1;
+					auto new_u = arg.navy_pair_w_bool.navy_2;
+					auto select_both_navies = arg.navy_pair_w_bool.boolean;
+					if(state.is_selected(navy)) {
+						// deselect old army if parameter requires
+						if(!select_both_navies) {
+							state.deselect(navy);
+						}
+						state.select(new_u);
+					}
+				}, ui::ui_function_argument{ .navy_pair_w_bool = {navy, new_u.id, select_both_navies  } });
+
+			}
+		}
+
+		auto old_regs = state.world.navy_get_navy_membership(navy);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_navy_from_navy_leadership(state.world.navy_get_admiral_from_navy_leadership(navy), new_u);
+			if constexpr(Actor == command::actor::player) {
+				if(source == state.local_player_nation) {
+					state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+						state.deselect(arg.navy);
+					}, ui::ui_function_argument{ .navy = navy });
+
+				}
+			}
+			military::cleanup_navy(state, navy);
+			
+		}
+	}
+}
+template void split_navy<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies);
+template void split_navy<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies);
+
+
+template<command::actor Actor>
+bool can_split_army(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+		if(!state.world.army_is_valid(army)) {
+			return false;
+		}
+		// AI does not need to do this check as the ai won't pass invalid regiments or ones which arent part of the army
+		for(auto regiment_to_split : regiments_to_split) {
+			if(!state.world.regiment_is_valid(regiment_to_split) || state.world.regiment_get_army_from_army_membership(regiment_to_split) != army) {
+				return false;
+			}
+		}
+	}
+	return military::get_effective_unit_commander(state, army) == source && !state.world.army_get_is_retreating(army) && !state.world.army_get_navy_from_army_transport(army) &&
+		!bool(state.world.army_get_battle_from_army_battle_participation(army));
+}
+
+template bool can_split_army<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+template bool can_split_army<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+
+template<command::actor Actor>
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies) {
+
+	if(regiments_to_split.size() > 0) {
+		auto new_u = fatten(state.world, state.world.create_army());
+		new_u.set_controller_from_army_control(state.world.army_get_controller_from_army_control(army));
+		new_u.set_location_from_army_location(state.world.army_get_location_from_army_location(army));
+		new_u.set_black_flag(state.world.army_get_black_flag(army));
+		new_u.set_dig_in(state.world.army_get_dig_in(army));
+
+		for(auto t : regiments_to_split) {
+			state.world.regiment_set_army_from_army_membership(t, new_u);
+		}
+		if constexpr(Actor == command::actor::player) {
+			if(source == state.local_player_nation) {
+				state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+					auto army = arg.army_pair_w_bool.army_1;
+					auto new_u = arg.army_pair_w_bool.army_2;
+					auto select_both_armies = arg.army_pair_w_bool.boolean;
+					if(state.is_selected(army)) {
+						// deselect old army if parameter requires
+						if(!select_both_armies) {
+							state.deselect(army);
+						}
+						state.select(new_u);
+					}
+				}, ui::ui_function_argument{ .army_pair_w_bool = { army, new_u.id, select_both_armies } });
+			}
+		}
+		
+
+		auto old_regs = state.world.army_get_army_membership(army);
+		if(old_regs.begin() == old_regs.end()) {
+			state.world.leader_set_army_from_army_leadership(state.world.army_get_general_from_army_leadership(army), new_u);
+			if constexpr(Actor == command::actor::player) {
+				if(source == state.local_player_nation) {
+					state.ui_state.invoke_on_ui_thread([](sys::state& state, ui::ui_function_argument arg) {
+						state.deselect(arg.army);
+					}, ui::ui_function_argument{ .army = army });
+				}
+			}
+			military::cleanup_army(state, army);
+		}
+	}
+}
+template void split_army<command::actor::ai>(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies);
+template void split_army<command::actor::player>(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies);
+
+template<command::actor Actor>
+bool can_change_land_unit_type_army_checks(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type) {
+
+
+	if constexpr(Actor == command::actor::ai) {
+		if(!ai::unit_on_ai_control(state, army)) {
+			return false;
+		}
+	}
+
+	if(state.world.army_get_controller_from_army_control(army) != source || state.world.army_get_is_retreating(army) || state.world.army_get_navy_from_army_transport(army) ||
+	bool(state.world.army_get_battle_from_army_battle_participation(army))) {
+		return false;
+	}
+
+
+	return true;
+}
+template bool can_change_land_unit_type_army_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type_army_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::army_id army, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_land_unit_type_regiment_checks(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type) {
+	if(!new_type || size_t(new_type.index()) >= state.military_definitions.unit_base_definitions.size()) {
+		return false;
+	}
+
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+
+	auto cur_unit_type = state.world.regiment_get_type(regiment);
+	if(cur_unit_type == new_type) {
+		return false;
+	}
+
+	if(!ut.is_land) {
+		return false; // Sea unit used for land
+	}
+
+
+	if(!ut.active && !state.world.nation_get_active_unit(source, new_type)) {
+		return false; // Unit is not yet unlocked
+	}
+
+	if(!state.world.regiment_is_valid(regiment)) {
+		return false;
+	}
+	return true;
+}
+template bool can_change_land_unit_type_regiment_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type_regiment_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type) {
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+	}
+	if(!can_change_land_unit_type_regiment_checks<Actor>(state, source, regiment, new_type)) {
+		return false;
+	}
+	auto army = state.world.regiment_get_army_from_army_membership(regiment);
+	if(!can_change_land_unit_type_army_checks<Actor>(state, source, army, new_type)) {
+		return false;
+	}
+	return true;
+	
+}
+
+template bool can_change_land_unit_type<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+template bool can_change_land_unit_type<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_change_naval_unit_type_navy_checks(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type) {
+	if constexpr(Actor == command::actor::ai) {
+		if(!ai::unit_on_ai_control(state, navy)) {
+			return false;
+		}
+	}
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+	auto embarked = state.world.navy_get_army_transport(navy);
+
+	if(state.world.navy_get_controller_from_navy_control(navy) != source || state.world.navy_get_is_retreating(navy) || embarked.begin() != embarked.end() ||
+	bool(state.world.navy_get_battle_from_navy_battle_participation(navy))) {
+		return false;
+	}
+	if(ut.min_port_level) {
+		auto fnid = dcon::fatten(state.world, navy);
+
+		auto loc = fnid.get_location_from_navy_location();
+		//Ship requires naval base level for construction but province location doesn't have one
+		if(loc.get_building_level(uint8_t(economy::province_building_type::naval_base)) < ut.min_port_level) {
+			return false;
+		}
+	}
+	return true;
+}
+template bool can_change_naval_unit_type_navy_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type_navy_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_naval_unit_type_ship_checks(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type) {
+	if(!new_type || size_t(new_type.index()) >= state.military_definitions.unit_base_definitions.size()) {
+		return false;
+	}
+
+	auto const& ut = state.military_definitions.unit_base_definitions[new_type];
+	auto cur_unit_type = state.world.ship_get_type(ship);
+	if(cur_unit_type == new_type) {
+		return false;
+	}
+	if(ut.is_land) {
+		return false; // Land unit used for sea
+	}
+
+	if(!ut.active && !state.world.nation_get_active_unit(source, new_type)) {
+		return false; // Unit is not yet unlocked
+	}
+
+
+	if(!state.world.ship_is_valid(ship)) {
+		return false;
+	}
+
+
+
+	if(ut.type == military::unit_type::big_ship) {
+		auto shiptype = state.world.ship_get_type(ship);
+		auto st = state.military_definitions.unit_base_definitions[shiptype];
+		if(st.type != military::unit_type::big_ship) {
+			return false; // Small ships can't become big ships
+		}
+
+	}
+
+	return true;
+}
+template bool can_change_naval_unit_type_ship_checks<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type_ship_checks<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type) {
+
+	if constexpr(Actor == command::actor::player) {
+		if(!state.current_scene.game_in_progress) {
+			return false;
+		}
+	}
+	if(!can_change_naval_unit_type_ship_checks<Actor>(state, source, ship, new_type)) {
+		return false;
+	}
+	auto navy = state.world.ship_get_navy_from_navy_membership(ship);
+	if(!can_change_naval_unit_type_navy_checks<Actor>(state, source, navy, new_type)) {
+		return false;
+	}
+
+	return true;
+}
+template bool can_change_naval_unit_type<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+template bool can_change_naval_unit_type<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 
 bool can_attack(sys::state& state, dcon::nation_id n) {
 	// nations without land are not supported yet

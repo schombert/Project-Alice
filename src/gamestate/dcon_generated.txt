@@ -536,33 +536,8 @@ object {
 		tag{ scenario }
 	}
 	property{
-		name{ bonus_1_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_1_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_2_amount }
-		type{ float }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_trigger }
-		type{ trigger_key }
-		tag{ scenario }
-	}
-	property{
-		name{ bonus_3_amount }
-		type{ float }
+		name{ factory_bonuses }
+		type{ std::array<economy::production_type_bonus,economy::max_production_type_bonuses> }
 		tag{ scenario }
 	}
 	property{
@@ -1998,12 +1973,6 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ pending_split }
-		type{ bitfield }
-		
-		
-	}
-	property{
 		name{ experience }
 		type{ float }
 		tag{ save }
@@ -2181,12 +2150,6 @@ object {
 		name{ org }
 		type{ float }
 		tag{ save }
-	}
-	property{
-		name{ pending_split }
-		type{ bitfield }
-		
-		
 	}
 	property{
 		name{ experience }
@@ -2770,22 +2733,22 @@ object {
 
 	property{
 		name{ attacker_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ attacker_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_back_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 	property{
 		name{ defender_front_line }
-		type{ std::array<military::battle_regiment,military::MAX_COMBAT_WIDTH> }
+		type{ std::array<military::battle_regiment,military::max_combat_width> }
 		tag{ save }
 	}
 
@@ -4916,7 +4879,7 @@ relationship{
 object {
 	name { factory }
 	storage_type{ erasable }
-	size{ 20000 }
+	size{ 100000 }
 	tag{ save }
 	
 

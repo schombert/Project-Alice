@@ -6,6 +6,7 @@
 #include "modifiers.hpp"
 #include "military_constants.hpp"
 #include "constants_dcon.hpp"
+#include <commands_constants.hpp>
 
 namespace military {
 namespace cb_flag {
@@ -309,8 +310,8 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
 
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::army_id unit);
-dcon::nation_id get_effective_unit_commander(sys::state& state, dcon::navy_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::army_id unit);
+dcon::nation_id get_effective_unit_commander(const sys::state& state, dcon::navy_id unit);
 
 void give_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
 void remove_military_access(sys::state& state, dcon::nation_id accessing_nation, dcon::nation_id target);
@@ -490,8 +491,8 @@ void delete_ship_safe(sys::state& state, dcon::ship_id ship);
 // Deletes the ship and deletes&damages any regiments on transport if it resulted in negative transport capacity. This will remove the ship from battle if it is in one
 void delete_ship_safe_w_army_transport_loss(sys::state& state, dcon::ship_id ship);
 // Finds the closest regiment from a position with a given max offset in the provided combat slots. Returns an invalid regiment ID if none found
-battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& combat_slots);
-battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, MAX_COMBAT_WIDTH>& opposing_line);
+battle_regiment get_regiment_at_offset_in_combat_slots(int32_t position, uint32_t max_offset, const std::array<battle_regiment, max_combat_width>& combat_slots);
+battle_regiment get_land_combat_target(const sys::state& state, dcon::regiment_id damage_dealer, int32_t position, const std::array<battle_regiment, max_combat_width>& opposing_line);
 void apply_attrition_to_army(sys::state& state, dcon::army_id army);
 void apply_attrition(sys::state& state);
 void increase_dig_in(sys::state& state);
@@ -574,6 +575,23 @@ void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 bool can_attack(sys::state& state, dcon::nation_id n);
 bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
+template<command::actor Actor>
+bool can_change_land_unit_type(const sys::state& state, dcon::nation_id source, dcon::regiment_id regiment, dcon::unit_type_id new_type);
+
+
+template<command::actor Actor>
+bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
+
+template<command::actor Actor>
+bool can_split_army(const sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split);
+template<command::actor Actor>
+void split_army(sys::state& state, dcon::nation_id source, dcon::army_id army, std::span<const dcon::regiment_id> regiments_to_split, fixed_bool_t select_both_armies = false);
+
+template<command::actor Actor>
+bool can_split_navy(const sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split);
+template<command::actor Actor>
+void split_navy(sys::state& state, dcon::nation_id source, dcon::navy_id navy, std::span<const dcon::ship_id> ships_to_split, fixed_bool_t select_both_navies = false);
 
 
 } // namespace military

@@ -38,6 +38,11 @@ struct command_data {
 		header.type = _type;
 		header.player_id = _player_id;
 	};
+	command_data(command_type _type, dcon::mp_player_id _player_id, size_t initial_payload_capacity) {
+		header.type = _type;
+		header.player_id = _player_id;
+		payload.reserve(initial_payload_capacity);
+	};
 
 	command_data(command_data&& other) = default;
 	command_data(const command_data& other) = default;

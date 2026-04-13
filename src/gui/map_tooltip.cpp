@@ -92,8 +92,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 		// Only show at max 10 armies to avoid wall of text
 		uint32_t army_count = 0;
 		for(const auto a : state.selected_armies) {
-			army_count++;
-			if(army_count > max_units_in_province_tooltip) {
+			if(army_count >= max_units_in_province_tooltip) {
 				break;
 			}
 			auto controller = dcon::fatten(state.world, state.local_player_nation);
@@ -111,7 +110,8 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 			// Army arrival time tooltip
 			auto army = dcon::fatten(state.world, a);
-			auto path = province::make_land_unit_path(state, army.get_location_from_army_location(), prov, state.local_player_nation, a);
+			auto army_location = army.get_location_from_army_location();
+			auto path = (army_location && prov ? province::make_land_unit_path(state, army_location, prov, state.local_player_nation, a) : std::vector<dcon::province_id>{ });
 			auto curprov = army.get_army_location().get_location().id;
 			auto current_path = army.get_path();
 
@@ -166,6 +166,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 			}
 
 			text::close_layout_box(contents, box);
+			army_count++;
 		}
 		uint32_t extra_armies = uint32_t(state.selected_armies.size()) - army_count;
 		if(extra_armies > 0) {
@@ -179,14 +180,14 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 		for(const auto n : state.selected_navies) {
 
-			navy_count++;
-			if(navy_count > max_units_in_province_tooltip) {
+			if(navy_count >= max_units_in_province_tooltip) {
 				break;
 			}
 
 			auto navy = dcon::fatten(state.world, n);
 			unitamounts amounts = calc_amounts_from_navy(state, navy);
-			auto path = province::make_naval_unit_path(state, navy.get_location_from_navy_location(), prov, state.local_player_nation);
+			auto navy_location = navy.get_location_from_navy_location();
+			auto path = (navy_location && prov ? province::make_naval_unit_path(state, navy_location, prov, state.local_player_nation) : std::vector<dcon::province_id>{ });
 			auto curprov = navy.get_navy_location().get_location().id;
 
 			/* No available route */
@@ -257,6 +258,7 @@ void country_name_box(sys::state& state, text::columnar_layout& contents, dcon::
 
 				text::close_layout_box(contents, box);
 			}
+			navy_count++;
 		}
 		uint32_t extra_navies = uint32_t(state.selected_navies.size()) - navy_count;
 		if(extra_navies > 0) {

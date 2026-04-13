@@ -8,11 +8,24 @@
 
 namespace ui {
 
+struct army_pair_and_bool {
+	dcon::army_id army_1;
+	dcon::army_id army_2;
+	fixed_bool_t boolean;
+};
+struct navy_pair_and_bool {
+	dcon::navy_id navy_1;
+	dcon::navy_id navy_2;
+	fixed_bool_t boolean;
+};
+
 union ui_function_argument {
-	uint32_t placeholder;
-
-	ui_function_argument() { };
-
+	dcon::army_id army;
+	dcon::navy_id navy;
+	std::array<dcon::navy_id, 2> navy_pair;
+	std::array<dcon::army_id, 2> army_pair;
+	army_pair_and_bool army_pair_w_bool;
+	navy_pair_and_bool navy_pair_w_bool;
 };
 
 typedef void(*ui_function)(sys::state& state, ui_function_argument arg);

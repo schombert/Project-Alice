@@ -720,8 +720,20 @@ public:
 	MOD_NAT_FUNCTION(research_points_on_conquer)
 	MOD_NAT_FUNCTION(import_cost)
 	MOD_NAT_FUNCTION(loan_interest)
+		// need these as "tax_eff" gives 1% for each 1.0f of modifier, whereas the "tax_efficiency" from national modifiers gives 1% for each 0.01f of modifier
 	template<typename T>
 	void tax_efficiency(association_type, float v, error_handler& err, int32_t line, T& context) {
+		if(v == 0.0f) return;
+		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
+			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
+		} else {
+			constructed_definition_n.offsets[next_to_add_n] = sys::national_mod_offsets::tax_efficiency;
+			constructed_definition_n.values[next_to_add_n] = v;
+			++next_to_add_n;
+		}
+	}
+	template<typename T>
+	void tax_eff(association_type, float v, error_handler& err, int32_t line, T& context) {
 		if(v == 0.0f) return;
 		if(next_to_add_n >= sys::national_modifier_definition::modifier_definition_size) {
 			err.accumulated_errors += "Too many modifier values; " + err.file_name + " line " + std::to_string(line) + "\n";
@@ -2786,6 +2798,7 @@ struct country_history_file {
 	upper_house_block upper_house;
 	void finish(country_history_context&) { }
 	void set_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
+	void clr_country_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void set_global_flag(association_type, std::string_view value, error_handler& err, int32_t line, country_history_context& context);
 	void colonial_points(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);
 	void capital(association_type, int32_t value, error_handler& err, int32_t line, country_history_context& context);

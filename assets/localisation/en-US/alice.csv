@@ -507,6 +507,7 @@ an_ongoing_crisis;an ongoing crisis
 there;There
 current_crisis;current crisis
 liberation_crisis;a liberation crisis
+colonial_crisis;a colonial crisis
 claim_crisis;a claim crisis
 involved_in_crisis;involved in crisis
 poor_life_needs_satisfaction;poor-strata life-needs satisfaction
@@ -1988,3 +1989,4 @@ alice_num_units_dug_in_tooltip;?Y$COUNT$?W units are dug in at lvl ?Y$NUM$?W
 alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W units are targeting dug in units, giving them ?Y$NUM$?W roll modifier
 alice_unit_dug_in;Unit has a dig-in lvl of ?Y$NUM$?W
 alice_unit_targeting_dug_in_modifier;Unit receives a ?Y$NUM$?W modifier to its combat roll targeting a dug-in unit
+add_wargoal_wargoal_count;Will add ?Y$COUNT$?W wargoal(s) when proceeding
