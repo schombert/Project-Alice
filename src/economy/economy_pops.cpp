@@ -722,49 +722,16 @@ void update_income_artisans(sys::state& state) {
 
 
 float estimate_trade_income(sys::state const& state, dcon::market_id mid, dcon::pop_type_id ptid, float size) {
-	auto const artisan_def = state.culture_definitions.artisans;
-	auto artisan_key = demographics::to_key(state, artisan_def);
-	auto const clerks_def = state.culture_definitions.secondary_factory_worker;
-	auto clerks_key = demographics::to_key(state, clerks_def);
-	auto const capis_def = state.culture_definitions.capitalists;
-	auto capis_key = demographics::to_key(state, capis_def);
 	auto sids = state.world.market_get_zone_from_local_market(mid);
-	auto artisans = state.world.state_instance_get_demographics(sids, artisan_key);
-	auto clerks = state.world.state_instance_get_demographics(sids, clerks_key);
-	auto capis = state.world.state_instance_get_demographics(sids, capis_key);
 	auto total = state.world.state_instance_get_demographics(sids, demographics::total);
-	auto artisans_weight = state.world.state_instance_get_demographics(sids, artisan_key);
-	auto clerks_weight = state.world.state_instance_get_demographics(sids, clerks_key) * 100.f;
-	auto capis_weight = state.world.state_instance_get_demographics(sids, capis_key) * 100'000.f;
-	auto base_weight = total;
-	auto total_weight = artisans_weight + clerks_weight + capis_weight + base_weight;
-
-	if(total_weight == 0.f) {
+	if(total == 0.f) {
 		return 0.f;
 	}
 
 	auto balance = state.world.market_get_stockpile(mid, economy::money);
 	auto trade_dividents = balance > 0.f ? balance * trade_dividents_rate : 0.f;
 
-	auto artisans_share = artisans_weight / total_weight * trade_dividents;
-	auto clerks_share = clerks_weight / total_weight * trade_dividents;
-	auto capis_share = capis_weight / total_weight * trade_dividents;
-	auto other_share = base_weight / total_weight * trade_dividents;
-
-	auto per_artisan = artisans > 0.f ? artisans_share / artisans : 0.f;
-	auto per_clerk = clerks > 0.f ? clerks_share / clerks : 0.f;
-	auto per_capi = capis > 0.f ? capis_share / capis : 0.f;
-	auto per_person = total > 0.f ? other_share / total : 0.f;
-
-	if(artisan_def == ptid) {
-		return state.inflation * size * (per_artisan + per_person);
-	} else if(clerks_def == ptid) {
-		return state.inflation * size * (per_clerk + per_person);
-	} else if(capis_def == ptid) {
-		return state.inflation * size * (per_capi + per_person);
-	}
-
-	return state.inflation * size * per_person;
+	return size / total * trade_dividents;
 }
 
 float estimate_trade_income(sys::state const& state, dcon::pop_id pop) {
@@ -1042,12 +1009,20 @@ void update_income_non_labor(sys::state& state) {
 
 		auto valid_market = market != dcon::market_id{ };
 
+#ifndef NDEBUG
+		ve::fp_vector from_rgo = 0.f;
+		ve::fp_vector from_rent = 0.f;
+		ve::fp_vector from_market = 0.f;
+		ve::fp_vector from_factories = 0.f;
+#endif // !NDEBUG
+
 		{
 			auto candidates = ve::select(valid_market, market_rent_tokens.get(market), 0.f);
 			auto total_money = ve::select(valid_market, market_rent_money.get(market), 0.f);
 			auto income = ve::select((pop_type == aristo_def || pop_type == capis_def) && candidates > min_registered_token_size, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_rent = income * expected_share;
 #endif // !NDEBUG
 			total_income = total_income + income;
 		}
@@ -1058,6 +1033,7 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_market = income * expected_share;
 #endif // !NDEBUG
 
 			total_income = total_income + income;
@@ -1073,6 +1049,7 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select(candidates > min_registered_token_size, total_money / candidates * size * weight, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_rgo = income * expected_share;
 #endif // !NDEBUG
 
 			total_income = total_income + income;
@@ -1084,6 +1061,7 @@ void update_income_non_labor(sys::state& state) {
 			auto income = ve::select((pop_type == capis_def) && candidates > min_registered_token_size && size > 0.f, total_money / candidates * size, 0.f);
 #ifndef NDEBUG
 			ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, income);
+			from_factories = income * expected_share;
 #endif // !NDEBUG
 			total_income = total_income + income;
 		}
@@ -1091,6 +1069,7 @@ void update_income_non_labor(sys::state& state) {
 		auto initial_savings = state.world.pop_get_savings(pop_vector);
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, total_income);
+		auto total = from_rgo + from_rent + from_market + from_factories;
 #endif // !NDEBUG
 		state.world.pop_set_savings(pop_vector, initial_savings + total_income * expected_share);
 	});
@@ -1644,7 +1623,7 @@ float estimate_trade_spending(
 	sys::state const& state,
 	dcon::pop_id pop
 ) {
-	auto next_day = estimate_next_day_budget_before_taxes(state, pop);
+	auto next_day = state.world.pop_get_savings(pop);
 	return market_tax * next_day;
 }
 
