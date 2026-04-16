@@ -1975,6 +1975,8 @@ player_loaded_status;Ready
 player_loading_status;Loading
 player_oos_status;OOS
 rgo_bank;RGO balance ?Y$val$?W
+artisan_bank;Guilds balance ?Y$val$?W
+artisan_profit;Guilds profit ?Y$val$?W
 rgo_bank_in;RGOs from production ?Y$val$?W
 rgo_bank_out;RGOs to pops ?Y$val$?W
 factory_bank;Factories balance ?Y$val$?W

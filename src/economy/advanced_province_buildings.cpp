@@ -208,6 +208,9 @@ void update_consumption(sys::state& state) {
 
 			auto demand_scale = 0.f;
 
+			auto budget = std::max(0.f, state.world.province_get_advanced_province_building_private_savings(pid, id));
+			auto max_demand_scale = budget / material_cost_per_constructed_unit;
+
 			if((expected_profit_per_size - expected_maintenance > 0) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
 				/*
 				If new housing could pay off in a few months, we construct it as fast as possible.
@@ -221,7 +224,7 @@ void update_consumption(sys::state& state) {
 			We don't want to expand faster than local labor allows us
 			*/
 			auto sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			demand_scale = demand_scale * sat;
+			demand_scale = std::min(max_demand_scale, demand_scale * sat);
 
 			/*
 			Register demand both on construction materials and construction labor
@@ -424,6 +427,9 @@ void update_profit_and_refund(sys::state& state) {
 
 			auto construction_scale = 0.f;
 
+			auto budget = std::max(0.f, state.world.province_get_advanced_province_building_private_savings(pid, id));
+			auto max_demand_scale = budget / material_cost_per_constructed_unit;
+
 			if((expected_profit_per_size - expected_maintenance > 0.f) && expected_days_to_payoff > 0.f && expected_days_to_payoff < 365.f * 5.f && !lots_of_empty_housing) {
 				/*
 				If new housing could pay off in a few months, we construct it as fast as possible.
@@ -437,7 +443,7 @@ void update_profit_and_refund(sys::state& state) {
 			*/
 
 			auto labor_sat = state.world.province_get_labor_demand_satisfaction(pid, economy::labor_constants::construction_labor);
-			auto demand_scale = construction_scale * labor_sat;
+			auto demand_scale = std::min(max_demand_scale, construction_scale * labor_sat);
 
 			/*
 			Find out how much we were able to buy.

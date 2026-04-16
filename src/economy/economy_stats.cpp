@@ -1407,6 +1407,28 @@ void make_trade_center_tooltip(sys::state& state, text::columnar_layout& content
 	text::add_line(
 		state,
 		contents,
+		"artisan_bank",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_artisan_bank(province)
+		},
+		0
+	);
+	text::add_line(
+		state,
+		contents,
+		"artisan_profit",
+		text::variable_type::val,
+		text::fp_currency{
+			state.world.province_get_artisan_profit(province)
+		},
+		15
+	);
+
+	text::add_line_break_to_layout(state, contents);
+	text::add_line(
+		state,
+		contents,
 		"rgo_bank",
 		text::variable_type::val,
 		text::fp_currency{
