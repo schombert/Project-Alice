@@ -248,6 +248,7 @@ class simple_text_element_base : public element_base {
 protected:
 	std::string cached_text;
 	text::layout internal_layout;
+	bool text_override = false;  
 public:
 	bool black_text = true;
 
