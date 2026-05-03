@@ -2529,6 +2529,7 @@ void line_graph::render(sys::state& state, int32_t x, int32_t y) noexcept {
 }
 
 void simple_text_element_base::set_text(sys::state& state, std::string const& new_text) {
+	text_override = true;  
 	if(base_data.get_element_type() == element_type::button) {
 		if(new_text != cached_text) {
 			cached_text = new_text;
@@ -2587,7 +2588,9 @@ void simple_text_element_base::format_text(sys::state& state) {
 void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 	if(base_data.get_element_type() == element_type::button) {
 		black_text = text::is_black_from_font_id(base_data.data.button.font_handle);
-		cached_text = text::produce_simple_string(state, base_data.data.button.txt);
+		if(!text_override) { 
+			cached_text = text::produce_simple_string(state, base_data.data.button.txt);
+		}
 		{
 			internal_layout.contents.clear();
 			internal_layout.number_of_lines = 0;
@@ -2601,7 +2604,9 @@ void simple_text_element_base::on_reset_text(sys::state& state) noexcept {
 		format_text(state);
 	} else if(base_data.get_element_type() == element_type::text) {
 		black_text = text::is_black_from_font_id(base_data.data.text.font_handle);
-		cached_text = text::produce_simple_string(state, base_data.data.text.txt);
+		if(!text_override) { 
+			cached_text = text::produce_simple_string(state, base_data.data.text.txt);
+		}
 		{
 			internal_layout.contents.clear();
 			internal_layout.number_of_lines = 0;
