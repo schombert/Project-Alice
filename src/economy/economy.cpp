@@ -3204,7 +3204,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			*/
 
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
-			auto merchants_supply = ve::min(ve::max(0.f, stockpiles) * stockpile_to_supply, ve::max(0.f, stockpiles) * stockpile_to_supply * 0.01f + state.world.market_get_aggregated_demand_history(ids, c) * (0.85f + state.world.market_get_price(ids, c) / state.world.commodity_get_median_price(c)) + 0.1f);
+			auto merchants_supply = ve::min(
+				ve::max(0.f, stockpiles * stockpile_to_supply),
+				ve::max(0.f,
+					stockpiles * stockpile_to_supply * 0.01f
+					+ state.world.market_get_aggregated_demand_history(ids, c) * (1.f + state.world.market_get_price(ids, c) / state.world.commodity_get_median_price(c))
+					- state.world.market_get_aggregated_supply_history(ids, c)
+				)
+			);
 			auto production_and_merchants_supply = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
 			auto national_stockpile = ve::select(
@@ -3974,7 +3981,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(markets);
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
-				auto merchants_supply = ve::min(ve::max(0.f, stockpiles) * stockpile_to_supply, ve::max(0.f, stockpiles) * stockpile_to_supply * 0.01f + state.world.market_get_aggregated_demand_history(markets, c) * (0.85f + state.world.market_get_price(markets, c) / state.world.commodity_get_median_price(c)) + 0.1f);
+				auto merchants_supply = ve::min(
+					ve::max(0.f, stockpiles * stockpile_to_supply),
+					ve::max(0.f,
+						stockpiles * stockpile_to_supply * 0.01f
+						+ state.world.market_get_aggregated_demand_history(markets, c) * (1.f + state.world.market_get_price(markets, c) / state.world.commodity_get_median_price(c))
+						- state.world.market_get_aggregated_supply_history(markets, c)
+					)
+				);
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
 			}
 		});

@@ -579,7 +579,14 @@ float trade_supply(sys::state const& state,
 	auto stockpiles = state.world.market_get_stockpile(m, c);
 	auto sid = state.world.market_get_zone_from_local_market(m);
 	auto capital = state.world.state_instance_get_capital(sid);
-	auto merchants_supply = std::min(std::max(0.f, stockpiles) * stockpile_to_supply, std::max(0.f, stockpiles) * stockpile_to_supply * 0.01f + state.world.market_get_aggregated_demand_history(m, c) * (0.85f + state.world.market_get_price(m, c) / state.world.commodity_get_median_price(c)) + 0.1f);
+	auto merchants_supply = std::min(
+		std::max(0.f, stockpiles * stockpile_to_supply),
+		std::max(0.f,
+			stockpiles * stockpile_to_supply * 0.01f
+			+ state.world.market_get_aggregated_demand_history(m, c) * (1.f + state.world.market_get_price(m, c) / state.world.commodity_get_median_price(c))
+			- state.world.market_get_aggregated_supply_history(m, c)
+		)
+	);
 	return merchants_supply;
 }
 
