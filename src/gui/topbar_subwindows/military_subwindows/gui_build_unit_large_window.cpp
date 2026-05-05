@@ -92,7 +92,7 @@ public:
 			}
 		} else {
 			dcon::culture_id c = retrieve<dcon::culture_id>(state, parent);
-			if(command::can_start_land_unit_construction(state, n, p, c, utid)) {
+			if(command::can_start_land_unit_construction<false>(state, n, p, c, utid)) {
 				command::start_land_unit_construction(state, n, p, c, utid);
 			}
 		}
@@ -131,7 +131,7 @@ public:
 					}
 				} else {
 					state.world.for_each_culture([&](dcon::culture_id c) {
-						if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+						if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 							command::start_land_unit_construction(state, state.local_player_nation, p, c, utid);
 						}
 					});
@@ -527,7 +527,7 @@ public:
 			for(auto po : state.world.nation_get_province_ownership_as_nation(state.local_player_nation)) {
 				auto p = po.get_province();
 				state.world.for_each_culture([&](dcon::culture_id c) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						buildable_unit_entry_info info;
 						info.utid = utid;
 						info.is_navy = false;
@@ -902,7 +902,7 @@ public:
 			info.province_info = p;
 			if(is_navy == false) {
 				state.world.for_each_culture([&](dcon::culture_id c) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {

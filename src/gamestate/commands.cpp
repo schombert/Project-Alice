@@ -893,28 +893,38 @@ void start_land_unit_construction(sys::state& state, dcon::nation_id source, dco
 	add_to_command_queue(state, p);
 
 }
+
+template <bool VALIDATE>
+bool inline assertive_identity(bool input) {
+	if constexpr(VALIDATE) {
+		assert(input);
+	}
+	return input;
+}
+
+template <bool VALIDATE>
 bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
 	/*
 	The province must be owned and controlled by the building nation, without an ongoing siege.
 	The unit type must be available from start / unlocked by the nation
 	*/
 	if(!state.current_scene.game_in_progress) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
 	if(state.world.province_get_nation_from_province_ownership(location) != source)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	if(state.world.province_get_nation_from_province_control(location) != source)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	if(state.world.nation_get_active_unit(source, type) == false &&
 			state.military_definitions.unit_base_definitions[type].active == false)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	if(state.military_definitions.unit_base_definitions[type].primary_culture && soldier_culture != state.world.nation_get_primary_culture(source) && state.world.nation_get_accepted_cultures(source, soldier_culture) == false) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 	auto disarm = state.world.nation_get_disarmed_until(source);
 	if(disarm && state.current_date < disarm)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	if(state.military_definitions.unit_base_definitions[type].is_land) {
 		/*
@@ -922,9 +932,9 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 		If the unit is culturally restricted, there must be an available primary culture/accepted culture soldier pop with space
 		*/
 		auto soldier = military::find_available_soldier(state, location, soldier_culture);
-		return bool(soldier);
+		return assertive_identity<VALIDATE>(bool(soldier));
 	} else {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 }
 void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
@@ -6408,7 +6418,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::begin_land_unit_construction:
 	{
 		auto& data = c.get_payload<command::land_unit_construction_data>();
-		return can_start_land_unit_construction(state, source, data.location,
+		return can_start_land_unit_construction<false>(state, source, data.location,
 				data.pop_culture, data.type, data.template_province);
 	}
 

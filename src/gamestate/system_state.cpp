@@ -6025,7 +6025,7 @@ void state::build_up_to_template_land(
 					continue;
 				}
 
-				bool can_build = command::can_start_land_unit_construction(
+				bool can_build = command::can_start_land_unit_construction<false>(
 					*this,
 					local_player_nation,
 					prov,

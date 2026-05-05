@@ -21,7 +21,7 @@ namespace economy {
 // value in [0, 1] range
 // 0 means that trade profit due to price difference is pocketed by exporters
 // 1 means that trade profit due to price difference is pocketed by importers
-constexpr inline float import_profit_priority = 0.5f;
+constexpr inline float import_profit_priority = 0.05f;
 
 //constexpr inline float buy_optimism = 0.2f;
 //constexpr inline float sell_optimism = 0.2f;

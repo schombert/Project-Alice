@@ -1900,7 +1900,7 @@ public:
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						no_possible_units = false;
 					}
 				}
@@ -1929,7 +1929,7 @@ public:
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
