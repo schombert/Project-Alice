@@ -30,7 +30,7 @@ void update_price(sys::state& state) {
 			auto supply = state.world.province_get_service_supply_private(pids, i);
 			auto demand = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 			auto price = state.world.province_get_service_price(pids, i);
-			auto change = economy::price_properties::change<ve::fp_vector>(price, supply, demand, economy::price_properties::service::min);
+			auto change = economy::price_properties::service::change<ve::fp_vector>(price, supply, demand);
 			auto new_price = ve::min(ve::max(price + change, economy::price_properties::service::min), economy::price_properties::service::max);
 			state.world.province_set_service_price(pids, i, new_price);
 		});

@@ -582,7 +582,7 @@ float trade_supply(sys::state const& state,
 	auto merchants_supply = std::min(
 		std::max(0.f, stockpiles * stockpile_to_supply),
 		std::max(0.f,
-			stockpiles * stockpile_to_supply * 0.01f
+			stockpiles * stockpile_spoilage
 			+ state.world.market_get_aggregated_demand_history(m, c) * (1.f + state.world.market_get_price(m, c) / state.world.commodity_get_median_price(c))
 			- state.world.market_get_aggregated_supply_history(m, c)
 		)

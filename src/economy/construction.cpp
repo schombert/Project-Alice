@@ -213,7 +213,7 @@ float land_unit_construction_time(
 	dcon::nation_id builder
 ) {
 	return global_land_construction_time_modifier(state)
-		* state.world.nation_get_unit_stats(builder, utid).build_time;
+		* std::max(1, state.world.nation_get_unit_stats(builder, utid).build_time);
 }
 
 float naval_unit_construction_time(
@@ -222,7 +222,7 @@ float naval_unit_construction_time(
 	dcon::nation_id builder
 ) {
 	return global_naval_construction_time_modifier(state)
-		* state.world.nation_get_unit_stats(builder, utid).build_time;
+		* std::max(1, state.world.nation_get_unit_stats(builder, utid).build_time);
 }
 
 float province_building_construction_time(
@@ -1317,7 +1317,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(light_ship_def.build_cost.commodity_type[i]) {
 						auto p = price(state, market, light_ship_def.build_cost.commodity_type[i]);
-						daily_cost += light_ship_def.build_cost.commodity_amounts[i] / light_ship_def.build_time * p;
+						daily_cost += light_ship_def.build_cost.commodity_amounts[i] / std::max(1, light_ship_def.build_time) * p;
 					} else {
 						break;
 					}
@@ -1328,7 +1328,7 @@ void emulate_construction_demand(sys::state& state, dcon::nation_id n) {
 				for(uint32_t i = 0; i < commodity_set::set_size; ++i) {
 					if(transport_def.build_cost.commodity_type[i]) {
 						auto p = price(state, market, transport_def.build_cost.commodity_type[i]);
-						daily_cost += transport_def.build_cost.commodity_amounts[i] / transport_def.build_time * p;
+						daily_cost += transport_def.build_cost.commodity_amounts[i] / std::max(1, transport_def.build_time) * p;
 					} else {
 						break;
 					}

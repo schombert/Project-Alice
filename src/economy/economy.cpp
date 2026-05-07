@@ -215,8 +215,11 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 	auto capital = state.world.state_instance_get_capital(zone);
 
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education)
-		+ state.world.province_get_labor_price(capital, labor::basic_education);
+	auto wage =
+		state.world.province_get_labor_price(capital, labor::no_education)
+		+ state.world.province_get_labor_price(capital, labor::basic_education)
+		+ state.world.province_get_labor_price(capital, labor::high_education);
+
 	{
 		auto expected_cost = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -3207,7 +3210,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto merchants_supply = ve::min(
 				ve::max(0.f, stockpiles * stockpile_to_supply),
 				ve::max(0.f,
-					stockpiles * stockpile_to_supply * 0.01f
+					stockpiles * stockpile_spoilage
 					+ state.world.market_get_aggregated_demand_history(ids, c) * (1.f + state.world.market_get_price(ids, c) / state.world.commodity_get_median_price(c))
 					- state.world.market_get_aggregated_supply_history(ids, c)
 				)
@@ -3984,7 +3987,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto merchants_supply = ve::min(
 					ve::max(0.f, stockpiles * stockpile_to_supply),
 					ve::max(0.f,
-						stockpiles * stockpile_to_supply * 0.01f
+						stockpiles * stockpile_spoilage
 						+ state.world.market_get_aggregated_demand_history(markets, c) * (1.f + state.world.market_get_price(markets, c) / state.world.commodity_get_median_price(c))
 						- state.world.market_get_aggregated_supply_history(markets, c)
 					)
@@ -4013,6 +4016,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				+ economy::price_properties::labor::min;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
+			target_wage = ve::min(target_wage, no_education * 0.5f);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
@@ -4384,7 +4388,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_price = state.world.province_get_labor_price(ids, i);
 			auto old_price = current_price;
 
-			current_price = current_price + price_properties::change<ve::fp_vector>(current_price, supply, demand, economy::price_properties::labor::min);
+			current_price = current_price + price_properties::labor::change<ve::fp_vector>(current_price, supply, demand);
 
 			auto nids = state.world.province_get_nation_from_province_ownership(ids);
 			auto sids = state.world.province_get_state_membership(ids);
@@ -4434,10 +4438,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			return;
 		}
 		state.world.execute_serial_over_market([&](auto ids) {
-			ve::fp_vector supply = state.world.market_get_supply(ids, cid);
-			ve::fp_vector demand = state.world.market_get_demand(ids, cid);
+			ve::fp_vector supply = state.world.market_get_aggregated_supply_history(ids, cid);
+			ve::fp_vector demand = state.world.market_get_aggregated_demand_history(ids, cid);
 			auto current_price = ve_price(state, ids, cid);
-			current_price = current_price + price_properties::change<ve::fp_vector>(current_price, supply, demand, economy::price_properties::commodity::min);
+			current_price = current_price + price_properties::commodity::change<ve::fp_vector>(current_price, supply, demand);
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(std::isfinite(value)); }, current_price);
 #endif
@@ -4539,7 +4543,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	}
 
 	// essentially upper bound on wealth in the system
-	state.inflation = 1.f;
+	state.inflation = 0.999f;
 
 	sanity_check(state);
 
