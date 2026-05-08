@@ -2018,3 +2018,10 @@ alice_num_units_targeting_dug_in_tooltip;?Y$COUNT$?W units are targeting dug in 
 alice_unit_dug_in;Unit has a dig-in lvl of ?Y$NUM$?W
 alice_unit_targeting_dug_in_modifier;Unit receives a ?Y$NUM$?W modifier to its combat roll targeting a dug-in unit
 add_wargoal_wargoal_count;Will add ?Y$COUNT$?W wargoal(s) when proceeding
+subsidies_label;Subsidies
+effective_output_tooltip;Effective output (output divided by base output)
+subsidies_explanation_tooltip;Total volume of subsidies is decided by national budget. Factories receive for subsidies proportionally to their effective output. You can set subsidies in updated production menu via directives.
+factory_investments_header;Investments
+total_investments_label;Total
+investment_efficiency_tooltip;Tools, efficiency inputs and machines
+investment_expansion_tooltip;Expansion

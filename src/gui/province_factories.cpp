@@ -32,6 +32,7 @@ struct province_factories_main_pop_project_name_t;
 struct province_factories_main_pop_project_margin_value_t;
 struct province_factories_main_pop_project_payback_value_t;
 struct province_factories_main_build_factory_button_t;
+struct province_factories_main_total_subsidy_value_t;
 struct province_factories_main_t;
 struct province_factories_table_body_table_body_control_t;
 struct province_factories_table_body_icon_t;
@@ -121,6 +122,11 @@ struct province_factories_main_pop_project_payback_value_t : public alice_ui::te
 };
 struct province_factories_main_build_factory_button_t : public alice_ui::template_icon_button {
 // BEGIN main::build_factory_button::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct province_factories_main_total_subsidy_value_t : public alice_ui::template_label {
+// BEGIN main::total_subsidy_value::variables
 // END
 	void on_update(sys::state& state) noexcept override;
 };
@@ -261,6 +267,8 @@ struct province_factories_main_t : public layout_window_element {
 	std::unique_ptr<template_label> pop_project_payback_label;
 	std::unique_ptr<province_factories_main_pop_project_payback_value_t> pop_project_payback_value;
 	std::unique_ptr<province_factories_main_build_factory_button_t> build_factory_button;
+	std::unique_ptr<template_label> total_subsidy_label;
+	std::unique_ptr<province_factories_main_total_subsidy_value_t> total_subsidy_value;
 	province_factories_main_table_generator_t table_generator;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
 	uint8_t local_factories_list_icon_header_text_color = 0;
@@ -861,6 +869,19 @@ void province_factories_main_build_factory_button_t::on_update(sys::state& state
 // BEGIN main::build_factory_button::update
 // END
 }
+void province_factories_main_total_subsidy_value_t::on_update(sys::state& state) noexcept {
+	province_factories_main_t& main = *((province_factories_main_t*)(parent)); 
+// BEGIN main::total_subsidy_value::update
+	auto province = state.map_state.selected_province;
+	auto total = 0.f;
+	for(auto f : state.world.province_get_factory_location(province)) {
+		auto factory = f.get_factory();
+		auto explanation = economy::explain_last_factory_profit(state, factory);
+		total = total + explanation.subsidy;
+	}
+	set_text(state, text::format_money(total));
+// END
+}
 ui::message_result province_factories_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -1004,6 +1025,12 @@ void province_factories_main_t::create_layout_level(sys::state& state, layout_le
 				} else
 				if(cname == "build_factory_button") {
 					temp.ptr = build_factory_button.get();
+				} else
+				if(cname == "total_subsidy_label") {
+					temp.ptr = total_subsidy_label.get();
+				} else
+				if(cname == "total_subsidy_value") {
+					temp.ptr = total_subsidy_value.get();
 				} else
 				{
 				}
@@ -1566,6 +1593,42 @@ void province_factories_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->template_id = child_data.template_id;
 			cptr->icon = child_data.icon_id;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "total_subsidy_label") {
+			total_subsidy_label = std::make_unique<template_label>();
+			total_subsidy_label->parent = this;
+			auto cptr = total_subsidy_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "total_subsidy_value") {
+			total_subsidy_value = std::make_unique<province_factories_main_total_subsidy_value_t>();
+			total_subsidy_value->parent = this;
+			auto cptr = total_subsidy_value.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
 			if(child_data.tooltip_text_key.length() > 0)
 				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;

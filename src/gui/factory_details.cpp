@@ -32,6 +32,11 @@ struct factory_details_main_base_output_t;
 struct factory_details_main_icon_output_t;
 struct factory_details_main_information_employment_units_t;
 struct factory_details_main_information_production_units_t;
+struct factory_details_main_effective_output_t;
+struct factory_details_main_subsidy_t;
+struct factory_details_main_total_investments_value_t;
+struct factory_details_main_investment_expansion_t;
+struct factory_details_main_investment_efficiency_t;
 struct factory_details_main_t;
 struct factory_details_commodity_row_icon_t;
 struct factory_details_commodity_row_name_t;
@@ -154,6 +159,31 @@ struct factory_details_main_information_production_units_t : public alice_ui::te
 	void update_tooltip(sys::state& state, int32_t x, int32_t y, text::columnar_layout& contents) noexcept override;
 	void on_update(sys::state& state) noexcept override;
 };
+struct factory_details_main_effective_output_t : public alice_ui::template_label {
+// BEGIN main::effective_output::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct factory_details_main_subsidy_t : public alice_ui::template_label {
+// BEGIN main::subsidy::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct factory_details_main_total_investments_value_t : public alice_ui::template_label {
+// BEGIN main::total_investments_value::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct factory_details_main_investment_expansion_t : public alice_ui::template_label {
+// BEGIN main::investment_expansion::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
+struct factory_details_main_investment_efficiency_t : public alice_ui::template_label {
+// BEGIN main::investment_efficiency::variables
+// END
+	void on_update(sys::state& state) noexcept override;
+};
 struct factory_details_main_output_row_t : public layout_generator {
 // BEGIN main::output_row::variables
 // END
@@ -252,6 +282,17 @@ struct factory_details_main_t : public layout_window_element {
 	std::unique_ptr<factory_details_main_information_employment_units_t> information_employment_units;
 	std::unique_ptr<factory_details_main_information_production_units_t> information_production_units;
 	std::unique_ptr<template_icon_graphic> secondary_arrow;
+	std::unique_ptr<template_label> subsidies_label;
+	std::unique_ptr<factory_details_main_effective_output_t> effective_output;
+	std::unique_ptr<template_icon_graphic> subsidies_explanation;
+	std::unique_ptr<template_icon_graphic> effective_output_to_subsidy;
+	std::unique_ptr<factory_details_main_subsidy_t> subsidy;
+	std::unique_ptr<template_label> investment;
+	std::unique_ptr<template_label> total_investments_label;
+	std::unique_ptr<factory_details_main_total_investments_value_t> total_investments_value;
+	std::unique_ptr<template_icon_graphic> icon_split_investment;
+	std::unique_ptr<factory_details_main_investment_expansion_t> investment_expansion;
+	std::unique_ptr<factory_details_main_investment_efficiency_t> investment_efficiency;
 	factory_details_main_output_row_t output_row;
 	factory_details_main_inputs_row_t inputs_row;
 	std::vector<std::unique_ptr<ui::element_base>> gui_inserts;
@@ -633,6 +674,69 @@ void factory_details_main_information_production_units_t::on_update(sys::state& 
 // BEGIN main::information_production_units::update
 // END
 }
+void factory_details_main_effective_output_t::on_update(sys::state& state) noexcept {
+	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
+// BEGIN main::effective_output::update
+	set_text(state, text::format_float(main.last_explanation.output_actual_amount / main.last_explanation.output_base_amount));
+// END
+}
+void factory_details_main_subsidy_t::on_update(sys::state& state) noexcept {
+	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
+// BEGIN main::subsidy::update
+	set_text(state, text::format_money(main.last_explanation.revenue_from_subsidies));
+// END
+}
+void factory_details_main_total_investments_value_t::on_update(sys::state& state) noexcept {
+	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
+// BEGIN main::total_investments_value::update
+	auto factory = state.selected_factory;
+	auto province = state.world.factory_get_province_from_factory_location(factory);
+	auto nation = state.world.province_get_nation_from_province_ownership(province);
+	auto total_tokens = economy::total_nation_investments_tokens(state, nation);
+	auto total_investment = state.world.nation_get_private_investment(nation);
+	auto tokens = main.last_explanation.investments_tokens;
+	if(total_tokens == 0.f) {
+		set_text(state, text::format_money(0.f));
+		return;
+	}
+	auto investment = tokens / total_tokens * total_investment;
+	set_text(state, text::format_money(investment));
+// END
+}
+void factory_details_main_investment_expansion_t::on_update(sys::state& state) noexcept {
+	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
+// BEGIN main::investment_expansion::update
+	auto factory = state.selected_factory;
+	auto province = state.world.factory_get_province_from_factory_location(factory);
+	auto nation = state.world.province_get_nation_from_province_ownership(province);
+	auto total_tokens = economy::total_nation_investments_tokens(state, nation);
+	auto total_investment = state.world.nation_get_private_investment(nation);
+	auto tokens = main.last_explanation.investments_tokens;
+	if(total_tokens == 0.f) {
+		set_text(state, text::format_money(0.f));
+		return;
+	}
+	auto investment = tokens / total_tokens * total_investment;
+	set_text(state, text::format_money(investment * main.last_explanation.investments_expansion_priority));
+// END
+}
+void factory_details_main_investment_efficiency_t::on_update(sys::state& state) noexcept {
+	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
+// BEGIN main::investment_efficiency::update
+	auto factory = state.selected_factory;
+	auto province = state.world.factory_get_province_from_factory_location(factory);
+	auto nation = state.world.province_get_nation_from_province_ownership(province);
+	auto total_tokens = economy::total_nation_investments_tokens(state, nation);
+	auto total_investment = state.world.nation_get_private_investment(nation);
+	auto tokens = main.last_explanation.investments_tokens;
+	if(total_tokens == 0.f) {
+		set_text(state, text::format_money(0.f));
+		return;
+	}
+	auto investment = tokens / total_tokens * total_investment;
+	set_text(state, text::format_money(investment * (1.f - main.last_explanation.investments_expansion_priority)));
+// END
+}
 ui::message_result factory_details_main_t::on_lbutton_down(sys::state& state, int32_t x, int32_t y, sys::key_modifiers mods) noexcept {
 	state.ui_state.drag_target = this;
 	return ui::message_result::consumed;
@@ -802,6 +906,39 @@ void factory_details_main_t::create_layout_level(sys::state& state, layout_level
 				} else
 				if(cname == "secondary_arrow") {
 					temp.ptr = secondary_arrow.get();
+				} else
+				if(cname == "subsidies_label") {
+					temp.ptr = subsidies_label.get();
+				} else
+				if(cname == "effective_output") {
+					temp.ptr = effective_output.get();
+				} else
+				if(cname == "subsidies_explanation") {
+					temp.ptr = subsidies_explanation.get();
+				} else
+				if(cname == "effective_output_to_subsidy") {
+					temp.ptr = effective_output_to_subsidy.get();
+				} else
+				if(cname == "subsidy") {
+					temp.ptr = subsidy.get();
+				} else
+				if(cname == "investment") {
+					temp.ptr = investment.get();
+				} else
+				if(cname == "total_investments_label") {
+					temp.ptr = total_investments_label.get();
+				} else
+				if(cname == "total_investments_value") {
+					temp.ptr = total_investments_value.get();
+				} else
+				if(cname == "icon_split_investment") {
+					temp.ptr = icon_split_investment.get();
+				} else
+				if(cname == "investment_expansion") {
+					temp.ptr = investment_expansion.get();
+				} else
+				if(cname == "investment_efficiency") {
+					temp.ptr = investment_efficiency.get();
 				} else
 				{
 				}
@@ -1486,6 +1623,201 @@ void factory_details_main_t::on_create(sys::state& state) noexcept {
 			cptr->base_data.size.y = child_data.y_size;
 			cptr->template_id = child_data.template_id;
 			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "subsidies_label") {
+			subsidies_label = std::make_unique<template_label>();
+			subsidies_label->parent = this;
+			auto cptr = subsidies_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "effective_output") {
+			effective_output = std::make_unique<factory_details_main_effective_output_t>();
+			effective_output->parent = this;
+			auto cptr = effective_output.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "subsidies_explanation") {
+			subsidies_explanation = std::make_unique<template_icon_graphic>();
+			subsidies_explanation->parent = this;
+			auto cptr = subsidies_explanation.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "effective_output_to_subsidy") {
+			effective_output_to_subsidy = std::make_unique<template_icon_graphic>();
+			effective_output_to_subsidy->parent = this;
+			auto cptr = effective_output_to_subsidy.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "subsidy") {
+			subsidy = std::make_unique<factory_details_main_subsidy_t>();
+			subsidy->parent = this;
+			auto cptr = subsidy.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "investment") {
+			investment = std::make_unique<template_label>();
+			investment->parent = this;
+			auto cptr = investment.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "total_investments_label") {
+			total_investments_label = std::make_unique<template_label>();
+			total_investments_label->parent = this;
+			auto cptr = total_investments_label.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "total_investments_value") {
+			total_investments_value = std::make_unique<factory_details_main_total_investments_value_t>();
+			total_investments_value->parent = this;
+			auto cptr = total_investments_value.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "icon_split_investment") {
+			icon_split_investment = std::make_unique<template_icon_graphic>();
+			icon_split_investment->parent = this;
+			auto cptr = icon_split_investment.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			cptr->color = child_data.table_divider_color;
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "investment_expansion") {
+			investment_expansion = std::make_unique<factory_details_main_investment_expansion_t>();
+			investment_expansion->parent = this;
+			auto cptr = investment_expansion.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
+			if(child_data.tooltip_text_key.length() > 0)
+				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
+			cptr->parent = this;
+			cptr->on_create(state);
+			children.push_back(cptr);
+			pending_children.pop_back(); continue;
+		} else 
+		if(child_data.name == "investment_efficiency") {
+			investment_efficiency = std::make_unique<factory_details_main_investment_efficiency_t>();
+			investment_efficiency->parent = this;
+			auto cptr = investment_efficiency.get();
+			cptr->base_data.position.x = child_data.x_pos;
+			cptr->base_data.position.y = child_data.y_pos;
+			cptr->base_data.size.x = child_data.x_size;
+			cptr->base_data.size.y = child_data.y_size;
+			cptr->template_id = child_data.template_id;
+			if(child_data.text_key.length() > 0)
+				cptr->default_text = state.lookup_key(child_data.text_key);
 			if(child_data.tooltip_text_key.length() > 0)
 				cptr->default_tooltip = state.lookup_key(child_data.tooltip_text_key);
 			cptr->parent = this;

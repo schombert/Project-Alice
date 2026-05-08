@@ -70,6 +70,11 @@ float base_artisan_input_cost(
 	dcon::commodity_id c
 );
 
+float total_nation_investments_tokens(
+	sys::state& state,
+	dcon::nation_id nation
+);
+
 float priority_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 float nation_factory_input_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
 float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n);
@@ -196,11 +201,13 @@ struct throughput_multipliers_explanation {
 	float from_forced_subsistence = 1.f;
 };
 
+
 struct detailed_explanation {
 	dcon::factory_type_id base_type = dcon::factory_type_id{ };
 
 	float profit = 0.f;
 	float income_from_sales = 0.f;
+	float revenue_from_subsidies = 0.f;
 	float spending_from_primary_inputs = 0.f;
 	float spending_from_efficiency_inputs = 0.f;
 	float spending_from_wages = 0.f;
@@ -216,6 +223,9 @@ struct detailed_explanation {
 	float output_base_amount = 0.f;
 	float output_actual_amount = 0.f;
 	float output_actually_sold_ratio = 0.f;
+
+	float investments_tokens = 0.f;
+	float investments_expansion_priority = 0.f;
 
 	detailed_commodity_set efficiency_inputs{};
 	float required_efficiency_inputs_multiplier = 1.f;
