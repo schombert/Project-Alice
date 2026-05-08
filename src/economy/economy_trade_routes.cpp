@@ -623,8 +623,9 @@ void update_trade_routes_volume(
 		auto land_distance = state.world.trade_route_get_land_distance(trade_route);
 		auto sea_distance = state.world.trade_route_get_sea_distance(trade_route);
 
-		distance = ve::select(is_land_route, ve::min(distance, land_distance), distance);
-		distance = ve::select(is_sea_route, ve::min(distance, sea_distance), distance);
+		distance = ve::select(is_land_route, land_distance, distance);
+		distance = ve::select(is_sea_route, sea_distance, distance);
+		distance = ve::select(is_land_route && is_sea_route, ve::min(sea_distance, land_distance), distance);
 
 		ve::apply([&](auto value) {
 			assert(std::isfinite(value));
