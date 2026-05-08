@@ -40,7 +40,7 @@ It would be great to track optimism and pessimism, but for now we would use a st
 Factories are currently pessimistic about workers.
 */
 constexpr float sales_optimism = 0.05f;
-constexpr float purchase_optimism = 0.7f;
+constexpr float purchase_optimism = 0.2f;
 
 template<typename T>
 auto artisan_input_multiplier(
@@ -1094,20 +1094,35 @@ float get_total_target_wage(const sys::state& state, dcon::factory_id f) {
 
 profit_explanation explain_last_factory_profit(sys::state const& state, dcon::factory_id f) {
 	auto location = state.world.factory_get_province_from_factory_location(f);
+	auto nation = state.world.province_get_nation_from_province_ownership(location);
 	auto zone = state.world.province_get_state_membership(location);
 	auto market = state.world.state_instance_get_market_from_local_market(zone);
 	auto ftid = state.world.factory_get_building_type(f);
 	auto output_commodity = state.world.factory_type_get_output(ftid);
 	auto local_price = price(state, market, output_commodity);
-	auto last_output = state.world.factory_get_output(f) * local_price ;
+	auto last_output = state.world.factory_get_output(f) * local_price;
+
+	auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, output_commodity));
+	auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, output_commodity));
+	auto subsidy = 0.f;
+
+	if(priority || priority_local) {
+		auto base_output = state.world.factory_type_get_output_amount(ftid);
+		auto factory_output = state.world.factory_get_output(f);
+		auto effective_output = factory_output / base_output;
+		auto tokens = state.world.nation_get_subsidy_token_total(nation);
+		auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+		subsidy = last_token_price * effective_output;
+	}
 	auto last_inputs = state.world.factory_get_input_cost(f);
 	auto wages = get_total_wage(state, f);
-	auto profit = last_output * state.world.market_get_actual_probability_to_sell(market, output_commodity) - wages - last_inputs;
+	auto profit = subsidy + last_output * state.world.market_get_actual_probability_to_sell(market, output_commodity) - wages - last_inputs;
 
 	return {
 		.inputs = last_inputs,
 		.wages = wages,
 		.output = last_output,
+		.subsidy = subsidy,
 		.profit = profit
 	};
 }
@@ -1928,6 +1943,7 @@ VALUE gradient_employment_secondary(
 
 template<size_t N, typename VALUE>
 employment_vector<N, VALUE> get_profit_gradient(
+	// already accounts for secondary workers
 	VALUE expected_profit_per_perfect_primary_worker,
 	VALUE expected_input_cost_per_perfect_worker,
 	VALUE secondary_target,
@@ -1942,9 +1958,9 @@ employment_vector<N, VALUE> get_profit_gradient(
 			expected_profit_per_perfect_primary_worker,
 			expected_input_cost_per_perfect_worker,
 			primary_employment.power[i],
-			primary_employment.wage[i],
-			secondary_actual,
-			secondary_power
+			primary_employment.wage[i]//,
+			//secondary_actual,
+			//secondary_power
 		);
 	}
 	result.secondary = gradient_employment_secondary(

@@ -89,6 +89,7 @@ struct profit_explanation {
 	float inputs;
 	float wages;
 	float output;
+	float subsidy;
 	float profit;
 };
 
