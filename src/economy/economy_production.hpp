@@ -29,7 +29,8 @@ uint32_t size(sys::state const& state);
 
 namespace economy {
 
-inline constexpr float secondary_employment_output_bonus = 10.f;
+// 100'000 hired clerks increase output by 1%
+inline constexpr float secondary_employment_output_bonus = 1.f / 100000.f;
 inline constexpr float unqualified_throughput_multiplier = 0.2f;
 inline constexpr float artisans_per_employment_unit = 10'000.f;
 inline constexpr float construction_units_to_maintenance_units = 0.0001f;

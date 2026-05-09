@@ -145,14 +145,6 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 
 	auto is_mine = state.world.commodity_get_is_mine(c);
 
-	VALUE base_rgo_mult = state.defines.alice_base_rgo_efficiency_bonus;
-
-	VALUE main_rgo = adaptive_ve::select<MASK, VALUE>(
-		state.world.province_get_rgo(p) == c,
-		base_rgo_mult,
-		1.f
-	);
-
 	auto prov_mod_offset = is_mine ? sys::provincial_mod_offsets::mine_rgo_eff : sys::provincial_mod_offsets::farm_rgo_eff;
 	auto nation_mod_offset = is_mine ? sys::national_mod_offsets::mine_rgo_eff : sys::national_mod_offsets::farm_rgo_eff;
 
@@ -163,13 +155,12 @@ auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id
 		+ state.world.province_get_modifier_values(p, prov_mod_offset)
 		+ state.world.nation_get_modifier_values(n, nation_mod_offset);
 
-	VALUE result = main_rgo
-		*
-			(
-				(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
-				/ (state.world.province_get_demographics(p, demographics::total) + 1.f)
-				+ 0.01f
-			)
+	VALUE result =
+		(
+			(state.world.province_get_demographics(p, demographics::literacy) + 1.f)
+			/ (state.world.province_get_demographics(p, demographics::total) + 1.f)
+			+ 0.01f
+		)
 		* adaptive_ve::max<VALUE>(0.5f, throughput)
 		* state.defines.alice_rgo_boost
 		* adaptive_ve::max<VALUE>(0.5f, (
@@ -415,17 +406,12 @@ float output_multiplier_from_workers_with_high_education(
 	sys::state const& state,
 	dcon::commodity_id output,
 	dcon::province_id labor_market,
-	float target_workers_high_education,
-	float max_employment
+	float target_workers_high_education
 ) {
 	assert(target_workers_high_education >= 0.f);
 	float workers_high_education = target_workers_high_education * state.world.province_get_labor_demand_satisfaction(labor_market, labor::high_education);
 	assert(workers_high_education >= 0.f);
-	if(max_employment < 1.f) {
-		return 1.f;
-	}
-
-	return (1.f + high_education_power(state, state.world.province_get_nation_from_province_ownership(labor_market), output) * workers_high_education / max_employment);
+	return (1.f + high_education_power(state, state.world.province_get_nation_from_province_ownership(labor_market), output) * workers_high_education);
 }
 
 // returns employment units
@@ -1032,7 +1018,7 @@ output_multipliers_explanation explain_output_multiplier(sys::state const& state
 	{
 		result.from_secondary_workers = output_multiplier_from_workers_with_high_education(
 			state, factory_type.get_output(), p,
-			fac.get_secondary_employment(), fac.get_size()
+			fac.get_secondary_employment()
 		);
 	}
 
@@ -1217,7 +1203,7 @@ factory_update_data imitate_single_factory_consumption(
 		input_multiplier, throughput_multiplier, output_multiplier,
 		employment,
 		output_multiplier_from_workers_with_high_education(
-			state, fac_type.get_output(), fac.get_province_from_factory_location(), fac.get_secondary_employment(), max_employment
+			state, fac_type.get_output(), fac.get_province_from_factory_location(), fac.get_secondary_employment()
 		), max_employment
 	);
 
@@ -1418,17 +1404,16 @@ void update_production_investement_consumption(
 			Final efficiency would influence factory throughput.
 			*/
 
-			auto base_growth = 1.0001f;
-			auto base_decay = 1.f;
-			auto base_multiplier = 0.9999f;
+			auto base_growth = 1.f;
+			auto decay_mult = 0.0001f;
+
+			auto national_t = state.world.nation_get_factory_goods_throughput(nation, output_type);
+			auto nationnal_fac_t = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::factory_throughput);
+			auto investment_efficiency = 1.f
+				* std::max(0.f, 1.f + national_t)
+				* std::max(0.f, 1.f + nationnal_fac_t);
 
 			if (expand_priority < 1.f) {
-				auto national_t = state.world.nation_get_factory_goods_throughput(nation, output_type);
-				auto nationnal_fac_t = state.world.nation_get_modifier_values(nation, sys::national_mod_offsets::factory_throughput);
-				auto max_growth_base = 1.f
-					* std::max(0.f, 1.f + national_t)
-					* std::max(0.f, 1.f + nationnal_fac_t);
-
 				auto investment = available_investment * factory_tokens / total_tokens * (1.f - expand_priority);
 				auto& efficiency_inputs = state.world.factory_type_get_efficiency_inputs(factory_type);
 				auto total_can_afford = 0.f;
@@ -1457,11 +1442,11 @@ void update_production_investement_consumption(
 						auto can_afford = std::max(0.f, investment / cost - 1.f);
 						auto investment_into_category = investment * can_afford / total_can_afford;
 
-						auto can_actually_afford = std::min(max_growth_base, investment_into_category / cost);
+						auto can_actually_afford = std::min(10.f, investment_into_category / cost);
 						economy::register_demand(state, market, cid, can_actually_afford * amount);
 						auto probability_to_buy = state.world.market_get_actual_probability_to_buy(market, cid);
-						auto growth = can_actually_afford * probability_to_buy;
-						base_growth = base_growth * (1.f + 0.1f * growth);
+						auto growth = 0.05f * investment_efficiency * can_actually_afford * probability_to_buy;
+						base_growth = base_growth * (1.f + decay_mult * growth);
 
 						actually_spent = actually_spent + can_actually_afford * cost;
 					}
@@ -1469,15 +1454,15 @@ void update_production_investement_consumption(
 			}
 
 			auto old = state.world.factory_get_technology_scale(factory);
-			state.world.factory_set_technology_scale(factory, std::max(0.05f, old * base_multiplier + 0.001f * (base_growth - base_decay)));			
+			auto decay = std::max(0.f, (old - investment_efficiency) * decay_mult);
+			state.world.factory_set_technology_scale(factory, std::max(0.05f, old - decay + base_growth - 1.f));
 		}
 
 		auto total_agriculture = 0.f;
 
 		//RGO
 		state.world.for_each_commodity([&](auto c){
-			auto base_efficiency_multiplier = 0.9999f;
-
+			auto decay_mult = 0.0001f;
 			auto base_output = state.world.commodity_get_rgo_amount(c);
 			if (base_output == 0.f) return;
 			auto current_max_size = state.world.province_get_rgo_potential(province, c);
@@ -1486,14 +1471,14 @@ void update_production_investement_consumption(
 
 			auto local_tokens = rgo_investment_tokens(state, nation, province, c);
 			auto local_investment = available_investment * local_tokens / total_tokens;
+			auto investment_efficiency = state.world.province_get_rgo_max_efficiency(province, c);
 
 			{
-				auto max_efficiency_growth_rate = state.world.province_get_rgo_max_efficiency(province, c);
 				auto current_efficiency = state.world.province_get_rgo_efficiency(province, c);
 
 				auto current_employment = state.world.province_get_rgo_target_employment(province, c);
 				auto priority_from_max_size = current_max_size < 1.f ? 0.f : std::max(0.01f, 1.f - (current_size / current_max_size));
-				auto priority_from_employment = current_size < 1.f ? 1.f : std::max(0.01f, current_employment / current_size);
+				auto priority_from_employment = current_size < 1.f ? 1.f : std::max(0.01f, (current_employment / current_size - 0.8f) * 5.f);
 				auto expansion_priority = priority_from_max_size * priority_from_employment;
 				auto total_local_priority = 1.f + expansion_priority;
 
@@ -1504,7 +1489,7 @@ void update_production_investement_consumption(
 
 				// EFFICIENCY
 				{
-					auto efficiency_growth = 1.0001f;
+					auto efficiency_growth = 1.f;
 					auto& efficiency_inputs = state.world.commodity_get_rgo_efficiency_inputs(c);
 					auto total_can_afford = 0.f;
 					for(uint8_t i = 0; i < economy::small_commodity_set::set_size; i++) {
@@ -1525,16 +1510,17 @@ void update_production_investement_consumption(
 							auto cost = amount * price(state, market, cid);
 							auto can_afford = std::max(0.f, investment_rgo_efficiency / cost - 1.f);
 							auto investment_into_category = investment_rgo_efficiency * can_afford / total_can_afford;
-							auto can_actually_afford = std::min(max_efficiency_growth_rate, investment_into_category / cost);
+							auto can_actually_afford = std::min(10.f, investment_into_category / cost);
 							economy::register_demand(state, market, cid, can_actually_afford * amount);
 							auto probability_to_buy = state.world.market_get_actual_probability_to_buy(market, cid);
-							auto growth = can_actually_afford * probability_to_buy;
-							efficiency_growth = efficiency_growth * (1.f + 0.1f * growth);
+							auto growth = 0.05f * investment_efficiency * can_actually_afford * probability_to_buy;
+							efficiency_growth = efficiency_growth * (1.f + decay_mult * growth);
 							actually_spent = actually_spent + can_actually_afford * cost;
 						}
 					}
 
-					state.world.province_set_rgo_efficiency(province, c, std::max(free_efficiency, current_efficiency * base_efficiency_multiplier + 0.001f * (efficiency_growth - 1.f)));
+					auto decay = std::max(0.f, (current_efficiency - investment_efficiency) * decay_mult);
+					state.world.province_set_rgo_efficiency(province, c, std::max(free_efficiency, current_efficiency - decay + efficiency_growth - 1.f));
 				}
 
 				// SIZE
@@ -1646,7 +1632,7 @@ void update_single_factory_consumption(
 		input_multiplier, throughput_multiplier, output_multiplier,
 		employment_units,
 		output_multiplier_from_workers_with_high_education(
-			state, fac_type.get_output(), fac.get_province_from_factory_location(), fac.get_secondary_employment(), max_employment
+			state, fac_type.get_output(), fac.get_province_from_factory_location(), fac.get_secondary_employment()
 		), max_employment, economy_reason::factory
 	);
 
@@ -1953,6 +1939,7 @@ VALUE gradient_employment_i(
 template<size_t N, typename VALUE>
 VALUE gradient_employment_secondary(
 	VALUE expected_profit_per_perfect_worker,
+	VALUE current_secondary_workers_multiplier,
 	VALUE secondary_power,
 	VALUE secondary_wage,
 	employment_data<N, VALUE>& primary_employment
@@ -1963,6 +1950,7 @@ VALUE gradient_employment_secondary(
 			+ primary_employment.actual[i]
 			* primary_employment.power[i]
 			* expected_profit_per_perfect_worker
+			/ current_secondary_workers_multiplier
 			* secondary_power;
 	}
 	auto spend = secondary_wage;
@@ -1978,6 +1966,7 @@ employment_vector<N, VALUE> get_profit_gradient(
 	VALUE expected_input_cost_per_perfect_worker,
 	VALUE secondary_target,
 	VALUE secondary_actual,
+	VALUE current_secondary_workers_multiplier,
 	VALUE secondary_power,
 	VALUE secondary_wage,
 	employment_data<N, VALUE>& primary_employment
@@ -1995,6 +1984,7 @@ employment_vector<N, VALUE> get_profit_gradient(
 	}
 	result.secondary = gradient_employment_secondary(
 		expected_profit_per_perfect_primary_worker,
+		current_secondary_workers_multiplier,
 		secondary_power,
 		secondary_wage,
 		primary_employment
@@ -2181,14 +2171,15 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 			return high_education_power(state, local_nation, output_commodity);
 		}, nation, output);
 
-		auto current_secondary_multiplier = 1.f + secondary_power * secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education) / size;
+		auto current_secondary_multiplier = 1.f + secondary_power * secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education);
 
 		auto gradient = get_profit_gradient(
 			profit_per_worker,
 			input_cost_per_worker,
 			secondary,
 			secondary * state.world.province_get_labor_demand_satisfaction(pid, labor::high_education),
-			secondary_power / size / current_secondary_multiplier,
+			current_secondary_multiplier,
+			secondary_power,
 			wage_high_education * (1.f + capitalists_greed) / (0.01f + state.world.province_get_labor_demand_satisfaction(pid, labor::high_education)),
 			primary_employment
 		);
@@ -3134,7 +3125,8 @@ detailed_explanation explain_everything(sys::state const& state, dcon::factory_i
 		cost_per_employment_unit * (1.f + capitalists_greed) / base_size,
 		result.employment_target.secondary,
 		result.employment.secondary,
-		1.f / fac.get_size() * high_education_power(state, n, result.output) / result.output_multipliers.from_secondary_workers,
+		result.output_multipliers.from_secondary_workers,
+		high_education_power(state, n, result.output),
 		result.employment_wages_per_person.secondary * (1.f + capitalists_greed) / (result.employment_available_ratio.secondary + 0.01f),
 		basic_employment
 	);

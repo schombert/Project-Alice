@@ -577,8 +577,7 @@ void initialize(sys::state& state) {
 		for(uint32_t i = 0; i < e_inputs.set_size; i++) {
 			if(e_inputs.commodity_type[i]) {
 				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].index()] +=
-					e_inputs.commodity_amounts[i]
-					/ state.world.factory_type_get_base_workforce(ftid);
+					e_inputs.commodity_amounts[i];
 				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].index()] += 1;
 			}
 		}
@@ -623,20 +622,20 @@ void initialize(sys::state& state) {
 		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ dcon::commodity_id::value_base_t(most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[0] =
 			rgo_efficiency_inputs_amount[most_common_index]
-			/ (float)most_common_count * 0.005f;
+			/ (float)most_common_count;
 	}
 	if(second_most_common_count > 0 && second_most_common_index != -1) {
 		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ dcon::commodity_id::value_base_t(second_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[1] =
 			rgo_efficiency_inputs_amount[second_most_common_index]
-			/ (float)second_most_common_count * 0.005f;
+			/ (float)second_most_common_count;
 	}
 
 	if(third_most_common_count > 0 && third_most_common_index != -1) {
 		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ dcon::commodity_id::value_base_t(third_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[2] =
 			rgo_efficiency_inputs_amount[third_most_common_index]
-			/ (float)third_most_common_count * 0.005f;
+			/ (float)third_most_common_count;
 	}
 
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
