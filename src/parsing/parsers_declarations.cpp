@@ -218,6 +218,7 @@ void good::color(color_from_3i v, error_handler& err, int32_t line, good_context
 
 void good::cost(association_type, float v, error_handler& err, int32_t line, good_context& context) {
 	context.outer_context.state.world.commodity_set_cost(context.id, v);
+	context.outer_context.state.world.commodity_set_median_price(context.id, v);
 }
 
 void good::available_from_start(association_type, bool b, error_handler& err, int32_t line, good_context& context) {
@@ -3126,6 +3127,7 @@ void country_history_file::decision(association_type, std::string_view value, er
 
 void commodity_array::finish(scenario_building_context& context) {
 	data.resize(context.state.world.commodity_size());
+	defined = true;
 }
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {

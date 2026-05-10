@@ -394,6 +394,11 @@ object {
 		tag{ scenario }
 	}
 	property{
+		name{ rgo_efficiency_inputs_are_defined_in_content }
+		type{ bitfield }
+		tag{ scenario }
+	}
+	property{
 		name{ artisan_inputs }
 		type{ economy::commodity_set }
 		tag{ scenario }
@@ -1615,7 +1620,7 @@ object {
 		tag{ save }
 	}
 	property{
-		name{ rgo_demand }
+		name{ rgo_base_efficiency }
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
@@ -4729,6 +4734,11 @@ relationship{
 		type{ array{commodity_id}{float} }
 		tag{ save }
 	}
+	property {
+		name{ stabilization_volume }
+		type{ array{commodity_id}{float} }
+		tag{ save }
+	}
 }
 
 relationship{
@@ -4929,10 +4939,23 @@ object {
 		type{ float }
 		tag{ save }
 	}
+	property{
+		name{efficiency_level}
+		type{array{uint8_t}{float}}
+		tag{ save }
+	}
+	property{
+		name{technology_scale}
+		type{float}
+		tag{ save }
+	}
+	property{
+		name{profit}
+		type{float}
+	}
 	property {
 		name{ triggered_modifiers }
-		type{ float }
-		
+		type{ float }		
 	}	
 	property {
 		name{ output }

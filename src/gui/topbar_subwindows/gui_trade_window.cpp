@@ -1178,8 +1178,8 @@ static table::column<dcon::market_id> market_artisan_profit = {
 	.header = "w_artisan_profit",
 	.compare = [](sys::state& state, element_base* container, dcon::market_id a, dcon::market_id b) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto av = economy::base_artisan_profit(state, a, good);
-		auto bv = economy::base_artisan_profit(state, b, good);
+		auto av = economy::base_artisan_output_cost(state, a, good) - economy::base_artisan_input_cost(state, a, good);
+		auto bv = economy::base_artisan_output_cost(state, b, good) - economy::base_artisan_input_cost(state, b, good);
 		if(av != bv)
 			return av > bv;
 		else
@@ -1187,7 +1187,7 @@ static table::column<dcon::market_id> market_artisan_profit = {
 	},
 	.view = [](sys::state& state, element_base* container, dcon::market_id id) {
 		dcon::commodity_id good = retrieve<dcon::commodity_id>(state, container);
-		auto value = economy::base_artisan_profit(state, id, good);
+		auto value = economy::base_artisan_output_cost(state, id, good) - economy::base_artisan_input_cost(state, id, good);
 		return text::format_float(value, 3);
 	}
 };
@@ -1210,11 +1210,6 @@ static table::column<dcon::market_id> market_artisan_score = {
 		return text::format_float(value, 3);
 	}
 };
-
-/*
-* MOVE TO PRODUCTION METHODS TABLE
-text::add_line(state, contents, "w_artisan_profit", text::variable_type::x, text::fp_one_place{ economy::base_artisan_profit(state, state.local_player_nation, com) * economy::artisan_scale_limit(state, state.local_player_nation, com) });
-*/
 
 class trade_details_button : public button_element_base {
 public:

@@ -1185,6 +1185,7 @@ struct int_vector {
 };
 struct commodity_array {
 	tagged_vector<float, dcon::commodity_id> data;
+	bool defined = false;
 
 	void any_value(std::string_view name, association_type, float value, error_handler& err, int32_t line,
 			scenario_building_context& context) {

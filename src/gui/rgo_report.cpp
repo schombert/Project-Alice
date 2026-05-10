@@ -362,8 +362,8 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::eff_spend
-						auto value_a = economy::rgo_efficiency_spending(state, a.cid, pid);
-						auto value_b = economy::rgo_efficiency_spending(state, b.cid, pid);
+						auto value_a = 0.f;
+						auto value_b = 0.f;
 						result = cmp3(value_a, value_b);
 // END
 						return -result == table_source->list_eff_spend_sort_direction;
@@ -375,8 +375,8 @@ void  rgo_report_body_rgos_t::update(sys::state& state, layout_window_element* p
 						auto const& b = std::get<list_item_option>(raw_b);
 						int8_t result = 0;
 // BEGIN body::rgos::list::sort::eff
-						auto value_a = state.world.province_get_rgo_efficiency(pid, a.cid);
-						auto value_b = state.world.province_get_rgo_efficiency(pid, b.cid);
+						auto value_a = state.world.province_get_rgo_base_efficiency(pid, a.cid) * state.world.province_get_rgo_efficiency(pid, a.cid);
+						auto value_b = state.world.province_get_rgo_base_efficiency(pid, b.cid) * state.world.province_get_rgo_efficiency(pid, b.cid);
 						result = cmp3(value_a, value_b);
 // END
 						return -result == table_source->list_eff_sort_direction;
@@ -1078,8 +1078,8 @@ void rgo_report_list_item_content_t::on_update(sys::state& state) noexcept {
 	set_max_employment_text(state, text::prettify((int64_t)(economy::rgo_max_employment(state, list_item.cid, pid))));
 	set_profit_text(state, text::format_money(economy::rgo_income(state, list_item.cid, pid)));
 	set_wage_text(state, text::format_money(economy::rgo_wage(state, list_item.cid, pid)));
-	set_eff_text(state, text::format_percentage(state.world.province_get_rgo_efficiency(pid, list_item.cid)));
-	set_eff_spend_text(state, text::format_money(economy::rgo_efficiency_spending(state, list_item.cid, pid)));
+	set_eff_text(state, text::format_percentage(state.world.province_get_rgo_base_efficiency(pid, list_item.cid) * state.world.province_get_rgo_efficiency(pid, list_item.cid)));
+	set_eff_spend_text(state, text::format_money(0.f));
 	set_output_text(state, text::format_float(economy::rgo_output(state, list_item.cid, pid), 2));
 // END
 }

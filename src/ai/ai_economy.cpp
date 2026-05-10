@@ -13,6 +13,8 @@
 #include "economy_factory_view.hpp"
 #include "province.hpp"
 #include "money.hpp"
+#include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
 
 namespace ai {
 
@@ -190,7 +192,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 
 	return filter_factories_disjunctive(
 		state, nid, mid, pid, pop_project, desired_types,
-		2.f, 0.3f, 40.f, rich_effect
+		2.f, 0.f, 40.f, rich_effect
 	);
 }
 
@@ -207,7 +209,7 @@ void get_desired_factory_types(sys::state& state, dcon::nation_id nid, dcon::mar
 
 	return filter_factories_disjunctive(
 		state, nid, mid, pid, pop_project, desired_types,
-		0.3f, 0.5f, 200.f, rich_effect
+		0.3f, 0.5f, 365.f, rich_effect
 	);
 }
 
@@ -258,7 +260,10 @@ bool factory_can_be_upgraded(sys::state& state, dcon::nation_id n, dcon::provinc
 
 bool have_available_slots(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
 	auto num_factories = economy::province_factory_count(state, p);
-	return num_factories < int32_t(state.defines.factories_per_state)
+	auto urbanisation = state.world.province_get_advanced_province_building_max_private_size(p, advanced_province_buildings::list::local_cities_and_towns);
+
+	return
+		num_factories < int32_t(state.defines.factories_per_state * urbanisation / economy::factories_per_state_required_city_size)
 		&& economy::do_resource_potentials_allow_construction(state, n, p, ftid);
 }
 
@@ -273,7 +278,7 @@ dcon::factory_id retrieve_existing_factory(sys::state& state, dcon::province_id 
 }
 
 inline bool upgrade_is_desired(sys::state& state, dcon::factory_id fac) {
-	return economy::factory_total_employment_score(state, fac) > 0.9f;
+	return economy::factory_total_employment_score(state, fac) > 0.9f && state.world.factory_get_size(fac) > 5000.f;
 }
 
 inline void new_national_construction(sys::state& state, dcon::nation_id n, dcon::province_id p, dcon::factory_type_id ftid) {
@@ -458,7 +463,7 @@ void update_ai_econ_construction(sys::state& state) {
 							if(budget - additional_expenses - expected_item_cost <= 0.f)
 								continue;
 
-							if(!ug_in_progress && economy::do_resource_potentials_allow_upgrade(state, n, pid, type)) {
+							if(!ug_in_progress && economy::do_resource_potentials_allow_upgrade(state, n, pid, type) && upgrade_is_desired(state, fac.get_factory())) {
 								new_national_upgrade(state, n, pid, type);
 								additional_expenses += expected_item_cost;
 							}

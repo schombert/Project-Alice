@@ -8,6 +8,8 @@
 #include "construction.hpp"
 #include "economy_stats.hpp"
 #include "economy_factory_view.hpp"
+#include "advanced_province_buildings.hpp"
+#include "economy_constants.hpp"
 
 namespace ui {
 bool country_category_filter_check(sys::state& state, country_list_filter filt, dcon::nation_id a, dcon::nation_id b) {
@@ -267,7 +269,8 @@ void province_name_text::on_update(sys::state& state) noexcept {
 void province_factory_count_text::on_update(sys::state& state) noexcept {
 	auto content = retrieve<dcon::province_id>(state, parent);
 	int32_t count = economy::province_factory_count(state, content);
-	auto txt = std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state));
+	auto urbanisation = state.world.province_get_advanced_province_building_max_private_size(content, advanced_province_buildings::list::local_cities_and_towns);
+	auto txt = std::to_string(count) + "/" + std::to_string(int32_t(state.defines.factories_per_state * urbanisation / economy::factories_per_state_required_city_size));
 	set_text(state, txt);
 }
 

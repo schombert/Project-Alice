@@ -15,6 +15,7 @@ float estimate_port_service_price(sys::state& state, dcon::state_instance_id s);
 
 void update_trade_routes_volume(
 	sys::state& state,
+	bool ignore_reality,
 	ve::vectorizable_buffer<float, dcon::market_id>& export_tariff_buffer,
 	ve::vectorizable_buffer<float, dcon::market_id>& import_tariff_buffer,
 	ve::vectorizable_buffer<dcon::province_id, dcon::state_instance_id>& coastal_capital_buffer,

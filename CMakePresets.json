@@ -78,6 +78,16 @@
       }
     },
     {
+      "name": "x64-release-windows-avx2-jumbo",
+      "displayName": "x64 Jumbo Release (AVX2)",
+      "inherits": "windows-base",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "VECTOR_MODE": "AVX2",
+        "CMAKE_UNITY_BUILD": true
+      }
+    },
+    {
       "name": "x64-release-windows-avx512",
       "displayName": "x64 Release (AVX512)",
       "inherits": "windows-base",

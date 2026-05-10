@@ -1900,7 +1900,7 @@ public:
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						no_possible_units = false;
 					}
 				}
@@ -1929,7 +1929,7 @@ public:
 				continue;
 			if constexpr(std::is_same_v<T, dcon::army_id>) {
 				for(const auto c : state.world.in_culture) {
-					if(command::can_start_land_unit_construction(state, state.local_player_nation, p, c, utid)) {
+					if(command::can_start_land_unit_construction<false>(state, state.local_player_nation, p, c, utid)) {
 						for(auto pl : state.world.province_get_pop_location_as_province(p)) {
 							if(pl.get_pop().get_culture() == c) {
 								if(pl.get_pop().get_poptype() == state.culture_definitions.soldiers && state.world.pop_get_size(pl.get_pop()) >= state.defines.pop_min_size_for_regiment) {
@@ -2581,7 +2581,13 @@ std::unique_ptr<element_base> province_view_window::make_child(sys::state& state
 		economy_window->set_visible(state, false);
 		economy_window->base_data.position.x = base_data.position.x + base_data.size.x + 60;
 		return ptr;
-	} if(name == "toggle-economy-province") {
+	} else if(name == "local_factories_view") {
+		auto ptr = alice_ui::make_province_factories_main(state);
+		factories_window = ptr.get();
+		factories_window->set_visible(state, false);
+		factories_window->base_data.position.x = base_data.position.x + base_data.size.x + 60;
+		return ptr;
+	} else if(name == "toggle-economy-province") {
 		return make_element_by_type<economy_data_toggle>(state, id);
 	} else if(name == "toggle-tiles-province") {
 		return make_element_by_type<province_tiles_toggle>(state, id);
@@ -2640,6 +2646,7 @@ message_result province_view_window::get(sys::state& state, Cyto::Any& payload) 
 			if(!tiles_window->is_visible()) {
 				tiles_window->set_visible(state, true);
 				economy_window->set_visible(state, false);
+				factories_window->set_visible(state, false);
 				market_window->set_visible(state, false);
 			} else {
 				tiles_window->set_visible(state, false);
@@ -2648,6 +2655,7 @@ message_result province_view_window::get(sys::state& state, Cyto::Any& payload) 
 			if(!economy_window->is_visible()) {
 				tiles_window->set_visible(state, false);
 				economy_window->set_visible(state, true);
+				factories_window->set_visible(state, true);
 				market_window->set_visible(state, false);
 			} else {
 				economy_window->set_visible(state, false);
@@ -2656,6 +2664,7 @@ message_result province_view_window::get(sys::state& state, Cyto::Any& payload) 
 			if(!market_window->is_visible()) {
 				tiles_window->set_visible(state, false);
 				economy_window->set_visible(state, false);
+				factories_window->set_visible(state, false);
 				market_window->set_visible(state, true);
 			} else {
 				market_window->set_visible(state, false);

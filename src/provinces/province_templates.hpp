@@ -72,7 +72,7 @@ void for_each_market_province_parallel_over_market(sys::state& state, F const& f
 }
 
 template<typename F>
-void for_each_nation_province_parallel_over_nation(sys::state& state, F const& func) {
+void for_each_nation_owned_province_parallel_over_nation(sys::state& state, F const& func) {
 	concurrency::parallel_for((size_t)(0), (size_t)(state.world.nation_size()), [&](auto raw) {
 		dcon::nation_id nid{ (dcon::nation_id::value_base_t) (raw) };
 		state.world.nation_for_each_province_ownership(nid, [&](dcon::province_ownership_id poid){
@@ -81,6 +81,15 @@ void for_each_nation_province_parallel_over_nation(sys::state& state, F const& f
 	});
 }
 
+template<typename F>
+void for_each_nation_controlled_province_parallel_over_nation(sys::state& state, F const& func) {
+	concurrency::parallel_for((size_t)(0), (size_t)(state.world.nation_size()), [&](auto raw) {
+		dcon::nation_id nid{ (dcon::nation_id::value_base_t) (raw) };
+		state.world.nation_for_each_province_control(nid, [&](dcon::province_control_id pcid){
+			func(nid, state.world.province_control_get_province(pcid));
+		});
+	});
+}
 
 struct retreat_province_and_distance {
 	float distance_covered = 0.0f;

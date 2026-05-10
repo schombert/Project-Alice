@@ -28,6 +28,12 @@ endif()
 target_compile_definitions(launch_alice PUBLIC ALICE_NO_ENTRY_POINT=1)
 target_compile_definitions(launch_alice PUBLIC INCREMENTAL=1)
 
+set_target_properties(
+	launch_alice
+	PROPERTIES
+	UNITY_BUILD_MODE GROUP
+)
+
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-blend.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-canvas.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
 set_source_files_properties(${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-font.c PROPERTIES SKIP_PRECOMPILE_HEADERS ON)
