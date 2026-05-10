@@ -937,6 +937,10 @@ bool can_start_land_unit_construction(sys::state& state, dcon::nation_id source,
 		return assertive_identity<VALIDATE>(false);
 	}
 }
+template bool can_start_land_unit_construction<true>(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province);
+template bool can_start_land_unit_construction<false>(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province);
+
+
 void execute_start_land_unit_construction(sys::state& state, dcon::nation_id source, dcon::province_id location, dcon::culture_id soldier_culture, dcon::unit_type_id type, dcon::province_id template_province) {
 	auto soldier = military::find_available_soldier(state, location, soldier_culture);
 
