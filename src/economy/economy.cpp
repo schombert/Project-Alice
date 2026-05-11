@@ -1045,7 +1045,7 @@ float factory_total_employment(sys::state const& state, dcon::factory_id f) {
 
 
 void update_pops_employment(sys::state& state) {
-	province::ve_for_each_land_province(state, [&](auto pids) {
+	province::ve_parallel_for_each_land_province(state, [&](auto pids) {
 		auto nation = state.world.province_get_nation_from_province_ownership(pids);
 		// calculate total pops employment:
 
@@ -2179,7 +2179,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// This must run serial
 	populate_army_consumption(state);
 
-	concurrency::parallel_for(0, 6, [&](int32_t index) {
+	concurrency::parallel_for(0, 5, [&](int32_t index) {
 		switch(index) {
 		case 0:
 			state.world.execute_serial_over_market([&](auto ids) {
@@ -2215,95 +2215,83 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		case 4:
 			populate_construction_consumption(state);
 			break;
-		case 5:
-			/*
-
-			Subsidy tokens are  granted per effective produced unit to encourage actual production rather than raw employment or size.
-			Here we calculate their amount and pay them out immediately.
-			It might generate or delete a certain amount of money as production volume
-			changes all the time but it would be the most efficient way to start and introduced leaks are not that bad.
-
-			*/
-			state.world.for_each_factory([&](auto id) {
-				auto location = state.world.factory_get_province_from_factory_location(id);
-				auto zone = state.world.province_get_state_membership(location);
-				auto nation = state.world.province_get_nation_from_province_ownership(location);
-				auto building_type = state.world.factory_get_building_type(id);
-				auto output_type =state.world.factory_type_get_output(building_type);
-
-				auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, output_type));
-				auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, output_type));
-
-				if (priority || priority_local) {
-					auto base_output = state.world.factory_type_get_output_amount(building_type);
-					auto factory_output = state.world.factory_get_output(id);
-					auto effective_output = factory_output / base_output;
-					auto tokens = state.world.nation_get_subsidy_token_total(nation);
-					state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
-
-					auto current_money = state.world.province_get_factory_bank(location);
-					auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
-					state.world.province_set_factory_bank(location, current_money + last_token_price * effective_output);
-				}
-			});
-			state.world.for_each_commodity([&](auto cid){
-				auto base_output = state.world.commodity_get_rgo_amount(cid);
-				if (base_output == 0.f) return;
-
-				state.world.for_each_province([&](auto id) {				
-					auto nation = state.world.province_get_nation_from_province_ownership(id);
-					if(!nation) {
-						return;
-					}
-
-					auto zone = state.world.province_get_state_membership(id);
-					auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
-					auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, cid));
-
-					if (priority || priority_local) {
-						auto rgo_output = state.world.province_get_rgo_output(id, cid);
-						auto effective_output = rgo_output / base_output;
-						auto tokens = state.world.nation_get_subsidy_token_total(nation);
-						state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
-
-						auto current_money = state.world.province_get_rgo_bank(id);
-						auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
-						state.world.province_set_rgo_bank(id, current_money + last_token_price * effective_output);
-					}
-				});
-			});
-
-			state.world.for_each_commodity([&](auto cid){
-				auto base_output = state.world.commodity_get_artisan_output_amount(cid);
-				if (base_output == 0.f) return;
-
-				state.world.for_each_province([&](auto id) {				
-					auto nation = state.world.province_get_nation_from_province_ownership(id);
-					if(!nation) {
-						return;
-					}
-
-					auto zone = state.world.province_get_state_membership(id);
-					auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
-					auto priority_local = state.world.state_instance_get_production_directive(zone, production_directives::to_key(state, cid));
-
-					if (priority || priority_local) {
-						auto output = state.world.province_get_artisan_actual_production(id, cid);
-						auto effective_output = output / base_output;
-						auto tokens = state.world.nation_get_subsidy_token_total(nation);
-						state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
-
-						auto current_money = state.world.province_get_artisan_bank(id);
-						auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
-						state.world.province_set_artisan_bank(id, current_money + last_token_price * effective_output);
-					}
-				});
-			});
-
-
-			break;
 		}
 	});
+
+	/*
+
+	Subsidy tokens are  granted per effective produced unit to encourage actual production rather than raw employment or size.
+	Here we calculate their amount and pay them out immediately.
+	It might generate or delete a certain amount of money as production volume
+	changes all the time but it would be the most efficient way to start and introduced leaks are not that bad.
+
+	*/
+
+	province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+		auto area = state.world.province_get_state_membership(province);
+		state.world.province_for_each_factory_location(province, [&](dcon::factory_location_id factory_location) {
+			auto factory = state.world.factory_location_get_factory(factory_location);
+			auto building_type = state.world.factory_get_building_type(factory);
+			auto output_type = state.world.factory_type_get_output(building_type);
+			auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, output_type));
+			auto priority_local = state.world.state_instance_get_production_directive(area, production_directives::to_key(state, output_type));
+			if(priority || priority_local) {
+				auto base_output = state.world.factory_type_get_output_amount(building_type);
+				auto factory_output = state.world.factory_get_output(factory);
+				auto effective_output = factory_output / base_output;
+				auto tokens = state.world.nation_get_subsidy_token_total(nation);
+				state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+				auto current_money = state.world.province_get_factory_bank(province);
+				auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+				state.world.province_set_factory_bank(province, current_money + last_token_price * effective_output);
+			}
+		});
+	});
+
+	state.world.for_each_commodity([&](auto cid) {
+		auto base_output = state.world.commodity_get_rgo_amount(cid);
+		if(base_output == 0.f) return;
+
+		province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+			auto area = state.world.province_get_state_membership(province);
+			auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
+			auto priority_local = state.world.state_instance_get_production_directive(area, production_directives::to_key(state, cid));
+
+			if(priority || priority_local) {
+				auto rgo_output = state.world.province_get_rgo_output(province, cid);
+				auto effective_output = rgo_output / base_output;
+				auto tokens = state.world.nation_get_subsidy_token_total(nation);
+				state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+				auto current_money = state.world.province_get_rgo_bank(province);
+				auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+				state.world.province_set_rgo_bank(province, current_money + last_token_price * effective_output);
+			}
+		});
+	});
+
+	state.world.for_each_commodity([&](auto cid) {
+		auto base_output = state.world.commodity_get_artisan_output_amount(cid);
+		if(base_output == 0.f) return;
+
+		province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+			auto area = state.world.province_get_state_membership(province);
+			auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
+			auto priority_local = state.world.state_instance_get_production_directive(area, production_directives::to_key(state, cid));
+			if(priority || priority_local) {
+				auto output = state.world.province_get_artisan_actual_production(province, cid);
+				auto effective_output = output / base_output;
+				auto tokens = state.world.nation_get_subsidy_token_total(nation);
+				state.world.nation_set_subsidy_token_total(nation, tokens + effective_output);
+
+				auto current_money = state.world.province_get_artisan_bank(province);
+				auto last_token_price = state.world.nation_get_subsidy_token_price(nation);
+				state.world.province_set_artisan_bank(province, current_money + last_token_price * effective_output);
+			}
+		});
+	});
+
 
 	if(state.trade_route_cached_values_out_of_date) {
 		state.trade_route_cached_values_out_of_date = false;
@@ -2980,10 +2968,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			old_count = new_count;
 		}
 	}
-	for(auto n : state.nations_by_rank) {
+
+	//for(auto n : state.nations_by_rank) {
+	concurrency::parallel_for(int32_t(0), int32_t(state.world.nation_size()), [&](int32_t index) {
+		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(index) };
+
 		if(!n) {
-			continue;
+			return;
 		}
+
 		spent_on_construction_buffer.set(n, 0.f);
 
 		// handle loans
@@ -3114,7 +3107,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 
 			update_private_consumption(state, n, private_spending_scale);
 		}
-	}
+	});
 
 	sanity_check(state);
 
@@ -4289,13 +4282,15 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	// # TAXES AND TARIFFS #
 	// #####################
 
-	for(auto n : state.world.in_nation) {
+
+	concurrency::parallel_for(int32_t(0), int32_t(state.world.nation_size()), [&](int32_t index) {
+		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(index) };
 		/* advance construction */
 		advance_construction(state, n, spent_on_construction_buffer.get(n));
 		if(presimulation) {
 			emulate_construction_demand(state, n);
 		}
-	}
+	});
 
 	collect_taxes(state, income_buffer);
 

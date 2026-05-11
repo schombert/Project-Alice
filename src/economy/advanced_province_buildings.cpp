@@ -62,8 +62,8 @@ void reset_price(sys::state& state) {
 
 void match_supply_and_demand(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
-		//state.world.execute_serial_over_province([&](auto pids) {
-		state.world.for_each_province([&](auto pids) {
+		//state.world.for_each_province([&](auto pids) {
+		state.world.execute_parallel_over_province([&](auto pids) {
 			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
 			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 

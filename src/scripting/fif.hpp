@@ -11,8 +11,11 @@
 #include <span>
 #include <limits>
 
+#ifndef DO_NOT_USE_LLVM
 #ifdef _WIN64
 #define USE_LLVM
+#else
+#endif
 #else
 #endif
 
