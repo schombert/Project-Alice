@@ -192,7 +192,7 @@ void get_craved_factory_types(sys::state& state, dcon::nation_id nid, dcon::mark
 
 	return filter_factories_disjunctive(
 		state, nid, mid, pid, pop_project, desired_types,
-		2.f, 0.3f, 40.f, rich_effect
+		2.f, 0.f, 40.f, rich_effect
 	);
 }
 

@@ -5292,6 +5292,15 @@ guiTypes = {
 		position = { x= 147 y = 23 }
 		quadTextureSprite = "GFX_gunboats"	
 	}
+
+	windowType = {
+		name = "local_factories_view"
+		extends = "province_view"
+		position = { 435 -505 }
+		size = { 700 528 }
+		Orientation = "LOWER_LEFT"
+	}
+
     windowType = {
         name = "local_economy_view"
         extends = "province_view"

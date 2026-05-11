@@ -30,7 +30,7 @@ void update_price(sys::state& state) {
 			auto supply = state.world.province_get_service_supply_private(pids, i);
 			auto demand = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 			auto price = state.world.province_get_service_price(pids, i);
-			auto change = economy::price_properties::change<ve::fp_vector>(price, supply, demand, economy::price_properties::service::min);
+			auto change = economy::price_properties::service::change<ve::fp_vector>(price, supply, demand);
 			auto new_price = ve::min(ve::max(price + change, economy::price_properties::service::min), economy::price_properties::service::max);
 			state.world.province_set_service_price(pids, i, new_price);
 		});
@@ -156,6 +156,11 @@ void update_consumption(sys::state& state) {
 			auto total = private_size + national_size;
 
 			auto current_demand = state.world.province_get_labor_demand(pids, def.throughput_labour_type);
+
+#ifndef NDEBUG
+			ve::apply([&](float value) {assert(std::isfinite(value) && value >= 0.f); }, current_demand + total);
+#endif // !NDEBUG
+
 			state.world.province_set_labor_demand(pids, def.throughput_labour_type, current_demand + total);
 		});
 	}
@@ -238,6 +243,7 @@ void update_consumption(sys::state& state) {
 				economy::register_demand(state, mid, cid, amount * demand_scale);
 			}
 			auto labor_demand = state.world.province_get_labor_demand(pid, economy::labor_constants::construction_labor);
+			assert(labor_demand + demand_scale * economy::labor_constants::labor_per_construction_unit >= 0.f);
 			state.world.province_set_labor_demand(
 				pid,
 				economy::labor_constants::construction_labor,
@@ -585,6 +591,7 @@ void update_national_size(sys::state& state) {
 
 		state.world.execute_serial_over_province([&](auto pids) {
 			auto owner = state.world.province_get_nation_from_province_ownership(pids);
+			auto invalid = owner == dcon::nation_id { };
 			auto tmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency) + 1.0f;
 			auto nmod = state.world.nation_get_modifier_values(owner, sys::national_mod_offsets::education_efficiency_modifier) + 1.0f;
 
@@ -605,7 +612,8 @@ void update_national_size(sys::state& state) {
 			auto local_population = state.world.province_get_demographics(pids, demographics::primary_or_accepted);
 			auto weight = ve::select(total_population == 0.f, 0.f, local_population / total_population);
 			auto local_education_budget = weight * education_budget;
-			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::max(0.f, local_education_budget / cost_of_input));
+
+			state.world.province_set_advanced_province_building_national_size(pids, bid, ve::select(invalid, 0.f, ve::max(0.f, local_education_budget / cost_of_input)));
 		});
 	}
 }

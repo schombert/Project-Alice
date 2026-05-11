@@ -180,6 +180,22 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 		context.outer_context.state.world.commodity_set_is_mine(pt.output_goods_, pt.mine);
 		context.outer_context.state.world.commodity_set_rgo_amount(pt.output_goods_, pt.value);
 		context.outer_context.state.world.commodity_set_rgo_workforce(pt.output_goods_, pt.workforce);
+		economy::commodity_set sm_cset;
+		uint32_t sm_added = 0;
+		context.outer_context.state.world.for_each_commodity([&](dcon::commodity_id id) {
+			auto amount = pt.efficiency.data.safe_get(id);
+			if(amount > 0) {
+				if(sm_added >= economy::commodity_set::set_size) {
+					err.accumulated_errors += "Too many RGO efficiency goods in " + std::string(name) + " (" + err.file_name + ")\n";
+				} else {
+					sm_cset.commodity_type[sm_added] = id;
+					sm_cset.commodity_amounts[sm_added] = amount;
+					++sm_added;
+				}
+			}
+		});
+		context.outer_context.state.world.commodity_set_rgo_efficiency_inputs(pt.output_goods_, sm_cset);
+		context.outer_context.state.world.commodity_set_rgo_efficiency_inputs_are_defined_in_content(pt.output_goods_, pt.efficiency.defined);
 	} else if(pt.type_ == production_type_enum::artisan) {
 		economy::commodity_set cset;
 		uint32_t added = 0;
@@ -255,7 +271,9 @@ void make_production_type(std::string_view name, token_generator& gen, error_han
 }
 
 commodity_array make_prod_commodity_array(token_generator& gen, error_handler& err, production_context& context) {
-	return parse_commodity_array(gen, err, context.outer_context);
+	auto result = parse_commodity_array(gen, err, context.outer_context);
+	result.defined = true;
+	return result;
 }
 
 } // namespace parsers

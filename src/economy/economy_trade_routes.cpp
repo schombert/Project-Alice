@@ -21,7 +21,7 @@ namespace economy {
 // value in [0, 1] range
 // 0 means that trade profit due to price difference is pocketed by exporters
 // 1 means that trade profit due to price difference is pocketed by importers
-constexpr inline float import_profit_priority = 0.5f;
+constexpr inline float import_profit_priority = 0.05f;
 
 //constexpr inline float buy_optimism = 0.2f;
 //constexpr inline float sell_optimism = 0.2f;
@@ -474,12 +474,12 @@ trade_route_volume_change_reasons predict_trade_route_volume_change(
 	auto current_B_to_A = (current_sum - current_volume) / 2.f;
 
 	auto diff_A_to_B = 2.f * (earn_A_to_B - spend_A_to_B) / (earn_A_to_B + economy::price_properties::commodity::min);
-	auto diff_A_to_B_clamped = std::max(-1.f, std::min(1.f, diff_A_to_B));
+	auto diff_A_to_B_clamped = diff_A_to_B;//std::max(-1.f, std::min(1.f, diff_A_to_B));
 	auto change_A_to_B = (current_A_to_B * 0.002f + 0.002f) * diff_A_to_B_clamped;
 
 	auto diff_B_to_A = 2.f * (earn_B_to_A - spend_B_to_A) / (earn_B_to_A + economy::price_properties::commodity::min);
-	auto diff_B_to_A_clamped = std::max(-1.f, std::min(1.f, diff_B_to_A));
-	auto change_B_to_A = (current_B_to_A * 0.002f + 0.02f) * diff_B_to_A_clamped;
+	auto diff_B_to_A_clamped = diff_B_to_A;//std::max(-1.f, std::min(1.f, diff_B_to_A));
+	auto change_B_to_A = (current_B_to_A * 0.002f + 0.002f) * diff_B_to_A_clamped;
 
 
 	auto next_A_to_B = std::max(0.f, current_A_to_B * 0.99999f + change_A_to_B);
@@ -623,8 +623,9 @@ void update_trade_routes_volume(
 		auto land_distance = state.world.trade_route_get_land_distance(trade_route);
 		auto sea_distance = state.world.trade_route_get_sea_distance(trade_route);
 
-		distance = ve::select(is_land_route, ve::min(distance, land_distance), distance);
-		distance = ve::select(is_sea_route, ve::min(distance, sea_distance), distance);
+		distance = ve::select(is_land_route, land_distance, distance);
+		distance = ve::select(is_sea_route, sea_distance, distance);
+		distance = ve::select(is_land_route && is_sea_route, ve::min(sea_distance, land_distance), distance);
 
 		ve::apply([&](auto value) {
 			assert(std::isfinite(value));
@@ -740,8 +741,8 @@ void update_trade_routes_volume(
 			
 			New model of trade update:
 			Assume that there is a segment [0, 1] of traders operating this route.
-			Trader 0 gets 2x of the sales.
-			Trader 1 gets 0x of the sales.
+			Trader 0 gets 0x of the sales.
+			Trader 1 gets 2x of the sales.
 			Traders inbetween earn a linear combination of trader 0 and trader 1 earning.
 			If a certain trader earns less than SPEND, they change their volume (1 - a) times - q dt.
 			If a certain trader earns more than SPEND, they change their volume (1 + a) times + q dt.
@@ -776,12 +777,12 @@ void update_trade_routes_volume(
 
 
 			auto diff_A_to_B = 2.f * (earn_A_to_B - spend_A_to_B) / (earn_A_to_B + economy::price_properties::commodity::min);
-			auto diff_A_to_B_clamped = ve::max(-1.f, ve::min(1.f, diff_A_to_B));
+			auto diff_A_to_B_clamped = diff_A_to_B;//ve::max(-1.f, ve::min(1.f, diff_A_to_B));
 			auto change_A_to_B = (current_A_to_B * 0.002f + 0.002f) * diff_A_to_B_clamped;
 
 			auto diff_B_to_A = 2.f * (earn_B_to_A - spend_B_to_A) / (earn_B_to_A + economy::price_properties::commodity::min);
-			auto diff_B_to_A_clamped = ve::max(-1.f, ve::min(1.f, diff_B_to_A));
-			auto change_B_to_A = (current_B_to_A * 0.002f + 0.02f) * diff_B_to_A_clamped;
+			auto diff_B_to_A_clamped = diff_B_to_A;//ve::max(-1.f, ve::min(1.f, diff_B_to_A));
+			auto change_B_to_A = (current_B_to_A * 0.002f + 0.002f) * diff_B_to_A_clamped;
 
 
 			auto next_A_to_B = ve::select(reset_route_commodity, 0.f, ve::max(0.f, current_A_to_B * 0.99999f + change_A_to_B));

@@ -166,64 +166,6 @@ void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, d
 		);
 	}
 
-	// description of target labor and estimated changes
-	{
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_hired_unqualified",
-			text::variable_type::value, text::format_float(details.employment.unqualified),
-			text::variable_type::x, text::format_percentage(economy::unqualified_throughput_multiplier)
-		);
-
-		if(details.employment_expected_change.unqualified >= 0) {
-			text::add_line(state, contents, "factory_hiring_rate_unqualified",
-				text::variable_type::value, text::format_float(details.employment_expected_change.unqualified),
-				text::variable_type::x, text::format_float(details.employment_target.unqualified)
-			);
-		} else {
-			text::add_line(state, contents, "factory_firing_rate_unqualified",
-				text::variable_type::value, text::format_float(-details.employment_expected_change.unqualified),
-				text::variable_type::x, text::format_float(details.employment_target.unqualified)
-			);
-		}
-
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_hired_primary",
-			text::variable_type::value, text::format_float(details.employment.primary)
-		);
-
-		if(details.employment_expected_change.primary >= 0) {
-			text::add_line(state, contents, "factory_hiring_rate_primary",
-				text::variable_type::value, text::format_float(details.employment_expected_change.primary),
-				text::variable_type::x, text::format_float(details.employment_target.primary)
-			);
-		} else {
-			text::add_line(state, contents, "factory_firing_rate_primary",
-				text::variable_type::value, text::format_float(-details.employment_expected_change.primary),
-				text::variable_type::x, text::format_float(details.employment_target.primary)
-			);
-		}
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_hired_secondary",
-			text::variable_type::value, text::format_float(details.employment.secondary),
-			text::variable_type::x, text::format_percentage(details.output_multipliers.from_secondary_workers)
-		);
-
-		if(details.employment_expected_change.secondary >= 0) {
-			text::add_line(state, contents, "factory_hiring_rate_secondary",
-				text::variable_type::value, text::format_float(details.employment_expected_change.secondary),
-				text::variable_type::x, text::format_float(details.employment_target.secondary)
-			);
-		} else {
-			text::add_line(state, contents, "factory_firing_rate_secondary",
-				text::variable_type::value, text::format_float(-details.employment_expected_change.secondary),
-				text::variable_type::x, text::format_float(details.employment_target.secondary)
-			);
-		}
-	}
-
 	// description of expansion
 	{
 		text::add_line_break_to_layout(state, contents);
@@ -232,31 +174,6 @@ void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, d
 
 	// description of multipliers
 	{
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_throughput_explanation",
-			text::variable_type::val, text::format_percentage(details.throughput_multipliers.total),
-			text::variable_type::x, text::format_float(details.production_units),
-			text::variable_type::y, text::format_float(details.employment_units)
-		);
-
-		text::add_line(state, contents, "factory_throughput_base",
-			text::variable_type::val, text::format_percentage(details.throughput_multipliers.base),
-			indent
-		);
-		text::add_line(state, contents, "factory_stats_7",
-			text::variable_type::val, text::format_percentage(details.throughput_multipliers.from_scale),
-			indent
-		);
-		text::add_line(state, contents, "factory_throughput_modifiers",
-			text::variable_type::val, text::format_percentage(details.throughput_multipliers.from_modifiers),
-			indent
-		);
-		text::add_line(state, contents, "factory_throughput_subsistence",
-			text::variable_type::val, text::format_percentage(details.throughput_multipliers.from_forced_subsistence),
-			indent
-		);
-
 		text::add_line_break_to_layout(state, contents);
 
 		text::add_line(state, contents, "factory_input_multiplier_explanation",
@@ -282,24 +199,6 @@ void factory_stats_tooltip(sys::state& state, text::columnar_layout& contents, d
 			text::variable_type::val, text::format_percentage(details.input_multipliers.from_modifiers * details.input_multipliers.from_triggered_modifiers),
 			indent
 		);
-
-		text::add_line_break_to_layout(state, contents);
-
-		text::add_line(state, contents, "factory_output_multiplier_explanation",
-			text::variable_type::val, text::format_percentage(details.output_multipliers.total)
-		);
-
-		text::add_line(state, contents, "factory_output_multiplier_lack_of_inputs",
-			text::variable_type::val, text::format_percentage(details.output_multipliers.from_inputs_lack)
-		);
-		text::add_line(state, contents, "factory_output_multiplier_secondary_workers",
-			text::variable_type::val, text::format_percentage(details.output_multipliers.from_secondary_workers)
-		);
-		text::add_line(state, contents, "factory_output_multiplier_modifiers",
-			text::variable_type::val, text::format_percentage(details.output_multipliers.from_modifiers)
-		);
-
-		text::add_line_break_to_layout(state, contents);
 	}
 };
 

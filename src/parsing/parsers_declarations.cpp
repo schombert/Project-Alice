@@ -3127,6 +3127,7 @@ void country_history_file::decision(association_type, std::string_view value, er
 
 void commodity_array::finish(scenario_building_context& context) {
 	data.resize(context.state.world.commodity_size());
+	defined = true;
 }
 
 void country_file::color(color_from_3i cvalue, error_handler& err, int32_t line, country_file_context& context) {

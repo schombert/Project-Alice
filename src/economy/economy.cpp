@@ -215,8 +215,11 @@ void rebalance_needs_weights(sys::state& state, dcon::market_id n) {
 	auto nation = state.world.state_instance_get_nation_from_state_ownership(zone);
 	auto capital = state.world.state_instance_get_capital(zone);
 
-	auto wage = state.world.province_get_labor_price(capital, labor::no_education)
-		+ state.world.province_get_labor_price(capital, labor::basic_education);
+	auto wage =
+		state.world.province_get_labor_price(capital, labor::no_education)
+		+ state.world.province_get_labor_price(capital, labor::basic_education)
+		+ state.world.province_get_labor_price(capital, labor::high_education);
+
 	{
 		auto expected_cost = 0.f;
 		state.world.for_each_commodity([&](dcon::commodity_id c) {
@@ -574,8 +577,7 @@ void initialize(sys::state& state) {
 		for(uint32_t i = 0; i < e_inputs.set_size; i++) {
 			if(e_inputs.commodity_type[i]) {
 				rgo_efficiency_inputs_amount[e_inputs.commodity_type[i].index()] +=
-					e_inputs.commodity_amounts[i]
-					/ state.world.factory_type_get_base_workforce(ftid);
+					e_inputs.commodity_amounts[i];
 				rgo_efficiency_inputs_count[e_inputs.commodity_type[i].index()] += 1;
 			}
 		}
@@ -620,23 +622,24 @@ void initialize(sys::state& state) {
 		base_rgo_e_inputs.commodity_type[0] = dcon::commodity_id{ dcon::commodity_id::value_base_t(most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[0] =
 			rgo_efficiency_inputs_amount[most_common_index]
-			/ (float)most_common_count * 0.005f;
+			/ (float)most_common_count;
 	}
 	if(second_most_common_count > 0 && second_most_common_index != -1) {
 		base_rgo_e_inputs.commodity_type[1] = dcon::commodity_id{ dcon::commodity_id::value_base_t(second_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[1] =
 			rgo_efficiency_inputs_amount[second_most_common_index]
-			/ (float)second_most_common_count * 0.005f;
+			/ (float)second_most_common_count;
 	}
 
 	if(third_most_common_count > 0 && third_most_common_index != -1) {
 		base_rgo_e_inputs.commodity_type[2] = dcon::commodity_id{ dcon::commodity_id::value_base_t(third_most_common_index) };
 		base_rgo_e_inputs.commodity_amounts[2] =
 			rgo_efficiency_inputs_amount[third_most_common_index]
-			/ (float)third_most_common_count * 0.005f;
+			/ (float)third_most_common_count;
 	}
 
 	state.world.for_each_commodity([&](dcon::commodity_id cid) {
+		if (state.world.commodity_get_rgo_efficiency_inputs_are_defined_in_content(cid)) return;
 		auto & data = state.world.commodity_get_rgo_efficiency_inputs(cid);
 		for(uint32_t i = 0; i < base_rgo_e_inputs.set_size; i++) {
 			data.commodity_amounts[i] = base_rgo_e_inputs.commodity_amounts[i];
@@ -3203,7 +3206,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			*/
 
 			auto stockpiles = state.world.market_get_stockpile(ids, c);
-			auto merchants_supply = ve::min(ve::max(0.f, stockpiles) * stockpile_to_supply, ve::max(0.f, stockpiles) * stockpile_to_supply * 0.01f + state.world.market_get_aggregated_demand_history(ids, c) * (0.85f + state.world.market_get_price(ids, c) / state.world.commodity_get_median_price(c)) + 0.1f);
+			auto merchants_supply = ve::min(
+				ve::max(0.f, stockpiles * stockpile_to_supply),
+				ve::max(0.f,
+					stockpiles * stockpile_spoilage
+					+ state.world.market_get_aggregated_demand_history(ids, c) * (1.f + state.world.market_get_price(ids, c) / state.world.commodity_get_median_price(c))
+					- state.world.market_get_aggregated_supply_history(ids, c)
+				)
+			);
 			auto production_and_merchants_supply = state.world.market_get_supply(ids, c);
 			// we draw from stockpile in capital
 			auto national_stockpile = ve::select(
@@ -3973,7 +3983,14 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				auto states = state.world.market_get_zone_from_local_market(markets);
 				auto capitals = state.world.state_instance_get_capital(states);
 				auto price = ve_price(state, markets, c);
-				auto merchants_supply = ve::min(ve::max(0.f, stockpiles) * stockpile_to_supply, ve::max(0.f, stockpiles) * stockpile_to_supply * 0.01f + state.world.market_get_aggregated_demand_history(markets, c) * (0.85f + state.world.market_get_price(markets, c) / state.world.commodity_get_median_price(c)) + 0.1f);
+				auto merchants_supply = ve::min(
+					ve::max(0.f, stockpiles * stockpile_to_supply),
+					ve::max(0.f,
+						stockpiles * stockpile_spoilage
+						+ state.world.market_get_aggregated_demand_history(markets, c) * (1.f + state.world.market_get_price(markets, c) / state.world.commodity_get_median_price(c))
+						- state.world.market_get_aggregated_supply_history(markets, c)
+					)
+				);
 				state.world.market_set_supply(markets, c, state.world.market_get_supply(markets, c) + merchants_supply);
 			}
 		});
@@ -3998,6 +4015,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 				+ economy::price_properties::labor::min;
 
 			auto no_education = state.world.province_get_labor_price(ids, labor::no_education);
+			target_wage = ve::min(target_wage, no_education * 0.5f);
 			auto basic_education = state.world.province_get_labor_price(ids, labor::basic_education);
 			auto high_education = state.world.province_get_labor_price(ids, labor::high_education);
 			auto high_education_and_accepted = state.world.province_get_labor_price(ids, labor::high_education_and_accepted);
@@ -4369,7 +4387,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			auto current_price = state.world.province_get_labor_price(ids, i);
 			auto old_price = current_price;
 
-			current_price = current_price + price_properties::change<ve::fp_vector>(current_price, supply, demand, economy::price_properties::labor::min);
+			current_price = current_price + price_properties::labor::change<ve::fp_vector>(current_price, supply, demand);
 
 			auto nids = state.world.province_get_nation_from_province_ownership(ids);
 			auto sids = state.world.province_get_state_membership(ids);
@@ -4419,10 +4437,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			return;
 		}
 		state.world.execute_serial_over_market([&](auto ids) {
-			ve::fp_vector supply = state.world.market_get_supply(ids, cid);
-			ve::fp_vector demand = state.world.market_get_demand(ids, cid);
+			ve::fp_vector supply = state.world.market_get_aggregated_supply_history(ids, cid);
+			ve::fp_vector demand = state.world.market_get_aggregated_demand_history(ids, cid);
 			auto current_price = ve_price(state, ids, cid);
-			current_price = current_price + price_properties::change<ve::fp_vector>(current_price, supply, demand, economy::price_properties::commodity::min);
+			current_price = current_price + price_properties::commodity::change<ve::fp_vector>(current_price, supply, demand);
 #ifndef NDEBUG
 			ve::apply([&](auto value) { assert(std::isfinite(value)); }, current_price);
 #endif
@@ -4524,7 +4542,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 	}
 
 	// essentially upper bound on wealth in the system
-	state.inflation = 1.f;
+	state.inflation = 0.999f;
 
 	sanity_check(state);
 

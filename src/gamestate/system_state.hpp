@@ -891,6 +891,7 @@ struct alignas(64) state {
 
 	dcon::commodity_id selected_trade_good;
 	dcon::factory_type_id selected_factory_type;
+	dcon::factory_id selected_factory {};
 	std::mutex ugly_ui_game_interaction_hack;
 
 	//control groups

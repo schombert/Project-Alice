@@ -703,8 +703,8 @@ void update_income_artisans(sys::state& state) {
 				if(artisan_type == pl.get_pop().get_poptype()) {
 					pl.get_pop().set_savings(
 						pl.get_pop().get_savings()
-						+ state.inflation
-						* pl.get_pop().get_size()
+						+
+						pl.get_pop().get_size()
 						* payment
 					);
 #ifndef NDEBUG
@@ -1396,7 +1396,7 @@ void update_income_national_subsidy(sys::state& state){
 
 		ve::fp_vector base_income = pop_of_type * price_properties::labor::min * 0.05f;
 
-		state.world.pop_set_savings(ids, state.world.pop_get_savings(ids) + state.inflation * (base_income + (acc_u + acc_m)));
+		state.world.pop_set_savings(ids, state.inflation* state.world.pop_get_savings(ids) + (base_income + (acc_u + acc_m)));
 #ifndef NDEBUG
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_m);
 		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, acc_u);
