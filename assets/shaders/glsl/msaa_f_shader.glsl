@@ -14,7 +14,7 @@ float gaussian_blur(vec2 p, float std) {
 
 vec4 gaussian_colour() {
 	if(gaussian_radius <= 1.0) {
-		return texture2D(screen_texture, texcoord);
+		return texture(screen_texture, texcoord);
 	}
 	float r = gaussian_radius;
 	float dx = 1.0 / screen_size.x / 2.f;
@@ -23,7 +23,7 @@ vec4 gaussian_colour() {
 	vec2 p = texcoord - vec2(dx * r, dy * r) + 0.5f * vec2(dx, dy);
 	for(float x = -r; x <= r; x++, p.x += dx) {
 		for(float y = -r; y <= r; y++, p.y += dy) {
-			col += texture2D(screen_texture, p) * gaussian_blur(vec2(x, y), r / 2.0);
+			col += texture(screen_texture, p) * gaussian_blur(vec2(x, y), r / 2.0);
 		}
 	}
 	return col;
