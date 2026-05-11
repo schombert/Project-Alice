@@ -249,6 +249,11 @@ add_executable(AliceIncremental WIN32 EXCLUDE_FROM_ALL
 	${ALICE_INCREMENTAL_SOURCES_LIST}
 	"${PROJECT_SOURCE_DIR}/src/alice.rc"
 	${ASSET_FILES})
+add_executable(AliceProfile WIN32 EXCLUDE_FROM_ALL
+	${ALICE_SOURCE_BLOB}
+	${ALICE_INCREMENTAL_SOURCES_LIST}
+	"${PROJECT_SOURCE_DIR}/src/alice.rc"
+	${ASSET_FILES})
 else()
 add_executable(Alice WIN32
 	${ALICE_SOURCE_BLOB}
@@ -265,8 +270,16 @@ set_target_properties(
 	PROPERTIES
 	UNITY_BUILD_MODE GROUP
 )
+set_target_properties(
+	AliceProfile
+	PROPERTIES
+	UNITY_BUILD_MODE GROUP
+)
 
 target_compile_definitions(AliceIncremental PRIVATE INCREMENTAL=1)
+target_compile_definitions(AliceProfile PRIVATE INCREMENTAL=1)
+target_compile_definitions(AliceProfile PRIVATE ALICE_NO_ENTRY_POINT=1)
+target_compile_definitions(AliceProfile PRIVATE ALICE_PROFILE_ENTRY_POINT=1)
 target_compile_definitions(Alice PRIVATE GLM_ENABLE_EXPERIMENTAL)
 target_compile_definitions(AliceIncremental PRIVATE GLM_ENABLE_EXPERIMENTAL)
 if(NOT WIN32)
@@ -458,10 +471,12 @@ target_include_directories(AliceCommon INTERFACE
 
 target_link_libraries(Alice PRIVATE AliceCommon)
 target_link_libraries(AliceIncremental PRIVATE AliceCommon)
+target_link_libraries(AliceProfile PRIVATE AliceCommon)
 
 if (WIN32)
 	target_link_libraries(Alice PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 	target_link_libraries(AliceIncremental PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
+	target_link_libraries(AliceProfile PRIVATE ${PROJECT_SOURCE_DIR}/libs/LLVM-C.lib)
 else()
 	target_link_libraries(Alice PRIVATE fmt::fmt)
 	target_link_libraries(AliceIncremental PRIVATE fmt::fmt)
@@ -592,6 +607,8 @@ else()
 		PRIVATE [["miniaudio.h"]])
 endif()
 
+target_precompile_headers(AliceProfile REUSE_FROM AliceIncremental)
+
 # GENERATE CONTAINER
 set(CONTAINER_PATH ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_generated)
 
@@ -628,19 +645,23 @@ add_custom_command(
 add_custom_target(GENERATE_CONTAINER DEPENDS ${CONTAINER_PATH}.hpp)
 add_dependencies(Alice GENERATE_CONTAINER ParserGenerator)
 add_dependencies(AliceIncremental GENERATE_CONTAINER ParserGenerator)
+add_dependencies(AliceProfile GENERATE_CONTAINER ParserGenerator)
 
 add_custom_target(GENERATE_CONTAINERIFACE DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/fif_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINERIFACE)
 add_dependencies(AliceIncremental GENERATE_CONTAINERIFACE)
+add_dependencies(AliceProfile GENERATE_CONTAINERIFACE)
 
 add_custom_target(GENERATE_CONTAINER_LUA DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/lua_dcon_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINER_LUA)
 add_dependencies(AliceIncremental GENERATE_CONTAINER_LUA)
+add_dependencies(AliceProfile GENERATE_CONTAINER_LUA)
 
 
 add_custom_target(GENERATE_CONTAINER_OOS DEPENDS ${PROJECT_SOURCE_DIR}/src/gamestate/dcon_oos_reporter_generated.hpp)
 add_dependencies(Alice GENERATE_CONTAINER_OOS)
 add_dependencies(AliceIncremental GENERATE_CONTAINER_OOS)
+add_dependencies(AliceProfile GENERATE_CONTAINER_OOS)
 
 # The command to build the generated parsers file
 add_custom_command(
@@ -710,6 +731,7 @@ add_custom_target(GENERATE_PARSERS DEPENDS
 	${PROJECT_SOURCE_DIR}/src/text/font_defs_generated.hpp)
 add_dependencies(Alice GENERATE_PARSERS)
 add_dependencies(AliceIncremental GENERATE_PARSERS)
+add_dependencies(AliceProfile GENERATE_PARSERS)
 
 if (BUILD_TESTING)
     enable_testing()
