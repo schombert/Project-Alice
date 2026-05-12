@@ -2249,11 +2249,11 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	state.world.for_each_commodity([&](auto cid) {
-		auto base_output = state.world.commodity_get_rgo_amount(cid);
-		if(base_output == 0.f) return;
+	province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+		state.world.for_each_commodity([&](auto cid) {
+			auto base_output = state.world.commodity_get_rgo_amount(cid);
+			if(base_output == 0.f) return;
 
-		province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
 			auto area = state.world.province_get_state_membership(province);
 			auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
 			auto priority_local = state.world.state_instance_get_production_directive(area, production_directives::to_key(state, cid));
@@ -2271,11 +2271,10 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		});
 	});
 
-	state.world.for_each_commodity([&](auto cid) {
-		auto base_output = state.world.commodity_get_artisan_output_amount(cid);
-		if(base_output == 0.f) return;
-
-		province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+	province::for_each_nation_owned_province_parallel_over_nation(state, [&](dcon::nation_id nation, dcon::province_id province) {
+		state.world.for_each_commodity([&](auto cid) {
+			auto base_output = state.world.commodity_get_artisan_output_amount(cid);
+			if(base_output == 0.f) return;
 			auto area = state.world.province_get_state_membership(province);
 			auto priority = state.world.nation_get_production_directive(nation, production_directives::to_key(state, cid));
 			auto priority_local = state.world.state_instance_get_production_directive(area, production_directives::to_key(state, cid));
@@ -2969,6 +2968,8 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 	}
 
+	concurrency::combinable<std::vector<dcon::nation_id>> bankrupt_nations;
+
 	//for(auto n : state.nations_by_rank) {
 	concurrency::parallel_for(int32_t(0), int32_t(state.world.nation_size()), [&](int32_t index) {
 		auto n = dcon::nation_id{ dcon::nation_id::value_base_t(index) };
@@ -3013,11 +3014,7 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 		}
 
 		if(is_bankrupt) {
-			go_bankrupt(state, n);
-			state.world.nation_set_spending_level(n, 0.f);
-			state.world.nation_set_last_base_budget(n, 0.f);
-			update_national_consumption(state, n, 0.f, 0.f);
-			update_consumption_administration(state, n, 0.f);
+			bankrupt_nations.local().push_back(n);
 		} else {
 			float spending_scale = 1.0f;
 
@@ -3108,6 +3105,22 @@ void daily_update(sys::state& state, bool presimulation, float presimulation_sta
 			update_private_consumption(state, n, private_spending_scale);
 		}
 	});
+
+	{
+		auto total_vector = bankrupt_nations.combine([](auto& a, auto& b) {
+			std::vector<dcon::nation_id> result(a.begin(), a.end());
+			result.insert(result.end(), b.begin(), b.end());
+			return result;
+		});
+		std::sort(total_vector.begin(), total_vector.end(), [](auto a, auto b) { return a.value < b.value; });
+		for(auto& n : total_vector) {		
+			go_bankrupt(state, n);
+			state.world.nation_set_spending_level(n, 0.f);
+			state.world.nation_set_last_base_budget(n, 0.f);
+			update_national_consumption(state, n, 0.f, 0.f);
+			update_consumption_administration(state, n, 0.f);
+		}
+	}
 
 	sanity_check(state);
 
