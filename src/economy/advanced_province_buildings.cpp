@@ -21,7 +21,7 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 
 void update_price(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
-		state.world.execute_serial_over_province([&](auto pids) {
+		province::ve_for_each_land_province(state, [&](auto pids) {
 			// public demand doesn't matter: it doesn't have any money behind it
 			// we are interested only in balance on the "market"
 			// which could be indirectly influenced by public supply,
