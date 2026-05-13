@@ -21,7 +21,7 @@ void initialize_size_of_dcon_arrays(sys::state& state) {
 
 void update_price(sys::state& state) {
 	for(int32_t i = 0; i < list::total; i++) {
-		state.world.execute_serial_over_province([&](auto pids) {
+		province::ve_for_each_land_province(state, [&](auto pids) {
 			// public demand doesn't matter: it doesn't have any money behind it
 			// we are interested only in balance on the "market"
 			// which could be indirectly influenced by public supply,
@@ -61,9 +61,9 @@ void reset_price(sys::state& state) {
 }
 
 void match_supply_and_demand(sys::state& state) {
-	for(int32_t i = 0; i < list::total; i++) {
-		//state.world.execute_serial_over_province([&](auto pids) {
-		state.world.for_each_province([&](auto pids) {
+	province::ve_parallel_for_each_land_province(state, [&](auto pids) {
+		for(int32_t i = 0; i < list::total; i++) {
+		//state.world.for_each_province([&](auto pids) {
 			auto demand_public = state.world.province_get_service_demand_allowed_public_supply(pids, i);
 			auto demand_private = state.world.province_get_service_demand_forbidden_public_supply(pids, i);
 
@@ -86,8 +86,8 @@ void match_supply_and_demand(sys::state& state) {
 			state.world.province_set_service_satisfaction_for_free(pids, i, free_ratio);
 			state.world.province_set_service_satisfaction(pids, i, satisfaction_paid);
 			state.world.province_set_service_sold(pids, i, supply_sold_paid);
-		});
-	}
+		}
+	});
 }
 
 }

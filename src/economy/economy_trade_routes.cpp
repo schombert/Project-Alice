@@ -874,6 +874,7 @@ void update_trade_routes_consumption(sys::state& state) {
 	// labor demand satisfaction does not set limits on transportation: it would be way too jumpy
 	// we assume that 1 human could move 100 units of goods daily locally
 
+	/*
 	state.world.for_each_market([&](auto market) {
 		auto capital = state.world.state_instance_get_capital(state.world.market_get_zone_from_local_market(market));
 		auto base_cargo_transport_demand = transportation_inside_market_labor_demand(state, market, capital);
@@ -892,6 +893,7 @@ void update_trade_routes_consumption(sys::state& state) {
 			* state.world.province_get_labor_demand_satisfaction(capital, labor::no_education)
 			* state.world.province_get_labor_price(capital, labor::no_education);
 	});
+	*/
 }
 
 // CAUTION: when we generate trade demand for a good, we promise to pay money to local producers during the next tick

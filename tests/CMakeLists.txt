@@ -32,6 +32,8 @@ add_executable(tests_project "${PROJECT_SOURCE_DIR}/tests/test_main.cpp"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-rasterize.c"
 	"${PROJECT_SOURCE_DIR}/src/lunasvg/plutovg-surface.c"
 	"${PROJECT_SOURCE_DIR}/src/gui/production.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/province_factories.cpp"
+	"${PROJECT_SOURCE_DIR}/src/gui/factory_details.cpp"
 	"${PROJECT_SOURCE_DIR}/src/alice.rc")
 
 

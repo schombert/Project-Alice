@@ -1528,122 +1528,122 @@ float market_cut(sys::state const& state, dcon::market_id market, float no_educa
 }
 
 void update_income_wages(sys::state& state){
-	// TODO: rewrite in vectorized way
 
-	for(auto n : state.world.in_nation) {
-		for(auto poid : state.world.nation_get_province_ownership(n)) {
-			auto pid = poid.get_province();
-			auto sid = pid.get_state_membership();
-			auto market = sid.get_market_from_local_market();
+	static auto buffer_rgo_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_primary_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_high_not_accepted_workers_wage = state.world.province_make_vectorizable_float_buffer();
+	static auto buffer_high_accepted_workers_wage = state.world.province_make_vectorizable_float_buffer();
 
-			float no_education_wage =
-				state.world.province_get_labor_price(pid, labor::no_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::no_education);
-			float basic_education_wage =
-				state.world.province_get_labor_price(pid, labor::basic_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
-			float high_education_wage =
-				state.world.province_get_labor_price(pid, labor::high_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
-			float guild_education_wage =
-				state.world.province_get_labor_price(pid, labor::guild_education)
-				* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
-			float high_education_and_accepted_wage =
-				state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
-				* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
+	province::ve_parallel_for_each_land_province(state, [&](auto pid) {
+		auto no_education_wage =
+			state.world.province_get_labor_price(pid, labor::no_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::no_education);
+		auto basic_education_wage =
+			state.world.province_get_labor_price(pid, labor::basic_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::basic_education); // craftsmen
+		auto high_education_wage =
+			state.world.province_get_labor_price(pid, labor::high_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::high_education); // clerks, clergy and bureaucrats
+		auto guild_education_wage =
+			state.world.province_get_labor_price(pid, labor::guild_education)
+			* state.world.province_get_labor_supply_sold(pid, labor::guild_education); // artisans
+		auto high_education_and_accepted_wage =
+			state.world.province_get_labor_price(pid, labor::high_education_and_accepted)
+			* state.world.province_get_labor_supply_sold(pid, labor::high_education_and_accepted); // clerks, clergy and bureaucrats of accepted culture
 
+		auto rgo_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
+			* no_education_wage;
 
-			float rgo_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::rgo_worker_no_education)
-				* no_education_wage;
+		buffer_rgo_workers_wage.set(pid, rgo_workers_wage);
 
-			float primary_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_basic_education)
-				* basic_education_wage;
+		auto primary_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::primary_basic_education)
+			* basic_education_wage;
 
-			float high_not_accepted_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_basic_education)
-				* basic_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_high_education)
-				* high_education_wage;
+		buffer_primary_workers_wage.set(pid, primary_workers_wage);
 
-			float high_accepted_workers_wage =
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_no_education)
-				* no_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_basic_education)
-				* basic_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education)
-				* high_education_wage
-				+
-				state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education_accepted)
-				* high_education_and_accepted_wage;
+		auto high_not_accepted_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_basic_education)
+			* basic_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_not_accepted_high_education)
+			* high_education_wage;
 
-			float num_aristocrat = state.world.province_get_demographics(
-				pid,
-				demographics::to_key(state, state.culture_definitions.aristocrat)
-			);
+		buffer_high_not_accepted_workers_wage.set(pid, high_not_accepted_workers_wage);
 
-			// RGOS and slaves cashback
+		auto high_accepted_workers_wage =
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_no_education)
+			* no_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_basic_education)
+			* basic_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education)
+			* high_education_wage
+			+
+			state.world.province_get_pop_labor_distribution(pid, pop_labor::high_education_accepted_high_education_accepted)
+			* high_education_and_accepted_wage;
+
+		buffer_high_accepted_workers_wage.set(pid, high_accepted_workers_wage);
+
+		// RGOS and slaves cashback
+		auto profit_from_slaves = ve::apply([&](dcon::province_id province, float earning_per_slave) {
 			auto slaves_profit = 0.f;
 			float payment_per_aristocrat = 0.f;
-			for(auto pl : state.world.province_get_pop_location(pid)) {
+			for(auto pl : state.world.province_get_pop_location(province)) {
 				if(pl.get_pop().get_poptype() == state.culture_definitions.slaves) {
-					slaves_profit += pl.get_pop().get_size() * rgo_workers_wage;
+					slaves_profit += pl.get_pop().get_size() * earning_per_slave;
 				}
 			}
-			if(slaves_profit >= 0.f && num_aristocrat > 0.f) {
-				payment_per_aristocrat += slaves_profit / num_aristocrat;
-			}
+			return slaves_profit;
+		}, pid, rgo_workers_wage);
+		auto old_rgo_cash = state.world.province_get_rgo_bank(pid);
+		state.world.province_set_rgo_bank(pid, old_rgo_cash + profit_from_slaves);
+	});
 
-			for(auto pl : state.world.province_get_pop_location(pid)) {
-				auto pop = pl.get_pop();
-				auto savings = pop.get_savings();
-				auto poptype = pop.get_poptype();
-				auto size = pop.get_size();
+	state.world.execute_parallel_over_pop([&](auto pops) {
+		auto savings = state.world.pop_get_savings(pops);
+		auto pop_type = state.world.pop_get_poptype(pops);
+		auto size = state.world.pop_get_size(pops);
+		auto culture = state.world.pop_get_culture(pops);
+		auto accepted = state.world.pop_get_is_primary_or_accepted_culture(pops);
+		auto province = state.world.pop_get_province_from_pop_location(pops);
 
-				auto accepted = state.world.nation_get_accepted_cultures(n, pop.get_culture())
-					|| state.world.nation_get_primary_culture(n) == pop.get_culture();
+		auto high_education =
+			(pop_type == state.culture_definitions.secondary_factory_worker)
+			|| (pop_type == state.culture_definitions.bureaucrat)
+			|| (pop_type == state.culture_definitions.clergy);
 
-				if(poptype.get_is_paid_rgo_worker()) {
-					pop.set_savings(pop.get_savings() + size * rgo_workers_wage);
-				} else if(state.culture_definitions.primary_factory_worker == poptype) {
-					pop.set_savings(pop.get_savings() + size * primary_workers_wage);
-				} else if(state.culture_definitions.secondary_factory_worker == pop.get_poptype()) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-					assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
-				} else if(pop.get_poptype() == state.culture_definitions.bureaucrat) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-				} else if(pop.get_poptype() == state.culture_definitions.clergy) {
-					if(accepted) {
-						pop.set_savings(pop.get_savings() + size * high_accepted_workers_wage);
-					} else {
-						pop.set_savings(pop.get_savings() + size * high_not_accepted_workers_wage);
-					}
-				} else if(state.culture_definitions.aristocrat == pop.get_poptype()) {
-					pop.set_savings(pop.get_savings() + size * payment_per_aristocrat);
-				}
-
-				assert(std::isfinite(pop.get_savings()) && pop.get_savings() >= 0);
-			}
-		}
-	}
+		auto wage_per_person = ve::select(
+			state.world.pop_type_get_is_paid_rgo_worker(pop_type),
+			buffer_rgo_workers_wage.get(province),
+			ve::select(
+				pop_type == state.culture_definitions.primary_factory_worker,
+				buffer_primary_workers_wage.get(province),
+				ve::select(
+					accepted && high_education,
+					buffer_high_accepted_workers_wage.get(province),
+					ve::select(
+						high_education,
+						buffer_high_not_accepted_workers_wage.get(province),
+						ve::fp_vector{0.f}
+					)
+				)
+			)
+		);
+		auto wage = size * wage_per_person;
+		state.world.pop_set_savings(pops, wage + savings);
+#ifndef NDEBUG
+		ve::apply([](float v) { assert(std::isfinite(v) && v >= 0); }, wage + savings);
+#endif // !NDEBUG
+	});
 }
 
 float estimate_next_day_raw_income(
