@@ -765,7 +765,9 @@ void update_trade_routes_volume(
 			auto buy_rate_perception_B = (optimism_confidence.get(c) * ve::max(expected_to_buy_B, buy_optimism) + pessimism_confidence_B * expected_to_buy_B);
 			auto buy_transport_perception = ve::min(1.f, (economy::numerical::employment_unit::epsilon / (1.f + absolute_volume) + transport_availability * 2.f));
 
-			auto perception_divisor = (ve::fp_vector{1.f} + optimism_confidence.get(c) + pessimism_confidence_B) * (ve::fp_vector{ 1.f } + optimism_confidence.get(c) + pessimism_confidence_A);
+			auto perception_divisor_A = (ve::fp_vector{ 1.f } + optimism_confidence.get(c) + pessimism_confidence_A);
+			auto perception_divisor_B = (ve::fp_vector{ 1.f } + optimism_confidence.get(c) + pessimism_confidence_B);
+			auto perception_divisor = perception_divisor_A * perception_divisor_B;
 
 			auto earn_A_to_B = price_B_import * sold_boundary * sell_rate_perception_B * buy_rate_perception_A / perception_divisor * buy_transport_perception;
 			auto earn_B_to_A = price_A_import * sold_boundary * sell_rate_perception_A * buy_rate_perception_B / perception_divisor * buy_transport_perception;
@@ -779,10 +781,12 @@ void update_trade_routes_volume(
 			auto diff_A_to_B = 2.f * (earn_A_to_B - spend_A_to_B) / (earn_A_to_B + economy::price_properties::commodity::min);
 			auto diff_A_to_B_clamped = diff_A_to_B;//ve::max(-1.f, ve::min(1.f, diff_A_to_B));
 			auto change_A_to_B = (current_A_to_B * 0.002f + 0.002f) * diff_A_to_B_clamped;
+			change_A_to_B = ve::select(change_A_to_B <= 0.f, change_A_to_B, change_A_to_B * ve::max(0.f, (buy_rate_perception_A / perception_divisor_A - 0.2f) / 0.8f));
 
 			auto diff_B_to_A = 2.f * (earn_B_to_A - spend_B_to_A) / (earn_B_to_A + economy::price_properties::commodity::min);
 			auto diff_B_to_A_clamped = diff_B_to_A;//ve::max(-1.f, ve::min(1.f, diff_B_to_A));
 			auto change_B_to_A = (current_B_to_A * 0.002f + 0.002f) * diff_B_to_A_clamped;
+			change_B_to_A = ve::select(change_B_to_A <= 0.f, change_B_to_A, change_B_to_A * ve::max(0.f, (buy_rate_perception_B / perception_divisor_B - 0.2f) / 0.8f));
 
 
 			auto next_A_to_B = ve::select(reset_route_commodity, 0.f, ve::max(0.f, current_A_to_B * 0.99999f + change_A_to_B));
