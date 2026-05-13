@@ -2312,9 +2312,12 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 				auto inputs_data = get_inputs_data(state, markets, state.world.commodity_get_artisan_inputs(cid));
 				auto expected_sales = state.world.market_get_expected_probability_to_sell(markets, cid);
 
+				auto sales_expectation_perception = (sales_optimism * 0.5f + (1.f - sales_optimism * 0.5f) * expected_sales);
+				auto purchase_expectation_perception = (purchase_optimism * 0.5f + (1.f - purchase_optimism * 0.5f) * inputs_data.min_expected);
+
 				auto output_cost = base_artisan_output_cost(state, markets, cid, predicted_price / (1.f + artisans_greed)) 
-					* expected_sales
-					* (purchase_optimism * 0.5f + (1.f - purchase_optimism * 0.5f) * inputs_data.min_expected);
+					* sales_expectation_perception
+					* purchase_expectation_perception;
 
 				auto input_cost = inputs_data.total_cost * artisan_input_multiplier(state, nations);
 
@@ -2337,10 +2340,10 @@ void update_employment(sys::state& state, bool ignore_reality, float presim_empl
 					0.f
 				);
 
-				auto employment_change = gradient_to_employment_change<ve::fp_vector>(gradient, 0.f, current_employment_target, 1.f);
+				auto employment_change = gradient_to_employment_change<ve::fp_vector>(gradient, 0.f, current_employment_target, purchase_expectation_perception * sales_expectation_perception);
 				auto decay = 0.9999f;
 				auto new_employment = ve::select(mask, ve::max(current_employment_target * decay + presim_employment_mult * employment_change, 0.0f), 0.f);
-				state.world.province_set_artisan_score(ids, cid, ve::min(local_population, new_employment));
+				state.world.province_set_artisan_score(ids, cid, new_employment);
 				ve::apply(
 					[](float x) {
 							assert(std::isfinite(x));
