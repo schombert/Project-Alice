@@ -25,15 +25,8 @@ vec4 calc_gl_position(vec2 position) {
 void main() {
 	vec2 normal_vector = normalize(normal_direction) * width;
 	vec2 world_pos = vertex_position;
-
-	float angle_x = 2 * vertex_position.x * PI;
-	float x = cos(angle_x);
-	float y = sin(angle_x);
-	float angle_y = vertex_position.y * PI;
-	x *= sin(angle_y);
-	y *= sin(angle_y);
-	float z = cos(angle_y);
-	space_coords = vec3(x, y, z);
+	
+	space_coords = point_to_sphere(vertex_position);
 
 	world_pos.x *= map_size.x / map_size.y;
 	world_pos += normal_vector;

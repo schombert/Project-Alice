@@ -182,6 +182,29 @@ square::tangent rotate_right(square::tangent x) {
 	tangent rotated = tangent{ sphere_tangent.base, { -glm::cross(away, sphere_tangent.data) } };
 	return to_square(rotated);
 }
+
+square::tangent rotate(square::tangent x, float angle) {
+	auto sphere_tangent = from_square(x);
+	auto away = sphere_tangent.base.data;
+	auto to_side = glm::cross(away, sphere_tangent.data);
+	glm::mat3x3 to_basis{
+		away,
+		sphere_tangent.data,
+		to_side
+	};
+
+	assert(to_basis * glm::vec3(0.f, 1.f, 0.f) == sphere_tangent.data);
+	assert(to_basis * glm::vec3(0.f, 0.f, 1.f) == to_side);
+
+	glm::vec3 rotated_local{
+		0.f,
+		cos(angle),
+		sin(angle)
+	};
+
+	return to_square({ sphere_tangent.base, to_basis * rotated_local});
+}
+
 }
 
 namespace projection_shader {
