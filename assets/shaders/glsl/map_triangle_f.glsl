@@ -14,7 +14,7 @@ void main() {
 
 	vec4 out_color = texture(texture_sampler, tex_coord / 10.f);
 	
-	vec3 inner_color = vec3(0.8f, 0.2, 0.2f);
+	vec3 inner_color = vec3(0.6f, 0.2, 0.2f);
 	if (ignore_light == 0.f) {
 		float darkness = max(0.f, -dot(light_direction, space_coords) + 0.2f);
 		inner_color *= 5.f * out_color.a * out_color.rgb * darkness;
