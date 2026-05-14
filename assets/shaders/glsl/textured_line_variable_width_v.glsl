@@ -31,20 +31,9 @@ void main() {
 	world_pos.x /= map_size.x / map_size.y;
 
 	map_coord = world_pos;    
-    
-    vec4 temp = calc_gl_position(world_pos);
-    
-    //temp.z = 1.f - (zoom * width * 0.0001f - 0.0000001f);
-
-	float angle_x = 2 * vertex_position.x * PI;
-	float x = cos(angle_x);
-	float y = sin(angle_x);
-	float angle_y = vertex_position.y * PI;
-	x *= sin(angle_y);
-	y *= sin(angle_y);
-	float z = cos(angle_y);
-	space_coords = vec3(x, y, z);
-    
+	vec4 temp = calc_gl_position(world_pos);
+	//temp.z = 1.f - (zoom * width * 0.0001f - 0.0000001f);
+	space_coords = point_to_sphere(vertex_position);
 	gl_Position = temp;
 	tex_coord = texture_coord;
 	o_dist = - time + distance / (2.0f * 0.0005f);

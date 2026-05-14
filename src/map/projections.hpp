@@ -156,4 +156,5 @@ square::tangent to_square(tangent sph_tangent);
 float dot(square::tangent x, square::tangent y);
 square::tangent rotate_left(square::tangent x);
 square::tangent rotate_right(square::tangent x);
+square::tangent rotate(square::tangent x, float angle);
 }
