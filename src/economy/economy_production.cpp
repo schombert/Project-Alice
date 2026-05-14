@@ -327,7 +327,7 @@ inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SE
 		}
 	}
 
-	assert(input_total >= 0.f)
+	assert(input_total >= 0.f);
 	return { min_expected, min_available, input_total, input_total_adjusted };
 }
 
