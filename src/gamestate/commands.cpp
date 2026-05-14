@@ -28,6 +28,7 @@
 #include "gui_diplomacy_request_templates.hpp"
 #include "gui_message_settings_window.hpp"
 #include "gui_combat.hpp"
+#include "validation.hpp"
 
 namespace command {
 
@@ -892,14 +893,6 @@ void start_land_unit_construction(sys::state& state, dcon::nation_id source, dco
 	p << data;
 	add_to_command_queue(state, p);
 
-}
-
-template <bool VALIDATE>
-bool inline assertive_identity(bool input) {
-	if constexpr(VALIDATE) {
-		assert(input);
-	}
-	return input;
 }
 
 template <bool VALIDATE>
@@ -3351,21 +3344,39 @@ void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id targ
 	add_to_command_queue(state, p);
 }
 
-bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
-		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation) {
+template<bool VALIDATE>
+bool can_declare_war(
+	sys::state& state,
+	dcon::nation_id source, dcon::nation_id target,
+	dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+	dcon::nation_id cb_secondary_nation
+) {
 	if(!state.current_scene.game_in_progress) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
-	if(!military::can_attack(state, source, target)) {
-		return false;
+	if(!military::can_attack<VALIDATE>(state, source, target)) {
+		return assertive_identity<VALIDATE>(false);
 	}
+
 	// check CB validity
-	if(!military::cb_instance_conditions_satisfied(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation))
-		return false;
+	if(!military::cb_instance_conditions_satisfied<VALIDATE>(state, source, target, primary_cb, cb_state, cb_tag, cb_secondary_nation))
+		return assertive_identity<VALIDATE>(false);
 
 	return true;
 }
+template bool can_declare_war<true>(
+	sys::state& state,
+	dcon::nation_id source, dcon::nation_id target,
+	dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+	dcon::nation_id cb_secondary_nation
+);
+template bool can_declare_war<false>(
+	sys::state& state,
+	dcon::nation_id source, dcon::nation_id target,
+	dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+	dcon::nation_id cb_secondary_nation
+);
 
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb,
 		dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference) {
@@ -3531,7 +3542,7 @@ bool can_add_war_goal(sys::state& state, dcon::nation_id source, dcon::war_id w,
 			}
 		}
 	}
-	if(!military::cb_instance_conditions_satisfied(state, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
+	if(!military::cb_instance_conditions_satisfied<false>(state, source, target, cb_type, cb_state, cb_tag, cb_secondary_nation))
 		return false;
 
 	return true;
@@ -3622,18 +3633,22 @@ void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is
 	p << data;
 	add_to_command_queue(state, p);
 }
+template<bool VALIDATE>
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
 	if(!state.current_scene.game_in_progress) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 	if(source != state.primary_crisis_attacker && source != state.primary_crisis_defender)
-		return false;
+		return  assertive_identity<VALIDATE>(false);
 	if(state.current_crisis_state != sys::crisis_state::heating_up)
-		return false;
+		return  assertive_identity<VALIDATE>(false);
 
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
-	return !pending;
+	return assertive_identity<VALIDATE>(!pending);
 }
+template bool can_start_crisis_peace_offer<true>(sys::state& state, dcon::nation_id source, bool is_concession);
+template bool can_start_crisis_peace_offer<false>(sys::state& state, dcon::nation_id source, bool is_concession);
+
 void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession) {
 	auto offer = fatten(state.world, state.world.create_peace_offer());
 	offer.set_is_concession(is_concession);
@@ -3732,20 +3747,22 @@ void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::
 	p << data;
 	add_to_command_queue(state, p);
 }
+
+template<bool VALIDATE>
 bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
 		dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
 		dcon::nation_id cb_secondary_nation) {
 	if(!state.current_scene.game_in_progress) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
- 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
+	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 	if(!pending)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	auto war = state.world.peace_offer_get_war_from_war_settlement(pending);
 	if(war)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	bool found = [&]() {
 		for(auto wg : state.crisis_attacker_wargoals) {
@@ -3764,19 +3781,32 @@ bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dc
 	}();
 
 	if(!found)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// no duplicates
 	for(auto item : state.world.peace_offer_get_peace_offer_item(pending)) {
 		auto wg = item.get_wargoal();
-		if(wg.get_added_by() == wargoal_from && cb_state == wg.get_associated_state() && cb_tag == wg.get_associated_tag() &&
-						cb_secondary_nation == wg.get_secondary_nation() && target == wg.get_target_nation() &&
-						primary_cb == wg.get_type())
-			return false;
+		if(
+			wg.get_added_by() == wargoal_from
+			&& cb_state == wg.get_associated_state()
+			&& cb_tag == wg.get_associated_tag()
+			&& cb_secondary_nation == wg.get_secondary_nation()
+			&& target == wg.get_target_nation()
+			&& primary_cb == wg.get_type()
+		) {
+			return assertive_identity<VALIDATE>(false);
+		}
 	}
 
 	return true;
 }
+template bool can_add_to_crisis_peace_offer<true>(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
+	dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+	dcon::nation_id cb_secondary_nation);
+template bool can_add_to_crisis_peace_offer<false>(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from,
+	dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag,
+	dcon::nation_id cb_secondary_nation);
+
 void execute_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, crisis_invitation_data const& data) {
 	auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(source);
 
@@ -4993,7 +5023,7 @@ bool can_invite_to_crisis(sys::state& state, dcon::nation_id source, dcon::natio
 	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
 		return false;
 
-	if(!military::cb_instance_conditions_satisfied(state, invitation_to, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
+	if(!military::cb_instance_conditions_satisfied<false>(state, invitation_to, target, primary_cb, cb_state, cb_tag, cb_secondary_nation)) {
 		return false;
 	}
 
@@ -5088,7 +5118,7 @@ bool crisis_can_add_wargoal(sys::state& state, dcon::nation_id source, sys::full
 	if((cb_type & military::cb_flag::always) == 0 && (cb_type & military::cb_flag::is_not_constructing_cb) != 0)
 		return false;
 
-	if(!military::cb_instance_conditions_satisfied(state, source, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation)) {
+	if(!military::cb_instance_conditions_satisfied<false>(state, source, wg.target_nation, wg.cb, wg.state, wg.wg_tag, wg.secondary_nation)) {
 		return false;
 	}
 
@@ -6694,7 +6724,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::declare_war:
 	{
 		auto& data = c.get_payload<command::new_war_data>();
-		return can_declare_war(state, source, data.target, data.primary_cb, data.cb_state,
+		return can_declare_war<false>(state, source, data.target, data.primary_cb, data.cb_state,
 				data.cb_tag, data.cb_secondary_nation);
 	}
 
@@ -6795,7 +6825,7 @@ bool can_perform_command(sys::state& state, command_data& c) {
 	case command_type::start_crisis_peace_offer:
 	{
 		auto& data = c.get_payload<command::new_offer_data>();
-		return can_start_crisis_peace_offer(state, source, data.is_concession);
+		return can_start_crisis_peace_offer<false>(state, source, data.is_concession);
 	}
 
 	case command_type::invite_to_crisis:

@@ -424,7 +424,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}

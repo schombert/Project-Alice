@@ -198,6 +198,7 @@ void remove_from_common_allied_wars(sys::state& state, dcon::nation_id a, dcon::
 dcon::war_id find_war_between(sys::state const& state, dcon::nation_id a, dcon::nation_id b);
 bool has_truce_with(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
 sys::date truce_end_date(sys::state& state, dcon::nation_id attacker, dcon::nation_id target);
+template <bool VALIDATE>
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 bool leader_is_in_combat(sys::state& state, dcon::leader_id l);
 dcon::leader_id make_new_leader(sys::state& state, dcon::nation_id n, bool is_general);
@@ -306,6 +307,7 @@ void monthly_leaders_update(sys::state& state);
 void daily_leaders_update(sys::state& state);
 
 bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb);
+template<bool VALIDATE>
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 void add_cb(sys::state& state, dcon::nation_id n, dcon::cb_type_id cb, dcon::nation_id target, dcon::state_definition_id target_state); // do not call this function directly unless you know what you are doing
 void execute_cb_discovery(sys::state& state, dcon::nation_id n);
@@ -572,8 +574,11 @@ template<regiment_dmg_source damage_source>
 void disband_regiment_w_pop_death(sys::state& state, dcon::regiment_id reg_id);
 
 
+template <bool VALIDATE>
 bool can_attack(sys::state& state, dcon::nation_id n);
+template <bool VALIDATE>
 bool can_attack_ai(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+template <bool VALIDATE>
 bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
 template<command::actor Actor>

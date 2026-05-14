@@ -2091,6 +2091,10 @@ void update_text_lines(sys::state& state, display_data& map_data) {
 			in_y.push_back(std::array<float, 4>{ l_0 * 1.f, l_1* e.y, l_1* e.y* e.y, l_3* e.y* e.y* e.y});
 		}
 
+		if(in_x.size() < 2) {
+			continue;
+		}
+
 		text::stored_glyphs prepared_name;
 		state.font_collection.mfont.remake_map_cache(state, prepared_name, name);
 		float name_extent = state.font_collection.mfont.text_extent(state, prepared_name, 0, uint32_t(prepared_name.glyph_info.size()));

@@ -326,6 +326,8 @@ inputs_data get_inputs_data(sys::state const& state, dcon::market_id markets, SE
 			break;
 		}
 	}
+
+	assert(input_total >= 0.f)
 	return { min_expected, min_available, input_total, input_total_adjusted };
 }
 
@@ -804,16 +806,18 @@ float factory_min_input_expected_to_be_available(
 
 float priority_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n) {
 	auto exp = state.world.nation_get_factory_type_experience(n, fac_type);
-	return 100000.f / (100000.f + exp);
+	return 100000.f / (100000.f + std::max(0.f, exp));
 }
 
 float nation_factory_input_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n) {
 	auto mult = priority_multiplier(state, fac_type, n);
 
-	return mult * std::max(
+	return std::max(
 		0.1f,
-		state.defines.alice_inputs_base_factor
-		+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
+		mult * (
+			state.defines.alice_inputs_base_factor
+			+ state.world.nation_get_modifier_values(n, sys::national_mod_offsets::factory_input)
+		)
 	);
 }
 float nation_factory_output_multiplier(sys::state const& state, dcon::factory_type_id fac_type, dcon::nation_id n) {

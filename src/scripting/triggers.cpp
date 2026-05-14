@@ -2205,40 +2205,40 @@ TRIGGER_FUNCTION(tf_continent_pop_from) {
 }
 TRIGGER_FUNCTION(tf_casus_belli_tag) {
 	auto tag_holder = ws.world.national_identity_get_nation_from_identity_holder(trigger::payload(tval[1]).tag_id);
-	auto result = ve::apply([&ws, tag_holder](dcon::nation_id n) { return military::can_use_cb_against(ws, n, tag_holder); },
+	auto result = ve::apply([&ws, tag_holder](dcon::nation_id n) { return military::can_use_cb_against<false>(ws, n, tag_holder); },
 			to_nation(primary_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_casus_belli_from) {
 	auto result =
-			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against(ws, n, target); },
+			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against<false>(ws, n, target); },
 					to_nation(primary_slot), to_nation(from_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_casus_belli_this_nation) {
 	auto result =
-			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against(ws, n, target); },
+			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against<false>(ws, n, target); },
 					to_nation(primary_slot), to_nation(this_slot));
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_casus_belli_this_state) {
 	auto owner = ws.world.state_instance_get_nation_from_state_ownership(to_state(this_slot));
 	auto result =
-			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against(ws, n, target); },
+			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against<false>(ws, n, target); },
 					to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_casus_belli_this_province) {
 	auto owner = ws.world.province_get_nation_from_province_ownership(to_prov(this_slot));
 	auto result =
-			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against(ws, n, target); },
+			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against<false>(ws, n, target); },
 					to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
 }
 TRIGGER_FUNCTION(tf_casus_belli_this_pop) {
 	auto owner = nations::owner_of_pop(ws, to_pop(this_slot));
 	auto result =
-			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against(ws, n, target); },
+			ve::apply([&ws](dcon::nation_id n, dcon::nation_id target) { return military::can_use_cb_against<false>(ws, n, target); },
 					to_nation(primary_slot), owner);
 	return compare_to_true(tval[0], result);
 }
