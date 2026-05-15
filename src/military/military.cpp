@@ -2075,6 +2075,7 @@ int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation
 		total = 0;
 	}
 	if(state.world.nation_get_capital(n) == p) {
+		total += 1;
 		total *= 3;
 	}
 	return total;
