@@ -657,7 +657,7 @@ public:
 			disabled = !command::can_add_war_goal(state, state.local_player_nation, w, n, c, s, ni,
 					state.world.national_identity_get_nation_from_identity_holder(ni));
 		} else {
-			disabled = !command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+			disabled = !command::can_declare_war<false>(state, state.local_player_nation, n, c, s, ni,
 					state.world.national_identity_get_nation_from_identity_holder(ni));
 		}
 	}
@@ -698,7 +698,7 @@ public:
 		dcon::national_identity_id ni = retrieve<dcon::national_identity_id>(state, parent);
 		dcon::cb_type_id c = retrieve<dcon::cb_type_id>(state, parent);
 
-		if(command::can_declare_war(state, state.local_player_nation, n, c, s, ni,
+		if(command::can_declare_war<false>(state, state.local_player_nation, n, c, s, ni,
 			state.world.national_identity_get_nation_from_identity_holder(ni))) {
 			auto box = text::open_layout_box(contents, 0);
 			text::localised_format_box(state, contents, box, std::string_view("valid_wartarget"));
@@ -754,7 +754,7 @@ public:
 				}
 			}
 		}
-		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_instance_conditions_satisfied(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni)));
+		text::add_line_with_condition(state, contents, "alice_wg_condition_5", military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, n, c, s, ni, state.world.national_identity_get_nation_from_identity_holder(ni)));
 
 		if(auto can_use = state.world.cb_type_get_can_use(c); can_use) {
 			text::add_line(state, contents, "alice_wg_usage_trigger");
@@ -954,7 +954,7 @@ public:
 					} else {
 						bool will_join = false;
 
-						if(military::can_use_cb_against(state, other, target))
+						if(military::can_use_cb_against<false>(state, other, target))
 							will_join = true;
 						if(state.world.nation_get_ai_rival(other) == target)
 							will_join = true;
@@ -1161,7 +1161,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}
@@ -1671,7 +1671,7 @@ private:
 		for(auto n : state.world.in_nation) {
 			auto ni = state.world.nation_get_identity_from_identity_holder(n);
 
-			if(military::cb_instance_conditions_satisfied(state, state.local_player_nation, target, cb, target_state, ni, n)) {
+			if(military::cb_instance_conditions_satisfied<false>(state, state.local_player_nation, target, cb, target_state, ni, n)) {
 				seldata.selectable_identities.push_back(ni);
 			}
 		}

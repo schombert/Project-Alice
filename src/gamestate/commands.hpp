@@ -998,6 +998,7 @@ void cancel_given_military_access(sys::state& state, dcon::nation_id source, dco
 bool can_cancel_given_military_access(sys::state& state, dcon::nation_id source, dcon::nation_id target, bool ignore_cost = false);
 
 void declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference);
+template<bool VALIDATE>
 bool can_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 void execute_declare_war(sys::state& state, dcon::nation_id source, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation, bool call_attacker_allies, bool run_conference);
 
@@ -1151,10 +1152,12 @@ void execute_send_peace_offer(sys::state& state, dcon::nation_id source);
 // CRISIS PEACE OFFER COMMANDS
 
 void start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
+template <bool VALIDATE>
 bool can_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
 void execute_start_crisis_peace_offer(sys::state& state, dcon::nation_id source, bool is_concession);
 
 void add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
+template <bool VALIDATE>
 bool can_add_to_crisis_peace_offer(sys::state& state, dcon::nation_id source, dcon::nation_id wargoal_from, dcon::nation_id target, dcon::cb_type_id primary_cb, dcon::state_definition_id cb_state, dcon::national_identity_id cb_tag, dcon::nation_id cb_secondary_nation);
 
 void send_crisis_peace_offer(sys::state& state, dcon::nation_id source);

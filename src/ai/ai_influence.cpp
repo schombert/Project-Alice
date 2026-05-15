@@ -87,7 +87,7 @@ void update_influence_priorities(sys::state& state) {
 				weight *= 4.0f;
 			}
 			//Focus on gaining influence against nations we have active wargoals against so we can remove their protector, even if it's us
-			if(military::can_use_cb_against(state, n.nation, t) && t.get_in_sphere_of()) {
+			if(military::can_use_cb_against<false>(state, n.nation, t) && t.get_in_sphere_of()) {
 				weight += 1.0f;
 				weight *= 1000.0f;
 			}
@@ -182,7 +182,7 @@ void perform_influence_actions(sys::state& state) {
 				assert(command::can_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target()));
 				command::execute_add_to_sphere(state, gprl.get_great_power(), gprl.get_influence_target());
 				//De-sphere countries we have wargoals against, desphering countries need to check for going over infamy
-			} else if(military::can_use_cb_against(state, gprl.get_great_power(), gprl.get_influence_target())
+			} else if(military::can_use_cb_against<false>(state, gprl.get_great_power(), gprl.get_influence_target())
 				&& state.defines.removefromsphere_influence_cost <= gprl.get_influence()
 				&& current_sphere
 				&& clevel == nations::influence::level_friendly

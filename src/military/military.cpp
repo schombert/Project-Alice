@@ -19,6 +19,7 @@
 #include "economy_constants.hpp"
 #include "commands.hpp"
 #include "commands_constants.hpp"
+#include "validation.hpp"
 
 namespace military {
 
@@ -458,6 +459,7 @@ void restore_unsaved_values(sys::state& state) {
 	update_naval_supply_points(state);
 }
 
+template<bool VALIDATE>
 bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id target) {
 	auto other_cbs = state.world.nation_get_available_cbs(from);
 	for(auto& cb : other_cbs) {
@@ -470,8 +472,10 @@ bool can_use_cb_against(sys::state& state, dcon::nation_id from, dcon::nation_id
 				return true;
 		}
 	}
-	return false;
+	return assertive_identity<VALIDATE>(false);
 }
+template bool can_use_cb_against<true>(sys::state& state, dcon::nation_id from, dcon::nation_id target);
+template bool can_use_cb_against<false>(sys::state& state, dcon::nation_id from, dcon::nation_id target);
 
 bool can_add_always_cb_to_war(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb, dcon::war_id w) {
 
@@ -684,12 +688,13 @@ bool cb_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nat
 	return true;
 }
 
+template<bool VALIDATE>
 bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb,
 		dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary) {
 
 	auto can_use = state.world.cb_type_get_can_use(cb);
 	if(can_use && !trigger::evaluate(state, can_use, trigger::to_generic(target), trigger::to_generic(actor), trigger::to_generic(target))) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
 	auto allowed_countries = state.world.cb_type_get_allowed_countries(cb);
@@ -716,7 +721,7 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 			}
 		}
 		if(!any_allowed)
-			return false;
+			return assertive_identity<VALIDATE>(false);
 	}
 
 	auto allowed_substates = state.world.cb_type_get_allowed_substate_regions(cb);
@@ -743,9 +748,9 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 				}
 			}
 			return false;
-			}();
+		}();
 		if(!any_allowed)
-			return false;
+			return assertive_identity<VALIDATE>(false);
 	}
 
 	if(allowed_countries) {
@@ -776,15 +781,18 @@ bool cb_instance_conditions_satisfied(sys::state& state, dcon::nation_id actor, 
 				validity = true;
 			}
 			if(!validity)
-				return false;
+				return assertive_identity<VALIDATE>(false);
 		} else {
-			return false;
+			return assertive_identity<VALIDATE>(false);
 		}
 	}
 
 	return true;
 }
-
+template bool cb_instance_conditions_satisfied<true>(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb,
+		dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
+template bool cb_instance_conditions_satisfied<false>(sys::state& state, dcon::nation_id actor, dcon::nation_id target, dcon::cb_type_id cb,
+		dcon::state_definition_id st, dcon::national_identity_id tag, dcon::nation_id secondary);
 
 bool province_is_blockaded(sys::state const& state, dcon::province_id ids) {
 	return state.world.province_get_is_blockaded(ids);
@@ -2046,7 +2054,12 @@ int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation
 	This value is the doubled for non-overseas provinces where the owner has a core.
 	It is then tripled for the nation's capital province.
 	*/
+	
+	// colonial provinces don't have a say in these matters
 	int32_t total = 1;
+	if(state.world.province_get_is_colonial(p)) {
+		total = 0;
+	}
 	if(!state.world.province_get_is_colonial(p)) {
 		total += state.world.province_get_building_level(p, uint8_t(economy::province_building_type::naval_base));
 	}
@@ -2058,8 +2071,8 @@ int32_t province_point_cost(sys::state& state, dcon::province_id p, dcon::nation
 	auto overseas = (state.world.province_get_continent(p) != state.world.province_get_continent(owner_cap)) &&
 		(state.world.province_get_connected_region_id(p) != state.world.province_get_connected_region_id(owner_cap));
 
-	if(state.world.province_get_is_owner_core(p) && !overseas) {
-		total *= 2;
+	if(overseas) {
+		total = 0;
 	}
 	if(state.world.nation_get_capital(n) == p) {
 		total *= 3;
@@ -10909,117 +10922,135 @@ bool can_change_naval_unit_type(const sys::state& state, dcon::nation_id source,
 template bool can_change_naval_unit_type<command::actor::ai>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 template bool can_change_naval_unit_type<command::actor::player>(const sys::state& state, dcon::nation_id source, dcon::ship_id ship, dcon::unit_type_id new_type);
 
+template<bool VALIDATE>
 bool can_attack(sys::state& state, dcon::nation_id n) {
 	// nations without land are not supported yet
 	if(state.world.nation_get_owned_province_count(n) == 0)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	return true;
 }
+template bool can_attack<true>(sys::state& state, dcon::nation_id n);
+template bool can_attack<false>(sys::state& state, dcon::nation_id n);
+
 
 // used by both functions
 // attempts to be cheap...
+template<bool VALIDATE>
 bool can_attack_internal(sys::state& state, dcon::nation_id n, dcon::nation_id target) {	
 	if(target == n)
-		return false;	
+		return assertive_identity<VALIDATE>(false);
 
 	// can't declare war on nations without land currently
 	if(state.world.nation_get_owned_province_count(target) == 0)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// no decs against allies
 	if(nations::are_allied(state, n, target))
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// cannot declare war on your own sphereling
 	if(state.world.nation_get_in_sphere_of(target) == n)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// when declaring a war, alliances with the spherelord are also checked
 	if(nations::would_war_conflict_with_sphere_leader<nations::war_initiation::declare_war>(state, n, target)) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
 	if(military::has_truce_with(state, n, target))
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// subjects check
 	auto overlord_source = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(n));
 	if(overlord_source && overlord_source != target && state.defines.alice_allow_subjects_declare_wars == 0.0)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// the most expensive check
 	if(nations::has_units_inside_other_nation(state, n, target)) {
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	}
 
 	return true;
 }
+template bool can_attack_internal<true>(sys::state& state, dcon::nation_id n, dcon::nation_id target);
+template bool can_attack_internal<false>(sys::state& state, dcon::nation_id n, dcon::nation_id target);
+
 
 // cheaper version: some checks could be more strict to be less computationally expensive
+template<bool VALIDATE>
 bool can_attack_ai(sys::state& state, dcon::nation_id n, dcon::nation_id target) {
 	// we don't allow attacking war allies or war enemies
 	// for AI we do it in a cheaper way:
 	// don't declare war when you have war allies
 	if(state.world.nation_get_is_at_war(n))
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
 	// we do not check can_attack(state, source) because it is checked during iteration over source
 	// common checks, both for player and AI
-	if(!can_attack_internal(state, n, target)) {
-		return false;
+	if(!can_attack_internal<VALIDATE>(state, n, target)) {
+		return assertive_identity<VALIDATE>(false);
 	}
 	if(overlord) {
-		if(!can_attack_internal(state, n, overlord)) {
-			return false;
+		if(!can_attack_internal<VALIDATE>(state, n, overlord)) {
+			return assertive_identity<VALIDATE>(false);
 		}
 	}
 
 	// check existence of cb
-	if(!military::can_use_cb_against(state, n, target))
-		return false;
+	if(!military::can_use_cb_against<VALIDATE>(state, n, target))
+		return assertive_identity<VALIDATE>(false);
 
 	return true;
 }
+template bool can_attack_ai<true>(sys::state& state, dcon::nation_id n, dcon::nation_id target);
+template bool can_attack_ai<false>(sys::state& state, dcon::nation_id n, dcon::nation_id target);
 
 // we can allow expensive logic there
+template<bool VALIDATE>
 bool can_attack_expensive_checks(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	if(military::are_allied_in_war(state, source, target) || military::are_at_war(state, source, target))
-		return false;
+		return assertive_identity<VALIDATE>(false);
 	return true;
 }
+template bool can_attack_expensive_checks<true>(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+template bool can_attack_expensive_checks<false>(sys::state& state, dcon::nation_id source, dcon::nation_id target);
 
+template<bool VALIDATE>
 bool can_attack(sys::state& state, dcon::nation_id source, dcon::nation_id target) {
 	auto overlord = state.world.overlord_get_ruler(state.world.nation_get_overlord_as_subject(target));
 
-	if(!can_attack(state, source)) {
-		return false;
+	if(!can_attack<VALIDATE>(state, source)) {
+		return assertive_identity<VALIDATE>(false);
 	}
 
-	if(!can_attack_internal(state, source, target)) {
-		return false;
+	if(!can_attack_internal<VALIDATE>(state, source, target)) {
+		return assertive_identity<VALIDATE>(false);
 	}
-	if(!can_attack_expensive_checks(state, source, target)) {
-		return false;
+	if(!can_attack_expensive_checks<VALIDATE>(state, source, target)) {
+		return assertive_identity<VALIDATE>(false);
 	}
 	if(overlord) {
-		if(!can_attack_internal(state, source, overlord)) {
-			return false;
+		if(!can_attack_internal<VALIDATE>(state, source, overlord)) {
+			return assertive_identity<VALIDATE>(false);
 		}
-		if(!can_attack_expensive_checks(state, source, overlord)) {
-			return false;
+		if(!can_attack_expensive_checks<VALIDATE>(state, source, overlord)) {
+			return assertive_identity<VALIDATE>(false);
 		}
 	}
 
 	// anti player bias
 	if(state.world.nation_get_is_player_controlled(source) && state.world.nation_get_diplomatic_points(source) < state.defines.declarewar_diplomatic_cost)
-		return false;
+		return assertive_identity<VALIDATE>(false);
 
 	// have to check only against target
-	if(!military::can_use_cb_against(state, source, target))
-		return false;
+	if(!military::can_use_cb_against<VALIDATE>(state, source, target))
+		return assertive_identity<VALIDATE>(false);
 
 	return true;
 }
+template bool can_attack<true>(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+template bool can_attack<false>(sys::state& state, dcon::nation_id source, dcon::nation_id target);
+
 
 } // namespace military

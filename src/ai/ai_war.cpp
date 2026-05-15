@@ -274,11 +274,15 @@ float utility_of_state(
 float utility_of_nation(
 	sys::state& state,
 	dcon::nation_id potential_owner,
-	dcon::nation_id target
+	dcon::nation_id target,
+	bool autonomy
 ) {
-	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(potential_owner));
-
 	auto total = state.world.nation_get_demographics(target, demographics::total);
+	if(autonomy) {
+		return total * 0.9f;
+	}
+
+	auto primary_key = demographics::to_key(state, state.world.nation_get_primary_culture(potential_owner));
 	auto primary = state.world.nation_get_demographics(target, primary_key);
 
 	auto base_utility = total * BASE_EFFICIENCY + primary * PRIMARY_EFFICIENCY;	
@@ -636,6 +640,13 @@ void prepare_list_of_targets_for_cb(
 
 	auto actual_cb_victim = target;
 
+	auto puppet = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_make_puppet) != 0;
+	auto annex = (state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_annex) != 0;
+
+	if(puppet) {
+		auto trap_value = 1;
+	}
+
 	if(substate_trigger) {
 		if(!state.world.nation_get_is_substate(target))
 			return;
@@ -688,7 +699,7 @@ void prepare_list_of_targets_for_cb(
 	// we don't care about declaration of war if we are already in war
 	auto utility_of_war = 0.f;
 	if(!war) {
-		utility_of_war = utility_of_offensive_war(state, attacker, target);
+		utility_of_war = utility_of_offensive_war(state, attacker, target) + utility_of_war;
 	}
 
 	if(!nation_trigger && state_instance_trigger) {		
@@ -703,6 +714,48 @@ void prepare_list_of_targets_for_cb(
 			state, result, attacker, attacker_strength, target, defender_strength, cb, substate_trigger, war
 		);
 		return;
+	}
+
+
+	if(
+		puppet || annex
+	) {
+		if (nation_trigger) {
+			auto nation_trigger_result = trigger::evaluate(
+				state,
+				nation_trigger,
+				trigger::to_generic(target),
+				trigger::to_generic(attacker),
+				trigger::to_generic(target)
+			);
+
+			if(!nation_trigger_result) {
+				return;
+			}
+		}
+
+		auto utility = ai::utility_of_nation(state, attacker, target, puppet) * probability_to_win_war;
+		auto duplicated = military::war_goal_would_be_duplicate(
+			state,
+			attacker,
+			war,
+			target,
+			cb,
+			dcon::state_definition_id { },
+			dcon::national_identity_id { },
+			dcon::nation_id { }
+		);
+		if(duplicated) {
+			return;
+		}
+		result.push_back(possible_cb{
+			target,
+			dcon::nation_id{},
+			dcon::national_identity_id { },
+			dcon::state_definition_id { },
+			cb,
+			utility
+		});
 	}
 
 	if(nation_trigger) {
@@ -741,7 +794,21 @@ void prepare_list_of_targets_for_cb(
 			if(liberate) {
 				if(state_instance_trigger && !transfer_all_states) {
 					for(auto soid : state.world.nation_get_state_ownership(target)) {
-						auto sid = soid.get_state().id;
+						auto fat_sid = soid.get_state();
+						auto sid = fat_sid.id;
+		
+						auto skip = !trigger::evaluate(
+							state,
+							state_instance_trigger,
+							trigger::to_generic(sid),
+							trigger::to_generic(attacker),
+							trigger::to_generic(liberated)
+						);
+
+						if(skip) {
+							continue;
+						}
+
 						auto probability = probability_of_conquering_state(
 							state, attacker, attacker_strength, sid, defender_strength
 						);
@@ -755,6 +822,10 @@ void prepare_list_of_targets_for_cb(
 							continue;
 						}
 
+						assert(military::cb_instance_conditions_satisfied<true>(
+							state, attacker, target, cb, state.world.state_instance_get_definition(sid),
+							liberated.get_identity_from_identity_holder(), dcon::nation_id{}
+						));
 						assert(military::cb_conditions_satisfied(state, attacker, target, cb));
 
 						auto duplicated = military::war_goal_would_be_duplicate(
@@ -782,6 +853,10 @@ void prepare_list_of_targets_for_cb(
 						});
 					}
 				} else {
+					assert(military::cb_instance_conditions_satisfied<true>(
+						state, attacker, target, cb, dcon::state_definition_id{},
+						liberated.get_identity_from_identity_holder(), dcon::nation_id{}
+					));
 					assert(military::cb_conditions_satisfied(state, attacker, target, cb));
 
 					auto expectation = utility_of_states_trigger(state, target, liberated, state_instance_trigger)
@@ -835,6 +910,10 @@ void prepare_list_of_targets_for_cb(
 							continue;
 						}
 
+						assert(military::cb_instance_conditions_satisfied<true>(
+							state, attacker, target, cb, state.world.state_instance_get_definition(sid),
+							dcon::national_identity_id{}, liberated
+						));
 						assert(military::cb_conditions_satisfied(state, attacker, target, cb));
 
 						auto duplicated = military::war_goal_would_be_duplicate(
@@ -862,6 +941,10 @@ void prepare_list_of_targets_for_cb(
 						});
 					}
 				} else {
+					assert(military::cb_instance_conditions_satisfied<true>(
+						state, attacker, target, cb, dcon::state_definition_id{},
+						dcon::national_identity_id{}, liberated
+					));
 					assert(military::cb_conditions_satisfied(state, attacker, target, cb));
 
 					auto expectation = utility_of_states_trigger(state, target, liberated, state_instance_trigger)
@@ -920,7 +1003,26 @@ void prepare_list_of_targets_for_cb(
 	);
 	
 	if(!duplicated && probability_to_win_war > 0.5f) {
-		result.push_back(possible_cb{ target, dcon::nation_id{}, dcon::national_identity_id{}, dcon::state_definition_id{}, cb, 1.f });
+		// simple heuristic:
+
+		auto utility = 1.f;
+
+		if((state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_unequal_treaty) != 0) {
+			// really good in mods
+			utility *= 10.f; 
+		}
+
+		if((state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_add_to_sphere) != 0) {
+			// just awful
+			utility /= 10.f; 
+		}
+
+		if((state.world.cb_type_get_type_bits(cb) & military::cb_flag::po_reparations) != 0) {
+			// good enough
+			utility *= 2.f; 
+		}
+
+		result.push_back(possible_cb{ target, dcon::nation_id{}, dcon::national_identity_id{}, dcon::state_definition_id{}, cb, utility });
 	}
 	return;
 }
@@ -953,7 +1055,7 @@ void update_crisis_leaders(sys::state& state) {
 		}
 
 		if(will_propose_peace) {
-			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory));
+			assert(command::can_start_crisis_peace_offer<true>(state, state.primary_crisis_attacker, defender_victory));
 			command::execute_start_crisis_peace_offer(state, state.primary_crisis_attacker, defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_attacker);
 
@@ -962,6 +1064,34 @@ void update_crisis_leaders(sys::state& state) {
 				if(!swg.cb) {
 					break;
 				}
+
+				bool skip = false;
+
+				// ensure no duplicates:
+				for(auto item : state.world.peace_offer_get_peace_offer_item(pending)) {
+					auto wg = item.get_wargoal();
+					if(
+						swg.added_by == wg.get_added_by()
+						&& swg.state == wg.get_associated_state()
+						&& swg.wg_tag == wg.get_associated_tag()
+						&& swg.secondary_nation == wg.get_secondary_nation()
+						&& swg.target_nation == wg.get_target_nation()
+						&& swg.cb == wg.get_type()
+					) {
+						skip = true;
+					}
+				}
+
+				if(skip) {
+					continue;
+				}
+				
+				assert(
+					command::can_add_to_crisis_peace_offer<true>(
+						state, state.primary_crisis_attacker, swg.added_by, swg.target_nation,
+						swg.cb, swg.state, swg.wg_tag, swg.secondary_nation
+					)
+				);
 				auto wg = fatten(state.world, state.world.create_wargoal());
 				wg.set_peace_offer_from_peace_offer_item(pending);
 				wg.set_added_by(swg.added_by);
@@ -970,13 +1100,11 @@ void update_crisis_leaders(sys::state& state) {
 				wg.set_secondary_nation(swg.secondary_nation);
 				wg.set_target_nation(swg.target_nation);
 				wg.set_type(swg.cb);
-				assert(command::can_add_to_crisis_peace_offer(state, state.primary_crisis_attacker, swg.added_by, swg.target_nation,
-					swg.cb, swg.state, swg.wg_tag, swg.secondary_nation));
 			}
 			assert(command::can_send_crisis_peace_offer(state, state.primary_crisis_attacker));
 			command::execute_send_crisis_peace_offer(state, state.primary_crisis_attacker);
 		} else if(state.world.nation_get_is_player_controlled(state.primary_crisis_defender) == false && any_victory) {
-			assert(command::can_start_crisis_peace_offer(state, state.primary_crisis_defender, !defender_victory));
+			assert(command::can_start_crisis_peace_offer<true>(state, state.primary_crisis_defender, !defender_victory));
 			command::execute_start_crisis_peace_offer(state, state.primary_crisis_defender, !defender_victory);
 			auto pending = state.world.nation_get_peace_offer_from_pending_peace_offer(state.primary_crisis_defender);
 
@@ -985,7 +1113,27 @@ void update_crisis_leaders(sys::state& state) {
 				if(!swg.cb) {
 					break;
 				}
-				assert(command::can_add_to_crisis_peace_offer(state, state.primary_crisis_defender, swg.added_by, swg.target_nation,
+
+				bool skip = false;
+				// ensure no duplicates:
+				for(auto item : state.world.peace_offer_get_peace_offer_item(pending)) {
+					auto wg = item.get_wargoal();
+					if(
+						swg.added_by == wg.get_added_by()
+						&& swg.state == wg.get_associated_state()
+						&& swg.wg_tag == wg.get_associated_tag()
+						&& swg.secondary_nation == wg.get_secondary_nation()
+						&& swg.target_nation == wg.get_target_nation()
+						&& swg.cb == wg.get_type()
+					) {
+						skip = true;
+					}
+				}
+				if(skip) {
+					continue;
+				}
+
+				assert(command::can_add_to_crisis_peace_offer<true>(state, state.primary_crisis_defender, swg.added_by, swg.target_nation,
 					swg.cb, swg.state, swg.wg_tag, swg.secondary_nation));
 				auto wg = fatten(state.world, state.world.create_wargoal());
 				wg.set_peace_offer_from_peace_offer_item(pending);
@@ -1040,7 +1188,7 @@ void update_crisis_leaders(sys::state& state) {
 							std::vector <ai::possible_cb> potential_states;
 							prepare_list_of_targets_for_cb(state, potential_states, par.id, target, offer_cb, dcon::war_id{ });
 							for(auto s : potential_states) {
-								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
+								if(military::cb_instance_conditions_satisfied<false>(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
 									diplomatic_message::message m;
 									memset(&m, 0, sizeof(diplomatic_message::message));
 									m.to = par.id;
@@ -1113,7 +1261,7 @@ void update_crisis_leaders(sys::state& state) {
 							std::vector <ai::possible_cb> potential_states;
 							prepare_list_of_targets_for_cb(state, potential_states, par.id, target, offer_cb, dcon::war_id{ });
 							for(auto s : potential_states) {
-								if(military::cb_instance_conditions_satisfied(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
+								if(military::cb_instance_conditions_satisfied<false>(state, par.id, target, offer_cb, s.state_def, dcon::national_identity_id{}, dcon::nation_id{})) {
 
 									diplomatic_message::message m;
 									memset(&m, 0, sizeof(diplomatic_message::message));
@@ -1282,7 +1430,7 @@ void update_war_intervention(sys::state& state) {
 					if(w.get_is_great()) {
 						if(command::can_intervene_in_war(state, gp.nation, w, false)) {
 							for(auto par : w.get_war_participant()) {
-								if(par.get_is_attacker() && military::can_use_cb_against(state, gp.nation, par.get_nation())) {
+								if(par.get_is_attacker() && military::can_use_cb_against<false>(state, gp.nation, par.get_nation())) {
 									intervention_target = w;
 									return;
 								}
@@ -1290,7 +1438,7 @@ void update_war_intervention(sys::state& state) {
 						}
 						if(command::can_intervene_in_war(state, gp.nation, w, true)) {
 							for(auto par : w.get_war_participant()) {
-								if(!par.get_is_attacker() && military::can_use_cb_against(state, gp.nation, par.get_nation())) {
+								if(!par.get_is_attacker() && military::can_use_cb_against<false>(state, gp.nation, par.get_nation())) {
 									intervention_target = w;
 									as_attacker = true;
 									return;
@@ -1320,11 +1468,22 @@ void sort_possible_justification_cbs(std::vector<possible_cb>& result, sys::stat
 	// AI can go after po_demand_state and po_annex and po_transfer_provinces
 	for(auto cb : state.world.in_cb_type) {
 		auto bits = state.world.cb_type_get_type_bits(cb);
-		if((bits & (military::cb_flag::po_demand_state | military::cb_flag::po_annex | military::cb_flag::po_transfer_provinces)) == 0)
+
+		auto allowed_bits =
+			military::cb_flag::po_demand_state
+			| military::cb_flag::po_annex
+			| military::cb_flag::po_transfer_provinces
+			| military::cb_flag::po_make_puppet
+			| military::cb_flag::po_reparations
+			| military::cb_flag::po_unequal_treaty;
+
+		if((bits & allowed_bits) == 0) {
 			continue;
+		}
 
 		if(!military::cb_conditions_satisfied(state, n, target, cb))
 			continue;
+
 		auto sl = state.world.nation_get_in_sphere_of(target);
 		if(sl == n)
 			continue;
@@ -1425,12 +1584,14 @@ void update_cb_fabrication(sys::state& state) {
 			if(n.get_constructing_cb_type())
 				continue;
 			auto ol = n.get_overlord_as_subject().get_ruler().id;
-			if(n.get_ai_rival()
+			if(
+				n.get_ai_rival()
 				&& n.get_ai_rival().get_in_sphere_of() != n
 				&& (!ol || ol == n.get_ai_rival())
 				&& !military::are_at_war(state, n, n.get_ai_rival())
-				&& !military::can_use_cb_against(state, n, n.get_ai_rival())
-				&& !military::has_truce_with(state, n, n.get_ai_rival())) {
+				&& !military::can_use_cb_against<false>(state, n, n.get_ai_rival())
+				&& !military::has_truce_with(state, n, n.get_ai_rival())
+			) {
 
 				auto cb = pick_fabrication_type(state, n, n.get_ai_rival());
 				if(cb.cb) {
@@ -1521,7 +1682,7 @@ bool will_join_war(sys::state& state, dcon::nation_id n, dcon::war_id w, bool as
 	for(auto par : state.world.war_get_war_participant(w)) {
 		if(par.get_is_attacker() == !as_attacker) {
 			// Could use a CB against this nation?
-			if(military::can_use_cb_against(state, n, par.get_nation()))
+			if(military::can_use_cb_against<false>(state, n, par.get_nation()))
 				return true;
 			// Eager to absolutely demolish our rival if possible
 			if(state.world.nation_get_ai_rival(n) == par.get_nation())
@@ -2036,7 +2197,7 @@ void make_war_decs(sys::state& state) {
 			return;
 
 		// is it possible?
-		if(!military::can_attack(state, n))
+		if(!military::can_attack<false>(state, n))
 			return;		
 
 		// is it desirable?		
@@ -2060,7 +2221,7 @@ void make_war_decs(sys::state& state) {
 				}
 
 				// is it possible?
-				if(!military::can_attack_ai(state, n, target))
+				if(!military::can_attack_ai<false>(state, n, target))
 					continue;
 
 				// is it desirable?
@@ -2095,7 +2256,7 @@ void make_war_decs(sys::state& state) {
 		for(auto adj : state.world.nation_get_nation_adjacency(n)) {
 			auto other = adj.get_connected_nations(0) != n ? adj.get_connected_nations(0) : adj.get_connected_nations(1);
 			auto real_target = other.get_overlord_as_subject().get_ruler() ? other.get_overlord_as_subject().get_ruler() : other;
-			if(!military::can_attack_ai(state, n, other))
+			if(!military::can_attack_ai<false>(state, n, other))
 				continue;
 			
 			if(!state.world.get_nation_adjacency_by_nation_adjacency_pair(n, other) && !does_have_naval_supremacy(state, n, other))
@@ -2113,7 +2274,7 @@ void make_war_decs(sys::state& state) {
 				auto reduced_value = rng::reduce(uint32_t(rvalue), state.world.nation_size());
 				dcon::nation_id other{ dcon::nation_id::value_base_t(reduced_value) };
 				auto real_target = fatten(state.world, other).get_overlord_as_subject().get_ruler() ? fatten(state.world, other).get_overlord_as_subject().get_ruler() : fatten(state.world, other);
-				if(!military::can_attack_ai(state, n, other))
+				if(!military::can_attack_ai<false>(state, n, other))
 					continue;
 
 				// do not even try
@@ -2136,7 +2297,7 @@ void make_war_decs(sys::state& state) {
 			static std::vector<possible_cb> potential;
 			sort_available_declaration_cbs(potential, state, n, targets.get(n));
 			if(!potential.empty()) {
-				assert(command::can_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation));
+				assert(command::can_declare_war<true>(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation));
 				command::execute_declare_war(state, n, targets.get(n), potential[0].cb, potential[0].state_def, potential[0].associated_tag, potential[0].secondary_nation, true, false);
 			}
 		}

@@ -1257,8 +1257,12 @@ void update_research_points(sys::state& state) {
 				ve::select(total_priority_private > 0.f, private_p / total_priority_private, 0.f);
 
 			auto exp = state.world.nation_get_factory_type_experience(ids, factory_type_id);
-
-			state.world.nation_set_factory_type_experience(ids, factory_type_id, (exp * 0.999f) + (priority * amount));
+			auto next_value = (exp * 0.999f) + (priority * amount);
+#ifndef NDEBUG
+			ve::apply([](float value){ assert(std::isfinite(value)); }, next_value);
+#endif // !NDEBUG
+			// account for negative research points with max
+			state.world.nation_set_factory_type_experience(ids, factory_type_id, ve::max(0.f, next_value));
 		});
 	});
 }
@@ -1964,10 +1968,10 @@ void update_monthly_points(sys::state& state) {
 	for(auto an : state.world.in_nation_adjacency) {
 		if(an.get_connected_nations(0).get_is_at_war() == false && an.get_connected_nations(1).get_is_at_war() == false)
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), 0.05f);
-		if(military::can_use_cb_against(state, an.get_connected_nations(0), an.get_connected_nations(1))) {
+		if(military::can_use_cb_against<false>(state, an.get_connected_nations(0), an.get_connected_nations(1))) {
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
 		}
-		if(military::can_use_cb_against(state, an.get_connected_nations(1), an.get_connected_nations(0))) {
+		if(military::can_use_cb_against<false>(state, an.get_connected_nations(1), an.get_connected_nations(0))) {
 			monthly_adjust_relationship(state, an.get_connected_nations(0), an.get_connected_nations(1), -0.15f);
 		}
 	}
@@ -3033,7 +3037,7 @@ void monthly_flashpoint_update(sys::state& state) {
 			for(auto actor : state.world.in_nation) {
 				auto owned = actor.get_province_ownership();
 				if(actor != target && owned.begin() != owned.end()) {
-					if(military::can_use_cb_against(state, actor, target)) {
+					if(military::can_use_cb_against<false>(state, actor, target)) {
 						target.set_is_target_of_some_cb(true);
 						break;
 					}

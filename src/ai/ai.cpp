@@ -822,9 +822,10 @@ void pickup_idle_ships(sys::state& state) {
 					send_fleet_home(state, n);
 				} else {
 					auto transported_dest = (*(transporting_range.begin())).get_army().get_ai_province();
+					if(!transported_dest) {
+						send_fleet_home(state, n);
+					} else if(transported_dest.get_is_coast()) { // move to closest port or closest off_shore
 
-					// move to closest port or closest off_shore
-					if(transported_dest.get_is_coast()) {
 						auto target_prov = transported_dest.id;
 						if(!province::has_naval_access_to_province(state, owner, target_prov)) {
 							target_prov = state.world.province_get_port_to(target_prov);
@@ -837,7 +838,6 @@ void pickup_idle_ships(sys::state& state) {
 							military::stop_navy_movement(state, n);
 							send_fleet_home(state, n);
 						}
-
 					} else if(auto path = province::make_path_to_nearest_coast(state, owner, transported_dest); path.empty()) {
 						send_fleet_home(state, n);
 					} else {
