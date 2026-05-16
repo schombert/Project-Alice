@@ -2869,7 +2869,7 @@ void display_data::update_sprawl(sys::state& state) {
 				//N = 5;
 			//}
 
-			square::tangent start { settlement.first / size, { 0.f, 1.f } };
+			square::tangent start { { settlement.first / size }, { 0.f, 1.f } };
 
 			int N = 10;
 			for(int layer = 0; layer >= ((center == 0 && is_capital) ? -1 : 0); layer--) {

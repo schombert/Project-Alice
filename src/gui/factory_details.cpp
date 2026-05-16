@@ -418,7 +418,7 @@ void  factory_details_main_inputs_row_t::update(sys::state& state, layout_window
 	factory_details_main_t& main = *((factory_details_main_t*)(parent)); 
 // BEGIN main::inputs_row::update
 	values.clear();
-	for(int i = 0; i < economy::commodity_set::set_size; i++) {
+	for(uint32_t i = 0; i < economy::commodity_set::set_size; i++) {
 		auto& value = main.last_explanation.primary_inputs;
 		if (!value.commodity_type[i]) break;
 		add_commodity_row(value.commodity_type[i], value.commodity_actual_amount[i], value.efficient_ratio[i], value.commodity_price[i]);
