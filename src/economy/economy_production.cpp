@@ -141,7 +141,7 @@ inline constexpr float free_efficiency = 0.3f;
 template<typename NATIONS, typename PROV>
 auto max_rgo_efficiency(sys::state& state, NATIONS n, PROV p, dcon::commodity_id c) {
 	using VALUE = adaptive_ve::convert_to_float<NATIONS>;
-	using MASK = adaptive_ve::convert_to_bool<NATIONS>;
+	//using MASK = adaptive_ve::convert_to_bool<NATIONS>;
 
 	auto is_mine = state.world.commodity_get_is_mine(c);
 
