@@ -2749,6 +2749,17 @@ void add_to_war(sys::state& state, dcon::war_id w, dcon::nation_id n, bool as_at
 	if(state.world.nation_get_owned_province_count(n) == 0)
 		return;
 
+	auto already_at_war = false;
+
+	state.world.nation_for_each_war_participant(n, [&](auto participant){
+		if (state.world.war_participant_get_war(participant) == w) {
+			already_at_war = true;
+		}
+	});
+
+	if (already_at_war)
+		return;
+
 	state.trade_route_cached_values_out_of_date = true;
 
 	auto participant = state.world.force_create_war_participant(w, n);
@@ -3434,6 +3445,10 @@ void implement_war_goal(sys::state& state, dcon::war_id war, dcon::cb_type_id wa
 		if(state.world.nation_get_owned_province_count(target) > 0) {
 			nations::make_vassal(state, target, from);
 			take_from_sphere(state, target, from);
+		}
+
+		for(auto war_participant : state.world.nation_get_war_participant(target)) {
+			military::add_to_war(state, war_participant.get_war(), from, war_participant.get_is_attacker());
 		}
 	}
 
