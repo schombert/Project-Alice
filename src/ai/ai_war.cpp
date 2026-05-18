@@ -1469,6 +1469,9 @@ void sort_possible_justification_cbs(std::vector<possible_cb>& result, sys::stat
 	for(auto cb : state.world.in_cb_type) {
 		auto bits = state.world.cb_type_get_type_bits(cb);
 
+		if((bits & military::cb_flag::always) == 0 && (bits & military::cb_flag::is_not_constructing_cb) != 0)
+			continue;
+
 		auto allowed_bits =
 			military::cb_flag::po_demand_state
 			| military::cb_flag::po_annex
