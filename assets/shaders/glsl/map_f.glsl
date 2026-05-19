@@ -24,6 +24,7 @@ uniform uint graphics_mode;
 // location 0 : offset
 // location 1 : zoom
 // location 2 : screen_size
+uniform float zoom;
 uniform vec2 map_size;
 uniform vec2 screen_size;
 uniform float time;
@@ -188,6 +189,91 @@ vec4 get_land_terrain() {
 	return get_terrain_mix();
 }
 
+// if we display data, ignore pretty effects
+vec4 get_land_data_modern() {
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;
+	return vec4(texture(province_color, vec3(prov_id, 0.)).rgb * 0.9f, 1.f);
+}
+
+float smootherstep(float x) {
+	x = clamp(x, 0.f, 1.f);
+	return x * x * x * (x * (6.0f * x - 15.0f) + 10.0f);
+}
+
+vec4 get_land_political_modern() {
+	vec4 terrain = get_terrain_mix();
+	float is_land = terrain.a;
+	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+	float grey = dot( terrain.rgb, GREYIFY );
+
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;
+	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
+
+	float to_national_border = smootherstep(sqrt(province_sample.z));
+	
+	vec4 stripe_color = texture(province_color, vec3(prov_id, 1.));
+	vec2 stripe_coord = tex_coord * vec2(512., 512. * map_size.y / map_size.x);
+
+	float stripeFactor = texture(stripes_texture, stripe_coord).a;
+	float prov_highlight = texture(province_highlight, prov_id).r * (abs(cos(time * 3.f)) + 1.f);
+	vec3 political = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
+
+	vec4 OutColor = vec4(0.5f, 0.5f, 0.5f, is_land);
+
+	float sum_of_prov_colors = dot(prov_color, vec4(1.f, 1.f, 1.f, 0.f));
+	bool is_colonised = true;
+	if (sum_of_prov_colors > 2.99f) {
+		is_colonised = false;
+	}
+
+	if (is_colonised) {
+		OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political, 0.3f + 0.5f / zoom + (1.f - to_national_border) * 0.7f);
+		OutColor.rgb -= (1.f - to_national_border) * 0.1f;
+	} else {
+		OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.2f;
+	}
+
+	OutColor.rgb *= texture(province_fow, prov_id).rgb * (to_national_border * 0.3f + 0.7f);
+
+	return OutColor;
+}
+
+
+vec4 get_land_political_paper() {
+	vec2 uv = tex_coord * 300.f;
+
+	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
+	vec2 prov_id = province_sample.xy;	
+	float to_national_border = province_sample.z;
+	vec4 hatching = texture(hatching, uv / 2.f);
+
+	vec4 prov_highlight = vec4(1.f, 1.f, 1.f, 1.f);
+	float highlight = texture(province_highlight, prov_id).r;
+
+	if (highlight > 0.f) {
+		prov_highlight = vec4(hatching.rgb * 0.2f * (hatching.a) + 0.5f * (1.f - hatching.a), 1.f);
+	}
+
+	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
+
+	vec4 base_color = vec4(1.f, 247.f / 255.f, 240.f / 255.f, 1.f);
+	float wc_base = texture(watercolor, uv).b;
+	float gradient = 1.f;
+	if (int(graphics_mode) == 2) {
+		gradient = (0.7f + sqrt(to_national_border) * 0.3f);
+	}
+	float wc_texture = max(0.f, wc_base * wc_base * wc_base) * gradient;
+	vec4 mixed_color = prov_color * (1.f - wc_texture) + base_color * wc_texture;
+
+	vec4 terrain = get_terrain_mix();
+	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
+	float grey = dot( terrain.rgb, GREYIFY ) * 2.f;
+	float is_land = terrain.a;
+	return mixed_color * prov_highlight * is_land + texture(watercolor, uv) * gradient * (1 - is_land);
+}
+
 vec4 get_land_political_close() {
 	vec4 terrain = get_terrain_mix();
 	float is_land = terrain.a;
@@ -229,37 +315,10 @@ vec4 get_land_political_close() {
 	political *= texture(province_fow, prov_id).rgb;
 	political = political - 0.7;
 
-	// vec4 OverlayColor = texture(overlay, tex_coord * vec2(11., 11.*map_size.y/map_size.x));
-	vec3 OutColor;
-	OutColor.r = 0.5;
-	OutColor.g = 0.5;
-	OutColor.b = 0.5;
-
-	vec3 background = texture(colormap_political, get_corrected_coords(tex_coord)).rgb;
-
 	// Mix together the terrain and map mode color
-	if (int(graphics_mode) == 2) {
-		// if we display data, ignore pretty effects
-		if (map_mode_is_data == 0) {
-			terrain.rgb = mix(terrain.rgb, political, 0.2f + (1.f - to_national_border) * 0.3f);
-			if (is_colonised) {
-				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
-				OutColor.rgb *= 1.05;
-			} else {
-				OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.1f;
-			}
-			terrain.rgb = OutColor.rgb;
-		} else {
-			vec3 province_raw = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
-			terrain.rgb = (province_raw * 0.9f) * 0.85f + grey * 0.15f;
-		}
-	} else {
-		terrain.rgb = mix(vec3(grey), political, 0.3f);
-		terrain.rgb *= 1.5;
-	}
+	terrain.rgb = mix(vec3(grey), political, 0.3f);
+	terrain.rgb *= 1.5;
 
-	//terrain.rgb += vec3((test * 255) == id);
-	//terrain.r += ((abs(rel_coord.y) + abs(rel_coord.x)) > 0.5 ? 6 : 0) * 0.3;
 	return terrain;
 }
 
@@ -306,10 +365,10 @@ vec4 get_land_political_far() {
 	if (int(graphics_mode) == 2) {
 		if (map_mode_is_data == 0) {
 			if (is_colonised) {
-				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.5, 0.2f + (1.f - to_national_border) * 0.4f);
+				OutColor.rgb = mix((grey + terrain.rgb) / 2.f, political + 0.7, 0.5f + (1.f - to_national_border) * 0.5f);
 				OutColor.rgb *= 1.05;
 			} else {
-				OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.1f;
+				OutColor.rgb = (grey * 2.f + terrain.rgb) / 3.f + 0.2f;
 			}
 		} else {
 			vec3 political_raw = clamp(mix(prov_color, stripe_color, stripeFactor) + vec4(prov_highlight), 0.0, 1.0).rgb;
@@ -326,37 +385,15 @@ vec4 get_land_political_far() {
 }
 
 vec4 get_land() {
-	/*
 
-	vec2 uv = tex_coord * 300.f;
-
-	vec4 province_sample = texture(provinces_texture_sampler, gl_FragCoord.xy / screen_size);
-	vec2 prov_id = province_sample.xy;	
-	float to_national_border = province_sample.z;
-	vec4 hatching = texture(hatching, uv / 2.f);
-
-	vec4 prov_highlight = vec4(1.f, 1.f, 1.f, 1.f);
-	float highlight = texture(province_highlight, prov_id).r;
-
-	if (highlight > 0.f) {
-		prov_highlight = vec4(hatching.rgb * 0.2f * (hatching.a) + 0.5f * (1.f - hatching.a), 1.f);
+	if (int(graphics_mode) == 2) {
+		if (map_mode_is_data == 0) {
+			return get_land_political_modern();
+		} else {
+			return get_land_data_modern();
+		}
+		return get_land_political_far();
 	}
-
-	vec4 prov_color = texture(province_color, vec3(prov_id, 0.));
-
-	vec4 base_color = vec4(1.f, 247.f / 255.f, 240.f / 255.f, 1.f);
-	float wc_base = texture(watercolor, uv).b;
-	float gradient = (0.7f + sqrt(to_national_border) * 0.3f);
-	float wc_texture = max(0.f, wc_base * wc_base * wc_base) * gradient;
-	vec4 mixed_color = prov_color * (1.f - wc_texture) + base_color * wc_texture;
-
-	vec4 terrain = get_terrain_mix();
-	const vec3 GREYIFY = vec3( 0.212671, 0.715160, 0.072169 );
-	float grey = dot( terrain.rgb, GREYIFY ) * 2.f;
-	float is_land = terrain.a;
-	return mixed_color * prov_highlight * is_land + texture(watercolor, uv) * gradient * (1 - is_land);
-
-	*/
 
 	if (int(graphics_mode) == 0) {
 		return get_land_political_far();

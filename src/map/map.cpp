@@ -804,6 +804,9 @@ void display_data::render(
 
 	float pixel_size = (screen_size.y) / float(size_y) * zoom;
 
+	auto scale_borders = std::clamp(2.f / pixel_size, 1.f, 4.f);
+
+
 	// BORDERS TO FIX HUGE PIXELS
 	if(state.user_settings.graphics_mode != sys::graphics_mode::ugly && pixel_size > 2.f) {
 		load_shader(shader_borders_provinces);
@@ -1079,7 +1082,7 @@ void display_data::render(
 			}
 			// impassible borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0002f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0006f); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_imp_border]);
 				for(auto b : borders) {
@@ -1093,7 +1096,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0001f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_national_border]);
 				for(auto b : borders) {
@@ -1134,7 +1137,7 @@ void display_data::render(
 			}
 			// national borders
 			{
-				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.0003f); // width
+				glUniform1f(shader_uniforms[shader_borders][uniform_width], 0.00015f * scale_borders); // width
 				glActiveTexture(GL_TEXTURE2);
 				glBindTexture(GL_TEXTURE_2D, textures[texture_state_border]);
 				for(auto b : borders) {
