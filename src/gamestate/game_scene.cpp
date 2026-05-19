@@ -867,7 +867,16 @@ void console_log_other(sys::state& state, std::string_view message) {
 	auto dt = state.current_date.to_ymd(state.start_date);
 	auto dtstr = std::to_string(dt.year) + "." + std::to_string(dt.month) + "." + std::to_string(dt.day);
 	msg = "" + std::string(state.network_state.nickname.to_string_view()) + "|" + dtstr + "| " + msg;
+#ifndef NDEBUG
+#ifdef _WIN32
+	OutputDebugStringA(msg.c_str());
+	OutputDebugStringA("\n");
+#else
+	std::clog << msg + "\n";
+#endif
+#else
 	state.push_log_message(std::move(msg));
+#endif
 }
 
 
