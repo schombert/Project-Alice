@@ -3441,6 +3441,23 @@ void display_data::set_province_text_lines(sys::state& state, std::vector<text_l
 	*/
 }
 
+GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, uint32_t& size_x, uint32_t& size_y, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
+	auto file = simple_fs::open_file(dir, file_name);
+	if(!bool(file)) {
+		auto full_message = std::string("Can't load DDS file ") + simple_fs::native_to_utf8(file_name) + "\n";
+#ifdef _WIN64
+		OutputDebugStringA(full_message.c_str());
+#else
+		std::fprintf(stderr, "%s", full_message.c_str());
+#endif
+		return 0;
+	}
+	auto content = simple_fs::view_contents(*file);
+	//uint32_t size_x, size_y;
+	uint8_t const* data = (uint8_t const*)(content.data);
+	return ogl::SOIL_direct_load_DDS_from_memory(data, content.file_size, size_x, size_y, soil_flags);
+}
+
 GLuint load_dds_texture(simple_fs::directory const& dir, native_string_view file_name, int soil_flags = ogl::SOIL_FLAG_TEXTURE_REPEATS) {
 	auto file = simple_fs::open_file(dir, file_name);
 	if(!bool(file)) {
@@ -3786,8 +3803,162 @@ void display_data::load_map(sys::state& state) {
 
 	if(texturesheet) {
 		if (simple_fs::get_full_name(texturesheet.value()).ends_with(NATIVE("dds"))) {
-			texture_arrays[texture_array_terrainsheet] = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"));
-			texturesheet_is_dds = true;
+
+			// cut the texture into 64 parts
+			uint32_t dds_size_x;
+			uint32_t dds_size_y;
+			int32_t tiles = 8;
+			auto dds_texture = load_dds_texture(map_terrain_dir, NATIVE("texturesheet.dds"), dds_size_x, dds_size_y);
+			size_t p_dx = dds_size_x / tiles; // Pixels of each tile in x
+			size_t p_dy = dds_size_y / tiles; // Pixels of each tile in y
+
+			GLuint decoded_texture;
+			glGenTextures(1, &decoded_texture);
+			glBindTexture(GL_TEXTURE_2D, decoded_texture);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, dds_size_x, dds_size_y, 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+			GLuint decoder_framebuffer;
+			glGenFramebuffers(1, &decoder_framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, decoder_framebuffer);
+
+
+			glFramebufferTexture2D(
+				GL_DRAW_FRAMEBUFFER,
+				GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				decoded_texture,
+				0
+			);
+
+			GLenum buf[1] = {GL_COLOR_ATTACHMENT0};
+			glDrawBuffers(1, buf);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, decoder_framebuffer);
+			glViewport(0, 0, dds_size_x, dds_size_y);
+
+			auto msaa_fshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_f_shader.glsl"));
+			auto msaa_vshader = open_file(root, NATIVE("assets/shaders/glsl/msaa_v_shader.glsl"));
+			//auto vertex_content = view_contents(*msaa_vshader);
+			//auto fragment_content = view_contents(*msaa_fshader);
+			auto shader_program = create_program(*msaa_vshader, *msaa_fshader);
+			auto screen_uniform = glGetUniformLocation(shader_program, "screen_size");
+			auto blur_uniform = glGetUniformLocation(shader_program, "gaussian_radius");
+
+			glUseProgram(shader_program);
+			glUniform1f(blur_uniform, 0);
+			glUniform2f(screen_uniform, (float)dds_size_x, (float)dds_size_y);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, dds_texture);
+
+			static const float sq_vertices[] = {
+				// positions   // texCoords
+				-1.0f,  1.0f,  1.0f, 0.0f,
+				-1.0f, -1.0f,  0.0f, 0.0f,
+				1.0f, -1.0f,  0.0f, 1.0f,
+				-1.0f,  1.0f,  1.0f, 0.0f,
+				1.0f, -1.0f,  0.0f, 1.0f,
+				1.0f,  1.0f,  1.0f, 1.0f
+			};
+
+			GLuint vertex_array;
+			GLuint vertex_buffer;
+
+			glGenVertexArrays(1, &vertex_array);
+			glGenBuffers(1, &vertex_buffer);
+			glBindVertexArray(vertex_array);
+			glBindBuffer(GL_ARRAY_BUFFER, vertex_buffer);
+			glBufferData(GL_ARRAY_BUFFER, sizeof(sq_vertices), &sq_vertices, GL_STATIC_DRAW);
+			glEnableVertexAttribArray(0);
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)0);
+			glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+			glBindVertexArray(vertex_array);
+
+			glDrawArrays(GL_TRIANGLES, 0, 6);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			state.console_log(ogl::opengl_get_error_name(glGetError()));
+
+			GLuint read_framebuffer;
+			glGenFramebuffers(1, &read_framebuffer);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, read_framebuffer);
+			glBindTexture(GL_TEXTURE_2D, decoded_texture);
+			glFramebufferTexture2D(
+				GL_READ_FRAMEBUFFER,
+				GL_COLOR_ATTACHMENT0,
+				GL_TEXTURE_2D,
+				decoded_texture,
+				0
+			);
+
+			GLuint write_framebuffer;
+			glGenFramebuffers(1, &write_framebuffer);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, write_framebuffer);
+
+			auto& target_texture = texture_arrays[texture_array_terrainsheet];
+			glGenTextures(1, &target_texture);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, target_texture);
+
+			glTexImage3D(GL_TEXTURE_2D_ARRAY, 0, GL_RGBA, GLsizei(p_dx), GLsizei(p_dy), GLsizei(tiles * tiles), 0, GL_RGBA, GL_UNSIGNED_BYTE, NULL);
+
+
+			for(int32_t x = 0; x < tiles; x++) {
+				for(int32_t y = 0; y < tiles; y++) {
+					glFramebufferTextureLayer(
+						GL_DRAW_FRAMEBUFFER,
+						GL_COLOR_ATTACHMENT0,
+						target_texture,
+						0,
+						GLint(x * tiles + y)
+					);
+
+					glBlitFramebuffer(
+						// SOURCE
+						x * (GLint)p_dx,
+						y * (GLint)p_dy,
+						(x + 1) * (GLint)p_dx,
+						(y + 1) * (GLint)p_dy,
+						// TARGET
+						(GLint)0,
+						(GLint)0,
+						(GLint)p_dx,
+						(GLint)p_dy,
+						// WHAT TO COPY
+						GL_COLOR_BUFFER_BIT,
+						// HOW TO COPY
+						GL_NEAREST
+					);
+				}
+			}
+
+			glGenerateMipmap(GL_TEXTURE_2D_ARRAY);
+			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			glBindTexture(GL_TEXTURE_2D_ARRAY, 0);
+			glBindTexture(GL_TEXTURE_2D, 0);
+
+			glDeleteFramebuffers(1, &read_framebuffer);
+			glDeleteFramebuffers(1, &write_framebuffer);
+			glDeleteFramebuffers(1, &decoder_framebuffer);
+			glDeleteTextures(1, &dds_texture);
+			glDeleteTextures(1, &decoded_texture);
+
+			glDeleteVertexArrays(1, &vertex_array);
+			glDeleteBuffers(1, &vertex_buffer);
+
+
+			// no longer needed as now we treat DDS the same way as png
+			// TODO: remove related stuff from shaders
+			// texturesheet_is_dds = true;
 		} else {
 			texture_arrays[texture_array_terrainsheet] = ogl::load_texture_array_from_file(*texturesheet, 8, 8);
 		}
